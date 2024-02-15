@@ -36,7 +36,7 @@ import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Dashboard, DashboardLayoutId } from '@shared/models/dashboard.models';
-import { deepClone, guid, isDefined, isNumber, isNotEmptyStr, isObject, isString, isUndefined } from '@core/utils';
+import { deepClone, guid, isDefined, isNotEmptyStr, isNumber, isObject, isString, isUndefined } from '@core/utils';
 import { WINDOW } from '@core/services/window.service';
 import { DOCUMENT } from '@angular/common';
 import {
@@ -102,12 +102,11 @@ import { selectUserSettingsProperty } from '@core/auth/auth.selectors';
 import { ActionPreferencesPutUserSettings } from '@core/auth/auth.actions';
 import { ExportableEntity } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
+import { Borders, Column, Workbook } from 'exceljs';
+import * as moment_ from 'moment';
 
 export type editMissingAliasesFunction = (widgets: Array<Widget>, isSingleWidget: boolean,
                                           customTitle: string, missingEntityAliases: EntityAliases) => Observable<EntityAliases>;
-
-import { Borders, Column, Workbook } from 'exceljs';
-import * as moment_ from 'moment';
 
 const moment = moment_;
 
@@ -258,11 +257,10 @@ export class ImportExportService {
           const originalSize = widgetItem.originalSize;
 
           const datasourceAliases = aliasesInfo.datasourceAliases;
-          const targetDeviceAliases = aliasesInfo.targetDeviceAliases;
-          if (datasourceAliases || targetDeviceAliases) {
+          if (datasourceAliases || aliasesInfo.targetDeviceAlias) {
             const entityAliases: EntityAliases = {};
             const datasourceAliasesMap: {[aliasId: string]: number} = {};
-            const targetDeviceAliasesMap: {[aliasId: string]: number} = {};
+            let targetDeviceAliasId: string;
             let aliasId: string;
             let datasourceIndex: number;
             if (datasourceAliases) {
@@ -273,13 +271,10 @@ export class ImportExportService {
                 entityAliases[aliasId] = {id: aliasId, ...datasourceAliases[datasourceIndex]};
               }
             }
-            if (targetDeviceAliases) {
-              for (const strIndex of Object.keys(targetDeviceAliases)) {
-                datasourceIndex = Number(strIndex);
-                aliasId = this.utils.guid();
-                targetDeviceAliasesMap[aliasId] = datasourceIndex;
-                entityAliases[aliasId] = {id: aliasId, ...targetDeviceAliases[datasourceIndex]};
-              }
+            if (aliasesInfo.targetDeviceAlias) {
+              aliasId = this.utils.guid();
+              targetDeviceAliasId = aliasId;
+              entityAliases[aliasId] = {id: aliasId, ...aliasesInfo.targetDeviceAlias};
             }
             const aliasIds = Object.keys(entityAliases);
             if (aliasIds.length > 0) {
@@ -296,9 +291,8 @@ export class ImportExportService {
                             if (isDefined(datasourceAliasesMap[id])) {
                               index = datasourceAliasesMap[id];
                               datasourceAliases[index] = entityAlias;
-                            } else if (isDefined(targetDeviceAliasesMap[id])) {
-                              index = targetDeviceAliasesMap[id];
-                              targetDeviceAliases[index] = entityAlias;
+                            } else if (targetDeviceAliasId === id) {
+                              aliasesInfo.targetDeviceAlias = entityAlias;
                             }
                           }
                           return this.addImportedWidget(dashboard, targetState, targetLayoutFunction, widget,
@@ -819,7 +813,7 @@ export class ImportExportService {
     this.downloadFile(xlsData, filename, XLS_TYPE);
   }
 
-  public exportXlsx(data: { [key: string]: any }[], filename: string) {
+  public exportXlsx(data: { [key: string]: any }[], filename: string, dateFormat: string = 'yyyy-MM-dd HH:mm:ss') {
     import('exceljs').then((Excel) => {
       const workbook: Workbook = new Excel.Workbook();
       workbook.creator = 'ThingsBoard, Inc.';
@@ -834,8 +828,6 @@ export class ImportExportService {
         bottom: {style: 'thin'},
         right: {style: 'thin'}
       };
-
-      const dateFormat = 'yyyy-MM-dd HH:mm:ss';
 
       if (data && data.length) {
         const titles = Object.keys(data[0]);
@@ -858,7 +850,7 @@ export class ImportExportService {
 
         data.forEach((item) => {
           if (item.Timestamp) {
-            item.Timestamp = moment(item.Timestamp).utcOffset(0, true).toDate();
+            item.Timestamp = moment(new Date(Date.parse(item.Timestamp))).utcOffset(0, true).toDate();
           }
           sheet.addRow(item).eachCell({ includeEmpty: true }, cell => {
             cell.border = cellBorderStyle;
@@ -1136,19 +1128,15 @@ export class ImportExportService {
 
   private prepareAliasesInfo(aliasesInfo: AliasesInfo): AliasesInfo {
     const datasourceAliases = aliasesInfo.datasourceAliases;
-    const targetDeviceAliases = aliasesInfo.targetDeviceAliases;
-    if (datasourceAliases || targetDeviceAliases) {
+    if (datasourceAliases || aliasesInfo.targetDeviceAlias) {
       if (datasourceAliases) {
         for (const strIndex of Object.keys(datasourceAliases)) {
           const datasourceIndex = Number(strIndex);
           datasourceAliases[datasourceIndex] = this.prepareEntityAlias(datasourceAliases[datasourceIndex]);
         }
       }
-      if (targetDeviceAliases) {
-        for (const strIndex of Object.keys(targetDeviceAliases)) {
-          const datasourceIndex = Number(strIndex);
-          targetDeviceAliases[datasourceIndex] = this.prepareEntityAlias(targetDeviceAliases[datasourceIndex]);
-        }
+      if (aliasesInfo.targetDeviceAlias) {
+        aliasesInfo.targetDeviceAlias = this.prepareEntityAlias(aliasesInfo.targetDeviceAlias);
       }
     }
     return aliasesInfo;

@@ -30,6 +30,8 @@
  */
 package org.thingsboard.rule.engine.analytics.latest.telemetry;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -55,6 +57,7 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 
@@ -69,11 +72,15 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.DataConstants.QUEUE_NAME;
+
 @SuppressWarnings("UnstableApiUsage")
 @Slf4j
 @RuleNode(
         type = ComponentType.ANALYTICS,
         name = "aggregate latest",
+        version = 1,
+        hasQueueName = true,
         configClazz = TbAggLatestTelemetryNodeV2Configuration.class,
         nodeDescription = "Aggregates data based on incoming event",
         nodeDetails = "Performs aggregation of attributes or latest time-series fetched from related entities. " +
@@ -93,10 +100,12 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
     private final Set<String> serverAttributeNames = new HashSet<>();
     private final Set<String> latestTsKeyNames = new HashSet<>();
     private final Map<String, ScriptEngine> attributesScriptEngineMap = new HashMap<>();
+    private String queueName;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         this.config = TbNodeUtils.convert(configuration, TbAggLatestTelemetryNodeV2Configuration.class);
+        queueName = ctx.getQueueName();
         config.getAggMappings().forEach(mapping -> {
             var filter = mapping.getFilter();
             if (filter != null) {
@@ -277,7 +286,7 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
         }
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ts", Long.toString(ts));
-        ctx.enqueueForTellNext(TbMsg.newMsg(config.getQueueName(), config.getOutMsgType(), msg.getOriginator(), metaData, gson.toJson(result)), TbNodeConnectionType.SUCCESS);
+        ctx.enqueueForTellNext(TbMsg.newMsg(queueName, config.getOutMsgType(), msg.getOriginator(), metaData, gson.toJson(result)), TbNodeConnectionType.SUCCESS);
         ctx.ack(msg);
     }
 
@@ -298,6 +307,20 @@ public class TbAggLatestTelemetryNodeV2 implements TbNode {
         sharedAttributeNames.clear();
         serverAttributeNames.clear();
         latestTsKeyNames.clear();
+    }
+
+    @Override
+    public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+        boolean hasChanges = false;
+        switch (fromVersion) {
+            case 0:
+                if (oldConfiguration.has(QUEUE_NAME)) {
+                    hasChanges = true;
+                    ((ObjectNode) oldConfiguration).remove(QUEUE_NAME);
+                }
+                break;
+        }
+        return new TbPair<>(hasChanges, oldConfiguration);
     }
 
 }

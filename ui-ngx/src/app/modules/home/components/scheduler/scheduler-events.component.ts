@@ -1034,6 +1034,22 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     }
   }
 
+  isEnabled(schedulerEventWithCustomerInfo: SchedulerEventWithCustomerInfo): boolean {
+    return isDefinedAndNotNull(schedulerEventWithCustomerInfo.enabled) ?
+      schedulerEventWithCustomerInfo.enabled : true;
+  }
+
+  enableSchedulerEvent($event, schedulerEvent: SchedulerEventWithCustomerInfo) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    schedulerEvent.enabled = !this.isEnabled(schedulerEvent);
+    this.schedulerEventService.updateSchedulerStatus(schedulerEvent.id.id, schedulerEvent.enabled, {ignoreLoading: true})
+      .subscribe(() => {
+        this.cd.detectChanges();
+    });
+  }
+
 
   private updatedRouterQueryParams(queryParams: object, queryParamsHandling: QueryParamsHandling = 'merge') {
     this.router.navigate([], {

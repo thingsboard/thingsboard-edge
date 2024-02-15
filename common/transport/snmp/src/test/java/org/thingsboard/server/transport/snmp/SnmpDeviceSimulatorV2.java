@@ -73,11 +73,10 @@ public class SnmpDeviceSimulatorV2 extends BaseAgent {
 
     private final Target target;
     private final Address address;
+    private final Map<String, String> mappings;
     private Snmp snmp;
 
-    private final String password;
-
-    public SnmpDeviceSimulatorV2(int port, String password) throws IOException {
+    public SnmpDeviceSimulatorV2(int port, String password, Map<String, String> mappings) throws IOException {
         super(new File("conf.agent"), new File("bootCounter.agent"), new CommandProcessor(new OctetString("12312")));
         CommunityTarget target = new CommunityTarget();
         target.setCommunity(new OctetString(password));
@@ -87,7 +86,7 @@ public class SnmpDeviceSimulatorV2 extends BaseAgent {
         target.setTimeout(1500);
         target.setVersion(SnmpConstants.version2c);
         this.target = target;
-        this.password = password;
+        this.mappings = mappings;
     }
 
     public void start() throws IOException {
@@ -98,13 +97,6 @@ public class SnmpDeviceSimulatorV2 extends BaseAgent {
         run();
         sendColdStartNotification();
         snmp = new Snmp(transportMappings[0]);
-    }
-
-    public void setUpMappings(Map<String, String> oidToResponseMappings) {
-        unregisterManagedObject(getSnmpv2MIB());
-        oidToResponseMappings.forEach((oid, response) -> {
-            registerManagedObject(new MOScalar<>(new OID(oid), MOAccessImpl.ACCESS_READ_WRITE, new OctetString(response)));
-        });
     }
 
     public void sendTrap(String host, int port, Map<String, String> values) throws IOException {
@@ -122,6 +114,10 @@ public class SnmpDeviceSimulatorV2 extends BaseAgent {
 
     @Override
     protected void registerManagedObjects() {
+        unregisterManagedObject(getSnmpv2MIB());
+        mappings.forEach((oid, response) -> {
+            registerManagedObject(new MOScalar<>(new OID(oid), MOAccessImpl.ACCESS_READ_WRITE, new OctetString(response)));
+        });
     }
 
     protected void registerManagedObject(ManagedObject mo) {
@@ -167,6 +163,7 @@ public class SnmpDeviceSimulatorV2 extends BaseAgent {
     }
 
     protected void unregisterManagedObjects() {
+        unregisterManagedObject(getSnmpv2MIB());
     }
 
     protected void addCommunities(SnmpCommunityMIB communityMIB) {

@@ -35,26 +35,36 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomUtils;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.blob.BlobEntity;
+import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.IdBased;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
@@ -63,7 +73,9 @@ import org.thingsboard.server.common.data.kv.DoubleDataEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.objects.TelemetryEntityView;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedGroupTypePermissionInfo;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -98,18 +110,28 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.asset.AssetDao;
+import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
+import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.dashboard.DashboardDao;
+import org.thingsboard.server.dao.device.DeviceDao;
+import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.edge.EdgeDao;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
+import org.thingsboard.server.dao.entityview.EntityViewDao;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.sql.query.EntityMapping;
 import org.thingsboard.server.dao.sql.relation.RelationRepository;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
+import org.thingsboard.server.dao.user.UserDao;
 import org.thingsboard.server.dao.user.UserService;
 
 import java.nio.ByteBuffer;
@@ -127,7 +149,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 @Slf4j
@@ -160,8 +182,29 @@ public class EntityServiceTest extends AbstractServiceTest {
     RelationService relationService;
     @Autowired
     TimeseriesService timeseriesService;
+    @Autowired
+    JdbcTemplate jdbcTemplate;
+    @Autowired
+    DeviceDao deviceDao;
+    @Autowired
+    DeviceProfileService deviceProfileService;
+    @Autowired
+    AssetDao assetDao;
+    @Autowired
+    AssetProfileService assetProfileService;
+    @Autowired
+    EntityViewDao entityViewDao;
+    @Autowired
+    EdgeDao edgeDao;
+    @Autowired
+    DashboardDao dashboardDao;
+    @Autowired
+    CustomerDao customerDao;
+    @Autowired
+    UserDao userDao;
 
     private MergedUserPermissions mergedUserPermissionsPE;
+    private CustomerId customerId;
 
     @Before
     public void before() {
@@ -171,6 +214,12 @@ public class EntityServiceTest extends AbstractServiceTest {
         genericPermissions.put(Resource.DEVICE_GROUP, Collections.singleton(Operation.ALL));
         genericPermissions.put(Resource.USER, Collections.singleton(Operation.ALL));
         mergedUserPermissionsPE = new MergedUserPermissions(genericPermissions, Collections.emptyMap());
+
+        Customer customer = new Customer();
+        customer.setTenantId(tenantId);
+        customer.setTitle("Test");
+        customer = customerService.saveCustomer(customer);
+        customerId = customer.getId();
     }
 
     @Test
@@ -924,7 +973,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     void createLoopRelations(TenantId tenantId, String type, EntityId... ids) {
-        assertThat("ids lenght", ids.length, Matchers.greaterThanOrEqualTo(1));
+        MatcherAssert.assertThat("ids lenght", ids.length, Matchers.greaterThanOrEqualTo(1));
         //chain all from the head to the tail
         for (int i = 1; i < ids.length; i++) {
             relationService.saveRelation(tenantId, new EntityRelation(ids[i - 1], ids[i], type, RelationTypeGroup.COMMON));
@@ -2584,6 +2633,264 @@ public class EntityServiceTest extends AbstractServiceTest {
 
         // rollback mergedUserPermissionsPE
         mergedUserPermissionsPE.getReadEntityPermissions().put(Resource.DEVICE, originMergedGroupTypePermissionInfo);
+    }
+
+    @Test
+    public void testDeviceEntityMapping() {
+        Device device = new Device();
+        device.setTenantId(tenantId);
+        device.setCustomerId(customerId);
+        device.setName("test");
+        device.setType("default");
+        device.setDeviceProfileId(deviceProfileService.findDefaultDeviceProfile(tenantId).getId());
+        device.setLabel("label");
+        device.setDeviceData(new DeviceData());
+        device.setExternalId(new DeviceId(UUID.randomUUID()));
+        device.setAdditionalInfo(JacksonUtil.newObjectNode().put("test", "test"));
+        device = deviceDao.save(tenantId, device);
+
+        Map<String, Object> row = jdbcTemplate.queryForMap("SELECT " + EntityMapping.deviceMapping.getMappings().keySet().stream()
+                .map(field -> "e." + field)
+                .collect(Collectors.joining(", ")) + " FROM device e WHERE id = ?", device.getUuidId());
+        Device mappedDevice = EntityMapping.deviceMapping.map(row);
+        assertThat(mappedDevice.getId()).isEqualTo(device.getId());
+        assertThat(mappedDevice.getCreatedTime()).isEqualTo(device.getCreatedTime());
+        assertThat(mappedDevice.getTenantId()).isEqualTo(device.getTenantId());
+        assertThat(mappedDevice.getCustomerId()).isEqualTo(device.getCustomerId());
+        assertThat(mappedDevice.getName()).isEqualTo(device.getName());
+        assertThat(mappedDevice.getType()).isEqualTo(device.getType());
+        assertThat(mappedDevice.getLabel()).isEqualTo(device.getLabel());
+        assertThat(mappedDevice.getAdditionalInfo()).isEqualTo(device.getAdditionalInfo());
+
+        PageData<Device> devices = entityService.findUserEntities(tenantId, device.getCustomerId(), new MergedUserPermissions(
+                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+        ), EntityType.DEVICE, Operation.READ, null, new PageLink(100), false, false);
+        assertThat(devices.getData()).contains(mappedDevice);
+
+        devices = entityService.findUserEntities(tenantId, device.getCustomerId(), new MergedUserPermissions(
+                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+        ), EntityType.DEVICE, Operation.READ, null, new PageLink(100), false, true);
+        assertThat(devices.getData()).isNotEmpty().allSatisfy(deviceWithId -> {
+            assertThat(deviceWithId.getId()).isEqualTo(mappedDevice.getId());
+            assertThat(deviceWithId.getTenantId()).isNull();
+            assertThat(deviceWithId.getName()).isNull();
+        });
+    }
+
+    @Test
+    public void testAssetEntityMapping() {
+        Asset asset = new Asset();
+        asset.setTenantId(tenantId);
+        asset.setCustomerId(customerId);
+        asset.setName("test");
+        asset.setType("default");
+        asset.setAssetProfileId(assetProfileService.findDefaultAssetProfile(tenantId).getId());
+        asset.setLabel("label");
+        asset.setExternalId(new AssetId(UUID.randomUUID()));
+        asset.setAdditionalInfo(JacksonUtil.newObjectNode().put("test", "test"));
+        asset = assetDao.save(tenantId, asset);
+
+        Map<String, Object> row = jdbcTemplate.queryForMap("SELECT " + EntityMapping.assetMapping.getMappings().keySet().stream()
+                .map(field -> "e." + field)
+                .collect(Collectors.joining(", ")) + " FROM asset e WHERE id = ?", asset.getUuidId());
+        Asset mappedAsset = EntityMapping.assetMapping.map(row);
+        assertThat(mappedAsset.getId()).isEqualTo(asset.getId());
+        assertThat(mappedAsset.getCreatedTime()).isEqualTo(asset.getCreatedTime());
+        assertThat(mappedAsset.getTenantId()).isEqualTo(asset.getTenantId());
+        assertThat(mappedAsset.getCustomerId()).isEqualTo(asset.getCustomerId());
+        assertThat(mappedAsset.getName()).isEqualTo(asset.getName());
+        assertThat(mappedAsset.getType()).isEqualTo(asset.getType());
+        assertThat(mappedAsset.getLabel()).isEqualTo(asset.getLabel());
+        assertThat(mappedAsset.getAdditionalInfo()).isEqualTo(asset.getAdditionalInfo());
+
+        PageData<Asset> assets = entityService.findUserEntities(tenantId, asset.getCustomerId(), new MergedUserPermissions(
+                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+        ), EntityType.ASSET, Operation.READ, null, new PageLink(100));
+        assertThat(assets.getData()).contains(mappedAsset);
+    }
+
+    @Test
+    public void testEntityViewEntityMapping() {
+        EntityView entityView = new EntityView();
+        entityView.setTenantId(tenantId);
+        entityView.setCustomerId(customerId);
+        entityView.setName("test");
+        entityView.setType("default");
+        entityView.setEntityId(new DeviceId(UUID.randomUUID()));
+        entityView.setKeys(new TelemetryEntityView(List.of("test"), null));
+        entityView.setStartTimeMs(124);
+        entityView.setEndTimeMs(256);
+        entityView.setExternalId(new EntityViewId(UUID.randomUUID()));
+        entityView.setAdditionalInfo(JacksonUtil.newObjectNode().put("test", "test"));
+        entityView = entityViewDao.save(tenantId, entityView);
+
+        Map<String, Object> row = jdbcTemplate.queryForMap("SELECT " + EntityMapping.entityViewMapping.getMappings().keySet().stream()
+                .map(field -> "e." + field)
+                .collect(Collectors.joining(", ")) + " FROM entity_view e WHERE id = ?", entityView.getUuidId());
+        EntityView mappedEntityView = EntityMapping.entityViewMapping.map(row);
+        assertThat(mappedEntityView.getId()).isEqualTo(entityView.getId());
+        assertThat(mappedEntityView.getCreatedTime()).isEqualTo(entityView.getCreatedTime());
+        assertThat(mappedEntityView.getTenantId()).isEqualTo(entityView.getTenantId());
+        assertThat(mappedEntityView.getCustomerId()).isEqualTo(entityView.getCustomerId());
+        assertThat(mappedEntityView.getName()).isEqualTo(entityView.getName());
+        assertThat(mappedEntityView.getType()).isEqualTo(entityView.getType());
+        assertThat(mappedEntityView.getEntityId()).isEqualTo(entityView.getEntityId());
+        assertThat(mappedEntityView.getKeys()).isEqualTo(entityView.getKeys());
+        assertThat(mappedEntityView.getStartTimeMs()).isEqualTo(entityView.getStartTimeMs());
+        assertThat(mappedEntityView.getEndTimeMs()).isEqualTo(entityView.getEndTimeMs());
+        assertThat(mappedEntityView.getAdditionalInfo()).isEqualTo(entityView.getAdditionalInfo());
+
+        PageData<EntityView> entityViews = entityService.findUserEntities(tenantId, entityView.getCustomerId(), new MergedUserPermissions(
+                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+        ), EntityType.ENTITY_VIEW, Operation.READ, null, new PageLink(100));
+        assertThat(entityViews.getData()).contains(mappedEntityView);
+    }
+
+    @Test
+    public void testEdgeEntityMapping() {
+        Edge edge = new Edge();
+        edge.setTenantId(tenantId);
+        edge.setCustomerId(customerId);
+        edge.setName("test");
+        edge.setType("default");
+        edge.setLabel("label");
+        edge.setRootRuleChainId(new RuleChainId(UUID.randomUUID()));
+        edge.setRoutingKey("routingKey");
+        edge.setSecret("secret");
+        edge.setEdgeLicenseKey("edgeLicenseKey");
+        edge.setCloudEndpoint("cloudEndpoint");
+        edge.setAdditionalInfo(JacksonUtil.newObjectNode().put("test", "test"));
+        edge = edgeDao.save(tenantId, edge);
+
+        Map<String, Object> row = jdbcTemplate.queryForMap("SELECT " + EntityMapping.edgeMapping.getMappings().keySet().stream()
+                .map(field -> "e." + field)
+                .collect(Collectors.joining(", ")) + " FROM edge e WHERE id = ?", edge.getUuidId());
+        Edge mappedEdge = EntityMapping.edgeMapping.map(row);
+        assertThat(mappedEdge.getId()).isEqualTo(edge.getId());
+        assertThat(mappedEdge.getCreatedTime()).isEqualTo(edge.getCreatedTime());
+        assertThat(mappedEdge.getTenantId()).isEqualTo(edge.getTenantId());
+        assertThat(mappedEdge.getCustomerId()).isEqualTo(edge.getCustomerId());
+        assertThat(mappedEdge.getName()).isEqualTo(edge.getName());
+        assertThat(mappedEdge.getType()).isEqualTo(edge.getType());
+        assertThat(mappedEdge.getLabel()).isEqualTo(edge.getLabel());
+        assertThat(mappedEdge.getRootRuleChainId()).isEqualTo(edge.getRootRuleChainId());
+        assertThat(mappedEdge.getRoutingKey()).isEqualTo(edge.getRoutingKey());
+        assertThat(mappedEdge.getSecret()).isEqualTo(edge.getSecret());
+        assertThat(mappedEdge.getEdgeLicenseKey()).isEqualTo(edge.getEdgeLicenseKey());
+        assertThat(mappedEdge.getCloudEndpoint()).isEqualTo(edge.getCloudEndpoint());
+        assertThat(mappedEdge.getAdditionalInfo()).isEqualTo(edge.getAdditionalInfo());
+
+        PageData<Edge> edges = entityService.findUserEntities(tenantId, edge.getCustomerId(), new MergedUserPermissions(
+                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+        ), EntityType.EDGE, Operation.READ, null, new PageLink(100));
+        assertThat(edges.getData()).contains(mappedEdge);
+    }
+
+    @Test
+    public void testDashboardEntityMapping() {
+        Dashboard dashboard = new Dashboard();
+        dashboard.setTenantId(tenantId);
+        dashboard.setCustomerId(customerId);
+        dashboard.setTitle("test");
+        dashboard.setImage("image");
+        dashboard.setMobileHide(true);
+        dashboard.setMobileOrder(10);
+        dashboard.setExternalId(new DashboardId(UUID.randomUUID()));
+        dashboard.setConfiguration(JacksonUtil.newObjectNode().put("test", "test"));
+        dashboard = dashboardDao.save(tenantId, dashboard);
+
+        Map<String, Object> row = jdbcTemplate.queryForMap("SELECT " + EntityMapping.dashboardMapping.getMappings().keySet().stream()
+                .map(field -> "e." + field)
+                .collect(Collectors.joining(", ")) + " FROM dashboard e WHERE id = ?", dashboard.getUuidId());
+        Dashboard mappedDashboard = EntityMapping.dashboardMapping.map(row);
+        assertThat(mappedDashboard.getId()).isEqualTo(dashboard.getId());
+        assertThat(mappedDashboard.getCreatedTime()).isEqualTo(dashboard.getCreatedTime());
+        assertThat(mappedDashboard.getTenantId()).isEqualTo(dashboard.getTenantId());
+        assertThat(mappedDashboard.getCustomerId()).isEqualTo(dashboard.getCustomerId());
+        assertThat(mappedDashboard.getTitle()).isEqualTo(dashboard.getTitle());
+        assertThat(mappedDashboard.getImage()).isEqualTo(dashboard.getImage());
+        assertThat(mappedDashboard.isMobileHide()).isEqualTo(dashboard.isMobileHide());
+        assertThat(mappedDashboard.getMobileOrder()).isEqualTo(dashboard.getMobileOrder());
+
+        PageData<Dashboard> dashboards = entityService.findUserEntities(tenantId, dashboard.getCustomerId(), new MergedUserPermissions(
+                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+        ), EntityType.DASHBOARD, Operation.READ, null, new PageLink(100));
+        assertThat(dashboards.getData()).contains(mappedDashboard);
+    }
+
+    @Test
+    public void testCustomerEntityMapping() {
+        Customer customer = new Customer();
+        customer.setTenantId(tenantId);
+        customer.setTitle("test");
+        customer.setParentCustomerId(customerId);
+        customer.setCountry("country");
+        customer.setState("state");
+        customer.setCity("city");
+        customer.setAddress("address");
+        customer.setAddress2("address2");
+        customer.setZip("zip");
+        customer.setPhone("phone");
+        customer.setEmail("email");
+        customer.setExternalId(customerId);
+        customer.setAdditionalInfo(JacksonUtil.newObjectNode().put("test", "test"));
+        customer = customerDao.save(tenantId, customer);
+
+        Map<String, Object> row = jdbcTemplate.queryForMap("SELECT " + EntityMapping.customerMapping.getMappings().keySet().stream()
+                .map(field -> "e." + field)
+                .collect(Collectors.joining(", ")) + " FROM customer e WHERE id = ?", customer.getUuidId());
+        Customer mappedCustomer = EntityMapping.customerMapping.map(row);
+        assertThat(mappedCustomer.getId()).isEqualTo(customer.getId());
+        assertThat(mappedCustomer.getCreatedTime()).isEqualTo(customer.getCreatedTime());
+        assertThat(mappedCustomer.getTenantId()).isEqualTo(customer.getTenantId());
+        assertThat(mappedCustomer.getTitle()).isEqualTo(customer.getTitle());
+        assertThat(mappedCustomer.getParentCustomerId()).isEqualTo(customer.getParentCustomerId());
+        assertThat(mappedCustomer.getCountry()).isEqualTo(customer.getCountry());
+        assertThat(mappedCustomer.getState()).isEqualTo(customer.getState());
+        assertThat(mappedCustomer.getCity()).isEqualTo(customer.getCity());
+        assertThat(mappedCustomer.getAddress()).isEqualTo(customer.getAddress());
+        assertThat(mappedCustomer.getAddress2()).isEqualTo(customer.getAddress2());
+        assertThat(mappedCustomer.getZip()).isEqualTo(customer.getZip());
+        assertThat(mappedCustomer.getPhone()).isEqualTo(customer.getPhone());
+        assertThat(mappedCustomer.getEmail()).isEqualTo(customer.getEmail());
+        assertThat(mappedCustomer.getAdditionalInfo()).isEqualTo(customer.getAdditionalInfo());
+
+        PageData<Customer> customers = entityService.findUserEntities(tenantId, customer.getParentCustomerId(), new MergedUserPermissions(
+                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+        ), EntityType.CUSTOMER, Operation.READ, null, new PageLink(100));
+        assertThat(customers.getData()).contains(mappedCustomer);
+    }
+
+    @Test
+    public void testUserEntityMapping() {
+        User user = new User();
+        user.setTenantId(tenantId);
+        user.setCustomerId(customerId);
+        user.setEmail("email");
+        user.setAuthority(Authority.CUSTOMER_USER);
+        user.setFirstName("firstName");
+        user.setLastName("lastName");
+       user.setAdditionalInfo(JacksonUtil.newObjectNode().put("test", "test"));
+        user = userDao.save(tenantId, user);
+
+        Map<String, Object> row = jdbcTemplate.queryForMap("SELECT " + EntityMapping.userMapping.getMappings().keySet().stream()
+                .map(field -> "e." + field)
+                .collect(Collectors.joining(", ")) + " FROM tb_user e WHERE id = ?", user.getUuidId());
+        User mappedUser = EntityMapping.userMapping.map(row);
+        assertThat(mappedUser.getId()).isEqualTo(user.getId());
+        assertThat(mappedUser.getCreatedTime()).isEqualTo(user.getCreatedTime());
+        assertThat(mappedUser.getTenantId()).isEqualTo(user.getTenantId());
+        assertThat(mappedUser.getCustomerId()).isEqualTo(user.getCustomerId());
+        assertThat(mappedUser.getEmail()).isEqualTo(user.getEmail());
+        assertThat(mappedUser.getAuthority()).isEqualTo(user.getAuthority());
+        assertThat(mappedUser.getFirstName()).isEqualTo(user.getFirstName());
+        assertThat(mappedUser.getLastName()).isEqualTo(user.getLastName());
+        assertThat(mappedUser.getAdditionalInfo()).isEqualTo(user.getAdditionalInfo());
+
+        PageData<User> users = entityService.findUserEntities(tenantId, user.getCustomerId(), new MergedUserPermissions(
+                Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
+        ), EntityType.USER, Operation.READ, null, new PageLink(100));
+        assertThat(users.getData()).contains(mappedUser);
     }
 
     private EntityDataQuery createDataQueryFilterByEntityName(String deviceNamePrefix) {

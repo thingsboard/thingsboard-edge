@@ -30,7 +30,9 @@
 ///
 
 import { NgModule, Type } from '@angular/core';
-import { QrCodeWidgetSettingsComponent } from '@home/components/widget/lib/settings/cards/qrcode-widget-settings.component';
+import {
+  QrCodeWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/qrcode-widget-settings.component';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { SharedHomeComponentsModule } from '@home/components/shared-home-components.module';
@@ -48,7 +50,9 @@ import {
   MarkdownWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/markdown-widget-settings.component';
 import { LabelWidgetLabelComponent } from '@home/components/widget/lib/settings/cards/label-widget-label.component';
-import { LabelWidgetSettingsComponent } from '@home/components/widget/lib/settings/cards/label-widget-settings.component';
+import {
+  LabelWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/label-widget-settings.component';
 import {
   SimpleCardWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/simple-card-widget-settings.component';
@@ -138,9 +142,6 @@ import {
 import {
   SendRpcWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/control/send-rpc-widget-settings.component';
-import {
-  DeviceKeyAutocompleteComponent
-} from '@home/components/widget/lib/settings/control/device-key-autocomplete.component';
 import {
   LedIndicatorWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/control/led-indicator-widget-settings.component';
@@ -335,6 +336,21 @@ import {
 import {
   BarChartWithLabelsWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/chart/bar-chart-with-labels-widget-settings.component';
+import {
+  SingleSwitchWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/control/single-switch-widget-settings.component';
+import {
+  ActionButtonWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/button/action-button-widget-settings.component';
+import {
+  CommandButtonWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/button/command-button-widget-settings.component';
+import {
+  PowerButtonWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/button/power-button-widget-settings.component';
+import {
+  SliderWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/control/slider-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -372,7 +388,6 @@ import {
     FlotPieKeySettingsComponent,
     ChartWidgetSettingsComponent,
     DoughnutChartWidgetSettingsComponent,
-    DeviceKeyAutocompleteComponent,
     SwitchRpcSettingsComponent,
     RoundSwitchWidgetSettingsComponent,
     SwitchControlWidgetSettingsComponent,
@@ -449,6 +464,11 @@ import {
     DoughnutWidgetSettingsComponent,
     RangeChartWidgetSettingsComponent,
     BarChartWithLabelsWidgetSettingsComponent,
+    SingleSwitchWidgetSettingsComponent,
+    ActionButtonWidgetSettingsComponent,
+    CommandButtonWidgetSettingsComponent,
+    PowerButtonWidgetSettingsComponent,
+    SliderWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -494,7 +514,6 @@ import {
     FlotPieKeySettingsComponent,
     ChartWidgetSettingsComponent,
     DoughnutChartWidgetSettingsComponent,
-    DeviceKeyAutocompleteComponent,
     SwitchRpcSettingsComponent,
     RoundSwitchWidgetSettingsComponent,
     SwitchControlWidgetSettingsComponent,
@@ -571,6 +590,11 @@ import {
     DoughnutWidgetSettingsComponent,
     RangeChartWidgetSettingsComponent,
     BarChartWithLabelsWidgetSettingsComponent,
+    SingleSwitchWidgetSettingsComponent,
+    ActionButtonWidgetSettingsComponent,
+    CommandButtonWidgetSettingsComponent,
+    PowerButtonWidgetSettingsComponent,
+    SliderWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -659,6 +683,11 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-doughnut-widget-settings': DoughnutWidgetSettingsComponent,
   'tb-range-chart-widget-settings': RangeChartWidgetSettingsComponent,
   'tb-bar-chart-with-labels-widget-settings': BarChartWithLabelsWidgetSettingsComponent,
+  'tb-single-switch-widget-settings': SingleSwitchWidgetSettingsComponent,
+  'tb-action-button-widget-settings': ActionButtonWidgetSettingsComponent,
+  'tb-command-button-widget-settings': CommandButtonWidgetSettingsComponent,
+  'tb-power-button-widget-settings': PowerButtonWidgetSettingsComponent,
+  'tb-slider-widget-settings': SliderWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

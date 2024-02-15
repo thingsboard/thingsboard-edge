@@ -64,6 +64,7 @@ import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -272,6 +273,8 @@ public interface TbContext {
 
     String getRuleChainName();
 
+    String getQueueName();
+
     TenantId getTenantId();
 
     AttributesService getAttributesService();
@@ -370,6 +373,7 @@ public interface TbContext {
     ScriptEngine createScriptEngine(ScriptLanguage scriptLang, String script, String... argNames);
 
     EventService getEventService();
+
     /**
      * This context is available only in TB PE.
      */
@@ -418,4 +422,7 @@ public interface TbContext {
     RuleEngineApiUsageStateService getRuleEngineApiUsageStateService();
 
     EntityService getEntityService();
+
+    AuditLogService getAuditLogService();
+
 }

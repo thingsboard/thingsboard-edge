@@ -69,7 +69,14 @@ import { RafService } from '@core/services/raf.service';
 import { WidgetTypeId } from '@shared/models/id/widget-type-id';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { WidgetLayout } from '@shared/models/dashboard.models';
-import { createLabelFromDatasource, formatValue, hasDatasourceLabelsVariables, isDefined } from '@core/utils';
+import {
+  createLabelFromDatasource,
+  createLabelFromSubscriptionEntityInfo,
+  formatValue,
+  getEntityDetailsPageURL,
+  hasDatasourceLabelsVariables,
+  isDefined
+} from '@core/utils';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import {
@@ -135,7 +142,7 @@ export interface WidgetAction extends IWidgetAction {
 }
 
 export interface IDashboardWidget {
-  updateWidgetParams();
+  updateWidgetParams(): void;
 }
 
 export class WidgetContext {
@@ -269,7 +276,8 @@ export class WidgetContext {
   };
 
   utils: IWidgetUtils = {
-    formatValue
+    formatValue,
+    getEntityDetailsPageURL
   };
 
   $widgetElement: JQuery<HTMLElement>;
@@ -279,6 +287,7 @@ export class WidgetContext {
   height: number;
   $scope: IDynamicWidgetComponent;
   isEdit: boolean;
+  isPreview: boolean;
   isMobile: boolean;
   toastTargetId: string;
 
@@ -298,6 +307,7 @@ export class WidgetContext {
   timeWindow?: WidgetTimewindow;
 
   embedTitlePanel?: boolean;
+  overflowVisible?: boolean;
 
   hideTitlePanel = false;
 
@@ -364,35 +374,35 @@ export class WidgetContext {
   showSuccessToast(message: string, duration: number = 1000,
                    verticalPosition: NotificationVerticalPosition = 'bottom',
                    horizontalPosition: NotificationHorizontalPosition = 'left',
-                   target: string = 'dashboardRoot') {
-    this.showToast('success', message, duration, verticalPosition, horizontalPosition, target);
+                   target: string = 'dashboardRoot', modern = false) {
+    this.showToast('success', message, duration, verticalPosition, horizontalPosition, target, modern);
   }
 
   showInfoToast(message: string,
                 verticalPosition: NotificationVerticalPosition = 'bottom',
                 horizontalPosition: NotificationHorizontalPosition = 'left',
-                target: string = 'dashboardRoot') {
-    this.showToast('info', message, undefined, verticalPosition, horizontalPosition, target);
+                target: string = 'dashboardRoot', modern = false) {
+    this.showToast('info', message, undefined, verticalPosition, horizontalPosition, target, modern);
   }
 
   showWarnToast(message: string,
                 verticalPosition: NotificationVerticalPosition = 'bottom',
                 horizontalPosition: NotificationHorizontalPosition = 'left',
-                target: string = 'dashboardRoot') {
-    this.showToast('warn', message, undefined, verticalPosition, horizontalPosition, target);
+                target: string = 'dashboardRoot', modern = false) {
+    this.showToast('warn', message, undefined, verticalPosition, horizontalPosition, target, modern);
   }
 
   showErrorToast(message: string,
                  verticalPosition: NotificationVerticalPosition = 'bottom',
                  horizontalPosition: NotificationHorizontalPosition = 'left',
-                 target: string = 'dashboardRoot') {
-    this.showToast('error', message, undefined, verticalPosition, horizontalPosition, target);
+                 target: string = 'dashboardRoot', modern = false) {
+    this.showToast('error', message, undefined, verticalPosition, horizontalPosition, target, modern);
   }
 
   showToast(type: NotificationType, message: string, duration: number,
             verticalPosition: NotificationVerticalPosition = 'bottom',
             horizontalPosition: NotificationHorizontalPosition = 'left',
-            target: string = 'dashboardRoot') {
+            target: string = 'dashboardRoot', modern = false) {
     this.store.dispatch(new ActionNotificationShow(
       {
         message,
@@ -402,7 +412,8 @@ export class WidgetContext {
         horizontalPosition,
         target,
         panelClass: this.widgetNamespace,
-        forceDismiss: true
+        forceDismiss: true,
+        modern
       }));
   }
 
@@ -507,9 +518,14 @@ export class LabelVariablePattern {
 
   update() {
     let label = this.pattern;
-    const datasource = this.ctx.defaultSubscription?.firstDatasource;
-    if (this.hasVariables && datasource) {
-      label = createLabelFromDatasource(datasource, label);
+    if (this.hasVariables) {
+      if (this.ctx.defaultSubscription?.type === widgetType.rpc) {
+        const entityInfo = this.ctx.defaultSubscription.getFirstEntityInfo();
+        label = createLabelFromSubscriptionEntityInfo(entityInfo, label);
+      } else {
+        const datasource = this.ctx.defaultSubscription?.firstDatasource;
+        label = createLabelFromDatasource(datasource, label);
+      }
     }
     if (this.labelSubject.value !== label) {
       this.labelSubject.next(label);
@@ -528,7 +544,7 @@ export interface IDynamicWidgetComponent {
   executingRpcRequest: boolean;
   rpcEnabled: boolean;
   rpcErrorText: string;
-  rpcRejection: HttpErrorResponse;
+  rpcRejection: HttpErrorResponse | Error;
   raf: RafService;
   [key: string]: any;
 }

@@ -261,6 +261,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                         case ALARM:
                             alarmProcessor.processAlarmNotification(tenantId, edgeNotificationMsg);
                             break;
+                        case ALARM_COMMENT:
+                            alarmProcessor.processAlarmCommentNotification(tenantId, edgeNotificationMsg);
+                            break;
                         case RELATION:
                             relationProcessor.processRelationNotification(tenantId, edgeNotificationMsg);
                             break;
@@ -284,8 +287,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                             break;
                         case WHITE_LABELING:
                         case LOGIN_WHITE_LABELING:
-                        case CUSTOM_TRANSLATION:
                         case MAIL_TEMPLATES:
+                        case CUSTOM_MENU:
+                        case CUSTOM_TRANSLATION:
                             whiteLabelingProcessor.processNotification(tenantId, edgeNotificationMsg);
                             break;
                         case TENANT:

@@ -57,6 +57,8 @@ public @interface RuleNode {
 
     ComponentClusteringMode clusteringMode() default ComponentClusteringMode.ENABLED;
 
+    boolean hasQueueName() default false;
+
     boolean inEnabled() default true;
 
     boolean outEnabled() default true;

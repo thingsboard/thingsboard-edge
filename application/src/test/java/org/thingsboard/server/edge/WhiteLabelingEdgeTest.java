@@ -39,14 +39,21 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
 import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @DaoSqlTest
 public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
@@ -246,5 +253,70 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         Assert.assertNotNull(ct);
         String enUsLangObject = ct.getTranslationMap().get("en_US");
         Assert.assertEquals(updatedHomeValue, JacksonUtil.toJsonNode(enUsLangObject).get("home").asText());
+    }
+
+    @Test
+    public void testCustomMenu() throws Exception {
+        testCustomMenu_tenant();
+        testCustomMenu_customer();
+        resetSysAdminWhiteLabelingSettings();
+    }
+
+    private void testCustomMenu_tenant() throws Exception {
+        loginTenantAdmin();
+        updateAndVerifyCustomMenuUpdate("Tenant custom menu");
+    }
+
+    private void testCustomMenu_customer() throws Exception {
+        edgeImitator.expectMessageAmount(1);
+        // create customer A
+        Customer savedCustomerA = saveCustomer("Edge Customer A", null);
+        // create sub customer A
+        Customer savedSubCustomerA = saveCustomer("Edge Sub Customer A", savedCustomerA.getId());
+        // create sub sub customer A
+        saveCustomer("Edge Sub Sub Customer A", savedSubCustomerA.getId());
+
+        // validate that no messages were sent to the edge
+        Assert.assertFalse(edgeImitator.waitForMessages(1));
+
+        // change edge owner from tenant to sub customer A
+        changeEdgeOwnerFromTenantToSubCustomer(savedCustomerA, savedSubCustomerA);
+
+        createCustomerUserAndLogin(savedCustomerA, "customerA@thingsboard.org");
+        updateAndVerifyCustomMenuUpdate("customer_value_updated");
+
+        createCustomerUserAndLogin(savedSubCustomerA, "subCustomerA@thingsboard.org");
+        updateAndVerifyCustomMenuUpdate("sub_customer_value_updated");
+    }
+
+    private void updateAndVerifyCustomMenuUpdate(String customMenuName) throws Exception {
+        CustomMenu customMenu = doGet("/api/customMenu/customMenu", CustomMenu.class);
+        edgeImitator.expectMessageAmount(1);
+
+        CustomMenuItem customMenuItemChild1 = new CustomMenuItem();
+        customMenuItemChild1.setName("Waste Management Administration");
+        customMenuItemChild1.setMaterialIcon("dashboard");
+
+        CustomMenuItem customMenuItemChild2 = new CustomMenuItem();
+        customMenuItemChild2.setName("Assisted Living Administration");
+        customMenuItemChild2.setMaterialIcon("tablet_dashboard");
+
+        CustomMenuItem customMenuItem = new CustomMenuItem();
+        customMenuItem.setName(customMenuName);
+        customMenuItem.setMaterialIcon("grid_view");
+        customMenuItem.setChildMenuItems(Arrays.asList(customMenuItemChild1, customMenuItemChild2));
+
+        customMenu.setMenuItems(new ArrayList<>(List.of(customMenuItem)));
+        doPost("/api/customMenu/customMenu", customMenu, CustomMenu.class);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof CustomMenuProto);
+        CustomMenuProto customMenuProto = (CustomMenuProto) latestMessage;
+        CustomMenu cm = JacksonUtil.fromString(customMenuProto.getEntity(), CustomMenu.class, true);
+        Assert.assertNotNull(cm);
+        ArrayList<CustomMenuItem> menuItems = cm.getMenuItems();
+        Assert.assertEquals(1, menuItems.size());
+        Assert.assertEquals(menuItems, customMenu.getMenuItems());
+        Assert.assertEquals(customMenuName, menuItems.get(0).getName());
     }
 }

@@ -104,6 +104,7 @@ import org.thingsboard.server.gen.transport.TransportProtos.TransportToDeviceAct
 import org.thingsboard.server.gen.transport.TransportProtos.TsKvProto;
 import org.thingsboard.server.gen.transport.TransportProtos.UplinkNotificationMsg;
 import org.thingsboard.server.service.rpc.RpcSubmitStrategy;
+import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 
 import javax.annotation.Nullable;
@@ -176,7 +177,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
             this.defaultMetaData.putValue("deviceName", deviceName);
             this.defaultMetaData.putValue("deviceType", deviceType);
             if (systemContext.isEdgesEnabled()) {
-                this.edgeId = findRelatedEdgeId();
+                this.edgeId = Optional.ofNullable(findRelatedEdgeIdByToAndType()).orElseGet(this::findRelatedEdgeIdByEntityId);
             }
             return true;
         } else {
@@ -184,7 +185,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
         }
     }
 
-    private EdgeId findRelatedEdgeId() {
+    private EdgeId findRelatedEdgeIdByToAndType() {
         List<EntityRelation> result =
                 systemContext.getRelationService().findByToAndType(tenantId, deviceId, EntityRelation.EDGE_TYPE, RelationTypeGroup.COMMON);
         if (result != null && result.size() > 0) {
@@ -199,6 +200,11 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
             log.trace("[{}][{}] device doesn't have any related edge", tenantId, deviceId);
         }
         return null;
+    }
+
+    private EdgeId findRelatedEdgeIdByEntityId() {
+        PageData<EdgeId> pageData = systemContext.getEdgeService().findRelatedEdgeIdsByEntityId(tenantId, deviceId, new PageLink(1));
+        return Optional.ofNullable(pageData).filter(pd -> pd.getTotalElements() > 0).map(pd -> pd.getData().get(0)).orElse(null);
     }
 
     void processRpcRequest(TbActorCtx context, ToDeviceRpcRequestActorMsg msg) {
@@ -225,8 +231,11 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
         if (systemContext.isEdgesEnabled() && edgeId != null) {
             log.debug("[{}][{}] device is related to edge: [{}]. Saving RPC request: [{}][{}] to edge queue", tenantId, deviceId, edgeId.getId(), rpcId, requestId);
             try {
-                saveRpcRequestToEdgeQueue(request, requestId).get();
-                sent = true;
+                if (systemContext.getEdgeService().isEdgeActiveAsync(tenantId, edgeId, DefaultDeviceStateService.ACTIVITY_STATE).get()) {
+                    saveRpcRequestToEdgeQueue(request, requestId).get();
+                } else {
+                    log.error("[{}][{}][{}] Failed to save RPC request to edge queue {}. The Edge is currently offline or unreachable", tenantId, deviceId, edgeId.getId(), request);
+                }
             } catch (InterruptedException | ExecutionException e) {
                 log.error("[{}][{}][{}] Failed to save RPC request to edge queue {}", tenantId, deviceId, edgeId.getId(), request, e);
             }

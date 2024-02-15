@@ -126,6 +126,7 @@ export interface SchedulerEventInfo extends BaseData<SchedulerEventId> {
   originatorId?: EntityId;
   name: string;
   type: string;
+  enabled?: boolean;
   schedule: SchedulerEventSchedule;
   additionalInfo?: any;
 }

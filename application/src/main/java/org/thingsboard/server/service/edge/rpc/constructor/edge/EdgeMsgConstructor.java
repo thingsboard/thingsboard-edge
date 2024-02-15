@@ -59,7 +59,5 @@ public class EdgeMsgConstructor {
                     .setCustomerIdLSB(edge.getCustomerId().getId().getLeastSignificantBits());
         }
         return builder.build();
-
-
     }
 }

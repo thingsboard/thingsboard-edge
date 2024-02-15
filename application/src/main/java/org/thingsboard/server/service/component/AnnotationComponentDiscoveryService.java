@@ -204,6 +204,7 @@ public class AnnotationComponentDiscoveryService implements ComponentDiscoverySe
             scannedComponent.setName(ruleNodeAnnotation.name());
             scannedComponent.setScope(ruleNodeAnnotation.scope());
             scannedComponent.setClusteringMode(ruleNodeAnnotation.clusteringMode());
+            scannedComponent.setHasQueueName(ruleNodeAnnotation.hasQueueName());
             NodeDefinition nodeDefinition = prepareNodeDefinition(clazz, ruleNodeAnnotation);
             ObjectNode configurationDescriptor = JacksonUtil.newObjectNode();
             JsonNode node = JacksonUtil.valueToTree(nodeDefinition);

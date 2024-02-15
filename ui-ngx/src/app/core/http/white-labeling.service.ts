@@ -75,8 +75,14 @@ const applyCustomCss = (customCss: string, isLoginTheme: boolean) => {
   }
   let css;
   if (customCss && customCss.length) {
+    const parsedCss = cssParser.parseCSS(customCss);
+    for (const cssObject of parsedCss) {
+      if (cssObject.selector.includes(':root')) {
+        cssObject.selector = cssObject.selector.replace(':root', '');
+      }
+    }
     cssParser.cssPreviewNamespace = isLoginTheme ? 'tb-custom-css' : 'tb-default';
-    css = cssParser.applyNamespacing(customCss);
+    css = cssParser.applyNamespacing(parsedCss);
     if (typeof css !== 'string') {
       css = cssParser.getCSSForEditor(css);
     }
@@ -252,6 +258,10 @@ export class WhiteLabelingService {
 
   public getPlatformVersion$(): Observable<string> {
     return this.asWhiteLabelingObservable(() => this.getPlatformVersion());
+  }
+
+  public getHideConnectivityDialog(): boolean {
+    return this.getCurrentWlParams() ? this.getCurrentWlParams().hideConnectivityDialog : false;
   }
 
   public loadLoginWhiteLabelingParams(): Observable<LoginWhiteLabelingParams> {

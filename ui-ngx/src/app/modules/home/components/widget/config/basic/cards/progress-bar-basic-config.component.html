@@ -101,7 +101,7 @@
         </tb-color-input>
       </div>
     </div>
-    <div class="tb-form-row">
+    <div class="tb-form-row column-xs">
       <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="showValue">
         {{ 'widgets.progress-bar.value' | translate }}
       </mat-slide-toggle>
@@ -119,7 +119,7 @@
         </tb-color-settings>
       </div>
     </div>
-    <div class="tb-form-row space-between">
+    <div class="tb-form-row space-between column-xs">
       <div>{{ 'widgets.progress-bar.range' | translate }}</div>
       <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
         <div class="tb-small-label" translate>widgets.progress-bar.min</div>
@@ -142,6 +142,7 @@
         </tb-font-settings>
         <tb-color-input asBoxInput
                         colorClearButton
+                        useThemePalette
                         formControlName="ticksColor">
         </tb-color-input>
       </div>
@@ -159,6 +160,7 @@
       <div>{{ 'widgets.progress-bar.bar-background' | translate }}</div>
       <tb-color-input asBoxInput
                       colorClearButton
+                      useThemePalette
                       formControlName="barBackground">
       </tb-color-input>
     </div>
