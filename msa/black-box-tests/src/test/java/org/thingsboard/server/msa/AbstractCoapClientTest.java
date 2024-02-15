@@ -77,15 +77,9 @@ public abstract class AbstractCoapClientTest extends AbstractContainerTest{
         Configuration.addDefaultModule(MODULE_DEFINITIONS_PROVIDER);
         String featureTokenUrl = COAP_BASE_URL + FeatureType.PROVISION.name().toLowerCase();
         client = new CoapClient(featureTokenUrl);
-        try {
-            return client.setTimeout(CLIENT_REQUEST_TIMEOUT)
-                    .post(provisionRequestMsg.getBytes(), MediaTypeRegistry.APPLICATION_JSON)
-                    .getPayload();
-        } catch (NullPointerException e){
-            log.error("", e);
-            log.error("createCoapClientAndPublish, deviceName [{}], provisionRequestMsg: [{}]", deviceName, provisionRequestMsg);
-            return null;
-        }
+        return client.setTimeout(CLIENT_REQUEST_TIMEOUT)
+                .post(provisionRequestMsg.getBytes(), MediaTypeRegistry.APPLICATION_JSON)
+                .getPayload();
     }
 
     protected void disconnect() {
