@@ -113,8 +113,8 @@ public class TbCoapDtlsSettings {
         configBuilder.set(DTLS_CLIENT_AUTHENTICATION_MODE, WANTED);
         configBuilder.set(DTLS_RETRANSMISSION_TIMEOUT, dtlsRetransmissionTimeout, MILLISECONDS);
         configBuilder.set(DTLS_ROLE, SERVER_ONLY);
-        configBuilder.set(DTLS_CONNECTION_ID_LENGTH, cIdLength);
         if (cIdLength != null) {
+            configBuilder.set(DTLS_CONNECTION_ID_LENGTH, cIdLength);
             if (cIdLength > 4) {
                 configBuilder.set(DTLS_CONNECTION_ID_NODE_ID, 0);
             } else {
