@@ -28,27 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.oauth2;
+package org.thingsboard.server.service.edge.rpc.fetch;
 
-import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.oauth2.OAuth2Info;
-import org.thingsboard.server.common.data.oauth2.OAuth2Registration;
-import org.thingsboard.server.common.data.oauth2.PlatformType;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.oauth2.OAuth2Service;
 
 import java.util.List;
-import java.util.UUID;
 
-public interface OAuth2Service {
+@AllArgsConstructor
+@Slf4j
+public class OAuth2EdgeEventFetcher extends BasePageableEdgeEventFetcher<OAuth2Info> {
 
-    List<OAuth2ClientInfo> getOAuth2Clients(String domainScheme, String domainName, String pkgName, PlatformType platformType);
+    private final OAuth2Service oAuth2Service;
 
-    void saveOAuth2Info(OAuth2Info oauth2Info);
+    @Override
+    PageData<OAuth2Info> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
+        OAuth2Info result = oAuth2Service.findOAuth2Info();
 
-    OAuth2Info findOAuth2Info();
+        // return PageData object to be in sync with other fetchers
+        return new PageData<>(List.of(result), 1, 1, false);
+    }
 
-    OAuth2Registration findRegistration(UUID id);
-
-    List<OAuth2Registration> findAllRegistrations();
-
-    String findAppSecret(UUID registrationId, String pkgName);
+    @Override
+    EdgeEvent constructEdgeEvent(TenantId tenantId, Edge edge, OAuth2Info entity) {
+        return EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.OAUTH2,
+                EdgeEventActionType.ADDED, null, JacksonUtil.valueToTree(entity));
+    }
 }
