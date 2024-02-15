@@ -938,9 +938,9 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
           if (isDefined(sourcesTsRowsContentFunc[timestamp])) {
             const tsRowContentFuncKeys = Object.keys(sourcesTsRowsContentFunc[timestamp]);
             tsRowContentFuncKeys.forEach(key => {
-              const div = document.createElement('div');
               if (isDefinedAndNotNull(sourcesTsRowsContentFunc[timestamp][key].contentFunction) &&
                 sourcesTsRowsContentFunc[timestamp][key].useContentFunctionOnExport) {
+                const div = document.createElement('div');
                 try {
                   div.innerHTML = sourcesTsRowsContentFunc[timestamp][key].contentFunction(sourcesTsRowsContentFunc[timestamp][key].value, sourcesTsRows[timestamp], this.ctx);
                 } catch (e) {

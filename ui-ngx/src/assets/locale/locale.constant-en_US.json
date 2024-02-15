@@ -8010,6 +8010,7 @@
             "show-empty-space-hidden-action": "Show empty space instead of hidden cell button action",
             "dont-reserve-space-hidden-action": "Don't reserve space for hidden action buttons",
             "display-timestamp": "Timestamp",
+            "include-timestamp-in-export": "Include timestamp column in export",
             "display-pagination": "Display pagination",
             "default-page-size": "Default page size",
             "use-entity-label-tab-name": "Use entity label in tab name",
