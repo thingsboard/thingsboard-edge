@@ -28,27 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.oauth2;
+package org.thingsboard.server.service.edge.rpc.processor.oauth2;
 
-import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.oauth2.OAuth2Info;
-import org.thingsboard.server.common.data.oauth2.OAuth2Registration;
-import org.thingsboard.server.common.data.oauth2.PlatformType;
+import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
+import org.thingsboard.server.gen.edge.v1.OAuth2UpdateMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
-import java.util.List;
-import java.util.UUID;
+@Slf4j
+@Component
+@TbCoreComponent
+public class OAuth2EdgeProcessor extends BaseEdgeProcessor {
 
-public interface OAuth2Service {
-
-    List<OAuth2ClientInfo> getOAuth2Clients(String domainScheme, String domainName, String pkgName, PlatformType platformType);
-
-    void saveOAuth2Info(OAuth2Info oauth2Info);
-
-    OAuth2Info findOAuth2Info();
-
-    OAuth2Registration findRegistration(UUID id);
-
-    List<OAuth2Registration> findAllRegistrations();
-
-    String findAppSecret(UUID registrationId, String pkgName);
+    public DownlinkMsg convertOAuth2EventToDownlink(EdgeEvent edgeEvent) {
+        DownlinkMsg downlinkMsg = null;
+        OAuth2Info oAuth2Info = JacksonUtil.convertValue(edgeEvent.getBody(), OAuth2Info.class);
+        if (oAuth2Info != null) {
+            OAuth2UpdateMsg oAuth2UpdateMsg = oAuth2MsgConstructor.constructOAuth2UpdateMsg(oAuth2Info);
+            downlinkMsg = DownlinkMsg.newBuilder()
+                    .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                    .addOAuth2UpdateMsg(oAuth2UpdateMsg)
+                    .build();
+        }
+        return downlinkMsg;
+    }
 }
