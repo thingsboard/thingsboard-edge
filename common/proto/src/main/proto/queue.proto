@@ -572,12 +572,36 @@ message GetOtaPackageResponseMsg {
   string fileName = 8;
 }
 
+message DeviceConnectProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  int64 deviceIdMSB = 3;
+  int64 deviceIdLSB = 4;
+  int64 lastConnectTime = 5;
+}
+
 message DeviceActivityProto {
   int64 tenantIdMSB = 1;
   int64 tenantIdLSB = 2;
   int64 deviceIdMSB = 3;
   int64 deviceIdLSB = 4;
   int64 lastActivityTime = 5;
+}
+
+message DeviceDisconnectProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  int64 deviceIdMSB = 3;
+  int64 deviceIdLSB = 4;
+  int64 lastDisconnectTime = 5;
+}
+
+message DeviceInactivityProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  int64 deviceIdMSB = 3;
+  int64 deviceIdLSB = 4;
+  int64 lastInactivityTime = 5;
 }
 
 //Used to report session state to tb-Service and persist this state in the cache on the tb-Service level.
@@ -1362,6 +1386,9 @@ message ToCoreMsg {
   LifecycleEventProto lifecycleEventMsg = 10;
   ErrorEventProto errorEventMsg = 11;
   ToDeviceActorNotificationMsgProto toDeviceActorNotification = 12;
+  DeviceConnectProto deviceConnectMsg = 13;
+  DeviceDisconnectProto deviceDisconnectMsg = 14;
+  DeviceInactivityProto deviceInactivityMsg = 15;
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Core Service separately */

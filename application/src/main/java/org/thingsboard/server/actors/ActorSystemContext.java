@@ -49,6 +49,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.rule.engine.api.ReportService;
+import org.thingsboard.rule.engine.api.RuleEngineDeviceStateManager;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.rule.engine.api.slack.SlackService;
 import org.thingsboard.rule.engine.api.sms.SmsSenderFactory;
@@ -235,6 +236,10 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private DeviceCredentialsService deviceCredentialsService;
+
+    @Autowired
+    @Getter
+    private RuleEngineDeviceStateManager deviceStateManager;
 
     @Autowired
     @Getter
@@ -634,6 +639,10 @@ public class ActorSystemContext {
     @Value("${actors.rule.external.force_ack:false}")
     @Getter
     private boolean externalNodeForceAck;
+
+    @Value("${state.rule.node.deviceState.rateLimit:1:1,30:60,60:3600}")
+    @Getter
+    private String deviceStateNodeRateLimitConfig;
 
     @Getter
     @Setter
