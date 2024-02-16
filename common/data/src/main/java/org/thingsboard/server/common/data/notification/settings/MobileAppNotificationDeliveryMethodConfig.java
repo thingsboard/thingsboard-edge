@@ -28,19 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.user;
+package org.thingsboard.server.common.data.notification.settings;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.common.data.settings.UserSettingsCompositeKey;
-import org.thingsboard.server.dao.model.sql.UserSettingsEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
 
-import java.util.List;
+import javax.validation.constraints.AssertTrue;
 
-public interface UserSettingsRepository extends JpaRepository<UserSettingsEntity, UserSettingsCompositeKey> {
+@Data
+public class MobileAppNotificationDeliveryMethodConfig implements NotificationDeliveryMethodConfig {
 
-    @Query(value = "SELECT * FROM user_settings WHERE type = :type AND (settings #> :path) IS NOT NULL", nativeQuery = true)
-    List<UserSettingsEntity> findByTypeAndPathExisting(@Param("type") String type, @Param("path") String[] path);
+    private String firebaseServiceAccountCredentialsFileName;
+    private String firebaseServiceAccountCredentials;
+    private boolean useSystemSettings;
+
+    @Override
+    public NotificationDeliveryMethod getMethod() {
+        return NotificationDeliveryMethod.MOBILE_APP;
+    }
+
+    @JsonIgnore
+    @AssertTrue(message = "Firebase service account credentials must be specified")
+    public boolean isValid() {
+        if (useSystemSettings) {
+            return true;
+        }
+        return StringUtils.isNotEmpty(firebaseServiceAccountCredentials);
+    }
 
 }

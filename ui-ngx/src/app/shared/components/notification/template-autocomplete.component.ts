@@ -43,7 +43,7 @@ import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { emptyPageData } from '@shared/models/page/page-data';
 import {
-  NotificationDeliveryMethodTranslateMap,
+  NotificationDeliveryMethodInfoMap,
   NotificationTemplate,
   NotificationType
 } from '@shared/models/notification.models';
@@ -70,7 +70,7 @@ import { coerceBoolean } from '@shared/decorators/coercion';
 })
 export class TemplateAutocompleteComponent implements ControlValueAccessor, OnInit {
 
-  notificationDeliveryMethodTranslateMap = NotificationDeliveryMethodTranslateMap;
+  notificationDeliveryMethodInfoMap = NotificationDeliveryMethodInfoMap;
   selectTemplateFormGroup: FormGroup;
 
   @Input()
