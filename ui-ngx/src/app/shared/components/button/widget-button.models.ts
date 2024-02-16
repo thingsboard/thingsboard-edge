@@ -114,6 +114,7 @@ export interface WidgetButtonAppearance {
   icon: string;
   iconSize: number;
   iconSizeUnit: cssUnit;
+  borderRadius?: string;
   mainColor: string;
   backgroundColor: string;
   customStyle: WidgetButtonCustomStyles;
