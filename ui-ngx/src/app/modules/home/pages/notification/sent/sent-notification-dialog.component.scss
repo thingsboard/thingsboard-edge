@@ -31,7 +31,7 @@
 @import "../../../../../../scss/constants";
 
 :host {
-  width: 850px;
+  width: 780px;
   height: 100%;
   max-width: 100%;
   max-height: 100vh;
@@ -221,6 +221,7 @@
 
       .mat-horizontal-stepper-wrapper {
         flex: 1 1 100%;
+        width: 100%;
       }
 
       .mat-horizontal-content-container {
