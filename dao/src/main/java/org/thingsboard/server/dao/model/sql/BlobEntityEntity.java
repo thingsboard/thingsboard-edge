@@ -37,7 +37,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.util.Base64Utils;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -47,6 +46,7 @@ import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import java.nio.ByteBuffer;
+import java.util.Base64;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_ADDITIONAL_INFO_PROPERTY;
@@ -105,7 +105,7 @@ public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements
         this.type = blobEntity.getType();
         this.contentType = blobEntity.getContentType();
         this.additionalInfo = blobEntity.getAdditionalInfo();
-        this.data = Base64Utils.encodeToString(blobEntity.getData().array());
+        this.data = Base64.getEncoder().encodeToString(blobEntity.getData().array());
     }
 
     @Override
@@ -122,7 +122,7 @@ public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements
         blobEntity.setType(type);
         blobEntity.setContentType(contentType);
         blobEntity.setAdditionalInfo(additionalInfo);
-        blobEntity.setData(ByteBuffer.wrap(Base64Utils.decodeFromString(data)));
+        blobEntity.setData(ByteBuffer.wrap(Base64.getDecoder().decode(data)));
         return blobEntity;
     }
 

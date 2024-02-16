@@ -32,11 +32,11 @@ package org.thingsboard.integration.api.util;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.springframework.util.Base64Utils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.UplinkContentType;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 public class ConvertUtil {
 
@@ -53,7 +53,7 @@ public class ConvertUtil {
             case "TEXT":
                 return new String(message, StandardCharsets.UTF_8);
             case "BINARY":
-                return Base64Utils.encodeToString(message);
+                return Base64.getEncoder().encodeToString(message);
             default:
                 throw new RuntimeException("Message type: " + messageType + " is not supported!");
         }

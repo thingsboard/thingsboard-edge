@@ -39,7 +39,6 @@ import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -64,6 +63,7 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -168,7 +168,7 @@ public class HttpIntegrationController extends BaseIntegrationController {
                     JsonNode jsonInterpretation = JacksonUtil.fromBytes(fileBytes);
                     fileArrayNode.add(jsonInterpretation);
                 } catch (IllegalArgumentException e) {
-                    String stringInterpretation = Base64Utils.encodeToString(fileBytes);
+                    String stringInterpretation = Base64.getEncoder().encodeToString(fileBytes);
                     fileArrayNode.add(stringInterpretation);
                 }
             } catch (IOException e) {
