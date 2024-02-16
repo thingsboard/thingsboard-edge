@@ -35,7 +35,10 @@ import {
   UntypedFormBuilder,
   UntypedFormGroup,
   NG_VALUE_ACCESSOR,
-  Validators
+  Validators,
+  NG_VALIDATORS,
+  Validator,
+  ValidationErrors
 } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
@@ -45,8 +48,7 @@ import { jsonRequired } from '@shared/components/json-object-edit.component';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
-import { safeMerge, sendRPCRequestDefaults } from '@home/components/scheduler/config/send-rpc-request.models';
-import { isEqual } from '@core/utils';
+import { safeMerge, sendRPCRequestDefaults } from '@home/components/scheduler/config/config.models';
 
 @Component({
   selector: 'tb-send-rpc-request-event-config',
@@ -56,9 +58,14 @@ import { isEqual } from '@core/utils';
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => SendRpcRequestComponent),
     multi: true
+  },
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => SendRpcRequestComponent),
+    multi: true
   }]
 })
-export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
+export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy, Validator {
 
   modelValue: SchedulerEventConfiguration | null;
 
@@ -111,6 +118,11 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
   }
 
   ngAfterViewInit(): void {
+    if (!this.sendRpcRequestFormGroup.valid) {
+      setTimeout(() => {
+        this.updateModel();
+      }, 0);
+    }
   }
 
   ngOnDestroy(): void {
@@ -128,13 +140,20 @@ export class SendRpcRequestComponent implements ControlValueAccessor, OnInit, Af
   }
 
   writeValue(value: SchedulerEventConfiguration | null): void {
-    this.modelValue = safeMerge(sendRPCRequestDefaults, value);
-    this.sendRpcRequestFormGroup.reset(this.modelValue, { emitEvent: false });
-    setTimeout(() => {
-      if (isEqual(this.modelValue, sendRPCRequestDefaults)) {
-        this.updateModel();
-      }
-    }, 0);
+    this.modelValue = safeMerge<SchedulerEventConfiguration>(sendRPCRequestDefaults, value);
+    this.sendRpcRequestFormGroup.reset(this.modelValue, {emitEvent: false});
+  }
+
+  validate(): ValidationErrors | null {
+    if (!this.sendRpcRequestFormGroup.valid) {
+      return {
+        rpcRequestForm: {
+          valid: false
+        }
+      };
+    }
+
+    return null;
   }
 
   private updateModel() {

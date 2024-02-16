@@ -60,7 +60,7 @@ import static org.thingsboard.server.common.data.msg.TbMsgType.TB_SIMPLE_AGG_PER
 import static org.thingsboard.server.common.data.msg.TbMsgType.TB_SIMPLE_AGG_REPORT_SELF_MSG;
 
 class TbMsgTypeTest {
-    
+
     private static final List<TbMsgType> typesWithNullRuleNodeConnection = List.of(
             ALARM,
             ALARM_DELETE,

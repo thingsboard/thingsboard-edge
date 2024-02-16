@@ -30,10 +30,21 @@
 ///
 
 import { AfterViewInit, ChangeDetectorRef, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  NG_VALUE_ACCESSOR,
+  Validators,
+  ValidationErrors,
+  NG_VALIDATORS,
+  Validator
+} from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-generate-report-event-config',
@@ -43,13 +54,20 @@ import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.mode
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => GenerateReportComponent),
     multi: true
+  },
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => GenerateReportComponent),
+    multi: true
   }]
 })
-export class GenerateReportComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
+export class GenerateReportComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy, Validator {
 
   modelValue: SchedulerEventConfiguration | null;
 
   generateReportFormGroup: UntypedFormGroup;
+
+  private destroy$ = new Subject<void>();
 
   @Input()
   disabled: boolean;
@@ -69,11 +87,15 @@ export class GenerateReportComponent implements ControlValueAccessor, OnInit, Af
       )
     });
 
-    this.generateReportFormGroup.get('msgBody.sendEmail').valueChanges.subscribe(() => {
+    this.generateReportFormGroup.get('msgBody.sendEmail').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.updateEnabledState();
     });
 
-    this.generateReportFormGroup.valueChanges.subscribe(() => {
+    this.generateReportFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.updateModel();
     });
   }
@@ -104,9 +126,16 @@ export class GenerateReportComponent implements ControlValueAccessor, OnInit, Af
   }
 
   ngAfterViewInit(): void {
+    if (!this.generateReportFormGroup.valid) {
+      setTimeout(() => {
+        this.updateModel();
+      }, 0);
+    }
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -118,6 +147,18 @@ export class GenerateReportComponent implements ControlValueAccessor, OnInit, Af
     this.modelValue = value;
     this.generateReportFormGroup.reset(this.modelValue || undefined,{emitEvent: false});
     this.updateEnabledState();
+  }
+
+  validate(): ValidationErrors | null {
+    if (!this.generateReportFormGroup.valid) {
+      return {
+        generateReportForm: {
+          valid: false
+        }
+      };
+    }
+
+    return null;
   }
 
   private updateModel() {
