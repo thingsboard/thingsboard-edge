@@ -30,31 +30,20 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-widget-button-custom-style">
-  <div class="tb-widget-button-preview-panel tb-primary-fill">
+<div class="tb-toggle-button-panel" [style]="backgroundStyle$ | async">
+  <div class="tb-toggle-button-overlay" [style]="overlayStyle"></div>
+  <ng-container *ngTemplateOutlet="widgetTitlePanel"></ng-container>
+  <div class="tb-toggle-button-container"
+       [class.auto-scale]="autoScale"
+       [class.horizontal-fill]="horizontalFill"
+       [class.vertical-fill]="verticalFill">
     <tb-widget-button
-      [appearance]="previewAppearance"
-      [borderRadius]="borderRadius"
-      [autoScale]="autoScale"
-      disableEvents
-      [hovered]="state === widgetButtonState.hovered"
-      [pressed]="state === widgetButtonState.pressed"
-      [activated]="state === widgetButtonState.activated"
-      [disabled]="state === widgetButtonState.disabled">
+        [appearance]="appearance"
+        [autoScale]="autoScale"
+        [disabled]="disabled || (loading$ | async)"
+        [ctx]="ctx"
+        (clicked)="onClick($event)">
     </tb-widget-button>
-    <button *ngIf="modelValue"
-            mat-icon-button
-            [matTooltip]="'widgets.button.clear-style' | translate"
-            matTooltipPosition="above"
-            class="tb-mat-32"
-            (click)="clearStyle()">
-      <tb-icon>mdi:broom</tb-icon>
-    </button>
   </div>
-  <button mat-icon-button
-          class="tb-mat-32"
-          #matIconButton
-          (click)="openButtonCustomStylePopup($event, matIconButton)">
-    <mat-icon>edit</mat-icon>
-  </button>
+  <mat-progress-bar class="tb-action-widget-progress" style="height: 4px;" color="accent" mode="indeterminate" *ngIf="loading$ | async"></mat-progress-bar>
 </div>

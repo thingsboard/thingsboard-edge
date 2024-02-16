@@ -36,7 +36,8 @@ import {
   Datasource,
   DatasourceData,
   DatasourceType,
-  TargetDevice, TargetDeviceType
+  TargetDevice,
+  TargetDeviceType
 } from '@shared/models/widget.models';
 import { Injector } from '@angular/core';
 import { DatePipe } from '@angular/common';
@@ -245,6 +246,15 @@ export const resolveCssSize = (strSize?: string): [number, cssUnit] => {
     numericSize = Number(resolvedSize);
   }
   return [numericSize, resolvedUnit];
+};
+
+export const validateCssSize = (strSize?: string): string | undefined => {
+  const resolved = resolveCssSize(strSize);
+  if (!!resolved[0] && !!resolved[1]) {
+    return cssSizeToStrSize(resolved[0], resolved[1]);
+  } else {
+    return undefined;
+  }
 };
 
 type ValueColorFunction = (value: any) => string;
