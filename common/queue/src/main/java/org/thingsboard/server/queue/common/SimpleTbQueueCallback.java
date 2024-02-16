@@ -28,38 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.state;
+package org.thingsboard.server.queue.common;
 
-import org.springframework.context.ApplicationListener;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.queue.TbCallback;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+import org.thingsboard.server.queue.TbQueueCallback;
+import org.thingsboard.server.queue.TbQueueMsgMetadata;
 
-/**
- * Created by ashvayka on 01.05.18.
- */
-public interface DeviceStateService extends ApplicationListener<PartitionChangeEvent> {
+import java.util.function.Consumer;
 
-    void onDeviceConnect(TenantId tenantId, DeviceId deviceId, long lastConnectTime);
+public class SimpleTbQueueCallback implements TbQueueCallback {
 
-    default void onDeviceConnect(TenantId tenantId, DeviceId deviceId) {
-        onDeviceConnect(tenantId, deviceId, System.currentTimeMillis());
+    private final Consumer<TbQueueMsgMetadata> onSuccess;
+    private final Consumer<Throwable> onFailure;
+
+    public SimpleTbQueueCallback(Consumer<TbQueueMsgMetadata> onSuccess, Consumer<Throwable> onFailure) {
+        this.onSuccess = onSuccess;
+        this.onFailure = onFailure;
     }
 
-    void onDeviceActivity(TenantId tenantId, DeviceId deviceId, long lastReportedActivityTime);
-
-    void onDeviceDisconnect(TenantId tenantId, DeviceId deviceId, long lastDisconnectTime);
-
-    default void onDeviceDisconnect(TenantId tenantId, DeviceId deviceId) {
-        onDeviceDisconnect(tenantId, deviceId, System.currentTimeMillis());
+    @Override
+    public void onSuccess(TbQueueMsgMetadata metadata) {
+        if (onSuccess != null) {
+            onSuccess.accept(metadata);
+        }
     }
 
-    void onDeviceInactivity(TenantId tenantId, DeviceId deviceId, long lastInactivityTime);
-
-    void onDeviceInactivityTimeoutUpdate(TenantId tenantId, DeviceId deviceId, long inactivityTimeout);
-
-    void onQueueMsg(TransportProtos.DeviceStateServiceMsgProto proto, TbCallback bytes);
+    @Override
+    public void onFailure(Throwable t) {
+        if (onFailure != null) {
+            onFailure.accept(t);
+        }
+    }
 
 }

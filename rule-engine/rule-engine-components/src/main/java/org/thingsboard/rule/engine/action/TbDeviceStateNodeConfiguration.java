@@ -28,38 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.state;
+package org.thingsboard.rule.engine.action;
 
-import org.springframework.context.ApplicationListener;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.queue.TbCallback;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
+import lombok.Data;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.server.common.data.msg.TbMsgType;
 
-/**
- * Created by ashvayka on 01.05.18.
- */
-public interface DeviceStateService extends ApplicationListener<PartitionChangeEvent> {
+@Data
+public class TbDeviceStateNodeConfiguration implements NodeConfiguration<TbDeviceStateNodeConfiguration> {
 
-    void onDeviceConnect(TenantId tenantId, DeviceId deviceId, long lastConnectTime);
+    private TbMsgType event;
 
-    default void onDeviceConnect(TenantId tenantId, DeviceId deviceId) {
-        onDeviceConnect(tenantId, deviceId, System.currentTimeMillis());
+    @Override
+    public TbDeviceStateNodeConfiguration defaultConfiguration() {
+        var config = new TbDeviceStateNodeConfiguration();
+        config.setEvent(TbMsgType.ACTIVITY_EVENT);
+        return config;
     }
-
-    void onDeviceActivity(TenantId tenantId, DeviceId deviceId, long lastReportedActivityTime);
-
-    void onDeviceDisconnect(TenantId tenantId, DeviceId deviceId, long lastDisconnectTime);
-
-    default void onDeviceDisconnect(TenantId tenantId, DeviceId deviceId) {
-        onDeviceDisconnect(tenantId, deviceId, System.currentTimeMillis());
-    }
-
-    void onDeviceInactivity(TenantId tenantId, DeviceId deviceId, long lastInactivityTime);
-
-    void onDeviceInactivityTimeoutUpdate(TenantId tenantId, DeviceId deviceId, long inactivityTimeout);
-
-    void onQueueMsg(TransportProtos.DeviceStateServiceMsgProto proto, TbCallback bytes);
 
 }
