@@ -32,6 +32,7 @@ package org.thingsboard.server.transport.lwm2m.server.store;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.californium.core.coap.Token;
 import org.eclipse.californium.core.network.RandomTokenGenerator;
 import org.eclipse.californium.core.network.TokenGenerator;
@@ -55,8 +56,6 @@ import org.eclipse.leshan.server.registration.Registration;
 import org.eclipse.leshan.server.registration.RegistrationStore;
 import org.eclipse.leshan.server.registration.RegistrationUpdate;
 import org.eclipse.leshan.server.registration.UpdatedRegistration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.transport.lwm2m.config.LwM2MTransportServerConfig;
 import org.thingsboard.server.transport.lwm2m.server.LwM2mVersionedModelProvider;
@@ -83,8 +82,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import static org.eclipse.leshan.core.californium.ObserveUtil.CTX_CF_OBERSATION;
 import static org.eclipse.leshan.core.californium.ObserveUtil.extractSerializedObservation;
 
+@Slf4j
 public class TbInMemoryRegistrationStore implements RegistrationStore, Startable, Stoppable, Destroyable {
-    private final Logger LOG = LoggerFactory.getLogger(TbInMemoryRegistrationStore.class);
 
     // Data structure
     private final Map<String /* end-point */, Registration> regsByEp = new HashMap<>();
@@ -354,10 +353,10 @@ public class TbInMemoryRegistrationStore implements RegistrationStore, Startable
         if (addIfAbsent && previousObservation != null) {
             if (!existingObservation.getPath().equals(observation.getPath())) {
                 removed.add(previousObservation);
-                LOG.warn("Token collision ? observation [{}] will be replaced by observation [{}], that this observation  includes input observation [{}]!",
+                log.warn("Token collision ? observation [{}] will be replaced by observation [{}], that this observation  includes input observation [{}]!",
                         previousObservation, observation, observation);
             } else {
-                LOG.warn("Token collision ? existing observation [{}] includes input observation [{}]",
+                log.warn("Token collision ? existing observation [{}] includes input observation [{}]",
                         existingObservation, observation);
             }
         }
@@ -591,7 +590,7 @@ public class TbInMemoryRegistrationStore implements RegistrationStore, Startable
         try {
             schedExecutor.awaitTermination(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
-            LOG.warn("Destroying InMemoryRegistrationStore was interrupted.", e);
+            log.warn("Destroying InMemoryRegistrationStore was interrupted.", e);
         }
     }
 
@@ -617,7 +616,7 @@ public class TbInMemoryRegistrationStore implements RegistrationStore, Startable
                     }
                 }
             } catch (Exception e) {
-                LOG.warn("Unexpected Exception while registration cleaning", e);
+                log.warn("Unexpected Exception while registration cleaning", e);
             }
         }
     }

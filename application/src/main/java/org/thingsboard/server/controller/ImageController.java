@@ -42,7 +42,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -77,6 +76,8 @@ import org.thingsboard.server.service.resource.TbImageService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
@@ -244,7 +245,7 @@ public class ImageController extends BaseController {
                 .resourceKey(imageInfo.getResourceKey())
                 .isPublic(imageInfo.isPublic())
                 .publicResourceKey(imageInfo.getPublicResourceKey())
-                .data(Base64Utils.encodeToString(data))
+                .data(Base64.getEncoder().encodeToString(data))
                 .build();
     }
 
@@ -269,7 +270,7 @@ public class ImageController extends BaseController {
         ImageDescriptor descriptor = new ImageDescriptor();
         descriptor.setMediaType(imageData.getMediaType());
         image.setDescriptorValue(descriptor);
-        image.setData(Base64Utils.decodeFromString(imageData.getData()));
+        image.setData(Base64.getDecoder().decode(imageData.getData()));
         return tbImageService.save(image, user);
     }
 
