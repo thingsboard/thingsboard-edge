@@ -403,6 +403,7 @@ public class CloudManagerService {
                     case DELETED:
                     case ALARM_ACK:
                     case ALARM_CLEAR:
+                    case ALARM_DELETE:
                     case CREDENTIALS_UPDATED:
                     case RELATION_ADD_OR_UPDATE:
                     case RELATION_DELETED:

@@ -23,6 +23,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -173,6 +174,8 @@ public class CloudEventSourcingListener {
     private EdgeEventActionType getEdgeEventActionTypeForEntityEvent(Object entity) {
         if (entity instanceof AlarmComment) {
             return EdgeEventActionType.DELETED_COMMENT;
+        } else if (entity instanceof Alarm) {
+            return EdgeEventActionType.ALARM_DELETE;
         }
         return EdgeEventActionType.DELETED;
     }
