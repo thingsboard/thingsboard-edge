@@ -281,6 +281,10 @@ public interface TbContext {
 
     DeviceCredentialsService getDeviceCredentialsService();
 
+    RuleEngineDeviceStateManager getDeviceStateManager();
+
+    String getDeviceStateNodeRateLimitConfig();
+
     TbClusterService getClusterService();
 
     DashboardService getDashboardService();
