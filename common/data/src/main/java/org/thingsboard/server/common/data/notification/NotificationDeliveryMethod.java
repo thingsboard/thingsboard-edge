@@ -45,6 +45,5 @@ public enum NotificationDeliveryMethod {
 
     @Getter
     private final String name;
-    // TODO:   private final boolean allowUseSystemSettings;
 
 }
