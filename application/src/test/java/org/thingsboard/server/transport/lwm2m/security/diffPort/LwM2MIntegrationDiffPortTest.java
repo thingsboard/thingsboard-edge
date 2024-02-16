@@ -28,35 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.lwm2m.security.cid.serverDtlsCidLength_0;
+package org.thingsboard.server.transport.lwm2m.security.diffPort;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.server.transport.lwm2m.security.cid.AbstractSecurityLwM2MIntegrationDtlsCidLength0Test;
+import org.thingsboard.server.common.data.device.profile.Lwm2mDeviceProfileTransportConfiguration;
 
 import static org.thingsboard.server.common.data.device.credentials.lwm2m.LwM2MSecurityMode.NO_SEC;
+import static org.thingsboard.server.common.data.device.credentials.lwm2m.LwM2MSecurityMode.PSK;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MProfileBootstrapConfigType.NONE;
 
-public class NoSecLwM2MIntegrationDtlsCidLengthTest extends AbstractSecurityLwM2MIntegrationDtlsCidLength0Test {
-
-    @Before
-    public void setUpNoSecDtlsCidLength() {
-        transportConfiguration = getTransportConfiguration(OBSERVE_ATTRIBUTES_WITHOUT_PARAMS, getBootstrapServerCredentialsSecure(NO_SEC, NONE));
-        awaitAlias = "await on client state (NoSec_Lwm2m) DtlsCidLength = 0";
-    }
+public class LwM2MIntegrationDiffPortTest extends AbstractLwM2MIntegrationDiffPortTest {
 
     @Test
-    public void testWithNoSecConnectLwm2mSuccessClientDtlsCidLength_Null() throws Exception {
-        testNoSecDtlsCidLength(null);
+    public void testWithNoSecConnectLwm2mSuccess_AfterRegistration_UpdateRegistrationFromDifferentPort_Ok() throws Exception {
+        String awaitAlias = "await on client state (NoSec different port)";
+        Lwm2mDeviceProfileTransportConfiguration transportConfiguration = getTransportConfiguration(OBSERVE_ATTRIBUTES_WITHOUT_PARAMS, getBootstrapServerCredentialsSecure(NO_SEC, NONE));
+        initDeviceCredentialsNoSek();
+        basicTestConnectionDifferentPort(
+                transportConfiguration,
+                awaitAlias);
     }
-
     @Test
-    public void testWithNoSecConnectLwm2mSuccessClientDtlsCidLength_0() throws Exception {
-        testNoSecDtlsCidLength(0);
-    }
-
-    @Test
-    public void testWithNoSecConnectLwm2mSuccessClientDtlsCidLength_2() throws Exception {
-        testNoSecDtlsCidLength(2);
+    public void testWithPskConnectLwm2mSuccess_AfterRegistration_UpdateRegistrationFromDifferentPort_Ok() throws Exception {
+        String awaitAlias = "await on client state (Psk different port)";
+        Lwm2mDeviceProfileTransportConfiguration transportConfiguration = getTransportConfiguration(OBSERVE_ATTRIBUTES_WITHOUT_PARAMS, getBootstrapServerCredentialsSecure(PSK, NONE));
+        initDeviceCredentialsPsk();
+        basicTestConnectionDifferentPort(
+                transportConfiguration,
+                awaitAlias);
     }
 }
