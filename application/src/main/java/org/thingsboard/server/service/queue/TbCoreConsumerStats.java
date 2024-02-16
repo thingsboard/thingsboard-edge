@@ -54,7 +54,10 @@ public class TbCoreConsumerStats {
     public static final String SCHEDULER = "scheduler";
     public static final String EDGE_NOTIFICATIONS = "edgeNfs";
     public static final String CLOUD_NOTIFICATIONS = "cloudNfs";
+    public static final String DEVICE_CONNECTS = "deviceConnect";
     public static final String DEVICE_ACTIVITIES = "deviceActivity";
+    public static final String DEVICE_DISCONNECTS = "deviceDisconnect";
+    public static final String DEVICE_INACTIVITIES = "deviceInactivity";
 
     // PE
     public static final String TO_CORE_NF_INTEGRATION_DOWNLINK = "coreNfIntDlnk";
@@ -88,7 +91,10 @@ public class TbCoreConsumerStats {
     private final StatsCounter subscriptionMsgCounter;
     private final StatsCounter edgeNotificationsCounter;
     private final StatsCounter cloudNotificationMsgCounter;
+    private final StatsCounter deviceConnectsCounter;
     private final StatsCounter deviceActivitiesCounter;
+    private final StatsCounter deviceDisconnectsCounter;
+    private final StatsCounter deviceInactivitiesCounter;
 
     // PE
     private final StatsCounter schedulerMsgCounter;
@@ -127,7 +133,10 @@ public class TbCoreConsumerStats {
         this.subscriptionMsgCounter = register(statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_MSGS));
         this.edgeNotificationsCounter = register(statsFactory.createStatsCounter(statsKey, EDGE_NOTIFICATIONS));
         this.cloudNotificationMsgCounter = register(statsFactory.createStatsCounter(statsKey, CLOUD_NOTIFICATIONS));
+        this.deviceConnectsCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_CONNECTS));
         this.deviceActivitiesCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_ACTIVITIES));
+        this.deviceDisconnectsCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_DISCONNECTS));
+        this.deviceInactivitiesCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_INACTIVITIES));
 
         // PE
         this.schedulerMsgCounter = register(statsFactory.createStatsCounter(statsKey, SCHEDULER));
@@ -197,6 +206,11 @@ public class TbCoreConsumerStats {
         edgeNotificationsCounter.increment();
     }
 
+    public void log(TransportProtos.DeviceConnectProto msg) {
+        totalCounter.increment();
+        deviceConnectsCounter.increment();
+    }
+
     public void log(TransportProtos.DeviceActivityProto msg) {
         totalCounter.increment();
         deviceActivitiesCounter.increment();
@@ -205,6 +219,16 @@ public class TbCoreConsumerStats {
     public void log(TransportProtos.CloudNotificationMsgProto msg) {
         totalCounter.increment();
         cloudNotificationMsgCounter.increment();
+    }
+
+    public void log(TransportProtos.DeviceDisconnectProto msg) {
+        totalCounter.increment();
+        deviceDisconnectsCounter.increment();
+    }
+
+    public void log(TransportProtos.DeviceInactivityProto msg) {
+        totalCounter.increment();
+        deviceInactivitiesCounter.increment();
     }
 
     public void log(TransportProtos.SubscriptionMgrMsgProto msg) {

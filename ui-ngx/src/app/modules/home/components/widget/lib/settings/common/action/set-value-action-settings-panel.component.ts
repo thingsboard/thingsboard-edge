@@ -47,6 +47,7 @@ import { TargetDevice, widgetType } from '@shared/models/widget.models';
 import { AttributeScope, DataKeyType, telemetryTypeTranslationsShort } from '@shared/models/telemetry/telemetry.models';
 import { IAliasController } from '@core/api/widget-api.models';
 import { WidgetService } from '@core/http/widget.service';
+import { ValueType } from '@shared/models/constants';
 
 @Component({
   selector: 'tb-set-value-action-settings-panel',
@@ -59,6 +60,9 @@ export class SetValueActionSettingsPanelComponent extends PageComponent implemen
 
   @Input()
   panelTitle: string;
+
+  @Input()
+  valueType = ValueType.BOOLEAN;
 
   @Input()
   setValueSettings: SetValueSettings;
@@ -93,6 +97,8 @@ export class SetValueActionSettingsPanelComponent extends PageComponent implemen
   valueToDataType = ValueToDataType;
 
   functionScopeVariables = this.widgetService.getWidgetScopeVariables();
+
+  ValueType = ValueType;
 
   setValueSettingsFormGroup: UntypedFormGroup;
 
