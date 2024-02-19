@@ -38,6 +38,7 @@ import io.restassured.config.RestAssuredConfig;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.http.ContentType;
+import io.restassured.internal.ValidatableResponseImpl;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.ValidatableResponse;
 import io.restassured.specification.RequestSpecification;
@@ -50,6 +51,7 @@ import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.EventInfo;
+import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -90,6 +92,7 @@ import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
+import static java.net.HttpURLConnection.HTTP_BAD_REQUEST;
 import static java.net.HttpURLConnection.HTTP_NOT_FOUND;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hamcrest.Matchers.is;
@@ -547,7 +550,7 @@ public class TestRestClient {
                 });
     }
 
-    public void deleteDeviseProfile(DeviceProfileId deviceProfileId) {
+    public void deleteDeviceProfile(DeviceProfileId deviceProfileId) {
         given().spec(requestSpec)
                 .delete("/api/deviceProfile/{deviceProfileId}", deviceProfileId.getId())
                 .then()
@@ -908,5 +911,65 @@ public class TestRestClient {
                 .post("/api/entityGroup/{entityGroupId}/makePublic", entityGroupId.getId())
                 .then()
                 .statusCode(HTTP_OK);
+    }
+
+    public Device postDeviceWithCredentials(String accessToken, Device device) {
+        return given().spec(requestSpec).body(device)
+                .pathParams("accessToken", accessToken)
+                .post("/api/device?accessToken={accessToken}")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(Device.class);
+    }
+
+    public Device getDeviceByNameIfExists(String deviceName) {
+        ValidatableResponse response = given().spec(requestSpec)
+                .pathParams("deviceName", deviceName)
+                .get("/api/tenant/devices?deviceName={deviceName}")
+                .then()
+                .statusCode(anyOf(is(HTTP_OK), is(HTTP_NOT_FOUND)));
+        if(((ValidatableResponseImpl) response).extract().response().getStatusCode()==HTTP_OK){
+            return   response.extract()
+                    .as(Device.class);
+        } else {
+            return  null;
+        }
+    }
+
+    public DeviceCredentials postDeviceCredentials(DeviceCredentials deviceCredentials) {
+        return given().spec(requestSpec).body(deviceCredentials)
+                .post("/api/device/credentials")
+                .then()
+                .assertThat()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(DeviceCredentials.class);
+    }
+
+    public ValidatableResponse postTbResourceIfNotExists(TbResource lwModel) {
+        return given().spec(requestSpec).body(lwModel)
+                .post("/api/resource")
+                .then()
+                .statusCode(anyOf(is(HTTP_OK), is(HTTP_BAD_REQUEST)));
+    }
+
+    public PageData<TbResource> getTbResources(PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
+        return given().spec(requestSpec).queryParams(params)
+                .get("/api/resource")
+                .then()
+                .statusCode(HTTP_OK)
+                .extract()
+                .as(new TypeRef<PageData<TbResource>>() {
+                });
+    }
+
+    public void deleteDeviceProfileIfExists(DeviceProfileId deviceProfileId) {
+        given().spec(requestSpec)
+                .delete("/api/deviceProfile/{deviceProfileId}", deviceProfileId.getId())
+                .then()
+                .statusCode(anyOf(is(HTTP_OK), is(HTTP_NOT_FOUND)));
     }
 }
