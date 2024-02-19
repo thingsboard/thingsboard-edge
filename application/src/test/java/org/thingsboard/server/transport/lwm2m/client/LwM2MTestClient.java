@@ -142,7 +142,7 @@ public class LwM2MTestClient {
     private LwM2mUplinkMsgHandler defaultLwM2mUplinkMsgHandlerTest;
     private LwM2mClientContext clientContext;
 
-    public void init(Security security, Security securityBs,Configuration coapConfig, int port, boolean isRpc,
+    public void init(Security security, Security securityBs, int port, boolean isRpc,
                      LwM2mUplinkMsgHandler defaultLwM2mUplinkMsgHandler,
                      LwM2mClientContext clientContext, boolean isWriteAttribute, Integer cIdLength, boolean queueMode) throws InvalidDDFFileException, IOException {
         Assert.assertNull("client already initialized", leshanClient);
@@ -224,8 +224,7 @@ public class LwM2MTestClient {
         /**
          * "Use java-coap for CoAP protocol instead of Californium."
          */
-        boolean useJavaCoap = false;
-        if (!useJavaCoap) protocolProvider.add(new CoapOscoreProtocolProvider());
+        protocolProvider.add(new CoapOscoreProtocolProvider());
         protocolProvider.add(customCoapsProtocolProvider);
         CaliforniumClientEndpointsProvider.Builder endpointsBuilder = new CaliforniumClientEndpointsProvider.Builder(
                 protocolProvider.toArray(new ClientProtocolProvider[protocolProvider.size()]));
@@ -233,7 +232,6 @@ public class LwM2MTestClient {
 
         // Create Californium Configuration
         Configuration clientCoapConfig = endpointsBuilder.createDefaultConfiguration();
-        DtlsConnectorConfig.Builder dtlsConfig = new DtlsConnectorConfig.Builder(coapConfig);
 
         // Set some DTLS stuff
         // These configuration values are always overwritten by CLI therefore set them to transient.
