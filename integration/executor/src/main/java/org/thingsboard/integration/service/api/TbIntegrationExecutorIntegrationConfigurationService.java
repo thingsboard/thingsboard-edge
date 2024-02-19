@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,8 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
@@ -49,6 +51,7 @@ import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
 import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
 import org.thingsboard.server.gen.integration.IntegrationInfoListRequestProto;
 import org.thingsboard.server.gen.integration.IntegrationRequestProto;
+import org.thingsboard.server.gen.integration.TenantProfileRequestProto;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.util.DataDecodingEncodingService;
@@ -141,6 +144,17 @@ public class TbIntegrationExecutorIntegrationConfigurationService implements Int
         return Futures.transform(response, this::parseConverterFromProto, callbackExecutor).get(1, TimeUnit.MINUTES);
     }
 
+    @SneakyThrows
+    @Override
+    public TenantProfile getTenantProfile(TenantId tenantId) {
+        var response = apiTemplate.send(new TbProtoQueueMsg<>(UUID.randomUUID(), IntegrationApiRequestMsg.newBuilder()
+                .setTenantProfileRequest(TenantProfileRequestProto.newBuilder()
+                        .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
+                        .setTenantIdLSB(tenantId.getId().getLeastSignificantBits()))
+                .build()));
+        return Futures.transform(response, data -> this.<TenantProfile>decodeEntity(EntityType.TENANT_PROFILE,
+                        data.getValue().getTenantProfileResponse().getData()), callbackExecutor).get(1, TimeUnit.MINUTES);
+    }
 
     private List<IntegrationInfo> parseListFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
         var result = new ArrayList<IntegrationInfo>();
@@ -156,18 +170,20 @@ public class TbIntegrationExecutorIntegrationConfigurationService implements Int
 
     private Integration parseIntegrationFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
         ByteString data = proto.getValue().getIntegrationResponse().getData();
-        if (!data.isEmpty()) {
-            Optional<Integration> integration = dataDecodingEncodingService.decode(data.toByteArray());
-            return integration.orElseThrow(() -> new RuntimeException("Can't parse the integration from bytes!"));
-        } else {
-            return null;
-        }
+        return decodeEntity(EntityType.INTEGRATION, data);
     }
 
     private Converter parseConverterFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
         ByteString data = proto.getValue().getConverterResponse().getData();
-        Optional<Converter> converter = dataDecodingEncodingService.decode(data.toByteArray());
-        return converter.orElseThrow(() -> new RuntimeException("Can't parse the converter from bytes!"));
+        return decodeEntity(EntityType.CONVERTER, data);
+    }
+
+    private <E> E decodeEntity(EntityType entityType, ByteString data) {
+        if (data == null || data.isEmpty()) {
+            return null;
+        }
+        Optional<E> entity = dataDecodingEncodingService.decode(data.toByteArray());
+        return entity.orElseThrow(() -> new RuntimeException("Can't decode the " + entityType.getNormalName().toLowerCase() + " from bytes"));
     }
 
 }

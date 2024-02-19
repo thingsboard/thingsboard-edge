@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,14 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { WidgetService } from '@core/http/widget.service';
 import { detailsToWidgetInfo, WidgetInfo } from '@home/models/widget-component.models';
-import { Widget, WidgetConfig, widgetType, WidgetTypeDetails, widgetTypesData } from '@shared/models/widget.models';
+import {
+  TargetDeviceType,
+  Widget,
+  WidgetConfig,
+  widgetType,
+  WidgetTypeDetails,
+  widgetTypesData
+} from '@shared/models/widget.models';
 import { ActivatedRoute, Router } from '@angular/router';
 import { deepClone } from '@core/utils';
 import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
@@ -804,12 +811,12 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
     this.isDirty = true;
   }
 
-  widetTypeChanged() {
+  widgetTypeChanged() {
     const config: WidgetConfig = JSON.parse(this.widget.defaultConfig);
     if (this.widget.type !== widgetType.rpc &&
         this.widget.type !== widgetType.alarm) {
-      if (config.targetDeviceAliases) {
-        delete config.targetDeviceAliases;
+      if (config.targetDevice) {
+        delete config.targetDevice;
       }
       if (config.alarmSource) {
         delete config.alarmSource;
@@ -834,15 +841,17 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
       if (config.timewindow) {
         delete config.timewindow;
       }
-      if (!config.targetDeviceAliases) {
-        config.targetDeviceAliases = [];
+      if (!config.targetDevice) {
+        config.targetDevice = {
+          type: TargetDeviceType.device
+        };
       }
     } else { // alarm
       if (config.datasources) {
         delete config.datasources;
       }
-      if (config.targetDeviceAliases) {
-        delete config.targetDeviceAliases;
+      if (config.targetDevice) {
+        delete config.targetDevice;
       }
       if (!config.alarmSource) {
         config.alarmSource = {};

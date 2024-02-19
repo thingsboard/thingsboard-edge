@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -141,9 +141,8 @@ export class AddWidgetToDashboardDialogComponent extends
         mergeMap((dashboard) => {
           dashboard = this.dashboardUtils.validateAndUpdateDashboard(dashboard);
           return this.selectTargetState(dashboard).pipe(
-            mergeMap((targetState) => {
-              return forkJoin([of(dashboard), of(targetState), this.selectTargetLayout(dashboard, targetState)]);
-            })
+            mergeMap((targetState) =>
+              forkJoin([of(dashboard), of(targetState), this.selectTargetLayout(dashboard, targetState)]))
           );
         })
       ).subscribe((res) => {
@@ -192,7 +191,7 @@ export class AddWidgetToDashboardDialogComponent extends
   private addWidgetToDashboard(dashboard: Dashboard, targetState: string, targetLayout: DashboardLayoutId) {
     const aliasesInfo: AliasesInfo = {
       datasourceAliases: {},
-      targetDeviceAliases: {}
+      targetDeviceAlias: null
     };
     this.dashboardUtils.createSingleEntityFilter(this.data.entityId).subscribe((filter) => {
       aliasesInfo.datasourceAliases[0] = {

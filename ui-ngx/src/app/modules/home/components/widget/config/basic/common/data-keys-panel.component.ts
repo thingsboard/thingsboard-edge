@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -164,7 +164,7 @@ export class DataKeysPanelComponent implements ControlValueAccessor, OnInit, OnC
   get noKeys(): boolean {
     let keys: DataKey[] = this.keysListFormGroup.get('keys').value;
     if (this.hasAdditionalLatestDataKeys) {
-      keys = keys.filter(k => !(k as any).latest);
+      keys = keys.filter(k => !(k as any)?.latest);
     }
     return keys.length === 0;
   }

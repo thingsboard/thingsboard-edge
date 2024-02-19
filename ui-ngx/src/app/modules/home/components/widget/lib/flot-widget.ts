@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -71,7 +71,7 @@ import {
 } from './flot-widget.models';
 import * as moment_ from 'moment';
 import tinycolor from 'tinycolor2';
-import { AggregationType } from '@shared/models/time/time.models';
+import { AggregationType, IntervalMath } from '@shared/models/time/time.models';
 import { CancelAnimationFrame } from '@core/services/raf.service';
 import { UtilsService } from '@core/services/utils.service';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
@@ -573,7 +573,7 @@ export class TbFlot {
           this.subscription.timeWindowConfig.aggregation.type === AggregationType.NONE) {
           this.options.series.bars.barWidth = this.defaultBarWidth;
         } else {
-          this.options.series.bars.barWidth = this.subscription.timeWindow.interval * 0.6;
+          this.options.series.bars.barWidth = IntervalMath.numberValue(this.subscription.timeWindow.interval) * 0.6;
         }
       }
       this.options.xaxes[0].min = this.subscription.timeWindow.minTime;
@@ -678,7 +678,7 @@ export class TbFlot {
               this.subscription.timeWindowConfig.aggregation.type === AggregationType.NONE) {
               this.options.series.bars.barWidth = this.defaultBarWidth;
             } else {
-              this.options.series.bars.barWidth = this.subscription.timeWindow.interval * 0.6;
+              this.options.series.bars.barWidth = IntervalMath.numberValue(this.subscription.timeWindow.interval) * 0.6;
             }
           }
 
@@ -696,7 +696,7 @@ export class TbFlot {
                 this.subscription.timeWindowConfig.aggregation.type === AggregationType.NONE) {
                 this.plot.getOptions().series.bars.barWidth = this.defaultBarWidth;
               } else {
-                this.plot.getOptions().series.bars.barWidth = this.subscription.timeWindow.interval * 0.6;
+                this.plot.getOptions().series.bars.barWidth = IntervalMath.numberValue(this.subscription.timeWindow.interval) * 0.6;
               }
             }
             this.updateData();
@@ -1073,7 +1073,9 @@ export class TbFlot {
       const series = this.subscription.data[i] as TbFlotSeries;
       this.substituteLabelPatterns(series, i);
     }
-    this.updateData();
+    if (this.plot) {
+      this.updateData();
+    }
     this.ctx.detectChanges();
   }
 

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -45,8 +45,6 @@ import java.util.UUID;
 
 public interface AuditLogDao extends Dao<AuditLog> {
 
-    ListenableFuture<Void> saveByTenantId(AuditLog auditLog);
-
     PageData<AuditLog> findAuditLogsByTenantIdAndEntityId(UUID tenantId, EntityId entityId, List<ActionType> actionTypes, TimePageLink pageLink);
 
     PageData<AuditLog> findAuditLogsByTenantIdAndCustomerId(UUID tenantId, CustomerId customerId, List<ActionType> actionTypes, TimePageLink pageLink);
@@ -56,7 +54,5 @@ public interface AuditLogDao extends Dao<AuditLog> {
     PageData<AuditLog> findAuditLogsByTenantId(UUID tenantId, List<ActionType> actionTypes, TimePageLink pageLink);
 
     void cleanUpAuditLogs(long expTime);
-
-    void migrateAuditLogs();
 
 }

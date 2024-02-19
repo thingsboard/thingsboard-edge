@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -64,6 +64,6 @@ public interface EntityService {
                                                                              EntityType entityType, Operation operation, String type, PageLink pageLink);
 
     <T extends GroupEntity<? extends EntityId>> PageData<T> findUserEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions,
-                                                                             EntityType entityType, Operation operation, String type, PageLink pageLink, boolean mobile);
+                                                                             EntityType entityType, Operation operation, String type, PageLink pageLink, boolean mobile, boolean idOnly);
 
 }

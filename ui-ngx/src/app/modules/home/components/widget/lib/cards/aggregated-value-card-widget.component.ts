@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -256,8 +256,8 @@ export class AggregatedValueCardWidgetComponent implements OnInit, AfterViewInit
         } else {
           aggValue.value = 'N/A';
         }
+        aggValue.color.update(value);
         const numeric = formatNumberValue(value, (aggValue.key.decimals || this.ctx.decimals));
-        aggValue.color.update(numeric);
         if (aggValue.showArrow && isDefined(numeric)) {
           aggValue.upArrow = numeric > 0;
           aggValue.downArrow = numeric < 0;

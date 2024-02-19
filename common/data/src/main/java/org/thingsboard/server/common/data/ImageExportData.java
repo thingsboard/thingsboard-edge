@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -31,22 +31,26 @@
 package org.thingsboard.server.common.data;
 
 import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @ApiModel
 @Slf4j
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class ImageExportData {
 
-    private final String mediaType;
-    private final String fileName;
-    private final String title;
-    private final String resourceKey;
-    private final boolean isPublic;
-    private final String publicResourceKey;
-    private final String data;
+    private String mediaType;
+    private String fileName;
+    private String title;
+    private String resourceKey;
+    private boolean isPublic;
+    private String publicResourceKey;
+    private String data;
 
 }

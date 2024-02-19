@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -53,7 +53,7 @@ public interface AuditLogService {
 
     PageData<AuditLog> findAuditLogsByTenantId(TenantId tenantId, List<ActionType> actionTypes, TimePageLink pageLink);
 
-    <E extends HasName, I extends EntityId> ListenableFuture<List<Void>> logEntityAction(
+    <E extends HasName, I extends EntityId> ListenableFuture<Void> logEntityAction(
             TenantId tenantId,
             CustomerId customerId,
             UserId userId,

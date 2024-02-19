@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -64,6 +64,9 @@ import java.time.ZonedDateTime;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+
+import static org.thingsboard.server.common.data.StringUtils.equalsAny;
+import static org.thingsboard.server.common.data.StringUtils.splitByCommaWithoutQuotes;
 
 @Data
 @Slf4j
@@ -482,6 +485,10 @@ class AlarmRuleState {
                 return !val.equals(predicateValue);
             case NOT_CONTAINS:
                 return !val.contains(predicateValue);
+            case IN:
+                return equalsAny(val, splitByCommaWithoutQuotes(predicateValue));
+            case NOT_IN:
+                return !equalsAny(val, splitByCommaWithoutQuotes(predicateValue));
             default:
                 throw new RuntimeException("Operation not supported: " + predicate.getOperation());
         }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,8 @@ public enum NotificationDeliveryMethod {
     EMAIL("email"),
     SMS("SMS"),
     SLACK("Slack"),
-    MICROSOFT_TEAMS("Microsoft Teams");
+    MICROSOFT_TEAMS("Microsoft Teams"),
+    MOBILE_APP("mobile app");
 
     @Getter
     private final String name;

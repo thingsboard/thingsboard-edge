@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -462,7 +462,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
         verifyMsgProcessed(consumer1.testMsg);
         verifyMsgProcessed(consumer2.testMsg);
 
-        consumerManager.delete();
+        consumerManager.delete(true);
 
         await().atMost(2, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
@@ -503,7 +503,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
         verifySubscribedAndLaunched(consumer, partitions);
         verifyMsgProcessed(consumer.testMsg);
 
-        consumerManager.delete();
+        consumerManager.delete(true);
 
         await().atMost(2, TimeUnit.SECONDS)
                 .untilAsserted(() -> {

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -31,14 +31,14 @@
 
 import { ChangeDetectorRef, Component, Input, OnInit } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
-import { UntypedFormBuilder, UntypedFormGroup, FormGroupDirective, Validators } from '@angular/forms';
+import { FormGroupDirective, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { AdminService } from '@core/http/admin.service';
 import {
-  RepositorySettings,
   RepositoryAuthMethod,
-  repositoryAuthMethodTranslationMap
+  repositoryAuthMethodTranslationMap,
+  RepositorySettings
 } from '@shared/models/settings.models';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
@@ -51,6 +51,7 @@ import { of } from 'rxjs';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-repository-settings',
@@ -64,6 +65,10 @@ export class RepositorySettingsComponent extends PageComponent implements OnInit
 
   @Input()
   popoverComponent: TbPopoverComponent;
+
+  @Input()
+  @coerceBoolean()
+  hideLoadingBar = false;
 
   repositorySettingsForm: UntypedFormGroup;
   settings: RepositorySettings = null;

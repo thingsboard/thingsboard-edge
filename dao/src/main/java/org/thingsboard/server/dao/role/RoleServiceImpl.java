@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -98,7 +98,7 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
             Role savedRole = roleDao.save(tenantId, role);
             publishEvictEvent(new RoleEvictEvent(savedRole.getId()));
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedRole.getId())
-                    .added(role.getId() == null).build());
+                    .created(role.getId() == null).build());
             return savedRole;
         } catch (Exception t) {
             checkConstraintViolation(t,

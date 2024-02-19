@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -152,9 +152,10 @@ export class InboxTableConfigResolver implements Resolve<EntityTableConfig<Notif
         this.config.getTable().dataSource.pageData$.pipe(take(1)).subscribe(
           (value) => {
             if (value.data.length === 1 && this.config.getTable().pageLink.page) {
-              this.config.getTable().pageLink.page--;
+              this.config.getTable().paginator.previousPage();
+            } else {
+              this.config.updateData();
             }
-            this.config.updateData();
           }
         );
       } else {

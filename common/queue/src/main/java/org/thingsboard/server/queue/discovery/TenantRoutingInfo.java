@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -38,5 +38,5 @@ import org.thingsboard.server.common.data.id.TenantProfileId;
 public class TenantRoutingInfo {
     private final TenantId tenantId;
     private final TenantProfileId profileId;
-    private final boolean isolatedTbRuleEngine;
+    private final boolean isolated;
 }

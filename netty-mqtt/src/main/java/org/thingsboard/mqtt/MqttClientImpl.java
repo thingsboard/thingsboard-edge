@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -133,7 +133,7 @@ final class MqttClientImpl implements MqttClient {
      * @return A future which will be completed when the connection is opened and we received an CONNACK
      */
     @Override
-    public Future<MqttConnectResult> connect(String host) {
+    public Promise<MqttConnectResult> connect(String host) {
         return connect(host, 1883);
     }
 
@@ -145,11 +145,11 @@ final class MqttClientImpl implements MqttClient {
      * @return A future which will be completed when the connection is opened and we received an CONNACK
      */
     @Override
-    public Future<MqttConnectResult> connect(String host, int port) {
+    public Promise<MqttConnectResult> connect(String host, int port) {
         return connect(host, port, false);
     }
 
-    private Future<MqttConnectResult> connect(String host, int port, boolean reconnect) {
+    private Promise<MqttConnectResult> connect(String host, int port, boolean reconnect) {
         log.trace("[{}] Connecting to server, isReconnect - {}", channel != null ? channel.id() : "UNKNOWN", reconnect);
         if (this.eventLoop == null) {
             this.eventLoop = new NioEventLoopGroup();
@@ -214,7 +214,7 @@ final class MqttClientImpl implements MqttClient {
     }
 
     @Override
-    public Future<MqttConnectResult> reconnect() {
+    public Promise<MqttConnectResult> reconnect() {
         log.trace("[{}] Reconnecting to server, isReconnect - {}", channel != null ? channel.id() : "UNKNOWN", reconnect);
         if (host == null) {
             throw new IllegalStateException("Cannot reconnect. Call connect() first");

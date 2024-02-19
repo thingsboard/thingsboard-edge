@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -381,7 +381,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
         type: 'success',
         duration: 1000,
         verticalPosition: 'top',
-        horizontalPosition: 'right',
+        horizontalPosition: 'left',
         target: 'dashboardRoot',
         forceDismiss: true
       }));
@@ -396,6 +396,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     if ($event) {
       $event.stopPropagation();
     }
+    this.initialConnector = attribute.value;
     const title = `Delete connector ${attribute.key}?`;
     const content = `All connector data will be deleted.`;
     this.dialogService.confirm(title, content, 'Cancel', 'Delete').subscribe(result => {

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -130,7 +130,7 @@ public class DefaultNotificationCommandsHandler implements NotificationCommandsH
     private void fetchUnreadNotificationsCount(NotificationsCountSubscription subscription) {
         log.trace("[{}, subId: {}] Fetching unread notifications count from DB", subscription.getSessionId(), subscription.getSubscriptionId());
         int unreadCount = notificationService.countUnreadNotificationsByRecipientId(subscription.getTenantId(), (UserId) subscription.getEntityId());
-        subscription.getUnreadCounter().set(unreadCount);
+        subscription.getTotalUnreadCounter().set(unreadCount);
     }
 
 
@@ -211,20 +211,20 @@ public class DefaultNotificationCommandsHandler implements NotificationCommandsH
     private void handleNotificationUpdate(NotificationsCountSubscription subscription, NotificationUpdate update) {
         log.trace("[{}, subId: {}] Handling notification update for count sub: {}", subscription.getSessionId(), subscription.getSubscriptionId(), update);
         if (update.isCreated()) {
-            subscription.getUnreadCounter().incrementAndGet();
+            subscription.getTotalUnreadCounter().incrementAndGet();
             sendUpdate(subscription.getSessionId(), subscription.createUpdate());
         } else if (update.isUpdated()) {
             if (update.getNewStatus() == NotificationStatus.READ) {
                 if (update.isAllNotifications()) {
                     fetchUnreadNotificationsCount(subscription);
                 } else {
-                    subscription.getUnreadCounter().decrementAndGet();
+                    subscription.getTotalUnreadCounter().decrementAndGet();
                 }
                 sendUpdate(subscription.getSessionId(), subscription.createUpdate());
             }
         } else if (update.isDeleted()) {
             if (update.getNotification().getStatus() != NotificationStatus.READ) {
-                subscription.getUnreadCounter().decrementAndGet();
+                subscription.getTotalUnreadCounter().decrementAndGet();
                 sendUpdate(subscription.getSessionId(), subscription.createUpdate());
             }
         }

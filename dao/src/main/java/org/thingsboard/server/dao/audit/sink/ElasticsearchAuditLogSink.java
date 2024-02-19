@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -49,14 +49,18 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.audit.AuditLog;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Component
 @ConditionalOnProperty(prefix = "audit-log.sink", value = "type", havingValue = "elasticsearch")
@@ -83,6 +87,7 @@ public class ElasticsearchAuditLogSink implements AuditLogSink {
     private String dateFormat;
 
     private RestClient restClient;
+    private ExecutorService executor;
 
     @PostConstruct
     public void init() {
@@ -102,14 +107,32 @@ public class ElasticsearchAuditLogSink implements AuditLogSink {
             }
 
             this.restClient = builder.build();
+            this.executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("elasticsearch-audit-log"));
         } catch (Exception e) {
             log.error("Sink init failed!", e);
             throw new RuntimeException(e.getMessage(), e);
         }
     }
 
+    @PreDestroy
+    private void destroy() {
+        if (executor != null) {
+            executor.shutdownNow();
+        }
+    }
+
     @Override
     public void logAction(AuditLog auditLogEntry) {
+        executor.execute(() -> {
+            try {
+                doLogAction(auditLogEntry);
+            } catch (Exception e) {
+                log.error("Failed to log action", e);
+            }
+        });
+    }
+
+    private void doLogAction(AuditLog auditLogEntry) {
         String jsonContent = createElasticJsonRecord(auditLogEntry);
 
         HttpEntity entity = new NStringEntity(

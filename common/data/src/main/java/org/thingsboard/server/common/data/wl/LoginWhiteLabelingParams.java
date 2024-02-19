@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -64,6 +64,9 @@ public class LoginWhiteLabelingParams extends WhiteLabelingParams {
         }
         if (this.showNameBottom == null) {
             this.showNameBottom = otherWlParams.showNameBottom;
+        }
+        if (this.pageBackgroundColor == null) {
+            this.pageBackgroundColor = otherWlParams.pageBackgroundColor;
         }
         return this;
     }

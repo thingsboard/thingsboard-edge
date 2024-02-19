@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -30,54 +30,57 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="updateAttributesFormGroup" fxLayout="column">
-  <div>
-    <small translate>scheduler.target</small>
+<section [formGroup]="updateAttributesFormGroup" fxLayout="column" class="tb-form-panel no-border no-padding">
+  <div class="tb-form-panel stroked no-padding-bottom">
+    <div class="tb-form-panel-title" translate>scheduler.target</div>
     <tb-originator-select
       required
       (currentGroupType)="currentGroupType = $event"
       formControlName="originatorId">
     </tb-originator-select>
   </div>
-  <div formGroupName="metadata" fxLayout="column">
-    <mat-form-field class="mat-block"
-                    *ngIf="updateAttributesFormGroup.get('originatorId').value?.entityType === entityType.DEVICE ||
-                           updateAttributesFormGroup.get('originatorId').value?.entityType === entityType.ENTITY_GROUP &&
-                           currentGroupType === entityType.DEVICE">
-      <mat-label translate>attribute.attributes-scope</mat-label>
-      <mat-select matInput formControlName="scope">
-        <mat-option *ngFor="let scope of attributeScopes" [value]="scope">
-          {{ telemetryTypeTranslationsMap.get(scope) | translate }}
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
-  </div>
-  <mat-expansion-panel
-    *ngIf="updateAttributesFormGroup.get('metadata').get('scope').value === attributeScope.SERVER_SCOPE" [expanded]="true">
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <div class="tb-panel-title" translate>attribute.scope-server</div>
-      </mat-panel-title>
-    </mat-expansion-panel-header>
-    <tb-attribute-key-value-table
-      titleText="attribute.scope-server"
-      required
-      requiredPrompt="attribute.add-attribute-prompt"
-      formControlName="serverAttributes"
-    ></tb-attribute-key-value-table>
-  </mat-expansion-panel>
-  <mat-expansion-panel
-    *ngIf="updateAttributesFormGroup.get('metadata').get('scope').value === attributeScope.SHARED_SCOPE" [expanded]="true">
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <div class="tb-panel-title" translate>attribute.scope-shared</div>
-      </mat-panel-title>
-    </mat-expansion-panel-header>
-    <tb-attribute-key-value-table
-      titleText="attribute.scope-shared"
-      required
-      requiredPrompt="attribute.add-attribute-prompt"
-      formControlName="sharedAttributes"
-    ></tb-attribute-key-value-table>
-  </mat-expansion-panel>
+  <fieldset class="tb-form-panel stroked">
+    <div class="tb-form-panel-title" translate>attribute.attributes</div>
+    <div formGroupName="metadata" fxLayout="column">
+      <mat-form-field class="mat-block"
+                      *ngIf="updateAttributesFormGroup.get('originatorId').value?.entityType === entityType.DEVICE ||
+                             updateAttributesFormGroup.get('originatorId').value?.entityType === entityType.ENTITY_GROUP &&
+                             currentGroupType === entityType.DEVICE">
+        <mat-label translate>attribute.attributes-scope</mat-label>
+        <mat-select matInput formControlName="scope">
+          <mat-option *ngFor="let scope of attributeScopes" [value]="scope">
+            {{ telemetryTypeTranslationsMap.get(scope) | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <mat-expansion-panel
+      *ngIf="updateAttributesFormGroup.get('metadata').get('scope').value === attributeScope.SERVER_SCOPE" [expanded]="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="tb-panel-title" translate>attribute.scope-server</div>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <tb-attribute-key-value-table
+        titleText="attribute.scope-server"
+        required
+        requiredPrompt="attribute.add-attribute-prompt"
+        formControlName="serverAttributes"
+      ></tb-attribute-key-value-table>
+    </mat-expansion-panel>
+    <mat-expansion-panel
+      *ngIf="updateAttributesFormGroup.get('metadata').get('scope').value === attributeScope.SHARED_SCOPE" [expanded]="true">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="tb-panel-title" translate>attribute.scope-shared</div>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <tb-attribute-key-value-table
+        titleText="attribute.scope-shared"
+        required
+        requiredPrompt="attribute.add-attribute-prompt"
+        formControlName="sharedAttributes"
+      ></tb-attribute-key-value-table>
+    </mat-expansion-panel>
+  </fieldset>
 </section>

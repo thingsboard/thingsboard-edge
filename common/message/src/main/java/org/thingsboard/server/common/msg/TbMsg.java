@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -157,6 +157,11 @@ public final class TbMsg implements Serializable {
 
     public static TbMsg newMsg(TbMsgType type, EntityId originator, CustomerId customerId, TbMsgMetaData metaData, String data) {
         return new TbMsg(null, UUID.randomUUID(), System.currentTimeMillis(), type, originator, customerId,
+                metaData.copy(), TbMsgDataType.JSON, data, null, null, null, TbMsgCallback.EMPTY);
+    }
+
+    public static TbMsg newMsg(TbMsgType type, EntityId originator, TbMsgMetaData metaData, String data, long ts) {
+        return new TbMsg(null, UUID.randomUUID(), ts, type, originator, null,
                 metaData.copy(), TbMsgDataType.JSON, data, null, null, null, TbMsgCallback.EMPTY);
     }
 
@@ -369,7 +374,7 @@ public final class TbMsg implements Serializable {
         this.originator = originator;
         if (customerId == null || customerId.isNullUid()) {
             if (originator != null && originator.getEntityType() == EntityType.CUSTOMER) {
-                this.customerId = (CustomerId) originator;
+                this.customerId = new CustomerId(originator.getId());
             } else {
                 this.customerId = null;
             }

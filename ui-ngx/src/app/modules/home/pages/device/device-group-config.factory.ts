@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -71,6 +71,7 @@ import {
 import { select, Store } from '@ngrx/store';
 import { selectUserSettingsProperty } from '@core/auth/auth.selectors';
 import { AppState } from '@core/core.state';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Injectable()
 export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<DeviceInfo> {
@@ -85,6 +86,7 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
               private router: Router,
               private broadcast: BroadcastService,
               private store: Store<AppState>,
+              private wl: WhiteLabelingService,
               @Inject(WINDOW) private window: Window) {
   }
 
@@ -166,15 +168,19 @@ export class DeviceGroupConfigFactory implements EntityGroupStateConfigFactory<D
     }).afterClosed().pipe(
       map(device => {
         if (device) {
-          this.store.pipe(select(selectUserSettingsProperty( 'notDisplayConnectivityAfterAddDevice'))).pipe(
-            take(1)
-          ).subscribe((settings: boolean) => {
-            if(!settings) {
-              this.checkConnectivity(null, device.id, true, config);
-            } else {
-              config.updateData();
-            }
-          });
+          if (this.wl.getHideConnectivityDialog()) {
+            config.updateData();
+          } else {
+            this.store.pipe(select(selectUserSettingsProperty('notDisplayConnectivityAfterAddDevice'))).pipe(
+              take(1)
+            ).subscribe((settings: boolean) => {
+              if (!settings) {
+                this.checkConnectivity(null, device.id, true, config);
+              } else {
+                config.updateData();
+              }
+            });
+          }
         }
         return null;
       })

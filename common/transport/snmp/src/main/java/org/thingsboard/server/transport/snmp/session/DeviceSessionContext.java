@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -60,7 +60,6 @@ import org.thingsboard.server.transport.snmp.SnmpTransportContext;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
@@ -75,7 +74,8 @@ public class DeviceSessionContext extends DeviceAwareSessionContext implements S
     @Setter
     private SnmpDeviceTransportConfiguration deviceTransportConfiguration;
     @Getter
-    private final Device device;
+    @Setter
+    private Device device;
     @Getter
     private final TenantId tenantId;
 
@@ -88,7 +88,7 @@ public class DeviceSessionContext extends DeviceAwareSessionContext implements S
     private Runnable sessionTimeoutHandler;
 
     @Getter
-    private final List<ScheduledFuture<?>> queryingTasks = new LinkedList<>();
+    private final List<ScheduledTask> queryingTasks = new LinkedList<>();
 
     @Builder
     public DeviceSessionContext(TenantId tenantId, Device device, DeviceProfile deviceProfile, String token,

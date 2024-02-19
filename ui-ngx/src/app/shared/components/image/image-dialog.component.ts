@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -169,7 +169,7 @@ export class ImageDialogComponent extends
         this.imageChanged = true;
         this.image = result;
         this.imagePreviewData = {
-          url: this.image.public ? this.image.publicLink : this.image.link
+          url: this.image.public ? `${this.image.publicLink}?ts=${new Date().getTime()}` : this.image.link
         };
       }
     });

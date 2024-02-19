@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -118,6 +118,9 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
 
   @Input()
   isEdit: boolean;
+
+  @Input()
+  isPreview: boolean;
 
   @Input()
   autofillHeight: boolean;
@@ -238,7 +241,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
       disableAutoPositionOnConflict: false,
       pushItems: false,
       swap: false,
-      maxRows: 100,
+      maxRows: 3000,
       minCols: this.columns ? this.columns : 24,
       maxCols: 3000,
       maxItemCols: 1000,
@@ -317,11 +320,11 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
       this.dashboardTimewindowChangedSubject.next(this.dashboardTimewindow);
     }
 
-    if (updateMobileOpts) {
-      this.updateMobileOpts();
-    }
     if (updateLayoutOpts) {
       this.updateLayoutOpts();
+    }
+    if (updateMobileOpts) {
+      this.updateMobileOpts();
     }
     if (updateEditingOpts) {
       this.updateEditingOpts();

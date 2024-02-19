@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,16 @@
 ///
 
 import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  NG_VALUE_ACCESSOR,
+  Validators,
+  NG_VALIDATORS,
+  Validator,
+  ValidationErrors
+} from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { DAY, getDefaultTimezone, historyInterval } from '@shared/models/time/time.models';
@@ -48,20 +57,26 @@ import { PageComponent } from '@shared/components/page.component';
 import { ReportService } from '@core/http/report.service';
 import { DialogService } from '@core/services/dialog.service';
 import { TranslateService } from '@ngx-translate/core';
-import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs/internal/Observable';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { safeMerge } from '@home/components/scheduler/config/config.models';
 
 @Component({
   selector: 'tb-report-config',
   templateUrl: './report-config.component.html',
-  styleUrls: [],
+  styleUrls: ['./report-config.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => ReportConfigComponent),
     multi: true
+  },
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => ReportConfigComponent),
+    multi: true
   }]
 })
-export class ReportConfigComponent extends PageComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
+export class ReportConfigComponent extends PageComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy, Validator {
 
   modelValue: ReportConfig | null;
 
@@ -82,6 +97,8 @@ export class ReportConfigComponent extends PageComponent implements ControlValue
   reportTypesList = reportTypes;
 
   reportTypeNames = reportTypeNamesMap;
+
+  private destroy$ = new Subject<void>();
 
   private propagateChange = (v: any) => { };
 
@@ -106,11 +123,15 @@ export class ReportConfigComponent extends PageComponent implements ControlValue
       userId: [null, [Validators.required]],
     });
 
-    this.reportConfigFormGroup.get('useDashboardTimewindow').valueChanges.subscribe(() => {
+    this.reportConfigFormGroup.get('useDashboardTimewindow').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.updateEnabledState();
     });
 
-    this.reportConfigFormGroup.get('useCurrentUserCredentials').valueChanges.subscribe((useCurrentUserCredentials: boolean) => {
+    this.reportConfigFormGroup.get('useCurrentUserCredentials').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((useCurrentUserCredentials: boolean) => {
       if (useCurrentUserCredentials) {
         this.reportConfigFormGroup.get('userId').patchValue(this.authUser.userId, {emitEvent: false});
       } else {
@@ -119,11 +140,15 @@ export class ReportConfigComponent extends PageComponent implements ControlValue
       this.updateEnabledState();
     });
 
-    this.reportConfigFormGroup.get('dashboardId').valueChanges.subscribe(() => {
+    this.reportConfigFormGroup.get('dashboardId').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.reportConfigFormGroup.get('state').patchValue('', {emitEvent: false});
     });
 
-    this.reportConfigFormGroup.valueChanges.subscribe(() => {
+    this.reportConfigFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.updateModel();
     });
   }
@@ -182,9 +207,17 @@ export class ReportConfigComponent extends PageComponent implements ControlValue
   }
 
   ngAfterViewInit(): void {
+    if (!this.reportConfigFormGroup.valid) {
+      setTimeout(() => {
+        this.updateModel();
+      }, 0);
+    }
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    super.ngOnDestroy();
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -193,18 +226,21 @@ export class ReportConfigComponent extends PageComponent implements ControlValue
   }
 
   writeValue(value: ReportConfig | null): void {
-    this.modelValue = value;
-    if (!this.modelValue) {
-      this.modelValue = this.createDefaultReportConfig();
-      this.reportConfigFormGroup.reset(this.modelValue, {emitEvent: false});
-      this.updateEnabledState();
-      setTimeout(() => {
-        this.updateModel();
-      }, 0);
-    } else {
-      this.reportConfigFormGroup.reset(this.modelValue, {emitEvent: false});
-      this.updateEnabledState();
+    this.modelValue = safeMerge<ReportConfig>(this.createDefaultReportConfig(), value);
+    this.reportConfigFormGroup.reset(this.modelValue, {emitEvent: false});
+    this.updateEnabledState();
+  }
+
+  validate(): ValidationErrors | null {
+    if (!this.reportConfigFormGroup.valid) {
+      return {
+        reportConfigForm: {
+          valid: false
+        }
+      };
     }
+
+    return null;
   }
 
   private createDefaultReportConfig(): ReportConfig {

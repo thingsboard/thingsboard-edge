@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -37,6 +37,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -49,6 +50,7 @@ import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -66,6 +68,7 @@ public class BaseCustomTranslationService implements CustomTranslationService {
 
     private final AdminSettingsService adminSettingsService;
     private final AttributesService attributesService;
+    private final CustomerService customerService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Override
@@ -98,6 +101,10 @@ public class BaseCustomTranslationService implements CustomTranslationService {
     @Override
     public CustomTranslation getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId) {
         CustomTranslation result = getCustomerCustomTranslation(tenantId, customerId);
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        if (customer.isSubCustomer()) {
+            result = getMergedCustomerHierarchyCustomTranslation(tenantId, customer.getParentCustomerId(), result);
+        }
         result.merge(getTenantCustomTranslation(tenantId)).merge(getSystemCustomTranslation(tenantId));
         return result;
     }
@@ -196,6 +203,17 @@ public class BaseCustomTranslationService implements CustomTranslationService {
         } catch (Exception e) {
             log.error("Unable to save custom translation to attributes!", e);
             throw new IncorrectParameterException("Unable to save custom translation to attributes!");
+        }
+    }
+
+    private CustomTranslation getMergedCustomerHierarchyCustomTranslation(TenantId tenantId, CustomerId customerId, CustomTranslation customTranslation) {
+        CustomTranslation entityCustomTranslation = getEntityCustomTranslation(tenantId, customerId);
+        customTranslation.merge(entityCustomTranslation);
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        if (customer.isSubCustomer()) {
+            return getMergedCustomerHierarchyCustomTranslation(tenantId, customer.getParentCustomerId(), customTranslation);
+        } else {
+            return customTranslation;
         }
     }
 

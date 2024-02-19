@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -420,10 +420,12 @@ public class MqttClientTest extends AbstractContainerTest {
 
         MqttEvent provisionResponseMsg = listener.getEvents().poll(timeoutMultiplier, TimeUnit.SECONDS);
 
-        assertThat(provisionResponseMsg).isNotNull();
+        assertThat(provisionResponseMsg).as("provisionResponseMsg").isNotNull();
+        assertThat(provisionResponseMsg.getMessage()).as("provisionResponseMsg.getMessage()").isNotNull();
 
         JsonNode provisionResponse = JacksonUtil.toJsonNode(provisionResponseMsg.getMessage());
 
+        assertThat(provisionResponse).as("provision response JsonNode").isNotNull();
         testRestClient.deleteDeviceIfExists(device.getId());
         device = testRestClient.getDeviceByName(testDeviceName);
 

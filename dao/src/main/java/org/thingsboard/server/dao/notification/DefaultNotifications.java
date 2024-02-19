@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -55,6 +55,9 @@ import org.thingsboard.server.common.data.notification.rule.trigger.config.Alarm
 import org.thingsboard.server.common.data.notification.rule.trigger.config.ApiUsageLimitNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.config.DeviceActivityNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.config.DeviceActivityNotificationRuleTriggerConfig.DeviceEvent;
+import org.thingsboard.server.common.data.notification.rule.trigger.config.EdgeCommunicationFailureNotificationRuleTriggerConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.config.EdgeConnectionNotificationRuleTriggerConfig;
+import org.thingsboard.server.common.data.notification.rule.trigger.config.EdgeConnectionNotificationRuleTriggerConfig.EdgeConnectivityEvent;
 import org.thingsboard.server.common.data.notification.rule.trigger.config.EntitiesLimitNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.config.EntityActionNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.rule.trigger.config.IntegrationLifecycleEventNotificationRuleTriggerConfig;
@@ -356,6 +359,35 @@ public class DefaultNotifications {
                     .description("Send notification to tenant admins when any integration fails to start")
                     .build())
             .build();
+    public static final DefaultNotification edgeConnection = DefaultNotification.builder()
+            .name("Edge connection notification")
+            .type(NotificationType.EDGE_CONNECTION)
+            .subject("Edge connection status change")
+            .text("Edge '${edgeName}' is now ${eventType}")
+            .icon("info").color(null)
+            .button("Go to Edge").link("/edgeManagement/instances/all/${edgeId}")
+            .rule(DefaultRule.builder()
+                    .name("Edge connection status change")
+                    .triggerConfig(EdgeConnectionNotificationRuleTriggerConfig.builder()
+                            .edges(null)
+                            .notifyOn(Set.of(EdgeConnectivityEvent.CONNECTED, EdgeConnectivityEvent.DISCONNECTED))
+                            .build())
+                    .description("Send notification to tenant admins when the connection status between TB and Edge changes")
+                    .build())
+            .build();
+    public static final DefaultNotification edgeCommunicationFailures = DefaultNotification.builder()
+            .name("Edge communication failure notification")
+            .type(NotificationType.EDGE_COMMUNICATION_FAILURE)
+            .subject("Edge '${edgeName}' communication failure occurred")
+            .text("Failure message: '${failureMsg}'")
+            .icon("error").color(RED_COLOR)
+            .button("Go to Edge").link("/edgeManagement/instances/all/${edgeId}")
+            .rule(DefaultRule.builder()
+                    .name("Edge communication failure")
+                    .triggerConfig(EdgeCommunicationFailureNotificationRuleTriggerConfig.builder().edges(null).build())
+                    .description("Send notification to tenant admins when communication failures occur")
+                    .build())
+            .build();
 
     public static final DefaultNotification jwtSigningKeyIssue = DefaultNotification.builder()
             .name("JWT Signing Key issue notification")
@@ -377,7 +409,7 @@ public class DefaultNotifications {
         if (defaultNotification.getRule() != null && targets.length > 0) {
             NotificationRule rule = defaultNotification.toRule(template.getId(), targets);
             rule.setTenantId(tenantId);
-            rule = ruleService.saveNotificationRule(tenantId, rule);
+            ruleService.saveNotificationRule(tenantId, rule);
         }
     }
 

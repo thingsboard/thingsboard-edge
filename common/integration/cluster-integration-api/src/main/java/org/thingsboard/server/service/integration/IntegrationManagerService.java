@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -60,4 +60,7 @@ public interface IntegrationManagerService {
     void handleValidationRequest(IntegrationValidationRequestProto validationRequestMsg, TbCallback callback);
 
     void handleValidationResponse(IntegrationValidationResponseProto validationRequestMsg, TbCallback callback);
+
+    int getIntegrationConnectionCheckApiRequestTimeoutSec();
+
 }

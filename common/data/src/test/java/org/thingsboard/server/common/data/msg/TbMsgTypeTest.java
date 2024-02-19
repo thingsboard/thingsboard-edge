@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -60,7 +60,7 @@ import static org.thingsboard.server.common.data.msg.TbMsgType.TB_SIMPLE_AGG_PER
 import static org.thingsboard.server.common.data.msg.TbMsgType.TB_SIMPLE_AGG_REPORT_SELF_MSG;
 
 class TbMsgTypeTest {
-    
+
     private static final List<TbMsgType> typesWithNullRuleNodeConnection = List.of(
             ALARM,
             ALARM_DELETE,

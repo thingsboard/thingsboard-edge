@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -79,7 +79,7 @@ export class KafkaTemplate implements IQueue {
         const queuePrefix: string = config.get('queue_prefix');
         const requestTopic: string = queuePrefix ? queuePrefix + "." + config.get('request_topic') : config.get('request_topic');
         const useConfluent = config.get('kafka.use_confluent_cloud');
-
+        const groupId:string =  queuePrefix ? queuePrefix + ".js-executor-group" : "js-executor-group";
         this.logger.info('Kafka Bootstrap Servers: %s', kafkaBootstrapServers);
         this.logger.info('Kafka Requests Topic: %s', requestTopic);
 
@@ -134,7 +134,7 @@ export class KafkaTemplate implements IQueue {
             }
         }
 
-        this.consumer = this.kafkaClient.consumer({groupId: 'js-executor-group'});
+        this.consumer = this.kafkaClient.consumer({groupId: groupId});
         this.producer = this.kafkaClient.producer({createPartitioner: Partitioners.DefaultPartitioner});
 
         const {CRASH} = this.consumer.events;

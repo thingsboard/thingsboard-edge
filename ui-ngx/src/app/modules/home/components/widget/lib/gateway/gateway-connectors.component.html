@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -95,7 +95,7 @@
         </ng-container>
         <ng-container matColumnDef="actions" stickyEnd>
           <mat-header-cell *matHeaderCellDef
-                           [ngStyle.gt-md]="{ minWidth: '144px', maxWidth: '144px', width: '144px'}">
+                           [ngStyle.gt-md]="{ minWidth: '144px', maxWidth: '144px', width: '144px', textAlign: 'center'}">
             {{ 'gateway.connectors-table-actions' | translate }}
           </mat-header-cell>
           <mat-cell *matCellDef="let attribute"

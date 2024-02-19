@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -39,7 +39,17 @@ import {
   OnInit,
   SimpleChanges
 } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  NG_VALUE_ACCESSOR,
+  Validators,
+  NG_VALIDATORS,
+  Validator,
+  AbstractControl,
+  ValidationErrors
+} from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -48,6 +58,8 @@ import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.mode
 import { deepClone, isDefined } from '@core/utils';
 import { SchedulerEventConfigType } from '@home/components/scheduler/scheduler-event-config.models';
 import { jsonRequired } from '@shared/components/json-object-edit.component';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-scheduler-event-config',
@@ -57,9 +69,14 @@ import { jsonRequired } from '@shared/components/json-object-edit.component';
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => SchedulerEventConfigComponent),
     multi: true
+  },
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => SchedulerEventConfigComponent),
+    multi: true
   }]
 })
-export class SchedulerEventConfigComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges, OnDestroy {
+export class SchedulerEventConfigComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges, OnDestroy, Validator {
 
   schedulerEventConfigFormGroup: UntypedFormGroup;
 
@@ -80,6 +97,8 @@ export class SchedulerEventConfigComponent implements ControlValueAccessor, OnIn
   showMetadata = true;
 
 //  private configChangesSubscription: Subscription;
+
+  private destroy$ = new Subject<void>();
 
   private propagateChange = (v: any) => { };
 
@@ -104,7 +123,9 @@ export class SchedulerEventConfigComponent implements ControlValueAccessor, OnIn
       msgBody: [null, jsonRequired],
       metadata: [null]
     });
-    this.schedulerEventConfigFormGroup.valueChanges.subscribe(() => {
+    this.schedulerEventConfigFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.updateView();
     });
     this.buildSchedulerEventConfigForm();
@@ -142,6 +163,8 @@ export class SchedulerEventConfigComponent implements ControlValueAccessor, OnIn
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -215,5 +238,17 @@ export class SchedulerEventConfigComponent implements ControlValueAccessor, OnIn
     } else {
       this.propagateChange(null);
     }
+  }
+
+  validate(control: AbstractControl): ValidationErrors | null {
+    if (!this.schedulerEventConfigFormGroup.valid) {
+      return {
+        schedulerEventConfigForm: {
+          valid: false
+        }
+      };
+    }
+
+    return null;
   }
 }

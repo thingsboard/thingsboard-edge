@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -52,10 +52,11 @@ public class TbAlarmResult {
     }
 
     public static TbAlarmResult fromAlarmResult(AlarmApiCallResult result) {
+        boolean isSeverityChanged = result.isSeverityChanged();
         return new TbAlarmResult(
                 result.isCreated(),
-                result.isModified() && !result.isSeverityChanged(),
-                result.isSeverityChanged(),
+                result.isModified() && !isSeverityChanged,
+                isSeverityChanged,
                 result.isCleared(),
                 result.getAlarm());
     }

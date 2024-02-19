@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -50,11 +50,10 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 @Getter
-public class NotificationsSubscription extends TbSubscription<NotificationsSubscriptionUpdate> {
+public class NotificationsSubscription extends AbstractNotificationSubscription<NotificationsSubscriptionUpdate> {
 
     private final Map<UUID, Notification> latestUnreadNotifications = new HashMap<>();
     private final int limit;
-    private final AtomicInteger totalUnreadCounter = new AtomicInteger();
 
     @Builder
     public NotificationsSubscription(String serviceId, String sessionId, int subscriptionId, TenantId tenantId, EntityId entityId,

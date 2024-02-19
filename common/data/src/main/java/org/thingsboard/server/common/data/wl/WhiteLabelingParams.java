@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -69,6 +69,8 @@ public class WhiteLabelingParams {
     protected String platformVersion;
     @ApiModelProperty(position = 13, value = "Custom CSS content")
     protected String customCss;
+    @ApiModelProperty(position = 21, value = "Hide device connectivity dialog")
+    protected Boolean hideConnectivityDialog;
 
     public WhiteLabelingParams merge(WhiteLabelingParams otherWlParams) {
         if (StringUtils.isEmpty(this.logoImageUrl)) {
@@ -108,6 +110,9 @@ public class WhiteLabelingParams {
             } else {
                 this.customCss = otherWlParams.customCss + "\n" + this.customCss;
             }
+        }
+        if (this.hideConnectivityDialog == null) {
+            this.hideConnectivityDialog = false;
         }
         return this;
     }

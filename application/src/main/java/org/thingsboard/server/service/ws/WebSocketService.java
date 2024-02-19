@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -44,7 +44,7 @@ public interface WebSocketService {
 
     void handleCommands(WebSocketSessionRef sessionRef, WsCommandsWrapper commandsWrapper);
 
-    void sendUpdate(String sessionId, TelemetrySubscriptionUpdate update);
+    void sendUpdate(String sessionId, int cmdId, TelemetrySubscriptionUpdate update);
 
     void sendUpdate(String sessionId, CmdUpdate update);
 

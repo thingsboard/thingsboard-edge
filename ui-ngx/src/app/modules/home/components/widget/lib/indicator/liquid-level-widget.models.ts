@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -71,6 +71,8 @@ export interface LevelCardWidgetSettings extends WidgetConfig {
   volumeSource: LiquidWidgetDataSourceType;
   volumeConstant: number;
   volumeAttributeName: string;
+  volumeUnitsSource: LiquidWidgetDataSourceType;
+  volumeUnitsAttributeName: string;
   volumeUnits: CapacityUnits;
   volumeFont: Font;
   volumeColor: string;
@@ -272,8 +274,10 @@ export const levelCardDefaultSettings: LevelCardWidgetSettings = {
   iconColor: '#5469FF',
   volumeSource: LiquidWidgetDataSourceType.static,
   volumeConstant: 500,
-  volumeUnits: CapacityUnits.liters,
   volumeAttributeName: 'volume',
+  volumeUnitsSource: LiquidWidgetDataSourceType.static,
+  volumeUnitsAttributeName: 'volumeUnits',
+  volumeUnits: CapacityUnits.liters,
   volumeFont: {
     family: 'Roboto',
     size: 14,
@@ -390,9 +394,7 @@ export const convertLiters = (value: number, units: CapacityUnits, conversionTyp
   return conversionType === ConversionType.to ? value / factor : value * factor;
 };
 
-export const extractValue = <T>(attributes: Array<AttributeData>, attributeName: string): T | undefined => {
-  return attributes.find(attr => attr.key === attributeName)?.value;
-};
+export const extractValue = <T>(attributes: Array<AttributeData>, attributeName: string): T | undefined => attributes.find(attr => attr.key === attributeName)?.value;
 
 export const valueContainerStyleDefaults = cssTextFromInlineStyle({
   width: '100%',
@@ -509,6 +511,7 @@ export const updatedFormSettingsValidators = (formGroup: FormGroup) => {
   const datasourceUnits: string = formGroup.get('datasourceUnits').value;
   const layout: LevelCardLayout = formGroup.get('layout').value;
   const volumeSource: LiquidWidgetDataSourceType = formGroup.get('volumeSource').value;
+  const volumeUnitsSource: LiquidWidgetDataSourceType = formGroup.get('volumeUnitsSource').value;
   const widgetUnitsSource: LiquidWidgetDataSourceType = formGroup.get('widgetUnitsSource').value;
   const showTooltipLevel: boolean = formGroup.get('showTooltipLevel').value;
   const showTooltipDate: boolean = formGroup.get('showTooltipDate').value;
@@ -532,7 +535,7 @@ export const updatedFormSettingsValidators = (formGroup: FormGroup) => {
 
       if (datasourceUnits !== CapacityUnits.percent) {
         formGroup.get('volumeSource').enable({emitEvent: false});
-        formGroup.get('volumeUnits').enable({emitEvent: false});
+        formGroup.get('volumeUnitsSource').enable({emitEvent: false});
         if (volumeSource === LiquidWidgetDataSourceType.static) {
           formGroup.get('volumeConstant').enable({emitEvent: false});
           formGroup.get('volumeAttributeName').disable({emitEvent: false});
@@ -540,11 +543,20 @@ export const updatedFormSettingsValidators = (formGroup: FormGroup) => {
           formGroup.get('volumeConstant').disable({emitEvent: false});
           formGroup.get('volumeAttributeName').enable({emitEvent: false});
         }
+        if (volumeUnitsSource === LiquidWidgetDataSourceType.static) {
+          formGroup.get('volumeUnits').enable({emitEvent: false});
+          formGroup.get('volumeUnitsAttributeName').disable({emitEvent: false});
+        } else {
+          formGroup.get('volumeUnits').disable({emitEvent: false});
+          formGroup.get('volumeUnitsAttributeName').enable({emitEvent: false});
+        }
       } else {
         formGroup.get('volumeSource').disable({emitEvent: false});
         formGroup.get('volumeConstant').disable({emitEvent: false});
         formGroup.get('volumeAttributeName').disable({emitEvent: false});
+        formGroup.get('volumeUnitsSource').disable({emitEvent: false});
         formGroup.get('volumeUnits').disable({emitEvent: false});
+        formGroup.get('volumeUnitsAttributeName').disable({emitEvent: false});
       }
 
       if (layout === LevelCardLayout.simple) {
@@ -572,13 +584,20 @@ export const updatedFormSettingsValidators = (formGroup: FormGroup) => {
       }
 
       formGroup.get('volumeSource').enable({emitEvent: false});
-      formGroup.get('volumeUnits').enable({emitEvent: false});
+      formGroup.get('volumeUnitsSource').enable({emitEvent: false});
       if (volumeSource === LiquidWidgetDataSourceType.static) {
         formGroup.get('volumeConstant').enable({emitEvent: false});
         formGroup.get('volumeAttributeName').disable({emitEvent: false});
       } else {
         formGroup.get('volumeConstant').disable({emitEvent: false});
         formGroup.get('volumeAttributeName').enable({emitEvent: false});
+      }
+      if (volumeUnitsSource === LiquidWidgetDataSourceType.static) {
+        formGroup.get('volumeUnits').enable({emitEvent: false});
+        formGroup.get('volumeUnitsAttributeName').disable({emitEvent: false});
+      } else {
+        formGroup.get('volumeUnits').disable({emitEvent: false});
+        formGroup.get('volumeUnitsAttributeName').enable({emitEvent: false});
       }
 
       if (formGroup.get('decimals')) {

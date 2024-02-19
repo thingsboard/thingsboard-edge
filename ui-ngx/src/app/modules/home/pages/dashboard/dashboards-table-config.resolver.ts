@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -109,19 +109,14 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
         config.getTable().resetSortAndFilter(true);
       }
     };
-    if (this.userPermissionsService.hasGenericPermission(Resource.WIDGETS_BUNDLE, Operation.READ) &&
-      this.userPermissionsService.hasGenericPermission(Resource.WIDGET_TYPE, Operation.READ)) {
-      config.handleRowClick = ($event, dashboard) => {
-        if (config.isDetailsOpen()) {
-          config.toggleEntityDetails($event, dashboard);
-        } else {
-          this.openDashboard($event, dashboard, config);
-        }
-        return true;
-      };
-    } else {
-      config.handleRowClick = () => false;
-    }
+    config.handleRowClick = ($event, dashboard) => {
+      if (config.isDetailsOpen()) {
+        config.toggleEntityDetails($event, dashboard);
+      } else {
+        this.openDashboard($event, dashboard, config);
+      }
+      return true;
+    };
     return (config.customerId ?
       this.customerService.getCustomer(config.customerId) : of(null as Customer)).pipe(
       map((parentCustomer) => {

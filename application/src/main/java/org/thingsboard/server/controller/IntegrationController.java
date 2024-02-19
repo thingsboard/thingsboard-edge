@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -255,7 +255,7 @@ public class IntegrationController extends AutoCommitController {
             checkNotNull(integration);
             integration.setTenantId(getCurrentUser().getTenantId());
             try {
-                integrationManagerService.checkIntegrationConnection(integration).get(20, TimeUnit.SECONDS);
+                integrationManagerService.checkIntegrationConnection(integration).get(integrationManagerService.getIntegrationConnectionCheckApiRequestTimeoutSec(), TimeUnit.SECONDS);
             } catch (ExecutionException e) {
                 throwRealCause(e);
             }

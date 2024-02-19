@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -126,6 +126,7 @@ export interface SchedulerEventInfo extends BaseData<SchedulerEventId> {
   originatorId?: EntityId;
   name: string;
   type: string;
+  enabled?: boolean;
   schedule: SchedulerEventSchedule;
   additionalInfo?: any;
 }

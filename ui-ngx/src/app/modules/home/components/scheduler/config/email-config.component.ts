@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,20 +30,23 @@
 ///
 
 import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  ValidationErrors,
+  Validator,
+  Validators
+} from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { PageComponent } from '@shared/components/page.component';
-
-interface EmailConfig {
-  from: string;
-  to: string;
-  cc?: string;
-  bcc?: string;
-  subject: string;
-  body: string;
-}
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { defaultEmailConfig, EmailConfig } from '@home/components/scheduler/config/config.models';
 
 @Component({
   selector: 'tb-email-config',
@@ -53,9 +56,14 @@ interface EmailConfig {
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => EmailConfigComponent),
     multi: true
+  },
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => EmailConfigComponent),
+    multi: true
   }]
 })
-export class EmailConfigComponent extends PageComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
+export class EmailConfigComponent extends PageComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy, Validator {
 
   modelValue: EmailConfig | null;
 
@@ -65,6 +73,8 @@ export class EmailConfigComponent extends PageComponent implements ControlValueA
   disabled: boolean;
 
   authUser = getCurrentAuthUser(this.store);
+
+  private destroy$ = new Subject<void>();
 
   private propagateChange = (v: any) => { };
 
@@ -80,7 +90,9 @@ export class EmailConfigComponent extends PageComponent implements ControlValueA
       body: [null, [Validators.required]]
     });
 
-    this.emailConfigFormGroup.valueChanges.subscribe(() => {
+    this.emailConfigFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.updateModel();
     });
   }
@@ -96,9 +108,17 @@ export class EmailConfigComponent extends PageComponent implements ControlValueA
   }
 
   ngAfterViewInit(): void {
+    if (!this.emailConfigFormGroup.valid && !this.disabled) {
+      setTimeout(() => {
+        this.updateModel();
+      }, 0);
+    }
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+    super.ngOnDestroy();
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -126,14 +146,20 @@ export class EmailConfigComponent extends PageComponent implements ControlValueA
     this.emailConfigFormGroup.reset(this.modelValue || undefined,{emitEvent: false});
   }
 
+  validate(): ValidationErrors | null {
+    if (!this.emailConfigFormGroup.valid && !this.disabled) {
+      return {
+        emailConfigForm: {
+          valid: false
+        }
+      };
+    }
+
+    return null;
+  }
+
   private createDefaultEmailConfig(): EmailConfig {
-    const emailConfig: EmailConfig = {
-      from: this.authUser.sub,
-      to: null,
-      subject: 'Report generated on %d{yyyy-MM-dd HH:mm:ss}',
-      body: 'Report was successfully generated on %d{yyyy-MM-dd HH:mm:ss}.\nSee attached report file.'
-    };
-    return emailConfig;
+    return {...defaultEmailConfig, from: this.authUser.sub};
   }
 
   private updateModel() {

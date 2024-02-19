@@ -1,7 +1,7 @@
 --
 -- ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 --
--- Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+-- Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 --
 -- NOTICE: All information contained herein is, and remains
 -- the property of ThingsBoard, Inc. and its suppliers,
@@ -181,7 +181,8 @@ CREATE TABLE IF NOT EXISTS component_descriptor (
     name varchar(255),
     scope varchar(255),
     type varchar(255),
-    clustering_mode varchar(255)
+    clustering_mode varchar(255),
+    has_queue_name boolean DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS customer (
@@ -244,6 +245,7 @@ CREATE TABLE IF NOT EXISTS rule_node (
     name varchar(255),
     debug_mode boolean,
     singleton_mode boolean,
+    queue_name varchar(255),
     external_id uuid
 );
 
@@ -638,7 +640,8 @@ CREATE TABLE IF NOT EXISTS scheduler_event (
     tenant_id uuid,
     type varchar(255),
     schedule varchar,
-    configuration varchar(10000000)
+    configuration varchar(10000000),
+    enabled boolean
 );
 
 CREATE TABLE IF NOT EXISTS blob_entity (
@@ -980,14 +983,6 @@ CREATE TABLE IF NOT EXISTS user_auth_settings (
     two_fa_settings varchar
 );
 
-CREATE TABLE IF NOT EXISTS user_settings (
-    user_id uuid NOT NULL,
-    type VARCHAR(50) NOT NULL,
-    settings varchar(10000),
-    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES tb_user(id) ON DELETE CASCADE,
-    CONSTRAINT user_settings_pkey PRIMARY KEY (user_id, type)
-);
-
 CREATE TABLE IF NOT EXISTS notification_target (
     id UUID NOT NULL CONSTRAINT notification_target_pkey PRIMARY KEY,
     created_time BIGINT NOT NULL,
@@ -1055,13 +1050,22 @@ CREATE TABLE IF NOT EXISTS notification (
     status VARCHAR(32)
 ) PARTITION BY RANGE (created_time);
 
+CREATE TABLE IF NOT EXISTS user_settings (
+    user_id uuid NOT NULL,
+    type VARCHAR(50) NOT NULL,
+    settings jsonb,
+    CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES tb_user(id) ON DELETE CASCADE,
+    CONSTRAINT user_settings_pkey PRIMARY KEY (user_id, type)
+);
+
 CREATE TABLE IF NOT EXISTS white_labeling (
     tenant_id UUID NOT NULL,
     customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
     type VARCHAR(16),
     settings VARCHAR(10000000),
     domain_name VARCHAR(255) UNIQUE,
-    CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type));
+    CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type)
+);
 
 CREATE TABLE IF NOT EXISTS alarm_types (
     tenant_id uuid NOT NULL,

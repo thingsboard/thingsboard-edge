@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -188,12 +188,12 @@ export const HelpLinks = {
     otaUpdates: helpBaseUrl + '/docs/pe/user-guide/ota-updates',
     widgetTypes: helpBaseUrl + '/docs/pe/user-guide/ui/widget-library/#widget-types',
     widgetsBundles: helpBaseUrl + '/docs/pe/user-guide/ui/widget-library/#widgets-library-bundles',
-    widgetsConfig:  helpBaseUrl + '/docs/pe/user-guide/ui/dashboards#widget-configuration',
-    widgetsConfigTimeseries:  helpBaseUrl + '/docs/pe/user-guide/ui/dashboards#timeseries',
-    widgetsConfigLatest: helpBaseUrl +  '/docs/pe/user-guide/ui/dashboards#latest',
-    widgetsConfigRpc: helpBaseUrl +  '/docs/pe/user-guide/ui/dashboards#rpc',
-    widgetsConfigAlarm: helpBaseUrl +  '/docs/pe/user-guide/ui/dashboards#alarm',
-    widgetsConfigStatic: helpBaseUrl +  '/docs/pe/user-guide/ui/dashboards#static',
+    widgetsConfig:  helpBaseUrl + '/docs/pe/user-guide/ui/widget-library',
+    widgetsConfigTimeseries:  helpBaseUrl + '/docs/pe/user-guide/ui/widget-library#time-series',
+    widgetsConfigLatest: helpBaseUrl +  '/docs/pe/user-guide/ui/widget-library#latest-values',
+    widgetsConfigRpc: helpBaseUrl +  '/docs/pe/user-guide/ui/widget-library#control-widget',
+    widgetsConfigAlarm: helpBaseUrl +  '/docs/pe/user-guide/ui/widget-library#alarm-widget',
+    widgetsConfigStatic: helpBaseUrl +  '/docs/pe/user-guide/ui/widget-library#static',
     ruleNodePushToCloud: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#push-to-cloud',
     ruleNodePushToEdge: helpBaseUrl + '/docs/pe/user-guide/rule-engine-2-0/action-nodes/#push-to-edge',
     converters: helpBaseUrl +  '/docs/user-guide/integrations/#data-converters',
@@ -226,6 +226,7 @@ export const HelpLinks = {
     integrationApachePulsar:  helpBaseUrl +  '/docs/user-guide/integrations/apache-pulsar',
     integrationPubsub:  helpBaseUrl +  '/docs/user-guide/integrations/pubsub',
     integrationCoAP:  helpBaseUrl +  '/docs/user-guide/integrations/coap',
+    integrationKpn:  helpBaseUrl +  '/docs/user-guide/integrations/kpn',
     integrationCustom:  helpBaseUrl +  '/docs/user-guide/integrations/custom',
     whiteLabeling: helpBaseUrl +  '/docs/pe/user-guide/white-labeling',
     entityGroups: helpBaseUrl +  '/docs/pe/user-guide/groups',

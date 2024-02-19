@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.notification.NotificationDeliveryMetho
 import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.notification.NotificationRequestStats;
 import org.thingsboard.server.common.data.notification.NotificationType;
+import org.thingsboard.server.common.data.notification.settings.MobileAppNotificationDeliveryMethodConfig;
 import org.thingsboard.server.common.data.notification.settings.NotificationDeliveryMethodConfig;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
 import org.thingsboard.server.common.data.notification.targets.NotificationRecipient;
@@ -58,6 +59,7 @@ public class NotificationProcessingContext {
     @Getter
     private final TenantId tenantId;
     private final NotificationSettings settings;
+    private final NotificationSettings systemSettings;
     @Getter
     private final NotificationRequest request;
     @Getter
@@ -73,11 +75,12 @@ public class NotificationProcessingContext {
 
     @Builder
     public NotificationProcessingContext(TenantId tenantId, NotificationRequest request, Set<NotificationDeliveryMethod> deliveryMethods,
-                                           NotificationTemplate template, NotificationSettings settings) {
+                                         NotificationTemplate template, NotificationSettings settings, NotificationSettings systemSettings) {
         this.tenantId = tenantId;
         this.request = request;
         this.deliveryMethods = deliveryMethods;
         this.settings = settings;
+        this.systemSettings = systemSettings;
         this.notificationTemplate = template;
         this.notificationType = template.getNotificationType();
         this.templates = new EnumMap<>(NotificationDeliveryMethod.class);
@@ -96,6 +99,13 @@ public class NotificationProcessingContext {
     }
 
     public <C extends NotificationDeliveryMethodConfig> C getDeliveryMethodConfig(NotificationDeliveryMethod deliveryMethod) {
+        NotificationSettings settings = this.settings;
+        if (deliveryMethod == NotificationDeliveryMethod.MOBILE_APP && !tenantId.isSysTenantId()) {
+            var config = (MobileAppNotificationDeliveryMethodConfig) settings.getDeliveryMethodsConfigs().get(deliveryMethod);
+            if (config == null || config.isUseSystemSettings()) {
+                settings = this.systemSettings;
+            }
+        }
         return (C) settings.getDeliveryMethodsConfigs().get(deliveryMethod);
     }
 

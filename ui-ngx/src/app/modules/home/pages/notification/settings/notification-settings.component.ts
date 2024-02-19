@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -40,7 +40,7 @@ import { ActivatedRoute } from '@angular/router';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
 import {
   NotificationDeliveryMethod,
-  NotificationDeliveryMethodTranslateMap,
+  NotificationDeliveryMethodInfoMap,
   NotificationUserSettings
 } from '@shared/models/notification.models';
 import { NotificationService } from '@core/http/notification.service';
@@ -56,7 +56,7 @@ export class NotificationSettingsComponent extends PageComponent implements OnIn
   notificationSettings: UntypedFormGroup;
 
   notificationDeliveryMethods: NotificationDeliveryMethod[];
-  notificationDeliveryMethodTranslateMap = NotificationDeliveryMethodTranslateMap;
+  notificationDeliveryMethodInfoMap = NotificationDeliveryMethodInfoMap;
 
   private deliveryMethods = new Set([
     NotificationDeliveryMethod.SLACK,

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -34,8 +34,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.protobuf.ByteString;
 import io.netty.channel.EventLoopGroup;
 import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationRateLimitService;
@@ -76,6 +78,10 @@ public class RemoteIntegrationContext implements IntegrationContext {
     protected final ScheduledExecutorService scheduledExecutorService;
     protected final ExecutorService generalExecutorService;
     protected final ExecutorService callBackExecutorService;
+
+    @Getter
+    @Value("${integrations.init.connection_timeout_sec:10}")
+    private int integrationConnectTimeoutSec;
 
     public RemoteIntegrationContext(EventStorage eventStorage, ScheduledExecutorService scheduledExecutorService,
                                     ExecutorService generalExecutorService, ExecutorService callBackExecutorService,

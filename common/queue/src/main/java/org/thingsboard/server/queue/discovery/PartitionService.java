@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -74,15 +74,17 @@ public interface PartitionService {
 
     int resolvePartitionIndex(UUID entityId, int partitions);
 
-    void removeTenant(TenantId tenantId);
+    void evictTenantInfo(TenantId tenantId);
 
     int countTransportsByType(String type);
 
     int getIntegrationExecutorPartitionsCount();
 
-    void updateQueue(TransportProtos.QueueUpdateMsg queueUpdateMsg);
+    void updateQueues(List<TransportProtos.QueueUpdateMsg> queueUpdateMsgs);
 
-    void removeQueue(TransportProtos.QueueDeleteMsg queueDeleteMsg);
+    void removeQueues(List<TransportProtos.QueueDeleteMsg> queueDeleteMsgs);
+
+    void removeTenant(TenantId tenantId);
 
     boolean isManagedByCurrentService(TenantId tenantId);
 

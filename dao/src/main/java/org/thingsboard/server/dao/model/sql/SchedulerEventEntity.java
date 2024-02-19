@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -53,6 +53,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Table;
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ENABLED_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_NAME_PROPERTY;
@@ -99,6 +100,9 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
     @Column(name = ModelConstants.SCHEDULER_EVENT_SCHEDULE_PROPERTY)
     private JsonNode schedule;
 
+    @Column(name = SCHEDULER_EVENT_ENABLED_PROPERTY)
+    private boolean enabled;
+
     public SchedulerEventEntity() {
         super();
     }
@@ -123,6 +127,7 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
         this.additionalInfo = schedulerEvent.getAdditionalInfo();
         this.configuration = schedulerEvent.getConfiguration();
         this.schedule = schedulerEvent.getSchedule();
+        this.enabled = schedulerEvent.isEnabled();
     }
 
     @Override
@@ -143,6 +148,7 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
         schedulerEvent.setAdditionalInfo(additionalInfo);
         schedulerEvent.setConfiguration(configuration);
         schedulerEvent.setSchedule(schedule);
+        schedulerEvent.setEnabled(enabled);
         return schedulerEvent;
     }
 

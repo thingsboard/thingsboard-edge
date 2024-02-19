@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,8 +33,10 @@ package org.thingsboard.integration.service.context;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.protobuf.ByteString;
 import io.netty.channel.EventLoopGroup;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationRateLimitService;
@@ -76,6 +78,10 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     private final Integration configuration;
     private final IntegrationInfoProto integrationInfoProto;
     private final LogSettingsComponent logSettingsComponent;
+
+    @Getter
+    @Value("${integrations.init.connection_timeout_sec:10}")
+    private int integrationConnectTimeoutSec;
 
     public TbIntegrationExecutorIntegrationContext(String serviceId, IntegrationApiService apiService, IntegrationStatisticsService statisticsService,
                                                    TbIntegrationExecutorContextComponent contextComponent, LogSettingsComponent logSettingsComponent,

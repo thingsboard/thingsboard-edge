@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,6 +42,8 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.util.SqlDao;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -71,13 +73,18 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
             throw new IllegalArgumentException("Can't create entity for domain object {" + domain + "}", e);
         }
         log.debug("Saving entity {}", entity);
-        if (entity.getUuid() == null) {
+        boolean isNew = entity.getUuid() == null;
+        if (isNew) {
             UUID uuid = Uuids.timeBased();
             entity.setUuid(uuid);
             entity.setCreatedTime(Uuids.unixTimestamp(uuid));
         }
-        entity = getRepository().save(entity);
+        entity = doSave(entity, isNew);
         return DaoUtil.getData(entity);
+    }
+
+    protected E doSave(E entity, boolean isNew) {
+        return getRepository().save(entity);
     }
 
     @Override
@@ -132,4 +139,5 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
         List<E> entities = Lists.newArrayList(getRepository().findAll());
         return DaoUtil.convertDataList(entities);
     }
+
 }

@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -55,6 +55,10 @@ public class LwM2MTransportServerConfig implements LwM2MSecureServerConfig {
     @Getter
     @Value("${transport.lwm2m.dtls.retransmission_timeout:9000}")
     private int dtlsRetransmissionTimeout;
+
+    @Getter
+    @Value("${transport.lwm2m.dtls.connection_id_length:6}")
+    private Integer dtlsConnectionIdLength;
 
     @Getter
     @Value("${transport.lwm2m.timeout:}")

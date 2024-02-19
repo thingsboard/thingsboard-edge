@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -138,7 +138,7 @@ public class JpaIntegrationDao extends JpaAbstractDao<IntegrationEntity, Integra
 
     @Override
     public Long countByTenantId(TenantId tenantId) {
-        return integrationRepository.countByTenantId(tenantId.getId());
+        return integrationRepository.countByTenantIdAndEdgeTemplateFalse(tenantId.getId());
     }
 
     @Override

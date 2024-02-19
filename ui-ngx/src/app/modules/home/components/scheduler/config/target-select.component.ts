@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -73,6 +73,25 @@ export class TargetSelectComponent implements ControlValueAccessor, OnDestroy {
   targetFormGroup: UntypedFormGroup;
   entityType = EntityType.DEVICE;
   currentUser = getCurrentAuthUser(this.store);
+
+  headerOptions = [
+    {
+      name: this.translate.instant('device.device'),
+      value: 'entity'
+    },
+    {
+      name: this.translate.instant('device-profile.device-profile'),
+      value: 'deviceProfile'
+    },
+    {
+      name: this.translate.instant('entity-group.device-group'),
+      value: 'groupTenant'
+    },
+    {
+      name: this.translate.instant('scheduler.devices-group-owner'),
+      value: 'ownerGroup'
+    }
+  ];
 
   private modelValue: EntityId | null;
   private destroy$ = new Subject<void>();

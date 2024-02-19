@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -103,6 +103,25 @@ import {
 import {
   RangeChartBasicConfigComponent
 } from '@home/components/widget/config/basic/chart/range-chart-basic-config.component';
+import {
+  BarChartWithLabelsBasicConfigComponent
+} from '@home/components/widget/config/basic/chart/bar-chart-with-labels-basic-config.component';
+import {
+  SingleSwitchBasicConfigComponent
+} from '@home/components/widget/config/basic/rpc/single-switch-basic-config.component';
+import {
+  ActionButtonBasicConfigComponent
+} from '@home/components/widget/config/basic/button/action-button-basic-config.component';
+import {
+  CommandButtonBasicConfigComponent
+} from '@home/components/widget/config/basic/button/command-button-basic-config.component';
+import {
+  PowerButtonBasicConfigComponent
+} from '@home/components/widget/config/basic/button/power-button-basic-config.component';
+import { SliderBasicConfigComponent } from '@home/components/widget/config/basic/rpc/slider-basic-config.component';
+import {
+  ToggleButtonBasicConfigComponent
+} from '@home/components/widget/config/basic/button/toggle-button-basic-config.component';
 
 @NgModule({
   declarations: [
@@ -130,7 +149,14 @@ import {
     CompassGaugeBasicConfigComponent,
     LiquidLevelCardBasicConfigComponent,
     DoughnutBasicConfigComponent,
-    RangeChartBasicConfigComponent
+    RangeChartBasicConfigComponent,
+    BarChartWithLabelsBasicConfigComponent,
+    SingleSwitchBasicConfigComponent,
+    ActionButtonBasicConfigComponent,
+    CommandButtonBasicConfigComponent,
+    PowerButtonBasicConfigComponent,
+    SliderBasicConfigComponent,
+    ToggleButtonBasicConfigComponent
   ],
   imports: [
     CommonModule,
@@ -162,7 +188,14 @@ import {
     CompassGaugeBasicConfigComponent,
     LiquidLevelCardBasicConfigComponent,
     DoughnutBasicConfigComponent,
-    RangeChartBasicConfigComponent
+    RangeChartBasicConfigComponent,
+    BarChartWithLabelsBasicConfigComponent,
+    SingleSwitchBasicConfigComponent,
+    ActionButtonBasicConfigComponent,
+    CommandButtonBasicConfigComponent,
+    PowerButtonBasicConfigComponent,
+    SliderBasicConfigComponent,
+    ToggleButtonBasicConfigComponent
   ]
 })
 export class BasicWidgetConfigModule {
@@ -188,5 +221,12 @@ export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetCo
   'tb-compass-gauge-basic-config': CompassGaugeBasicConfigComponent,
   'tb-liquid-level-card-basic-config': LiquidLevelCardBasicConfigComponent,
   'tb-doughnut-basic-config': DoughnutBasicConfigComponent,
-  'tb-range-chart-basic-config': RangeChartBasicConfigComponent
+  'tb-range-chart-basic-config': RangeChartBasicConfigComponent,
+  'tb-bar-chart-with-labels-basic-config': BarChartWithLabelsBasicConfigComponent,
+  'tb-single-switch-basic-config': SingleSwitchBasicConfigComponent,
+  'tb-action-button-basic-config': ActionButtonBasicConfigComponent,
+  'tb-command-button-basic-config': CommandButtonBasicConfigComponent,
+  'tb-power-button-basic-config': PowerButtonBasicConfigComponent,
+  'tb-slider-basic-config': SliderBasicConfigComponent,
+  'tb-toggle-button-basic-config': ToggleButtonBasicConfigComponent
 };

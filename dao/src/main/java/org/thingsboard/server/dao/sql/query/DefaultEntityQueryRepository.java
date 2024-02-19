@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -117,7 +117,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -945,7 +944,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     @Override
     public <T> PageData<T> findInCustomerHierarchyByRootCustomerIdOrOtherGroupIdsAndType(
             TenantId tenantId, CustomerId customerId, EntityType entityType, String type,
-            List<EntityGroupId> groupIds, PageLink pageLink, Function<Map<String, Object>, T> rowMapping, boolean mobile) {
+            List<EntityGroupId> groupIds, PageLink pageLink, EntityMapping<?, T> mapping, boolean mobile) {
         return transactionTemplate.execute(status -> {
             QueryContext ctx = new QueryContext(new QuerySecurityContext(tenantId, customerId, entityType, null, null));
             StringBuilder fromClause = new StringBuilder();
@@ -1012,7 +1011,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
             int totalElements = jdbcTemplate.queryForObject(String.format("select count(*) %s", fromClause), ctx, Integer.class);
 
-            String dataQuery = String.format("select e.* %s ", fromClause);
+            String dataQuery = "SELECT " + mapping.getMappings().keySet().stream()
+                    .map(field -> "e." + field)
+                    .collect(Collectors.joining(", ")) + " " + fromClause;
 
             SortOrder sortOrder = pageLink.getSortOrder();
             if (mobile) {
@@ -1051,7 +1052,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
             int totalPages = pageLink.getPageSize() > 0 ? (int) Math.ceil((float) totalElements / pageLink.getPageSize()) : 1;
             boolean hasNext = pageLink.getPageSize() > 0 && totalElements > startIndex + rows.size();
-            List<T> entitiesData = rows.stream().map(rowMapping).collect(Collectors.toList());
+            List<T> entitiesData = rows.stream().map(mapping::map).collect(Collectors.toList());
             return new PageData<>(entitiesData, totalPages, totalElements, hasNext);
         });
     }

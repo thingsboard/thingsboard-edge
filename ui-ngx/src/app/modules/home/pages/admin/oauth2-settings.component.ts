@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,14 @@
 ///
 
 import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, ValidationErrors, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  ValidationErrors,
+  Validators
+} from '@angular/forms';
 import {
   ClientAuthenticationMethod,
   DomainSchema,
@@ -41,9 +48,11 @@ import {
   MapperConfigType,
   OAuth2ClientRegistrationTemplate,
   OAuth2DomainInfo,
-  OAuth2Info, OAuth2MobileInfo,
+  OAuth2Info,
+  OAuth2MobileInfo,
   OAuth2ParamsInfo,
-  OAuth2RegistrationInfo, PlatformType,
+  OAuth2RegistrationInfo,
+  PlatformType,
   platformTypeTranslations,
   TenantNameStrategy
 } from '@shared/models/oauth2.models';
@@ -119,6 +128,8 @@ export class OAuth2SettingsComponent extends PageComponent implements OnInit, Ha
   platformTypeTranslations = platformTypeTranslations;
 
   templateProvider = ['Custom'];
+
+  showMainLoadingBar = false;
 
   private loginProcessingUrl: string = this.route.snapshot.data.loginProcessingUrl;
 

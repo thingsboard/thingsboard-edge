@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -99,7 +99,7 @@ export const progressBarDefaultSettings: ProgressBarWidgetSettings = {
     lineHeight: '16px'
   },
   ticksColor: 'rgba(0,0,0,0.54)',
-  barColor: constantColor('rgba(63, 82, 221, 1)'),
+  barColor: constantColor('var(--tb-primary-500)'),
   barBackground: 'rgba(0, 0, 0, 0.04)',
   background: {
     type: BackgroundType.color,

@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -54,6 +54,12 @@ import { NotificationSettingsComponent } from '@home/pages/notification/settings
 import {
   NotificationSettingFormComponent
 } from '@home/pages/notification/settings/notification-setting-form.component';
+import {
+  NotificationTemplateConfigurationComponent
+} from '@home/pages/notification/template/configuration/notification-template-configuration.component';
+import {
+  NotificationActionButtonConfigurationComponent
+} from '@home/pages/notification/template/configuration/notification-action-button-configuration.component';
 
 @NgModule({
   declarations: [
@@ -70,7 +76,9 @@ import {
     RuleNotificationDialogComponent,
     RuleTableHeaderComponent,
     NotificationSettingsComponent,
-    NotificationSettingFormComponent
+    NotificationSettingFormComponent,
+    NotificationTemplateConfigurationComponent,
+    NotificationActionButtonConfigurationComponent
   ],
   imports: [
     CommonModule,

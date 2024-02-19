@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,17 +30,18 @@
  */
 package org.thingsboard.server.dao.menu;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -50,12 +51,11 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -68,6 +68,7 @@ public class BaseCustomMenuService implements CustomMenuService {
     private final AdminSettingsService adminSettingsService;
     private final AttributesService attributesService;
     private final CustomerService customerService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public CustomMenu getSystemCustomMenu(TenantId tenantId) {
@@ -175,7 +176,7 @@ public class BaseCustomMenuService implements CustomMenuService {
     private String getEntityAttributeValue(TenantId tenantId, EntityId entityId) {
         List<AttributeKvEntry> attributeKvEntries;
         try {
-            attributeKvEntries = attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, Arrays.asList(CUSTOM_MENU_ATTR_NAME)).get();
+            attributeKvEntries = attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, List.of(CUSTOM_MENU_ATTR_NAME)).get();
         } catch (Exception e) {
             log.error("Unable to read custom menu from attributes!", e);
             throw new IncorrectParameterException("Unable to read custom menu from attributes!");
@@ -201,6 +202,8 @@ public class BaseCustomMenuService implements CustomMenuService {
             throw new IncorrectParameterException("Unable to convert custom menu to JSON!");
         }
         saveEntityAttribute(tenantId, entityId, json);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(entityId)
+                .edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.UPDATED).build());
     }
 
     private void saveEntityAttribute(TenantId tenantId, EntityId entityId, String value) {

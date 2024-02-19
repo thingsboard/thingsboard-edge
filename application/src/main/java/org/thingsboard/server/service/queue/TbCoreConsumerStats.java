@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -53,7 +53,10 @@ public class TbCoreConsumerStats {
     public static final String SUBSCRIPTION_MSGS = "subMsgs";
     public static final String SCHEDULER = "scheduler";
     public static final String EDGE_NOTIFICATIONS = "edgeNfs";
+    public static final String DEVICE_CONNECTS = "deviceConnect";
     public static final String DEVICE_ACTIVITIES = "deviceActivity";
+    public static final String DEVICE_DISCONNECTS = "deviceDisconnect";
+    public static final String DEVICE_INACTIVITIES = "deviceInactivity";
 
     // PE
     public static final String TO_CORE_NF_INTEGRATION_DOWNLINK = "coreNfIntDlnk";
@@ -86,7 +89,10 @@ public class TbCoreConsumerStats {
     private final StatsCounter deviceStateCounter;
     private final StatsCounter subscriptionMsgCounter;
     private final StatsCounter edgeNotificationsCounter;
+    private final StatsCounter deviceConnectsCounter;
     private final StatsCounter deviceActivitiesCounter;
+    private final StatsCounter deviceDisconnectsCounter;
+    private final StatsCounter deviceInactivitiesCounter;
 
     // PE
     private final StatsCounter schedulerMsgCounter;
@@ -124,7 +130,10 @@ public class TbCoreConsumerStats {
         this.deviceStateCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_STATES));
         this.subscriptionMsgCounter = register(statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_MSGS));
         this.edgeNotificationsCounter = register(statsFactory.createStatsCounter(statsKey, EDGE_NOTIFICATIONS));
+        this.deviceConnectsCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_CONNECTS));
         this.deviceActivitiesCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_ACTIVITIES));
+        this.deviceDisconnectsCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_DISCONNECTS));
+        this.deviceInactivitiesCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_INACTIVITIES));
 
         // PE
         this.schedulerMsgCounter = register(statsFactory.createStatsCounter(statsKey, SCHEDULER));
@@ -194,9 +203,24 @@ public class TbCoreConsumerStats {
         edgeNotificationsCounter.increment();
     }
 
+    public void log(TransportProtos.DeviceConnectProto msg) {
+        totalCounter.increment();
+        deviceConnectsCounter.increment();
+    }
+
     public void log(TransportProtos.DeviceActivityProto msg) {
         totalCounter.increment();
         deviceActivitiesCounter.increment();
+    }
+
+    public void log(TransportProtos.DeviceDisconnectProto msg) {
+        totalCounter.increment();
+        deviceDisconnectsCounter.increment();
+    }
+
+    public void log(TransportProtos.DeviceInactivityProto msg) {
+        totalCounter.increment();
+        deviceInactivitiesCounter.increment();
     }
 
     public void log(TransportProtos.SubscriptionMgrMsgProto msg) {
@@ -236,9 +260,9 @@ public class TbCoreConsumerStats {
             toCoreNfEdgeSyncResponseCounter.increment();
         } else if (!msg.getFromEdgeSyncResponseMsg().isEmpty()) {
             toCoreNfEdgeSyncResponseCounter.increment();
-        } else if (msg.hasQueueUpdateMsg()) {
+        } else if (msg.getQueueUpdateMsgsCount() > 0) {
             toCoreNfQueueUpdateCounter.increment();
-        } else if (msg.hasQueueDeleteMsg()) {
+        } else if (msg.getQueueDeleteMsgsCount() > 0) {
             toCoreNfQueueDeleteCounter.increment();
         } else if (msg.hasVcResponseMsg()) {
             toCoreNfVersionControlResponseCounter.increment();

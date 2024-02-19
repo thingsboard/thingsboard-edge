@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -88,7 +88,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
                 entityCountService.publishCountEntityEvictEvent(converter.getTenantId(), EntityType.CONVERTER);
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(converter.getTenantId()).entity(converter)
-                    .entityId(savedConverter.getId()).added(converter.getId() == null).build());
+                    .entityId(savedConverter.getId()).created(converter.getId() == null).build());
             return savedConverter;
         } catch (Exception t) {
             checkConstraintViolation(t,

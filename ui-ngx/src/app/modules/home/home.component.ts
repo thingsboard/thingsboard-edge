@@ -1,7 +1,7 @@
 ///
 /// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 ///
-/// Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 ///
 /// NOTICE: All information contained herein is, and remains
 /// the property of ThingsBoard, Inc. and its suppliers,
@@ -49,6 +49,7 @@ import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { FormBuilder } from '@angular/forms';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { TranslateService } from '@ngx-translate/core';
+import { isDefined, isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-home',
@@ -161,9 +162,18 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
 
   private updateActiveComponent(activeComponent: any) {
     this.showSearch = false;
+    this.hideLoadingBar = false;
     this.textSearch.reset('', {emitEvent: false});
     this.activeComponent = activeComponent;
-    this.hideLoadingBar = activeComponent && activeComponent instanceof RouterTabsComponent;
+
+    if (activeComponent && activeComponent instanceof RouterTabsComponent
+      && isDefinedAndNotNull(this.activeComponent.activatedRoute?.snapshot?.data?.showMainLoadingBar)) {
+      this.hideLoadingBar = !this.activeComponent.activatedRoute.snapshot.data.showMainLoadingBar;
+    } else if (activeComponent && activeComponent instanceof PageComponent
+      && isDefinedAndNotNull(this.activeComponent?.showMainLoadingBar)) {
+      this.hideLoadingBar = !this.activeComponent.showMainLoadingBar;
+    }
+
     if (this.activeComponent && instanceOfSearchableComponent(this.activeComponent)) {
       this.searchEnabled = true;
       this.searchableComponent = this.activeComponent;

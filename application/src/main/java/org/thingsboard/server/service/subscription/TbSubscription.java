@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -50,8 +50,6 @@ public abstract class TbSubscription<T> {
     private final EntityId entityId;
     private final TbSubscriptionType type;
     private final BiConsumer<TbSubscription<T>, T> updateProcessor;
-
-    protected final AtomicInteger sequence = new AtomicInteger();
 
     @Override
     public boolean equals(Object o) {

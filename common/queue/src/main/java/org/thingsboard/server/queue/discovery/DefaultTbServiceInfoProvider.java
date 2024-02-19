@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -105,7 +105,7 @@ public class DefaultTbServiceInfoProvider implements TbServiceInfoProvider {
         }
         log.info("Current Service ID: {}", serviceId);
         if (serviceType.equalsIgnoreCase("monolith")) {
-            serviceTypes = Collections.unmodifiableList(Arrays.asList(ServiceType.values()));
+            serviceTypes = List.of(ServiceType.values());
         } else {
             serviceTypes = Collections.singletonList(ServiceType.of(serviceType));
         }

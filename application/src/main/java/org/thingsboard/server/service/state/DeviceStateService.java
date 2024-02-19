@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -42,11 +42,21 @@ import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
  */
 public interface DeviceStateService extends ApplicationListener<PartitionChangeEvent> {
 
-    void onDeviceConnect(TenantId tenantId, DeviceId deviceId);
+    void onDeviceConnect(TenantId tenantId, DeviceId deviceId, long lastConnectTime);
+
+    default void onDeviceConnect(TenantId tenantId, DeviceId deviceId) {
+        onDeviceConnect(tenantId, deviceId, System.currentTimeMillis());
+    }
 
     void onDeviceActivity(TenantId tenantId, DeviceId deviceId, long lastReportedActivityTime);
 
-    void onDeviceDisconnect(TenantId tenantId, DeviceId deviceId);
+    void onDeviceDisconnect(TenantId tenantId, DeviceId deviceId, long lastDisconnectTime);
+
+    default void onDeviceDisconnect(TenantId tenantId, DeviceId deviceId) {
+        onDeviceDisconnect(tenantId, deviceId, System.currentTimeMillis());
+    }
+
+    void onDeviceInactivity(TenantId tenantId, DeviceId deviceId, long lastInactivityTime);
 
     void onDeviceInactivityTimeoutUpdate(TenantId tenantId, DeviceId deviceId, long inactivityTimeout);
 

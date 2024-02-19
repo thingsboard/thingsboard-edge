@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -33,6 +33,9 @@ package org.thingsboard.server.dao.user;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.settings.UserSettings;
 import org.thingsboard.server.common.data.settings.UserSettingsCompositeKey;
+import org.thingsboard.server.common.data.settings.UserSettingsType;
+
+import java.util.List;
 
 public interface UserSettingsDao {
 
@@ -41,5 +44,7 @@ public interface UserSettingsDao {
     UserSettings findById(TenantId tenantId, UserSettingsCompositeKey key);
 
     void removeById(TenantId tenantId, UserSettingsCompositeKey key);
+
+    List<UserSettings> findByTypeAndPath(TenantId tenantId, UserSettingsType type, String... path);
 
 }

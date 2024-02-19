@@ -2,7 +2,7 @@
 
     ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
 
-    Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
 
     NOTICE: All information contained herein is, and remains
     the property of ThingsBoard, Inc. and its suppliers,
@@ -62,6 +62,22 @@
         </mat-select>
       </mat-form-field>
     </div>
+    <div class="tb-form-row space-between">
+      <div>{{ 'widgets.table.column-export-option' | translate }}</div>
+      <mat-form-field class="medium-width" appearance="outline" subscriptSizing="dynamic">
+        <mat-select formControlName="columnExportOption">
+          <mat-option [value]="'always'">
+            {{ 'widgets.table.column-export-option-always' | translate }}
+          </mat-option>
+          <mat-option [value]="'onlyVisible'">
+            {{ 'widgets.table.column-export-option-only-visible' | translate }}
+          </mat-option>
+          <mat-option [value]="'never'">
+            {{ 'widgets.table.column-export-option-never' | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
   </div>
   <div class="tb-form-panel tb-slide-toggle">
     <mat-expansion-panel class="tb-settings" [expanded]="timeseriesTableKeySettingsForm.get('useCellStyleFunction').value">
@@ -101,6 +117,9 @@
         </mat-panel-description>
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
+        <mat-slide-toggle class="mat-slide" formControlName="useCellContentFunctionOnExport">
+          {{ 'widgets.table.use-cell-content-function-on-export' | translate }}
+        </mat-slide-toggle>
         <tb-js-func required
                     formControlName="cellContentFunction"
                     [globalVariables]="functionScopeVariables"

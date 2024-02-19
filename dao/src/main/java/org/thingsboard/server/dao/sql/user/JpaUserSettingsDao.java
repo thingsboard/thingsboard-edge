@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -36,11 +36,14 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.settings.UserSettings;
 import org.thingsboard.server.common.data.settings.UserSettingsCompositeKey;
+import org.thingsboard.server.common.data.settings.UserSettingsType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.UserSettingsEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
 import org.thingsboard.server.dao.user.UserSettingsDao;
 import org.thingsboard.server.dao.util.SqlDao;
+
+import java.util.List;
 
 @Slf4j
 @Component
@@ -63,6 +66,11 @@ public class JpaUserSettingsDao extends JpaAbstractDaoListeningExecutorService i
     @Override
     public void removeById(TenantId tenantId, UserSettingsCompositeKey id) {
         userSettingsRepository.deleteById(id);
+    }
+
+    @Override
+    public List<UserSettings> findByTypeAndPath(TenantId tenantId, UserSettingsType type, String... path) {
+        return DaoUtil.convertDataList(userSettingsRepository.findByTypeAndPathExisting(type.name(), path));
     }
 
 }

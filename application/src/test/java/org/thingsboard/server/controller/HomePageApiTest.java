@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -431,10 +431,10 @@ public class HomePageApiTest extends AbstractControllerTest {
         Assert.assertEquals(0, usageInfo.getAssets());
         Assert.assertEquals(configuration.getMaxAssets(), usageInfo.getMaxAssets());
 
-        Assert.assertEquals(1, usageInfo.getCustomers());
+        Assert.assertEquals(2, usageInfo.getCustomers());
         Assert.assertEquals(configuration.getMaxCustomers(), usageInfo.getMaxCustomers());
 
-        Assert.assertEquals(3, usageInfo.getUsers());
+        Assert.assertEquals(4, usageInfo.getUsers());
         Assert.assertEquals(configuration.getMaxUsers(), usageInfo.getMaxUsers());
 
         Assert.assertEquals(DEFAULT_DASHBOARDS_COUNT, usageInfo.getDashboards());
@@ -486,7 +486,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         }
 
         usageInfo = doGet("/api/usage", UsageInfo.class);
-        Assert.assertEquals(customers.size() + 1, usageInfo.getCustomers());
+        Assert.assertEquals(customers.size() + 2, usageInfo.getCustomers());
 
         List<User> users = new ArrayList<>();
         for (int i = 0; i < 97; i++) {
@@ -497,7 +497,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         }
 
         usageInfo = doGet("/api/usage", UsageInfo.class);
-        Assert.assertEquals(users.size() + 3, usageInfo.getUsers());
+        Assert.assertEquals(users.size() + 4, usageInfo.getUsers());
 
         List<Dashboard> dashboards = new ArrayList<>();
         for (int i = 0; i < 97; i++) {

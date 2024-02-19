@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.service.install;
 
-import com.datastax.oss.driver.api.core.servererrors.InvalidQueryException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
@@ -45,29 +44,6 @@ public class CassandraTsDatabaseUpgradeService extends AbstractCassandraDatabase
     @Override
     public void upgradeDatabase(String fromVersion) throws Exception {
         switch (fromVersion) {
-            case "2.4.3":
-                log.info("Updating schema ...");
-                String updateTsKvTableStmt = "alter table ts_kv_cf add json_v text";
-                String updateTsKvLatestTableStmt = "alter table ts_kv_latest_cf add json_v text";
-
-                try {
-                    log.info("Updating ts ...");
-                    cluster.getSession().execute(updateTsKvTableStmt);
-                    Thread.sleep(2500);
-                    log.info("Ts updated.");
-                    log.info("Updating ts latest ...");
-                    cluster.getSession().execute(updateTsKvLatestTableStmt);
-                    Thread.sleep(2500);
-                    log.info("Ts latest updated.");
-                } catch (InvalidQueryException e) {
-                }
-                log.info("Schema updated.");
-                break;
-            case "2.5.0":
-            case "3.1.1":
-            case "3.2.1":
-            case "3.2.2":
-                break;
             default:
                 throw new RuntimeException("Unable to upgrade Cassandra database, unsupported fromVersion: " + fromVersion);
         }

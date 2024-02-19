@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -32,16 +32,19 @@ package org.thingsboard.server.service.mail;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
-import org.thingsboard.server.queue.util.TbCoreComponent;
 
 @Component
 @Data
 @Lazy
 public class TbMailContextComponent {
+
+    @Value("${actors.rule.allow_system_mail_service}")
+    private boolean allowSystemMailService;
 
     @Autowired
     private AdminSettingsService adminSettingsService;

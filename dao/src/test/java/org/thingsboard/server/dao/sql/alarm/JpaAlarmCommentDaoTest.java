@@ -1,7 +1,7 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
- * Copyright © 2016-2023 ThingsBoard, Inc. All Rights Reserved.
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
  *
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
@@ -100,6 +100,6 @@ public class JpaAlarmCommentDaoTest extends AbstractJpaDaoTest {
         alarmComment.setUserId(new UserId(userId));
         alarmComment.setType(type);
         alarmComment.setComment(JacksonUtil.newObjectNode().put("text", RandomStringUtils.randomAlphanumeric(10)));
-        alarmCommentDao.createAlarmComment(TenantId.fromUUID(UUID.randomUUID()), alarmComment);
+        alarmCommentDao.save(TenantId.fromUUID(UUID.randomUUID()), alarmComment);
     }
 }
