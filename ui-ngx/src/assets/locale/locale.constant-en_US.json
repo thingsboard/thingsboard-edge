@@ -173,7 +173,7 @@
         "mail-body": "Mail body",
         "sms-provider": "SMS provider",
         "sms-provider-settings": "SMS provider settings",
-        "use-system-sms-settings": "Use System SMS provider settings",
+        "use-system-sms-settings": "Use system SMS provider settings",
         "sms-provider-type": "SMS provider type",
         "sms-provider-type-required": "SMS provider type is required.",
         "sms-provider-type-aws-sns": "Amazon SNS",
@@ -504,7 +504,11 @@
         "notifications-settings": "Notifications settings",
         "slack-api-token": "Slack API token",
         "slack": "Slack",
-        "slack-settings": "Slack settings"
+        "slack-settings": "Slack settings",
+        "mobile-settings": "Mobile settings",
+        "firebase-service-account-file": "Firebase service account credentials JSON file",
+        "select-firebase-service-account-file": "Drag and drop your Firebase service account credentials file or ",
+        "use-system-mobile-settings": "Use system mobile settings"
       },
     "alarm": {
         "alarm": "Alarm",
@@ -3224,6 +3228,7 @@
          "current-user": "Current user",
          "current-device": "Current device",
          "default-value": "Default value",
+         "default-comma-separated-values": "Default comma-separated values",
          "dynamic-source-type": "Dynamic source type",
          "dynamic-value": "Dynamic value",
          "no-dynamic-value": "No dynamic value",
@@ -4303,6 +4308,7 @@
         "copy-template": "Copy template",
         "create-new": "Create new",
         "created": "Created",
+        "customize-messages": "Customize messages",
         "delete-notification-text": "Be careful, after the confirmation the notification will become unrecoverable.",
         "delete-notification-title": "Are you sure you want to delete the notification?",
         "delete-notifications-text": "Be careful, after the confirmation notifications will become unrecoverable.",
@@ -4335,7 +4341,9 @@
             "sms": "SMS",
             "sms-preview": "SMS notification preview",
             "web": "Web",
-            "web-preview": "Web notification preview"
+            "web-preview": "Web notification preview",
+            "mobile-app": "Mobile app",
+            "mobile-app-preview": "Mobile app notification preview"
         },
         "delivery-method-not-configure-click": "Delivery method is not configured. Click to setup.",
         "delivery-method-not-configure-contact": "Delivery method is not configured. Contact your system administrator.",
@@ -4396,6 +4404,7 @@
         "not-found-slack-recipient": "Slack recipient not found",
         "notification": "Notification",
         "notification-center": "Notification center",
+        "notification-tap-action": "Notification tap action",
         "notify": "notify",
         "notify-again": "Notify again",
         "notify-alarm-action": {
@@ -4468,6 +4477,7 @@
         "selected-template": "{ count, plural, =1 {1 template} other {# templates} } selected",
         "send-notification": "Send notification",
         "sent": "Sent",
+        "setup": "Setup",
         "notification-sent": "Notifications / Sent",
         "set-entity-from-notification": "Set entity from notification to dashboard state",
         "slack-chanel-type": "Slack channel type",
@@ -4481,6 +4491,7 @@
         "stop-escalation-alarm-status-become": "Stop the escalation on the alarm status become:",
         "subject": "Subject",
         "subject-required": "Subject is required",
+        "subject-max-length": "Subject should be less than or equal to {{ length }} characters",
         "template": "Template",
         "template-name": "Template name",
         "template-required": "Template is required",
@@ -6795,6 +6806,19 @@
             "disabled-colors": "Disabled colors",
             "button": "Button"
         },
+        "toggle-button": {
+            "behavior": "Behavior",
+            "checked": "Checked",
+            "unchecked": "Unchecked",
+            "check": "Check",
+            "check-hint": "Action performed to check the component.",
+            "uncheck": "Uncheck",
+            "uncheck-hint": "Action performed to uncheck the component.",
+            "auto-scale": "Auto scale",
+            "horizontal-fill": "Horizontal fill",
+            "vertical-fill": "Vertical fill",
+            "button-appearance": "Button appearance"
+        },
         "button": {
             "layout": "Layout",
             "outlined": "Outlined",
@@ -6804,6 +6828,7 @@
             "auto-scale": "Auto scale",
             "label": "Label",
             "icon": "Icon",
+            "border-radius": "Border radius",
             "color-palette": "Color palette",
             "main": "Main",
             "background": "Background",

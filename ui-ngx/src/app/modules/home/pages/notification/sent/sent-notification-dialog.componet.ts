@@ -39,7 +39,6 @@ import {
 import { Component, Inject, OnDestroy, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { AbstractControl, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { NotificationService } from '@core/http/notification.service';
@@ -65,6 +64,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { AuthState } from '@core/auth/auth.models';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Router } from '@angular/router';
 
 export interface RequestNotificationDialogData {
   request?: NotificationRequest;
@@ -170,11 +170,9 @@ export class SentNotificationDialogComponent extends
       let useTemplate = true;
       if (isDefinedAndNotNull(this.data.request.template)) {
         useTemplate = false;
-        // eslint-disable-next-line guard-for-in
-        for (const method in this.data.request.template.configuration.deliveryMethodsTemplates) {
-          this.deliveryMethodFormsMap.get(NotificationDeliveryMethod[method])
-            .patchValue(this.data.request.template.configuration.deliveryMethodsTemplates[method]);
-        }
+        this.notificationTemplateConfigurationForm.patchValue({
+          deliveryMethodsTemplates: this.data.request.template.configuration.deliveryMethodsTemplates
+        }, {emitEvent: false});
       }
       this.notificationRequestForm.get('useTemplate').setValue(useTemplate, {onlySelf : true});
     }
@@ -198,6 +196,9 @@ export class SentNotificationDialogComponent extends
 
   changeStep($event: StepperSelectionEvent) {
     this.selectedIndex = $event.selectedIndex;
+    if ($event.previouslySelectedIndex > $event.selectedIndex) {
+      $event.previouslySelectedStep.interacted = false;
+    }
     if (this.selectedIndex === this.maxStepperIndex) {
       this.getPreview();
     }
@@ -324,6 +325,9 @@ export class SentNotificationDialogComponent extends
   }
 
   allowConfigureDeliveryMethod(deliveryMethod: NotificationDeliveryMethod): boolean {
+    const tenantAllowConfigureDeliveryMethod = new Set([
+      NotificationDeliveryMethod.SLACK
+    ]);
     if (deliveryMethod === NotificationDeliveryMethod.WEB) {
       return false;
     }
@@ -346,6 +350,7 @@ export class SentNotificationDialogComponent extends
         return '/settings/outgoing-mail';
       case NotificationDeliveryMethod.SMS:
       case NotificationDeliveryMethod.SLACK:
+      case NotificationDeliveryMethod.MOBILE_APP:
         return '/settings/notifications';
     }
   }
