@@ -33,7 +33,6 @@ package org.thingsboard.server.transport.lwm2m.security;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
-import org.eclipse.californium.elements.config.Configuration;
 import org.eclipse.leshan.client.object.Security;
 import org.eclipse.leshan.core.ResponseCode;
 import org.eclipse.leshan.core.util.Hex;
@@ -201,7 +200,6 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
         LwM2MDeviceCredentials deviceCredentials = getDeviceCredentialsNoSec(createNoSecClientCredentials(clientEndpoint));
         this.basicTestConnection(null , SECURITY_NO_SEC_BS,
                 deviceCredentials,
-                COAP_CONFIG_BS,
                 clientEndpoint,
                 transportConfiguration,
                 awaitAlias,
@@ -213,7 +211,6 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
 
     protected void basicTestConnection(Security security, Security securityBs,
                                        LwM2MDeviceCredentials deviceCredentials,
-                                       Configuration coapConfig,
                                        String endpoint,
                                        Lwm2mDeviceProfileTransportConfiguration transportConfiguration,
                                        String awaitAlias,
@@ -223,7 +220,7 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
                                        boolean isStartLw) throws Exception {
         createDeviceProfile(transportConfiguration);
         final Device device = createDevice(deviceCredentials, endpoint);
-        createNewClient(security, securityBs, coapConfig, true, endpoint);
+        createNewClient(security, securityBs, true, endpoint);
         lwM2MTestClient.start(isStartLw);
         if (isAwaitObserveReadAll) {
             awaitObserveReadAll(0, device.getId().getId().toString());
@@ -251,7 +248,6 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
                 SECURITY_NO_SEC,
                 SECURITY_NO_SEC_BS,
                 deviceCredentials,
-                COAP_CONFIG,
                 clientEndpoint,
                 transportConfiguration,
                 awaitAlias,
@@ -261,7 +257,6 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
 
     private void basicTestConnectionBootstrapRequestTrigger(Security security, Security securityBs,
                                                             LwM2MDeviceCredentials deviceCredentials,
-                                                            Configuration coapConfig,
                                                             String endpoint,
                                                             Lwm2mDeviceProfileTransportConfiguration transportConfiguration,
                                                             String awaitAlias,
@@ -271,7 +266,7 @@ public abstract class AbstractSecurityLwM2MIntegrationTest extends AbstractLwM2M
         createDeviceProfile(transportConfiguration);
         final Device device = createDevice(deviceCredentials, endpoint);
         String deviceIdStr = device.getId().getId().toString();
-        createNewClient(security, securityBs, coapConfig, true, endpoint);
+        createNewClient(security, securityBs, true, endpoint);
         lwM2MTestClient.start(true);
         awaitObserveReadAll(0, deviceIdStr);
         await(awaitAlias)
