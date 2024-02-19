@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
@@ -79,6 +80,7 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
                         tenantProfileMsg.setDefault(true);
                     }
 
+                    clearRateLimitsProfileConfiguration(tenantProfileMsg);
                     TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(tenantId, tenantProfileMsg, false);
                     notifyCluster(tenantId, savedTenantProfile);
 
@@ -96,6 +98,32 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
             cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
+    }
+
+    private void clearRateLimitsProfileConfiguration(TenantProfile tenantProfile) {
+        DefaultTenantProfileConfiguration configuration =
+                (DefaultTenantProfileConfiguration) tenantProfile.getProfileData().getConfiguration();
+
+        // Clear all rate limit related configurations by setting them to null
+        configuration.setTransportTenantMsgRateLimit(null);
+        configuration.setTransportDeviceMsgRateLimit(null);
+        configuration.setTransportTenantTelemetryMsgRateLimit(null);
+        configuration.setTransportDeviceTelemetryMsgRateLimit(null);
+
+        configuration.setTransportTenantTelemetryDataPointsRateLimit(null);
+        configuration.setTransportDeviceTelemetryDataPointsRateLimit(null);
+        configuration.setTenantServerRestLimitsConfiguration(null);
+        configuration.setCustomerServerRestLimitsConfiguration(null);
+        configuration.setTenantEntityExportRateLimit(null);
+        configuration.setTenantEntityImportRateLimit(null);
+        configuration.setWsUpdatesPerSessionRateLimit(null);
+        configuration.setCassandraQueryTenantRateLimitsConfiguration(null);
+        configuration.setTenantNotificationRequestsRateLimit(null);
+        configuration.setTenantNotificationRequestsPerRuleRateLimit(null);
+        configuration.setEdgeEventRateLimits(null);
+        configuration.setEdgeEventRateLimitsPerEdge(null);
+
+        tenantProfile.getProfileData().setConfiguration(configuration);
     }
 
     private TenantProfile findTenantProfileByName(TenantId tenantId, String name) {
@@ -130,4 +158,5 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
         tbClusterService.onTenantProfileChange(savedTenantProfile, null);
         tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedTenantProfile.getId(), ComponentLifecycleEvent.UPDATED);
     }
+
 }
