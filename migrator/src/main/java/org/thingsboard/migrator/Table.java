@@ -120,9 +120,7 @@ public enum Table {
     NOTIFICATION_TARGET("notification_target"),
     NOTIFICATION_TEMPLATE("notification_template"),
     NOTIFICATION_RULE("notification_rule"),
-    WHITE_LABELING("white_labeling", Pair.of(
-            "entity_id", of(TENANT, CUSTOMER)
-    ), of("entity_id")),
+    WHITE_LABELING("white_labeling", List.of("tenant_id", "customer_id", "type")),
     ALARM_TYPES("alarm_types", null, of("type")),
 
     /*

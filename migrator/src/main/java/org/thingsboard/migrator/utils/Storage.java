@@ -54,6 +54,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -71,6 +72,8 @@ public class Storage {
 
     private final ObjectMapper jsonMapper = new ObjectMapper();
     private final List<Path> createdFiles = new ArrayList<>();
+
+    private static final String BYTEA_DATA_PREFIX = "BASE64_BYTES:";
 
     @PostConstruct
     private void init() throws IOException {
@@ -95,6 +98,8 @@ public class Storage {
         row.replaceAll((column, data) -> {
             if (data instanceof PGobject) {
                 data = ((PGobject) data).getValue();
+            } else if (data instanceof byte[]) {
+                data = BYTEA_DATA_PREFIX + Base64.getEncoder().encodeToString((byte[]) data);
             }
             return data;
         });
@@ -120,6 +125,8 @@ public class Storage {
                             } catch (IllegalArgumentException ignored) {}
                         } else if (value instanceof Map) {
                             value = jsonMapper.valueToTree(value);
+                        } else if (value instanceof String && ((String) value).startsWith(BYTEA_DATA_PREFIX)) {
+                            value = Base64.getDecoder().decode(StringUtils.removeStart((String) value, BYTEA_DATA_PREFIX));
                         }
                         return value;
                     });

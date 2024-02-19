@@ -79,6 +79,9 @@ public class PostgresTenantDataExporter extends MigrationService {
     @Override
     protected void start() throws Exception {
         for (Table table : relatedTables) {
+            if (skippedTables.contains(table)) {
+                continue;
+            }
             storage.newFile(table.getName());
         }
         for (Table table : Table.values()) {

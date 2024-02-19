@@ -183,6 +183,9 @@ public class PostgresTenantDataImporter extends MigrationService {
                     .collect(Collectors.toMap(vals -> vals.get("column_name").toString(), vals -> vals.get("udt_name").toString()));
         });
         row.keySet().removeIf(column -> {
+            if (column.equals("table_name")) {
+                return true;
+            }
             boolean unknownColumn = !existingColumns.containsKey(column);
             if (unknownColumn) {
                 log.warn("Skipping unknown column {} for table {}", column, table.getName());
