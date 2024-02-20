@@ -204,9 +204,7 @@ export class ValueInputComponent implements OnInit, OnDestroy, ControlValueAcces
     } else {
       this.modelValue = null;
     }
-    setTimeout(() => {
-      this.updateView();
-    }, 0);
+    this.updateView();
   }
 
   onValueChanged() {
