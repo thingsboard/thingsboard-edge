@@ -85,6 +85,8 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -171,12 +173,21 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // save jwt settings into db
         doPost("/api/admin/jwtSettings", settings).andExpect(status().isOk());
 
+        // create custom menu
+        CustomMenu sysMenu = new CustomMenu();
+
+        CustomMenuItem sysItem = new CustomMenuItem();
+        sysItem.setName("System Menu");
+        sysMenu.setMenuItems(new ArrayList<>(List.of(sysItem)));
+
+        doPost("/api/customMenu/customMenu", sysMenu);
+
         loginTenantAdmin();
 
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(27);
+        edgeImitator.expectMessageAmount(28);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -274,9 +285,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         validateMsgsCnt(RuleChainMetadataUpdateMsg.class, 1);
         validateRuleChainMetadataUpdates(ruleChainUUID);
 
-        // 5 messages ('general', 'mail', 'connectivity', 'jwt', 'customTranslation')
-        validateMsgsCnt(AdminSettingsUpdateMsg.class, 5);
-        validateAdminSettings(5);
+        // 6 messages ('general', 'mail', 'connectivity', 'jwt', 'customTranslation', 'customMenu')
+        validateMsgsCnt(AdminSettingsUpdateMsg.class, 6);
+        validateAdminSettings(6);
 
         // 3 messages
         // - 1 from default profile fetcher
@@ -442,6 +453,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
             if (adminSettings.getKey().equals("customTranslation")) {
                 validateCustomTranslationAdminSettings(adminSettings);
             }
+            if (adminSettings.getKey().equals("customMenu")) {
+                validateCustomMenuAdminSettings(adminSettings);
+            }
         }
     }
 
@@ -477,6 +491,10 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     private void validateCustomTranslationAdminSettings(AdminSettings adminSettings) {
+        Assert.assertNotNull(adminSettings.getJsonValue().get("value"));
+    }
+
+    private void validateCustomMenuAdminSettings(AdminSettings adminSettings) {
         Assert.assertNotNull(adminSettings.getJsonValue().get("value"));
     }
 
