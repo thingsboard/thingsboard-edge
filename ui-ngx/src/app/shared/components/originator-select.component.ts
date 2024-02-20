@@ -76,7 +76,7 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
   singleEntityText = 'scheduler.single-entity';
 
   @Input()
-  groupOfEntitiesText = 'scheduler.group-of-entities';
+  groupOfEntitiesText = 'scheduler.group-entities';
 
   @Input()
   entitiesGroupOwnerText = 'scheduler.entities-group-owner';
