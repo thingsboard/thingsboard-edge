@@ -5216,7 +5216,7 @@
         "body": "Body",
         "body-required": "Body is required.",
         "credentials": "Credentials",
-        "preview-report": "Preview Report",
+        "preview-report": "Preview report",
         "current-user": "Current user",
         "customer-user": "Customer user",
         "user-credentials-description": "Credentials of specified user will be used to open dashboard UI during report generation.",
