@@ -31,6 +31,7 @@ import org.thingsboard.server.common.data.alarm.AlarmApiCallResult;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.oauth2.OAuth2Info;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -164,6 +165,9 @@ public class EdgeEventSourcingListener {
             }
         } else if (entity instanceof AlarmApiCallResult || entity instanceof Alarm) {
             return false;
+        } else if (entity instanceof OAuth2Info) {
+            OAuth2Info oAuth2Info = (OAuth2Info) entity;
+            return oAuth2Info.isEdgeEnabled();
         }
         // Default: If the entity doesn't match any of the conditions, consider it as valid.
         return true;
@@ -189,12 +193,16 @@ public class EdgeEventSourcingListener {
     private EdgeEventType getEdgeEventTypeForEntityEvent(Object entity) {
         if (entity instanceof AlarmComment) {
             return EdgeEventType.ALARM_COMMENT;
+        } else if (entity instanceof OAuth2Info) {
+            return EdgeEventType.OAUTH2;
         }
         return null;
     }
 
     private String getBodyMsgForEntityEvent(Object entity) {
         if (entity instanceof AlarmComment) {
+            return JacksonUtil.toString(entity);
+        } else if (entity instanceof OAuth2Info) {
             return JacksonUtil.toString(entity);
         }
         return null;
