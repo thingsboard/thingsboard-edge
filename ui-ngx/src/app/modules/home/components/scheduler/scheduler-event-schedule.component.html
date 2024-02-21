@@ -83,7 +83,7 @@
             <mat-error *ngIf="scheduleConfigFormGroup.get('weeks').hasError('required')">
               {{ 'scheduler.repeat-weeks-required' | translate }}
             </mat-error>
-            <mat-error *ngIf="scheduleConfigFormGroup.get('days').hasError('min')">
+            <mat-error *ngIf="scheduleConfigFormGroup.get('weeks').hasError('min')">
               {{ 'scheduler.invalid-repeat-weeks-value' | translate }}
             </mat-error>
           </mat-form-field>
