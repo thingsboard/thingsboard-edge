@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.oauth2.SchemeType;
 import org.thingsboard.server.common.data.oauth2.TenantNameStrategyType;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.exception.DataValidationException;
 
@@ -132,6 +133,7 @@ public class OAuth2ServiceImpl extends AbstractEntityService implements OAuth2Se
                 });
             }
         });
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entity(oauth2Info).build());
     }
 
     @Override
@@ -140,6 +142,7 @@ public class OAuth2ServiceImpl extends AbstractEntityService implements OAuth2Se
         OAuth2Info oauth2Info = new OAuth2Info();
         List<OAuth2Params> oauth2ParamsList = oauth2ParamsDao.find(TenantId.SYS_TENANT_ID);
         oauth2Info.setEnabled(oauth2ParamsList.stream().anyMatch(OAuth2Params::isEnabled));
+        oauth2Info.setEdgeEnabled(oauth2ParamsList.stream().anyMatch(OAuth2Params::isEdgeEnabled));
         List<OAuth2ParamsInfo> oauth2ParamsInfos = new ArrayList<>();
         oauth2Info.setOauth2ParamsInfos(oauth2ParamsInfos);
         oauth2ParamsList.stream().sorted(Comparator.comparing(BaseData::getUuidId)).forEach(oauth2Params -> {
