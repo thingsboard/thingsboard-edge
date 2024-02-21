@@ -221,7 +221,7 @@ export class EntityGroupAutocompleteComponent implements ControlValueAccessor, O
           next: ({ name, id, ownerId }) => {
             const entityGroup = { name, id };
             this.modelValue = id.id;
-            this.ownerIdValue = ownerId;
+            this.ownerId = ownerId;
             this.selectEntityGroupFormGroup.get('entityGroup').patchValue(entityGroup, {emitEvent: false});
             this.entityGroupLoaded.next(entityGroup);
           },
