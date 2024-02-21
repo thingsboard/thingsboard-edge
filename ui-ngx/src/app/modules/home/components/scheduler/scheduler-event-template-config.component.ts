@@ -171,9 +171,7 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
         });
         this.configComponent.setDisabledState(this.disabled);
         this.configComponent.writeValue(this.configuration);
-        if (this.configComponent$) {
-          this.configComponent$.next(this.configComponent);
-        }
+        this.configComponent$?.next(this.configComponent);
       });
     }
   }
