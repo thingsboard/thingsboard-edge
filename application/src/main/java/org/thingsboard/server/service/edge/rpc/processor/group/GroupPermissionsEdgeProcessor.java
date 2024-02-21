@@ -130,7 +130,7 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                     return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
                 }, dbCallbackExecutorService);
             case DELETED:
-                return processActionForAllEdges(tenantId, type, actionType, entityId, originatorEdgeId);
+                return processActionForAllEdges(tenantId, type, actionType, entityId, null, originatorEdgeId);
             default:
                 return Futures.immediateFuture(null);
         }
