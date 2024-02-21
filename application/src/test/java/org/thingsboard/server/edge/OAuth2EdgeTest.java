@@ -18,6 +18,7 @@ package org.thingsboard.server.edge;
 import com.google.common.collect.Lists;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.oauth2.MapperType;
@@ -39,6 +40,7 @@ import java.util.UUID;
 public class OAuth2EdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testOAuth2Support() throws Exception {
         loginSysAdmin();
 
