@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -84,6 +85,8 @@ import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.owner.OwnerService;
+import org.thingsboard.server.dao.role.RoleService;
+import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.entity.group.TbEntityGroupService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -139,6 +142,8 @@ public class EntityGroupController extends AutoCommitController {
     private final OwnersCacheService ownersCacheService;
 
     private final OwnerService ownerService;
+    private final RoleService roleService;
+    private final UserService userService;
 
     public static final String ENTITY_GROUP_DESCRIPTION = "Entity group allows you to group multiple entities of the same entity type (Device, Asset, Customer, User, Dashboard, etc). " +
             "Entity Group always have an owner - particular Tenant or Customer. Each entity may belong to multiple groups simultaneously.";
@@ -272,6 +277,14 @@ public class EntityGroupController extends AutoCommitController {
         if (entityGroup.isGroupAll()) {
             throw new ThingsboardException("Unable to remove entity group: " +
                     "Removal of entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
+        }
+        if (EntityType.USER.equals(entityGroup.getType())) {
+            List<EntityId> entityGroupUsers = userService.findUsersByEntityGroupIds(List.of(entityGroupId), new PageLink(Integer.MAX_VALUE))
+                    .getData()
+                    .stream()
+                    .map(User::getId)
+                    .collect(Collectors.toList());
+            checkAtLeastOneUserWithTenantAdminRole(entityGroupId, entityGroupUsers);
         }
 
         List<GroupPermissionInfo> groupPermissions = new ArrayList<>(
@@ -808,6 +821,9 @@ public class EntityGroupController extends AutoCommitController {
                 EntityId entityId = EntityIdFactory.getByTypeAndId(entityGroup.getType(), strEntityId);
                 checkEntityId(entityId, Operation.READ);
                 entityIds.add(entityId);
+            }
+            if (EntityType.USER.equals(entityGroup.getType())) {
+                checkAtLeastOneUserWithTenantAdminRole(entityGroupId, entityIds);
             }
             entityGroupService.removeEntitiesFromEntityGroup(getTenantId(), entityGroupId, entityIds);
             if (entityGroup.getType() == EntityType.USER) {
@@ -1411,6 +1427,33 @@ public class EntityGroupController extends AutoCommitController {
             return entityGroupService.findEdgeEntityGroupInfosByOwnerIdType(getTenantId(), edgeId, getCurrentUser().getOwnerId(), groupType, pageLink);
         } else {
             throw permissionDenied();
+        }
+    }
+
+    private void checkAtLeastOneUserWithTenantAdminRole(EntityGroupId entityGroupId, List<EntityId> usersBeingRemovedFromGroup) throws ThingsboardException {
+        Role tenantAdminRole = roleService.findRoleByTenantIdAndName(TenantId.SYS_TENANT_ID, Role.ROLE_TENANT_ADMIN_NAME)
+                .orElseThrow(() -> new ThingsboardException("Tenant Administrator role should exists", ThingsboardErrorCode.GENERAL));
+        Set<RoleId> allEntityGroupRoles = groupPermissionService.findGroupPermissionByTenantIdAndUserGroupId(getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE))
+                .getData()
+                .stream()
+                .map(GroupPermission::getRoleId)
+                .collect(Collectors.toSet());
+
+        if (allEntityGroupRoles.contains(tenantAdminRole.getId())) {
+            List<EntityGroupId> allGroupsWithTenantAdminRole = groupPermissionService.findGroupPermissionByTenantIdAndRoleId(getTenantId(), tenantAdminRole.getId(), new PageLink(Integer.MAX_VALUE))
+                    .getData()
+                    .stream()
+                    .map(GroupPermission::getUserGroupId)
+                    .collect(Collectors.toList());
+            Set<EntityId> allUsersWithTenantAdminRole = userService.findUsersByEntityGroupIds(allGroupsWithTenantAdminRole, new PageLink(Integer.MAX_VALUE))
+                    .getData()
+                    .stream()
+                    .map(User::getId)
+                    .collect(Collectors.toSet());
+            usersBeingRemovedFromGroup.forEach(allUsersWithTenantAdminRole::remove);
+            if (allUsersWithTenantAdminRole.size() == 0){
+                throw new ThingsboardException("Deletion is prohibited because at least one user with TENANT_ADMIN role should exist!", ThingsboardErrorCode.INVALID_ARGUMENTS);
+            }
         }
     }
 
