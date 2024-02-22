@@ -279,7 +279,7 @@ public class EntityGroupController extends AutoCommitController {
                     "Removal of entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
         if (EntityType.USER.equals(entityGroup.getType())) {
-            List<EntityId> entityGroupUsers = userService.findUsersByEntityGroupIds(List.of(entityGroupId), new PageLink(Integer.MAX_VALUE))
+            List<UserId> entityGroupUsers = userService.findUsersByEntityGroupIds(List.of(entityGroupId), new PageLink(Integer.MAX_VALUE))
                     .getData()
                     .stream()
                     .map(User::getId)
@@ -823,7 +823,8 @@ public class EntityGroupController extends AutoCommitController {
                 entityIds.add(entityId);
             }
             if (EntityType.USER.equals(entityGroup.getType())) {
-                checkAtLeastOneUserWithTenantAdminRole(entityGroupId, entityIds);
+                List<UserId> userIds = entityIds.stream().map(UserId.class::cast).collect(Collectors.toList());
+                checkAtLeastOneUserWithTenantAdminRole(entityGroupId, userIds);
             }
             entityGroupService.removeEntitiesFromEntityGroup(getTenantId(), entityGroupId, entityIds);
             if (entityGroup.getType() == EntityType.USER) {
@@ -1430,29 +1431,18 @@ public class EntityGroupController extends AutoCommitController {
         }
     }
 
-    private void checkAtLeastOneUserWithTenantAdminRole(EntityGroupId entityGroupId, List<EntityId> usersBeingRemovedFromGroup) throws ThingsboardException {
-        Role tenantAdminRole = roleService.findRoleByTenantIdAndName(TenantId.SYS_TENANT_ID, Role.ROLE_TENANT_ADMIN_NAME)
-                .orElseThrow(() -> new ThingsboardException("Tenant Administrator role should exists", ThingsboardErrorCode.GENERAL));
-        Set<RoleId> allEntityGroupRoles = groupPermissionService.findGroupPermissionByTenantIdAndUserGroupId(getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE))
+    private void checkAtLeastOneUserWithTenantAdminRole(EntityGroupId entityGroupId, List<UserId> usersToRemove) throws ThingsboardException {
+        RoleId tenantAdminRoleId = roleService.findOrCreateTenantAdminRole().getId();
+        Set<RoleId> entityGroupRoles = groupPermissionService.findGroupPermissionByTenantIdAndUserGroupId(getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE))
                 .getData()
                 .stream()
                 .map(GroupPermission::getRoleId)
                 .collect(Collectors.toSet());
 
-        if (allEntityGroupRoles.contains(tenantAdminRole.getId())) {
-            List<EntityGroupId> allGroupsWithTenantAdminRole = groupPermissionService.findGroupPermissionByTenantIdAndRoleId(getTenantId(), tenantAdminRole.getId(), new PageLink(Integer.MAX_VALUE))
-                    .getData()
-                    .stream()
-                    .map(GroupPermission::getUserGroupId)
-                    .collect(Collectors.toList());
-            Set<EntityId> allUsersWithTenantAdminRole = userService.findUsersByEntityGroupIds(allGroupsWithTenantAdminRole, new PageLink(Integer.MAX_VALUE))
-                    .getData()
-                    .stream()
-                    .map(User::getId)
-                    .collect(Collectors.toSet());
-            usersBeingRemovedFromGroup.forEach(allUsersWithTenantAdminRole::remove);
-            if (allUsersWithTenantAdminRole.size() == 0){
-                throw new ThingsboardException("Deletion is prohibited because at least one user with TENANT_ADMIN role should exist!", ThingsboardErrorCode.INVALID_ARGUMENTS);
+        if (entityGroupRoles.contains(tenantAdminRoleId)) {
+            int usersWithTenantAdminRole = userService.countUsersByTenantIdAndRoleIdAndIdNotIn(getTenantId(), tenantAdminRoleId, usersToRemove);
+            if (usersWithTenantAdminRole == 0) {
+                    throw new ThingsboardException("Deletion is prohibited because at least one user with TENANT_ADMIN role should exist!", ThingsboardErrorCode.INVALID_ARGUMENTS);
             }
         }
     }

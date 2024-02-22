@@ -148,4 +148,11 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     Page<UserEntity> findByRoleId(@Param("roleId") UUID roleId,
                                   Pageable pageable);
 
+    @Query("SELECT COUNT(*) FROM UserEntity u WHERE u.id IN " +
+            "(SELECT r.toId FROM RelationEntity r WHERE r.fromType = 'ENTITY_GROUP' AND r.toType = 'USER' AND r.fromId IN " +
+            "(SELECT p.userGroupId FROM GroupPermissionEntity p WHERE p.tenantId = :tenantId AND p.roleId = :roleId)) AND u.id NOT IN :userIds")
+    int countUsersByTenantIdAndRoleIdAndIdNotIn(@Param("tenantId") UUID tenantId,
+                                                             @Param("roleId") UUID roleId,
+                                                             @Param("userIds") List<UUID> userIds);
+
 }
