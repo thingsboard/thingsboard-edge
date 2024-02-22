@@ -30,17 +30,19 @@
  */
 package org.thingsboard.server.dao.housekeeper.data;
 
-import lombok.Getter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.TenantId;
 
-@Getter
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class EntitiesDeletionHousekeeperTask extends HousekeeperTask {
 
-    private final EntityType entityType;
+    private EntityType entityType;
 
     protected EntitiesDeletionHousekeeperTask(TenantId tenantId, EntityType entityType) {
-        super(tenantId, null, HousekeeperTaskType.DELETE_ENTITIES);
+        super(tenantId, tenantId, HousekeeperTaskType.DELETE_ENTITIES);
         this.entityType = entityType;
     }
 

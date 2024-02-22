@@ -30,11 +30,11 @@
  */
 package org.thingsboard.server.service.housekeeper;
 
-import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.dao.housekeeper.HousekeeperService;
@@ -48,17 +48,20 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.AfterStartUp;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.housekeeper.processor.HousekeeperTaskProcessor;
+import org.thingsboard.server.service.housekeeper.stats.HousekeeperStatsService;
 
 import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 @TbCoreComponent
@@ -71,10 +74,14 @@ public class DefaultHousekeeperService implements HousekeeperService {
     private final TbQueueConsumer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> consumer;
     private final TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> producer;
     private final HousekeeperReprocessingService reprocessingService;
-    private final DataDecodingEncodingService dataDecodingEncodingService;
-    private final ExecutorService consumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("housekeeper-consumer"));
+    private final HousekeeperStatsService statsService;
 
-    @Value("${queue.core.housekeeper.poll-interval-ms:10000}")
+    private final ExecutorService consumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("housekeeper-consumer"));
+    private final ExecutorService executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("housekeeper-task-processor"));
+
+    @Value("${queue.core.housekeeper.task-processing-timeout-ms:120000}")
+    private int taskProcessingTimeout;
+    @Value("${queue.core.housekeeper.poll-interval-ms:500}")
     private int pollInterval;
 
     private boolean stopped;
@@ -82,13 +89,13 @@ public class DefaultHousekeeperService implements HousekeeperService {
     public DefaultHousekeeperService(HousekeeperReprocessingService reprocessingService,
                                      TbCoreQueueFactory queueFactory,
                                      TbQueueProducerProvider producerProvider,
-                                     DataDecodingEncodingService dataDecodingEncodingService,
+                                     HousekeeperStatsService statsService,
                                      @Lazy List<HousekeeperTaskProcessor<?>> taskProcessors) {
         this.consumer = queueFactory.createHousekeeperMsgConsumer();
         this.producer = producerProvider.getHousekeeperMsgProducer();
         this.reprocessingService = reprocessingService;
+        this.statsService = statsService;
         this.taskProcessors = taskProcessors.stream().collect(Collectors.toMap(HousekeeperTaskProcessor::getTaskType, p -> p));
-        this.dataDecodingEncodingService = dataDecodingEncodingService;
     }
 
     @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
@@ -103,10 +110,14 @@ public class DefaultHousekeeperService implements HousekeeperService {
                     }
 
                     for (TbProtoQueueMsg<ToHousekeeperServiceMsg> msg : msgs) {
+                        log.trace("Processing task: {}", msg);
                         try {
-                            processTask(msg.getValue());
-                        } catch (Exception e) {
-                            log.error("Message processing failed", e);
+                            processTask(msg);
+                        } catch (InterruptedException e) {
+                            return;
+                        } catch (Throwable e) {
+                            log.error("Unexpected error during message processing [{}]", msg, e);
+                            reprocessingService.submitForReprocessing(msg, e);
                         }
                     }
                     consumer.commit();
@@ -126,43 +137,58 @@ public class DefaultHousekeeperService implements HousekeeperService {
     }
 
     @SuppressWarnings("unchecked")
-    protected <T extends HousekeeperTask> void processTask(ToHousekeeperServiceMsg msg) {
-        HousekeeperTask task = dataDecodingEncodingService.<HousekeeperTask>decode(msg.getTask().getValue().toByteArray()).get();
-        HousekeeperTaskProcessor<T> taskProcessor = getTaskProcessor(task.getTaskType());
+    protected <T extends HousekeeperTask> void processTask(TbProtoQueueMsg<ToHousekeeperServiceMsg> queueMsg) throws Exception {
+        ToHousekeeperServiceMsg msg = queueMsg.getValue();
+        HousekeeperTask task = JacksonUtil.fromString(msg.getTask().getValue(), HousekeeperTask.class);
+        HousekeeperTaskProcessor<T> taskProcessor = (HousekeeperTaskProcessor<T>) taskProcessors.get(task.getTaskType());
+        if (taskProcessor == null) {
+            throw new IllegalArgumentException("Unsupported task type " + task.getTaskType());
+        }
 
-        log.info("[{}][{}][{}] Processing task: {}", task.getTenantId(), task.getEntityId().getEntityType(), task.getEntityId(), task.getTaskType());
+        if (log.isDebugEnabled()) {
+            log.debug("[{}][{}][{}] {} task {}", task.getTenantId(), task.getEntityId().getEntityType(), task.getEntityId(),
+                    msg.getTask().getErrorsCount() == 0 ? "Processing" : "Reprocessing", task.getTaskType());
+        }
         try {
-            taskProcessor.process((T) task);
-        } catch (Exception e) {
+            Future<Object> future = executor.submit(() -> {
+                taskProcessor.process((T) task);
+                return null;
+            });
+            future.get(taskProcessingTimeout, TimeUnit.MILLISECONDS);
+            statsService.reportProcessed(task, msg);
+        } catch (InterruptedException e) {
+            throw e;
+        } catch (Throwable e) {
+            Throwable error = e;
+            if (e instanceof ExecutionException) {
+                error = e.getCause();
+            } else if (e instanceof TimeoutException) {
+                error = new TimeoutException("Timeout after " + taskProcessingTimeout + " seconds");
+            }
             log.error("[{}][{}][{}] {} task processing failed, submitting for reprocessing (attempt {}): {}",
                     task.getTenantId(), task.getEntityId().getEntityType(), task.getEntityId(),
-                    task.getTaskType(), msg.getTask().getAttempt(), task, e);
-            reprocessingService.submitForReprocessing(msg);
+                    task.getTaskType(), msg.getTask().getAttempt(), task, error);
+            reprocessingService.submitForReprocessing(queueMsg, error);
+            statsService.reportFailure(task, msg);
         }
     }
 
     @Override
     public void submitTask(HousekeeperTask task) {
-        submitTask(UUID.randomUUID(), task);
+        submitTask(task.getEntityId().getId(), task);
     }
 
     @Override
     public void submitTask(UUID key, HousekeeperTask task) {
+        log.trace("[{}][{}][{}] Submitting task: {}", task.getTenantId(), task.getEntityId().getEntityType(), task.getEntityId(), task.getTaskType());
         TopicPartitionInfo tpi = TopicPartitionInfo.builder().topic(producer.getDefaultTopic()).build();
         producer.send(tpi, new TbProtoQueueMsg<>(key, ToHousekeeperServiceMsg.newBuilder()
                 .setTask(HousekeeperTaskProto.newBuilder()
-                        .setValue(ByteString.copyFrom(dataDecodingEncodingService.encode(task)))
+                        .setValue(JacksonUtil.toString(task))
                         .setTs(task.getTs())
                         .setAttempt(0)
                         .build())
                 .build()), null);
-        log.trace("[{}][{}][{}] Submitted task: {}", task.getTenantId(), task.getEntityId().getEntityType(), task.getEntityId(), task.getTaskType());
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends HousekeeperTask> HousekeeperTaskProcessor<T> getTaskProcessor(HousekeeperTaskType taskType) {
-        return Optional.ofNullable((HousekeeperTaskProcessor<T>) taskProcessors.get(taskType))
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported task type " + taskType));
     }
 
     @PreDestroy

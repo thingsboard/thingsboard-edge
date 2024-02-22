@@ -1518,7 +1518,10 @@ message ToHousekeeperServiceMsg {
 }
 
 message HousekeeperTaskProto {
-  bytes value = 1;
+  string value = 1;
   int64 ts = 2;
-  int32 attempt = 3;
+
+  // reprocessing
+  int32 attempt = 50;
+  repeated string errors = 51;
 }

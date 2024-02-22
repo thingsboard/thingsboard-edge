@@ -39,6 +39,7 @@ import org.thingsboard.server.dao.housekeeper.data.HousekeeperTaskType;
 @Component
 @RequiredArgsConstructor
 public class EventsDeletionTaskProcessor implements HousekeeperTaskProcessor<HousekeeperTask> {
+
     private final EventService eventService;
 
     @Override
@@ -50,4 +51,5 @@ public class EventsDeletionTaskProcessor implements HousekeeperTaskProcessor<Hou
     public HousekeeperTaskType getTaskType() {
         return HousekeeperTaskType.DELETE_EVENTS;
     }
+
 }

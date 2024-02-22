@@ -111,6 +111,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
     private final TbQueueAdmin fwUpdatesAdmin;
     private final TbQueueAdmin vcAdmin;
     private final TbQueueAdmin housekeeperAdmin;
+    private final TbQueueAdmin housekeeperReprocessingAdmin;
 
     private final AtomicLong consumerCount = new AtomicLong();
     private final AtomicLong integrationConsumerCount = new AtomicLong();
@@ -153,6 +154,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         this.fwUpdatesAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getFwUpdatesConfigs());
         this.vcAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getVcConfigs());
         this.housekeeperAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getHousekeeperConfigs());
+        this.housekeeperReprocessingAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getHousekeeperReprocessingConfigs());
     }
 
     @Override
@@ -500,24 +502,24 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
     }
 
     @Override
-    public TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> createHousekeeperDelayedMsgProducer() {
+    public TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> createHousekeeperReprocessingMsgProducer() {
         return TbKafkaProducerTemplate.<TbProtoQueueMsg<ToHousekeeperServiceMsg>>builder()
                 .settings(kafkaSettings)
-                .clientId("monolith-housekeeper-delayed-producer-" + serviceInfoProvider.getServiceId())
-                .defaultTopic(topicService.buildTopicName(coreSettings.getHousekeeperDelayedTopic()))
-                .admin(housekeeperAdmin)
+                .clientId("monolith-housekeeper-reprocessing-producer-" + serviceInfoProvider.getServiceId())
+                .defaultTopic(topicService.buildTopicName(coreSettings.getHousekeeperReprocessingTopic()))
+                .admin(housekeeperReprocessingAdmin)
                 .build();
     }
 
     @Override
-    public TbQueueConsumer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> createHousekeeperDelayedMsgConsumer() {
+    public TbQueueConsumer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> createHousekeeperReprocessingMsgConsumer() {
         return TbKafkaConsumerTemplate.<TbProtoQueueMsg<ToHousekeeperServiceMsg>>builder()
                 .settings(kafkaSettings)
-                .topic(topicService.buildTopicName(coreSettings.getHousekeeperDelayedTopic()))
-                .clientId("monolith-housekeeper-delayed-consumer-" + serviceInfoProvider.getServiceId())
-                .groupId(topicService.buildTopicName("monolith-housekeeper-delayed-consumer"))
+                .topic(topicService.buildTopicName(coreSettings.getHousekeeperReprocessingTopic()))
+                .clientId("monolith-housekeeper-reprocessing-consumer-" + serviceInfoProvider.getServiceId())
+                .groupId(topicService.buildTopicName("monolith-housekeeper-reprocessing-consumer"))
                 .decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToHousekeeperServiceMsg.parseFrom(msg.getData()), msg.getHeaders()))
-                .admin(housekeeperAdmin)
+                .admin(housekeeperReprocessingAdmin)
                 .statsService(consumerStatsService)
                 .build();
     }

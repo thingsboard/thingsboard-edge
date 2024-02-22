@@ -1525,6 +1525,9 @@ queue:
       tb_housekeeper:
         - key: max.poll.records
           value: "1"
+      tb_housekeeper.reprocessing:
+        - key: max.poll.records
+          value: "1"
     other-inline: "${TB_QUEUE_KAFKA_OTHER_PROPERTIES:}" # In this section you can specify custom parameters (semicolon separated) for Kafka consumer/producer/admin # Example "metrics.recording.level:INFO;metrics.sample.window.ms:30000"
     other: # DEPRECATED. In this section, you can specify custom parameters for Kafka consumer/producer and expose the env variables to configure outside
     #  - key: "request.timeout.ms" # refer to https://docs.confluent.io/platform/current/installation/configuration/producer-configs.html#producerconfigs_request.timeout.ms
@@ -1549,6 +1552,7 @@ queue:
       # Kafka properties for Integration Api topics
       integration-api: "${TB_QUEUE_KAFKA_INTEGRATION_TOPIC_PROPERTIES:retention.ms:604800000;segment.bytes:26214400;retention.bytes:1048576000;partitions:10;min.insync.replicas:1}"
       housekeeper: "retention.ms:604800000;segment.bytes:26214400;retention.bytes:1048576000;partitions:10;min.insync.replicas:1"
+      housekeeper-reprocessing: "retention.ms:604800000;segment.bytes:26214400;retention.bytes:1048576000;partitions:1;min.insync.replicas:1"
     consumer-stats:
       # Prints lag between consumer group offset and last messages offset in Kafka topics
       enabled: "${TB_QUEUE_KAFKA_CONSUMER_STATS_ENABLED:true}"
@@ -1713,9 +1717,14 @@ queue:
       # Statistics printing interval for Core microservices
       print-interval-ms: "${TB_QUEUE_CORE_STATS_PRINT_INTERVAL_MS:60000}"
     housekeeper:
-      topic: "tb_housekeeper"
-      reprocessing-topic: "tb_housekeeper.reprocessing"
-      poll-interval-ms: "1000"
+      topic: "${TB_HOUSEKEEPER_TOPIC:tb_housekeeper}"
+      reprocessing-topic: "${TB_HOUSEKEEPER_REPROCESSING_TOPIC:tb_housekeeper.reprocessing}"
+      poll-interval-ms: "${TB_HOUSEKEEPER_POLL_INTERVAL_MS:500}"
+      task-processing-timeout-ms: "${TB_HOUSEKEEPER_TASK_PROCESSING_TIMEOUT_MS:120000}"
+      reprocessing-start-delay-sec: "${TB_HOUSEKEEPER_REPROCESSING_START_DELAY_SEC:15}" # fixme: to 5 minutes
+      task-reprocessing-delay-sec: "${TB_HOUSEKEEPER_TASK_REPROCESSING_DELAY_SEC:30}" # fixme: to 30 minutes or 1 hour
+      max-reprocessing-attempts: "${TB_HOUSEKEEPER_MAX_REPROCESSING_ATTEMPTS:30}"
+
   vc:
     # Default topic name for Kafka, RabbitMQ, etc.
     topic: "${TB_QUEUE_VC_TOPIC:tb_version_control}"
