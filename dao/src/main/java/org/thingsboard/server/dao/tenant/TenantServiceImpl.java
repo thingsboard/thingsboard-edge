@@ -286,6 +286,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
 
         userService.deleteByTenantId(tenantId);
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, null);
+        notificationSettingsService.deleteNotificationSettings(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
 
         cleanUpService.removeTenantEntities(tenantId, // don't forget to implement deleteByTenantId from EntityDaoService when adding entity type to this list

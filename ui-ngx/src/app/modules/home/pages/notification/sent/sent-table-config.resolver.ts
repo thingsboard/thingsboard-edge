@@ -36,7 +36,7 @@ import {
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
 import {
-  NotificationDeliveryMethodTranslateMap,
+  NotificationDeliveryMethodInfoMap,
   NotificationRequest,
   NotificationRequestInfo,
   NotificationRequestStats,
@@ -115,7 +115,7 @@ export class SentTableConfigResolver implements Resolve<EntityTableConfig<Notifi
           request => this.requestStatusStyle(request.status)),
       new EntityTableColumn<NotificationRequest>('deliveryMethods', 'notification.delivery-method.delivery-method', '15%',
         (request) => request.deliveryMethods
-          .map((deliveryMethod) => this.translate.instant(NotificationDeliveryMethodTranslateMap.get(deliveryMethod))).join(', '),
+          .map((deliveryMethod) => this.translate.instant(NotificationDeliveryMethodInfoMap.get(deliveryMethod).name)).join(', '),
         () => ({}), false),
       new EntityTableColumn<NotificationRequest>('templateName', 'notification.template', '70%')
     );
