@@ -28,31 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.oauth2;
+package org.thingsboard.server.service.edge.rpc.constructor.oauth2;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.oauth2.OAuth2Info;
+import org.thingsboard.server.gen.edge.v1.OAuth2UpdateMsg;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.util.List;
+@Component
+@TbCoreComponent
+public class OAuth2MsgConstructor {
 
-@EqualsAndHashCode
-@Data
-@ToString
-@Builder(toBuilder = true)
-@NoArgsConstructor
-@AllArgsConstructor
-@ApiModel
-public class OAuth2Info {
-    @ApiModelProperty("Whether OAuth2 settings are enabled or not")
-    private boolean enabled;
-    @ApiModelProperty("Whether OAuth2 settings are enabled on Edge or not")
-    private boolean edgeEnabled;
-    @ApiModelProperty(value = "List of configured OAuth2 clients. Cannot contain null values", required = true)
-    private List<OAuth2ParamsInfo> oauth2ParamsInfos;
+    public OAuth2UpdateMsg constructOAuth2UpdateMsg(OAuth2Info oAuth2Info) {
+        return OAuth2UpdateMsg.newBuilder().setEntity(JacksonUtil.toString(oAuth2Info)).build();
+    }
 }

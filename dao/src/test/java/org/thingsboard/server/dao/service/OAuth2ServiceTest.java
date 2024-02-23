@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 
 @DaoSqlTest
 public class OAuth2ServiceTest extends AbstractServiceTest {
-    private static final OAuth2Info EMPTY_PARAMS = new OAuth2Info(false, Collections.emptyList());
+    private static final OAuth2Info EMPTY_PARAMS = new OAuth2Info(false, false, Collections.emptyList());
 
     @Autowired
     protected OAuth2Service oAuth2Service;
@@ -81,7 +81,7 @@ public class OAuth2ServiceTest extends AbstractServiceTest {
 
     @Test
     public void testSaveHttpAndMixedDomainsTogether() {
-        OAuth2Info oAuth2Info = new OAuth2Info(true, Lists.newArrayList(
+        OAuth2Info oAuth2Info = new OAuth2Info(true, false, Lists.newArrayList(
                 OAuth2ParamsInfo.builder()
                         .domainInfos(Lists.newArrayList(
                                 OAuth2DomainInfo.builder().name("first-domain").scheme(SchemeType.HTTP).build(),
@@ -102,7 +102,7 @@ public class OAuth2ServiceTest extends AbstractServiceTest {
 
     @Test
     public void testSaveHttpsAndMixedDomainsTogether() {
-        OAuth2Info oAuth2Info = new OAuth2Info(true, Lists.newArrayList(
+        OAuth2Info oAuth2Info = new OAuth2Info(true, false, Lists.newArrayList(
                 OAuth2ParamsInfo.builder()
                         .domainInfos(Lists.newArrayList(
                                 OAuth2DomainInfo.builder().name("first-domain").scheme(SchemeType.HTTPS).build(),
@@ -168,7 +168,7 @@ public class OAuth2ServiceTest extends AbstractServiceTest {
         Assert.assertNotNull(foundOAuth2Info);
         Assert.assertEquals(oAuth2Info, foundOAuth2Info);
 
-        OAuth2Info newOAuth2Info = new OAuth2Info(true, Lists.newArrayList(
+        OAuth2Info newOAuth2Info = new OAuth2Info(true, false, Lists.newArrayList(
                 OAuth2ParamsInfo.builder()
                         .domainInfos(Lists.newArrayList(
                                 OAuth2DomainInfo.builder().name("another-domain").scheme(SchemeType.HTTPS).build()
@@ -209,7 +209,7 @@ public class OAuth2ServiceTest extends AbstractServiceTest {
         List<OAuth2RegistrationInfo> thirdGroup = Lists.newArrayList(
                 validRegistrationInfo()
         );
-        OAuth2Info oAuth2Info = new OAuth2Info(true, Lists.newArrayList(
+        OAuth2Info oAuth2Info = new OAuth2Info(true, false, Lists.newArrayList(
                 OAuth2ParamsInfo.builder()
                         .domainInfos(Lists.newArrayList(
                                 OAuth2DomainInfo.builder().name("first-domain").scheme(SchemeType.HTTP).build(),
@@ -333,7 +333,7 @@ public class OAuth2ServiceTest extends AbstractServiceTest {
                 validRegistrationInfo(),
                 validRegistrationInfo()
         );
-        OAuth2Info oAuth2Info = new OAuth2Info(true, Lists.newArrayList(
+        OAuth2Info oAuth2Info = new OAuth2Info(true, false, Lists.newArrayList(
                 OAuth2ParamsInfo.builder()
                         .domainInfos(Lists.newArrayList(
                                 OAuth2DomainInfo.builder().name("first-domain").scheme(SchemeType.HTTP).build(),
@@ -378,7 +378,7 @@ public class OAuth2ServiceTest extends AbstractServiceTest {
 
     @Test
     public void testGetDisabledOAuth2Clients() {
-        OAuth2Info oAuth2Info = new OAuth2Info(true, Lists.newArrayList(
+        OAuth2Info oAuth2Info = new OAuth2Info(true, false, Lists.newArrayList(
                 OAuth2ParamsInfo.builder()
                         .domainInfos(Lists.newArrayList(
                                 OAuth2DomainInfo.builder().name("first-domain").scheme(SchemeType.HTTP).build(),
@@ -417,7 +417,7 @@ public class OAuth2ServiceTest extends AbstractServiceTest {
 
     @Test
     public void testFindAllRegistrations() {
-        OAuth2Info oAuth2Info = new OAuth2Info(true, Lists.newArrayList(
+        OAuth2Info oAuth2Info = new OAuth2Info(true, false, Lists.newArrayList(
                 OAuth2ParamsInfo.builder()
                         .domainInfos(Lists.newArrayList(
                                 OAuth2DomainInfo.builder().name("first-domain").scheme(SchemeType.HTTP).build(),
@@ -466,7 +466,7 @@ public class OAuth2ServiceTest extends AbstractServiceTest {
 
     @Test
     public void testFindRegistrationById() {
-        OAuth2Info oAuth2Info = new OAuth2Info(true, Lists.newArrayList(
+        OAuth2Info oAuth2Info = new OAuth2Info(true, false, Lists.newArrayList(
                 OAuth2ParamsInfo.builder()
                         .domainInfos(Lists.newArrayList(
                                 OAuth2DomainInfo.builder().name("first-domain").scheme(SchemeType.HTTP).build(),
@@ -510,7 +510,7 @@ public class OAuth2ServiceTest extends AbstractServiceTest {
 
     @Test
     public void testFindAppSecret() {
-        OAuth2Info oAuth2Info = new OAuth2Info(true, Lists.newArrayList(
+        OAuth2Info oAuth2Info = new OAuth2Info(true, false, Lists.newArrayList(
                 OAuth2ParamsInfo.builder()
                         .domainInfos(Lists.newArrayList(
                                 OAuth2DomainInfo.builder().name("first-domain").scheme(SchemeType.HTTP).build(),
@@ -562,7 +562,7 @@ public class OAuth2ServiceTest extends AbstractServiceTest {
 
     @Test
     public void testFindClientsByPackageAndPlatform() {
-        OAuth2Info oAuth2Info = new OAuth2Info(true, Lists.newArrayList(
+        OAuth2Info oAuth2Info = new OAuth2Info(true, false, Lists.newArrayList(
                 OAuth2ParamsInfo.builder()
                         .domainInfos(Lists.newArrayList(
                                 OAuth2DomainInfo.builder().name("first-domain").scheme(SchemeType.HTTP).build(),
@@ -611,7 +611,7 @@ public class OAuth2ServiceTest extends AbstractServiceTest {
     }
 
     private OAuth2Info createDefaultOAuth2Info() {
-        return new OAuth2Info(true, Lists.newArrayList(
+        return new OAuth2Info(true, false, Lists.newArrayList(
                 OAuth2ParamsInfo.builder()
                         .domainInfos(Lists.newArrayList(
                                 OAuth2DomainInfo.builder().name("first-domain").scheme(SchemeType.HTTP).build(),
@@ -679,4 +679,5 @@ public class OAuth2ServiceTest extends AbstractServiceTest {
                 .appSecret(appSecret != null ? appSecret : StringUtils.randomAlphanumeric(24))
                 .build();
     }
+
 }

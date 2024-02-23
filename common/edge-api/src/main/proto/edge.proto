@@ -499,6 +499,10 @@ message ResourceUpdateMsg {
   string entity = 11;
 }
 
+message OAuth2UpdateMsg {
+  string entity = 1;
+}
+
 message RuleChainMetadataRequestMsg {
   int64 ruleChainIdMSB = 1;
   int64 ruleChainIdLSB = 2;
@@ -886,4 +890,5 @@ message DownlinkMsg {
   WhiteLabelingProto whiteLabelingProto = 44;
   CustomMenuProto customMenuProto = 45;
   repeated AlarmCommentUpdateMsg alarmCommentUpdateMsg = 46;
+  repeated OAuth2UpdateMsg oAuth2UpdateMsg = 47;
 }

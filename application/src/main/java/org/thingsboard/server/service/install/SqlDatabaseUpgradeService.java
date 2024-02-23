@@ -290,6 +290,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.error("Failed to update schema!!!");
                 }
                 break;
+            case "3.6.3":
+                updateSchema("3.6.3", 3006003, "3.6.4", 3006004, null);
+                break;
             default:
                 throw new RuntimeException("Unable to upgrade SQL database, unsupported fromVersion: " + fromVersion);
         }
