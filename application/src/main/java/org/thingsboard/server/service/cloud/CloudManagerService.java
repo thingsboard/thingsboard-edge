@@ -90,6 +90,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -350,13 +351,16 @@ public class CloudManagerService {
         try {
             int attempt = 1;
             boolean success;
+            LinkedBlockingQueue<UplinkMsg> orderedPendingMsgsQueue = new LinkedBlockingQueue<>();
             pendingMsgsMap.clear();
-            uplinkMsgsPack.forEach(msg -> pendingMsgsMap.put(msg.getUplinkMsgId(), msg));
+            uplinkMsgsPack.forEach(msg -> {
+                pendingMsgsMap.put(msg.getUplinkMsgId(), msg);
+                orderedPendingMsgsQueue.add(msg);
+            });
             do {
                 log.trace("[{}] uplink msg(s) are going to be send.", pendingMsgsMap.values().size());
                 latch = new CountDownLatch(pendingMsgsMap.values().size());
-                List<UplinkMsg> copy = new ArrayList<>(pendingMsgsMap.values());
-                for (UplinkMsg uplinkMsg : copy) {
+                for (UplinkMsg uplinkMsg : orderedPendingMsgsQueue) {
                     if (edgeRpcClient.getServerMaxInboundMessageSize() != 0 && uplinkMsg.getSerializedSize() > edgeRpcClient.getServerMaxInboundMessageSize()) {
                         log.error("Uplink msg size [{}] exceeds server max inbound message size [{}]. Skipping this message. " +
                                         "Please increase value of EDGES_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the server and restart it." +
