@@ -92,6 +92,7 @@ import org.thingsboard.server.service.entitiy.entity.group.TbEntityGroupService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -144,6 +145,7 @@ public class EntityGroupController extends AutoCommitController {
     private final OwnerService ownerService;
     private final RoleService roleService;
     private final UserService userService;
+    private volatile RoleId tenantAdminRoleId;
 
     public static final String ENTITY_GROUP_DESCRIPTION = "Entity group allows you to group multiple entities of the same entity type (Device, Asset, Customer, User, Dashboard, etc). " +
             "Entity Group always have an owner - particular Tenant or Customer. Each entity may belong to multiple groups simultaneously.";
@@ -158,6 +160,11 @@ public class EntityGroupController extends AutoCommitController {
     private static final String ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION = "Entity Group type";
     private static final String SHORT_ENTITY_VIEW_DESCRIPTION = "Short Entity View object contains the entity id and number of fields (attributes, telemetry, etc). " +
             "List of those fields is configurable and defined in the group configuration.";
+
+    @PostConstruct
+    public void init() {
+        tenantAdminRoleId = roleService.findOrCreateTenantAdminRole().getId();
+    }
 
     @ApiOperation(value = "Get Entity Group Info (getEntityGroupById)",
             notes = "Fetch the Entity Group object based on the provided Entity Group Id. "
@@ -278,13 +285,14 @@ public class EntityGroupController extends AutoCommitController {
             throw new ThingsboardException("Unable to remove entity group: " +
                     "Removal of entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
-        if (EntityType.USER.equals(entityGroup.getType())) {
+        if (EntityType.USER.equals(entityGroup.getType()) && (entityGroup.getOwnerId() instanceof TenantId)
+                && groupPermissionService.existsByUserGroupIdAndRoleId(entityGroupId, tenantAdminRoleId)) {
             List<UserId> entityGroupUsers = userService.findUsersByEntityGroupIds(List.of(entityGroupId), new PageLink(Integer.MAX_VALUE))
                     .getData()
                     .stream()
                     .map(User::getId)
                     .collect(Collectors.toList());
-            checkAtLeastOneTenantAdmin(entityGroupId, entityGroupUsers);
+            checkAtLeastOneTenantAdmin(entityGroupUsers);
         }
 
         List<GroupPermissionInfo> groupPermissions = new ArrayList<>(
@@ -822,9 +830,9 @@ public class EntityGroupController extends AutoCommitController {
                 checkEntityId(entityId, Operation.READ);
                 entityIds.add(entityId);
             }
-            if (EntityType.USER.equals(entityGroup.getType())) {
+            if (EntityType.USER.equals(entityGroup.getType()) && (entityGroup.getOwnerId() instanceof TenantId)) {
                 List<UserId> userIds = entityIds.stream().map(UserId.class::cast).collect(Collectors.toList());
-                checkAtLeastOneTenantAdmin(entityGroupId, userIds);
+                checkAtLeastOneTenantAdmin(userIds);
             }
             entityGroupService.removeEntitiesFromEntityGroup(getTenantId(), entityGroupId, entityIds);
             if (entityGroup.getType() == EntityType.USER) {
@@ -1431,15 +1439,10 @@ public class EntityGroupController extends AutoCommitController {
         }
     }
 
-    private void checkAtLeastOneTenantAdmin(EntityGroupId entityGroupId, List<UserId> usersToRemove) throws ThingsboardException {
-        RoleId tenantAdminRoleId = roleService.findOrCreateTenantAdminRole().getId();
-        boolean tenantAdminRoleExistsInGroup = groupPermissionService.existsByUserGroupIdAndRoleId(entityGroupId, tenantAdminRoleId);
-
-        if (tenantAdminRoleExistsInGroup) {
-            int usersWithTenantAdminRole = userService.countUsersByTenantIdAndRoleIdAndIdNotIn(getTenantId(), tenantAdminRoleId, usersToRemove);
-            if (usersWithTenantAdminRole == 0) {
-                    throw new ThingsboardException("At least one tenant administrator must remain!", ThingsboardErrorCode.INVALID_ARGUMENTS);
-            }
+    private void checkAtLeastOneTenantAdmin(List<UserId> usersToRemove) throws ThingsboardException {
+        int usersWithTenantAdminRole = userService.countUsersByTenantIdAndRoleIdAndIdNotIn(getTenantId(), tenantAdminRoleId, usersToRemove);
+        if (usersWithTenantAdminRole == 0) {
+                throw new ThingsboardException("At least one tenant administrator must remain!", ThingsboardErrorCode.INVALID_ARGUMENTS);
         }
     }
 
