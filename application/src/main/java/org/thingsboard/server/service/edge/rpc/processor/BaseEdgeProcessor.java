@@ -551,7 +551,7 @@ public abstract class BaseEdgeProcessor {
         PageDataIterable<Edge> edges = new PageDataIterable<>(link -> edgeService.findEdgesByTenantId(tenantId, link), 1024);
         for (Edge edge : edges) {
             if (!edge.getId().equals(sourceEdgeId)) {
-                futures.add(saveEdgeEvent(tenantId, edge.getId(), type, actionType, entityId, body));
+                futures.add(saveEdgeEvent(tenantId, edge.getId(), type, actionType, entityId, body, entityGroupId));
             }
         }
         return futures;
