@@ -284,7 +284,7 @@ public class EntityGroupController extends AutoCommitController {
                     .stream()
                     .map(User::getId)
                     .collect(Collectors.toList());
-            checkAtLeastOneUserWithTenantAdminRole(entityGroupId, entityGroupUsers);
+            checkAtLeastOneTenantAdmin(entityGroupId, entityGroupUsers);
         }
 
         List<GroupPermissionInfo> groupPermissions = new ArrayList<>(
@@ -824,7 +824,7 @@ public class EntityGroupController extends AutoCommitController {
             }
             if (EntityType.USER.equals(entityGroup.getType())) {
                 List<UserId> userIds = entityIds.stream().map(UserId.class::cast).collect(Collectors.toList());
-                checkAtLeastOneUserWithTenantAdminRole(entityGroupId, userIds);
+                checkAtLeastOneTenantAdmin(entityGroupId, userIds);
             }
             entityGroupService.removeEntitiesFromEntityGroup(getTenantId(), entityGroupId, entityIds);
             if (entityGroup.getType() == EntityType.USER) {
@@ -1431,18 +1431,14 @@ public class EntityGroupController extends AutoCommitController {
         }
     }
 
-    private void checkAtLeastOneUserWithTenantAdminRole(EntityGroupId entityGroupId, List<UserId> usersToRemove) throws ThingsboardException {
+    private void checkAtLeastOneTenantAdmin(EntityGroupId entityGroupId, List<UserId> usersToRemove) throws ThingsboardException {
         RoleId tenantAdminRoleId = roleService.findOrCreateTenantAdminRole().getId();
-        Set<RoleId> entityGroupRoles = groupPermissionService.findGroupPermissionByTenantIdAndUserGroupId(getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE))
-                .getData()
-                .stream()
-                .map(GroupPermission::getRoleId)
-                .collect(Collectors.toSet());
+        boolean tenantAdminRoleExistsInGroup = groupPermissionService.existsByUserGroupIdAndRoleId(entityGroupId, tenantAdminRoleId);
 
-        if (entityGroupRoles.contains(tenantAdminRoleId)) {
+        if (tenantAdminRoleExistsInGroup) {
             int usersWithTenantAdminRole = userService.countUsersByTenantIdAndRoleIdAndIdNotIn(getTenantId(), tenantAdminRoleId, usersToRemove);
             if (usersWithTenantAdminRole == 0) {
-                    throw new ThingsboardException("Deletion is prohibited because at least one user with TENANT_ADMIN role should exist!", ThingsboardErrorCode.INVALID_ARGUMENTS);
+                    throw new ThingsboardException("At least one tenant administrator must remain!", ThingsboardErrorCode.INVALID_ARGUMENTS);
             }
         }
     }

@@ -221,7 +221,7 @@ public class EntityGroupControllerTest extends AbstractControllerTest {
 
         doDelete("/api/entityGroup/" + tenantAdministratorsGroup.getId())
                 .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Deletion is prohibited because at least one user with TENANT_ADMIN role should exist!")));
+                .andExpect(statusReason(containsString("At least one tenant administrator must remain!")));
     }
 
     @Test
@@ -235,6 +235,6 @@ public class EntityGroupControllerTest extends AbstractControllerTest {
         strEntityIds.add(tenantAdminUser.getId().getId().toString());
         doPost("/api/entityGroup/" + tenantAdministratorsGroup.getId() + "/deleteEntities", strEntityIds)
                 .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Deletion is prohibited because at least one user with TENANT_ADMIN role should exist!")));
+                .andExpect(statusReason(containsString("At least one tenant administrator must remain!")));
     }
 }
