@@ -36,7 +36,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
-// TODO: voba - merge comment
-//@ConditionalOnProperty(prefix = "database.ts_latest", value = "type", havingValue = "sql")
+@ConditionalOnProperty(prefix = "database.ts_latest", value = "type", havingValue = "sql")
 public @interface SqlTsLatestDao {
 }

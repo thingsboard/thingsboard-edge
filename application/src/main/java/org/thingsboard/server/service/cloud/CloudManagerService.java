@@ -107,6 +107,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -122,6 +123,7 @@ public class CloudManagerService {
 
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
     private static final String QUEUE_SEQ_ID_OFFSET_ATTR_KEY = "queueSeqIdOffset";
+    private static final String RATE_LIMIT_REACHED = "Rate limit reached";
 
     @Value("${cloud.routingKey}")
     private String routingKey;
@@ -232,6 +234,7 @@ public class CloudManagerService {
     private ScheduledExecutorService reconnectScheduler;
     private ScheduledFuture<?> scheduledFuture;
     private ScheduledExecutorService shutdownExecutor;
+    private volatile boolean isRateLimitViolated = false;
     private volatile boolean initialized;
     private volatile boolean syncInProgress = false;
 
@@ -374,13 +377,16 @@ public class CloudManagerService {
         try {
             int attempt = 1;
             boolean success;
+            LinkedBlockingQueue<UplinkMsg> orderedPendingMsgsQueue = new LinkedBlockingQueue<>();
             pendingMsgsMap.clear();
-            uplinkMsgsPack.forEach(msg -> pendingMsgsMap.put(msg.getUplinkMsgId(), msg));
+            uplinkMsgsPack.forEach(msg -> {
+                pendingMsgsMap.put(msg.getUplinkMsgId(), msg);
+                orderedPendingMsgsQueue.add(msg);
+            });
             do {
                 log.trace("[{}] uplink msg(s) are going to be send.", pendingMsgsMap.values().size());
                 latch = new CountDownLatch(pendingMsgsMap.values().size());
-                List<UplinkMsg> copy = new ArrayList<>(pendingMsgsMap.values());
-                for (UplinkMsg uplinkMsg : copy) {
+                for (UplinkMsg uplinkMsg : orderedPendingMsgsQueue) {
                     if (edgeRpcClient.getServerMaxInboundMessageSize() != 0 && uplinkMsg.getSerializedSize() > edgeRpcClient.getServerMaxInboundMessageSize()) {
                         log.error("Uplink msg size [{}] exceeds server max inbound message size [{}]. Skipping this message. " +
                                         "Please increase value of EDGES_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the server and restart it." +
@@ -402,6 +408,14 @@ public class CloudManagerService {
                         Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
                     } catch (InterruptedException e) {
                         log.error("Error during sleep between batches", e);
+                    }
+                }
+                if (initialized && !success && isRateLimitViolated) {
+                    isRateLimitViolated = false;
+                    try {
+                        TimeUnit.SECONDS.sleep(60);
+                    } catch (InterruptedException e) {
+                        log.error("Error during sleep on rate limit violation", e);
                     }
                 }
                 attempt++;
@@ -548,6 +562,9 @@ public class CloudManagerService {
             if (msg.getSuccess()) {
                 pendingMsgsMap.remove(msg.getUplinkMsgId());
                 log.debug("[{}] Msg has been processed successfully! {}", routingKey, msg);
+            } else if (msg.getErrorMsg().contains(RATE_LIMIT_REACHED)) {
+                log.warn("[{}] Msg processing failed! {}", routingKey, RATE_LIMIT_REACHED);
+                isRateLimitViolated = true;
             } else {
                 log.error("[{}] Msg processing failed! Error msg: {}", routingKey, msg.getErrorMsg());
             }

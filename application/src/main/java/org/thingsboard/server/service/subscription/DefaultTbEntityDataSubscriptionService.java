@@ -139,10 +139,8 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
 
     private ScheduledExecutorService scheduler;
 
-    /* merge comment
     @Value("${database.ts.type}")
     private String databaseTsType;
-     */
     @Value("${server.ws.dynamic_page_link.refresh_interval:6}")
     private long dynamicPageLinkRefreshInterval;
     @Value("${server.ws.dynamic_page_link.refresh_pool_size:1}")
@@ -165,12 +163,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
     public void initExecutor() {
         serviceId = serviceInfoProvider.getServiceId();
         wsCallBackExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("ws-entity-sub-callback"));
-
-        /* merge comment
         tsInSqlDB = databaseTsType.equalsIgnoreCase("sql") || databaseTsType.equalsIgnoreCase("timescale");
-         */
-        tsInSqlDB = true;
-
         ThreadFactory tbThreadFactory = ThingsBoardThreadFactory.forName("ws-entity-sub-scheduler");
         if (dynamicPageLinkRefreshPoolSize == 1) {
             scheduler = Executors.newSingleThreadScheduledExecutor(tbThreadFactory);
