@@ -37,11 +37,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.entity.AbstractCachedService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
@@ -55,6 +57,7 @@ import static org.thingsboard.common.util.JacksonUtil.merge;
 @RequiredArgsConstructor
 public class BaseCustomTranslationService extends AbstractCachedService<CustomTranslationCompositeKey, CustomTranslation, CustomTranslationEvictEvent> implements CustomTranslationService {
 
+    private final CustomerService customerService;
     private final ApplicationEventPublisher eventPublisher;
     private final CustomTranslationDao customTranslationDao;
 
@@ -81,6 +84,10 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     @Override
     public JsonNode getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
         JsonNode customerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode).getValue();
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        if (customer.isSubCustomer()) {
+            customerCustomTranslation = getMergedCustomerHierarchyCustomTranslation(tenantId, customer.getParentCustomerId(), localeCode, customerCustomTranslation);
+        }
         JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null, localeCode).getValue();
         JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue();
 
@@ -108,9 +115,21 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
         return customTranslationDao.findLocalesByTenantIdAndCustomerId(tenantId, customerId);
     }
 
+    private JsonNode getMergedCustomerHierarchyCustomTranslation(TenantId tenantId, CustomerId customerId, String locale, JsonNode customTranslation) {
+        CustomTranslation parentCustomerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, locale);
+        JsonNode merged = merge(customTranslation, parentCustomerCustomTranslation.getValue());
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        if (customer.isSubCustomer()) {
+            return getMergedCustomerHierarchyCustomTranslation(tenantId, customer.getParentCustomerId(), locale, merged);
+        } else {
+            return merged;
+        }
+    }
+
     @TransactionalEventListener(classes = CustomTranslationEvictEvent.class)
     @Override
     public void handleEvictEvent(CustomTranslationEvictEvent event) {
         cache.evict(event.getKey());
     }
+
 }

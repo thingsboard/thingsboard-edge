@@ -99,7 +99,7 @@ export const progressBarDefaultSettings: ProgressBarWidgetSettings = {
     lineHeight: '16px'
   },
   ticksColor: 'rgba(0,0,0,0.54)',
-  barColor: constantColor('rgba(63, 82, 221, 1)'),
+  barColor: constantColor('var(--tb-primary-500)'),
   barBackground: 'rgba(0, 0, 0, 0.04)',
   background: {
     type: BackgroundType.color,

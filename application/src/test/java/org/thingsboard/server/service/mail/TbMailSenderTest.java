@@ -36,12 +36,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
+import org.thingsboard.server.common.data.id.TenantId;
+
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.MimeMessage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -49,6 +52,7 @@ import static org.mockito.BDDMockito.willCallRealMethod;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
 public class TbMailSenderTest {
 
@@ -79,6 +83,34 @@ public class TbMailSenderTest {
 
         Mockito.verify(tbMailSender, times(1)).updateOauth2PasswordIfExpired();
         Mockito.verify(tbMailSender, times(1)).testConnectionSuper();
+    }
+
+    @Test
+    public void testShouldGiveSystemSettings() throws Exception {
+        String testAttribute = "{\"useSystemMailSettings\":true}";
+        when(tbMailSender.getTenantMailAttributeValue(any())).thenReturn(testAttribute);
+        when(tbMailSender.isAllowSystemMailService()).thenReturn(true);
+
+        willCallRealMethod().given(tbMailSender).getMailSettings(any());
+        try {
+            tbMailSender.getMailSettings(new TenantId(UUID.randomUUID()));
+        } finally {
+            Mockito.verify(tbMailSender, times(1)).getSystemMailSettings();
+        }
+    }
+
+    @Test
+    public void testGiveMailTenantSettings() throws Exception {
+        String testAttribute = "{\"useSystemMailSettings\":false}";
+        when(tbMailSender.getTenantMailAttributeValue(any())).thenReturn(testAttribute);
+        when(tbMailSender.isAllowSystemMailService()).thenReturn(true);
+
+        willCallRealMethod().given(tbMailSender).getMailSettings(any());
+        try {
+            tbMailSender.getMailSettings(new TenantId(UUID.randomUUID()));
+        } finally {
+            Mockito.verify(tbMailSender, times(0)).getSystemMailSettings();
+        }
     }
 
     @ParameterizedTest

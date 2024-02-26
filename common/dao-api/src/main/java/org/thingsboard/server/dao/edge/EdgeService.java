@@ -86,6 +86,8 @@ public interface EdgeService extends EntityDaoService {
 
     ListenableFuture<List<EntitySubtype>> findEdgeTypesByTenantId(TenantId tenantId);
 
+    ListenableFuture<Boolean> isEdgeActiveAsync(TenantId tenantId, EdgeId edgeId, String activityState);
+
     void assignDefaultRuleChainsToEdge(TenantId tenantId, EdgeId edgeId);
 
     void assignTenantAdministratorsAndUsersGroupToEdge(TenantId tenantId, EdgeId edgeId);
@@ -114,7 +116,7 @@ public interface EdgeService extends EntityDaoService {
 
     PageData<Edge> findEdgesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink);
 
-    void renameEdgeAllGroups(TenantId tenantId, Edge edge, String oldEdgeName);
+    void renameEdgeAllGroups(TenantId tenantId, Edge edge, String oldEdgeName, String oldCustomerName, String newCustomerName);
 
     String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId, String tbRuleChainInputNodeClassName);
 

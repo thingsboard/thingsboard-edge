@@ -58,5 +58,4 @@ public interface EventService {
 
     void cleanupEvents(long regularEventExpTs, long debugEventExpTs, boolean cleanupDb);
 
-    void migrateEvents();
 }

@@ -222,8 +222,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         eventPublisher.publishEvent(SaveEntityEvent.builder()
                 .tenantId(tenantId)
                 .entityId(savedEntityGroup.getId())
-                .entity(entityGroup)
-                .added(entityGroup.getId() == null)
+                .entity(savedEntityGroup)
+                .created(entityGroup.getId() == null)
                 .build());
         return savedEntityGroup;
     }
@@ -1008,9 +1008,14 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
-    public ListenableFuture<EntityGroup> findOrCreateEdgeAllGroupAsync(TenantId tenantId, Edge edge, String edgeName, EntityType groupType) {
+    public ListenableFuture<EntityGroup> findOrCreateEdgeAllGroupAsync(TenantId tenantId, Edge edge, String edgeName, EntityType entityOwnerType, EntityType groupType) {
         log.trace("Executing findOrCreateEdgeAllGroupAsync, tenantId [{}], edge [{}], edgeName [{}], groupType [{}]", tenantId, edge, edgeName, groupType);
-        String entityGroupName = EdgeUtils.getEdgeGroupAllName(edgeName);
+        Customer customer = null;
+        if (EntityType.CUSTOMER.equals(edge.getOwnerId().getEntityType()) && EntityType.CUSTOMER.equals(entityOwnerType)) {
+            customer = customerService.findCustomerById(tenantId, new CustomerId(edge.getOwnerId().getId()));
+        }
+        String customerName = customer != null ? customer.getName() : null;
+        String entityGroupName = EdgeUtils.getEdgeGroupAllName(customerName, edgeName);
         ListenableFuture<Optional<EntityGroup>> futureEntityGroup = entityGroupService
                 .findEntityGroupByTypeAndNameAsync(tenantId, edge.getOwnerId(), groupType, entityGroupName);
         return Futures.transformAsync(futureEntityGroup, optionalEntityGroup -> {

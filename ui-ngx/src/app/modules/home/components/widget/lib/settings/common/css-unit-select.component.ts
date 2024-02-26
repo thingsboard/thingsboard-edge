@@ -55,6 +55,9 @@ export class CssUnitSelectComponent implements OnInit, ControlValueAccessor {
   @coerceBoolean()
   allowEmpty = false;
 
+  @Input()
+  width = '100%';
+
   cssUnitsList = cssUnits;
 
   cssUnitFormControl: UntypedFormControl;

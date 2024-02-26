@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
@@ -76,6 +77,7 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
+import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
@@ -193,6 +195,9 @@ public abstract class BaseEdgeProcessorTest {
     protected AlarmService alarmService;
 
     @MockBean
+    protected AlarmCommentService alarmCommentService;
+
+    @MockBean
     protected DeviceService deviceService;
 
     @MockBean
@@ -239,6 +244,9 @@ public abstract class BaseEdgeProcessorTest {
 
     @MockBean
     protected AttributesService attributesService;
+
+    @MockBean
+    protected TimeseriesService timeseriesService;
 
     @MockBean
     protected TbClusterService tbClusterService;

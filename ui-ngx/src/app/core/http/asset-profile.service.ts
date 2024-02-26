@@ -39,6 +39,8 @@ import { AssetProfile, AssetProfileInfo } from '@shared/models/asset.models';
 import { DeviceProfileInfo } from '@shared/models/device.models';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
+import { EntityInfoData } from '@shared/models/entity.models';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -91,6 +93,14 @@ export class AssetProfileService {
       defaultHttpOptionsFromConfig(config)).pipe(
       map((assetProfiles) => sortEntitiesByIds(assetProfiles, assetProfileIds))
     );
+  }
+
+  public getAssetProfileNames(activeOnly: boolean = false, config?: RequestConfig): Observable<Array<EntityInfoData>> {
+    let url = '/api/assetProfile/names';
+    if (isDefinedAndNotNull(activeOnly)) {
+      url += `?activeOnly=${activeOnly}`;
+    }
+    return this.http.get<Array<EntityInfoData>>(url, defaultHttpOptionsFromConfig(config));
   }
 
 }

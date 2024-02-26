@@ -37,6 +37,7 @@ import com.google.protobuf.AbstractMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.MessageLite;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -84,6 +85,8 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -128,6 +131,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -169,12 +173,21 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // save jwt settings into db
         doPost("/api/admin/jwtSettings", settings).andExpect(status().isOk());
 
+        // create custom menu
+        CustomMenu sysMenu = new CustomMenu();
+
+        CustomMenuItem sysItem = new CustomMenuItem();
+        sysItem.setName("System Menu");
+        sysMenu.setMenuItems(new ArrayList<>(List.of(sysItem)));
+
+        doPost("/api/customMenu/customMenu", sysMenu);
+
         loginTenantAdmin();
 
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(27);
+        edgeImitator.expectMessageAmount(28);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -222,6 +235,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         thermostatDeviceProfile = doPost("/api/deviceProfile", thermostatDeviceProfile, DeviceProfile.class);
 
         edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
+        verifyTenantAdministratorsAndTenantUsersAssignedToEdge();
     }
 
     protected void extendDeviceProfileData(DeviceProfile deviceProfile) {
@@ -271,9 +285,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         validateMsgsCnt(RuleChainMetadataUpdateMsg.class, 1);
         validateRuleChainMetadataUpdates(ruleChainUUID);
 
-        // 5 messages ('general', 'mail', 'connectivity', 'jwt', 'customTranslation')
-        validateMsgsCnt(AdminSettingsUpdateMsg.class, 5);
-        validateAdminSettings(5);
+        // 6 messages ('general', 'mail', 'connectivity', 'jwt', 'customTranslation', 'customMenu')
+        validateMsgsCnt(AdminSettingsUpdateMsg.class, 6);
+        validateAdminSettings(6);
 
         // 3 messages
         // - 1 from default profile fetcher
@@ -439,6 +453,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
             if (adminSettings.getKey().equals("customTranslation")) {
                 validateCustomTranslationAdminSettings(adminSettings);
             }
+            if (adminSettings.getKey().equals("customMenu")) {
+                validateCustomMenuAdminSettings(adminSettings);
+            }
         }
     }
 
@@ -474,6 +491,10 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     private void validateCustomTranslationAdminSettings(AdminSettings adminSettings) {
+        Assert.assertNotNull(adminSettings.getJsonValue().get("value"));
+    }
+
+    private void validateCustomMenuAdminSettings(AdminSettings adminSettings) {
         Assert.assertNotNull(adminSettings.getJsonValue().get("value"));
     }
 
@@ -950,5 +971,20 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     protected ObjectNode getCustomTranslationHomeObject(String homeValue) {
         ObjectNode objectNode = JacksonUtil.newObjectNode();
         return objectNode.put("home", homeValue);
+    }
+
+    private void verifyTenantAdministratorsAndTenantUsersAssignedToEdge() {
+        verifyGroupTenantNameAssignedToEdge(EntityGroup.GROUP_TENANT_ADMINS_NAME);
+        verifyGroupTenantNameAssignedToEdge(EntityGroup.GROUP_TENANT_USERS_NAME);
+    }
+
+    private void verifyGroupTenantNameAssignedToEdge(String groupTenantName) {
+        Awaitility.await()
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
+                .alias("verifyGroupTenantNameAssignedToEdge {" + groupTenantName + "}")
+                .until(() -> getEntityGroupsByOwnerAndType(tenantId, EntityType.USER).stream()
+                        .map(EntityGroupInfo::getName)
+                        .filter(groupTenantName::equals)
+                        .count() == 1);
     }
 }

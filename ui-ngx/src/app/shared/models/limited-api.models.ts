@@ -42,7 +42,9 @@ export enum LimitedApi {
   INTEGRATION_MSGS_PER_DEVICE = 'INTEGRATION_MSGS_PER_DEVICE',
   REPORTS = 'REPORTS',
   TRANSPORT_MESSAGES_PER_TENANT = 'TRANSPORT_MESSAGES_PER_TENANT',
-  TRANSPORT_MESSAGES_PER_DEVICE = 'TRANSPORT_MESSAGES_PER_DEVICE'
+  TRANSPORT_MESSAGES_PER_DEVICE = 'TRANSPORT_MESSAGES_PER_DEVICE',
+  EDGE_EVENTS = 'EDGE_EVENTS',
+  EDGE_EVENTS_PER_EDGE = 'EDGE_EVENTS_PER_EDGE'
 }
 
 export const LimitedApiTranslationMap = new Map<LimitedApi, string>(
@@ -59,6 +61,8 @@ export const LimitedApiTranslationMap = new Map<LimitedApi, string>(
     [LimitedApi.INTEGRATION_MSGS_PER_DEVICE, 'api-limit.integration-messages-per-device'],
     [LimitedApi.REPORTS, 'api-limit.reports-generation'],
     [LimitedApi.TRANSPORT_MESSAGES_PER_TENANT, 'api-limit.transport-messages'],
-    [LimitedApi.TRANSPORT_MESSAGES_PER_DEVICE, 'api-limit.transport-messages-per-device']
+    [LimitedApi.TRANSPORT_MESSAGES_PER_DEVICE, 'api-limit.transport-messages-per-device'],
+    [LimitedApi.EDGE_EVENTS, 'api-limit.edge-events'],
+    [LimitedApi.EDGE_EVENTS_PER_EDGE, 'api-limit.edge-events-per-edge'],
   ]
 );

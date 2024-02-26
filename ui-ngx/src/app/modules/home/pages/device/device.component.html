@@ -62,6 +62,7 @@
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'checkConnectivity')"
+          *ngIf="showConnectivityDialog()"
           [fxShow]="!isEdit">
     {{ 'device.connectivity.check-connectivity' | translate }}
   </button>

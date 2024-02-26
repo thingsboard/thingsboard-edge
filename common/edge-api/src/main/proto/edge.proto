@@ -350,6 +350,11 @@ message AlarmUpdateMsg {
   string entity = 19;
 }
 
+message AlarmCommentUpdateMsg {
+  UpdateMsgType msgType = 1;
+  string entity = 2;
+}
+
 message CustomerUpdateMsg {
   UpdateMsgType msgType = 1;
   int64 idMSB = 2;
@@ -823,6 +828,7 @@ message UplinkMsg {
   repeated AssetProfileUpdateMsg assetProfileUpdateMsg = 21;
   repeated DeviceProfileUpdateMsg deviceProfileUpdateMsg = 22;
   repeated ResourceUpdateMsg resourceUpdateMsg = 23;
+  repeated AlarmCommentUpdateMsg alarmCommentUpdateMsg = 24;
 }
 
 message UplinkResponseMsg {
@@ -883,5 +889,6 @@ message DownlinkMsg {
   repeated ResourceUpdateMsg resourceUpdateMsg = 43;
   WhiteLabelingProto whiteLabelingProto = 44;
   CustomMenuProto customMenuProto = 45;
+  repeated AlarmCommentUpdateMsg alarmCommentUpdateMsg = 46;
   CustomTranslationUpdateMsg customTranslationUpdateMsg = 47;
 }

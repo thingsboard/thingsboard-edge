@@ -56,7 +56,7 @@ import {
 } from '@shared/models/widget-settings.models';
 import { ResizeObserver } from '@juggle/resize-observer';
 import * as echarts from 'echarts/core';
-import { formatValue, isDefinedAndNotNull, isNumber } from '@core/utils';
+import { formatValue, isDefinedAndNotNull, isNumber, plainColorFromVariable } from '@core/utils';
 import { rangeChartDefaultSettings, RangeChartWidgetSettings } from './range-chart-widget.models';
 import { Observable } from 'rxjs';
 import { ImagePipe } from '@shared/pipe/image.pipe';
@@ -108,7 +108,7 @@ const rangeItemLabel = (from?: number, to?: number): string => {
 
 const toVisualPiece = (color: string, from?: number, to?: number): VisualPiece => {
   const piece: VisualPiece = {
-    color
+    color: plainColorFromVariable(color)
   };
   if (isNumber(from) && isNumber(to)) {
     if (from === to) {
@@ -142,7 +142,7 @@ const toRangeItems = (colorRanges: Array<ColorRange>): RangeItem[] => {
     rangeItems.push(
       {
         index: counter++,
-        color: range.color,
+        color: plainColorFromVariable(range.color),
         enabled: true,
         visible: true,
         from,
@@ -301,7 +301,8 @@ export class RangeChartWidgetComponent implements OnInit, OnDestroy, AfterViewIn
       this.rangeChart.setOption({
         xAxis: {
           min: this.ctx.defaultSubscription.timeWindow.minTime,
-          max: this.ctx.defaultSubscription.timeWindow.maxTime
+          max: this.ctx.defaultSubscription.timeWindow.maxTime,
+          tbTimeWindow: this.ctx.defaultSubscription.timeWindow
         },
         series: [
           {data: this.ctx.data?.length ? toNamedData(this.ctx.data[0].data) : []}
@@ -330,7 +331,19 @@ export class RangeChartWidgetComponent implements OnInit, OnDestroy, AfterViewIn
     });
     this.rangeChartOptions = {
       tooltip: {
-        trigger: 'none'
+        trigger: 'axis',
+        confine: true,
+        appendToBody: true,
+        axisPointer: {
+          type: 'shadow'
+        },
+        formatter: (params: CallbackDataParams[]) =>
+          this.settings.showTooltip ? echartsTooltipFormatter(this.renderer, this.tooltipDateFormat,
+            this.settings, params, this.decimals, this.units, 0) : undefined,
+        padding: [8, 12],
+        backgroundColor: this.settings.tooltipBackgroundColor,
+        borderWidth: 0,
+        extraCssText: `line-height: 1; backdrop-filter: blur(${this.settings.tooltipBackgroundBlur}px);`
       },
       grid: {
         containLabel: true,
@@ -407,27 +420,18 @@ export class RangeChartWidgetComponent implements OnInit, OnDestroy, AfterViewIn
         show: false,
         type: 'piecewise',
         selected: this.selectedRanges,
+        dimension: 1,
         pieces: this.rangeItems.map(item => item.piece),
         outOfRange: {
-          color: this.settings.outOfRangeColor
+          color: plainColorFromVariable(this.settings.outOfRangeColor)
         },
         inRange: !this.rangeItems.length ? {
-          color: this.settings.outOfRangeColor
+          color: plainColorFromVariable(this.settings.outOfRangeColor)
         } : undefined
       }
     };
 
-    if (this.settings.showTooltip) {
-      this.rangeChartOptions.tooltip = {
-        trigger: 'axis',
-        formatter: (params: CallbackDataParams[]) => echartsTooltipFormatter(this.renderer, this.tooltipDateFormat,
-            this.settings, params, this.decimals, this.units, 0),
-        padding: [8, 12],
-        backgroundColor: this.settings.tooltipBackgroundColor,
-        borderWidth: 0,
-        extraCssText: `line-height: 1; backdrop-filter: blur(${this.settings.tooltipBackgroundBlur}px);`
-      };
-    }
+    (this.rangeChartOptions.xAxis as any).tbTimeWindow = this.ctx.defaultSubscription.timeWindow;
 
     this.rangeChart.setOption(this.rangeChartOptions);
 

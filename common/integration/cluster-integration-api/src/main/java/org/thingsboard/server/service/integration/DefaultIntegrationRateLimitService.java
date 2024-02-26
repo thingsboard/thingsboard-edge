@@ -30,26 +30,25 @@
  */
 package org.thingsboard.server.service.integration;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ConcurrentReferenceHashMap;
 import org.thingsboard.integration.api.IntegrationRateLimitService;
+import org.thingsboard.server.cache.limits.RateLimitService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.msg.tools.TbRateLimits;
+import org.thingsboard.server.common.data.limit.LimitedApi;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 
-import javax.annotation.PostConstruct;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
@@ -58,55 +57,32 @@ import static org.springframework.util.ConcurrentReferenceHashMap.ReferenceType.
 @Service
 @TbCoreOrIntegrationExecutorComponent
 @Slf4j
+@RequiredArgsConstructor
 public class DefaultIntegrationRateLimitService implements IntegrationRateLimitService {
-    @Value("${integrations.rate_limits.enabled}")
-    private boolean rateLimitEnabled;
 
-    @Value("${integrations.rate_limits.tenant}")
-    private String perTenantLimitsConf;
-
-    @Value("${integrations.rate_limits.device}")
-    private String perDevicesLimitsConf;
+    @Value("${event.debug.rate_limits.enabled}")
+    private boolean eventRateLimitsEnabled;
 
     @Value("${event.debug.rate_limits.integration}")
-    private String integrationDebugLimitsConf;
+    private String integrationEventsRateLimitsConf;
 
     @Value("${event.debug.rate_limits.converter}")
-    private String converterDebugLimitsConf;
-
-    @Value("${cache.rateLimits.timeToLiveInMinutes:60}")
-    private int rateLimitsTtl;
-    @Value("${cache.rateLimits.maxSize:100000}")
-    private int rateLimitsCacheMaxSize;
+    private String converterEventsRateLimitsConf;
 
     @Value("#{${cache.rateLimits.timeToLiveInMinutes} * 60 * 1000}")
     private long deduplicationDuration;
 
-    private Cache<RateLimitKey, TbRateLimits> rateLimits;
+    private final RateLimitService rateLimitService;
 
-    private ConcurrentMap<DeduplicationKey, Long> deduplicationCache;
-
-    @PostConstruct
-    private void init() {
-        rateLimits = Caffeine.newBuilder()
-                .expireAfterAccess(rateLimitsTtl, TimeUnit.MINUTES)
-                .maximumSize(rateLimitsCacheMaxSize)
-                .build();
-
-        deduplicationCache = new ConcurrentReferenceHashMap<>(16, SOFT);
-    }
+    private final ConcurrentMap<DeduplicationKey, Long> deduplicationCache = new ConcurrentReferenceHashMap<>(16, SOFT);
 
     @Override
     public void checkLimit(TenantId tenantId, Supplier<String> msg) {
         if (log.isTraceEnabled()) {
             log.trace("[{}] Processing msg: {}", tenantId, msg.get());
         }
-        if (!rateLimitEnabled) {
-            return;
-        }
-        var key = new IntegrationRateLimitKey(tenantId, null);
-        var rateLimit = rateLimits.get(key, k -> new TbRateLimits(perTenantLimitsConf));
-        if (!rateLimit.tryConsume()) {
+
+        if (!rateLimitService.checkRateLimit(LimitedApi.INTEGRATION_MSGS_PER_TENANT, tenantId)) {
             if (log.isTraceEnabled()) {
                 log.trace("[{}] Tenant level rate limit detected: {}", tenantId, msg.get());
             }
@@ -119,13 +95,8 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
         if (log.isTraceEnabled()) {
             log.trace("[{}] Processing msg: {}", deviceName, msg.get());
         }
-        if (!rateLimitEnabled) {
-            return;
-        }
 
-        var key = IntegrationRateLimitKey.of(tenantId, deviceName);
-        var rateLimit = rateLimits.get(key, k -> new TbRateLimits(perDevicesLimitsConf));
-        if (!rateLimit.tryConsume()) {
+        if (!rateLimitService.checkRateLimit(LimitedApi.INTEGRATION_MSGS_PER_DEVICE, tenantId, Pair.of(tenantId, deviceName))) {
             if (log.isTraceEnabled()) {
                 log.trace("[{}][{}] Device level rate limit detected: {}", tenantId, deviceName, msg.get());
             }
@@ -138,13 +109,11 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
         if (log.isTraceEnabled()) {
             log.trace("[{}][{}] Processing integration debug event msg.", tenantId, integrationId);
         }
-        if (!rateLimitEnabled) {
+        if (!eventRateLimitsEnabled) {
             return true;
         }
 
-        RateLimitKey key = IntegrationDebugRateLimitKey.of(tenantId);
-        var rateLimit = rateLimits.get(key, k -> new TbRateLimits(integrationDebugLimitsConf));
-        if (!rateLimit.tryConsume()) {
+        if (!rateLimitService.checkRateLimit(LimitedApi.INTEGRATION_EVENTS, (Object) tenantId, integrationEventsRateLimitsConf)) {
             if (log.isTraceEnabled()) {
                 log.trace("[{}][{}] Integration level debug rate limit detected.", tenantId, integrationId);
             }
@@ -161,13 +130,11 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
         if (log.isTraceEnabled()) {
             log.trace("[{}][{}] Processing converter debug event msg.", tenantId, converterId);
         }
-        if (!rateLimitEnabled) {
+        if (!eventRateLimitsEnabled) {
             return true;
         }
 
-        RateLimitKey key = ConverterDebugRateLimitKey.of(tenantId);
-        var rateLimit = rateLimits.get(key, k -> new TbRateLimits(converterDebugLimitsConf));
-        if (!rateLimit.tryConsume()) {
+        if (!rateLimitService.checkRateLimit(LimitedApi.CONVERTER_EVENTS, (Object) tenantId, converterEventsRateLimitsConf)) {
             if (log.isTraceEnabled()) {
                 log.trace("[{}][{}] Converter level debug rate limit detected.", tenantId, converterId);
             }
@@ -205,22 +172,4 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
         private final EntityType entityType;
     }
 
-    private interface RateLimitKey {
-    }
-
-    @Data(staticConstructor = "of")
-    private static class IntegrationRateLimitKey implements RateLimitKey {
-        private final TenantId tenantId;
-        private final String deviceName;
-    }
-
-    @Data(staticConstructor = "of")
-    private static class IntegrationDebugRateLimitKey implements RateLimitKey {
-        private final TenantId tenantId;
-    }
-
-    @Data(staticConstructor = "of")
-    private static class ConverterDebugRateLimitKey implements RateLimitKey {
-        private final TenantId tenantId;
-    }
 }

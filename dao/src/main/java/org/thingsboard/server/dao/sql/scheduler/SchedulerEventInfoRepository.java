@@ -57,6 +57,8 @@ public interface SchedulerEventInfoRepository extends JpaRepository<SchedulerEve
 
     List<SchedulerEventInfoEntity> findSchedulerEventInfoEntitiesByTenantId(UUID tenantId);
 
+    List<SchedulerEventInfoEntity> findSchedulerEventInfoEntitiesByTenantIdAndEnabled(UUID tenantId, boolean enabled);
+
     @Query("SELECT new org.thingsboard.server.dao.model.sql.SchedulerEventWithCustomerInfoEntity(s, c.title, c.additionalInfo) " +
             "FROM SchedulerEventInfoEntity s " +
             "LEFT JOIN CustomerEntity c on c.id = s.customerId " +
