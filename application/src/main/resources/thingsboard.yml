@@ -673,6 +673,9 @@ cache:
     whiteLabeling:
       timeToLiveInMinutes: "${CACHE_SPECS_WHITE_LABELING_TTL:1440}" # White labeling cache TTL
       maxSize: "${CACHE_SPECS_WHITE_LABELING_MAX_SIZE:10000}" # 0 means the cache is disabled
+    customTranslation:
+      timeToLiveInMinutes: "${CACHE_SPECS_CUSTOM_TRANSLATION_TTL:1440}" # Custom translation cache TTL
+      maxSize: "${CACHE_SPECS_CUSTOM_TRANSLATION_MAX_SIZE:10000}" # 0 means the cache is disabled
 
   # deliberately placed outside the 'specs' group above
   notificationRules:
@@ -690,6 +693,10 @@ cache:
       maxSize: "${CACHE_SPECS_IMAGE_ETAGS_MAX_SIZE:10000}" # 0 means the cache is disabled
     systemImagesBrowserTtlInMinutes: "${CACHE_SPECS_IMAGE_SYSTEM_BROWSER_TTL:0}" # Browser cache TTL for system images in minutes. 0 means the cache is disabled
     tenantImagesBrowserTtlInMinutes: "${CACHE_SPECS_IMAGE_TENANT_BROWSER_TTL:0}" # Browser cache TTL for tenant images in minutes. 0 means the cache is disabled
+  translation:
+    etag:
+      timeToLiveInMinutes: "${CACHE_SPECS_TRANSLATION_ETAGS_TTL:44640}" # Translation ETags cache TTL in minutes (one month by default)
+      maxSize: "${CACHE_SPECS_TRANSLATION_ETAGS_MAX_SIZE:20}" # 0 means the cache is disabled
 
 # Spring data parameters
 spring.data.redis.repositories.enabled: false # Disable this because it is not required.

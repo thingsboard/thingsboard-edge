@@ -28,22 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.translation;
+package org.thingsboard.server.service.translation;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
-import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
+import org.thingsboard.server.dao.translation.TranslationCacheKey;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
-@Service("CustomTranslationCache")
-public class CustomTranslationCaffeineCache extends CaffeineTbTransactionalCache<CustomTranslationCompositeKey, CustomTranslation> {
+public interface TbTranslationService {
 
-    public CustomTranslationCaffeineCache(CacheManager cacheManager) {
-        super(cacheManager, CacheConstants.CUSTOM_TRANSLATION_CACHE);
-    }
+    CustomTranslation saveCustomTranslation(CustomTranslation customTranslation);
+
+    CustomTranslation patchCustomTranslation(CustomTranslation customTranslation);
+
+    String getETag(TranslationCacheKey translationCacheKey);
+
+    void putETag(TranslationCacheKey translationCacheKey, String etag);
+
+    void evictETags(TenantId tenantId);
 
 }

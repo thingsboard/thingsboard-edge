@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.dao.translation;
 
-import org.thingsboard.server.common.data.customtranslation.CustomTranslation;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
@@ -45,6 +45,6 @@ public interface CustomTranslationDao {
 
     void removeById(TenantId tenantId, CustomTranslationCompositeKey key);
 
-    List<String> findAllLocalesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
+    List<String> findLocalesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
 
 }

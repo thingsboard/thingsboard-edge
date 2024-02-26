@@ -28,22 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.translation;
+package org.thingsboard.server.common.data.translation;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
-import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
+import lombok.Data;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
-@Service("CustomTranslationCache")
-public class CustomTranslationCaffeineCache extends CaffeineTbTransactionalCache<CustomTranslationCompositeKey, CustomTranslation> {
+import java.io.Serializable;
 
-    public CustomTranslationCaffeineCache(CacheManager cacheManager) {
-        super(cacheManager, CacheConstants.CUSTOM_TRANSLATION_CACHE);
+@Data
+public class TranslationInfo implements Serializable {
+
+    private static final long serialVersionUID = 4179263425113764744L;
+
+    private String localeCode;
+    private String language;
+    private String country;
+    private int progress;
+
+    public TranslationInfo() {
     }
 
+    public TranslationInfo(String localeCode, String language, String country) {
+        this.localeCode = localeCode;
+        this.language = language;
+        this.country = country;
+    }
 }

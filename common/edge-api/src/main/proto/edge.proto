@@ -883,5 +883,5 @@ message DownlinkMsg {
   repeated ResourceUpdateMsg resourceUpdateMsg = 43;
   WhiteLabelingProto whiteLabelingProto = 44;
   CustomMenuProto customMenuProto = 45;
-  CustomTranslationUpdateMsg customTranslationUpdateMsg = 45;
+  CustomTranslationUpdateMsg customTranslationUpdateMsg = 47;
 }

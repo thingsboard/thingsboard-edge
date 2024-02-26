@@ -57,6 +57,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -403,4 +404,78 @@ public class JacksonUtil {
         }
     }
 
+    public static Set<String> extractKeys(JsonNode jsonNode) {
+        Set<String> keyPaths = new HashSet<>();
+        extractKeyPathsRecursively("", jsonNode, keyPaths);
+        return keyPaths;
+    }
+
+    private static void extractKeyPathsRecursively(String currentPath, JsonNode jsonNode, Set<String> keyPaths) {
+        if (jsonNode.isObject()) {
+            ObjectNode objectNode = (ObjectNode) jsonNode;
+            Iterator<String> fieldNames = objectNode.fieldNames();
+            while (fieldNames.hasNext()) {
+                String fieldName = fieldNames.next();
+                String newPath = currentPath.isEmpty() ? fieldName : currentPath + "." + fieldName;
+                extractKeyPathsRecursively(newPath, objectNode.get(fieldName), keyPaths);
+            }
+        } else if (jsonNode.isArray()) {
+            for (int i = 0; i < jsonNode.size(); i++) {
+                String newPath = currentPath.isEmpty() ? "[" + i + "]" : currentPath + "[" + i + "]";
+                extractKeyPathsRecursively(newPath, jsonNode.get(i), keyPaths);
+            }
+        } else {
+            keyPaths.add(currentPath);
+        }
+    }
+
+    public static JsonNode merge(JsonNode mainNode, JsonNode updateNode) {
+        JsonNode merged = mainNode.deepCopy();
+        Iterator<String> fieldNames = updateNode.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldName = fieldNames.next();
+            JsonNode jsonNode = merged.get(fieldName);
+            if (jsonNode != null) {
+                if (jsonNode.isObject()) {
+                    merge(jsonNode, updateNode.get(fieldName));
+                } else if (jsonNode.isArray()) {
+                    for (int i = 0; i < jsonNode.size(); i++) {
+                        merge(jsonNode.get(i), updateNode.get(fieldName).get(i));
+                    }
+                }
+            } else {
+                if (merged instanceof ObjectNode) {
+                    // Overwrite field
+                    JsonNode value = updateNode.get(fieldName);
+                    if (value.isNull()) {
+                        continue;
+                    }
+                    ((ObjectNode) merged).set(fieldName, value);
+                }
+            }
+        }
+        return merged;
+    }
+
+    public static JsonNode update(JsonNode mainNode, JsonNode updateNode) {
+        Iterator<String> fieldNames = updateNode.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldExpression = fieldNames.next();
+            String[] fieldPath = fieldExpression.trim().split("\\.");
+            var node = (ObjectNode) mainNode;
+            for (int i = 0; i < fieldPath.length; i++) {
+                var fieldName = fieldPath[i];
+                var last = i == (fieldPath.length - 1);
+                if (last) {
+                    node.set(fieldName, updateNode.get(fieldExpression));
+                } else {
+                    if (!node.has(fieldName)) {
+                        node.set(fieldName, JacksonUtil.newObjectNode());
+                    }
+                    node = (ObjectNode) node.get(fieldName);
+                }
+            }
+        }
+        return mainNode;
+    }
 }

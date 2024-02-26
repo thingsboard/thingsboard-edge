@@ -28,24 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.customtranslation;
+package org.thingsboard.server.common.data.translation;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.swagger.annotations.ApiModel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 import java.io.Serializable;
-import java.util.Iterator;
 
 import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.getJson;
 import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.setJson;
 
+@ApiModel
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode
+@Slf4j
 public class CustomTranslation implements Serializable {
 
     private static final long serialVersionUID = 2809343057809549363L;
@@ -73,34 +83,4 @@ public class CustomTranslation implements Serializable {
         setJson(value, json -> this.value = json, bytes -> this.valueBytes = bytes);
     }
 
-    public CustomTranslation merge(CustomTranslation otherCT) {
-        merge(this.value, otherCT.getValue());
-        return this;
-    }
-
-    private void merge(JsonNode mainNode, JsonNode updateNode) {
-        Iterator<String> fieldNames = updateNode.fieldNames();
-        while (fieldNames.hasNext()) {
-            String fieldName = fieldNames.next();
-            JsonNode jsonNode = mainNode.get(fieldName);
-            if (jsonNode != null) {
-                if (jsonNode.isObject()) {
-                    merge(jsonNode, updateNode.get(fieldName));
-                } else if (jsonNode.isArray()) {
-                    for (int i = 0; i < jsonNode.size(); i++) {
-                        merge(jsonNode.get(i), updateNode.get(fieldName).get(i));
-                    }
-                }
-            } else {
-                if (mainNode instanceof ObjectNode) {
-                    // Overwrite field
-                    JsonNode value = updateNode.get(fieldName);
-                    if (value.isNull()) {
-                        continue;
-                    }
-                    ((ObjectNode) mainNode).set(fieldName, value);
-                }
-            }
-        }
-    }
 }

@@ -35,7 +35,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
-import org.thingsboard.server.common.data.customtranslation.CustomTranslation;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -45,8 +45,6 @@ import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.Table;
@@ -74,7 +72,6 @@ public class CustomTranslationEntity implements ToData<CustomTranslation>, Seria
     private UUID customerId;
 
     @Id
-    @Enumerated(EnumType.STRING)
     @Column(name = CUSTOM_TRANSLATION_LOCALE_CODE)
     private String localeCode;
 

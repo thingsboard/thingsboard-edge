@@ -34,7 +34,7 @@
 CREATE TABLE IF NOT EXISTS custom_translation (
     tenant_id UUID NOT NULL,
     customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
-    locale_code VARCHAR(5),
+    locale_code VARCHAR(10),
     value VARCHAR(1000000),
     CONSTRAINT custom_translation_pkey PRIMARY KEY (tenant_id, customer_id, locale_code));
 
@@ -89,7 +89,7 @@ $$;
 DO
 $$
 DECLARE
-    tenant_id uuid;
+    tenantId uuid;
     insert_record  RECORD;
     insert_cursor CURSOR FOR SELECT attribute_kv.entity_id AS customer_id, json_data.key AS key,
                                     json_data.value AS value
@@ -101,12 +101,22 @@ BEGIN
     LOOP
         FETCH insert_cursor INTO insert_record;
         EXIT WHEN NOT FOUND;
-        SELECT tenant_id INTO tenant_id FROM customer where id = insert_record.customer_id;
+        SELECT tenant_id INTO tenantId FROM customer where id = insert_record.customer_id;
         INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
-            VALUES (tenant_id, insert_record.customer_id, insert_record.key, insert_record.value);
+            VALUES (tenantId, insert_record.customer_id, insert_record.key, insert_record.value);
     END LOOP;
     CLOSE insert_cursor;
 END;
 $$;
+
+-- delete settings and attributes
+
+DELETE FROM admin_settings WHERE key = 'customTranslation';
+
+DELETE FROM attribute_kv WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM TENANT)
+                           AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'customTranslation';
+
+DELETE FROM attribute_kv WHERE entity_type = 'CUSTOMER' AND entity_id IN (SELECT id FROM CUSTOMER)
+                           AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'customTranslation';
 
 --CUSTOM TRANSLATION MIGRATION END

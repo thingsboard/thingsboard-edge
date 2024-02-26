@@ -33,16 +33,13 @@ package org.thingsboard.server.dao.sql.customtranslation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.customtranslation.CustomTranslation;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
 import org.thingsboard.server.dao.model.sql.CustomTranslationEntity;
-import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
-import org.thingsboard.server.dao.model.sql.WhiteLabelingEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
 import org.thingsboard.server.dao.translation.CustomTranslationDao;
 import org.thingsboard.server.dao.util.SqlDao;
@@ -74,8 +71,8 @@ public class JpaCustomTranslationDao extends JpaAbstractDaoListeningExecutorServ
     }
 
     @Override
-    public List<String> findAllLocalesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
-        return customTranslationRepository.findAllLocalesByTenantIdAndCustomerId(tenantId.getId(), customerId == null ? EntityId.NULL_UUID: customerId.getId());
+    public List<String> findLocalesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        return customTranslationRepository.findLocalesByTenantIdAndCustomerId(tenantId.getId(), customerId == null ? EntityId.NULL_UUID: customerId.getId());
     }
 
 }

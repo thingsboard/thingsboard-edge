@@ -30,20 +30,32 @@
  */
 package org.thingsboard.server.dao.translation;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
-import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.translation.TranslationInfo;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
-@Service("CustomTranslationCache")
-public class CustomTranslationCaffeineCache extends CaffeineTbTransactionalCache<CustomTranslationCompositeKey, CustomTranslation> {
+import java.io.IOException;
+import java.util.List;
 
-    public CustomTranslationCaffeineCache(CacheManager cacheManager) {
-        super(cacheManager, CacheConstants.CUSTOM_TRANSLATION_CACHE);
-    }
+public interface TranslationService {
+
+    List<TranslationInfo> getSystemLocaleTranslationInfos() throws IOException;
+
+    List<TranslationInfo> getTenantLocaleTranslationInfos(TenantId tenantId) throws IOException;
+
+    List<TranslationInfo> getCustomerLocaleTranslationInfos(TenantId tenantId, CustomerId customerId) throws IOException;
+
+    JsonNode getSystemTranslation(String localeCode) throws IOException;
+
+    JsonNode getTenantTranslation(TenantId tenantId, String localeCode) throws IOException;
+
+    JsonNode getCustomerTranslation(TenantId tenantId, CustomerId customerId, String localeCode) throws IOException;
+
+    JsonNode getFullSystemTranslation(String localeCode) throws IOException;
+
+    JsonNode getFullTenantTranslation(TenantId tenantId, String localeCode) throws IOException;
+
+    JsonNode getFullCustomerTranslation(TenantId tenantId, CustomerId customerId, String localeCode) throws IOException;
 
 }

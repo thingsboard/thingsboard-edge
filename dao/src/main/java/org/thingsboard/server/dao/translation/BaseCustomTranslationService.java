@@ -36,23 +36,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.customtranslation.CustomTranslation;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.settings.UserSettings;
-import org.thingsboard.server.common.data.settings.UserSettingsCompositeKey;
-import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entity.AbstractCachedService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
-import org.thingsboard.server.dao.settings.AdminSettingsService;
-import org.thingsboard.server.dao.user.UserSettingsEvictEvent;
-import org.thingsboard.server.exception.DataValidationException;
 
-import java.util.Iterator;
 import java.util.List;
+
+import static org.thingsboard.common.util.JacksonUtil.merge;
 
 @Service
 @Slf4j
@@ -63,70 +59,53 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     private final CustomTranslationDao customTranslationDao;
 
     @Override
-    public CustomTranslation getSystemCustomTranslation(String localeCode) {
-        var key =  new CustomTranslationCompositeKey(TenantId.SYS_TENANT_ID, null, localeCode);
-        return cache.getAndPutInTransaction(key,
+    public CustomTranslation getCurrentCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        CustomTranslationCompositeKey key = new CustomTranslationCompositeKey(tenantId, customerId, localeCode);
+        CustomTranslation customTranslation = cache.getAndPutInTransaction(key,
                 () -> customTranslationDao.findById(TenantId.SYS_TENANT_ID, key), true);
+        if (customTranslation == null){
+            customTranslation = CustomTranslation.builder()
+                    .localeCode(key.getLocaleCode())
+                    .value(JacksonUtil.newObjectNode()).build();
+        }
+        return customTranslation;
     }
 
     @Override
-    public CustomTranslation getTenantCustomTranslation(TenantId tenantId, String localeCode) {
-        var key =  new CustomTranslationCompositeKey(tenantId, null, localeCode);
-        return cache.getAndPutInTransaction(key,
-                () -> customTranslationDao.findById(TenantId.SYS_TENANT_ID, key), true);
+    public JsonNode getMergedTenantCustomTranslation(TenantId tenantId, String localeCode) {
+        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null,  localeCode).getValue();
+        JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue();
+        return merge(tenantCustomTranslation, systemCustomTranslation);
     }
 
     @Override
-    public CustomTranslation getCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
-        var key =  new CustomTranslationCompositeKey(tenantId, customerId, localeCode);
-        return cache.getAndPutInTransaction(key,
-                () -> customTranslationDao.findById(TenantId.SYS_TENANT_ID, key), true);    }
+    public JsonNode getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        JsonNode customerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode).getValue();
+        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null, localeCode).getValue();
+        JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue();
 
-    @Override
-    public CustomTranslation getMergedTenantCustomTranslation(TenantId tenantId, String localeCode) {
-        CustomTranslation result = getTenantCustomTranslation(tenantId, localeCode);
-        result.merge(getSystemCustomTranslation(localeCode));
-        return result;
+        return merge(merge(customerCustomTranslation, tenantCustomTranslation), systemCustomTranslation);
     }
 
     @Override
-    public CustomTranslation getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
-        CustomTranslation result = getCustomerCustomTranslation(tenantId, customerId, localeCode);
-        result.merge(getTenantCustomTranslation(tenantId, localeCode)).merge(getSystemCustomTranslation(localeCode));
-        return result;
-    }
-
-    @Override
-    public CustomTranslation saveSystemCustomTranslation(CustomTranslation customTranslation) {
-        customTranslation.setTenantId(TenantId.SYS_TENANT_ID);
+    public CustomTranslation saveCustomTranslation(CustomTranslation customTranslation) {
         customTranslationDao.save(TenantId.SYS_TENANT_ID, customTranslation);
+        publishEvictEvent(new CustomTranslationEvictEvent(new CustomTranslationCompositeKey(customTranslation.getTenantId(), customTranslation.getCustomerId(), customTranslation.getLocaleCode())));
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
                 .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
-        return getSystemCustomTranslation(customTranslation.getLocaleCode());
+        return getCurrentCustomTranslation(customTranslation.getTenantId(), customTranslation.getCustomerId(), customTranslation.getLocaleCode());
     }
 
     @Override
-    public CustomTranslation saveTenantCustomTranslation(TenantId tenantId, CustomTranslation customTranslation) {
-        customTranslation.setTenantId(tenantId);
-        customTranslationDao.save(tenantId, customTranslation);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(tenantId)
-                .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
-        return getTenantCustomTranslation(tenantId, customTranslation.getLocaleCode());
+    public CustomTranslation patchCustomTranslation(CustomTranslation newCustomTranslation) {
+        CustomTranslation customTranslation = getCurrentCustomTranslation(newCustomTranslation.getTenantId(), newCustomTranslation.getCustomerId(), newCustomTranslation.getLocaleCode());
+        JacksonUtil.update(customTranslation.getValue(), newCustomTranslation.getValue());
+        return saveCustomTranslation(customTranslation);
     }
 
     @Override
-    public CustomTranslation saveCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, CustomTranslation customTranslation) {
-        customTranslation.setTenantId(tenantId);
-        customTranslation.setCustomerId(customerId);
-        customTranslationDao.save(tenantId, customTranslation);
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(customerId)
-                .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
-        return getCustomerCustomTranslation(tenantId, customerId, customTranslation.getLocaleCode());
-    }
-
-    @Override
-    public List<String> getLocales(TenantId tenantId, CustomerId customerId) {
-        return customTranslationDao.findAllLocalesByTenantIdAndCustomerId(tenantId, customerId);
+    public List<String> getCustomizedLocales(TenantId tenantId, CustomerId customerId) {
+        return customTranslationDao.findLocalesByTenantIdAndCustomerId(tenantId, customerId);
     }
 
     @TransactionalEventListener(classes = CustomTranslationEvictEvent.class)

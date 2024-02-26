@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.customtranslation.CustomTranslation;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -256,7 +256,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                 case TENANT:
                     if (TenantId.SYS_TENANT_ID.equals(entityId)) {
                         CustomTranslation systemCustomTranslation =
-                                customTranslationService.getSystemCustomTranslation( "");
+                                customTranslationService.getCurrentCustomTranslation( (TenantId) entityId, null, "");
                         if (isDefaultCustomTranslation(systemCustomTranslation)) {
                             return null;
                         }
@@ -268,7 +268,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                                 .build();
                     } else {
                         CustomTranslation tenantCustomTranslation =
-                                customTranslationService.getTenantCustomTranslation(edgeEvent.getTenantId(), "");
+                                customTranslationService.getCurrentCustomTranslation(edgeEvent.getTenantId(), null, "");
                         if (isDefaultCustomTranslation(tenantCustomTranslation)) {
                             return null;
                         }
@@ -283,7 +283,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                 case CUSTOMER:
                     CustomerId customerId = new CustomerId(entityId.getId());
                     CustomTranslation customerCustomTranslation =
-                            customTranslationService.getCustomerCustomTranslation(edgeEvent.getTenantId(), customerId, "");
+                            customTranslationService.getCurrentCustomTranslation(edgeEvent.getTenantId(), customerId, "");
                     if (isDefaultCustomTranslation(customerCustomTranslation)) {
                         return null;
                     }
@@ -301,7 +301,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
     }
 
     private boolean isDefaultCustomTranslation(CustomTranslation customTranslation) {
-        return new CustomTranslation().equals(customTranslation);
+        return customTranslation.getValue().isEmpty();
     }
 
     public DownlinkMsg convertCustomMenuEventToDownlink(EdgeEvent edgeEvent) {

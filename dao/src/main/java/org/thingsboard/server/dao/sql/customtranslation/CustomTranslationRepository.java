@@ -33,7 +33,6 @@ package org.thingsboard.server.dao.sql.customtranslation;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
 import org.thingsboard.server.dao.model.sql.CustomTranslationEntity;
 
@@ -44,6 +43,6 @@ import java.util.UUID;
 public interface CustomTranslationRepository extends JpaRepository<CustomTranslationEntity, CustomTranslationCompositeKey> {
 
     @Query(value = "SELECT DISTINCT c.localeCode FROM CustomTranslationEntity c WHERE c.tenantId = :tenantId AND c.customerId = :customerId")
-    List<String> findAllLocalesByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId, @Param("customerId") UUID customerId);
+    List<String> findLocalesByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId, @Param("customerId") UUID customerId);
 
 }

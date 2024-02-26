@@ -30,20 +30,22 @@
  */
 package org.thingsboard.server.dao.translation;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
-import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
-@Service("CustomTranslationCache")
-public class CustomTranslationCaffeineCache extends CaffeineTbTransactionalCache<CustomTranslationCompositeKey, CustomTranslation> {
+@Data
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+public class TranslationCacheKey {
 
-    public CustomTranslationCaffeineCache(CacheManager cacheManager) {
-        super(cacheManager, CacheConstants.CUSTOM_TRANSLATION_CACHE);
+    private final TenantId tenantId;
+    private final CustomerId customerId;
+    private final String  localeCode;
+
+    public static TranslationCacheKey forLocale(TenantId tenantId, CustomerId customerId, String locale) {
+        return new TranslationCacheKey(tenantId, customerId, locale);
     }
 
 }
