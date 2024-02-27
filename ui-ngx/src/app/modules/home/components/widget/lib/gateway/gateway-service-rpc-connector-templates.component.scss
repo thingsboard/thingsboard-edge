@@ -28,94 +28,82 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../../../../scss/constants';
-
 :host {
   width: 100%;
   height: 100%;
-  display: block;
-  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
   padding: 0;
 
-  .connector-container {
-    height: 100%;
-    width: 100%;
-    flex-direction: row;
-    @media #{$mat-lt-lg} {
-      flex-direction: column;
-    }
-
-    & > section:not(.table-section) {
-      max-width: unset;
-      @media #{$mat-gt-md} {
-        max-width: 50%;
-      }
-    }
-
-    .table-section {
-      min-height: 35vh;
-      overflow: hidden;
-
-      .table-container {
-        overflow: auto;
-      }
-    }
-
-    .flex {
-      flex: 1;
-    }
-
-    .input-container {
-      height: auto;
-    }
-
-    .section-container {
-      background-color: #fff;
-    }
-  }
-
-  .mat-toolbar {
-    background: transparent;
-    color: rgba(0, 0, 0, .87) !important;
-  }
-
-  .mat-mdc-slide-toggle {
-    margin: 0 8px;
-  }
-
-  .status {
-    text-align: center;
-    border-radius: 16px;
+  .title {
     font-weight: 500;
+  }
+
+  .template-key {
+    color: rgba(0, 0, 0, 0.38);
+    height: 32px;
+    line-height: 32px;
+  }
+
+  .boolean-true, .boolean-false {
+    border-radius: 3px;
+    height: 32px;
+    line-height: 32px;
+    padding: 0 12px;
     width: fit-content;
-    padding: 5px 15px;
-    &-sync {
-      background: rgba(25, 128, 56, .06);
-      color: rgb(25, 128, 56);
+    font-size: 14px;
+    text-transform: capitalize;
+  }
+
+  .boolean-false {
+    color: #d12730;
+    background-color: rgba(209, 39, 48, 0.08);
+  }
+
+  .boolean-true {
+    color: #198038;
+    background-color: rgba(25, 128, 56, 0.08);
+  }
+
+  mat-expansion-panel {
+    margin-top: 10px;
+    overflow: visible;
+  }
+
+  .mat-expansion-panel-header-description {
+    flex-direction: row-reverse;
+    align-items: center;
+    margin-right: 0;
+
+    & > mat-icon {
+      margin-left: 15px;
+      color: rgba(0, 0, 0, 0.38);
     }
-    &-unsync {
-      background: rgba(203, 37, 48, .06);
-      color: rgb(203, 37, 48);
+  }
+
+  .mat-expansion-panel-header {
+    padding: 0 0 0 12px;
+
+    &.mat-expansion-panel-header.mat-expanded {
+      height: 48px;
+    }
+
+    .mat-content.mat-content-hide-toggle {
+      margin-right: 0;
     }
   }
 
-  mat-row {
-    cursor: pointer;
+  .rpc-params-row {
+    overflow: hidden;
+    white-space: nowrap;
+
+    & :not(:first-child) {
+      white-space: pre;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
-  .dot {
-    height: 12px;
-    width: 12px;
-    background-color: #bbb;
-    border-radius: 50%;
-    display: inline-block;
-  }
-
-  .hasErrors {
-    background-color: rgb(203, 37, 48);
-  }
-
-  .noErrors {
-    background-color: rgb(25, 128, 56);
-  }
 }
+
+

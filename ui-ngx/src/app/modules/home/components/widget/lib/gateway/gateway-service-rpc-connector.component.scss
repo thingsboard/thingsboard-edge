@@ -28,94 +28,55 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../../../../scss/constants';
-
 :host {
   width: 100%;
   height: 100%;
-  display: block;
-  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
   padding: 0;
 
-  .connector-container {
-    height: 100%;
-    width: 100%;
-    flex-direction: row;
-    @media #{$mat-lt-lg} {
-      flex-direction: column;
-    }
-
-    & > section:not(.table-section) {
-      max-width: unset;
-      @media #{$mat-gt-md} {
-        max-width: 50%;
-      }
-    }
-
-    .table-section {
-      min-height: 35vh;
-      overflow: hidden;
-
-      .table-container {
-        overflow: auto;
-      }
-    }
-
-    .flex {
-      flex: 1;
-    }
-
-    .input-container {
-      height: auto;
-    }
-
-    .section-container {
-      background-color: #fff;
-    }
-  }
-
-  .mat-toolbar {
-    background: transparent;
-    color: rgba(0, 0, 0, .87) !important;
-  }
-
-  .mat-mdc-slide-toggle {
-    margin: 0 8px;
-  }
-
-  .status {
-    text-align: center;
-    border-radius: 16px;
+  .title {
     font-weight: 500;
-    width: fit-content;
-    padding: 5px 15px;
-    &-sync {
-      background: rgba(25, 128, 56, .06);
-      color: rgb(25, 128, 56);
-    }
-    &-unsync {
-      background: rgba(203, 37, 48, .06);
-      color: rgb(203, 37, 48);
+  }
+
+  .command-form {
+    flex-wrap: nowrap;
+
+    & > button {
+      margin-top: 10px;
     }
   }
 
-  mat-row {
-    cursor: pointer;
+  .mat-mdc-slide-toggle.margin {
+    margin-bottom: 10px;
+    margin-left: 10px;
   }
 
-  .dot {
-    height: 12px;
-    width: 12px;
-    background-color: #bbb;
-    border-radius: 50%;
-    display: inline-block;
+  .fields{
+    .fields-label {
+      font-weight: 500;
+    }
   }
 
-  .hasErrors {
-    background-color: rgb(203, 37, 48);
-  }
+  .border {
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 0 0 rgb(0 0 0 / 20%), 0 0 0 0 rgb(0 0 0 / 14%), 0 0 0 0 rgb(0 0 0 / 12%);
+    border: solid 1px #e0e0e0;
+    border-radius: 4px;
 
-  .noErrors {
-    background-color: rgb(25, 128, 56);
+    .title {
+      color: rgba(0, 0, 0, .54);
+    }
+
+    .mat-icon {
+      color: rgba(0, 0, 0, .38);
+    }
+
+    .mat-divider {
+      margin-left: -16px;
+      margin-right: -16px;
+      margin-bottom: 16px;
+    }
   }
 }
