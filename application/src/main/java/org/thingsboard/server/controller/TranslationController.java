@@ -99,8 +99,8 @@ public class TranslationController extends BaseController {
     private final TranslationService translationService;
 
     @ApiOperation(value = "Get Translation info (getTranslationInfo)",
-            notes = "Fetch the list of configured custom translation info that corresponds to the authority of the user. " +
-                    "The result is list of translation info objects that includes locale code, language, country and translation progress info. " +
+            notes = "Fetch the list of customized locales and corresponding details such as language display name," +
+                    " country display name and translation progress percentage." +
                     "\n\n Response example: " + CUSTOM_TRANSLATION_INFO_EXAMPLE +
                     ControllerConstants.WL_READ_CHECK
             , produces = MediaType.APPLICATION_JSON_VALUE)
@@ -111,18 +111,18 @@ public class TranslationController extends BaseController {
         Authority authority = getCurrentUser().getAuthority();
         checkWhiteLabelingPermissions(Operation.READ);
         if (Authority.SYS_ADMIN.equals(authority)) {
-            return translationService.getSystemLocaleTranslationInfos();
+            return translationService.getSystemTranslationInfo();
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            return translationService.getTenantLocaleTranslationInfos(getCurrentUser().getTenantId());
+            return translationService.getTenantTranslationInfo(getCurrentUser().getTenantId());
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            return translationService.getCustomerLocaleTranslationInfos(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
+            return translationService.getCustomerTranslationInfo(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
         }
         return Collections.emptyList();
     }
 
-    @ApiOperation(value = "Get end-user translation (getFullTranslation)",
-            notes = "Fetch the translation json for the end user with is the result of merge custom translation, system language translation " +
-                    "and default locale translation."
+    @ApiOperation(value = "Get end-user all-to-one translation (getFullTranslation)",
+            notes = "Fetch the end-user translation for specified locale. The result is the merge of user custom translation, " +
+                    "system language translation and default locale translation."
             , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/translation/{localeCode}", method = RequestMethod.GET, produces = "application/json")
@@ -168,7 +168,6 @@ public class TranslationController extends BaseController {
     }
 
     protected String calculateTranslationEtag(JsonNode translation) {
-        new DigestUtils("SHA3-256").digestAsHex(translation.toString());
         return Hashing.sha256().hashString(translation.toString(), StandardCharsets.UTF_8).toString();
     }
 

@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
@@ -52,13 +53,14 @@ import java.util.stream.Collectors;
 @Slf4j
 @TbCoreComponent
 public class DefaultTbTranslationService extends AbstractTbEntityService implements TbTranslationService {
+
     private final TbClusterService clusterService;
     private final CustomTranslationService customTranslationService;
     private final Cache<TranslationCacheKey, String> etagCache;
 
     public DefaultTbTranslationService(TbClusterService clusterService, CustomTranslationService customTranslationService,
                                  @Value("${cache.translation.etag.timeToLiveInMinutes:44640}") int cacheTtl,
-                                 @Value("${cache.translation.etag.maxSize:20}") int cacheMaxSize) {
+                                 @Value("${cache.translation.etag.maxSize:100000}") int cacheMaxSize) {
         this.clusterService = clusterService;
         this.customTranslationService = customTranslationService;
         this.etagCache = Caffeine.newBuilder()
@@ -78,6 +80,13 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     public CustomTranslation patchCustomTranslation(CustomTranslation customTranslation) {
         CustomTranslation saved = customTranslationService.patchCustomTranslation(customTranslation);
         evictFromCache(customTranslation.getTenantId());
+        return saved;
+    }
+
+    @Override
+    public CustomTranslation deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, String key) {
+        CustomTranslation saved = customTranslationService.deleteCustomTranslation(tenantId, customerId, localeCode, key);
+        evictFromCache(tenantId);
         return saved;
     }
 

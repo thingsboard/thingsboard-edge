@@ -80,8 +80,7 @@ public class CustomTranslationController extends BaseController {
     private CustomTranslationService customTranslationService;
 
     @ApiOperation(value = "Get end-user Custom Translation configuration (getCustomTranslation)",
-            notes = "Fetch the merge result of subcustomer, customer, tenant, system custom translation for the end user. " +
-                    "The custom translation is configured in the white labeling parameters. " +
+            notes = "Fetch end-user Custom Translation for specified locale. The custom translation is configured in the white labeling parameters. " +
                     "If custom translation translation is defined on the tenant level, it overrides the custom translation of the system level. " +
                     "Similar, if the custom translation is defined on the customer level, it overrides the translation configuration of the tenant level."
             , produces = MediaType.APPLICATION_JSON_VALUE)
@@ -102,8 +101,9 @@ public class CustomTranslationController extends BaseController {
     }
 
     @ApiOperation(value = "Get Custom Translation configuration (getCurrentCustomTranslation)",
-            notes = "Fetch the Custom Translation json object that corresponds to the authority of the user. " +
-                    "The result is NOT merged with the parent level configuration. " +
+            notes = "Fetch the Custom Translation for specified locale that corresponds to the authority of the user. " +
+                    "The API call is designed to load the custom translation items for edition. " +
+                    "So, the result is NOT merged with the parent level configuration. " +
                     "Let's assume there is a custom translation configured on a system level. " +
                     "And there is no custom translation items configured on a tenant level. " +
                     "In such a case, the API call will return empty object for the tenant administrator. " +
@@ -121,13 +121,13 @@ public class CustomTranslationController extends BaseController {
     }
 
     @ApiOperation(value = "Create Or Update Custom Translation (saveCustomTranslation)",
-            notes = "Creates or Updates the Custom Translation map." +
+            notes = "Creates or Updates the Custom Translation for specified locale." +
                     "\n\n Request example: " + CUSTOM_TRANSLATION_EXAMPLE +
                     ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public CustomTranslation saveCustomTranslation( @ApiParam(value = "Locale code (e.g. 'en_US').")
+    public CustomTranslation saveCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
             @PathVariable("localeCode") String localeCode,
             @ApiParam(value = "A JSON value representing the custom translation. See API call notes above for valid example.")
             @RequestBody JsonNode customTranslationValue) throws ThingsboardException {
@@ -142,13 +142,14 @@ public class CustomTranslationController extends BaseController {
         return tbTranslationService.saveCustomTranslation(customTranslation);
     }
 
-    @ApiOperation(value = "Update specified keys of Custom Translation (patchCustomTranslation)",
-            notes = "\n\n Request example: " + CUSTOM_TRANSLATION_PATCH_EXAMPLE +
+    @ApiOperation(value = "Update Custom Translation for specified translation keys only (patchCustomTranslation)",
+            notes = "The API call is designed to update the custom translation for specified key only. " +
+                    "\n\n Request example: " + CUSTOM_TRANSLATION_PATCH_EXAMPLE +
                     ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}", method = RequestMethod.PATCH)
     @ResponseStatus(value = HttpStatus.OK)
-    public CustomTranslation patchCustomTranslation( @ApiParam(value = "Locale code (e.g. 'en_US').")
+    public CustomTranslation patchCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
                                                     @PathVariable("localeCode") String localeCode,
                                                     @ApiParam(value = "A JSON value representing the custom translation. See API call notes above for valid example.")
                                                     @RequestBody JsonNode newCustomTranslation) throws ThingsboardException {
@@ -161,6 +162,23 @@ public class CustomTranslationController extends BaseController {
                 .value(newCustomTranslation)
                 .build();
         return tbTranslationService.patchCustomTranslation(customTranslation);
+    }
+
+    @ApiOperation(value = "Delete specified key of Custom Translation (deleteCustomTranslation)",
+            notes = "The API call is designed to delete specified key of the custom translation. " +
+                    ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}/{key}", method = RequestMethod.DELETE)
+    @ResponseStatus(value = HttpStatus.OK)
+    public CustomTranslation deleteCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
+                                                     @PathVariable("localeCode") String localeCode,
+                                                     @ApiParam(value = "A string value representing key of the custom translation (e.g. 'notification.active').")
+                                                     @PathVariable String key) throws ThingsboardException {
+        checkWhiteLabelingPermissions(Operation.WRITE);
+        DataValidator.validateLocaleCode(localeCode);
+        SecurityUser currentUser = getCurrentUser();
+        return tbTranslationService.deleteCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
+                localeCode, key);
     }
 
     private void checkWhiteLabelingPermissions(Operation operation) throws ThingsboardException {

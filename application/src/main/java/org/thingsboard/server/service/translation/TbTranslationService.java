@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.translation;
 
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.dao.translation.TranslationCacheKey;
@@ -39,6 +40,8 @@ public interface TbTranslationService {
     CustomTranslation saveCustomTranslation(CustomTranslation customTranslation);
 
     CustomTranslation patchCustomTranslation(CustomTranslation customTranslation);
+
+    CustomTranslation deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, String key);
 
     String getETag(TranslationCacheKey translationCacheKey);
 

@@ -160,6 +160,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -874,6 +875,14 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         }
     }
 
+    protected <T, R> R doPatch(String urlTemplate, T content, Class<R> responseClass, String... params) {
+        try {
+            return readResponse(doPatch(urlTemplate, content, params).andExpect(status().isOk()), responseClass);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     protected <T, R> R doPostWithResponse(String urlTemplate, T content, Class<R> responseClass, String... params) throws Exception {
         return readResponse(doPost(urlTemplate, content, params).andExpect(status().isOk()), responseClass);
     }
@@ -931,6 +940,14 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected <T> ResultActions doPost(String urlTemplate, T content, String... params) throws Exception {
         MockHttpServletRequestBuilder postRequest = post(urlTemplate, params);
+        setJwtToken(postRequest);
+        String json = json(content);
+        postRequest.contentType(contentType).content(json);
+        return mockMvc.perform(postRequest);
+    }
+
+    protected <T> ResultActions doPatch(String urlTemplate, T content, String... params) throws Exception {
+        MockHttpServletRequestBuilder postRequest = patch(urlTemplate, params);
         setJwtToken(postRequest);
         String json = json(content);
         postRequest.contentType(contentType).content(json);

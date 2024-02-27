@@ -143,11 +143,15 @@ public abstract class DataValidator<D extends BaseData<?>> {
             return false;
         }
         String[] parts = localeCode.split("_");
-        switch (parts.length) {
-            case 3: return isLocaleValid(new Locale(parts[0], parts[1], parts[2]));
-            case 2: return isLocaleValid(new Locale(parts[0], parts[1]));
-            case 1: return isLocaleValid(new Locale(parts[0]));
-            default: return false;
+        try {
+            switch (parts.length) {
+                case 3: return isLocaleValid(new Locale(parts[0], parts[1], parts[2]));
+                case 2: return isLocaleValid(new Locale(parts[0], parts[1]));
+                case 1: return isLocaleValid(new Locale(parts[0]));
+                default: return false;
+            }
+        } catch (Exception e) {
+            return false;
         }
     }
 

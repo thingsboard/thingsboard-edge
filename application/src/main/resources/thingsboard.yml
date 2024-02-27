@@ -708,7 +708,7 @@ cache:
   translation:
     etag:
       timeToLiveInMinutes: "${CACHE_SPECS_TRANSLATION_ETAGS_TTL:44640}" # Translation ETags cache TTL in minutes (one month by default)
-      maxSize: "${CACHE_SPECS_TRANSLATION_ETAGS_MAX_SIZE:20}" # 0 means the cache is disabled
+      maxSize: "${CACHE_SPECS_TRANSLATION_ETAGS_MAX_SIZE:100000}" # 0 means the cache is disabled
 
 # Spring data parameters
 spring.data.redis.repositories.enabled: false # Disable this because it is not required.

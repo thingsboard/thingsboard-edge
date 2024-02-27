@@ -111,6 +111,13 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     }
 
     @Override
+    public CustomTranslation deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, String key) {
+        CustomTranslation customTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode);
+        JacksonUtil.deleteKey(customTranslation.getValue(), key);
+        return saveCustomTranslation(customTranslation);
+    }
+
+    @Override
     public List<String> getCustomizedLocales(TenantId tenantId, CustomerId customerId) {
         return customTranslationDao.findLocalesByTenantIdAndCustomerId(tenantId, customerId);
     }

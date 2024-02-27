@@ -44,18 +44,18 @@ DO
 $$
 DECLARE
     insert_record  RECORD;
-    insert_cursor CURSOR FOR SELECT json_data.key AS key,
+    insert_cursor CURSOR FOR SELECT json_data.key AS locale,
                                     json_data.value AS value
-                             FROM admin_settings,
-                                  json_each_text(((trim('"' FROM admin_settings.json_value::json ->> 'value'))::json ->> 'translationMap')::json) AS json_data
-                             WHERE  admin_settings.tenant_id = '13814000-1dd2-11b2-8080-808080808080' AND  admin_settings.key = 'customTranslation';
+                             FROM admin_settings a,
+                                  json_each_text(((trim('"' FROM a.json_value::json ->> 'value'))::json ->> 'translationMap')::json) AS json_data
+                             WHERE  a.tenant_id = '13814000-1dd2-11b2-8080-808080808080' AND  a.key = 'customTranslation';
 BEGIN
     OPEN insert_cursor;
     LOOP
         FETCH insert_cursor INTO insert_record;
         EXIT WHEN NOT FOUND;
         INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
-            VALUES ('13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080', insert_record.key, insert_record.value);
+            VALUES ('13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080', insert_record.locale, insert_record.value);
     END LOOP;
     CLOSE insert_cursor;
 END;
@@ -67,18 +67,18 @@ DO
 $$
 DECLARE
     insert_record  RECORD;
-    insert_cursor CURSOR FOR SELECT attribute_kv.entity_id AS tenant_id, json_data.key AS key,
+    insert_cursor CURSOR FOR SELECT a.entity_id AS tenant_id, json_data.key AS locale,
                                     json_data.value AS value
-                             FROM attribute_kv,
-                                  json_each_text((attribute_kv.str_v::json ->> 'translationMap')::json) AS json_data
-                             WHERE  attribute_kv.attribute_key = 'customTranslation' and attribute_kv.entity_type = 'TENANT';
+                             FROM attribute_kv a,
+                                  json_each_text((a.str_v::json ->> 'translationMap')::json) AS json_data
+                             WHERE  a.attribute_key = 'customTranslation' and a.entity_type = 'TENANT';
 BEGIN
     OPEN insert_cursor;
     LOOP
         FETCH insert_cursor INTO insert_record;
         EXIT WHEN NOT FOUND;
         INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
-           VALUES (insert_record.tenant_id, '13814000-1dd2-11b2-8080-808080808080', insert_record.key, insert_record.value);
+           VALUES (insert_record.tenant_id, '13814000-1dd2-11b2-8080-808080808080', insert_record.locale, insert_record.value);
     END LOOP;
     CLOSE insert_cursor;
 END;
@@ -91,11 +91,11 @@ $$
 DECLARE
     tenantId uuid;
     insert_record  RECORD;
-    insert_cursor CURSOR FOR SELECT attribute_kv.entity_id AS customer_id, json_data.key AS key,
+    insert_cursor CURSOR FOR SELECT a.entity_id AS customer_id, json_data.key AS locale,
                                     json_data.value AS value
-                             FROM attribute_kv,
-                                 json_each_text((attribute_kv.str_v::json ->> 'translationMap')::json) AS json_data
-                             WHERE  attribute_kv.attribute_key = 'customTranslation' and attribute_kv.entity_type = 'CUSTOMER';
+                             FROM attribute_kv a,
+                                 json_each_text((a.str_v::json ->> 'translationMap')::json) AS json_data
+                             WHERE  a.attribute_key = 'customTranslation' and a.entity_type = 'CUSTOMER';
 BEGIN
     OPEN insert_cursor;
     LOOP
@@ -103,7 +103,7 @@ BEGIN
         EXIT WHEN NOT FOUND;
         SELECT tenant_id INTO tenantId FROM customer where id = insert_record.customer_id;
         INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
-            VALUES (tenantId, insert_record.customer_id, insert_record.key, insert_record.value);
+            VALUES (tenantId, insert_record.customer_id, insert_record.locale, insert_record.value);
     END LOOP;
     CLOSE insert_cursor;
 END;
