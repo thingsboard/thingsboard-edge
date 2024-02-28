@@ -53,7 +53,6 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.AccessJwtToken;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
-import org.thingsboard.server.service.security.model.token.RawAccessJwtToken;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
 import java.util.Calendar;
