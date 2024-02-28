@@ -103,6 +103,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.group.EntityGroup.EDGE_ENTITY_GROUP_TYPE_ALLOWABLE_VALUES;
@@ -145,7 +147,8 @@ public class EntityGroupController extends AutoCommitController {
     private final OwnerService ownerService;
     private final RoleService roleService;
     private final UserService userService;
-    private volatile RoleId tenantAdminRoleId;
+    private final Lock findOrCreateRoleLock = new ReentrantLock();
+    private RoleId tenantAdminRoleId;
 
     public static final String ENTITY_GROUP_DESCRIPTION = "Entity group allows you to group multiple entities of the same entity type (Device, Asset, Customer, User, Dashboard, etc). " +
             "Entity Group always have an owner - particular Tenant or Customer. Each entity may belong to multiple groups simultaneously.";
@@ -160,11 +163,6 @@ public class EntityGroupController extends AutoCommitController {
     private static final String ENTITY_GROUP_TYPE_PARAMETER_DESCRIPTION = "Entity Group type";
     private static final String SHORT_ENTITY_VIEW_DESCRIPTION = "Short Entity View object contains the entity id and number of fields (attributes, telemetry, etc). " +
             "List of those fields is configurable and defined in the group configuration.";
-
-    @PostConstruct
-    public void init() {
-        tenantAdminRoleId = roleService.findOrCreateTenantAdminRole().getId();
-    }
 
     @ApiOperation(value = "Get Entity Group Info (getEntityGroupById)",
             notes = "Fetch the Entity Group object based on the provided Entity Group Id. "
@@ -286,7 +284,7 @@ public class EntityGroupController extends AutoCommitController {
                     "Removal of entity group 'All' is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);
         }
         if (EntityType.USER.equals(entityGroup.getType()) && (entityGroup.getOwnerId() instanceof TenantId)
-                && groupPermissionService.existsByUserGroupIdAndRoleId(entityGroupId, tenantAdminRoleId)) {
+                && groupPermissionService.existsByUserGroupIdAndRoleId(entityGroupId, getTenantAdminRoleId())) {
             List<UserId> entityGroupUsers = userService.findUsersByEntityGroupIds(List.of(entityGroupId), new PageLink(Integer.MAX_VALUE))
                     .getData()
                     .stream()
@@ -830,7 +828,8 @@ public class EntityGroupController extends AutoCommitController {
                 checkEntityId(entityId, Operation.READ);
                 entityIds.add(entityId);
             }
-            if (EntityType.USER.equals(entityGroup.getType()) && (entityGroup.getOwnerId() instanceof TenantId)) {
+            if (EntityType.USER.equals(entityGroup.getType()) && (entityGroup.getOwnerId() instanceof TenantId)
+                    && groupPermissionService.existsByUserGroupIdAndRoleId(entityGroupId, getTenantAdminRoleId())) {
                 List<UserId> userIds = entityIds.stream().map(UserId.class::cast).collect(Collectors.toList());
                 checkAtLeastOneTenantAdmin(userIds);
             }
@@ -1437,6 +1436,20 @@ public class EntityGroupController extends AutoCommitController {
         } else {
             throw permissionDenied();
         }
+    }
+
+    private RoleId getTenantAdminRoleId() {
+        if (tenantAdminRoleId == null) {
+            findOrCreateRoleLock.lock();
+            try {
+                if (tenantAdminRoleId == null) {
+                    tenantAdminRoleId = roleService.findOrCreateTenantAdminRole().getId();
+                }
+            } finally {
+                findOrCreateRoleLock.unlock();
+            }
+        }
+        return tenantAdminRoleId;
     }
 
     private void checkAtLeastOneTenantAdmin(List<UserId> usersToRemove) throws ThingsboardException {
