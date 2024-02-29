@@ -126,8 +126,9 @@ public class BaseTranslationService implements TranslationService {
 
     @Override
     public JsonNode getSystemTranslation(String localeCode) throws IOException {
-        CustomTranslation customTranslation = customTranslationService.getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode);
-        return mergeWithSystemLanguageTranslationIfExists(localeCode, customTranslation.getValue());
+        JsonNode customTranslation = customTranslationService.getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode)
+                .getValue().deepCopy();
+        return mergeWithSystemLanguageTranslationIfExists(localeCode, customTranslation);
     }
 
     @Override

@@ -84,10 +84,16 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     }
 
     @Override
-    public CustomTranslation deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, String key) {
-        CustomTranslation saved = customTranslationService.deleteCustomTranslation(tenantId, customerId, localeCode, key);
+    public CustomTranslation deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String key) {
+        CustomTranslation saved = customTranslationService.deleteCustomTranslationKey(tenantId, customerId, localeCode, key);
         evictFromCache(tenantId);
         return saved;
+    }
+
+    @Override
+    public void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        customTranslationService.deleteCustomTranslation(tenantId, customerId, localeCode);
+        evictFromCache(tenantId);
     }
 
     @Override

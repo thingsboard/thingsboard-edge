@@ -50,6 +50,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.common.data.id.TenantId.SYS_TENANT_ID;
 
 @DaoSqlTest
@@ -180,6 +181,23 @@ public class TranslationControllerTest extends AbstractControllerTest {
         doPost("/api/customTranslation/customTranslation/" + AR_QA, fullCustomerTranslation, CustomTranslation.class);
         TranslationInfo updatedTenantArabic = getTranslationInfo(AR_QA);
         assertThat(updatedTenantArabic.getProgress()).isEqualTo(100);
+    }
+
+    @Test
+    public void shouldDownloadFullTranslation() throws Exception {
+        loginSysAdmin();
+        JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"system\", \"update\" : \"system\" ," +
+                " \"remove\" : \"system\", \"search\":\"system\"}");
+        doPost("/api/customTranslation/customTranslation/" + ES_ES, esCustomTranslation, CustomTranslation.class);
+
+        //download full translation
+        byte[] contentAsByteArray = doGet("/api/translation/" + ES_ES).andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsByteArray();
+        JsonNode downloadedCustomTranslation = JacksonUtil.fromBytes(contentAsByteArray);
+
+        assertThat(downloadedCustomTranslation.get("save").asText()).isEqualTo("system");
+        assertThat(downloadedCustomTranslation.get("access").get("unauthorized").asText()).isEqualTo("No autorizado");
+        assertThat(downloadedCustomTranslation.get("solution-template").get("solution-template").asText()).isEqualTo("Solution template");
     }
 
     private void checkTranslationInfo() throws Exception {

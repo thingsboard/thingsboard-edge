@@ -41,15 +41,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -164,21 +166,59 @@ public class CustomTranslationController extends BaseController {
         return tbTranslationService.patchCustomTranslation(customTranslation);
     }
 
-    @ApiOperation(value = "Delete specified key of Custom Translation (deleteCustomTranslation)",
+    @ApiOperation(value = "Delete specified key of Custom Translation (deleteCustomTranslationKey)",
             notes = "The API call is designed to delete specified key of the custom translation. " +
                     ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}/{key}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
-    public CustomTranslation deleteCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
+    public CustomTranslation deleteCustomTranslationKey(@ApiParam(value = "Locale code (e.g. 'en_US').")
                                                      @PathVariable("localeCode") String localeCode,
-                                                     @ApiParam(value = "A string value representing key of the custom translation (e.g. 'notification.active').")
+                                                        @ApiParam(value = "A string value representing key of the custom translation (e.g. 'notification.active').")
                                                      @PathVariable String key) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
         SecurityUser currentUser = getCurrentUser();
-        return tbTranslationService.deleteCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
+        return tbTranslationService.deleteCustomTranslationKey(currentUser.getTenantId(), currentUser.getCustomerId(),
                 localeCode, key);
+    }
+
+    @ApiOperation(value = "Upload Custom Translation (uploadCustomTranslation)",
+            notes = "Upload the Custom Translation for specified locale." +
+                    "\n\n Request example: " + CUSTOM_TRANSLATION_EXAMPLE +
+                    ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}/upload", method = RequestMethod.POST)
+    @ResponseStatus(value = HttpStatus.OK)
+    public CustomTranslation uploadCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
+                                                      @PathVariable("localeCode") String localeCode,
+                                                  @RequestPart MultipartFile file) throws Exception {
+        checkWhiteLabelingPermissions(Operation.WRITE);
+        DataValidator.validateLocaleCode(localeCode);
+
+        SecurityUser user = getCurrentUser();
+        CustomTranslation customTranslation = new CustomTranslation();
+        customTranslation.setTenantId(user.getTenantId());
+        customTranslation.setCustomerId(user.getCustomerId());
+        customTranslation.setLocaleCode(localeCode);
+        customTranslation.setValueBytes(file.getBytes());
+
+        return tbTranslationService.saveCustomTranslation(customTranslation);
+    }
+
+    @ApiOperation(value = "Delete Custom Translation for specified locale (deleteCustomTranslation)",
+            notes = "Delete entire custom translation settings for end-user" +
+                    ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}", method = RequestMethod.DELETE)
+    @ResponseStatus(value = HttpStatus.OK)
+    public void deleteCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
+                                                        @PathVariable("localeCode") String localeCode) throws ThingsboardException {
+        checkWhiteLabelingPermissions(Operation.WRITE);
+        DataValidator.validateLocaleCode(localeCode);
+        SecurityUser currentUser = getCurrentUser();
+        tbTranslationService.deleteCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
+                localeCode);
     }
 
     private void checkWhiteLabelingPermissions(Operation operation) throws ThingsboardException {

@@ -430,11 +430,10 @@ public class JacksonUtil {
     }
 
     public static JsonNode merge(JsonNode mainNode, JsonNode updateNode) {
-        JsonNode merged = mainNode.deepCopy();
         Iterator<String> fieldNames = updateNode.fieldNames();
         while (fieldNames.hasNext()) {
             String fieldName = fieldNames.next();
-            JsonNode jsonNode = merged.get(fieldName);
+            JsonNode jsonNode = mainNode.get(fieldName);
             if (jsonNode != null) {
                 if (jsonNode.isObject()) {
                     merge(jsonNode, updateNode.get(fieldName));
@@ -444,17 +443,17 @@ public class JacksonUtil {
                     }
                 }
             } else {
-                if (merged instanceof ObjectNode) {
+                if (mainNode instanceof ObjectNode) {
                     // Overwrite field
                     JsonNode value = updateNode.get(fieldName);
                     if (value.isNull()) {
                         continue;
                     }
-                    ((ObjectNode) merged).set(fieldName, value);
+                    ((ObjectNode) mainNode).set(fieldName, value);
                 }
             }
         }
-        return merged;
+        return mainNode;
     }
 
     public static JsonNode update(JsonNode mainNode, JsonNode updateNode) {

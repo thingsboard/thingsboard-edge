@@ -76,14 +76,14 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
 
     @Override
     public JsonNode getMergedTenantCustomTranslation(TenantId tenantId, String localeCode) {
-        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null,  localeCode).getValue();
+        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null,  localeCode).getValue().deepCopy();
         JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue();
         return merge(tenantCustomTranslation, systemCustomTranslation);
     }
 
     @Override
     public JsonNode getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
-        JsonNode customerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode).getValue();
+        JsonNode customerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode).getValue().deepCopy();
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {
             customerCustomTranslation = getMergedCustomerHierarchyCustomTranslation(tenantId, customer.getParentCustomerId(), localeCode, customerCustomTranslation);
@@ -96,7 +96,7 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
 
     @Override
     public CustomTranslation saveCustomTranslation(CustomTranslation customTranslation) {
-        customTranslationDao.save(TenantId.SYS_TENANT_ID, customTranslation);
+        customTranslationDao.save(customTranslation.getTenantId(), customTranslation);
         publishEvictEvent(new CustomTranslationEvictEvent(new CustomTranslationCompositeKey(customTranslation.getTenantId(), customTranslation.getCustomerId(), customTranslation.getLocaleCode())));
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
                 .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
@@ -111,10 +111,19 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     }
 
     @Override
-    public CustomTranslation deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, String key) {
+    public CustomTranslation deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String key) {
         CustomTranslation customTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode);
         JacksonUtil.deleteKey(customTranslation.getValue(), key);
         return saveCustomTranslation(customTranslation);
+    }
+
+    @Override
+    public void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        CustomTranslationCompositeKey key = new CustomTranslationCompositeKey(tenantId, customerId, localeCode);
+        customTranslationDao.removeById(tenantId, key);
+        publishEvictEvent(new CustomTranslationEvictEvent(new CustomTranslationCompositeKey(tenantId, customerId, localeCode)));
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
+                .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
     }
 
     @Override

@@ -35,8 +35,8 @@ import com.google.common.hash.Hashing;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -147,6 +147,41 @@ public class TranslationController extends BaseController {
         return ResponseEntity.ok()
                 .header("Content-Type", MediaType.APPLICATION_JSON.toString())
                 .body(JacksonUtil.newObjectNode());
+    }
+
+    @ApiOperation(value = "Download end-user all-to-one translation (downloadFullTranslation)",
+            notes = "Fetch the end-user translation for the specified locale. The result is a json file with merged user custom translation, " +
+                    "system language translation and default locale translation."
+            , produces = MediaType.APPLICATION_JSON_VALUE)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/translation/{localeCode}/download", method = RequestMethod.GET, produces = "application/json")
+    @ResponseBody
+    public ResponseEntity<ByteArrayResource> downloadFullTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
+                                                       @PathVariable("localeCode") String localeCode) throws Exception {
+        checkWhiteLabelingPermissions(Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        CustomerId customerId = getCurrentUser().getCustomerId();
+        Authority authority = getCurrentUser().getAuthority();
+
+        JsonNode fullSystemTranslation = null;
+        if (Authority.SYS_ADMIN.equals(authority)) {
+            fullSystemTranslation = translationService.getFullSystemTranslation(localeCode);
+        } else if (Authority.TENANT_ADMIN.equals(authority)) {
+            fullSystemTranslation = translationService.getFullTenantTranslation(tenantId, localeCode);
+        } else if (Authority.CUSTOMER_USER.equals(authority)) {
+            fullSystemTranslation = translationService.getFullCustomerTranslation(tenantId, customerId, localeCode);
+        }
+        checkNotNull(fullSystemTranslation);
+
+        String fileName =  localeCode  + "_custom_translation.json";
+        ByteArrayResource translation = new ByteArrayResource(fullSystemTranslation.toString().getBytes());
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+                .header("x-filename", fileName)
+                .contentLength(translation.contentLength())
+                .header("Content-Type", MediaType.APPLICATION_JSON.toString())
+                .body(translation);
     }
 
     private ResponseEntity<JsonNode> getFullTranslationIfChanged(TranslationCacheKey cacheKey, String etag, ThrowingSupplier<JsonNode> fullTranslationSupplier) throws Exception {

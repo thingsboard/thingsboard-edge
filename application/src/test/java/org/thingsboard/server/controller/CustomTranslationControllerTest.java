@@ -35,7 +35,11 @@ import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
@@ -44,13 +48,17 @@ import org.thingsboard.server.dao.settings.AdminSettingsDao;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 
 
+import java.util.Base64;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.common.data.id.TenantId.SYS_TENANT_ID;
 
 @DaoSqlTest
 public class CustomTranslationControllerTest extends AbstractControllerTest {
 
     private static final String ES_ES = "es_ES";
+    private static final byte[] CUSTOM_TRANSLATION_BYTES = Base64.getDecoder().decode("eyJzYXZlIjoic2F2ZSBhbGFybSJ9");
 
     @Autowired
     CustomTranslationService customTranslationService;
@@ -179,6 +187,29 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
         checkDeleteCustomTranslationKey();
     }
 
+    @Test
+    public void shouldUploadCustomTranslation() throws Exception {
+        loginSysAdmin();
+        CustomTranslation uploaded = uploadCustomTranslation(HttpMethod.POST, "/api/customTranslation/customTranslation/es_ES/upload",
+                MediaType.APPLICATION_JSON_VALUE, CUSTOM_TRANSLATION_BYTES);
+        assertThat(uploaded.getValue()).isEqualTo(JacksonUtil.toJsonNode("{\"save\":\"save alarm\"}"));
+
+        CustomTranslation retrieved = doGet("/api/customTranslation/currentCustomTranslation/" + ES_ES, CustomTranslation.class);
+        assertThat(retrieved.getValue().get("save").asText()).isEqualTo("save alarm");
+    }
+
+    @Test
+    public void shouldDeleteCustomTranslation() throws Exception {
+        loginSysAdmin();
+        JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"" + StringUtils.randomAlphabetic(10) + "\"}");
+        doPost("/api/customTranslation/customTranslation/" + ES_ES, esCustomTranslation, CustomTranslation.class);
+
+        doDelete("/api/customTranslation/customTranslation/" + ES_ES);
+
+        CustomTranslation retrieved = doGet("/api/customTranslation/currentCustomTranslation/" + ES_ES, CustomTranslation.class);
+        assertThat(retrieved.getValue()).isEmpty();
+    }
+
     private void updateSpanishCustomTranslation(JsonNode newCustomTranslation) throws Exception {
         doPost("/api/customTranslation/customTranslation/" + ES_ES, newCustomTranslation, CustomTranslation.class);
 
@@ -252,6 +283,13 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
         JsonNode expectedResult2 = JacksonUtil.toJsonNode("{\"update\" : \"system\", \"remove\" : \"system\", \"search\":\"system\"}");
         CustomTranslation updatedCT2 = doGet("/api/customTranslation/currentCustomTranslation/" + ES_ES, CustomTranslation.class);
         assertThat(updatedCT2.getValue()).isEqualTo(expectedResult2);
+    }
+
+    private <R> CustomTranslation uploadCustomTranslation(HttpMethod httpMethod, String url, String mediaType, byte[] content) throws Exception {
+        MockMultipartFile file = new MockMultipartFile("file", "test.json", mediaType, content);
+        var request = MockMvcRequestBuilders.multipart(httpMethod, url).file(file);
+        setJwtToken(request);
+        return readResponse(mockMvc.perform(request).andExpect(status().isOk()), CustomTranslation.class);
     }
 
 }
