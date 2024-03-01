@@ -68,12 +68,21 @@
             [disabled]="!getColor()">
       {{ 'action.clear' | translate }}
     </button>
-    <button mat-raised-button
-            color="primary"
-            type="button"
-            (click)="selectColor()"
-            [disabled]="!valid || !dirty">
-      {{ 'action.select' | translate }}
-    </button>
+    <span fxFlex></span>
+    <div fxLayoutGap="8px">
+      <button *ngIf="colorCancelButton"
+              mat-button
+              type="button"
+              (click)="cancelColor()">
+        {{ 'action.cancel' | translate }}
+      </button>
+      <button mat-raised-button
+              color="primary"
+              type="button"
+              (click)="selectColor()"
+              [disabled]="!valid || !dirty">
+        {{ 'action.select' | translate }}
+      </button>
+    </div>
   </div>
 </div>
