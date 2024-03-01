@@ -216,7 +216,7 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
             colorCancelButton: true
           },
           {},
-          {}, {}, true, () => {}, {padding: '12px 4px 12px 12px'});
+          {}, {}, false, () => {}, {padding: '12px 4px 12px 12px'});
         colorPickerPopover.tbComponentRef.instance.popover = colorPickerPopover;
         colorPickerPopover.tbComponentRef.instance.colorSelected.subscribe((color) => {
           colorPickerPopover.hide();

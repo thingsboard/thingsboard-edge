@@ -41,7 +41,10 @@
     width: 578px;
   }
   &.singleTab {
-    width: 328px;
+    width: 342px;
+    @media #{$mat-sm} {
+      width: 578px;
+    }
   }
   .tb-color-picker-title {
     font-size: 16px;
