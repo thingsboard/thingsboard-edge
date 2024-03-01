@@ -31,7 +31,6 @@
 
 -->
 <div class="tb-color-picker-panel" [ngClass]="{'singleTab': !useThemePalette}">
-<!--  <div class="tb-color-picker-title" translate>color.color</div>-->
   <mat-tab-group *ngIf="useThemePalette; else colorPicker"
                  [selectedIndex]="colorMode === 'color' ? 0 : (colorMode === 'primary' ? 1 : 2)" (selectedIndexChange)="selectedIndexChange($event)">
     <mat-tab label="{{ 'color.color-picker' | translate }}">
