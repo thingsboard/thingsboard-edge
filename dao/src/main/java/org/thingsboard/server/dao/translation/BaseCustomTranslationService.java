@@ -64,19 +64,16 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     @Override
     public CustomTranslation getCurrentCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
         CustomTranslationCompositeKey key = new CustomTranslationCompositeKey(tenantId, customerId, localeCode);
-        CustomTranslation customTranslation = cache.getAndPutInTransaction(key,
-                () -> customTranslationDao.findById(TenantId.SYS_TENANT_ID, key), true);
-        if (customTranslation == null){
-            customTranslation = CustomTranslation.builder()
-                    .localeCode(key.getLocaleCode())
-                    .value(JacksonUtil.newObjectNode()).build();
+        CustomTranslation customTranslation = cache.getAndPutInTransaction(key, () -> customTranslationDao.findById(TenantId.SYS_TENANT_ID, key), true);
+        if (customTranslation == null) {
+            customTranslation = CustomTranslation.builder().localeCode(key.getLocaleCode()).value(JacksonUtil.newObjectNode()).build();
         }
         return customTranslation;
     }
 
     @Override
     public JsonNode getMergedTenantCustomTranslation(TenantId tenantId, String localeCode) {
-        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null,  localeCode).getValue().deepCopy();
+        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null, localeCode).getValue().deepCopy();
         JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue();
         return merge(tenantCustomTranslation, systemCustomTranslation);
     }
@@ -98,8 +95,7 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     public CustomTranslation saveCustomTranslation(CustomTranslation customTranslation) {
         customTranslationDao.save(customTranslation.getTenantId(), customTranslation);
         publishEvictEvent(new CustomTranslationEvictEvent(new CustomTranslationCompositeKey(customTranslation.getTenantId(), customTranslation.getCustomerId(), customTranslation.getLocaleCode())));
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
-                .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID).edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
         return getCurrentCustomTranslation(customTranslation.getTenantId(), customTranslation.getCustomerId(), customTranslation.getLocaleCode());
     }
 
@@ -122,13 +118,17 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
         CustomTranslationCompositeKey key = new CustomTranslationCompositeKey(tenantId, customerId, localeCode);
         customTranslationDao.removeById(tenantId, key);
         publishEvictEvent(new CustomTranslationEvictEvent(new CustomTranslationCompositeKey(tenantId, customerId, localeCode)));
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID)
-                .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID).edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
     }
 
     @Override
     public List<String> getCustomizedLocales(TenantId tenantId, CustomerId customerId) {
         return customTranslationDao.findLocalesByTenantIdAndCustomerId(tenantId, customerId);
+    }
+
+    @Override
+    public void deleteCustomTranslationByTenantId(TenantId tenantId) {
+        customTranslationDao.removeByTenantId(tenantId);
     }
 
     private JsonNode getMergedCustomerHierarchyCustomTranslation(TenantId tenantId, CustomerId customerId, String locale, JsonNode customTranslation) {

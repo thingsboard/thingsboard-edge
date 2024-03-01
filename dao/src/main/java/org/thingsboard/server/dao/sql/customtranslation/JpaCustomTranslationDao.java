@@ -50,7 +50,7 @@ import java.util.List;
 @Component
 @Slf4j
 @SqlDao
-public class JpaCustomTranslationDao extends JpaAbstractDaoListeningExecutorService implements CustomTranslationDao {
+public class JpaCustomTranslationDao implements CustomTranslationDao {
 
     @Autowired
     private CustomTranslationRepository customTranslationRepository;
@@ -71,8 +71,13 @@ public class JpaCustomTranslationDao extends JpaAbstractDaoListeningExecutorServ
     }
 
     @Override
+    public void removeByTenantId(TenantId tenantId) {
+        customTranslationRepository.removeByTenantId(tenantId.getId());
+    }
+
+    @Override
     public List<String> findLocalesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
-        return customTranslationRepository.findLocalesByTenantIdAndCustomerId(tenantId.getId(), customerId == null ? EntityId.NULL_UUID: customerId.getId());
+        return customTranslationRepository.findLocalesByTenantIdAndCustomerId(tenantId.getId(), customerId == null ? EntityId.NULL_UUID : customerId.getId());
     }
 
 }

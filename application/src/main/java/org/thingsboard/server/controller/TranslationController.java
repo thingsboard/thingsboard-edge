@@ -111,11 +111,11 @@ public class TranslationController extends BaseController {
         Authority authority = getCurrentUser().getAuthority();
         checkWhiteLabelingPermissions(Operation.READ);
         if (Authority.SYS_ADMIN.equals(authority)) {
-            return translationService.getSystemTranslationInfo();
+            return translationService.getSystemTranslationInfos();
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            return translationService.getTenantTranslationInfo(getCurrentUser().getTenantId());
+            return translationService.getTenantTranslationInfos(getCurrentUser().getTenantId());
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            return translationService.getCustomerTranslationInfo(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
+            return translationService.getCustomerTranslationInfos(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
         }
         return Collections.emptyList();
     }
@@ -127,9 +127,10 @@ public class TranslationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/translation/{localeCode}", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public ResponseEntity<JsonNode> getFullTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
-                                         @PathVariable("localeCode") String localeCode,
-                                       @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
+    public ResponseEntity<JsonNode> getFullTranslation(
+            @ApiParam(value = "Locale code (e.g. 'en_US').")
+            @PathVariable("localeCode") String localeCode,
+            @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
         checkWhiteLabelingPermissions(Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
         CustomerId customerId = getCurrentUser().getCustomerId();
@@ -157,7 +158,7 @@ public class TranslationController extends BaseController {
     @RequestMapping(value = "/translation/{localeCode}/download", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public ResponseEntity<ByteArrayResource> downloadFullTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
-                                                       @PathVariable("localeCode") String localeCode) throws Exception {
+                                                                     @PathVariable("localeCode") String localeCode) throws Exception {
         checkWhiteLabelingPermissions(Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
         CustomerId customerId = getCurrentUser().getCustomerId();
@@ -173,7 +174,7 @@ public class TranslationController extends BaseController {
         }
         checkNotNull(fullSystemTranslation);
 
-        String fileName =  localeCode  + "_custom_translation.json";
+        String fileName = localeCode + "_custom_translation.json";
         ByteArrayResource translation = new ByteArrayResource(fullSystemTranslation.toString().getBytes());
 
         return ResponseEntity.ok()

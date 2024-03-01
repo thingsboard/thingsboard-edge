@@ -31,7 +31,6 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -52,7 +51,6 @@ import java.util.Base64;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.thingsboard.server.common.data.id.TenantId.SYS_TENANT_ID;
 
 @DaoSqlTest
 public class CustomTranslationControllerTest extends AbstractControllerTest {
@@ -64,13 +62,6 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
     CustomTranslationService customTranslationService;
     @Autowired
     AdminSettingsDao  adminSettingsDao;
-
-    @After
-    public void afterTest() {
-        if (adminSettingsDao.findByTenantIdAndKey(SYS_TENANT_ID.getId(), "customTranslation") != null) {
-            adminSettingsDao.removeByTenantIdAndKey(SYS_TENANT_ID.getId(), "customTranslation");
-        }
-    }
 
     @Test
     public void shouldSaveCustomTranslation() throws Exception {

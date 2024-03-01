@@ -65,13 +65,6 @@ public class TranslationControllerTest extends AbstractControllerTest {
     @Autowired
     AdminSettingsDao  adminSettingsDao;
 
-    @After
-    public void afterTest() {
-        if (adminSettingsDao.findByTenantIdAndKey(SYS_TENANT_ID.getId(), "customTranslation") != null) {
-            adminSettingsDao.removeByTenantIdAndKey(SYS_TENANT_ID.getId(), "customTranslation");
-        }
-    }
-
     @Test
     public void shouldGetCorrectFullTranslation() throws Exception {
         loginSysAdmin();

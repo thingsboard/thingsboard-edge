@@ -39,16 +39,15 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.ResourceUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
 
 import java.io.IOException;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -61,18 +60,20 @@ import static org.thingsboard.common.util.JacksonUtil.merge;
 @RequiredArgsConstructor
 public class BaseTranslationService implements TranslationService {
 
-    public static final String DEFAULT_LOCALE_FILE_PATH = "/locale/locale.constant-en_US.json";
+    public static final String DEFAULT_LOCALE_FILE_PATH = "public/assets/locale/locale.constant-en_US.json";
     public static JsonNode DEFAULT_LOCALE_TRANSLATION;
     public static final Set<String> DEFAULT_LOCALE_KEYS;
     public static final Map<String, TranslationInfo> LOCALES_INFO = new HashMap<>();
 
     static {
-        Arrays.stream(DateFormat.getAvailableLocales()).forEach(locale -> LOCALES_INFO.put(locale.toString(),
-                        new TranslationInfo(locale.toString(), locale.getDisplayLanguage(), locale.getDisplayCountry())));
+        for (Locale availableLocale : DateFormat.getAvailableLocales()) {
+            LOCALES_INFO.put(availableLocale.toString(),
+                    new TranslationInfo(availableLocale.toString(), availableLocale.getDisplayLanguage(), availableLocale.getDisplayCountry()));
+        }
         try {
             DEFAULT_LOCALE_TRANSLATION = JacksonUtil.toJsonNode(new ClassPathResource(DEFAULT_LOCALE_FILE_PATH).getFile());
         } catch (IOException e) {
-            DEFAULT_LOCALE_TRANSLATION = JacksonUtil.newObjectNode();
+            throw new RuntimeException("Failed to retrieve default locale translation!", e);
         }
         DEFAULT_LOCALE_KEYS = extractKeys(DEFAULT_LOCALE_TRANSLATION);
     }
@@ -80,7 +81,7 @@ public class BaseTranslationService implements TranslationService {
     private final CustomTranslationService customTranslationService;
 
     @Override
-    public List<TranslationInfo> getSystemTranslationInfo() throws IOException {
+    public List<TranslationInfo> getSystemTranslationInfos() throws IOException {
         List<TranslationInfo> translationInfos = new ArrayList<>();
         List<String> locales = customTranslationService.getCustomizedLocales(TenantId.SYS_TENANT_ID, null);
         for (String locale : locales) {
@@ -90,7 +91,7 @@ public class BaseTranslationService implements TranslationService {
     }
 
     @Override
-    public List<TranslationInfo> getTenantTranslationInfo(TenantId tenantId) throws IOException {
+    public List<TranslationInfo> getTenantTranslationInfos(TenantId tenantId) throws IOException {
         List<TranslationInfo> translationInfos = new ArrayList<>();
         List<String> locales = customTranslationService.getCustomizedLocales(tenantId, null);
         for (String locale : locales) {
@@ -100,7 +101,7 @@ public class BaseTranslationService implements TranslationService {
     }
 
     @Override
-    public List<TranslationInfo> getCustomerTranslationInfo(TenantId tenantId, CustomerId customerId) throws IOException {
+    public List<TranslationInfo> getCustomerTranslationInfos(TenantId tenantId, CustomerId customerId) throws IOException {
         List<TranslationInfo> translationInfos = new ArrayList<>();
         List<String> locales = customTranslationService.getCustomizedLocales(tenantId, customerId);
         for (String locale : locales) {
@@ -144,7 +145,7 @@ public class BaseTranslationService implements TranslationService {
     }
 
     private JsonNode mergeWithSystemLanguageTranslationIfExists(String localeCode, JsonNode jsonNode) throws IOException {
-        String systemLangTranslationFile = "/locale/locale.constant-" + localeCode + ".json";
+        String systemLangTranslationFile = "public/assets/locale/locale.constant-" + localeCode + ".json";
         if (ResourceUtils.resourceExists(this, new ClassPathResource(systemLangTranslationFile).getPath())) {
             return merge(jsonNode, Objects.requireNonNull(JacksonUtil.toJsonNode(new ClassPathResource(systemLangTranslationFile).getFile())));
         }
@@ -165,6 +166,6 @@ public class BaseTranslationService implements TranslationService {
         Set<String> localeKeys = extractKeys(translation);
         Set<String> translatedKeys = new HashSet<>(DEFAULT_LOCALE_KEYS);
         translatedKeys.retainAll(localeKeys);
-        return ((translatedKeys.size()) * 100)/ DEFAULT_LOCALE_KEYS.size();
+        return ((translatedKeys.size()) * 100) / DEFAULT_LOCALE_KEYS.size();
     }
 }

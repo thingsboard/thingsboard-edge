@@ -45,4 +45,6 @@ public interface CustomTranslationRepository extends JpaRepository<CustomTransla
     @Query(value = "SELECT DISTINCT c.localeCode FROM CustomTranslationEntity c WHERE c.tenantId = :tenantId AND c.customerId = :customerId")
     List<String> findLocalesByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId, @Param("customerId") UUID customerId);
 
+    void removeByTenantId(@Param("tenantId") UUID tenantId);
+
 }

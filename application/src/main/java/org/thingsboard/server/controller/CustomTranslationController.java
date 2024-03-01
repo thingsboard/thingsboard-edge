@@ -90,7 +90,7 @@ public class CustomTranslationController extends BaseController {
     @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public JsonNode getCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
-                                                      @PathVariable("localeCode") String localeCode) throws ThingsboardException {
+                                         @PathVariable("localeCode") String localeCode) throws ThingsboardException {
         Authority authority = getCurrentUser().getAuthority();
         if (Authority.SYS_ADMIN.equals(authority)) {
             return customTranslationService.getCurrentCustomTranslation(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId(), localeCode).getValue();
@@ -116,7 +116,7 @@ public class CustomTranslationController extends BaseController {
     @RequestMapping(value = "/customTranslation/currentCustomTranslation/{localeCode}", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public CustomTranslation getCurrentCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
-                                                    @PathVariable("localeCode") String localeCode) throws ThingsboardException {
+                                                         @PathVariable("localeCode") String localeCode) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.READ);
         SecurityUser currentUser = getCurrentUser();
         return customTranslationService.getCurrentCustomTranslation(currentUser.getTenantId(), getCurrentUser().getCustomerId(), localeCode);
@@ -130,9 +130,9 @@ public class CustomTranslationController extends BaseController {
     @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public CustomTranslation saveCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
-            @PathVariable("localeCode") String localeCode,
-            @ApiParam(value = "A JSON value representing the custom translation. See API call notes above for valid example.")
-            @RequestBody JsonNode customTranslationValue) throws ThingsboardException {
+                                                   @PathVariable("localeCode") String localeCode,
+                                                   @ApiParam(value = "A JSON value representing the custom translation. See API call notes above for valid example.")
+                                                   @RequestBody JsonNode customTranslationValue) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
         CustomTranslation customTranslation = CustomTranslation.builder()
@@ -173,9 +173,9 @@ public class CustomTranslationController extends BaseController {
     @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}/{key}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public CustomTranslation deleteCustomTranslationKey(@ApiParam(value = "Locale code (e.g. 'en_US').")
-                                                     @PathVariable("localeCode") String localeCode,
+                                                        @PathVariable("localeCode") String localeCode,
                                                         @ApiParam(value = "A string value representing key of the custom translation (e.g. 'notification.active').")
-                                                     @PathVariable String key) throws ThingsboardException {
+                                                        @PathVariable String key) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
         SecurityUser currentUser = getCurrentUser();
@@ -191,8 +191,8 @@ public class CustomTranslationController extends BaseController {
     @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}/upload", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public CustomTranslation uploadCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
-                                                      @PathVariable("localeCode") String localeCode,
-                                                  @RequestPart MultipartFile file) throws Exception {
+                                                     @PathVariable("localeCode") String localeCode,
+                                                     @RequestPart MultipartFile file) throws Exception {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
 
@@ -213,7 +213,7 @@ public class CustomTranslationController extends BaseController {
     @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
-                                                        @PathVariable("localeCode") String localeCode) throws ThingsboardException {
+                                        @PathVariable("localeCode") String localeCode) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
         SecurityUser currentUser = getCurrentUser();

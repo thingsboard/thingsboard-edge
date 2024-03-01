@@ -45,6 +45,8 @@ public interface CustomTranslationDao {
 
     void removeById(TenantId tenantId, CustomTranslationCompositeKey key);
 
+    void removeByTenantId(TenantId tenantId);
+
     List<String> findLocalesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
 
 }

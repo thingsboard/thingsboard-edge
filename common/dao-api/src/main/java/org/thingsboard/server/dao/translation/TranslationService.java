@@ -40,11 +40,11 @@ import java.util.List;
 
 public interface TranslationService {
 
-    List<TranslationInfo> getSystemTranslationInfo() throws IOException;
+    List<TranslationInfo> getSystemTranslationInfos() throws IOException;
 
-    List<TranslationInfo> getTenantTranslationInfo(TenantId tenantId) throws IOException;
+    List<TranslationInfo> getTenantTranslationInfos(TenantId tenantId) throws IOException;
 
-    List<TranslationInfo> getCustomerTranslationInfo(TenantId tenantId, CustomerId customerId) throws IOException;
+    List<TranslationInfo> getCustomerTranslationInfos(TenantId tenantId, CustomerId customerId) throws IOException;
 
     JsonNode getSystemTranslation(String localeCode) throws IOException;
 
