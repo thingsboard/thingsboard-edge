@@ -152,7 +152,7 @@ public enum Resource {
         operationsByResource.put(Resource.WHITE_LABELING, Set.of(Operation.ALL, Operation.READ, Operation.WRITE));
         operationsByResource.put(Resource.AUDIT_LOG, Set.of(Operation.ALL, Operation.READ));
         operationsByResource.put(Resource.QUEUE, Set.of(Operation.ALL, Operation.READ));
-        operationsByResource.put(Resource.QUEUE_STATS, Operation.defaultEntityOperations);
+        operationsByResource.put(Resource.QUEUE_STATS, Set.of(Operation.ALL, Operation.READ));
         operationsByResource.put(Resource.VERSION_CONTROL, Set.of(Operation.ALL, Operation.READ, Operation.WRITE, Operation.DELETE));
         operationsByResource.put(Resource.NOTIFICATION, Operation.crudOperations);
 
