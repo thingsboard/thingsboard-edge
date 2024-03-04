@@ -28,39 +28,11 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.geo;
+package org.thingsboard.rule.engine.util;
 
-import lombok.Data;
-
-import java.util.concurrent.TimeUnit;
-
-/**
- * Created by ashvayka on 19.01.18.
- */
-@Data
-public class TbGpsGeofencingActionNodeConfiguration extends TbGpsGeofencingFilterNodeConfiguration {
-
-    private int minInsideDuration;
-    private int minOutsideDuration;
-
-    private String minInsideDurationTimeUnit;
-    private String minOutsideDurationTimeUnit;
-
-    private boolean reportPresenceStatusOnEachMessage;
-
-    @Override
-    public TbGpsGeofencingActionNodeConfiguration defaultConfiguration() {
-        TbGpsGeofencingActionNodeConfiguration configuration = new TbGpsGeofencingActionNodeConfiguration();
-        configuration.setLatitudeKeyName("latitude");
-        configuration.setLongitudeKeyName("longitude");
-        configuration.setPerimeterType(PerimeterType.POLYGON);
-        configuration.setFetchPerimeterInfoFromMessageMetadata(true);
-        configuration.setPerimeterKeyName("ss_perimeter");
-        configuration.setMinInsideDurationTimeUnit(TimeUnit.MINUTES.name());
-        configuration.setMinOutsideDurationTimeUnit(TimeUnit.MINUTES.name());
-        configuration.setMinInsideDuration(1);
-        configuration.setMinOutsideDuration(1);
-        configuration.setReportPresenceStatusOnEachMessage(true);
-        return configuration;
-    }
+public class GpsGeofencingEvents {
+    public static final String ENTERED = "Entered";
+    public static final String INSIDE = "Inside";
+    public static final String LEFT = "Left";
+    public static final String OUTSIDE = "Outside";
 }
