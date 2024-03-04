@@ -35,12 +35,16 @@
   <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px"
        formArrayName="keyVals"
        *ngFor="let keyValControl of keyValsFormArray().controls; let $index = index">
-    <mat-form-field fxFlex="40" class="mat-block">
-      <mat-label translate>key-val.key</mat-label>
-      <input [formControl]="keyValControl.get('key')" matInput required/>
-      <mat-error *ngIf="keyValControl.get('key').hasError('required')">
-        {{ 'attribute.key-required' | translate }}
-      </mat-error>
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" fxFlex="40" class="tb-inline-field flex tb-suffix-absolute">
+      <input placeholder="{{'key-val.key' | translate}}" [formControl]="keyValControl.get('key')" matInput/>
+      <mat-icon matSuffix
+                matTooltipPosition="above"
+                matTooltipClass="tb-error-tooltip"
+                [matTooltip]="'attribute.key-required' | translate"
+                *ngIf="keyValControl.get('key').hasError('required') && keyValControl.get('key').touched"
+                class="tb-error">
+        warning
+      </mat-icon>
     </mat-form-field>
     <tb-value-input fxFlex="60"
                     stringNotRequired

@@ -41,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.thingsboard.edge.rpc.EdgeGrpcClient;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
+import org.thingsboard.server.controller.AbstractWebTest;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
@@ -92,8 +93,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class EdgeImitator {
-
-    public static final int TIMEOUT_IN_SECONDS = 30;
 
     private String routingKey;
     private String routingSecret;
@@ -410,7 +409,7 @@ public class EdgeImitator {
     }
 
     public boolean waitForMessages() throws InterruptedException {
-        return waitForMessages(TIMEOUT_IN_SECONDS);
+        return waitForMessages(AbstractWebTest.TIMEOUT);
     }
 
     public boolean waitForMessages(int timeoutInSeconds) throws InterruptedException {
@@ -425,7 +424,7 @@ public class EdgeImitator {
     }
 
     public boolean waitForResponses() throws InterruptedException {
-        return responsesLatch.await(TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+        return responsesLatch.await(AbstractWebTest.TIMEOUT, TimeUnit.SECONDS);
     }
 
     public void expectResponsesAmount(int messageAmount) {

@@ -29,5 +29,12 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
+  .mat-mdc-card-header {
+    align-items: center;
+    min-height: 64px;
+  }
 
+  .mdc-card__actions {
+    padding: 16px;
+  }
 }

@@ -37,7 +37,7 @@ import { Router } from '@angular/router';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {
   NotificationDeliveryMethod,
-  NotificationDeliveryMethodTranslateMap,
+  NotificationDeliveryMethodInfoMap,
   NotificationRequest
 } from '@shared/models/notification.models';
 
@@ -54,7 +54,7 @@ export class SentErrorDialogComponent extends DialogComponent<SentErrorDialogCom
 
   errorStats: { [key in NotificationDeliveryMethod]: {[errorKey in string]: string}};
 
-  notificationDeliveryMethodTranslateMap = NotificationDeliveryMethodTranslateMap;
+  NotificationDeliveryMethodInfoMap = NotificationDeliveryMethodInfoMap;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,

@@ -51,8 +51,6 @@ public abstract class TbSubscription<T> {
     private final TbSubscriptionType type;
     private final BiConsumer<TbSubscription<T>, T> updateProcessor;
 
-    protected final AtomicInteger sequence = new AtomicInteger();
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

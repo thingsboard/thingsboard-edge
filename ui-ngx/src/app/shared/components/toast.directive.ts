@@ -99,6 +99,7 @@ export class ToastDirective implements AfterViewInit, OnDestroy {
         if (hideNotification) {
           const target = hideNotification.target || 'root';
           if (this.toastTarget === target) {
+            this.currentMessage = null;
             this.ngZone.run(() => {
               if (this.snackBarRef) {
                 this.snackBarRef.dismiss();
@@ -295,7 +296,7 @@ export type ToastAnimationState = 'default' | 'opened' | 'closing';
 })
 export class TbSnackBarComponent implements AfterViewInit, OnDestroy {
 
-  @ViewChild('actionButton', {static: true}) actionButton: MatButton;
+  @ViewChild('actionButton') actionButton: MatButton;
 
   @HostBinding('class')
   get panelClass(): string[] {

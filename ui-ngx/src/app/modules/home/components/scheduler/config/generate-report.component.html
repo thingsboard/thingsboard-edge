@@ -30,34 +30,29 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="generateReportFormGroup" fxLayout="column">
-  <div formGroupName="msgBody" fxLayout="column">
-    <mat-expansion-panel [expanded]="true">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          <div class="tb-panel-title" translate>report.report-config</div>
-        </mat-panel-title>
-      </mat-expansion-panel-header>
-      <tb-report-config
-        formControlName="reportConfig">
-      </tb-report-config>
-    </mat-expansion-panel>
-    <div style="height: 20px;"></div>
-    <mat-checkbox fxFlex formControlName="sendEmail" style="padding-bottom: 16px;">
-      {{ 'report.send-email' | translate }}
-    </mat-checkbox>
-    <mat-expansion-panel #emailConfigPanel [expanded]="generateReportFormGroup.get('msgBody.sendEmail').value"
-                         [disabled]="!generateReportFormGroup.get('msgBody.sendEmail').value">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          <div class="tb-panel-title" translate>report.email-config</div>
-        </mat-panel-title>
-      </mat-expansion-panel-header>
-      <div [fxShow]="generateReportFormGroup.get('msgBody.sendEmail').value">
-        <tb-email-config
-          formControlName="emailConfig">
-        </tb-email-config>
-      </div>
-    </mat-expansion-panel>
+<section [formGroup]="generateReportFormGroup">
+  <div formGroupName="msgBody" class="tb-form-panel no-border no-padding" fxLayout="column">
+    <tb-report-config
+      formControlName="reportConfig">
+    </tb-report-config>
+    <div class="tb-form-panel stroked">
+      <mat-expansion-panel class="tb-settings tb-slide-toggle"
+                           style="margin: -15px; padding: 15px;"
+                           [expanded]="generateReportFormGroup.get('msgBody.sendEmail').value"
+                           [disabled]="!generateReportFormGroup.get('msgBody.sendEmail').value">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <mat-slide-toggle formControlName="sendEmail" class="mat-slide" fxFlex (click)="$event.stopPropagation()">
+              {{ 'report.email-config' | translate }}
+            </mat-slide-toggle>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div [fxShow]="generateReportFormGroup.get('msgBody.sendEmail').value">
+          <tb-email-config
+            formControlName="emailConfig">
+          </tb-email-config>
+        </div>
+      </mat-expansion-panel>
+    </div>
   </div>
 </section>

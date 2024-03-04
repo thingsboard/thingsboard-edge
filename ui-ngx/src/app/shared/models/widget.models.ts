@@ -194,6 +194,7 @@ export interface WidgetTypeParameters {
   previewWidth?: string;
   previewHeight?: string;
   embedTitlePanel?: boolean;
+  overflowVisible?: boolean;
   hideDataSettings?: boolean;
   defaultDataKeysFunction?: (configComponent: any, configData: any) => DataKey[];
   defaultLatestDataKeysFunction?: (configComponent: any, configData: any) => DataKey[];
@@ -425,6 +426,23 @@ export interface Datasource {
   [key: string]: any;
 }
 
+export const datasourceValid = (datasource: Datasource): boolean => {
+  const type: DatasourceType = datasource?.type;
+  if (type) {
+    switch (type) {
+      case DatasourceType.function:
+      case DatasourceType.alarmCount:
+        return true;
+      case DatasourceType.device:
+        return !!datasource.deviceId;
+      case DatasourceType.entity:
+      case DatasourceType.entityCount:
+        return !!datasource.entityAliasId;
+    }
+  }
+  return false;
+};
+
 export enum TargetDeviceType {
   device = 'device',
   entity = 'entity'
@@ -535,7 +553,8 @@ export enum WidgetActionType {
   openDashboard = 'openDashboard',
   custom = 'custom',
   customPretty = 'customPretty',
-  mobileAction = 'mobileAction'
+  mobileAction = 'mobileAction',
+  openURL = 'openURL'
 }
 
 export enum WidgetMobileActionType {
@@ -565,7 +584,8 @@ export const widgetActionTypeTranslationMap = new Map<WidgetActionType, string>(
     [ WidgetActionType.openDashboard, 'widget-action.open-dashboard' ],
     [ WidgetActionType.custom, 'widget-action.custom' ],
     [ WidgetActionType.customPretty, 'widget-action.custom-pretty' ],
-    [ WidgetActionType.mobileAction, 'widget-action.mobile-action' ]
+    [ WidgetActionType.mobileAction, 'widget-action.mobile-action' ],
+    [ WidgetActionType.openURL, 'widget-action.open-URL' ]
   ]
 );
 
@@ -691,6 +711,7 @@ export interface WidgetAction extends CustomActionDescriptor {
   setEntityId?: boolean;
   stateEntityParamName?: string;
   mobileAction?: WidgetMobileActionDescriptor;
+  url?: string;
 }
 
 export interface WidgetActionDescriptor extends WidgetAction {
@@ -712,6 +733,14 @@ export const actionDescriptorToAction = (descriptor: WidgetActionDescriptor): Wi
   delete result.showWidgetActionFunction;
   return result;
 };
+
+export const defaultWidgetAction = (isEntityGroup = false, setEntityId = true): WidgetAction => ({
+    type: isEntityGroup ? WidgetActionType.custom : WidgetActionType.updateDashboardState,
+    targetDashboardStateId: null,
+    openRightLayout: false,
+    setEntityId,
+    stateEntityParamName: null
+  });
 
 export interface WidgetComparisonSettings {
   comparisonEnabled?: boolean;

@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -78,7 +79,6 @@ import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
@@ -87,6 +87,7 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import javax.annotation.Nullable;
@@ -133,13 +134,14 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     private EntityGroupService entityGroupService;
 
     @Autowired
-    private AttributesService attributesService;
-
-    @Autowired
     private IntegrationService integrationService;
 
     @Autowired
-    private CustomerService customerService;
+    @Lazy
+    private TimeseriesService timeseriesService;
+
+    @Autowired
+    private AttributesService attributesService;
 
     @Autowired
     private DataValidator<Edge> edgeValidator;
@@ -147,6 +149,8 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Value("${edges.enabled}")
     @Getter
     private boolean edgesEnabled;
+    @Value("${edges.state.persistToTelemetry:false}")
+    private boolean persistToTelemetry;
 
     @TransactionalEventListener(classes = EdgeCacheEvictEvent.class)
     @Override
@@ -630,6 +634,18 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             }
         }
         return result.toString();
+    }
+
+    @Override
+    public ListenableFuture<Boolean> isEdgeActiveAsync(TenantId tenantId, EdgeId edgeId, String key) {
+        ListenableFuture<? extends Optional<? extends KvEntry>> futureKvEntry;
+        if (persistToTelemetry) {
+            futureKvEntry = timeseriesService.findLatest(tenantId, edgeId, key);
+        } else {
+            futureKvEntry = attributesService.find(tenantId, edgeId, DataConstants.SERVER_SCOPE, key);
+        }
+        return Futures.transformAsync(futureKvEntry, kvEntryOpt ->
+                Futures.immediateFuture(kvEntryOpt.flatMap(KvEntry::getBooleanValue).orElse(false)), MoreExecutors.directExecutor());
     }
 
     private List<RuleChain> findEdgeRuleChains(TenantId tenantId, EdgeId edgeId) {

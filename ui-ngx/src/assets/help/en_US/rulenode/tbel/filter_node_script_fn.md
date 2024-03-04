@@ -5,7 +5,7 @@
 
 *function Filter(msg, metadata, msgType): boolean*
 
-[TBEL{:target="_blank"}](${siteBaseUrl}/docs/user-guide/tbel/) function defines a boolean expression based on the incoming Message and Metadata.
+[TBEL{:target="_blank"}](${siteBaseUrl}/docs/pe/user-guide/tbel/) function defines a boolean expression based on the incoming Message and Metadata.
 
 **Parameters:**
 

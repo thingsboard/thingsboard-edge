@@ -36,8 +36,7 @@ import { AppState } from '@core/core.state';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { coerceBoolean } from '@shared/decorators/coercion';
 import { accentPalette, primaryPalette } from '@shared/models/material.models';
-import { UtilsService } from '@core/services/utils.service';
-import { isDefinedAndNotNull } from '@core/utils';
+import { isDefinedAndNotNull, plainColorFromVariable } from '@core/utils';
 import { UntypedFormControl } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -79,8 +78,7 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit, 
 
   private destroy$ = new Subject<void>();
 
-  constructor(protected store: Store<AppState>,
-              private utils: UtilsService) {
+  constructor(protected store: Store<AppState>) {
     super(store);
   }
 
@@ -99,7 +97,7 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit, 
           this.colorMode = 'accent';
           this.accentColor = this.color;
         }
-        this.plainColorControl.patchValue(this.utils.plainColorFromVariable(this.color), {emitEvent: false});
+        this.plainColorControl.patchValue(plainColorFromVariable(this.color), {emitEvent: false});
       } else {
         this.plainColorControl.patchValue(this.color, {emitEvent: false});
       }
@@ -117,7 +115,7 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit, 
   onPrimaryColorChange(color: string) {
     this.primaryColor = color;
     this.accentColor = null;
-    this.plainColorControl.patchValue(this.utils.plainColorFromVariable(this.primaryColor), {emitEvent: false});
+    this.plainColorControl.patchValue(plainColorFromVariable(this.primaryColor), {emitEvent: false});
     this.dirty = true;
     this.updateValidity();
   }
@@ -125,7 +123,7 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit, 
   onAccentColorChange(color: string) {
     this.accentColor = color;
     this.primaryColor = null;
-    this.plainColorControl.patchValue(this.utils.plainColorFromVariable(this.accentColor), {emitEvent: false});
+    this.plainColorControl.patchValue(plainColorFromVariable(this.accentColor), {emitEvent: false});
     this.dirty = true;
     this.updateValidity();
   }
@@ -151,9 +149,6 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit, 
     }
     this.dirty = true;
     this.updateValidity();
-    setTimeout(() => {
-      this.popover?.updatePosition();
-    }, 0);
   }
 
   private updateValidity() {

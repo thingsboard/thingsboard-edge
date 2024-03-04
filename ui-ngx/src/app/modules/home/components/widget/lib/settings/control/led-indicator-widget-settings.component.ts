@@ -47,7 +47,7 @@ export class LedIndicatorWidgetSettingsComponent extends WidgetSettingsComponent
   functionScopeVariables = this.widgetService.getWidgetScopeVariables();
 
   get targetDevice(): TargetDevice {
-    return this.widget?.config?.targetDevice;
+    return this.widgetConfig?.config?.targetDevice;
   }
 
   dataKeyType = DataKeyType;

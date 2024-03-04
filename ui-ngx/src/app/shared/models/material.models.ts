@@ -42,7 +42,7 @@ export interface MaterialColorItem {
 export type ColorPalette = {[spectrum: string]: string};
 
 export interface PaletteContrastInfo {
-  contrastDefaultColor: 'light' | 'dark',
+  contrastDefaultColor: 'light' | 'dark';
   contrastDarkColors: string[];
   contrastLightColors: string[];
   contrastStrongLightColors: string[];

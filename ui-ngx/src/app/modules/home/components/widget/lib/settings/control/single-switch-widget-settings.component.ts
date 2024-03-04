@@ -30,12 +30,13 @@
 ///
 
 import { Component } from '@angular/core';
-import { TargetDevice, WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
+import { TargetDevice, WidgetSettings, WidgetSettingsComponent, widgetType } from '@shared/models/widget.models';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import {
-  singleSwitchDefaultSettings, singleSwitchLayoutImages,
+  singleSwitchDefaultSettings,
+  singleSwitchLayoutImages,
   singleSwitchLayouts,
   singleSwitchLayoutTranslations
 } from '@home/components/widget/lib/rpc/single-switch-widget.models';
@@ -49,7 +50,11 @@ import { ValueType } from '@shared/models/constants';
 export class SingleSwitchWidgetSettingsComponent extends WidgetSettingsComponent {
 
   get targetDevice(): TargetDevice {
-    return this.widget?.config?.targetDevice;
+    return this.widgetConfig?.config?.targetDevice;
+  }
+
+  get widgetType(): widgetType {
+    return this.widgetConfig?.widgetType;
   }
 
   singleSwitchLayouts = singleSwitchLayouts;
@@ -79,6 +84,7 @@ export class SingleSwitchWidgetSettingsComponent extends WidgetSettingsComponent
       initialState: [settings.initialState, []],
       onUpdateState: [settings.onUpdateState, []],
       offUpdateState: [settings.offUpdateState, []],
+      disabledState: [settings.disabledState, []],
       layout: [settings.layout, []],
       autoScale: [settings.autoScale, []],
 
@@ -119,7 +125,7 @@ export class SingleSwitchWidgetSettingsComponent extends WidgetSettingsComponent
     return ['showLabel', 'showIcon', 'showOnLabel', 'showOffLabel'];
   }
 
-  protected updateValidators(emitEvent: boolean): void {
+  protected updateValidators(_emitEvent: boolean): void {
     const showLabel: boolean = this.singleSwitchWidgetSettingsForm.get('showLabel').value;
     const showIcon: boolean = this.singleSwitchWidgetSettingsForm.get('showIcon').value;
     const showOnLabel: boolean = this.singleSwitchWidgetSettingsForm.get('showOnLabel').value;
@@ -167,6 +173,4 @@ export class SingleSwitchWidgetSettingsComponent extends WidgetSettingsComponent
       this.singleSwitchWidgetSettingsForm.get('offLabelColor').disable();
     }
   }
-
-  protected readonly ValueType = ValueType;
 }

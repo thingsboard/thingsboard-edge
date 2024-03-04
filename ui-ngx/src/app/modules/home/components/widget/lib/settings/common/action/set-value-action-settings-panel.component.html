@@ -30,9 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-value-action-settings-panel" [formGroup]="setValueSettingsFormGroup">
-  <div class="tb-value-action-settings-title">{{ panelTitle | translate }}</div>
-  <div class="tb-value-action-settings-panel-content">
+<div class="tb-action-settings-panel" [formGroup]="setValueSettingsFormGroup">
+  <div class="tb-action-settings-title">{{ panelTitle | translate }}</div>
+  <div class="tb-action-settings-panel-content">
     <div class="tb-form-row">
       <div class="fixed-title-width" >{{ 'widgets.value-action.action' | translate }}</div>
       <mat-form-field class="flex" appearance="outline" subscriptSizing="dynamic">
@@ -112,7 +112,8 @@
         <div class="fixed-title-width">{{ (setValueSettingsFormGroup.get('action').value === setValueAction.EXECUTE_RPC ?
           'widgets.value-action.parameters' : 'widgets.value-action.value') | translate }}</div>
         <tb-toggle-select fxFlex formControlName="type">
-          <tb-toggle-option [value]="valueToDataType.CONSTANT">{{ 'widgets.value-action.converter-constant' | translate }}</tb-toggle-option>
+          <tb-toggle-option *ngIf="valueType !== ValueType.BOOLEAN" [value]="valueToDataType.VALUE">{{ 'widgets.value-action.converter-value' | translate }}</tb-toggle-option>
+          <tb-toggle-option *ngIf="valueType === ValueType.BOOLEAN" [value]="valueToDataType.CONSTANT">{{ 'widgets.value-action.converter-constant' | translate }}</tb-toggle-option>
           <tb-toggle-option [value]="valueToDataType.FUNCTION">{{ 'widgets.value-action.converter-function' | translate }}</tb-toggle-option>
           <tb-toggle-option *ngIf="setValueSettingsFormGroup.get('action').value === setValueAction.EXECUTE_RPC"
                               [value]="valueToDataType.NONE">{{ 'widgets.value-action.converter-none' | translate }}</tb-toggle-option>
@@ -198,7 +199,7 @@
       </mat-expansion-panel>
     </div>
   </div>
-  <div class="tb-value-action-settings-panel-buttons">
+  <div class="tb-action-settings-panel-buttons">
     <button mat-button
             color="primary"
             type="button"

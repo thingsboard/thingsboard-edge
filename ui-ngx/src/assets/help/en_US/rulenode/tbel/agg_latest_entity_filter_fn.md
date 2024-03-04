@@ -5,7 +5,7 @@
 
 *function Filter(attributes): boolean*
 
-[TBEL{:target="_blank"}](${siteBaseUrl}/docs/user-guide/tbel/) function evaluating **true/false** condition on child entity attributes.
+[TBEL{:target="_blank"}](${siteBaseUrl}/docs/pe/user-guide/tbel/) function evaluating **true/false** condition on child entity attributes.
 
 **Parameters:**
 

@@ -1263,4 +1263,8 @@ mat-icon {
   .cursor-pointer {
     cursor: pointer;
   }
+
+  .no-wrap {
+    white-space: nowrap;
+  }
 }

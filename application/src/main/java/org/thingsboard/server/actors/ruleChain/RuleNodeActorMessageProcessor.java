@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.actors.ruleChain;
 
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.server.actors.ActorSystemContext;
@@ -54,6 +55,7 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 /**
  * @author Andrew Shvayka
  */
+@Slf4j
 public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNodeId> {
 
     private final String ruleChainName;
@@ -76,6 +78,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
     @Override
     public void start(TbActorCtx context) throws Exception {
         if (isMyNodePartition()) {
+            log.debug("[{}][{}] Starting", tenantId, entityId);
             tbNode = initComponent(ruleNode);
             if (tbNode != null) {
                 state = ComponentLifecycleState.ACTIVE;
@@ -110,6 +113,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
 
     @Override
     public void stop(TbActorCtx context) {
+        log.debug("[{}][{}] Stopping", tenantId, entityId);
         if (tbNode != null) {
             tbNode.destroy();
             state = ComponentLifecycleState.SUSPENDED;
@@ -118,6 +122,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
 
     @Override
     public void onPartitionChangeMsg(PartitionChangeMsg msg) throws Exception {
+        log.debug("[{}][{}] onPartitionChangeMsg: [{}]", tenantId, entityId, msg);
         if (tbNode != null) {
             if (!isMyNodePartition()) {
                 stop(null);
@@ -200,9 +205,13 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
     }
 
     private boolean isMyNodePartition(RuleNode ruleNode) {
-        return ruleNode == null || !ruleNode.isSingletonMode()
+        boolean result = ruleNode == null || !ruleNode.isSingletonMode()
                 || systemContext.getDiscoveryService().isMonolith()
                 || defaultCtx.isLocalEntity(ruleNode.getId());
+        if (!result) {
+            log.trace("[{}][{}] Is not my node partition", tenantId, entityId);
+        }
+        return result;
     }
 
     //Message will return after processing. See RuleChainActorMessageProcessor.pushToTarget.

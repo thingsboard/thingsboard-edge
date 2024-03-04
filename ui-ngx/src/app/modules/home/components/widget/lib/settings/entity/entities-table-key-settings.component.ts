@@ -60,6 +60,7 @@ export class EntitiesTableKeySettingsComponent extends WidgetSettingsComponent {
       useCellStyleFunction: false,
       cellStyleFunction: '',
       useCellContentFunction: false,
+      useCellContentFunctionOnExport: true,
       cellContentFunction: '',
       defaultColumnVisibility: 'visible',
       columnSelectionToDisplay: 'enabled',
@@ -74,6 +75,7 @@ export class EntitiesTableKeySettingsComponent extends WidgetSettingsComponent {
       useCellStyleFunction: [settings.useCellStyleFunction, []],
       cellStyleFunction: [settings.cellStyleFunction, [Validators.required]],
       useCellContentFunction: [settings.useCellContentFunction, []],
+      useCellContentFunctionOnExport: [settings.useCellContentFunctionOnExport, []],
       cellContentFunction: [settings.cellContentFunction, [Validators.required]],
       defaultColumnVisibility: [settings.defaultColumnVisibility, []],
       columnSelectionToDisplay: [settings.columnSelectionToDisplay, []],
@@ -95,8 +97,10 @@ export class EntitiesTableKeySettingsComponent extends WidgetSettingsComponent {
     }
     if (useCellContentFunction) {
       this.entitiesTableKeySettingsForm.get('cellContentFunction').enable();
+      this.entitiesTableKeySettingsForm.get('useCellContentFunctionOnExport').enable();
     } else {
       this.entitiesTableKeySettingsForm.get('cellContentFunction').disable();
+      this.entitiesTableKeySettingsForm.get('useCellContentFunctionOnExport').disable();
     }
     this.entitiesTableKeySettingsForm.get('cellStyleFunction').updateValueAndValidity({emitEvent});
     this.entitiesTableKeySettingsForm.get('cellContentFunction').updateValueAndValidity({emitEvent});

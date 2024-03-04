@@ -30,7 +30,9 @@
 ///
 
 import { NgModule, Type } from '@angular/core';
-import { QrCodeWidgetSettingsComponent } from '@home/components/widget/lib/settings/cards/qrcode-widget-settings.component';
+import {
+  QrCodeWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/qrcode-widget-settings.component';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { SharedHomeComponentsModule } from '@home/components/shared-home-components.module';
@@ -48,7 +50,9 @@ import {
   MarkdownWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/markdown-widget-settings.component';
 import { LabelWidgetLabelComponent } from '@home/components/widget/lib/settings/cards/label-widget-label.component';
-import { LabelWidgetSettingsComponent } from '@home/components/widget/lib/settings/cards/label-widget-settings.component';
+import {
+  LabelWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/label-widget-settings.component';
 import {
   SimpleCardWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/simple-card-widget-settings.component';
@@ -335,6 +339,21 @@ import {
 import {
   SingleSwitchWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/control/single-switch-widget-settings.component';
+import {
+  ActionButtonWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/button/action-button-widget-settings.component';
+import {
+  CommandButtonWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/button/command-button-widget-settings.component';
+import {
+  PowerButtonWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/button/power-button-widget-settings.component';
+import {
+  SliderWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/control/slider-widget-settings.component';
+import {
+  ToggleButtonWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/button/toggle-button-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -449,6 +468,11 @@ import {
     RangeChartWidgetSettingsComponent,
     BarChartWithLabelsWidgetSettingsComponent,
     SingleSwitchWidgetSettingsComponent,
+    ActionButtonWidgetSettingsComponent,
+    CommandButtonWidgetSettingsComponent,
+    PowerButtonWidgetSettingsComponent,
+    SliderWidgetSettingsComponent,
+    ToggleButtonWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -571,6 +595,11 @@ import {
     RangeChartWidgetSettingsComponent,
     BarChartWithLabelsWidgetSettingsComponent,
     SingleSwitchWidgetSettingsComponent,
+    ActionButtonWidgetSettingsComponent,
+    CommandButtonWidgetSettingsComponent,
+    PowerButtonWidgetSettingsComponent,
+    SliderWidgetSettingsComponent,
+    ToggleButtonWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -660,6 +689,11 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-range-chart-widget-settings': RangeChartWidgetSettingsComponent,
   'tb-bar-chart-with-labels-widget-settings': BarChartWithLabelsWidgetSettingsComponent,
   'tb-single-switch-widget-settings': SingleSwitchWidgetSettingsComponent,
+  'tb-action-button-widget-settings': ActionButtonWidgetSettingsComponent,
+  'tb-command-button-widget-settings': CommandButtonWidgetSettingsComponent,
+  'tb-power-button-widget-settings': PowerButtonWidgetSettingsComponent,
+  'tb-slider-widget-settings': SliderWidgetSettingsComponent,
+  'tb-toggle-button-widget-settings': ToggleButtonWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };
