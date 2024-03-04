@@ -128,7 +128,10 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
 
     @Override
     public void deleteCustomTranslationByTenantId(TenantId tenantId) {
-        customTranslationDao.removeByTenantId(tenantId);
+        List<CustomTranslationCompositeKey> customTranslationIds = customTranslationDao.findCustomTranslationByTenantId(tenantId.getId());
+        for (CustomTranslationCompositeKey customTranslationId : customTranslationIds) {
+            deleteCustomTranslation(new TenantId(customTranslationId.getTenantId()), new CustomerId(customTranslationId.getCustomerId()), customTranslationId.getLocaleCode());
+        }
     }
 
     private JsonNode getMergedCustomerHierarchyCustomTranslation(TenantId tenantId, CustomerId customerId, String locale, JsonNode customTranslation) {

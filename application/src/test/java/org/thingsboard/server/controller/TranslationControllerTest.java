@@ -70,31 +70,31 @@ public class TranslationControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"system\", \"update\" : \"system\" ," +
                 " \"remove\" : \"system\", \"search\":\"system\"}");
-        doPost("/api/customTranslation/customTranslation/" + ES_ES, esCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, esCustomTranslation, CustomTranslation.class);
 
         loginTenantAdmin();
         JsonNode itTenantCustomTranslation = JacksonUtil.toJsonNode("{\"update\" : \"tenant\" ," +
                 " \"remove\" : \"tenant\", \"search\":\"tenant\"}");
-        doPost("/api/customTranslation/customTranslation/" + ES_ES, itTenantCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, itTenantCustomTranslation, CustomTranslation.class);
 
         loginCustomerAdminUser();
         JsonNode plCustomerCustomTranslation = JacksonUtil.toJsonNode("{\"remove\" : \"customer\", \"search\":\"customer\"}");
-        doPost("/api/customTranslation/customTranslation/" + ES_ES, plCustomerCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, plCustomerCustomTranslation, CustomTranslation.class);
 
         loginSubCustomerAdminUser();
         JsonNode plSubCustomerCustomTranslation = JacksonUtil.toJsonNode("{\"search\":\"subCustomer\"}");
-        doPost("/api/customTranslation/customTranslation/" + ES_ES, plSubCustomerCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, plSubCustomerCustomTranslation, CustomTranslation.class);
 
         // get full system translation
         loginSysAdmin();
-        JsonNode fullSystemTranslation = doGet("/api/translation/" + ES_ES, JsonNode.class);
+        JsonNode fullSystemTranslation = doGet("/api/translation/full/" + ES_ES, JsonNode.class);
         assertThat(fullSystemTranslation.get("save").asText()).isEqualTo("system");
         assertThat(fullSystemTranslation.get("access").get("unauthorized").asText()).isEqualTo("No autorizado");
         assertThat(fullSystemTranslation.get("solution-template").get("solution-template").asText()).isEqualTo("Solution template");
 
         // get full tenant translation
         loginTenantAdmin();
-        JsonNode fullTenantTranslation = doGet("/api/translation/" + ES_ES, JsonNode.class);
+        JsonNode fullTenantTranslation = doGet("/api/translation/full/" + ES_ES, JsonNode.class);
         assertThat(fullTenantTranslation.get("save").asText()).isEqualTo("system");
         assertThat(fullTenantTranslation.get("update").asText()).isEqualTo("tenant");
         assertThat(fullTenantTranslation.get("access").get("unauthorized").asText()).isEqualTo("No autorizado");
@@ -102,7 +102,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
 
         // get merged customer custom translation
         loginCustomerAdminUser();
-        JsonNode fullCustomerTranslation = doGet("/api/translation/" + ES_ES, JsonNode.class);
+        JsonNode fullCustomerTranslation = doGet("/api/translation/full/" + ES_ES, JsonNode.class);
         assertThat(fullCustomerTranslation.get("save").asText()).isEqualTo("system");
         assertThat(fullCustomerTranslation.get("update").asText()).isEqualTo("tenant");
         assertThat(fullCustomerTranslation.get("remove").asText()).isEqualTo("customer");
@@ -111,7 +111,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
 
         // get merged subcustomer custom translation
         loginSubCustomerAdminUser();
-        JsonNode fullSubCustomerTranslation = doGet("/api/translation/" + ES_ES, JsonNode.class);
+        JsonNode fullSubCustomerTranslation = doGet("/api/translation/full/" + ES_ES, JsonNode.class);
         assertThat(fullSubCustomerTranslation.get("save").asText()).isEqualTo("system");
         assertThat(fullSubCustomerTranslation.get("update").asText()).isEqualTo("tenant");
         assertThat(fullSubCustomerTranslation.get("remove").asText()).isEqualTo("customer");
@@ -140,12 +140,12 @@ public class TranslationControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         //check progress is 0
         JsonNode customTranslation = JacksonUtil.toJsonNode("{\"save\":\"arabic\"}");
-        doPost("/api/customTranslation/customTranslation/" + AR_QA, customTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + AR_QA, customTranslation, CustomTranslation.class);
 
         TranslationInfo arabic = getTranslationInfo(AR_QA);
         assertThat(arabic.getProgress()).isEqualTo(0);
 
-        JsonNode fullCustomerTranslation = doGet("/api/translation/" + AR_QA, JsonNode.class);
+        JsonNode fullCustomerTranslation = doGet("/api/translation/full/" + AR_QA, JsonNode.class);
 
         //translate some keys and check progress > 0
         Iterator<String> fieldNames = fullCustomerTranslation.fieldNames();
@@ -155,7 +155,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
             ((ObjectNode) customTranslation).set(fieldName, fullCustomerTranslation.get(fieldName));
             count--;
         }
-        doPost("/api/customTranslation/customTranslation/" + AR_QA, customTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + AR_QA, customTranslation, CustomTranslation.class);
 
         Set<String> fullTranslationKeys = JacksonUtil.extractKeys(fullCustomerTranslation);
         Set<String> translated = JacksonUtil.extractKeys(customTranslation);
@@ -167,11 +167,11 @@ public class TranslationControllerTest extends AbstractControllerTest {
         //login as tenant, translate all keys, check progress is 100
         loginTenantAdmin();
         JsonNode tenantCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"arabic\"}");
-        doPost("/api/customTranslation/customTranslation/" + AR_QA, tenantCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + AR_QA, tenantCustomTranslation, CustomTranslation.class);
         TranslationInfo tenantArabicInfo = getTranslationInfo(AR_QA);
         assertThat(tenantArabicInfo.getProgress()).isEqualTo(updatedSystemArabicInfo.getProgress());
 
-        doPost("/api/customTranslation/customTranslation/" + AR_QA, fullCustomerTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + AR_QA, fullCustomerTranslation, CustomTranslation.class);
         TranslationInfo updatedTenantArabic = getTranslationInfo(AR_QA);
         assertThat(updatedTenantArabic.getProgress()).isEqualTo(100);
     }
@@ -181,10 +181,10 @@ public class TranslationControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"system\", \"update\" : \"system\" ," +
                 " \"remove\" : \"system\", \"search\":\"system\"}");
-        doPost("/api/customTranslation/customTranslation/" + ES_ES, esCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, esCustomTranslation, CustomTranslation.class);
 
         //download full translation
-        byte[] contentAsByteArray = doGet("/api/translation/" + ES_ES).andExpect(status().isOk())
+        byte[] contentAsByteArray = doGet("/api/translation/full/" + ES_ES).andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsByteArray();
         JsonNode downloadedCustomTranslation = JacksonUtil.fromBytes(contentAsByteArray);
 
@@ -195,10 +195,10 @@ public class TranslationControllerTest extends AbstractControllerTest {
 
     private void checkTranslationInfo() throws Exception {
         JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"spanish\"}");
-        doPost("/api/customTranslation/customTranslation/" + ES_ES, esCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, esCustomTranslation, CustomTranslation.class);
 
         JsonNode itCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"australian\"}");
-        doPost("/api/customTranslation/customTranslation/" + EN_AU, itCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + EN_AU, itCustomTranslation, CustomTranslation.class);
 
         List<TranslationInfo> tenantTranslationInfos = doGetTyped("/api/translation/info", new TypeReference<>() {
         });

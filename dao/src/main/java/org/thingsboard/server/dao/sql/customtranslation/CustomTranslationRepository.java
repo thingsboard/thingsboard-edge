@@ -31,8 +31,10 @@
 package org.thingsboard.server.dao.sql.customtranslation;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
 import org.thingsboard.server.dao.model.sql.CustomTranslationEntity;
 
@@ -45,6 +47,11 @@ public interface CustomTranslationRepository extends JpaRepository<CustomTransla
     @Query(value = "SELECT DISTINCT c.localeCode FROM CustomTranslationEntity c WHERE c.tenantId = :tenantId AND c.customerId = :customerId")
     List<String> findLocalesByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId, @Param("customerId") UUID customerId);
 
-    void removeByTenantId(@Param("tenantId") UUID tenantId);
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM CustomTranslationEntity r WHERE r.tenantId = :tenantId")
+    void deleteByTenantId(@Param("tenantId") UUID tenantId);
 
+    @Query("SELECT new org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey(ct.tenantId, ct.customerId, ct.localeCode) FROM CustomTranslationEntity ct WHERE ct.tenantId = :tenantId ")
+    List<CustomTranslationCompositeKey> findByTenantId(@Param("tenantId") UUID tenantId);
 }

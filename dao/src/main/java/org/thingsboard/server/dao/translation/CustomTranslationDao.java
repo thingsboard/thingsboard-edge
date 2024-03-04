@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface CustomTranslationDao {
 
@@ -45,8 +46,7 @@ public interface CustomTranslationDao {
 
     void removeById(TenantId tenantId, CustomTranslationCompositeKey key);
 
-    void removeByTenantId(TenantId tenantId);
-
     List<String> findLocalesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
 
+    List<CustomTranslationCompositeKey> findCustomTranslationByTenantId(UUID tenantId);
 }

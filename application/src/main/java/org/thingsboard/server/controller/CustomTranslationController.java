@@ -37,10 +37,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -81,15 +84,15 @@ public class CustomTranslationController extends BaseController {
     @Autowired
     private CustomTranslationService customTranslationService;
 
-    @ApiOperation(value = "Get end-user Custom Translation configuration (getCustomTranslation)",
+    @ApiOperation(value = "Get end-user Custom Translation configuration (getMergedCustomTranslation)",
             notes = "Fetch end-user Custom Translation for specified locale. The custom translation is configured in the white labeling parameters. " +
                     "If custom translation translation is defined on the tenant level, it overrides the custom translation of the system level. " +
                     "Similar, if the custom translation is defined on the customer level, it overrides the translation configuration of the tenant level."
             , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}", method = RequestMethod.GET, produces = "application/json")
+    @GetMapping(value = "/translation/custom/merged/{localeCode}", produces = "application/json")
     @ResponseBody
-    public JsonNode getCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
+    public JsonNode getMergedCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
                                          @PathVariable("localeCode") String localeCode) throws ThingsboardException {
         Authority authority = getCurrentUser().getAuthority();
         if (Authority.SYS_ADMIN.equals(authority)) {
@@ -102,7 +105,7 @@ public class CustomTranslationController extends BaseController {
         return JacksonUtil.newObjectNode();
     }
 
-    @ApiOperation(value = "Get Custom Translation configuration (getCurrentCustomTranslation)",
+    @ApiOperation(value = "Get Custom Translation configuration (getCustomTranslation)",
             notes = "Fetch the Custom Translation for specified locale that corresponds to the authority of the user. " +
                     "The API call is designed to load the custom translation items for edition. " +
                     "So, the result is NOT merged with the parent level configuration. " +
@@ -113,9 +116,9 @@ public class CustomTranslationController extends BaseController {
                     ControllerConstants.WL_READ_CHECK
             , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customTranslation/currentCustomTranslation/{localeCode}", method = RequestMethod.GET, produces = "application/json")
+    @GetMapping(value = "/translation/custom/{localeCode}", produces = "application/json")
     @ResponseBody
-    public CustomTranslation getCurrentCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
+    public CustomTranslation getCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
                                                          @PathVariable("localeCode") String localeCode) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.READ);
         SecurityUser currentUser = getCurrentUser();
@@ -127,7 +130,7 @@ public class CustomTranslationController extends BaseController {
                     "\n\n Request example: " + CUSTOM_TRANSLATION_EXAMPLE +
                     ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}", method = RequestMethod.POST)
+    @PostMapping(value = "/translation/custom/{localeCode}")
     @ResponseStatus(value = HttpStatus.OK)
     public CustomTranslation saveCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
                                                    @PathVariable("localeCode") String localeCode,
@@ -149,7 +152,7 @@ public class CustomTranslationController extends BaseController {
                     "\n\n Request example: " + CUSTOM_TRANSLATION_PATCH_EXAMPLE +
                     ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}", method = RequestMethod.PATCH)
+    @PatchMapping(value = "/translation/custom/{localeCode}")
     @ResponseStatus(value = HttpStatus.OK)
     public CustomTranslation patchCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
                                                     @PathVariable("localeCode") String localeCode,
@@ -170,7 +173,7 @@ public class CustomTranslationController extends BaseController {
             notes = "The API call is designed to delete specified key of the custom translation. " +
                     ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}/{key}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/translation/custom/{localeCode}/{key}")
     @ResponseStatus(value = HttpStatus.OK)
     public CustomTranslation deleteCustomTranslationKey(@ApiParam(value = "Locale code (e.g. 'en_US').")
                                                         @PathVariable("localeCode") String localeCode,
@@ -188,7 +191,7 @@ public class CustomTranslationController extends BaseController {
                     "\n\n Request example: " + CUSTOM_TRANSLATION_EXAMPLE +
                     ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}/upload", method = RequestMethod.POST)
+    @PostMapping(value = "/translation/custom/{localeCode}/upload")
     @ResponseStatus(value = HttpStatus.OK)
     public CustomTranslation uploadCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
                                                      @PathVariable("localeCode") String localeCode,
@@ -210,7 +213,7 @@ public class CustomTranslationController extends BaseController {
             notes = "Delete entire custom translation settings for end-user" +
                     ControllerConstants.WL_WRITE_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customTranslation/customTranslation/{localeCode}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/translation/custom/{localeCode}")
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteCustomTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
                                         @PathVariable("localeCode") String localeCode) throws ThingsboardException {

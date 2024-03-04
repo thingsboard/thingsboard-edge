@@ -40,11 +40,11 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
 import org.thingsboard.server.dao.model.sql.CustomTranslationEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
 import org.thingsboard.server.dao.translation.CustomTranslationDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.UUID;
 
 
 @Component
@@ -71,13 +71,13 @@ public class JpaCustomTranslationDao implements CustomTranslationDao {
     }
 
     @Override
-    public void removeByTenantId(TenantId tenantId) {
-        customTranslationRepository.removeByTenantId(tenantId.getId());
+    public List<String> findLocalesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        return customTranslationRepository.findLocalesByTenantIdAndCustomerId(tenantId.getId(), customerId == null ? EntityId.NULL_UUID : customerId.getId());
     }
 
     @Override
-    public List<String> findLocalesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
-        return customTranslationRepository.findLocalesByTenantIdAndCustomerId(tenantId.getId(), customerId == null ? EntityId.NULL_UUID : customerId.getId());
+    public List<CustomTranslationCompositeKey> findCustomTranslationByTenantId(UUID tenantId) {
+        return customTranslationRepository.findByTenantId(tenantId);
     }
 
 }

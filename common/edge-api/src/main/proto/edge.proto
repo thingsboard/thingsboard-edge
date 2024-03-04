@@ -890,5 +890,5 @@ message DownlinkMsg {
   WhiteLabelingProto whiteLabelingProto = 44;
   CustomMenuProto customMenuProto = 45;
   repeated AlarmCommentUpdateMsg alarmCommentUpdateMsg = 46;
-  CustomTranslationUpdateMsg customTranslationUpdateMsg = 47;
+  CustomTranslationUpdateMsg customTranslationUpdateMsg = 100;
 }

@@ -59,8 +59,8 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     private final Cache<TranslationCacheKey, String> etagCache;
 
     public DefaultTbTranslationService(TbClusterService clusterService, CustomTranslationService customTranslationService,
-                                 @Value("${cache.translation.etag.timeToLiveInMinutes:44640}") int cacheTtl,
-                                 @Value("${cache.translation.etag.maxSize:100000}") int cacheMaxSize) {
+                                       @Value("${cache.translation.etag.timeToLiveInMinutes:44640}") int cacheTtl,
+                                       @Value("${cache.translation.etag.maxSize:1000000}") int cacheMaxSize) {
         this.clusterService = clusterService;
         this.customTranslationService = customTranslationService;
         this.etagCache = Caffeine.newBuilder()

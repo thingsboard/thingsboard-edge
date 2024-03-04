@@ -35,27 +35,26 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
 
-import java.io.IOException;
 import java.util.List;
 
 public interface TranslationService {
 
-    List<TranslationInfo> getSystemTranslationInfos() throws IOException;
+    List<TranslationInfo> getSystemTranslationInfos();
 
-    List<TranslationInfo> getTenantTranslationInfos(TenantId tenantId) throws IOException;
+    List<TranslationInfo> getTenantTranslationInfos(TenantId tenantId);
 
-    List<TranslationInfo> getCustomerTranslationInfos(TenantId tenantId, CustomerId customerId) throws IOException;
+    List<TranslationInfo> getCustomerTranslationInfos(TenantId tenantId, CustomerId customerId);
 
-    JsonNode getSystemTranslation(String localeCode) throws IOException;
+    JsonNode getSystemTranslation(String localeCode);
 
-    JsonNode getTenantTranslation(TenantId tenantId, String localeCode) throws IOException;
+    JsonNode getTenantTranslation(TenantId tenantId, String localeCode);
 
-    JsonNode getCustomerTranslation(TenantId tenantId, CustomerId customerId, String localeCode) throws IOException;
+    JsonNode getCustomerTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
-    JsonNode getFullSystemTranslation(String localeCode) throws IOException;
+    JsonNode getFullSystemTranslation(String localeCode);
 
-    JsonNode getFullTenantTranslation(TenantId tenantId, String localeCode) throws IOException;
+    JsonNode getFullTenantTranslation(TenantId tenantId, String localeCode);
 
-    JsonNode getFullCustomerTranslation(TenantId tenantId, CustomerId customerId, String localeCode) throws IOException;
+    JsonNode getFullCustomerTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
 }

@@ -43,10 +43,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.common.util.JacksonUtil;
@@ -98,16 +98,16 @@ public class TranslationController extends BaseController {
     private final TbTranslationService tbTranslationService;
     private final TranslationService translationService;
 
-    @ApiOperation(value = "Get Translation info (getTranslationInfo)",
+    @ApiOperation(value = "Get Translation info (getTranslationInfos)",
             notes = "Fetch the list of customized locales and corresponding details such as language display name," +
                     " country display name and translation progress percentage." +
                     "\n\n Response example: " + CUSTOM_TRANSLATION_INFO_EXAMPLE +
                     ControllerConstants.WL_READ_CHECK
             , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/translation/info", method = RequestMethod.GET, produces = "application/json")
+    @GetMapping(value = "/translation/info", produces = "application/json")
     @ResponseBody
-    public List<TranslationInfo> getTranslationInfo() throws ThingsboardException, IOException {
+    public List<TranslationInfo> getTranslationInfos() throws ThingsboardException, IOException {
         Authority authority = getCurrentUser().getAuthority();
         checkWhiteLabelingPermissions(Operation.READ);
         if (Authority.SYS_ADMIN.equals(authority)) {
@@ -125,7 +125,7 @@ public class TranslationController extends BaseController {
                     "system language translation and default locale translation."
             , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/translation/{localeCode}", method = RequestMethod.GET, produces = "application/json")
+    @GetMapping(value = "/translation/full/{localeCode}", produces = "application/json")
     @ResponseBody
     public ResponseEntity<JsonNode> getFullTranslation(
             @ApiParam(value = "Locale code (e.g. 'en_US').")
@@ -155,7 +155,7 @@ public class TranslationController extends BaseController {
                     "system language translation and default locale translation."
             , produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/translation/{localeCode}/download", method = RequestMethod.GET, produces = "application/json")
+    @GetMapping(value = "/translation/full/{localeCode}/download", produces = "application/json")
     @ResponseBody
     public ResponseEntity<ByteArrayResource> downloadFullTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
                                                                      @PathVariable("localeCode") String localeCode) throws Exception {

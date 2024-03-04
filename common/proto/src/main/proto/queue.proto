@@ -1419,7 +1419,7 @@ message ToCoreNotificationMsg {
   ToEdgeSyncRequestMsgProto toEdgeSyncRequest = 18;
   FromEdgeSyncResponseMsgProto fromEdgeSyncResponse = 19;
   ResourceCacheInvalidateMsg resourceCacheInvalidateMsg = 20;
-  TranslationCacheInvalidateMsg translationCacheInvalidateMsg = 21;
+  TranslationCacheInvalidateMsg translationCacheInvalidateMsg = 100;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */
