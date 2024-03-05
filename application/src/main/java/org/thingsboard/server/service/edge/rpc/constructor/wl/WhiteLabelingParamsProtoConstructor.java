@@ -61,11 +61,11 @@ public class WhiteLabelingParamsProtoConstructor {
 
     public WhiteLabelingProto constructWhiteLabeling(WhiteLabeling whiteLabeling, boolean isEdgeOlderThan_3_6_2) {
         if (isEdgeOlderThan_3_6_2) {
-            WhiteLabeling result = JacksonUtil.clone(whiteLabeling);
-            imageService.inlineImagesForEdge(result.getTenantId(), result.getSettings());
-            JsonNode jsonNode = JacksonUtil.valueToTree(result);
+            whiteLabeling = JacksonUtil.clone(whiteLabeling);
+            imageService.inlineImagesForEdge(whiteLabeling.getTenantId(), whiteLabeling.getSettings());
+            JsonNode jsonNode = JacksonUtil.valueToTree(whiteLabeling);
             if (jsonNode != null) {
-                JsonNode entityId =  JacksonUtil.valueToTree(getEntityIdForEvent(result));
+                JsonNode entityId =  JacksonUtil.valueToTree(getEntityIdForEvent(whiteLabeling));
                 ((ObjectNode) jsonNode).set("entityId", entityId);
                 return WhiteLabelingProto.newBuilder().setEntity(jsonNode.toString()).build();
             }
