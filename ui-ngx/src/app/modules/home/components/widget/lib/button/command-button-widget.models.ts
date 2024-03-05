@@ -56,7 +56,7 @@ export const commandButtonDefaultSettings: CommandButtonWidgetSettings = {
     },
     setAttribute: {
       key: 'state',
-      scope: AttributeScope.SHARED_SCOPE
+      scope: AttributeScope.SERVER_SCOPE
     },
     putTimeSeries: {
       key: 'state'

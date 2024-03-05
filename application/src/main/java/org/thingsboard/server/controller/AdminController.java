@@ -47,7 +47,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -134,9 +133,7 @@ public class AdminController extends BaseController {
     private final SmsService smsService;
     private final AdminSettingsService adminSettingsService;
     private final SystemSecurityService systemSecurityService;
-    @Lazy
     private final JwtSettingsService jwtSettingsService;
-    @Lazy
     private final JwtTokenFactory tokenFactory;
     private final EntitiesVersionControlService versionControlService;
     private final TbAutoCommitSettingsService autoCommitSettingsService;
@@ -173,7 +170,7 @@ public class AdminController extends BaseController {
             adminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key), "No Administration settings found for key: " + key);
         } else {
             accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);
-            adminSettings =  getTenantAdminSettings(getTenantId(), key, systemByDefault);
+            adminSettings = getTenantAdminSettings(getTenantId(), key, systemByDefault);
         }
         if (adminSettings.getKey().equals("mail")) {
             ((ObjectNode) adminSettings.getJsonValue()).remove("password");
@@ -280,14 +277,13 @@ public class AdminController extends BaseController {
             } else {
                 mailSettings = getTenantAdminSettings(getTenantId(), "mail", false);
             }
-            if (adminSettings.getJsonValue().has("enableOauth2") && adminSettings.getJsonValue().get("enableOauth2").asBoolean()){
+            if (adminSettings.getJsonValue().has("enableOauth2") && adminSettings.getJsonValue().get("enableOauth2").asBoolean()) {
                 JsonNode refreshToken = mailSettings.getJsonValue().get("refreshToken");
                 if (refreshToken == null) {
                     throw new ThingsboardException("Refresh token was not generated. Please, generate refresh token.", ThingsboardErrorCode.GENERAL);
                 }
                 ((ObjectNode) adminSettings.getJsonValue()).put("refreshToken", refreshToken.asText());
-            }
-            else {
+            } else {
                 if (!adminSettings.getJsonValue().has("password")) {
                     ((ObjectNode) adminSettings.getJsonValue()).put("password", mailSettings.getJsonValue().get("password").asText());
                 }
@@ -503,12 +499,12 @@ public class AdminController extends BaseController {
     @RequestMapping(value = "/mail/oauth2/loginProcessingUrl", method = RequestMethod.GET)
     @ResponseBody
     public String getMailProcessingUrl() throws ThingsboardException {
-         accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
-         return "\"/api/admin/mail/oauth2/code\"";
+        accessControlService.checkPermission(getCurrentUser(), Resource.ADMIN_SETTINGS, Operation.READ);
+        return "\"/api/admin/mail/oauth2/code\"";
     }
 
     @ApiOperation(value = "Redirect user to mail provider login page. ", notes = "After user logged in and provided access" +
-            "provider sends authorization code to specified redirect uri.)" )
+            "provider sends authorization code to specified redirect uri.)")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @RequestMapping(value = "/mail/oauth2/authorize", method = RequestMethod.GET, produces = "application/text")
     public String getAuthorizationUrl(HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -532,7 +528,7 @@ public class AdminController extends BaseController {
         String clientId = checkNotNull(jsonValue.get("clientId"), "No clientId was configured").asText();
         String authUri = checkNotNull(jsonValue.get("authUri"), "No authorization uri was configured").asText();
         String redirectUri = checkNotNull(jsonValue.get("redirectUri"), "No Redirect uri was configured").asText();
-        List<String> scope =  JacksonUtil.convertValue(checkNotNull(jsonValue.get("scope"), "No scope was configured"), new TypeReference<>() {
+        List<String> scope = JacksonUtil.convertValue(checkNotNull(jsonValue.get("scope"), "No scope was configured"), new TypeReference<>() {
         });
 
         return "\"" + new AuthorizationCodeRequestUrl(authUri, clientId)
@@ -543,13 +539,13 @@ public class AdminController extends BaseController {
     }
 
     @RequestMapping(value = "/mail/oauth2/code", params = {"code", "state"}, method = RequestMethod.GET)
-    public void codeProcessingUrl( @RequestParam(value = "code") String code, @RequestParam(value = "state") String state,
-                                   HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public void codeProcessingUrl(@RequestParam(value = "code") String code, @RequestParam(value = "state") String state,
+                                  HttpServletRequest request, HttpServletResponse response) throws Exception {
         Optional<Cookie> prevUrlOpt = CookieUtils.getCookie(request, PREV_URI_COOKIE_NAME);
         Optional<Cookie> cookieState = CookieUtils.getCookie(request, STATE_COOKIE_NAME);
 
         String baseUrl = this.systemSecurityService.getBaseUrl(TenantId.SYS_TENANT_ID, new CustomerId(EntityId.NULL_UUID), request);
-        String prevUri = baseUrl + (prevUrlOpt.isPresent() ? prevUrlOpt.get().getValue(): "/settings/outgoing-mail");
+        String prevUri = baseUrl + (prevUrlOpt.isPresent() ? prevUrlOpt.get().getValue() : "/settings/outgoing-mail");
 
         if (cookieState.isEmpty() || !cookieState.get().getValue().equals(state)) {
             CookieUtils.deleteCookie(request, response, STATE_COOKIE_NAME);
@@ -583,8 +579,8 @@ public class AdminController extends BaseController {
             log.warn("Unable to retrieve refresh token: {}", e.getMessage());
             throw new ThingsboardException("Error while requesting access token: " + e.getMessage(), ThingsboardErrorCode.GENERAL);
         }
-        ((ObjectNode)jsonValue).put("refreshToken", tokenResponse.getRefreshToken());
-        ((ObjectNode)jsonValue).put("tokenGenerated", true);
+        ((ObjectNode) jsonValue).put("refreshToken", tokenResponse.getRefreshToken());
+        ((ObjectNode) jsonValue).put("tokenGenerated", true);
 
         if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
             adminSettingsService.saveAdminSettings(tenantId, adminSettings);
@@ -622,10 +618,10 @@ public class AdminController extends BaseController {
         if (adminSettings.getKey().equals("mail")) {
             JsonNode oldJsonValue = JacksonUtil.toJsonNode(getTenantAttributeValue(tenantId, "mail"));
             if (oldJsonValue != null) {
-                if (!jsonValue.has("password") && oldJsonValue.has("password")){
+                if (!jsonValue.has("password") && oldJsonValue.has("password")) {
                     ((ObjectNode) jsonValue).put("password", oldJsonValue.get("password").asText());
                 }
-                if (!jsonValue.has("refreshToken") && oldJsonValue.has("refreshToken")){
+                if (!jsonValue.has("refreshToken") && oldJsonValue.has("refreshToken")) {
                     ((ObjectNode) jsonValue).put("refreshToken", oldJsonValue.get("refreshToken").asText());
                 }
                 dropRefreshTokenIfProviderInfoChanged(jsonValue, oldJsonValue);
@@ -663,13 +659,13 @@ public class AdminController extends BaseController {
         attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes).get();
     }
 
-     private void dropRefreshTokenIfProviderInfoChanged(JsonNode newJsonValue, JsonNode oldJsonValue) {
-        if (newJsonValue.has("enableOauth2") && newJsonValue.get("enableOauth2").asBoolean()){
+    private void dropRefreshTokenIfProviderInfoChanged(JsonNode newJsonValue, JsonNode oldJsonValue) {
+        if (newJsonValue.has("enableOauth2") && newJsonValue.get("enableOauth2").asBoolean()) {
             if (!newJsonValue.get("providerId").equals(oldJsonValue.get("providerId")) ||
                     !newJsonValue.get("clientId").equals(oldJsonValue.get("clientId")) ||
                     !newJsonValue.get("clientSecret").equals(oldJsonValue.get("clientSecret")) ||
                     !newJsonValue.get("redirectUri").equals(oldJsonValue.get("redirectUri")) ||
-                    (newJsonValue.has("providerTenantId") && !newJsonValue.get("providerTenantId").equals(oldJsonValue.get("providerTenantId")))){
+                    (newJsonValue.has("providerTenantId") && !newJsonValue.get("providerTenantId").equals(oldJsonValue.get("providerTenantId")))) {
                 ((ObjectNode) newJsonValue).put("refreshTokenGenerated", false);
                 ((ObjectNode) newJsonValue).remove("refreshToken");
             }

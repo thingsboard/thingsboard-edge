@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.service;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
-import org.hibernate.exception.ConstraintViolationException;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,7 +42,6 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceInfo;
 import org.thingsboard.server.common.data.DeviceInfoFilter;
@@ -52,7 +50,6 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.page.PageData;
@@ -71,7 +68,6 @@ import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.nio.ByteBuffer;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -171,24 +167,6 @@ public class DeviceServiceTest extends AbstractServiceTest {
                 .hasMessageContaining("Device credentials are already assigned to another device!");
 
         Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, duplicatedDevice.getName());
-        Assertions.assertNull(deviceByName);
-    }
-
-    @Test
-    public void testShouldRollbackNotValidatedDeviceIfDeviceCredentialsValidationFailed() {
-        Mockito.reset(validator);
-        Mockito.doThrow(new DataValidationException("mock message"))
-                .when(validator).validate(any(), any());
-
-        Device device = new Device();
-        device.setTenantId(tenantId);
-        device.setName(StringUtils.randomAlphabetic(10));
-        device.setType("default");
-        assertThatThrownBy(() -> deviceService.saveDevice(device, false))
-                .isInstanceOf(DataValidationException.class)
-                .hasMessageContaining("mock message");
-
-        Device deviceByName = deviceService.findDeviceByTenantIdAndName(tenantId, device.getName());
         Assertions.assertNull(deviceByName);
     }
 

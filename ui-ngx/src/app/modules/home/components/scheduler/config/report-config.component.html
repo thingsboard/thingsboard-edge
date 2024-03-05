@@ -31,9 +31,8 @@
 
 -->
 <section [formGroup]="reportConfigFormGroup" class="tb-form-panel no-border no-padding" fxLayout="column">
-  <div class="tb-form-panel stroked"
-       [class.no-padding-bottom]="generalReportConfigPanel.expanded">
-    <mat-expansion-panel #generalReportConfigPanel class="tb-settings" [expanded]="true">
+  <div class="tb-form-panel stroked">
+    <mat-expansion-panel class="tb-settings" [expanded]="true">
       <mat-expansion-panel-header>
         <mat-panel-title>
           <div class="tb-panel-title" translate>report.general-report-settings</div>
@@ -83,7 +82,8 @@
         <mat-form-field fxFlex class="mat-block">
           <mat-label translate>report.dashboard-state-param</mat-label>
           <input matInput formControlName="state">
-          <button matSuffix
+          <button type="button"
+                  matSuffix
                   mat-icon-button
                   (click)="selectDashboardState()"
                   matTooltip="{{ 'scheduler.select-dashboard-state' | translate }}"
@@ -146,7 +146,7 @@
             </tb-entity-autocomplete>
           </div>
           <div class="tb-form-row space-between test-generate-row">
-            <div class="fixed-title-width">{{ 'report.testing' | translate }}</div>
+            <div class="fixed-title-width">{{ 'report.preview-report' | translate }}</div>
             <button *ngIf="!disabled" mat-raised-button color="primary"
                     type="button"
                     [disabled]="(isLoading$ | async) || reportConfigFormGroup.invalid"

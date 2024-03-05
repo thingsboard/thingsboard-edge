@@ -41,6 +41,7 @@
   </tb-entity-select>
   <section fxLayout="row" fxLayoutGap="8px" *ngIf="originatorFormGroup.get('originator').value !== 'entity'">
     <tb-owner-autocomplete
+      fxFlex
       formControlName="groupOwnerId"
       [excludeOwnerIds]="[currentUser.tenantId]"
       *ngIf="originatorFormGroup.get('originator').value === 'ownerGroup'"

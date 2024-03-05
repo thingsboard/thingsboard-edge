@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.actors.service.ActorService;
+import org.thingsboard.server.cache.limits.RateLimitService;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
 import org.thingsboard.server.dao.asset.AssetProfileService;
@@ -181,6 +182,9 @@ public class EdgeContextComponent {
 
     @Autowired
     private ResourceService resourceService;
+
+    @Autowired
+    private RateLimitService rateLimitService;
 
     @Autowired
     private NotificationRuleProcessor notificationRuleProcessor;
