@@ -174,7 +174,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         CloudNotificationService cloudNotificationService,
                                         PartitionService partitionService,
                                         ApplicationEventPublisher eventPublisher,
-                                        Optional<JwtSettingsService> jwtSettingsService,
+                                        JwtSettingsService jwtSettingsService,
                                         NotificationSchedulerService notificationSchedulerService,
                                         NotificationRuleProcessor notificationRuleProcessor,
                                         TbImageService imageService) {

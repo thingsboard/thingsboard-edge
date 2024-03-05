@@ -63,6 +63,7 @@ public class AssetMsgConstructorV1 extends BaseAssetMsgConstructor {
 
     @Override
     public AssetProfileUpdateMsg constructAssetProfileUpdatedMsg(UpdateMsgType msgType, AssetProfile assetProfile) {
+        assetProfile = JacksonUtil.clone(assetProfile);
         imageService.inlineImageForEdge(assetProfile);
         AssetProfileUpdateMsg.Builder builder = AssetProfileUpdateMsg.newBuilder()
                 .setMsgType(msgType)
@@ -90,4 +91,5 @@ public class AssetMsgConstructorV1 extends BaseAssetMsgConstructor {
         }
         return builder.build();
     }
+
 }
