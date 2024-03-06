@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.ws.telemetry.sub;
 
+import lombok.AllArgsConstructor;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.service.subscription.SubscriptionErrorCode;
 
@@ -41,8 +42,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+@AllArgsConstructor
 public class TelemetrySubscriptionUpdate {
-
     private final int subscriptionId;
     private int errorCode;
     private String errorMsg;
@@ -106,6 +107,10 @@ public class TelemetrySubscriptionUpdate {
 
     public String getErrorMsg() {
         return errorMsg;
+    }
+
+    public TelemetrySubscriptionUpdate copyWithNewSubscriptionId(int subscriptionId){
+        return new TelemetrySubscriptionUpdate(subscriptionId, errorCode, errorMsg, data);
     }
 
     @Override

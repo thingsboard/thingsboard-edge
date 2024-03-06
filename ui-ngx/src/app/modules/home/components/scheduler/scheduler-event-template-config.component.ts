@@ -34,8 +34,8 @@ import {
   Component,
   ComponentRef,
   forwardRef,
-  Injector,
-  Input, NgModuleRef,
+  Input,
+  NgModuleRef,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -44,8 +44,14 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { Observable, of } from 'rxjs';
+import {
+  AbstractControl, AsyncValidator,
+  ControlValueAccessor,
+  NG_ASYNC_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  ValidationErrors, Validator
+} from '@angular/forms';
+import { Observable, of, Subject } from 'rxjs';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
@@ -68,9 +74,14 @@ import { OtaUpdateEventConfigComponent } from '@home/components/scheduler/config
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => SchedulerEventTemplateConfigComponent),
     multi: true
+  },
+  {
+    provide: NG_ASYNC_VALIDATORS,
+    useExisting: forwardRef(() => SchedulerEventTemplateConfigComponent),
+    multi: true
   }]
 })
-export class SchedulerEventTemplateConfigComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges, OnDestroy {
+export class SchedulerEventTemplateConfigComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnChanges, OnDestroy, AsyncValidator {
 
   @ViewChild('configContent', {read: ViewContainerRef, static: true}) configContentContainer: ViewContainerRef;
 
@@ -86,8 +97,12 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
   schedulerEventType: string;
 
   private customSchedulerEventComponentType: Type<CustomSchedulerEventConfigComponent>;
-  private configComponentRef: ComponentRef<ControlValueAccessor>;
-  private configComponent: ControlValueAccessor;
+  private configComponentRef: ComponentRef<ControlValueAccessor & Validator>;
+  private configComponent: ControlValueAccessor & Validator;
+
+  private configTemplate: string;
+
+  private configComponent$: Subject<ControlValueAccessor & Validator> = null;
 
   private propagateChange = (v: any) => { };
 
@@ -128,7 +143,7 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
       this.customSchedulerEventComponentType = null;
     }
     if (this.schedulerEventType) {
-      let template = '<div>Not defined!</div>';
+      this.configTemplate = '<div>Not defined!</div>';
       let componentType: Type<ControlValueAccessor>;
       const configType = this.schedulerEventConfigTypes[this.schedulerEventType];
       if (configType) {
@@ -136,16 +151,17 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
           componentType = configType.componentType;
           // template = `<${selector} [(ngModel)]="configuration"></${selector}>`;
         } else if (configType.template) {
-          template = configType.template;
+          this.configTemplate = configType.template;
         }
       }
-      this.resolveComponent(componentType, template).subscribe((data) => {
+      this.resolveComponent(componentType, this.configTemplate).subscribe((data) => {
         this.configContentContainer.clear();
         const options = {} as any;
         if (data[1]) {
           options.ngModuleRef = data[1];
         }
-        this.configComponentRef = this.configContentContainer.createComponent(data[0], options);
+        this.configComponentRef = this.configContentContainer
+          .createComponent(data[0], options) as ComponentRef<ControlValueAccessor & Validator>;
         this.configComponent = this.configComponentRef.instance;
         if (this.configComponent instanceof OtaUpdateEventConfigComponent) {
           this.configComponent.schedulerEventType = this.schedulerEventType;
@@ -155,6 +171,7 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
         });
         this.configComponent.setDisabledState(this.disabled);
         this.configComponent.writeValue(this.configuration);
+        this.configComponent$?.next(this.configComponent);
       });
     }
   }
@@ -210,6 +227,30 @@ export class SchedulerEventTemplateConfigComponent implements ControlValueAccess
 
   private updateModel(configuration: SchedulerEventConfiguration) {
     this.propagateChange(configuration);
+  }
+
+  validate(control: AbstractControl): Observable<ValidationErrors | null> {
+    let comp$: Observable<ControlValueAccessor & Validator>;
+    if (this.configComponent) {
+      comp$ = of(this.configComponent);
+    } else if (this.configTemplate) {
+      this.configComponent$ = new Subject();
+      comp$ = this.configComponent$;
+    } else {
+      comp$ = of(null);
+    }
+
+    return comp$.pipe(
+      map((comp) => this.doValidate(comp, control))
+    );
+  }
+
+  private doValidate(configComponent?: ControlValueAccessor & Validator, control?: AbstractControl): ValidationErrors | null {
+    if (configComponent) {
+      return configComponent.validate(control);
+    }
+
+    return null;
   }
 
 }

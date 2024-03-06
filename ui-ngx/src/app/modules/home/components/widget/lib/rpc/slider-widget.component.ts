@@ -59,7 +59,7 @@ import {
   sliderWidgetDefaultSettings,
   SliderWidgetSettings
 } from '@home/components/widget/lib/rpc/slider-widget.models';
-import { formatValue, isDefinedAndNotNull, isNumeric } from '@core/utils';
+import { formatValue, isDefinedAndNotNull, isNumeric, plainColorFromVariable } from '@core/utils';
 import { WidgetComponent } from '@home/components/widget/widget.component';
 import tinycolor from 'tinycolor2';
 
@@ -194,7 +194,7 @@ export class SliderWidgetComponent extends
       this.sliderStep = range / (this.settings.tickMarksCount - 1);
     }
 
-    const mainColorInstance = tinycolor(this.settings.mainColor);
+    const mainColorInstance = tinycolor(plainColorFromVariable(this.settings.mainColor));
     const hoverRippleColor = mainColorInstance.clone().setAlpha(mainColorInstance.getAlpha() * 0.05).toRgbString();
     const focusRippleColor = mainColorInstance.clone().setAlpha(mainColorInstance.getAlpha() * 0.2).toRgbString();
 
