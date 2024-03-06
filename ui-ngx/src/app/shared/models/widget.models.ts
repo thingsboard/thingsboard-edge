@@ -574,7 +574,8 @@ export const widgetActionTypes: WidgetActionType[] = [
   WidgetActionType.openDashboard,
   WidgetActionType.custom,
   WidgetActionType.customPretty,
-  WidgetActionType.mobileAction
+  WidgetActionType.mobileAction,
+  WidgetActionType.openURL
 ];
 
 export const widgetActionTypeTranslationMap = new Map<WidgetActionType, string>(
