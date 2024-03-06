@@ -54,7 +54,9 @@ export enum RateLimitsType {
   INTEGRATION_MSGS_PER_TENANT_RATE_LIMIT = 'INTEGRATION_MSGS_PER_TENANT_RATE_LIMIT',
   INTEGRATION_MSGS_PER_DEVICE_RATE_LIMIT = 'INTEGRATION_MSGS_PER_DEVICE_RATE_LIMIT',
   EDGE_EVENTS_RATE_LIMIT = 'EDGE_EVENTS_RATE_LIMIT',
-  EDGE_EVENTS_PER_EDGE_RATE_LIMIT = 'EDGE_EVENTS_PER_EDGE_RATE_LIMIT'
+  EDGE_EVENTS_PER_EDGE_RATE_LIMIT = 'EDGE_EVENTS_PER_EDGE_RATE_LIMIT',
+  EDGE_UPLINK_MESSAGES_RATE_LIMIT = 'EDGE_UPLINK_MESSAGES_RATE_LIMIT',
+  EDGE_UPLINK_MESSAGES_PER_EDGE_RATE_LIMIT = 'EDGE_UPLINK_MESSAGES_PER_EDGE_RATE_LIMIT'
 }
 
 export const rateLimitsLabelTranslationMap = new Map<RateLimitsType, string>(
@@ -76,7 +78,9 @@ export const rateLimitsLabelTranslationMap = new Map<RateLimitsType, string>(
     [RateLimitsType.INTEGRATION_MSGS_PER_TENANT_RATE_LIMIT, 'tenant-profile.integration-msgs-per-tenant-rate-limit'],
     [RateLimitsType.INTEGRATION_MSGS_PER_DEVICE_RATE_LIMIT, 'tenant-profile.integration-msgs-per-device-rate-limit'],
     [RateLimitsType.EDGE_EVENTS_RATE_LIMIT, 'tenant-profile.rate-limits.edge-events-rate-limit'],
-    [RateLimitsType.EDGE_EVENTS_PER_EDGE_RATE_LIMIT, 'tenant-profile.rate-limits.edge-events-per-edge-rate-limit']
+    [RateLimitsType.EDGE_EVENTS_PER_EDGE_RATE_LIMIT, 'tenant-profile.rate-limits.edge-events-per-edge-rate-limit'],
+    [RateLimitsType.EDGE_UPLINK_MESSAGES_RATE_LIMIT, 'tenant-profile.rate-limits.edge-uplink-messages-rate-limit'],
+    [RateLimitsType.EDGE_UPLINK_MESSAGES_PER_EDGE_RATE_LIMIT, 'tenant-profile.rate-limits.edge-uplink-messages-per-edge-rate-limit']
   ]
 );
 
@@ -99,7 +103,9 @@ export const rateLimitsDialogTitleTranslationMap = new Map<RateLimitsType, strin
     [RateLimitsType.INTEGRATION_MSGS_PER_TENANT_RATE_LIMIT, 'tenant-profile.rate-limits.edit-integration-msgs-per-tenant-rate-limit-title'],
     [RateLimitsType.INTEGRATION_MSGS_PER_DEVICE_RATE_LIMIT, 'tenant-profile.rate-limits.edit-integration-msgs-per-device-rate-limit-title'],
     [RateLimitsType.EDGE_EVENTS_RATE_LIMIT, 'tenant-profile.rate-limits.edit-edge-events-rate-limit'],
-    [RateLimitsType.EDGE_EVENTS_PER_EDGE_RATE_LIMIT, 'tenant-profile.rate-limits.edit-edge-events-per-edge-rate-limit']
+    [RateLimitsType.EDGE_EVENTS_PER_EDGE_RATE_LIMIT, 'tenant-profile.rate-limits.edit-edge-events-per-edge-rate-limit'],
+    [RateLimitsType.EDGE_UPLINK_MESSAGES_RATE_LIMIT, 'tenant-profile.rate-limits.edit-edge-uplink-messages-rate-limit'],
+    [RateLimitsType.EDGE_UPLINK_MESSAGES_PER_EDGE_RATE_LIMIT, 'tenant-profile.rate-limits.edit-edge-uplink-messages-per-edge-rate-limit']
   ]
 );
 

@@ -51,6 +51,8 @@ public interface TbActorCtx extends TbActorRef {
 
     void broadcastToChildren(TbActorMsg msg);
 
+    void broadcastToChildren(TbActorMsg msg, boolean highPriority);
+
     void broadcastToChildrenByType(TbActorMsg msg, EntityType entityType);
 
     void broadcastToChildren(TbActorMsg msg, Predicate<TbActorId> childFilter);

@@ -29,8 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
+import {
+  ControlValueAccessor,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  NG_VALUE_ACCESSOR,
+  Validators,
+  ValidationErrors,
+  NG_VALIDATORS,
+  Validator
+} from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
@@ -45,14 +54,19 @@ import { OtaUpdateType } from '@shared/models/ota-package.models';
 
 @Component({
   selector: 'tb-ota-update-event-config',
-  templateUrl: './ota-update-config-event.component.html',
+  templateUrl: './ota-update-event-config.component.html',
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => OtaUpdateEventConfigComponent),
     multi: true
+  },
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => OtaUpdateEventConfigComponent),
+    multi: true
   }]
 })
-export class OtaUpdateEventConfigComponent implements ControlValueAccessor, OnDestroy, OnInit {
+export class OtaUpdateEventConfigComponent implements ControlValueAccessor, OnDestroy, OnInit, AfterViewInit, Validator {
 
   private destroy$ = new Subject<void>();
 
@@ -110,6 +124,14 @@ export class OtaUpdateEventConfigComponent implements ControlValueAccessor, OnDe
     }
   }
 
+  ngAfterViewInit(): void {
+    if (!this.updatePackageForm.valid) {
+      setTimeout(() => {
+        this.updateModel();
+      }, 0);
+    }
+  }
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -128,28 +150,39 @@ export class OtaUpdateEventConfigComponent implements ControlValueAccessor, OnDe
 
   writeValue(value: SchedulerEventConfiguration | null): void {
     this.modelValue = value;
-    let doUpdate = false;
-    if (this.modelValue) {
+    if (value) {
       if (!this.modelValue.msgType) {
         this.modelValue.msgType =
           this.schedulerEventType === 'updateSoftware' ? MessageType.SOFTWARE_UPDATED : MessageType.FIRMWARE_UPDATED;
-        doUpdate = true;
       }
-      let formValue = deepClone(this.modelValue);
-      if (!isEqual(this.modelValue.msgBody, {})) {
-        formValue = Object.assign(formValue, {packageId: this.modelValue.msgBody});
-        this.updatePackageForm.get('packageId').enable({emitEvent: false});
-      } else {
-        this.updatePackageForm.get('packageId').disable({emitEvent: false});
-      }
-      delete formValue.msgBody;
+      const formValue = this.prepareInputConfig(value);
       this.updatePackageForm.patchValue(formValue, {emitEvent: false});
     }
-    if (doUpdate) {
-      setTimeout(() => {
-        this.updateModel();
-      }, 0);
+  }
+
+  validate(): ValidationErrors | null {
+    if (!this.updatePackageForm.valid) {
+      return {
+        updatePackageForm: {
+          valid: false
+        }
+      };
     }
+
+    return null;
+  }
+
+  private prepareInputConfig(value: SchedulerEventConfiguration): SchedulerEventConfiguration | null {
+    let formValue = deepClone(value);
+    if (!isEqual(this.modelValue.msgBody, {})) {
+      formValue = Object.assign(formValue, {packageId: this.modelValue.msgBody});
+      this.updatePackageForm.get('packageId').enable({emitEvent: false});
+    } else {
+      this.updatePackageForm.get('packageId').disable({emitEvent: false});
+    }
+    delete formValue.msgBody;
+
+    return formValue;
   }
 
   private updateModel() {
