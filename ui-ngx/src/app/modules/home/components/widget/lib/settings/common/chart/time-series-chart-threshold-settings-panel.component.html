@@ -1,0 +1,150 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-threshold-settings-panel" [formGroup]="thresholdSettingsFormGroup">
+  <div class="tb-threshold-settings-title">{{ 'widgets.time-series-chart.threshold.threshold-settings' | translate }}</div>
+  <div class="tb-threshold-settings-panel-content">
+    <div class="tb-form-row space-between">
+      <div translate>widget-config.units-short</div>
+      <tb-unit-input
+        formControlName="units">
+      </tb-unit-input>
+    </div>
+    <div class="tb-form-row space-between">
+      <div translate>widget-config.decimals-short</div>
+      <mat-form-field appearance="outline" class="number" subscriptSizing="dynamic">
+        <input matInput formControlName="decimals" type="number" min="0" max="15" step="1" placeholder="{{ 'widget-config.set' | translate }}">
+      </mat-form-field>
+    </div>
+    <div class="tb-form-row space-between column-lt-md">
+      <mat-slide-toggle class="mat-slide" formControlName="showLabel">
+        {{ 'widgets.time-series-chart.threshold.label' | translate }}
+      </mat-slide-toggle>
+      <div fxLayout="row" fxFlex.lt-md fxLayoutAlign="start center" fxLayoutGap="8px">
+        <mat-form-field class="medium-width" fxFlex.lt-md appearance="outline" subscriptSizing="dynamic">
+          <mat-select formControlName="labelPosition">
+            <mat-option *ngFor="let position of timeSeriesThresholdLabelPositions" [value]="position">
+              {{ timeSeriesThresholdLabelPositionTranslations.get(position) | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <tb-font-settings formControlName="labelFont"
+                          clearButton
+                          disabledLineHeight
+                          forceSizeUnit="px"
+                          [previewText]="labelPreviewFn">
+        </tb-font-settings>
+        <tb-color-input asBoxInput
+                        colorClearButton
+                        useThemePalette
+                        formControlName="labelColor">
+        </tb-color-input>
+      </div>
+    </div>
+    <div class="tb-form-panel">
+      <div class="tb-form-panel-title" translate>widgets.time-series-chart.threshold.line-appearance</div>
+      <div class="tb-form-row space-between">
+        <div translate>widgets.time-series-chart.threshold.line-color</div>
+        <tb-color-input asBoxInput
+                        colorClearButton
+                        useThemePalette
+                        formControlName="lineColor">
+        </tb-color-input>
+      </div>
+      <div class="tb-form-row space-between column-xs">
+        <div translate>widgets.time-series-chart.line-type</div>
+        <mat-form-field class="medium-width" appearance="outline" subscriptSizing="dynamic">
+          <mat-select formControlName="lineType">
+            <mat-option *ngFor="let lineType of timeSeriesLineTypes" [value]="lineType">
+              {{ timeSeriesLineTypeTranslations.get(lineType) | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="tb-form-row space-between column-xs">
+        <div translate>widgets.time-series-chart.line-width</div>
+        <mat-form-field class="medium-width number" appearance="outline" subscriptSizing="dynamic">
+          <input matInput type="number" formControlName="lineWidth" min="0" step="1" placeholder="{{ 'widget-config.set' | translate }}"/>
+        </mat-form-field>
+      </div>
+      <div class="tb-form-row space-between column-xs">
+        <div translate>widgets.time-series-chart.threshold.start-symbol</div>
+        <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+          <mat-form-field class="flex" appearance="outline" subscriptSizing="dynamic">
+            <mat-select formControlName="startSymbol">
+              <mat-option *ngFor="let shape of timeSeriesChartShapes" [value]="shape">
+                {{ timeSeriesChartShapeTranslations.get(shape) | translate }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <div class="tb-small-label" translate>widgets.time-series-chart.threshold.symbol-size</div>
+          <mat-form-field appearance="outline" class="number flex" subscriptSizing="dynamic">
+            <input matInput formControlName="startSymbolSize"
+                   type="number" min="0" step="1" placeholder="{{ 'widget-config.set' | translate }}">
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="tb-form-row space-between column-xs">
+        <div translate>widgets.time-series-chart.threshold.end-symbol</div>
+        <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+          <mat-form-field class="flex" appearance="outline" subscriptSizing="dynamic">
+            <mat-select formControlName="endSymbol">
+              <mat-option *ngFor="let shape of timeSeriesChartShapes" [value]="shape">
+                {{ timeSeriesChartShapeTranslations.get(shape) | translate }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <div class="tb-small-label" translate>widgets.time-series-chart.threshold.symbol-size</div>
+          <mat-form-field appearance="outline" class="number flex" subscriptSizing="dynamic">
+            <input matInput formControlName="endSymbolSize"
+                   type="number" min="0" step="1" placeholder="{{ 'widget-config.set' | translate }}">
+          </mat-form-field>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tb-threshold-settings-panel-buttons">
+    <button mat-button
+            color="primary"
+            type="button"
+            (click)="cancel()">
+      {{ 'action.cancel' | translate }}
+    </button>
+    <button mat-raised-button
+            color="primary"
+            type="button"
+            (click)="applyThresholdSettings()"
+            [disabled]="thresholdSettingsFormGroup.invalid || !thresholdSettingsFormGroup.dirty">
+      {{ 'action.apply' | translate }}
+    </button>
+  </div>
+</div>

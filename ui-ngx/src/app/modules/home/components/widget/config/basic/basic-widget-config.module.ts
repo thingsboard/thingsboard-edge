@@ -122,6 +122,9 @@ import { SliderBasicConfigComponent } from '@home/components/widget/config/basic
 import {
   ToggleButtonBasicConfigComponent
 } from '@home/components/widget/config/basic/button/toggle-button-basic-config.component';
+import {
+  TimeSeriesChartBasicConfigComponent
+} from '@home/components/widget/config/basic/chart/time-series-chart-basic-config.component';
 
 @NgModule({
   declarations: [
@@ -156,7 +159,8 @@ import {
     CommandButtonBasicConfigComponent,
     PowerButtonBasicConfigComponent,
     SliderBasicConfigComponent,
-    ToggleButtonBasicConfigComponent
+    ToggleButtonBasicConfigComponent,
+    TimeSeriesChartBasicConfigComponent
   ],
   imports: [
     CommonModule,
@@ -195,7 +199,8 @@ import {
     CommandButtonBasicConfigComponent,
     PowerButtonBasicConfigComponent,
     SliderBasicConfigComponent,
-    ToggleButtonBasicConfigComponent
+    ToggleButtonBasicConfigComponent,
+    TimeSeriesChartBasicConfigComponent
   ]
 })
 export class BasicWidgetConfigModule {
@@ -228,5 +233,6 @@ export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetCo
   'tb-command-button-basic-config': CommandButtonBasicConfigComponent,
   'tb-power-button-basic-config': PowerButtonBasicConfigComponent,
   'tb-slider-basic-config': SliderBasicConfigComponent,
-  'tb-toggle-button-basic-config': ToggleButtonBasicConfigComponent
+  'tb-toggle-button-basic-config': ToggleButtonBasicConfigComponent,
+  'tb-time-series-chart-basic-config': TimeSeriesChartBasicConfigComponent
 };

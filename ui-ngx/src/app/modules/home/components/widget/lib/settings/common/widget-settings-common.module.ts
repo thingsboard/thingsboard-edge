@@ -107,6 +107,20 @@ import {
 import {
   WidgetButtonCustomStylePanelComponent
 } from '@home/components/widget/lib/settings/common/button/widget-button-custom-style-panel.component';
+import {
+  TimeSeriesChartAxisSettingsComponent
+} from '@home/components/widget/lib/settings/common/chart/time-series-chart-axis-settings.component';
+import {
+  TimeSeriesChartThresholdsPanelComponent
+} from '@home/components/widget/lib/settings/common/chart/time-series-chart-thresholds-panel.component';
+import {
+  TimeSeriesChartThresholdRowComponent
+} from '@home/components/widget/lib/settings/common/chart/time-series-chart-threshold-row.component';
+import { DataKeyInputComponent } from '@home/components/widget/lib/settings/common/data-key-input.component';
+import { EntityAliasInputComponent } from '@home/components/widget/lib/settings/common/entity-alias-input.component';
+import {
+  TimeSeriesChartThresholdSettingsPanelComponent
+} from '@home/components/widget/lib/settings/common/chart/time-series-chart-threshold-settings-panel.component';
 
 @NgModule({
   declarations: [
@@ -142,7 +156,13 @@ import {
     WidgetActionSettingsPanelComponent,
     WidgetButtonAppearanceComponent,
     WidgetButtonCustomStyleComponent,
-    WidgetButtonCustomStylePanelComponent
+    WidgetButtonCustomStylePanelComponent,
+    TimeSeriesChartAxisSettingsComponent,
+    TimeSeriesChartThresholdsPanelComponent,
+    TimeSeriesChartThresholdRowComponent,
+    TimeSeriesChartThresholdSettingsPanelComponent,
+    DataKeyInputComponent,
+    EntityAliasInputComponent
   ],
   imports: [
     CommonModule,
@@ -182,7 +202,13 @@ import {
     WidgetActionSettingsPanelComponent,
     WidgetButtonAppearanceComponent,
     WidgetButtonCustomStyleComponent,
-    WidgetButtonCustomStylePanelComponent
+    WidgetButtonCustomStylePanelComponent,
+    TimeSeriesChartAxisSettingsComponent,
+    TimeSeriesChartThresholdsPanelComponent,
+    TimeSeriesChartThresholdRowComponent,
+    TimeSeriesChartThresholdSettingsPanelComponent,
+    DataKeyInputComponent,
+    EntityAliasInputComponent
   ],
   providers: [
     ColorSettingsComponentService,
