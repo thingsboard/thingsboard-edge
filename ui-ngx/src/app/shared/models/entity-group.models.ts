@@ -56,8 +56,7 @@ export const entityGroupTypes: EntityType[] = [
 
 export const entityGroupActionTypes: WidgetActionType[] = [
   WidgetActionType.openDashboard,
-  WidgetActionType.custom,
-  WidgetActionType.openURL
+  WidgetActionType.custom
 ];
 
 export const entityGroupActionSources: {[acionSourceId: string]: WidgetActionSource} = {
