@@ -121,6 +121,9 @@ import { EntityAliasInputComponent } from '@home/components/widget/lib/settings/
 import {
   TimeSeriesChartThresholdSettingsPanelComponent
 } from '@home/components/widget/lib/settings/common/chart/time-series-chart-threshold-settings-panel.component';
+import {
+  TimeSeriesNoAggregationBarWidthSettingsComponent
+} from '@home/components/widget/lib/settings/common/chart/time-series-no-aggregation-bar-width-settings.component';
 
 @NgModule({
   declarations: [
@@ -161,6 +164,7 @@ import {
     TimeSeriesChartThresholdsPanelComponent,
     TimeSeriesChartThresholdRowComponent,
     TimeSeriesChartThresholdSettingsPanelComponent,
+    TimeSeriesNoAggregationBarWidthSettingsComponent,
     DataKeyInputComponent,
     EntityAliasInputComponent
   ],
@@ -207,6 +211,7 @@ import {
     TimeSeriesChartThresholdsPanelComponent,
     TimeSeriesChartThresholdRowComponent,
     TimeSeriesChartThresholdSettingsPanelComponent,
+    TimeSeriesNoAggregationBarWidthSettingsComponent,
     DataKeyInputComponent,
     EntityAliasInputComponent
   ],
