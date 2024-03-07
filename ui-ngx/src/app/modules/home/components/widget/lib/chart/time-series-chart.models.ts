@@ -43,6 +43,7 @@ import { CustomSeriesOption, LineSeriesOption } from 'echarts/charts';
 import {
   formatValue,
   isDefinedAndNotNull,
+  isUndefined,
   isUndefinedOrNull,
   parseFunction,
   plainColorFromVariable
@@ -314,6 +315,7 @@ export interface TimeSeriesChartYAxisSettings extends TimeSeriesChartAxisSetting
   min?: number | string;
   max?: number | string;
   intervalCalculator?: string;
+  ticksFormatter?: string;
 }
 
 export interface TimeSeriesChartThreshold {
@@ -462,6 +464,7 @@ export const timeSeriesChartDefaultSettings: TimeSeriesChartSettings = {
       lineHeight: '1'
     },
     tickLabelColor: timeSeriesChartColorScheme['axis.tickLabel'].light,
+    ticksFormatter: null,
     showTicks: true,
     ticksColor: timeSeriesChartColorScheme['axis.ticks'].light,
     showLine: true,
@@ -668,6 +671,7 @@ export interface TimeSeriesChartYAxis {
   units: string;
   option: YAXisOption & ValueAxisBaseOption;
   intervalCalculator?: (axis: Axis2D) => number;
+  ticksFormatter?: (value: any) => string;
 }
 
 export const createTimeSeriesYAxis = (axisId: string, units: string,
@@ -677,6 +681,10 @@ export const createTimeSeriesYAxis = (axisId: string, units: string,
     settings.tickLabelColor, darkMode, 'axis.tickLabel');
   const yAxisNameStyle = createChartTextStyle(settings.labelFont,
     settings.labelColor, darkMode, 'axis.label');
+  let ticksFormatter: (value: any) => string;
+  if (settings.ticksFormatter && settings.ticksFormatter.length) {
+    ticksFormatter = parseFunction(settings.ticksFormatter, ['value']);
+  }
   const yAxis: TimeSeriesChartYAxis = {
     id: axisId,
     units,
@@ -720,7 +728,18 @@ export const createTimeSeriesYAxis = (axisId: string, units: string,
         fontWeight: yAxisTickLabelStyle.fontWeight,
         fontFamily: yAxisTickLabelStyle.fontFamily,
         fontSize: yAxisTickLabelStyle.fontSize,
-        formatter: (value: any) => formatValue(value, decimals, units, false)
+        formatter: (value: any) => {
+          let result: string;
+          if (ticksFormatter) {
+            try {
+              result = ticksFormatter(value);
+            } catch (_e) {}
+          }
+          if (isUndefined(result)) {
+            result = formatValue(value, decimals, units, false);
+          }
+          return result;
+        }
       },
       splitLine: {
         show: settings.showSplitLines,
