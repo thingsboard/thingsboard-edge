@@ -103,6 +103,10 @@ export class TbTimeSeriesChart {
     };
   }
 
+  private get noAggregation(): boolean {
+    return this.ctx.defaultSubscription.timeWindowConfig?.aggregation?.type === AggregationType.NONE;
+  }
+
   private readonly shapeResize$: ResizeObserver;
 
   private dataItems: TimeSeriesChartDataItem[] = [];
@@ -168,7 +172,7 @@ export class TbTimeSeriesChart {
       this.timeSeriesChartOptions.xAxis[0].min = this.ctx.defaultSubscription.timeWindow.minTime;
       this.timeSeriesChartOptions.xAxis[0].max = this.ctx.defaultSubscription.timeWindow.maxTime;
       this.timeSeriesChartOptions.xAxis[0].tbTimeWindow = this.ctx.defaultSubscription.timeWindow;
-      if (this.ctx.defaultSubscription.timeWindowConfig?.aggregation?.type === AggregationType.NONE) {
+      if (this.noAggregation) {
         this.timeSeriesChartOptions.tooltip[0].axisPointer.type = 'line';
       } else {
         this.timeSeriesChartOptions.tooltip[0].axisPointer.type = 'shadow';
@@ -429,7 +433,6 @@ export class TbTimeSeriesChart {
     this.timeSeriesChart = echarts.init(this.chartElement,  null, {
       renderer: 'canvas'
     });
-    const noAggregation = this.ctx.defaultSubscription.timeWindowConfig?.aggregation?.type === AggregationType.NONE;
     this.timeSeriesChartOptions = {
       darkMode: this.darkMode,
       backgroundColor: 'transparent',
@@ -438,7 +441,7 @@ export class TbTimeSeriesChart {
         confine: true,
         appendToBody: true,
         axisPointer: {
-          type: noAggregation ? 'line' : 'shadow'
+          type: this.noAggregation ? 'line' : 'shadow'
         },
         formatter: (params: CallbackDataParams[]) =>
           this.settings.showTooltip ? echartsTooltipFormatter(this.renderer, this.tooltipDateFormat,
@@ -503,7 +506,9 @@ export class TbTimeSeriesChart {
 
   private updateSeries(): Array<LineSeriesOption | CustomSeriesOption> {
     return generateChartData(this.dataItems, this.thresholdItems,
-      this.ctx.timeWindow.interval, this.settings.stack, this.darkMode);
+      this.ctx.timeWindow.interval,
+      this.noAggregation,
+      this.settings.noAggregationBarWidthSettings, this.settings.stack, this.darkMode);
   }
 
   private updateAxes() {
