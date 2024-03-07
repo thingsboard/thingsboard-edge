@@ -568,15 +568,7 @@ export enum WidgetMobileActionType {
   takeScreenshot = 'takeScreenshot'
 }
 
-export const widgetActionTypes: WidgetActionType[] = [
-  WidgetActionType.openDashboardState,
-  WidgetActionType.updateDashboardState,
-  WidgetActionType.openDashboard,
-  WidgetActionType.custom,
-  WidgetActionType.customPretty,
-  WidgetActionType.mobileAction,
-  WidgetActionType.openURL
-];
+export const widgetActionTypes = Object.keys(WidgetActionType);
 
 export const widgetActionTypeTranslationMap = new Map<WidgetActionType, string>(
   [
