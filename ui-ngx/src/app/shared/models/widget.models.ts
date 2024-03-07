@@ -53,10 +53,11 @@ import { AbstractControl, UntypedFormGroup } from '@angular/forms';
 import { Observable } from 'rxjs';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { IAliasController } from '@core/api/widget-api.models';
-import { isNotEmptyStr } from '@core/utils';
+import { isNotEmptyStr, mergeDeep } from '@core/utils';
 import { WidgetConfigComponentData } from '@home/models/widget-component.models';
 import { ComponentStyle, Font, TimewindowStyle } from '@shared/models/widget-settings.models';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
+import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
 
 export enum widgetType {
   timeseries = 'timeseries',
@@ -198,6 +199,7 @@ export interface WidgetTypeParameters {
   hideDataSettings?: boolean;
   defaultDataKeysFunction?: (configComponent: any, configData: any) => DataKey[];
   defaultLatestDataKeysFunction?: (configComponent: any, configData: any) => DataKey[];
+  dataKeySettingsFunction?: DataKeySettingsFunction;
   displayRpcMessageToast?: boolean;
 }
 
@@ -852,6 +854,7 @@ export interface WidgetSize {
 
 export interface IWidgetSettingsComponent {
   aliasController: IAliasController;
+  dataKeyCallbacks: DataKeysCallbacks;
   dashboard: Dashboard;
   widget: Widget;
   widgetConfig: WidgetConfigComponentData;
@@ -868,6 +871,8 @@ export abstract class WidgetSettingsComponent extends PageComponent implements
   IWidgetSettingsComponent, OnInit, AfterViewInit {
 
   aliasController: IAliasController;
+
+  dataKeyCallbacks: DataKeysCallbacks;
 
   dashboard: Dashboard;
 
@@ -894,7 +899,7 @@ export abstract class WidgetSettingsComponent extends PageComponent implements
     if (!value) {
       this.settingsValue = this.defaultSettings();
     } else {
-      this.settingsValue = {...this.defaultSettings(), ...value};
+      this.settingsValue = mergeDeep(this.defaultSettings(), value);
     }
     if (!this.settingsSet) {
       this.settingsSet = true;
