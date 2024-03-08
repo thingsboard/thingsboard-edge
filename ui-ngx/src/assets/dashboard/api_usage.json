@@ -98,6 +98,7 @@
                     "widgetCss": "",
                     "pageSize": 1024,
                     "noDataDisplayMessage": "",
+                    "configMode": "basic",
                     "enableDataExport": false
                 },
                 "id": "a669cf86-e715-efa4-dd9a-b839abf499e9",
@@ -1375,7 +1376,7 @@
                         "timezone": null
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -1446,8 +1447,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 2400000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 2400000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -1512,7 +1521,7 @@
                     "dropShadow": true,
                     "enableFullscreen": true,
                     "titleStyle": null,
-                    "configMode": "advanced",
+                    "configMode": "basic",
                     "actions": {
                         "headerButton": [
                             {
@@ -1687,7 +1696,7 @@
                         "timezone": null
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -1758,8 +1767,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 2400000,
-                            "separateBarWidth": 2400000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 2400000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -1824,7 +1841,7 @@
                     "dropShadow": true,
                     "enableFullscreen": true,
                     "titleStyle": null,
-                    "configMode": "advanced",
+                    "configMode": "basic",
                     "actions": {
                         "headerButton": [
                             {
@@ -2081,7 +2098,7 @@
                         "timezone": null
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -2152,8 +2169,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 2400000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 2400000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -2218,7 +2243,7 @@
                     "dropShadow": true,
                     "enableFullscreen": true,
                     "titleStyle": null,
-                    "configMode": "advanced",
+                    "configMode": "basic",
                     "actions": {
                         "headerButton": [
                             {
@@ -2397,7 +2422,7 @@
                         "timezone": null
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -2468,8 +2493,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 2400000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 2400000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -2534,7 +2567,7 @@
                     "dropShadow": true,
                     "enableFullscreen": true,
                     "titleStyle": null,
-                    "configMode": "advanced",
+                    "configMode": "basic",
                     "actions": {
                         "headerButton": [
                             {
@@ -2709,7 +2742,7 @@
                         "timezone": null
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -2780,8 +2813,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 2400000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 2400000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -2846,7 +2887,7 @@
                     "dropShadow": true,
                     "enableFullscreen": true,
                     "titleStyle": null,
-                    "configMode": "advanced",
+                    "configMode": "basic",
                     "actions": {
                         "headerButton": [
                             {
@@ -3098,7 +3139,7 @@
                         "timezone": null
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -3169,8 +3210,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 2400000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 2400000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -3235,7 +3284,7 @@
                     "dropShadow": true,
                     "enableFullscreen": true,
                     "titleStyle": null,
-                    "configMode": "advanced",
+                    "configMode": "basic",
                     "actions": {
                         "headerButton": [
                             {
@@ -3414,7 +3463,7 @@
                         "timezone": null
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -3483,8 +3532,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 1800000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1800000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -3549,7 +3606,7 @@
                     "dropShadow": true,
                     "enableFullscreen": true,
                     "titleStyle": null,
-                    "configMode": "advanced",
+                    "configMode": "basic",
                     "actions": {},
                     "showTitleIcon": false,
                     "titleIcon": "thermostat",
@@ -3717,7 +3774,7 @@
                         "timezone": null
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -3786,8 +3843,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 1800000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1800000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -3852,7 +3917,7 @@
                     "dropShadow": true,
                     "enableFullscreen": true,
                     "titleStyle": null,
-                    "configMode": "advanced",
+                    "configMode": "basic",
                     "actions": {},
                     "showTitleIcon": false,
                     "titleIcon": "thermostat",
@@ -3977,7 +4042,7 @@
                         "timezone": null
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -4046,8 +4111,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 1800000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1800000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -4112,7 +4185,7 @@
                     "dropShadow": true,
                     "enableFullscreen": true,
                     "titleStyle": null,
-                    "configMode": "advanced",
+                    "configMode": "basic",
                     "actions": {},
                     "showTitleIcon": false,
                     "titleIcon": "thermostat",
@@ -4228,7 +4301,7 @@
                         }
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -4297,8 +4370,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 900000000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 900000000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -4363,7 +4444,7 @@
                     "dropShadow": true,
                     "enableFullscreen": true,
                     "titleStyle": null,
-                    "configMode": "advanced",
+                    "configMode": "basic",
                     "actions": {},
                     "showTitleIcon": false,
                     "titleIcon": "thermostat",
@@ -4495,7 +4576,7 @@
                         }
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -4564,8 +4645,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 1800000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1800000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -4630,7 +4719,7 @@
                     "dropShadow": true,
                     "enableFullscreen": true,
                     "titleStyle": null,
-                    "configMode": "advanced",
+                    "configMode": "basic",
                     "actions": {},
                     "showTitleIcon": false,
                     "titleIcon": "thermostat",
@@ -4762,7 +4851,7 @@
                         }
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -4831,8 +4920,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 900000000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 900000000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -5013,7 +5110,7 @@
                         }
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -5082,8 +5179,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 1800000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1800000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -5148,7 +5253,7 @@
                     "dropShadow": true,
                     "enableFullscreen": true,
                     "titleStyle": null,
-                    "configMode": "advanced",
+                    "configMode": "basic",
                     "actions": {},
                     "showTitleIcon": false,
                     "titleIcon": "thermostat",
@@ -5264,7 +5369,7 @@
                         }
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -5333,8 +5438,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 900000000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 900000000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -5515,7 +5628,7 @@
                         }
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -5584,8 +5697,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 1800000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1800000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -5766,7 +5887,7 @@
                         }
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -5835,8 +5956,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 900000000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 900000000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -6017,7 +6146,7 @@
                         }
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -6086,8 +6215,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 1800000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1800000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -6268,7 +6405,7 @@
                         }
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -6337,8 +6474,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 1800000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1800000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -6519,7 +6664,7 @@
                         }
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -6588,8 +6733,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 900000000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 900000000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -6770,7 +6923,7 @@
                         }
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -6839,8 +6992,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 900000000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 900000000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -7083,7 +7244,7 @@
                         }
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -7152,8 +7313,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 1800000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1800000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -7217,7 +7386,7 @@
                     "dropShadow": true,
                     "enableFullscreen": true,
                     "titleStyle": null,
-                    "configMode": "advanced",
+                    "configMode": "basic",
                     "actions": {},
                     "showTitleIcon": false,
                     "titleIcon": "thermostat",
@@ -7359,7 +7528,7 @@
                         }
                     },
                     "showTitle": true,
-                    "backgroundColor": "rgba(0, 0, 0, 0)",
+                    "backgroundColor": "#FFFFFF",
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
@@ -7428,8 +7597,16 @@
                         },
                         "noAggregationBarWidthSettings": {
                             "strategy": "group",
-                            "groupIntervalWidth": 1800000,
-                            "separateBarWidth": 1000
+                            "groupWidth": {
+                                "relative": false,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1800000
+                            },
+                            "barWidth": {
+                                "relative": true,
+                                "relativeWidth": 2,
+                                "absoluteWidth": 1000
+                            }
                         },
                         "showLegend": true,
                         "legendLabelFont": {
@@ -7493,7 +7670,7 @@
                     "dropShadow": true,
                     "enableFullscreen": true,
                     "titleStyle": null,
-                    "configMode": "advanced",
+                    "configMode": "basic",
                     "actions": {},
                     "showTitleIcon": false,
                     "titleIcon": "thermostat",
@@ -7631,7 +7808,7 @@
                             "autoFillHeight": true,
                             "backgroundImageUrl": null,
                             "mobileAutoFillHeight": false,
-                            "mobileRowHeight": 70,
+                            "mobileRowHeight": 100,
                             "outerMargin": true
                         }
                     }
@@ -7660,7 +7837,7 @@
                             "backgroundColor": "#eeeeee",
                             "color": "rgba(0,0,0,0.870588)",
                             "columns": 24,
-                            "margin": 10,
+                            "margin": 5,
                             "backgroundSizeMode": "100%",
                             "autoFillHeight": true,
                             "backgroundImageUrl": null,
@@ -7678,13 +7855,13 @@
                     "main": {
                         "widgets": {
                             "c77e417c-ad9d-8e23-3ea1-c75edd653bc0": {
-                                "sizeX": 25,
+                                "sizeX": 24,
                                 "sizeY": 6,
                                 "row": 0,
                                 "col": 0
                             },
                             "870904d2-d2e1-a1b9-ce56-b03fd47259b5": {
-                                "sizeX": 25,
+                                "sizeX": 24,
                                 "sizeY": 6,
                                 "row": 6,
                                 "col": 0
@@ -7694,7 +7871,7 @@
                             "backgroundColor": "#eeeeee",
                             "color": "rgba(0,0,0,0.870588)",
                             "columns": 24,
-                            "margin": 10,
+                            "margin": 5,
                             "backgroundSizeMode": "100%",
                             "autoFillHeight": true,
                             "backgroundImageUrl": null,
@@ -7728,7 +7905,7 @@
                             "backgroundColor": "#eeeeee",
                             "color": "rgba(0,0,0,0.870588)",
                             "columns": 24,
-                            "margin": 10,
+                            "margin": 5,
                             "backgroundSizeMode": "100%",
                             "autoFillHeight": true,
                             "backgroundImageUrl": null,
@@ -7768,7 +7945,7 @@
                             "backgroundColor": "#eeeeee",
                             "color": "rgba(0,0,0,0.870588)",
                             "columns": 24,
-                            "margin": 10,
+                            "margin": 5,
                             "backgroundSizeMode": "100%",
                             "autoFillHeight": true,
                             "backgroundImageUrl": null,
@@ -7814,7 +7991,7 @@
                             "backgroundColor": "#eeeeee",
                             "color": "rgba(0,0,0,0.870588)",
                             "columns": 24,
-                            "margin": 10,
+                            "margin": 5,
                             "backgroundSizeMode": "100%",
                             "autoFillHeight": true,
                             "backgroundImageUrl": null,
@@ -7848,7 +8025,7 @@
                             "backgroundColor": "#eeeeee",
                             "color": "rgba(0,0,0,0.870588)",
                             "columns": 24,
-                            "margin": 10,
+                            "margin": 5,
                             "backgroundSizeMode": "100%",
                             "autoFillHeight": true,
                             "backgroundImageUrl": null,
@@ -7882,7 +8059,7 @@
                             "backgroundColor": "#eeeeee",
                             "color": "rgba(0,0,0,0.870588)",
                             "columns": 24,
-                            "margin": 10,
+                            "margin": 5,
                             "backgroundSizeMode": "100%",
                             "autoFillHeight": true,
                             "backgroundImageUrl": null,
