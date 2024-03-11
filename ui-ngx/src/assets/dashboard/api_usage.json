@@ -1380,42 +1380,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -1508,6 +1514,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -1701,42 +1717,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -1829,6 +1851,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -2104,42 +2136,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -2232,6 +2270,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -2429,42 +2477,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -2557,6 +2611,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -2750,42 +2814,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -2878,6 +2948,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -3148,42 +3228,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -3276,6 +3362,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -3473,42 +3569,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -3601,6 +3703,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -3787,42 +3899,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -3915,6 +4033,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -4058,42 +4186,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -4186,6 +4320,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -4320,42 +4464,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -4448,6 +4598,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -4598,42 +4758,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -4726,6 +4892,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -4876,42 +5052,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -5004,6 +5186,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -5138,42 +5330,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -5266,6 +5464,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -5400,42 +5608,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -5528,6 +5742,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -5662,42 +5886,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -5790,6 +6020,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -5924,42 +6164,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -6052,6 +6298,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -6186,42 +6442,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -6314,6 +6576,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -6448,42 +6720,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -6576,6 +6854,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -6710,42 +6998,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -6838,6 +7132,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -6972,42 +7276,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -7100,6 +7410,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 1000,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -7179,26 +7499,63 @@
                                     "label": "{i18n:api-usage.successful}",
                                     "color": "#4caf50",
                                     "settings": {
-                                        "excludeFromStacking": false,
-                                        "hideDataByDefault": false,
-                                        "disableDataHiding": false,
-                                        "removeFromLegend": false,
-                                        "showLines": true,
-                                        "fillLines": false,
-                                        "showPoints": false,
-                                        "showPointShape": "circle",
-                                        "pointShapeFormatter": "",
-                                        "showPointsLineWidth": 5,
-                                        "showPointsRadius": 3,
-                                        "showSeparateAxis": false,
-                                        "axisPosition": "left",
-                                        "thresholds": [
-                                            {
-                                                "thresholdValueSource": "predefinedValue"
+                                        "yAxisId": "default",
+                                        "showInLegend": true,
+                                        "dataHiddenByDefault": false,
+                                        "type": "line",
+                                        "lineSettings": {
+                                            "showLine": true,
+                                            "step": false,
+                                            "stepType": "start",
+                                            "smooth": false,
+                                            "lineType": "solid",
+                                            "lineWidth": 3,
+                                            "showPoints": false,
+                                            "showPointLabel": false,
+                                            "pointLabelPosition": "top",
+                                            "pointLabelFont": {
+                                                "family": "Roboto",
+                                                "size": 11,
+                                                "sizeUnit": "px",
+                                                "style": "normal",
+                                                "weight": "400",
+                                                "lineHeight": "1"
+                                            },
+                                            "pointLabelColor": "rgba(0, 0, 0, 0.76)",
+                                            "pointShape": "circle",
+                                            "pointSize": 14,
+                                            "fillAreaSettings": {
+                                                "type": "none",
+                                                "opacity": 0.4,
+                                                "gradient": {
+                                                    "start": 100,
+                                                    "end": 0
+                                                }
                                             }
-                                        ],
-                                        "comparisonSettings": {
-                                            "showValuesForComparison": true
+                                        },
+                                        "barSettings": {
+                                            "showBorder": false,
+                                            "borderWidth": 2,
+                                            "borderRadius": 0,
+                                            "showLabel": false,
+                                            "labelPosition": "top",
+                                            "labelFont": {
+                                                "family": "Roboto",
+                                                "size": 11,
+                                                "sizeUnit": "px",
+                                                "style": "normal",
+                                                "weight": "400",
+                                                "lineHeight": "1"
+                                            },
+                                            "labelColor": "rgba(0, 0, 0, 0.76)",
+                                            "backgroundSettings": {
+                                                "type": "none",
+                                                "opacity": 0.4,
+                                                "gradient": {
+                                                    "start": 100,
+                                                    "end": 0
+                                                }
+                                            }
                                         }
                                     },
                                     "_hash": 0.15490750967648736,
@@ -7215,29 +7572,72 @@
                                     "label": "{i18n:api-usage.permanent-failures}",
                                     "color": "#ef5350",
                                     "settings": {
-                                        "excludeFromStacking": false,
-                                        "hideDataByDefault": false,
-                                        "disableDataHiding": false,
-                                        "removeFromLegend": false,
-                                        "showLines": true,
-                                        "fillLines": false,
-                                        "showPoints": false,
-                                        "showPointShape": "circle",
-                                        "pointShapeFormatter": "",
-                                        "showPointsLineWidth": 5,
-                                        "showPointsRadius": 3,
-                                        "showSeparateAxis": false,
-                                        "axisPosition": "left",
-                                        "thresholds": [
-                                            {
-                                                "thresholdValueSource": "predefinedValue"
+                                        "yAxisId": "default",
+                                        "showInLegend": true,
+                                        "dataHiddenByDefault": false,
+                                        "type": "line",
+                                        "lineSettings": {
+                                            "showLine": true,
+                                            "step": false,
+                                            "stepType": "start",
+                                            "smooth": false,
+                                            "lineType": "solid",
+                                            "lineWidth": 3,
+                                            "showPoints": false,
+                                            "showPointLabel": false,
+                                            "pointLabelPosition": "top",
+                                            "pointLabelFont": {
+                                                "family": "Roboto",
+                                                "size": 11,
+                                                "sizeUnit": "px",
+                                                "style": "normal",
+                                                "weight": "400",
+                                                "lineHeight": "1"
+                                            },
+                                            "pointLabelColor": "rgba(0, 0, 0, 0.76)",
+                                            "pointShape": "circle",
+                                            "pointSize": 14,
+                                            "fillAreaSettings": {
+                                                "type": "none",
+                                                "opacity": 0.4,
+                                                "gradient": {
+                                                    "start": 100,
+                                                    "end": 0
+                                                }
                                             }
-                                        ],
-                                        "comparisonSettings": {
-                                            "showValuesForComparison": true
+                                        },
+                                        "barSettings": {
+                                            "showBorder": false,
+                                            "borderWidth": 2,
+                                            "borderRadius": 0,
+                                            "showLabel": false,
+                                            "labelPosition": "top",
+                                            "labelFont": {
+                                                "family": "Roboto",
+                                                "size": 11,
+                                                "sizeUnit": "px",
+                                                "style": "normal",
+                                                "weight": "400",
+                                                "lineHeight": "1"
+                                            },
+                                            "labelColor": "rgba(0, 0, 0, 0.76)",
+                                            "backgroundSettings": {
+                                                "type": "none",
+                                                "opacity": 0.4,
+                                                "gradient": {
+                                                    "start": 100,
+                                                    "end": 0
+                                                }
+                                            }
                                         }
                                     },
-                                    "_hash": 0.4186621166514697
+                                    "_hash": 0.4186621166514697,
+                                    "aggregationType": null,
+                                    "units": null,
+                                    "decimals": null,
+                                    "funcBody": null,
+                                    "usePostProcessing": null,
+                                    "postFuncBody": null
                                 },
                                 {
                                     "name": "tmpFailed",
@@ -7245,29 +7645,72 @@
                                     "label": "{i18n:api-usage.processing-failures}",
                                     "color": "#ffc107",
                                     "settings": {
-                                        "excludeFromStacking": false,
-                                        "hideDataByDefault": false,
-                                        "disableDataHiding": false,
-                                        "removeFromLegend": false,
-                                        "showLines": true,
-                                        "fillLines": false,
-                                        "showPoints": false,
-                                        "showPointShape": "circle",
-                                        "pointShapeFormatter": "",
-                                        "showPointsLineWidth": 5,
-                                        "showPointsRadius": 3,
-                                        "showSeparateAxis": false,
-                                        "axisPosition": "left",
-                                        "thresholds": [
-                                            {
-                                                "thresholdValueSource": "predefinedValue"
+                                        "yAxisId": "default",
+                                        "showInLegend": true,
+                                        "dataHiddenByDefault": false,
+                                        "type": "line",
+                                        "lineSettings": {
+                                            "showLine": true,
+                                            "step": false,
+                                            "stepType": "start",
+                                            "smooth": false,
+                                            "lineType": "solid",
+                                            "lineWidth": 3,
+                                            "showPoints": false,
+                                            "showPointLabel": false,
+                                            "pointLabelPosition": "top",
+                                            "pointLabelFont": {
+                                                "family": "Roboto",
+                                                "size": 11,
+                                                "sizeUnit": "px",
+                                                "style": "normal",
+                                                "weight": "400",
+                                                "lineHeight": "1"
+                                            },
+                                            "pointLabelColor": "rgba(0, 0, 0, 0.76)",
+                                            "pointShape": "circle",
+                                            "pointSize": 14,
+                                            "fillAreaSettings": {
+                                                "type": "none",
+                                                "opacity": 0.4,
+                                                "gradient": {
+                                                    "start": 100,
+                                                    "end": 0
+                                                }
                                             }
-                                        ],
-                                        "comparisonSettings": {
-                                            "showValuesForComparison": true
+                                        },
+                                        "barSettings": {
+                                            "showBorder": false,
+                                            "borderWidth": 2,
+                                            "borderRadius": 0,
+                                            "showLabel": false,
+                                            "labelPosition": "top",
+                                            "labelFont": {
+                                                "family": "Roboto",
+                                                "size": 11,
+                                                "sizeUnit": "px",
+                                                "style": "normal",
+                                                "weight": "400",
+                                                "lineHeight": "1"
+                                            },
+                                            "labelColor": "rgba(0, 0, 0, 0.76)",
+                                            "backgroundSettings": {
+                                                "type": "none",
+                                                "opacity": 0.4,
+                                                "gradient": {
+                                                    "start": 100,
+                                                    "end": 0
+                                                }
+                                            }
                                         }
                                     },
-                                    "_hash": 0.49891007198715376
+                                    "_hash": 0.49891007198715376,
+                                    "aggregationType": null,
+                                    "units": null,
+                                    "decimals": null,
+                                    "funcBody": null,
+                                    "usePostProcessing": null,
+                                    "postFuncBody": null
                                 }
                             ],
                             "alarmFilterConfig": {
@@ -7296,42 +7739,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -7424,6 +7873,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 300,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
@@ -7503,29 +7962,72 @@
                                     "label": "{i18n:api-usage.permanent-timeouts}",
                                     "color": "#4caf50",
                                     "settings": {
-                                        "excludeFromStacking": false,
-                                        "hideDataByDefault": false,
-                                        "disableDataHiding": false,
-                                        "removeFromLegend": false,
-                                        "showLines": true,
-                                        "fillLines": false,
-                                        "showPoints": false,
-                                        "showPointShape": "circle",
-                                        "pointShapeFormatter": "",
-                                        "showPointsLineWidth": 5,
-                                        "showPointsRadius": 3,
-                                        "showSeparateAxis": false,
-                                        "axisPosition": "left",
-                                        "thresholds": [
-                                            {
-                                                "thresholdValueSource": "predefinedValue"
+                                        "yAxisId": "default",
+                                        "showInLegend": true,
+                                        "dataHiddenByDefault": false,
+                                        "type": "line",
+                                        "lineSettings": {
+                                            "showLine": true,
+                                            "step": false,
+                                            "stepType": "start",
+                                            "smooth": false,
+                                            "lineType": "solid",
+                                            "lineWidth": 3,
+                                            "showPoints": false,
+                                            "showPointLabel": false,
+                                            "pointLabelPosition": "top",
+                                            "pointLabelFont": {
+                                                "family": "Roboto",
+                                                "size": 11,
+                                                "sizeUnit": "px",
+                                                "style": "normal",
+                                                "weight": "400",
+                                                "lineHeight": "1"
+                                            },
+                                            "pointLabelColor": "rgba(0, 0, 0, 0.76)",
+                                            "pointShape": "circle",
+                                            "pointSize": 14,
+                                            "fillAreaSettings": {
+                                                "type": "none",
+                                                "opacity": 0.4,
+                                                "gradient": {
+                                                    "start": 100,
+                                                    "end": 0
+                                                }
                                             }
-                                        ],
-                                        "comparisonSettings": {
-                                            "showValuesForComparison": true
+                                        },
+                                        "barSettings": {
+                                            "showBorder": false,
+                                            "borderWidth": 2,
+                                            "borderRadius": 0,
+                                            "showLabel": false,
+                                            "labelPosition": "top",
+                                            "labelFont": {
+                                                "family": "Roboto",
+                                                "size": 11,
+                                                "sizeUnit": "px",
+                                                "style": "normal",
+                                                "weight": "400",
+                                                "lineHeight": "1"
+                                            },
+                                            "labelColor": "rgba(0, 0, 0, 0.76)",
+                                            "backgroundSettings": {
+                                                "type": "none",
+                                                "opacity": 0.4,
+                                                "gradient": {
+                                                    "start": 100,
+                                                    "end": 0
+                                                }
+                                            }
                                         }
                                     },
-                                    "_hash": 0.565222981550328
+                                    "_hash": 0.565222981550328,
+                                    "aggregationType": null,
+                                    "units": null,
+                                    "decimals": null,
+                                    "funcBody": null,
+                                    "usePostProcessing": null,
+                                    "postFuncBody": null
                                 },
                                 {
                                     "name": "tmpTimeout",
@@ -7533,29 +8035,72 @@
                                     "label": "{i18n:api-usage.processing-timeouts}",
                                     "color": "#9c27b0",
                                     "settings": {
-                                        "excludeFromStacking": false,
-                                        "hideDataByDefault": false,
-                                        "disableDataHiding": false,
-                                        "removeFromLegend": false,
-                                        "showLines": true,
-                                        "fillLines": false,
-                                        "showPoints": false,
-                                        "showPointShape": "circle",
-                                        "pointShapeFormatter": "",
-                                        "showPointsLineWidth": 5,
-                                        "showPointsRadius": 3,
-                                        "showSeparateAxis": false,
-                                        "axisPosition": "left",
-                                        "thresholds": [
-                                            {
-                                                "thresholdValueSource": "predefinedValue"
+                                        "yAxisId": "default",
+                                        "showInLegend": true,
+                                        "dataHiddenByDefault": false,
+                                        "type": "line",
+                                        "lineSettings": {
+                                            "showLine": true,
+                                            "step": false,
+                                            "stepType": "start",
+                                            "smooth": false,
+                                            "lineType": "solid",
+                                            "lineWidth": 1,
+                                            "showPoints": false,
+                                            "showPointLabel": false,
+                                            "pointLabelPosition": "top",
+                                            "pointLabelFont": {
+                                                "family": "Roboto",
+                                                "size": 11,
+                                                "sizeUnit": "px",
+                                                "style": "normal",
+                                                "weight": "400",
+                                                "lineHeight": "1"
+                                            },
+                                            "pointLabelColor": "rgba(0, 0, 0, 0.76)",
+                                            "pointShape": "circle",
+                                            "pointSize": 14,
+                                            "fillAreaSettings": {
+                                                "type": "none",
+                                                "opacity": 0.4,
+                                                "gradient": {
+                                                    "start": 100,
+                                                    "end": 0
+                                                }
                                             }
-                                        ],
-                                        "comparisonSettings": {
-                                            "showValuesForComparison": true
+                                        },
+                                        "barSettings": {
+                                            "showBorder": false,
+                                            "borderWidth": 2,
+                                            "borderRadius": 0,
+                                            "showLabel": false,
+                                            "labelPosition": "top",
+                                            "labelFont": {
+                                                "family": "Roboto",
+                                                "size": 11,
+                                                "sizeUnit": "px",
+                                                "style": "normal",
+                                                "weight": "400",
+                                                "lineHeight": "1"
+                                            },
+                                            "labelColor": "rgba(0, 0, 0, 0.76)",
+                                            "backgroundSettings": {
+                                                "type": "none",
+                                                "opacity": 0.4,
+                                                "gradient": {
+                                                    "start": 100,
+                                                    "end": 0
+                                                }
+                                            }
                                         }
                                     },
-                                    "_hash": 0.2679547062508352
+                                    "_hash": 0.2679547062508352,
+                                    "aggregationType": null,
+                                    "units": null,
+                                    "decimals": null,
+                                    "funcBody": null,
+                                    "usePostProcessing": null,
+                                    "postFuncBody": null
                                 }
                             ],
                             "alarmFilterConfig": {
@@ -7584,42 +8129,48 @@
                     "color": "rgba(0, 0, 0, 0.87)",
                     "padding": "0px",
                     "settings": {
+                        "yAxes": {
+                            "default": {
+                                "units": null,
+                                "decimals": 0,
+                                "show": true,
+                                "label": "",
+                                "labelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "600",
+                                    "lineHeight": "1"
+                                },
+                                "labelColor": "rgba(0, 0, 0, 0.54)",
+                                "position": "left",
+                                "showTickLabels": true,
+                                "tickLabelFont": {
+                                    "family": "Roboto",
+                                    "size": 12,
+                                    "sizeUnit": "px",
+                                    "style": "normal",
+                                    "weight": "400",
+                                    "lineHeight": "1"
+                                },
+                                "tickLabelColor": "rgba(0, 0, 0, 0.54)",
+                                "ticksFormatter": "var rounder = Math.pow(10, 1);\nvar powers = [\n  {key: 'Q', value: Math.pow(10, 15)},\n  {key: 'T', value: Math.pow(10, 12)},\n  {key: 'B', value: Math.pow(10, 9)},\n  {key: 'M', value: Math.pow(10, 6)},\n  {key: 'K', value: 1000}\n];\n\nvar key = '';\n\nfor (var i = 0; i < powers.length; i++) {\n    var reduced = value / powers[i].value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        value = reduced;\n        key = powers[i].key;\n        break;\n    }\n}\nreturn value + key;",
+                                "showTicks": true,
+                                "ticksColor": "rgba(0, 0, 0, 0.54)",
+                                "showLine": true,
+                                "lineColor": "rgba(0, 0, 0, 0.54)",
+                                "showSplitLines": true,
+                                "splitLinesColor": "rgba(0, 0, 0, 0.12)",
+                                "id": "default",
+                                "order": 0,
+                                "min": null,
+                                "max": null
+                            }
+                        },
                         "thresholds": [],
                         "dataZoom": false,
                         "stack": false,
-                        "yAxis": {
-                            "show": true,
-                            "label": "",
-                            "labelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "600",
-                                "lineHeight": "1"
-                            },
-                            "labelColor": "rgba(0, 0, 0, 0.54)",
-                            "position": "left",
-                            "showTickLabels": true,
-                            "tickLabelFont": {
-                                "family": "Roboto",
-                                "size": 12,
-                                "sizeUnit": "px",
-                                "style": "normal",
-                                "weight": "400",
-                                "lineHeight": "1"
-                            },
-                            "tickLabelColor": "rgba(0, 0, 0, 0.54)",
-                            "showTicks": true,
-                            "ticksColor": "rgba(0, 0, 0, 0.54)",
-                            "showLine": true,
-                            "lineColor": "rgba(0, 0, 0, 0.54)",
-                            "showSplitLines": true,
-                            "splitLinesColor": "rgba(0, 0, 0, 0.12)",
-                            "ticksFormatter": "const rounder = Math.pow(10, 1);\nconst powers = [\n    {key: 'Q', value: Math.pow(10, 15)},\n    {key: 'T', value: Math.pow(10, 12)},\n    {key: 'B', value: Math.pow(10, 9)},\n    {key: 'M', value: Math.pow(10, 6)},\n    {key: 'K', value: 1000}\n];\n\nlet formattedValue = value;\nlet key = '';\nfor (let power of powers) {\n    let reduced = value / power.value;\n    reduced = Math.round(reduced * rounder) / rounder;\n    if (reduced >= 1) {\n        formattedValue = reduced;\n        key = power.key;\n        break;\n    }\n}\nreturn formattedValue + key;",
-                            "min": null,
-                            "max": null
-                        },
                         "xAxis": {
                             "show": true,
                             "label": "",
@@ -7712,6 +8263,16 @@
                         "tooltipDateInterval": true,
                         "tooltipBackgroundColor": "rgba(255, 255, 255, 0.76)",
                         "tooltipBackgroundBlur": 4,
+                        "animation": {
+                            "animation": true,
+                            "animationThreshold": 2000,
+                            "animationDuration": 300,
+                            "animationEasing": "cubicOut",
+                            "animationDelay": 0,
+                            "animationDurationUpdate": 300,
+                            "animationEasingUpdate": "cubicOut",
+                            "animationDelayUpdate": 0
+                        },
                         "background": {
                             "type": "color",
                             "color": "#fff",
