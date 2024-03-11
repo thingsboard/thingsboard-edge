@@ -60,7 +60,11 @@ import {
   TimeSeriesChartWidgetSettings
 } from '@home/components/widget/lib/chart/time-series-chart-widget.models';
 import { EChartsTooltipTrigger } from '@home/components/widget/lib/chart/echarts-widget.models';
-import { TimeSeriesChartType } from '@home/components/widget/lib/chart/time-series-chart.models';
+import {
+  TimeSeriesChartKeySettings, TimeSeriesChartThreshold,
+  TimeSeriesChartType, TimeSeriesChartYAxes,
+  TimeSeriesChartYAxisId
+} from '@home/components/widget/lib/chart/time-series-chart.models';
 
 @Component({
   selector: 'tb-time-series-chart-basic-config',
@@ -76,6 +80,11 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
     } else {
       return null;
     }
+  }
+
+  public get yAxisIds(): TimeSeriesChartYAxisId[] {
+    const yAxes: TimeSeriesChartYAxes = this.timeSeriesChartWidgetConfigForm.get('yAxes').value;
+    return Object.keys(yAxes);
   }
 
   TimeSeriesChartType = TimeSeriesChartType;
@@ -101,6 +110,15 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
     super(store, widgetConfigComponent);
   }
 
+  public yAxisRemoved(yAxisId: TimeSeriesChartYAxisId): void {
+    if (this.widgetConfig.config.datasources && this.widgetConfig.config.datasources.length > 1) {
+      for (let i = 1; i < this.widgetConfig.config.datasources.length; i++) {
+        const datasource = this.widgetConfig.config.datasources[i];
+        this.removeYaxisId(datasource.dataKeys, yAxisId);
+      }
+    }
+  }
+
   protected configForm(): UntypedFormGroup {
     return this.timeSeriesChartWidgetConfigForm;
   }
@@ -124,6 +142,8 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
     this.timeSeriesChartWidgetConfigForm = this.fb.group({
       timewindowConfig: [getTimewindowConfig(configData.config), []],
       datasources: [configData.config.datasources, []],
+
+      yAxes: [settings.yAxes, []],
       series: [this.getSeries(configData.config.datasources), []],
       thresholds: [settings.thresholds, []],
 
@@ -141,7 +161,6 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
       dataZoom: [settings.dataZoom, []],
       stack: [settings.stack, []],
 
-      yAxis: [settings.yAxis, []],
       xAxis: [settings.xAxis, []],
 
       noAggregationBarWidthSettings: [settings.noAggregationBarWidthSettings, []],
@@ -163,6 +182,8 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
 
       tooltipBackgroundColor: [settings.tooltipBackgroundColor, []],
       tooltipBackgroundBlur: [settings.tooltipBackgroundBlur, []],
+
+      animation: [settings.animation, []],
 
       background: [settings.background, []],
 
@@ -195,7 +216,7 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
     this.widgetConfig.config.settings.dataZoom = config.dataZoom;
     this.widgetConfig.config.settings.stack = config.stack;
 
-    this.widgetConfig.config.settings.yAxis = config.yAxis;
+    this.widgetConfig.config.settings.yAxes = config.yAxes;
     this.widgetConfig.config.settings.xAxis = config.xAxis;
 
     this.widgetConfig.config.settings.noAggregationBarWidthSettings = config.noAggregationBarWidthSettings;
@@ -216,6 +237,8 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
     this.widgetConfig.config.settings.tooltipDateInterval = config.tooltipDateInterval;
     this.widgetConfig.config.settings.tooltipBackgroundColor = config.tooltipBackgroundColor;
     this.widgetConfig.config.settings.tooltipBackgroundBlur = config.tooltipBackgroundBlur;
+
+    this.widgetConfig.config.settings.animation = config.animation;
 
     this.widgetConfig.config.settings.background = config.background;
 
@@ -316,6 +339,20 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
     if (datasources && datasources.length) {
       datasources[0].dataKeys = series;
     }
+  }
+
+  private removeYaxisId(series: DataKey[], yAxisId: TimeSeriesChartYAxisId): boolean {
+    let changed = false;
+    if (series) {
+      series.forEach(key => {
+        const keySettings = ((key.settings || {}) as TimeSeriesChartKeySettings);
+        if (keySettings.yAxisId === yAxisId) {
+          keySettings.yAxisId = 'default';
+          changed = true;
+        }
+      });
+    }
+    return changed;
   }
 
   private getCardButtons(config: WidgetConfig): string[] {

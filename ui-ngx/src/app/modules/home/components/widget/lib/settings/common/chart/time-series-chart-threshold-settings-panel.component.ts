@@ -36,7 +36,7 @@ import {
   TimeSeriesChartShape,
   timeSeriesChartShapes,
   timeSeriesChartShapeTranslations,
-  TimeSeriesChartThreshold,
+  TimeSeriesChartThreshold, TimeSeriesChartYAxisId,
   timeSeriesLineTypes,
   timeSeriesLineTypeTranslations,
   timeSeriesThresholdLabelPositions,
@@ -76,6 +76,9 @@ export class TimeSeriesChartThresholdSettingsPanelComponent implements OnInit {
   widgetConfig: WidgetConfig;
 
   @Input()
+  yAxisIds: TimeSeriesChartYAxisId[];
+
+  @Input()
   popover: TbPopoverComponent<TimeSeriesChartThresholdSettingsPanelComponent>;
 
   @Output()
@@ -89,6 +92,7 @@ export class TimeSeriesChartThresholdSettingsPanelComponent implements OnInit {
   ngOnInit(): void {
     this.thresholdSettingsFormGroup = this.fb.group(
       {
+        yAxisId: [this.thresholdSettings.yAxisId, [Validators.required]],
         units: [this.thresholdSettings.units, []],
         decimals: [this.thresholdSettings.decimals, [Validators.min(0)]],
         lineColor: [this.thresholdSettings.lineColor, []],

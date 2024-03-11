@@ -30,7 +30,13 @@
 ///
 
 import { Component, forwardRef, Input, OnInit } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  NG_VALUE_ACCESSOR,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import {
   AxisPosition,
   timeSeriesAxisPositionTranslations,
@@ -55,9 +61,11 @@ import { WidgetService } from '@core/http/widget.service';
 })
 export class TimeSeriesChartAxisSettingsComponent implements OnInit, ControlValueAccessor {
 
-  settingsExpanded = false;
+  @Input()
+  @coerceBoolean()
+  alwaysExpanded = false;
 
-  axisTitle: string;
+  settingsExpanded = false;
 
   axisPositions: AxisPosition[];
 
@@ -87,8 +95,6 @@ export class TimeSeriesChartAxisSettingsComponent implements OnInit, ControlValu
 
   ngOnInit(): void {
 
-    this.axisTitle = this.axisType === 'xAxis' ? 'widgets.time-series-chart.axis.x-axis' : 'widgets.time-series-chart.axis.y-axis';
-
     this.axisPositions = this.axisType === 'xAxis' ? [AxisPosition.top, AxisPosition.bottom] :
       [AxisPosition.left, AxisPosition.right];
 
@@ -109,6 +115,8 @@ export class TimeSeriesChartAxisSettingsComponent implements OnInit, ControlValu
       splitLinesColor: [null, []]
     });
     if (this.axisType === 'yAxis') {
+      this.axisSettingsFormGroup.addControl('units', this.fb.control(null, []));
+      this.axisSettingsFormGroup.addControl('decimals', this.fb.control(null, [Validators.min(0)]));
       this.axisSettingsFormGroup.addControl('ticksFormatter', this.fb.control(null, []));
       this.axisSettingsFormGroup.addControl('min', this.fb.control(null, []));
       this.axisSettingsFormGroup.addControl('max', this.fb.control(null, []));
