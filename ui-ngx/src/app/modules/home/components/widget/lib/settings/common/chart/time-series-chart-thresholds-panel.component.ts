@@ -46,7 +46,7 @@ import {
   timeSeriesChartThresholdDefaultSettings,
   TimeSeriesChartThresholdType,
   timeSeriesChartThresholdValid,
-  timeSeriesChartThresholdValidator
+  timeSeriesChartThresholdValidator, TimeSeriesChartYAxisId
 } from '@home/components/widget/lib/chart/time-series-chart.models';
 import { mergeDeep } from '@core/utils';
 import { IAliasController } from '@core/api/widget-api.models';
@@ -88,6 +88,9 @@ export class TimeSeriesChartThresholdsPanelComponent implements ControlValueAcce
 
   @Input()
   widgetConfig: WidgetConfig;
+
+  @Input()
+  yAxisIds: TimeSeriesChartYAxisId[];
 
   thresholdsFormGroup: UntypedFormGroup;
 

@@ -69,6 +69,14 @@
     }
   }
 
+  .tb-y-axis-field {
+    width: 100px;
+    min-width: 100px;
+    .mat-mdc-form-field {
+      width: 100%;
+    }
+  }
+
   .tb-color-field, .tb-units-field, .tb-decimals-field {
     display: flex;
     flex-direction: row;
@@ -89,6 +97,12 @@
   .tb-decimals-field {
     width: 60px;
     min-width: 60px;
+  }
+
+  .tb-y-axis-field {
+    @media #{$mat-xs} {
+      display: none;
+    }
   }
 
   .tb-units-field, .tb-color-field, .tb-decimals-field {
