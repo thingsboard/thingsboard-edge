@@ -112,11 +112,11 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
     private Integer mqttsBindPort;
     @Value("${transport.coap.enabled}")
     private boolean coapEnabled;
-    @Value("${transport.coap.bind_port}")
+    @Value("${coap.bind_port}")
     private Integer coapBindPort;
     @Value("${transport.coap.dtls.enabled}")
     private boolean coapDtlsEnabled;
-    @Value("${transport.coap.dtls.bind_port}")
+    @Value("${coap.dtls.bind_port}")
     private Integer coapsBindPort;
     // ... Edge
 
