@@ -301,6 +301,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     state: null,
     stateController: null,
     stateChanged: null,
+    stateId: null,
     aliasController: null,
     runChangeDetection: this.runChangeDetection.bind(this)
   };

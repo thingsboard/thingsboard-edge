@@ -57,6 +57,7 @@ export interface DashboardContext {
   aliasController: IAliasController;
   stateController: IStateController;
   stateChanged: Observable<string>;
+  stateId: Observable<string>;
   runChangeDetection: () => void;
 }
 

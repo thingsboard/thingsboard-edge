@@ -11,7 +11,8 @@ Available template parameters:
 
 * `api` - rate-limited API label; one of: 'REST API requests', 'REST API requests per customer', 'transport messages', 
   'transport messages per device', 'Cassandra queries', 'WS updates per session', 'notification requests', 'notification requests per rule',
-  'entity version creation', 'entity version load', 'reports generation', 'integration messages', 'integration messages per device', 'Edge events', 'Edge events per edge';
+  'entity version creation', 'entity version load', 'reports generation', 'integration messages', 'integration messages per device',
+  'Edge events', 'Edge events per edge', 'Edge uplink messages', 'Edge uplink messages per edge';
 * `limitLevelEntityType` - entity type of the limit level entity, e.g. 'Tenant', 'Device', 'Notification rule', 'Customer', etc.;
 * `limitLevelEntityId` - id of the limit level entity;
 * `limitLevelEntityName` - name of the limit level entity;
