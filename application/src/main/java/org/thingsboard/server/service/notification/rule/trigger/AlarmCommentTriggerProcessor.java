@@ -91,6 +91,7 @@ public class AlarmCommentTriggerProcessor implements NotificationRuleTriggerProc
                 .alarmSeverity(alarm.getSeverity())
                 .alarmStatus(alarm.getStatus())
                 .alarmCustomerId(alarm.getCustomerId())
+                .dashboardId(alarm.getDashboardId())
                 .build();
     }
 

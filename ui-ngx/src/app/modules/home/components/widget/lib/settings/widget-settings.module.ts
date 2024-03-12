@@ -348,6 +348,12 @@ import {
 import {
   PowerButtonWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/button/power-button-widget-settings.component';
+import {
+  SliderWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/control/slider-widget-settings.component';
+import {
+  ToggleButtonWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/button/toggle-button-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -465,6 +471,8 @@ import {
     ActionButtonWidgetSettingsComponent,
     CommandButtonWidgetSettingsComponent,
     PowerButtonWidgetSettingsComponent,
+    SliderWidgetSettingsComponent,
+    ToggleButtonWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -590,6 +598,8 @@ import {
     ActionButtonWidgetSettingsComponent,
     CommandButtonWidgetSettingsComponent,
     PowerButtonWidgetSettingsComponent,
+    SliderWidgetSettingsComponent,
+    ToggleButtonWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -682,6 +692,8 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-action-button-widget-settings': ActionButtonWidgetSettingsComponent,
   'tb-command-button-widget-settings': CommandButtonWidgetSettingsComponent,
   'tb-power-button-widget-settings': PowerButtonWidgetSettingsComponent,
+  'tb-slider-widget-settings': SliderWidgetSettingsComponent,
+  'tb-toggle-button-widget-settings': ToggleButtonWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

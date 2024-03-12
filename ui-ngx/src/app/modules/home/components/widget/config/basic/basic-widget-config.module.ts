@@ -118,6 +118,10 @@ import {
 import {
   PowerButtonBasicConfigComponent
 } from '@home/components/widget/config/basic/button/power-button-basic-config.component';
+import { SliderBasicConfigComponent } from '@home/components/widget/config/basic/rpc/slider-basic-config.component';
+import {
+  ToggleButtonBasicConfigComponent
+} from '@home/components/widget/config/basic/button/toggle-button-basic-config.component';
 
 @NgModule({
   declarations: [
@@ -150,7 +154,9 @@ import {
     SingleSwitchBasicConfigComponent,
     ActionButtonBasicConfigComponent,
     CommandButtonBasicConfigComponent,
-    PowerButtonBasicConfigComponent
+    PowerButtonBasicConfigComponent,
+    SliderBasicConfigComponent,
+    ToggleButtonBasicConfigComponent
   ],
   imports: [
     CommonModule,
@@ -187,7 +193,9 @@ import {
     SingleSwitchBasicConfigComponent,
     ActionButtonBasicConfigComponent,
     CommandButtonBasicConfigComponent,
-    PowerButtonBasicConfigComponent
+    PowerButtonBasicConfigComponent,
+    SliderBasicConfigComponent,
+    ToggleButtonBasicConfigComponent
   ]
 })
 export class BasicWidgetConfigModule {
@@ -218,5 +226,7 @@ export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetCo
   'tb-single-switch-basic-config': SingleSwitchBasicConfigComponent,
   'tb-action-button-basic-config': ActionButtonBasicConfigComponent,
   'tb-command-button-basic-config': CommandButtonBasicConfigComponent,
-  'tb-power-button-basic-config': PowerButtonBasicConfigComponent
+  'tb-power-button-basic-config': PowerButtonBasicConfigComponent,
+  'tb-slider-basic-config': SliderBasicConfigComponent,
+  'tb-toggle-button-basic-config': ToggleButtonBasicConfigComponent
 };

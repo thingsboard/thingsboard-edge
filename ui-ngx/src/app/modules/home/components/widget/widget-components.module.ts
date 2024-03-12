@@ -89,6 +89,8 @@ import { SingleSwitchWidgetComponent } from '@home/components/widget/lib/rpc/sin
 import { ActionButtonWidgetComponent } from '@home/components/widget/lib/button/action-button-widget.component';
 import { CommandButtonWidgetComponent } from '@home/components/widget/lib/button/command-button-widget.component';
 import { PowerButtonWidgetComponent } from '@home/components/widget/lib/rpc/power-button-widget.component';
+import { SliderWidgetComponent } from '@home/components/widget/lib/rpc/slider-widget.component';
+import { ToggleButtonWidgetComponent } from '@home/components/widget/lib/button/toggle-button-widget.component';
 
 @NgModule({
   declarations:
@@ -135,7 +137,9 @@ import { PowerButtonWidgetComponent } from '@home/components/widget/lib/rpc/powe
       SingleSwitchWidgetComponent,
       ActionButtonWidgetComponent,
       CommandButtonWidgetComponent,
-      PowerButtonWidgetComponent
+      PowerButtonWidgetComponent,
+      SliderWidgetComponent,
+      ToggleButtonWidgetComponent
     ],
   imports: [
     CommonModule,
@@ -187,7 +191,9 @@ import { PowerButtonWidgetComponent } from '@home/components/widget/lib/rpc/powe
         SingleSwitchWidgetComponent,
         ActionButtonWidgetComponent,
         CommandButtonWidgetComponent,
-        PowerButtonWidgetComponent
+        PowerButtonWidgetComponent,
+        SliderWidgetComponent,
+        ToggleButtonWidgetComponent
     ],
   providers: [
     {provide: WIDGET_COMPONENTS_MODULE_TOKEN, useValue: WidgetComponentsModule }

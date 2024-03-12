@@ -30,16 +30,27 @@
 ///
 
 import { AfterViewInit, Component, forwardRef, Input, OnDestroy, OnInit } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR, Validators } from '@angular/forms';
+import {
+  ControlValueAccessor,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  NG_VALUE_ACCESSOR,
+  Validators,
+  NG_VALIDATORS,
+  Validator,
+  ValidationErrors
+} from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
 import { SchedulerEventConfiguration } from '@shared/models/scheduler-event.models';
-import { MessageType } from '@shared/models/rule-node.models';
 import { EntityType } from '@shared/models/entity-type.models';
 import { AttributeScope, telemetryTypeTranslations } from '@shared/models/telemetry/telemetry.models';
 import { EntityId } from '@shared/models/id/entity-id';
 import { attributeKeyValueValidator } from '@home/components/scheduler/config/attribute-key-value-table.component';
 import { deepClone } from '@core/utils';
+import { safeMerge, updateAttributesDefaults } from '@home/components/scheduler/config/config.models';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-update-attributes-event-config',
@@ -49,9 +60,14 @@ import { deepClone } from '@core/utils';
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => UpdateAttributesComponent),
     multi: true
+  },
+  {
+    provide: NG_VALIDATORS,
+    useExisting: forwardRef(() => UpdateAttributesComponent),
+    multi: true
   }]
 })
-export class UpdateAttributesComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy {
+export class UpdateAttributesComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy, Validator {
 
   modelValue: SchedulerEventConfiguration | null;
 
@@ -66,6 +82,8 @@ export class UpdateAttributesComponent implements ControlValueAccessor, OnInit, 
   telemetryTypeTranslationsMap = telemetryTypeTranslations;
 
   entityType = EntityType;
+
+  private destroy$ = new Subject<void>();
 
   @Input()
   disabled: boolean;
@@ -87,7 +105,9 @@ export class UpdateAttributesComponent implements ControlValueAccessor, OnInit, 
       )
     });
 
-    this.updateAttributesFormGroup.get('originatorId').valueChanges.subscribe(() => {
+    this.updateAttributesFormGroup.get('originatorId').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       const originatorId: EntityId = this.updateAttributesFormGroup.get('originatorId').value;
       if (!originatorId || originatorId.entityType !== EntityType.DEVICE) {
         const scope: AttributeScope = this.updateAttributesFormGroup.get('metadata').get('scope').value;
@@ -97,13 +117,17 @@ export class UpdateAttributesComponent implements ControlValueAccessor, OnInit, 
       }
     });
 
-    this.updateAttributesFormGroup.get('metadata').get('scope').valueChanges.subscribe(() => {
+    this.updateAttributesFormGroup.get('metadata').get('scope').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.updateAttributesFormGroup.get('serverAttributes').patchValue({}, {emitEvent: false});
       this.updateAttributesFormGroup.get('sharedAttributes').patchValue({}, {emitEvent: false});
       this.updateValidators();
     });
 
-    this.updateAttributesFormGroup.valueChanges.subscribe(() => {
+    this.updateAttributesFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       this.updateModel();
     });
   }
@@ -129,9 +153,16 @@ export class UpdateAttributesComponent implements ControlValueAccessor, OnInit, 
   }
 
   ngAfterViewInit(): void {
+    if (!this.updateAttributesFormGroup.valid) {
+      setTimeout(() => {
+        this.updateModel();
+      }, 0);
+    }
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -144,36 +175,36 @@ export class UpdateAttributesComponent implements ControlValueAccessor, OnInit, 
   }
 
   writeValue(value: SchedulerEventConfiguration | null): void {
-    this.modelValue = value;
-    this.updateAttributesFormGroup.reset(undefined, { emitEvent: false });
-    let doUpdate = false;
-    if (this.modelValue) {
-      if (!this.modelValue.msgType) {
-        this.modelValue.msgType = MessageType.POST_ATTRIBUTES_REQUEST;
-        doUpdate = true;
-      }
-      if (!this.modelValue.metadata || !this.modelValue.metadata.scope) {
-        const metadata = this.modelValue.metadata || {};
-        metadata.scope = AttributeScope.SERVER_SCOPE;
-        this.modelValue.metadata = metadata;
-        doUpdate = true;
-      }
-      const formValue = deepClone(this.modelValue);
-      const attributes = formValue.msgBody;
-      if (formValue.metadata.scope === AttributeScope.SERVER_SCOPE) {
-        (formValue as any).serverAttributes = attributes;
-      } else if (formValue.metadata.scope === AttributeScope.SHARED_SCOPE) {
-        (formValue as any).sharedAttributes = attributes;
-      }
-      delete formValue.msgBody;
-      this.updateAttributesFormGroup.reset(formValue, { emitEvent: false });
-    }
+    this.modelValue = safeMerge<SchedulerEventConfiguration>(updateAttributesDefaults, value);
+    const formValue = this.prepareInputConfig(this.modelValue);
+    this.updateAttributesFormGroup.reset(formValue, { emitEvent: false });
     this.updateValidators();
-    if (doUpdate) {
-      setTimeout(() => {
-        this.updateModel();
-      }, 0);
+  }
+
+  validate(): ValidationErrors | null {
+    if (!this.updateAttributesFormGroup.valid) {
+      return {
+        updateAttributesForm: {
+          valid: false
+        }
+      };
     }
+
+    return null;
+  }
+
+  private prepareInputConfig(value: SchedulerEventConfiguration): SchedulerEventConfiguration | null {
+    const formValue = deepClone(value);
+
+    const attributes = formValue.msgBody;
+    if (formValue.metadata.scope === AttributeScope.SERVER_SCOPE) {
+      (formValue as any).serverAttributes = attributes;
+    } else if (formValue.metadata.scope === AttributeScope.SHARED_SCOPE) {
+      (formValue as any).sharedAttributes = attributes;
+    }
+    delete formValue.msgBody;
+
+    return formValue;
   }
 
   private updateModel() {

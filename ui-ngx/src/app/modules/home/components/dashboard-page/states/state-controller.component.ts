@@ -32,7 +32,7 @@
 import { IStateControllerComponent, StateControllerState } from '@home/components/dashboard-page/states/state-controller.models';
 import { IDashboardController } from '../dashboard-page.models';
 import { DashboardState } from '@app/shared/models/dashboard.models';
-import { Observable, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, Subject, Subscription } from 'rxjs';
 import { NgZone, OnDestroy, OnInit, Directive } from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { StatesControllerService } from '@home/components/dashboard-page/states/states-controller.service';
@@ -46,6 +46,7 @@ import { UtilsService } from '@core/services/utils.service';
 export abstract class StateControllerComponent implements IStateControllerComponent, OnInit, OnDestroy {
 
   private stateChangedSubject = new Subject<string>();
+  protected stateIdSubject = new Subject<string>();
   stateObject: StateControllerState = [];
   dashboardCtrl: IDashboardController;
   preservedState: any;
@@ -146,6 +147,7 @@ export abstract class StateControllerComponent implements IStateControllerCompon
       subscription.unsubscribe();
     });
     this.rxSubscriptions.length = 0;
+    this.stateIdSubject.complete();
     this.stateChangedSubject.complete();
   }
 
@@ -177,6 +179,10 @@ export abstract class StateControllerComponent implements IStateControllerCompon
 
   public stateChanged(): Observable<string> {
     return this.stateChangedSubject.asObservable();
+  }
+
+  public stateId(): Observable<string> {
+    return this.stateIdSubject.asObservable();
   }
 
   public openRightLayout(): void {

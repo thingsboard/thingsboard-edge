@@ -35,9 +35,9 @@
     <tb-report-config
       formControlName="reportConfig">
     </tb-report-config>
-    <div class="tb-form-panel stroked"
-         [class.no-padding-bottom]="emailConfigPanel.expanded">
-      <mat-expansion-panel class="tb-settings tb-slide-toggle" #emailConfigPanel
+    <div class="tb-form-panel stroked">
+      <mat-expansion-panel class="tb-settings tb-slide-toggle"
+                           style="margin: -15px; padding: 15px;"
                            [expanded]="generateReportFormGroup.get('msgBody.sendEmail').value"
                            [disabled]="!generateReportFormGroup.get('msgBody.sendEmail').value">
         <mat-expansion-panel-header>
