@@ -773,7 +773,7 @@ export class TbTimeSeriesChart {
   }
 
   private animationEnabled(): boolean {
-    return this.settings.animation.animation;
+    return this.ctx.reportService?.reportView ? false : this.settings.animation.animation;
   }
 
   private updateBarsAnimation(barItems: TimeSeriesChartDataItem[], animation: boolean) {
