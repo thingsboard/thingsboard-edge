@@ -155,7 +155,8 @@ export class TimeSeriesChartWidgetSettingsComponent extends WidgetSettingsCompon
 
       animation: [settings.animation, []],
 
-      background: [settings.background, []]
+      background: [settings.background, []],
+      padding: [settings.padding, []]
     });
   }
 
