@@ -37,15 +37,22 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.SaveOtaPackageInfoRequest;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
+import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.gen.edge.v1.DeviceGroupOtaPackageUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.common.data.ota.OtaPackageType.FIRMWARE;
@@ -157,10 +164,80 @@ public class OtaPackageEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedFirmwareInfo.getUuidId().getLeastSignificantBits(), otaPackageUpdateMsg.getIdLSB());
     }
 
+    @Test
+    public void testDeviceGroupOtaPackage() throws Exception {
+        // create device entity group and assign to edge
+        EntityGroup deviceEntityGroup1 = createEntityGroupAndAssignToEdge(EntityType.DEVICE, "DeviceGroup1", tenantId);
+
+        // create device and add to entity group 1
+        edgeImitator.expectMessageAmount(2);
+        Device savedDevice = saveDevice("Edge Device 1", THERMOSTAT_DEVICE_PROFILE_NAME, deviceEntityGroup1.getId());
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        Optional<DeviceUpdateMsg> deviceUpdateMsgOpt = edgeImitator.findMessageByType(DeviceUpdateMsg.class);
+        Assert.assertTrue(deviceUpdateMsgOpt.isPresent());
+        DeviceUpdateMsg deviceUpdateMsg = deviceUpdateMsgOpt.get();
+        Device deviceFromMsg = JacksonUtil.fromString(deviceUpdateMsg.getEntity(), Device.class, true);
+        Assert.assertNotNull(deviceFromMsg);
+        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
+        Assert.assertEquals(savedDevice, deviceFromMsg);
+
+        SaveOtaPackageInfoRequest firmwareInfo = new SaveOtaPackageInfoRequest();
+        firmwareInfo.setDeviceProfileId(thermostatDeviceProfile.getId());
+        firmwareInfo.setType(FIRMWARE);
+        firmwareInfo.setTitle("My firmware #2");
+        firmwareInfo.setVersion("v2.0");
+        firmwareInfo.setTag("My firmware #2 v2.0");
+        firmwareInfo.setUsesUrl(false);
+        firmwareInfo.setHasData(false);
+        firmwareInfo.setAdditionalInfo(JacksonUtil.newObjectNode());
+
+        edgeImitator.expectMessageAmount(1);
+
+        OtaPackageInfo savedFirmwareInfo = doPost("/api/otaPackage", firmwareInfo, OtaPackageInfo.class);
+        MockMultipartFile testData = new MockMultipartFile("file", "firmware.bin", "image/png", ByteBuffer.wrap(new byte[]{1, 3, 5}).array());
+        savedFirmwareInfo = saveData("/api/otaPackage/" + savedFirmwareInfo.getId().getId().toString() + "?checksumAlgorithm={checksumAlgorithm}", testData, ChecksumAlgorithm.SHA256.name());
+
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof OtaPackageUpdateMsg);
+        OtaPackageUpdateMsg otaPackageUpdateMsg = (OtaPackageUpdateMsg) latestMessage;
+        OtaPackage otaPackage = JacksonUtil.fromString(otaPackageUpdateMsg.getEntity(), OtaPackage.class, true);
+        Assert.assertNotNull(otaPackage);
+        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, otaPackageUpdateMsg.getMsgType());
+        Assert.assertEquals(savedFirmwareInfo.getId(), otaPackage.getId());
+        Assert.assertEquals(thermostatDeviceProfile.getId(), otaPackage.getDeviceProfileId());
+        Assert.assertEquals(FIRMWARE, otaPackage.getType());
+        Assert.assertEquals("My firmware #2", otaPackage.getTitle());
+        Assert.assertEquals("v2.0", otaPackage.getVersion());
+        Assert.assertEquals("My firmware #2 v2.0", otaPackage.getTag());
+
+        DeviceGroupOtaPackage deviceGroupOtaPackage = new DeviceGroupOtaPackage();
+        deviceGroupOtaPackage.setGroupId(deviceEntityGroup1.getId());
+        deviceGroupOtaPackage.setOtaPackageId(savedFirmwareInfo.getId());
+        deviceGroupOtaPackage.setOtaPackageType(savedFirmwareInfo.getType());
+
+        edgeImitator.expectMessageAmount(1);
+
+        deviceGroupOtaPackage = doPost("/api/deviceGroupOtaPackage", deviceGroupOtaPackage, DeviceGroupOtaPackage.class);
+
+        Assert.assertTrue(edgeImitator.waitForMessages());
+
+        latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof DeviceGroupOtaPackageUpdateMsg);
+        DeviceGroupOtaPackageUpdateMsg deviceGroupOtaPackageUpdateMsg = (DeviceGroupOtaPackageUpdateMsg) latestMessage;
+        DeviceGroupOtaPackage savedDeviceGroupOtaPackage = JacksonUtil.fromString(deviceGroupOtaPackageUpdateMsg.getEntity(), DeviceGroupOtaPackage.class, true);
+        Assert.assertNotNull(savedDeviceGroupOtaPackage);
+        Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, otaPackageUpdateMsg.getMsgType());
+        Assert.assertEquals(deviceGroupOtaPackage, savedDeviceGroupOtaPackage);
+    }
+
     private OtaPackageInfo saveData(String urlTemplate, MockMultipartFile content, String... params) throws Exception {
         MockMultipartHttpServletRequestBuilder postRequest = MockMvcRequestBuilders.multipart(urlTemplate, params);
         postRequest.file(content);
         setJwtToken(postRequest);
         return readResponse(mockMvc.perform(postRequest).andExpect(status().isOk()), OtaPackageInfo.class);
     }
+
 }

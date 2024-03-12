@@ -171,6 +171,7 @@ public class EntityIdFactory {
             case TENANT_PROFILE:
                 return new TenantProfileId(uuid);
             case OTA_PACKAGE:
+            case DEVICE_GROUP_OTA:
                 return new OtaPackageId(uuid);
             case EDGE:
                 return new EdgeId(uuid);
