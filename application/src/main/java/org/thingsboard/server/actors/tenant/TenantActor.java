@@ -32,6 +32,7 @@ package org.thingsboard.server.actors.tenant;
 
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.actors.ProcessFailureStrategy;
 import org.thingsboard.server.actors.TbActor;
 import org.thingsboard.server.actors.TbActorCtx;
 import org.thingsboard.server.actors.TbActorException;
@@ -200,7 +201,7 @@ public class TenantActor extends RuleChainManagerActor {
             return;
         }
         TbMsg tbMsg = msg.getMsg();
-        if (getApiUsageState().isReExecEnabled() && ruleChainsInitialized) {
+        if (getApiUsageState().isReExecEnabled()) {
             if (tbMsg.getRuleChainId() == null) {
                 if (getRootChainActor() != null) {
                     getRootChainActor().tell(msg);
@@ -224,7 +225,7 @@ public class TenantActor extends RuleChainManagerActor {
     }
 
     private void onRuleChainMsg(RuleChainAwareMsg msg) {
-        if (getApiUsageState().isReExecEnabled() && ruleChainsInitialized) {
+        if (getApiUsageState().isReExecEnabled()) {
             getOrCreateActor(msg.getRuleChainId()).tell(msg);
         }
     }
@@ -335,6 +336,12 @@ public class TenantActor extends RuleChainManagerActor {
             apiUsageState = new ApiUsageState(systemContext.getApiUsageStateService().getApiUsageState(tenantId));
         }
         return apiUsageState;
+    }
+
+    @Override
+    public ProcessFailureStrategy onProcessFailure(TbActorMsg msg, Throwable t) {
+        log.error("[{}] Failed to process msg: {}", tenantId, msg, t);
+        return doProcessFailure(t);
     }
 
     public static class ActorCreator extends ContextBasedCreator {

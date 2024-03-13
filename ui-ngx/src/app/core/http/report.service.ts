@@ -237,7 +237,8 @@ export class ReportService {
                     error: 'Failed to navigate to target dashboard!'
                   });
                 }
-              })
+              }),
+              catchError((e) => of({success: false, error: e?.error?.message}))
             );
           } else {
             return of({ success: false, error: 'Authentication failed!' });
