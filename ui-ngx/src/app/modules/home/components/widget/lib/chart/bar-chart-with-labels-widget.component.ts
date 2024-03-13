@@ -52,7 +52,6 @@ import {
 } from '@shared/models/widget-settings.models';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { formatValue } from '@core/utils';
-import { DataKey } from '@shared/models/widget.models';
 import { Observable } from 'rxjs';
 import { ImagePipe } from '@shared/pipe/image.pipe';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -69,18 +68,13 @@ import {
   ECharts,
   echartsModule,
   EChartsOption,
+  EChartsSeriesItem,
   echartsTooltipFormatter,
-  NamedDataSet,
   toNamedData
 } from '@home/components/widget/lib/chart/echarts-widget.models';
 import { IntervalMath } from '@shared/models/time/time.models';
 
-interface BarChartDataItem {
-  id: string;
-  dataKey: DataKey;
-  data: NamedDataSet;
-  enabled: boolean;
-}
+type BarChartDataItem = EChartsSeriesItem;
 
 interface BarChartLegendItem {
   id: string;
@@ -401,7 +395,7 @@ export class BarChartWithLabelsWidgetComponent implements OnInit, OnDestroy, Aft
       tooltip: {
         trigger: 'axis',
         confine: true,
-        appendToBody: true,
+        appendTo: 'body',
         axisPointer: {
           type: 'shadow'
         },

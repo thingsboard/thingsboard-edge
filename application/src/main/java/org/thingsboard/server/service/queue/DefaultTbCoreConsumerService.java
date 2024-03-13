@@ -200,7 +200,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbCoreIntegrationApiService tbCoreIntegrationApiService,
                                         PartitionService partitionService,
                                         ApplicationEventPublisher eventPublisher,
-                                        Optional<JwtSettingsService> jwtSettingsService,
+                                        JwtSettingsService jwtSettingsService,
                                         NotificationSchedulerService notificationSchedulerService,
                                         NotificationRuleProcessor notificationRuleProcessor,
                                         TbImageService imageService) {

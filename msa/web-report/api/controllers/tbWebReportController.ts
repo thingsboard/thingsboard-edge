@@ -77,7 +77,7 @@ export function genDashboardReport(req: Request, res: Response, queue: TbWebRepo
                 res.statusMessage = 'Generate report timeout!';
                 res.status(503).end();
             } else {
-                res.statusMessage = 'Failed to load dashboard page: ' + e;
+                res.statusMessage = `Failed to load dashboard page: ${e.message || e}`;
                 res.status(500).end();
             }
             activeRequestsCount--;
