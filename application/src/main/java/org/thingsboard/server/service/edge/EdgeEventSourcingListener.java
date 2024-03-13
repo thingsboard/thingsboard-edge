@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -240,12 +241,14 @@ public class EdgeEventSourcingListener {
     private EdgeEventType getEdgeEventTypeForEntityEvent(Object entity) {
         if (entity instanceof AlarmComment) {
             return EdgeEventType.ALARM_COMMENT;
+        } else if (entity instanceof DeviceGroupOtaPackage) {
+            return EdgeEventType.DEVICE_GROUP_OTA;
         }
         return null;
     }
 
     private String getBodyMsgForEntityEvent(Object entity) {
-        if (entity instanceof AlarmComment) {
+        if (entity instanceof AlarmComment || entity instanceof DeviceGroupOtaPackage) {
             return JacksonUtil.toString(entity);
         }
         return null;

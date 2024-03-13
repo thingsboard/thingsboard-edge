@@ -123,7 +123,6 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         Device deviceFromMsg = JacksonUtil.fromString(deviceUpdateMsg.getEntity(), Device.class, true);
         Assert.assertNotNull(deviceFromMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
-        Assert.assertEquals(UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, deviceUpdateMsg.getMsgType());
         Assert.assertEquals(savedDevice, deviceFromMsg);
         Assert.assertEquals(savedDevice.getId(), deviceFromMsg.getId());
         Assert.assertEquals(savedDevice.getName(), deviceFromMsg.getName());

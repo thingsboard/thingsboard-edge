@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.ota;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.OtaPackageInfo;
@@ -40,6 +41,8 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.group.EntityGroupDao;
 import org.thingsboard.server.exception.DataValidationException;
 
@@ -52,22 +55,23 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 @RequiredArgsConstructor
 public class BaseDeviceGroupOtaPackageService implements DeviceGroupOtaPackageService {
 
-    private final DeviceGroupOtaPackageDao DeviceGroupOtaPackageDao;
+    private final DeviceGroupOtaPackageDao deviceGroupOtaPackageDao;
     private final OtaPackageDao otaPackageDao;
     private final EntityGroupDao entityGroupDao;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     public DeviceGroupOtaPackage findDeviceGroupOtaPackageById(UUID id) {
         log.trace("Executing findDeviceGroupOtaPackageById [{}]", id);
         validateId(id, "Incorrect DeviceGroupOtaPackageId" + id);
-        return DeviceGroupOtaPackageDao.findDeviceGroupOtaPackageById(id);
+        return deviceGroupOtaPackageDao.findDeviceGroupOtaPackageById(id);
     }
 
     @Override
     public DeviceGroupOtaPackage findDeviceGroupOtaPackageByGroupIdAndType(EntityGroupId groupId, OtaPackageType otaPackageType) {
         log.trace("Executing findDeviceGroupOtaPackageByGroupIdAndType [{}], [{}]", groupId, otaPackageType);
         validateId(groupId, "Incorrect groupId" + groupId);
-        return DeviceGroupOtaPackageDao.findDeviceGroupOtaPackageByGroupIdAndType(groupId.getId(), otaPackageType);
+        return deviceGroupOtaPackageDao.findDeviceGroupOtaPackageByGroupIdAndType(groupId.getId(), otaPackageType);
     }
 
     @Override
@@ -75,14 +79,20 @@ public class BaseDeviceGroupOtaPackageService implements DeviceGroupOtaPackageSe
         log.trace("Executing saveDeviceGroupOtaPackage [{}]", deviceGroupOtaPackage);
         deviceGroupOtaPackage.setOtaPackageUpdateTime(System.currentTimeMillis());
         validate(tenantId, deviceGroupOtaPackage);
-        return DeviceGroupOtaPackageDao.saveDeviceGroupOtaPackage(deviceGroupOtaPackage);
+        DeviceGroupOtaPackage result = deviceGroupOtaPackageDao.saveDeviceGroupOtaPackage(deviceGroupOtaPackage);
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(result)
+                .entityId(deviceGroupOtaPackage.getGroupId()).build());
+        return result;
     }
 
     @Override
-    public void deleteDeviceGroupOtaPackage(UUID id) {
+    public void deleteDeviceGroupOtaPackage(TenantId tenantId, DeviceGroupOtaPackage deviceGroupOtaPackage) {
+        UUID id = deviceGroupOtaPackage.getId();
         log.trace("Executing deleteDeviceGroupOtaPackage [{}]", id);
         validateId(id, "Incorrect DeviceGroupOtaPackageId" + id);
-        DeviceGroupOtaPackageDao.deleteDeviceGroupOtaPackage(id);
+        deviceGroupOtaPackageDao.deleteDeviceGroupOtaPackage(id);
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entity(deviceGroupOtaPackage)
+                .entityId(deviceGroupOtaPackage.getGroupId()).build());
     }
 
     private void validate(TenantId tenantId, DeviceGroupOtaPackage deviceGroupOtaPackage) {
@@ -108,7 +118,7 @@ public class BaseDeviceGroupOtaPackageService implements DeviceGroupOtaPackageSe
         }
 
         if (deviceGroupOtaPackage.getId() != null) {
-            DeviceGroupOtaPackage oldDeviceGroupOtaPackage = DeviceGroupOtaPackageDao.findDeviceGroupOtaPackageById(deviceGroupOtaPackage.getId());
+            DeviceGroupOtaPackage oldDeviceGroupOtaPackage = deviceGroupOtaPackageDao.findDeviceGroupOtaPackageById(deviceGroupOtaPackage.getId());
             if (!deviceGroupOtaPackage.getGroupId().equals(oldDeviceGroupOtaPackage.getGroupId())) {
                 throw new DataValidationException("Updating groupId is prohibited!");
             }
