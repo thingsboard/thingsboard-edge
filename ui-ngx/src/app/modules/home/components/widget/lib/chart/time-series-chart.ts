@@ -70,7 +70,7 @@ import {
   measureYAxisNameWidth,
   toNamedData
 } from '@home/components/widget/lib/chart/echarts-widget.models';
-import { autoDateFormat, DateFormatProcessor } from '@shared/models/widget-settings.models';
+import { DateFormatProcessor } from '@shared/models/widget-settings.models';
 import { isDefinedAndNotNull, isEqual, mergeDeep } from '@core/utils';
 import { DataKey, Datasource, DatasourceType, widgetType } from '@shared/models/widget.models';
 import * as echarts from 'echarts/core';
@@ -88,7 +88,7 @@ import { BarRenderSharedContext } from '@home/components/widget/lib/chart/time-s
 export class TbTimeSeriesChart {
 
   public static dataKeySettings(type = TimeSeriesChartType.default): DataKeySettingsFunction {
-    return (key, isLatestDataKey) => {
+    return (_key, isLatestDataKey) => {
       if (!isLatestDataKey) {
         const settings = mergeDeep<TimeSeriesChartKeySettings>({} as TimeSeriesChartKeySettings,
           timeSeriesChartKeyDefaultSettings);
@@ -644,18 +644,6 @@ export class TbTimeSeriesChart {
     }
   }
 
-  private updateYAxisScale(axisList: TimeSeriesChartYAxis[]): boolean {
-    let changed = false;
-    for (const yAxis of axisList) {
-      const scaleYAxis = this.scaleYAxis(yAxis);
-      if (yAxis.option.scale !== scaleYAxis) {
-        yAxis.option.scale = scaleYAxis;
-        changed = true;
-      }
-    }
-    return changed;
-  }
-
   private updateYAxisOffset(axisList: TimeSeriesChartYAxis[]): {offset: number; changed: boolean} {
     const result = {offset: 0, changed: false};
     let width = 0;
@@ -697,6 +685,21 @@ export class TbTimeSeriesChart {
       result.offset += width;
     }
     return result;
+  }
+
+  private updateYAxisScale(axisList: TimeSeriesChartYAxis[]): boolean {
+    let changed = false;
+    for (const yAxis of axisList) {
+      const scaleYAxis = this.scaleYAxis(yAxis);
+      if (yAxis.option.scale !== scaleYAxis) {
+        yAxis.option.scale = scaleYAxis;
+        changed = true;
+      }
+      if (updateYAxisIntervals(this.timeSeriesChart, yAxis, this.yAxisEmpty(yAxis))) {
+        changed = true;
+      }
+    }
+    return changed;
   }
 
   private scaleYAxis(yAxis: TimeSeriesChartYAxis): boolean {
