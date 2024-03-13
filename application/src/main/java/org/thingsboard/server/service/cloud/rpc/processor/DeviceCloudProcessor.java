@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
@@ -50,13 +51,16 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
+import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceGroupOtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
@@ -73,6 +77,9 @@ import java.util.UUID;
 @Component
 @Slf4j
 public class DeviceCloudProcessor extends BaseDeviceProcessor {
+
+    @Autowired
+    protected DeviceGroupOtaPackageService deviceGroupOtaPackageService;
 
     public ListenableFuture<Void> processDeviceMsgFromCloud(TenantId tenantId,
                                                             DeviceUpdateMsg deviceUpdateMsg,
@@ -102,9 +109,9 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                         }
                     }
                     return Futures.immediateFuture(null);
-            case UNRECOGNIZED:
-            default:
-                return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
+                case UNRECOGNIZED:
+                default:
+                    return handleUnsupportedMsgType(deviceUpdateMsg.getMsgType());
             }
         } finally {
             cloudSynchronizationManager.getSync().remove();
@@ -306,4 +313,26 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     protected DeviceCredentials constructDeviceCredentialsFromUpdateMsg(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
         return JacksonUtil.fromString(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class, true);
     }
+
+    public ListenableFuture<Void> processDeviceGroupOtaPackageFromCloud(TenantId tenantId, DeviceGroupOtaPackageUpdateMsg deviceGroupOtaPackageUpdateMsg) {
+        log.trace("[{}] processDeviceGroupOtaPackageFromCloud [{}]", tenantId, deviceGroupOtaPackageUpdateMsg);
+        DeviceGroupOtaPackage deviceGroupOtaPackage = JacksonUtil.fromString(deviceGroupOtaPackageUpdateMsg.getEntity(), DeviceGroupOtaPackage.class, true);
+        if (deviceGroupOtaPackage == null) {
+            throw new RuntimeException("[{" + tenantId + "}] deviceGroupOtaPackageUpdateMsg {" + deviceGroupOtaPackageUpdateMsg + "} cannot be converted to device group ota package");
+        }
+        switch (deviceGroupOtaPackageUpdateMsg.getMsgType()) {
+            case ENTITY_CREATED_RPC_MESSAGE:
+            case ENTITY_UPDATED_RPC_MESSAGE:
+                deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage, false);
+                break;
+            case ENTITY_DELETED_RPC_MESSAGE:
+                deviceGroupOtaPackageService.deleteDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage);
+                break;
+            case UNRECOGNIZED:
+            default:
+                return handleUnsupportedMsgType(deviceGroupOtaPackageUpdateMsg.getMsgType());
+        }
+        return Futures.immediateFuture(null);
+    }
+
 }

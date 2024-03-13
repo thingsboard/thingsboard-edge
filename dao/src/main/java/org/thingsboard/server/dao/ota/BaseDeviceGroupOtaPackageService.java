@@ -76,9 +76,14 @@ public class BaseDeviceGroupOtaPackageService implements DeviceGroupOtaPackageSe
 
     @Override
     public DeviceGroupOtaPackage saveDeviceGroupOtaPackage(TenantId tenantId, DeviceGroupOtaPackage deviceGroupOtaPackage) {
+        return saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage, true);
+    }
+
+    @Override
+    public DeviceGroupOtaPackage saveDeviceGroupOtaPackage(TenantId tenantId, DeviceGroupOtaPackage deviceGroupOtaPackage, boolean doValidate) {
         log.trace("Executing saveDeviceGroupOtaPackage [{}]", deviceGroupOtaPackage);
         deviceGroupOtaPackage.setOtaPackageUpdateTime(System.currentTimeMillis());
-        validate(tenantId, deviceGroupOtaPackage);
+        validate(tenantId, deviceGroupOtaPackage, doValidate);
         DeviceGroupOtaPackage result = deviceGroupOtaPackageDao.saveDeviceGroupOtaPackage(deviceGroupOtaPackage);
         eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(result)
                 .entityId(deviceGroupOtaPackage.getGroupId()).build());
@@ -96,6 +101,10 @@ public class BaseDeviceGroupOtaPackageService implements DeviceGroupOtaPackageSe
     }
 
     private void validate(TenantId tenantId, DeviceGroupOtaPackage deviceGroupOtaPackage) {
+        validate(tenantId, deviceGroupOtaPackage, true);
+    }
+
+    private void validate(TenantId tenantId, DeviceGroupOtaPackage deviceGroupOtaPackage, boolean doValidate) {
         if (deviceGroupOtaPackage.getGroupId() == null) {
             throw new DataValidationException("DeviceGroupOtaPackage should be assigned to entity group!");
         }
@@ -117,7 +126,7 @@ public class BaseDeviceGroupOtaPackageService implements DeviceGroupOtaPackageSe
             throw new DataValidationException("Type should be specified!");
         }
 
-        if (deviceGroupOtaPackage.getId() != null) {
+        if (deviceGroupOtaPackage.getId() != null && doValidate) {
             DeviceGroupOtaPackage oldDeviceGroupOtaPackage = deviceGroupOtaPackageDao.findDeviceGroupOtaPackageById(deviceGroupOtaPackage.getId());
             if (!deviceGroupOtaPackage.getGroupId().equals(oldDeviceGroupOtaPackage.getGroupId())) {
                 throw new DataValidationException("Updating groupId is prohibited!");

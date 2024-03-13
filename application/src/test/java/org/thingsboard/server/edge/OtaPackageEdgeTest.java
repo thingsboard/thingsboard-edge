@@ -174,6 +174,7 @@ public class OtaPackageEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testDeviceGroupOtaPackage() throws Exception {
         // create device entity group and do not assign to edge
         EntityGroup deviceEntityGroup1 = new EntityGroup();

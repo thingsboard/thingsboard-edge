@@ -57,6 +57,7 @@ import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.DeviceGroupOtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
@@ -424,6 +425,11 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             if (downlinkMsg.getResourceUpdateMsgCount() > 0) {
                 for (ResourceUpdateMsg resourceUpdateMsg : downlinkMsg.getResourceUpdateMsgList()) {
                     result.add(tbResourceCloudProcessor.processResourceMsgFromCloud(tenantId, resourceUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getDeviceGroupOtaPackageUpdateMsgCount() > 0) {
+                for (DeviceGroupOtaPackageUpdateMsg deviceGroupOtaPackageUpdateMsg : downlinkMsg.getDeviceGroupOtaPackageUpdateMsgList()) {
+                    result.add(deviceProcessor.processDeviceGroupOtaPackageFromCloud(tenantId, deviceGroupOtaPackageUpdateMsg));
                 }
             }
             log.trace("Finished processing DownlinkMsg {}", downlinkMsg.getDownlinkMsgId());
