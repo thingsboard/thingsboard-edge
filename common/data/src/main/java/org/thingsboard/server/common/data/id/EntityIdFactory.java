@@ -178,6 +178,7 @@ public class EntityIdFactory {
             case SCHEDULER_EVENT:
                 return new SchedulerEventId(uuid);
             case ENTITY_GROUP:
+            case DEVICE_GROUP_OTA:
                 return new EntityGroupId(uuid);
             case ROLE:
                 return new RoleId(uuid);
