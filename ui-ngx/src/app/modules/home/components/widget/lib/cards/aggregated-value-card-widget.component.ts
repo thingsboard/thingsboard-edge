@@ -52,6 +52,7 @@ import {
 import { WidgetContext } from '@home/models/widget-component.models';
 import { Observable } from 'rxjs';
 import {
+  autoDateFormat,
   backgroundStyle,
   ComponentStyle,
   DateFormatProcessor,
@@ -208,7 +209,7 @@ export class AggregatedValueCardWidgetComponent implements OnInit, AfterViewInit
             }
           },
           tooltipDateInterval: false,
-          tooltipDateFormat: simpleDateFormat('dd MMM yyyy HH:mm:ss')
+          tooltipDateFormat: autoDateFormat()
       };
 
       this.lineChart = new TbTimeSeriesChart(this.ctx, settings, this.chartElement.nativeElement, this.renderer, true);
