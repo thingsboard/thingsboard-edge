@@ -61,7 +61,7 @@ public class DeviceGroupOtaPackageEdgeEventFetcher implements EdgeEventFetcher {
 
     @Override
     public PageLink getPageLink(int pageSize) {
-        return null;
+        return new PageLink(pageSize);
     }
 
     @Override
@@ -73,12 +73,12 @@ public class DeviceGroupOtaPackageEdgeEventFetcher implements EdgeEventFetcher {
                 DeviceGroupOtaPackage firmware = deviceGroupOtaPackageService.findDeviceGroupOtaPackageByGroupIdAndType(entityGroup.getId(), OtaPackageType.FIRMWARE);
                 if (firmware != null) {
                     result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.DEVICE_GROUP_OTA,
-                            EdgeEventActionType.UPDATED, firmware.getOtaPackageId(), JacksonUtil.valueToTree(firmware)));
+                            EdgeEventActionType.UPDATED, firmware.getGroupId(), JacksonUtil.valueToTree(firmware)));
                 }
                 DeviceGroupOtaPackage software = deviceGroupOtaPackageService.findDeviceGroupOtaPackageByGroupIdAndType(entityGroup.getId(), OtaPackageType.SOFTWARE);
                 if (software != null) {
                     result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.DEVICE_GROUP_OTA,
-                            EdgeEventActionType.UPDATED, software.getOtaPackageId(), JacksonUtil.valueToTree(software)));
+                            EdgeEventActionType.UPDATED, software.getGroupId(), JacksonUtil.valueToTree(software)));
                 }
             }
         }

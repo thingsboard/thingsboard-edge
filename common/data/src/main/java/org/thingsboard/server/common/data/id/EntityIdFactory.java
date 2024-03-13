@@ -171,13 +171,13 @@ public class EntityIdFactory {
             case TENANT_PROFILE:
                 return new TenantProfileId(uuid);
             case OTA_PACKAGE:
-            case DEVICE_GROUP_OTA:
                 return new OtaPackageId(uuid);
             case EDGE:
                 return new EdgeId(uuid);
             case SCHEDULER_EVENT:
                 return new SchedulerEventId(uuid);
             case ENTITY_GROUP:
+            case DEVICE_GROUP_OTA:
                 return new EntityGroupId(uuid);
             case ROLE:
                 return new RoleId(uuid);

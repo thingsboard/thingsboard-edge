@@ -81,7 +81,7 @@ public class BaseDeviceGroupOtaPackageService implements DeviceGroupOtaPackageSe
         validate(tenantId, deviceGroupOtaPackage);
         DeviceGroupOtaPackage result = deviceGroupOtaPackageDao.saveDeviceGroupOtaPackage(deviceGroupOtaPackage);
         eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(deviceGroupOtaPackage)
-                .entityId(deviceGroupOtaPackage.getOtaPackageId()).build());
+                .entityId(deviceGroupOtaPackage.getGroupId()).build());
         return result;
     }
 
@@ -92,7 +92,7 @@ public class BaseDeviceGroupOtaPackageService implements DeviceGroupOtaPackageSe
         validateId(id, "Incorrect DeviceGroupOtaPackageId" + id);
         deviceGroupOtaPackageDao.deleteDeviceGroupOtaPackage(id);
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entity(deviceGroupOtaPackage)
-                .entityId(deviceGroupOtaPackage.getOtaPackageId()).build());
+                .entityId(deviceGroupOtaPackage.getGroupId()).build());
     }
 
     private void validate(TenantId tenantId, DeviceGroupOtaPackage deviceGroupOtaPackage) {

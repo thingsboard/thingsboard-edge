@@ -663,10 +663,8 @@ public abstract class BaseEdgeProcessor {
         switch (actionType) {
             case ADDED:
             case UPDATED:
-                return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, body, null, null);
             case DELETED:
-                    return Futures.transform(Futures.allAsList(processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId, body, null, null)),
-                            voids -> null, dbCallbackExecutorService);
+                return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, body, null, null);
             default:
                 return Futures.immediateFuture(null);
         }

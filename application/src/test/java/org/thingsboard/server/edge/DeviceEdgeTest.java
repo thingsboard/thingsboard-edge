@@ -68,7 +68,6 @@ import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.dao.edge.EdgeService;
-import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.AttributesRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
@@ -107,9 +106,6 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
 
     @Autowired
     protected EdgeService edgeService;
-
-    @Autowired
-    protected DeviceGroupOtaPackageService deviceGroupOtaPackageService;
 
     @Test
     public void testDevices() throws Exception {
