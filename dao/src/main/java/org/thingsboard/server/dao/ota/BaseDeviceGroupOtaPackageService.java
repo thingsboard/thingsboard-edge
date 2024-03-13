@@ -80,7 +80,7 @@ public class BaseDeviceGroupOtaPackageService implements DeviceGroupOtaPackageSe
         deviceGroupOtaPackage.setOtaPackageUpdateTime(System.currentTimeMillis());
         validate(tenantId, deviceGroupOtaPackage);
         DeviceGroupOtaPackage result = deviceGroupOtaPackageDao.saveDeviceGroupOtaPackage(deviceGroupOtaPackage);
-        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(deviceGroupOtaPackage)
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(result)
                 .entityId(deviceGroupOtaPackage.getGroupId()).build());
         return result;
     }
