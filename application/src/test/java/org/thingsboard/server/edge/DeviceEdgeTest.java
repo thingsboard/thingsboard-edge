@@ -631,6 +631,9 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         Device device = doGet("/api/device/" + newDeviceId, Device.class);
         Assert.assertNotNull(device);
         Assert.assertEquals("Edge Device 2", device.getName());
+
+        var deviceGroups = getEntityGroupsIdsForEntity(device.getId());
+        Assert.assertEquals("Device must have 2 groups - 'All' and 'Edge All group'", 2, deviceGroups.size());
     }
 
     @Test
