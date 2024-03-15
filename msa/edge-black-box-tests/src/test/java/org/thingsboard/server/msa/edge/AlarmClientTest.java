@@ -50,12 +50,20 @@ import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.alarm.AlarmSearchStatus;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.data.rule.NodeConnectionInfo;
+import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
+import org.thingsboard.server.common.data.rule.RuleChainType;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -64,6 +72,8 @@ public class AlarmClientTest extends AbstractContainerTest {
 
     @Test
     public void testAlarms() {
+        cloudRemoveFromSaveTimeseriesToPushToNodeSuccessConnection();
+
         // create alarm
         Device device = saveDeviceAndAssignEntityGroupToEdge(CUSTOM_DEVICE_PROFILE_NAME, createEntityGroup(EntityType.DEVICE));
 
@@ -129,6 +139,8 @@ public class AlarmClientTest extends AbstractContainerTest {
 
         // cleanup
         cloudRestClient.deleteDevice(device.getId());
+
+        cloudRestoreFromSaveTimeseriesToPushToNodeSuccessConnection();
     }
 
     private Optional<AlarmInfo> getLatestAlarmByEntityIdFromEdge(EntityId entityId) {
@@ -147,6 +159,8 @@ public class AlarmClientTest extends AbstractContainerTest {
 
     @Test
     public void sendAlarmToCloud() {
+        edgeRemoveFromSaveTimeseriesToPushToNodeSuccessConnection();
+
         // create alarm on edge
         Device device = saveDeviceAndAssignEntityGroupToEdge(CUSTOM_DEVICE_PROFILE_NAME, createEntityGroup(EntityType.DEVICE));
 
@@ -210,6 +224,8 @@ public class AlarmClientTest extends AbstractContainerTest {
 
         // cleanup
         cloudRestClient.deleteDevice(device.getId());
+
+        edgeRestoreFromSaveTimeseriesToPushToNodeSuccessConnection();
     }
 
     private Optional<AlarmInfo> getLatestAlarmByEntityIdFromCloud(EntityId entityId) {
@@ -218,6 +234,8 @@ public class AlarmClientTest extends AbstractContainerTest {
 
     @Test
     public void testAlarmComments() {
+        cloudRemoveFromSaveTimeseriesToPushToNodeSuccessConnection();
+
         // create alarm
         Device device = saveDeviceAndAssignEntityGroupToEdge(CUSTOM_DEVICE_PROFILE_NAME, createEntityGroup(EntityType.DEVICE));
 
@@ -288,10 +306,14 @@ public class AlarmClientTest extends AbstractContainerTest {
 
         // cleanup
         cloudRestClient.deleteDevice(device.getId());
+
+        cloudRestoreFromSaveTimeseriesToPushToNodeSuccessConnection();
     }
 
     @Test
     public void sendAlarmCommentToCloud() {
+        edgeRemoveFromSaveTimeseriesToPushToNodeSuccessConnection();
+
         // create alarm
         Device device = saveDeviceAndAssignEntityGroupToEdge(CUSTOM_DEVICE_PROFILE_NAME, createEntityGroup(EntityType.DEVICE));
 
@@ -361,6 +383,8 @@ public class AlarmClientTest extends AbstractContainerTest {
 
         // cleanup
         cloudRestClient.deleteDevice(device.getId());
+
+        edgeRestoreFromSaveTimeseriesToPushToNodeSuccessConnection();
     }
 
     private AlarmComment saveAlarmComment(AlarmId alarmId, JsonNode comment, RestClient restClient) {
@@ -371,4 +395,81 @@ public class AlarmClientTest extends AbstractContainerTest {
         return restClient.saveAlarmComment(alarmId, alarmComment);
     }
 
+    // required to avoid creating duplicate alarms on the cloud or edge
+    // success save timeseries - push to edge/cloud conneciton is removed
+    // alarm are not created by a local device profile rule node
+    // restored connection back after test completed
+    private void cloudRemoveFromSaveTimeseriesToPushToNodeSuccessConnection() {
+        removeFromSaveTimeseriesToPushToNodeSuccessConnection(RuleChainType.CORE, "Push To Edge (Timeseries & Attributes)");
+    }
+
+    private void cloudRestoreFromSaveTimeseriesToPushToNodeSuccessConnection() {
+        restoreFromSaveTimeseriesToPushToNodeSuccessConnection(RuleChainType.CORE, "Push To Edge (Timeseries & Attributes)");
+    }
+
+    private void edgeRemoveFromSaveTimeseriesToPushToNodeSuccessConnection() {
+        removeFromSaveTimeseriesToPushToNodeSuccessConnection(RuleChainType.EDGE, "Push to Cloud (Timeseries & Attributes)");
+    }
+
+    private void edgeRestoreFromSaveTimeseriesToPushToNodeSuccessConnection() {
+        restoreFromSaveTimeseriesToPushToNodeSuccessConnection(RuleChainType.EDGE, "Push to Cloud (Timeseries & Attributes)");
+    }
+
+    private void removeFromSaveTimeseriesToPushToNodeSuccessConnection(RuleChainType ruleChainType, String pushToNodeName) {
+        RuleChainMetaData ruleChainMetaData = findRootRuleChainMetadata(ruleChainType);
+        int saveTimeSeriesRuleNodeIdx = findRuleNodeIdxByName(ruleChainMetaData.getNodes(), "Save Timeseries");
+        int pushToRuleNodeIdx = findRuleNodeIdxByName(ruleChainMetaData.getNodes(), pushToNodeName);
+        ArrayList<NodeConnectionInfo> connections = new ArrayList<>();
+        for (NodeConnectionInfo connection : ruleChainMetaData.getConnections()) {
+            if (connection.getFromIndex() != saveTimeSeriesRuleNodeIdx || connection.getToIndex() != pushToRuleNodeIdx) {
+                connections.add(connection);
+            }
+        }
+        ruleChainMetaData.setConnections(connections);
+        cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
+    }
+
+    private void restoreFromSaveTimeseriesToPushToNodeSuccessConnection(RuleChainType ruleChainType, String pushToRuleNodeName) {
+        RuleChainMetaData ruleChainMetaData = findRootRuleChainMetadata(ruleChainType);
+        int saveTimeSeriesRuleNodeIdx = findRuleNodeIdxByName(ruleChainMetaData.getNodes(), "Save Timeseries");
+        int pushToRuleNodeIdx = findRuleNodeIdxByName(ruleChainMetaData.getNodes(), pushToRuleNodeName);
+        var fromSaveTimeseriesToPushToNodeSuccessConnection = new NodeConnectionInfo();
+        fromSaveTimeseriesToPushToNodeSuccessConnection.setType("Success");
+        fromSaveTimeseriesToPushToNodeSuccessConnection.setFromIndex(saveTimeSeriesRuleNodeIdx);
+        fromSaveTimeseriesToPushToNodeSuccessConnection.setToIndex(pushToRuleNodeIdx);
+        ruleChainMetaData.getConnections().add(fromSaveTimeseriesToPushToNodeSuccessConnection);
+        cloudRestClient.saveRuleChainMetaData(ruleChainMetaData);
+    }
+
+    private RuleChainMetaData findRootRuleChainMetadata(RuleChainType ruleChainType) {
+        RuleChainId rootRuleChainId = findRootRuleChainId(ruleChainType);
+        Optional<RuleChainMetaData> ruleChainMetaDataOpt = cloudRestClient.getRuleChainMetaData(rootRuleChainId);
+        if (ruleChainMetaDataOpt.isEmpty()) {
+            throw new RuntimeException("Root rule chain metadata was not found!");
+        }
+        return ruleChainMetaDataOpt.get();
+    }
+
+    private int findRuleNodeIdxByName(List<RuleNode> ruleNodes, String nodeName) {
+        int idx = 0;
+        for (RuleNode node : ruleNodes) {
+            if (node.getName().equalsIgnoreCase(nodeName)) {
+                return idx;
+            }
+            idx++;
+        }
+        throw new RuntimeException("Rule node idx was not found!");
+    }
+
+    private RuleChainId findRootRuleChainId(RuleChainType ruleChainType) {
+        PageData<RuleChain> ruleChains = cloudRestClient.getRuleChains(ruleChainType, new PageLink(100));
+        RuleChainId rootRuleChainId = null;
+        for (RuleChain ruleChain : ruleChains.getData()) {
+            if (ruleChain.isRoot()) {
+                rootRuleChainId = ruleChain.getId();
+                break;
+            }
+        }
+        return rootRuleChainId;
+    }
 }
