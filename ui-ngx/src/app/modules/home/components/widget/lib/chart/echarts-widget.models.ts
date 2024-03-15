@@ -59,9 +59,10 @@ import {
 } from 'echarts/charts';
 import { LabelLayout } from 'echarts/features';
 import { CanvasRenderer, SVGRenderer } from 'echarts/renderers';
-import { DataEntry, DataKey, DataSet, LegendDirection } from '@shared/models/widget.models';
+import { DataEntry, DataKey, DataSet } from '@shared/models/widget.models';
 import {
   calculateAggIntervalWithWidgetTimeWindow,
+  Interval,
   IntervalMath,
   WidgetTimewindow
 } from '@shared/models/time/time.models';
@@ -348,7 +349,8 @@ export const echartsTooltipFormatter = (renderer: Renderer2,
                                         decimals: number,
                                         units: string,
                                         focusedSeriesIndex: number,
-                                        series?: EChartsSeriesItem[]): null | HTMLElement => {
+                                        series?: EChartsSeriesItem[],
+                                        interval?: Interval): null | HTMLElement => {
   if (!params || Array.isArray(params) && !params[0]) {
     return null;
   }
@@ -364,8 +366,8 @@ export const echartsTooltipFormatter = (renderer: Renderer2,
     const startTs = firstParam.value[2];
     const endTs = firstParam.value[3];
     if (settings.tooltipDateInterval && startTs && endTs && (endTs - 1) > startTs) {
-      const startDateText = tooltipDateFormat.update(startTs);
-      const endDateText = tooltipDateFormat.update(endTs - 1);
+      const startDateText = tooltipDateFormat.update(startTs, interval);
+      const endDateText = tooltipDateFormat.update(endTs - 1, interval);
       if (startDateText === endDateText) {
         dateText = startDateText;
       } else {
@@ -373,7 +375,7 @@ export const echartsTooltipFormatter = (renderer: Renderer2,
       }
     } else {
       const ts = firstParam.value[0];
-      dateText = tooltipDateFormat.update(ts);
+      dateText = tooltipDateFormat.update(ts, interval);
     }
     renderer.appendChild(dateElement, renderer.createText(dateText));
     renderer.setStyle(dateElement, 'font-family', settings.tooltipDateFont.family);
