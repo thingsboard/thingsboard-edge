@@ -121,7 +121,7 @@
         "layoutY": 104
       },
       "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
-      "name": "Push to cloud",
+      "name": "Push to Cloud (Timeseries & Attributes)",
       "debugMode": true,
       "singletonMode": false,
       "queueName": null,
@@ -136,7 +136,7 @@
         "layoutY": 684
       },
       "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
-      "name": "Push to cloud",
+      "name": "Push to Cloud",
       "debugMode": true,
       "singletonMode": false,
       "queueName": null,

@@ -175,7 +175,7 @@
         "layoutY": 104
       },
       "type": "org.thingsboard.rule.engine.edge.TbMsgPushToEdgeNode",
-      "name": "push to edge",
+      "name": "Push To Edge (Timeseries & Attributes)",
       "debugMode": true,
       "singletonMode": false,
       "queueName": null,
