@@ -117,6 +117,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -740,7 +741,7 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
 
     private void removeOtherEntities(EntitiesImportCtx ctx, EntityType entityType) {
         var entities = new PageDataIterable<>(link -> exportableEntitiesService.findEntitiesIdsByTenantId(ctx.getTenantId(), entityType, link), 100);
-        Set<EntityId> toRemove = new HashSet<>();
+        Set<EntityId> toRemove = new LinkedHashSet<>();
         for (EntityId entityId : entities) {
             if (ctx.getImportedEntities().get(entityType) == null || !ctx.getImportedEntities().get(entityType).contains(entityId)) {
                 toRemove.add(entityId);
