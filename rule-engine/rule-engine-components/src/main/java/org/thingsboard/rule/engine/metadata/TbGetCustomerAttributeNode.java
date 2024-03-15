@@ -31,6 +31,7 @@
 package org.thingsboard.rule.engine.metadata;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -40,6 +41,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.rule.engine.util.EntitiesCustomerIdAsyncLoader;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
@@ -49,8 +51,8 @@ import org.thingsboard.server.common.data.util.TbPair;
 @RuleNode(
         type = ComponentType.ENRICHMENT,
         name = "customer attributes",
-        configClazz = TbGetEntityDataNodeConfiguration.class,
-        version = 1,
+        configClazz = TbGetCustomerAttributeNodeConfiguration.class,
+        version = 2,
         nodeDescription = "Adds message originator customer attributes or latest telemetry into message or message metadata",
         nodeDetails = "Useful in multi-customer solutions where each customer has a different configuration or threshold set " +
                 "that is stored as customer attributes or telemetry data and used for dynamic message filtering, transformation, " +
@@ -61,18 +63,24 @@ import org.thingsboard.server.common.data.util.TbPair;
 public class TbGetCustomerAttributeNode extends TbAbstractGetEntityDataNode<CustomerId> {
 
     private static final String CUSTOMER_NOT_FOUND_MESSAGE = "Failed to find customer for entity with id: %s and type: %s";
+    private boolean preserveOriginatorIfCustomer;
 
     @Override
-    protected TbGetEntityDataNodeConfiguration loadNodeConfiguration(TbNodeConfiguration configuration) throws TbNodeException {
-        var config = TbNodeUtils.convert(configuration, TbGetEntityDataNodeConfiguration.class);
+    protected TbGetCustomerAttributeNodeConfiguration loadNodeConfiguration(TbNodeConfiguration configuration) throws TbNodeException {
+        var config = TbNodeUtils.convert(configuration, TbGetCustomerAttributeNodeConfiguration.class);
         checkIfMappingIsNotEmptyOrElseThrow(config.getDataMapping());
         checkDataToFetchSupportedOrElseThrow(config.getDataToFetch());
+        preserveOriginatorIfCustomer = config.isPreserveOriginatorIfCustomer();
         return config;
     }
 
     @Override
     protected ListenableFuture<CustomerId> findEntityAsync(TbContext ctx, EntityId originator) {
-        return Futures.transformAsync(EntitiesCustomerIdAsyncLoader.findEntityIdAsync(ctx, originator),
+        boolean preserveOriginator = preserveOriginatorIfCustomer && originator.getEntityType().equals(EntityType.CUSTOMER);
+        ListenableFuture<CustomerId> entityIdAsync = preserveOriginator ?
+                Futures.immediateFuture((CustomerId) originator) :
+                EntitiesCustomerIdAsyncLoader.findEntityIdAsync(ctx, originator);
+        return Futures.transformAsync(entityIdAsync,
                 checkIfEntityIsPresentOrThrow(String.format(CUSTOMER_NOT_FOUND_MESSAGE, originator.getId(), originator.getEntityType().getNormalName())),
                 ctx.getDbCallbackExecutor()
         );
@@ -80,7 +88,21 @@ public class TbGetCustomerAttributeNode extends TbAbstractGetEntityDataNode<Cust
 
     @Override
     public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
-        return fromVersion == 0 ? upgradeToUseFetchToAndDataToFetch(oldConfiguration) : new TbPair<>(false, oldConfiguration);
+        boolean hasChanges = false;
+        ObjectNode config = (ObjectNode) oldConfiguration;
+        switch (fromVersion) {
+            case 0:
+                config = upgradeConfigToUseFetchToAndDataToFetch((ObjectNode) oldConfiguration);
+                hasChanges = true;
+                break;
+            case 1:
+                if (!config.has("preserveOriginatorIfCustomer")) {
+                    config.put("preserveOriginatorIfCustomer", true);
+                    hasChanges = true;
+                }
+                break;
+        }
+        return new TbPair<>(hasChanges, config);
     }
 
 }

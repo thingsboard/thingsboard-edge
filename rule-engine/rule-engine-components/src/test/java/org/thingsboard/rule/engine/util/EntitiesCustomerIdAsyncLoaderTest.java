@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.user.UserService;
 
@@ -82,17 +83,25 @@ public class EntitiesCustomerIdAsyncLoaderTest {
     private AssetService assetServiceMock;
     @Mock
     private DeviceService deviceServiceMock;
+    @Mock
+    private CustomerService customerServiceMock;
 
     @Test
     public void givenCustomerEntityType_whenFindEntityIdAsync_thenOK() throws ExecutionException, InterruptedException {
         // GIVEN
         var customer = new Customer(new CustomerId(UUID.randomUUID()));
+        var parentCustomer = customer.getParentCustomerId();
+        customer.setParentCustomerId(parentCustomer);
+
+        when(ctxMock.getCustomerService()).thenReturn(customerServiceMock);
+        doReturn(Futures.immediateFuture(customer)).when(customerServiceMock).findCustomerByIdAsync(any(), any());
+        when(ctxMock.getDbCallbackExecutor()).thenReturn(DB_EXECUTOR);
 
         // WHEN
         var actualCustomerId = EntitiesCustomerIdAsyncLoader.findEntityIdAsync(ctxMock, customer.getId()).get();
 
         // THEN
-        assertEquals(customer.getId(), actualCustomerId);
+        assertEquals(parentCustomer, actualCustomerId);
     }
 
     @Test
