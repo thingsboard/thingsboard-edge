@@ -294,6 +294,11 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         rolePermissionRemover.removeEntities(tenantId, roleId);
     }
 
+    @Override
+    public boolean existsByUserGroupIdAndRoleId(EntityGroupId userGroupId, RoleId roleId) {
+        return groupPermissionDao.existsByUserGroupIdAndRoleId(userGroupId, roleId);
+    }
+
     private ListenableFuture<List<GroupPermissionInfo>> toGroupPermissionInfoListAsync(TenantId tenantId, List<GroupPermission> groupPermissions, boolean isUserGroup) {
         List<ListenableFuture<GroupPermissionInfo>> groupPermissionInfoFutureList = new ArrayList<>();
         groupPermissions.forEach(groupPermission -> {
