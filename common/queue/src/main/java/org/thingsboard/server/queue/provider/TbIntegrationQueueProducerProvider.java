@@ -37,6 +37,7 @@ import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationM
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
@@ -57,7 +58,7 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
     private TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> toTbCore;
     private TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> toTbCoreNf;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> toUsageStats;
-    private TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToHousekeeperServiceMsg>> toHousekeeper;
+    private TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> toHousekeeper;
 
     public TbIntegrationQueueProducerProvider(TbIntegrationExecutorQueueFactory tbQueueProvider) {
         this.tbQueueProvider = tbQueueProvider;
@@ -127,7 +128,7 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
     }
 
     @Override
-    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToHousekeeperServiceMsg>> getHousekeeperMsgProducer() {
+    public TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> getHousekeeperMsgProducer() {
         return toHousekeeper;
     }
 

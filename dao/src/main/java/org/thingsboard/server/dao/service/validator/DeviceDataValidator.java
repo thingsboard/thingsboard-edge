@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.service.validator;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
@@ -55,7 +54,6 @@ public class DeviceDataValidator extends AbstractHasOtaPackageValidator<Device> 
     private DeviceDao deviceDao;
 
     @Autowired
-    @Lazy
     private TenantService tenantService;
 
     @Autowired

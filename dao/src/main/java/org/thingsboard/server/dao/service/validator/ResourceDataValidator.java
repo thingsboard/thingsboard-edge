@@ -64,7 +64,6 @@ public class ResourceDataValidator extends DataValidator<TbResource> {
     private WidgetTypeDao widgetTypeDao;
 
     @Autowired
-    @Lazy
     private TenantService tenantService;
 
     @Autowired

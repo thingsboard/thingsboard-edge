@@ -43,6 +43,7 @@ import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
 import org.thingsboard.server.queue.TbQueueAdmin;
 import org.thingsboard.server.queue.TbQueueConsumer;
@@ -266,8 +267,8 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
     }
 
     @Override
-    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToHousekeeperServiceMsg>> createHousekeeperMsgProducer() {
-        return TbKafkaProducerTemplate.<TbProtoQueueMsg<TransportProtos.ToHousekeeperServiceMsg>>builder()
+    public TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> createHousekeeperMsgProducer() {
+        return TbKafkaProducerTemplate.<TbProtoQueueMsg<ToHousekeeperServiceMsg>>builder()
                 .settings(kafkaSettings)
                 .clientId("tb-ie-housekeeper-producer-" + serviceInfoProvider.getServiceId())
                 .defaultTopic(topicService.buildTopicName(coreSettings.getHousekeeperTopic()))
