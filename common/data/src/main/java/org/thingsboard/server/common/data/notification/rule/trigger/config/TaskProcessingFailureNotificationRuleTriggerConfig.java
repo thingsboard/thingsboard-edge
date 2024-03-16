@@ -28,17 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.housekeeper;
+package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
-import org.thingsboard.server.dao.housekeeper.data.HousekeeperTask;
+import lombok.Builder;
+import lombok.Data;
 
-import java.util.UUID;
+@Data
+@Builder
+public class TaskProcessingFailureNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
-public interface HousekeeperService {
-
-    void submitTask(HousekeeperTask task);
-
-    // tasks with the same key will be pushed to the same partition and thus processed synchronously
-    void submitTask(UUID key, HousekeeperTask task);
+    @Override
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.TASK_PROCESSING_FAILURE;
+    }
 
 }

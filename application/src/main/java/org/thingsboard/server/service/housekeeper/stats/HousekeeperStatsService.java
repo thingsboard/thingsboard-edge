@@ -32,14 +32,14 @@ package org.thingsboard.server.service.housekeeper.stats;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
 import org.thingsboard.server.common.stats.DefaultCounter;
 import org.thingsboard.server.common.stats.StatsCounter;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.stats.StatsType;
-import org.thingsboard.server.dao.housekeeper.data.HousekeeperTask;
-import org.thingsboard.server.dao.housekeeper.data.HousekeeperTaskType;
 import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
 
 import java.util.ArrayList;
@@ -47,11 +47,11 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@ConditionalOnProperty(name = "queue.core.housekeeper.stats.enabled", havingValue = "true", matchIfMissing = true)
 public class HousekeeperStatsService {
 
     private final Map<HousekeeperTaskType, HousekeeperStats> stats = new EnumMap<>(HousekeeperTaskType.class);
@@ -62,7 +62,8 @@ public class HousekeeperStatsService {
         }
     }
 
-    @Scheduled(initialDelay = 60, fixedDelay = 60, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(initialDelayString = "${queue.core.housekeeper.stats.print-interval-ms:60000}",
+            fixedDelayString = "${queue.core.housekeeper.stats.print-interval-ms:60000}")
     private void reportStats() {
         String statsStr = stats.values().stream().map(stats -> {
             String countersStr = stats.getCounters().stream()
@@ -82,8 +83,8 @@ public class HousekeeperStatsService {
         }
     }
 
-    public void reportProcessed(HousekeeperTask task, ToHousekeeperServiceMsg msg) {
-        HousekeeperStats stats = this.stats.get(task.getTaskType());
+    public void reportProcessed(HousekeeperTaskType taskType, ToHousekeeperServiceMsg msg) {
+        HousekeeperStats stats = this.stats.get(taskType);
         if (msg.getTask().getErrorsCount() == 0) {
             stats.getProcessedCounter().increment();
         } else {
@@ -91,8 +92,8 @@ public class HousekeeperStatsService {
         }
     }
 
-    public void reportFailure(HousekeeperTask task, ToHousekeeperServiceMsg msg) {
-        HousekeeperStats stats = this.stats.get(task.getTaskType());
+    public void reportFailure(HousekeeperTaskType taskType, ToHousekeeperServiceMsg msg) {
+        HousekeeperStats stats = this.stats.get(taskType);
         if (msg.getTask().getErrorsCount() == 0) {
             stats.getFailedProcessingCounter().increment();
         } else {

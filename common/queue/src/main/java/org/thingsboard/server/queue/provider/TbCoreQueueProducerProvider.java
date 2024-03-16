@@ -66,7 +66,6 @@ public class TbCoreQueueProducerProvider implements TbQueueProducerProvider {
     private TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> toIntegrationRuleEngine;
     private TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> toIntegrationDownlink;
     private TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> toHousekeeper;
-    private TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> toHousekeeperReprocessing;
 
     public TbCoreQueueProducerProvider(TbCoreQueueFactory tbQueueProvider) {
         this.tbQueueProvider = tbQueueProvider;
@@ -85,7 +84,6 @@ public class TbCoreQueueProducerProvider implements TbQueueProducerProvider {
         this.toVersionControl = tbQueueProvider.createVersionControlMsgProducer();
         this.toIntegrationRuleEngine = tbQueueProvider.createIntegrationRuleEngineMsgProducer();
         this.toHousekeeper = tbQueueProvider.createHousekeeperMsgProducer();
-        this.toHousekeeperReprocessing = tbQueueProvider.createHousekeeperReprocessingMsgProducer();
     }
 
     @Override
@@ -146,11 +144,6 @@ public class TbCoreQueueProducerProvider implements TbQueueProducerProvider {
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> getHousekeeperMsgProducer() {
         return toHousekeeper;
-    }
-
-    @Override
-    public TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> getHousekeeperReprocessingMsgProducer() {
-        return toHousekeeperReprocessing;
     }
 
 }

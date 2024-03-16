@@ -31,9 +31,8 @@
 package org.thingsboard.server.dao.tenant;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -49,39 +48,17 @@ import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.asset.AssetProfileService;
-import org.thingsboard.server.dao.asset.AssetService;
-import org.thingsboard.server.dao.blob.BlobEntityService;
-import org.thingsboard.server.dao.converter.ConverterService;
-import org.thingsboard.server.dao.customer.CustomerService;
-import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
-import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
-import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
-import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
-import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.dao.notification.NotificationRequestService;
-import org.thingsboard.server.dao.notification.NotificationRuleService;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
-import org.thingsboard.server.dao.notification.NotificationTargetService;
-import org.thingsboard.server.dao.notification.NotificationTemplateService;
-import org.thingsboard.server.dao.ota.OtaPackageService;
-import org.thingsboard.server.dao.queue.QueueService;
-import org.thingsboard.server.dao.resource.ResourceService;
-import org.thingsboard.server.dao.role.RoleService;
-import org.thingsboard.server.dao.rpc.RpcService;
-import org.thingsboard.server.dao.rule.RuleChainService;
-import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
-import org.thingsboard.server.dao.widget.WidgetTypeService;
-import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.util.List;
@@ -93,113 +70,23 @@ import static org.thingsboard.server.dao.service.Validator.validateIds;
 
 @Service("TenantDaoService")
 @Slf4j
+@RequiredArgsConstructor
 public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Tenant, TenantEvictEvent> implements TenantService {
 
     private static final String DEFAULT_TENANT_REGION = "Global";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
-    @Autowired
-    private TenantDao tenantDao;
-
-    @Autowired
-    private TenantProfileService tenantProfileService;
-
-    @Autowired
-    @Lazy
-    private UserService userService;
-
-    @Autowired
-    private CustomerService customerService;
-
-    @Autowired
-    private AssetService assetService;
-
-    @Autowired
-    private AssetProfileService assetProfileService;
-
-    @Autowired
-    private DeviceService deviceService;
-
-    @Autowired
-    private DeviceProfileService deviceProfileService;
-
-    @Lazy
-    @Autowired
-    private ApiUsageStateService apiUsageStateService;
-
-    @Autowired
-    private WidgetsBundleService widgetsBundleService;
-
-    @Autowired
-    private WidgetTypeService widgetTypeService;
-
-    @Autowired
-    private DashboardService dashboardService;
-
-    @Autowired
-    private RuleChainService ruleChainService;
-
-    @Autowired
-    private IntegrationService integrationService;
-
-    @Autowired
-    private ConverterService converterService;
-
-    @Autowired
-    private SchedulerEventService schedulerEventService;
-
-    @Autowired
-    private BlobEntityService blobEntityService;
-
-    @Autowired
-    private RoleService roleService;
-
-    @Autowired
-    private GroupPermissionService groupPermissionService;
-
-    @Autowired
-    private WhiteLabelingService whiteLabelingService;
-
-    @Autowired
-    private ResourceService resourceService;
-
-    @Autowired
-    @Lazy
-    private OtaPackageService otaPackageService;
-
-    @Autowired
-    private RpcService rpcService;
-
-    @Autowired
-    private DataValidator<Tenant> tenantValidator;
-
-    @Lazy
-    @Autowired
-    private QueueService queueService;
-
-    @Autowired
-    private AdminSettingsService adminSettingsService;
-
-    @Autowired
-    private NotificationSettingsService notificationSettingsService;
-
-    @Autowired
-    private NotificationRequestService notificationRequestService;
-
-    @Autowired
-    private NotificationRuleService notificationRuleService;
-
-    @Autowired
-    private NotificationTemplateService notificationTemplateService;
-
-    @Autowired
-    private NotificationTargetService notificationTargetService;
-
-    @Autowired
-    protected TbTransactionalCache<TenantId, Boolean> existsTenantCache;
-
-    @Autowired
-    private EntityViewService entityViewService;
+    private final TenantDao tenantDao;
+    private final TenantProfileService tenantProfileService;
+    private final UserService userService;
+    private final AssetProfileService assetProfileService;
+    private final DeviceProfileService deviceProfileService;
+    private final ApiUsageStateService apiUsageStateService;
+    private final AdminSettingsService adminSettingsService;
+    private final WhiteLabelingService whiteLabelingService;
+    private final NotificationSettingsService notificationSettingsService;
+    private final DataValidator<Tenant> tenantValidator;
+    private final TbTransactionalCache<TenantId, Boolean> existsTenantCache;
 
     @TransactionalEventListener(classes = TenantEvictEvent.class)
     @Override
@@ -286,9 +173,11 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
 
         userService.deleteByTenantId(tenantId);
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, null);
+        adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         notificationSettingsService.deleteNotificationSettings(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
 
+        // fixme: we should publish to housekeeper when a transaction is committed (or better after msg was broadcasted): move this to cleanup-service
         cleanUpService.removeTenantEntities(tenantId, // don't forget to implement deleteByTenantId from EntityDaoService when adding entity type to this list
                 EntityType.ENTITY_VIEW, EntityType.WIDGETS_BUNDLE, EntityType.WIDGET_TYPE,
                 EntityType.ASSET, EntityType.ASSET_PROFILE, EntityType.DEVICE, EntityType.DEVICE_PROFILE,
@@ -297,7 +186,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
                 EntityType.ENTITY_GROUP, EntityType.GROUP_PERMISSION, EntityType.ROLE,
                 EntityType.API_USAGE_STATE, EntityType.TB_RESOURCE, EntityType.OTA_PACKAGE, EntityType.RPC,
                 EntityType.QUEUE, EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE,
-                EntityType.NOTIFICATION_TEMPLATE, EntityType.NOTIFICATION_TARGET, EntityType.ADMIN_SETTINGS
+                EntityType.NOTIFICATION_TEMPLATE, EntityType.NOTIFICATION_TARGET
         );
 
         publishEvictEvent(new TenantEvictEvent(tenantId, true));

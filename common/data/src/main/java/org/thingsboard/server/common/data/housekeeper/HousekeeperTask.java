@@ -28,8 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.housekeeper.data;
+package org.thingsboard.server.common.data.housekeeper;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type;
@@ -89,6 +90,11 @@ public class HousekeeperTask implements Serializable {
 
     public static HousekeeperTask deleteEntities(TenantId tenantId, EntityType entityType) {
         return new EntitiesDeletionHousekeeperTask(tenantId, entityType);
+    }
+
+    @JsonIgnore
+    public String getDescription() {
+        return taskType.getDescription() + " for " + entityId.getEntityType().getNormalName().toLowerCase() + " " + entityId.getId();
     }
 
 }

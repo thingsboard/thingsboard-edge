@@ -57,7 +57,7 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
  * Responsible for initialization of various Producers and Consumers used by TB Core Node.
  * Implementation Depends on the queue queue.type from yml or TB_QUEUE_TYPE environment variable
  */
-public interface TbCoreQueueFactory extends TbCoreIntegrationExecutorQueueFactory {
+public interface TbCoreQueueFactory extends TbCoreIntegrationExecutorQueueFactory, HousekeeperClientQueueFactory {
 
     /**
      * Used to push messages to instances of TB Transport Service
@@ -195,8 +195,6 @@ public interface TbCoreQueueFactory extends TbCoreIntegrationExecutorQueueFactor
     default TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createIntegrationRuleEngineMsgProducer() {
         return createRuleEngineMsgProducer();
     }
-
-    TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> createHousekeeperMsgProducer();
 
     TbQueueConsumer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> createHousekeeperMsgConsumer();
 

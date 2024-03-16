@@ -28,21 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.housekeeper.data;
+package org.thingsboard.server.queue.provider;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
+import org.thingsboard.server.queue.TbQueueProducer;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class AlarmsUnassignHousekeeperTask extends HousekeeperTask {
+public interface HousekeeperClientQueueFactory {
 
-    private String userTitle;
-
-    protected AlarmsUnassignHousekeeperTask(User user) {
-        super(user.getTenantId(), user.getId(), HousekeeperTaskType.UNASSIGN_ALARMS);
-        this.userTitle = user.getTitle();
-    }
+    TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> createHousekeeperMsgProducer();
 
 }

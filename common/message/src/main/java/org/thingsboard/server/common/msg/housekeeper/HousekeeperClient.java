@@ -28,13 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.housekeeper.data;
+package org.thingsboard.server.common.msg.housekeeper;
 
-public enum HousekeeperTaskType {
-    DELETE_ENTITIES,
-    DELETE_ATTRIBUTES,
-    DELETE_TELEMETRY, // maybe divide into latest and ts kv history?
-    DELETE_EVENTS,
-    UNASSIGN_ALARMS,
-    DELETE_ENTITY_ALARMS
+import org.thingsboard.server.common.data.housekeeper.HousekeeperTask;
+
+public interface HousekeeperClient {
+
+    void submitTask(HousekeeperTask task);
+
 }

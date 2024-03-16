@@ -128,6 +128,4 @@ public interface TbQueueProducerProvider {
 
     TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> getHousekeeperMsgProducer();
 
-    TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> getHousekeeperReprocessingMsgProducer();
-
 }

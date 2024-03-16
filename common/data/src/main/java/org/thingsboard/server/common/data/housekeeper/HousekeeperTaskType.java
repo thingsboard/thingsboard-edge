@@ -28,22 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.housekeeper.data;
+package org.thingsboard.server.common.data.housekeeper;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class EntitiesDeletionHousekeeperTask extends HousekeeperTask {
+@RequiredArgsConstructor
+@Getter
+public enum HousekeeperTaskType {
 
-    private EntityType entityType;
+    DELETE_ENTITIES("entities deletion"),
+    DELETE_ATTRIBUTES("attributes deletion"),
+    DELETE_TELEMETRY("telemetry deletion"),
+    DELETE_EVENTS("events deletion"),
+    UNASSIGN_ALARMS("alarms unassigning"),
+    DELETE_ENTITY_ALARMS("entity alarms deletion");
 
-    protected EntitiesDeletionHousekeeperTask(TenantId tenantId, EntityType entityType) {
-        super(tenantId, tenantId, HousekeeperTaskType.DELETE_ENTITIES);
-        this.entityType = entityType;
-    }
+    private final String description;
 
 }
