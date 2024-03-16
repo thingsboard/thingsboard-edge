@@ -57,6 +57,7 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
     private TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> toTbCore;
     private TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> toTbCoreNf;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> toUsageStats;
+    private TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToHousekeeperServiceMsg>> toHousekeeper;
 
     public TbIntegrationQueueProducerProvider(TbIntegrationExecutorQueueFactory tbQueueProvider) {
         this.tbQueueProvider = tbQueueProvider;
@@ -67,6 +68,7 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
         this.toTbCore = tbQueueProvider.createTbCoreIntegrationMsgProducer();
         this.toTbCoreNf = tbQueueProvider.createTbCoreNotificationMsgProducer();
         this.toUsageStats = tbQueueProvider.createToUsageStatsServiceMsgProducer();
+        this.toHousekeeper = tbQueueProvider.createHousekeeperMsgProducer();
     }
 
     @Override
@@ -126,7 +128,7 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToHousekeeperServiceMsg>> getHousekeeperMsgProducer() {
-        throw new RuntimeException(NOT_IMPLEMENTED);
+        return toHousekeeper;
     }
 
 }
