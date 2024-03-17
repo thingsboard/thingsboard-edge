@@ -408,12 +408,14 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         switch (request.getType()) {
             case SINGLE_ENTITY: {
                 SingleEntityVersionLoadRequest versionLoadRequest = (SingleEntityVersionLoadRequest) request;
-                executor.submit(() -> doInTemplate(ctx, request, c -> loadSingleEntity(c, versionLoadRequest)));
+                ctx.setRollbackOnError(true);
+                executor.submit(() -> load(ctx, request, c -> loadSingleEntity(c, versionLoadRequest)));
                 break;
             }
             case ENTITY_TYPE: {
                 EntityTypeVersionLoadRequest versionLoadRequest = (EntityTypeVersionLoadRequest) request;
-                executor.submit(() -> doInTemplate(ctx, request, c -> loadMultipleEntities(c, versionLoadRequest)));
+                ctx.setRollbackOnError(versionLoadRequest.isRollbackOnError());
+                executor.submit(() -> load(ctx, request, c -> loadMultipleEntities(c, versionLoadRequest)));
                 break;
             }
             default:
@@ -423,26 +425,31 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         return ctx.getRequestId();
     }
 
-    private <R> VersionLoadResult doInTemplate(EntitiesImportCtx ctx, VersionLoadRequest vlr, Function<EntitiesImportCtx, VersionLoadResult> function) {
+    private <R> VersionLoadResult load(EntitiesImportCtx ctx, VersionLoadRequest request, Function<EntitiesImportCtx, VersionLoadResult> loadFunction) {
         try {
-            VersionLoadResult result = transactionTemplate.execute(status -> {
-                try {
-                    return function.apply(ctx);
-                } catch (RuntimeException e) {
-                    throw e;
-                } catch (Exception e) {
-                    throw new RuntimeException(e); // to prevent UndeclaredThrowableException
+            VersionLoadResult result;
+            if (ctx.isRollbackOnError()) {
+                result = transactionTemplate.execute(status -> {
+                    try {
+                        return loadFunction.apply(ctx);
+                    } catch (RuntimeException e) {
+                        throw e;
+                    } catch (Exception e) {
+                        throw new RuntimeException(e); // to prevent UndeclaredThrowableException
+                    }
+                });
+                for (ThrowingRunnable eventCallback : ctx.getEventCallbacks()) {
+                    eventCallback.run();
                 }
-            });
-            for (ThrowingRunnable throwingRunnable : ctx.getEventCallbacks()) {
-                throwingRunnable.run();
+            } else {
+                result = loadFunction.apply(ctx);
             }
             result.setDone(true);
             return cachePut(ctx.getRequestId(), result);
         } catch (LoadEntityException e) {
             return cachePut(ctx.getRequestId(), onError(e.getExternalId(), e.getCause()));
         } catch (Exception e) {
-            log.info("[{}] Failed to process request [{}] due to: ", ctx.getTenantId(), vlr, e);
+            log.info("[{}] Failed to process request [{}] due to: ", ctx.getTenantId(), request, e);
             return cachePut(ctx.getRequestId(), VersionLoadResult.error(EntityLoadError.runtimeError(e)));
         }
     }
@@ -554,7 +561,6 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             sw.startNew("Entities " + entityType.name());
             ctx.setSettings(getEntityImportSettings(request, entityType));
             importEntities(ctx, Collections.emptyList(), entityType, true);
-            persistToCache(ctx);
         }
 
         for (EntityType entityType : entityTypes) {
@@ -574,7 +580,6 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
                 .filter(entityType -> request.getEntityTypes().get(entityType).isRemoveOtherEntities())
                 .sorted(exportImportService.getEntityTypeComparatorForImport().reversed())
                 .forEach(entityType -> removeOtherEntities(ctx, entityType));
-        persistToCache(ctx);
 
         sw.startNew("References and Relations");
         exportImportService.saveReferencesAndRelations(ctx);
@@ -693,6 +698,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             EntityId savedEntityId = importResult.getSavedEntity().getId();
             ctx.getImportedEntities().computeIfAbsent(entityType, t -> new HashSet<>()).add(savedEntityId);
         }
+
+        persistToCache(ctx);
         log.debug("Imported {} pack ({}) for tenant {}", entityType, entityDataList.size(), ctx.getTenantId());
         return importResults;
     }
@@ -732,34 +739,46 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     private void removeOtherEntities(EntitiesImportCtx ctx, EntityType entityType) {
-        DaoUtil.processInBatches(pageLink ->
-                exportableEntitiesService.findEntitiesByTenantId(ctx.getTenantId(), entityType, pageLink), 1024, entity -> {
-            if (ctx.getImportedEntities().get(entityType) == null || !ctx.getImportedEntities().get(entityType).contains(entity.getId())) {
-                exportableEntitiesService.removeById(ctx.getTenantId(), entity.getId());
-
-                ctx.addEventCallback(() -> {
-                    entityNotificationService.logEntityAction(ctx.getTenantId(), entity.getId(), entity, null,
-                            ActionType.DELETED, ctx.getUser());
-                });
-                ctx.registerDeleted(entityType, false);
+        var entities = new PageDataIterable<>(link -> exportableEntitiesService.findEntitiesIdsByTenantId(ctx.getTenantId(), entityType, link), 100);
+        Set<EntityId> toRemove = new HashSet<>();
+        for (EntityId entityId : entities) {
+            if (ctx.getImportedEntities().get(entityType) == null || !ctx.getImportedEntities().get(entityType).contains(entityId)) {
+                toRemove.add(entityId);
             }
-        });
-        DaoUtil.processInBatches(pageLink ->
-                groupService.findEntityGroupsByType(ctx.getTenantId(), entityType, pageLink), 1024, entity -> {
+        }
+
+        var entityGroups = new PageDataIterable<>(link -> groupService.findEntityGroupsByType(ctx.getTenantId(), entityType, link), 100);
+        for (EntityGroup entityGroup : entityGroups) {
             //Skip reserved groups (All) even if they are not part of the restored commit.
-            if (entity.isGroupAll()) {
-                return;
+            if (entityGroup.isGroupAll()) {
+                continue;
             }
-            if (ctx.getImportedEntities().get(entityType) == null || !ctx.getImportedEntities().get(entityType).contains(entity.getId())) {
-                exportableEntitiesService.removeById(ctx.getTenantId(), entity.getId());
+            if (ctx.getImportedEntities().get(entityType) == null || !ctx.getImportedEntities().get(entityType).contains(entityGroup.getId())) {
+                toRemove.add(entityGroup.getId());
+            }
+        }
 
-                ctx.addEventCallback(() -> {
-                    entityNotificationService.logEntityAction(ctx.getTenantId(), entity.getId(), entity, null,
-                            ActionType.DELETED, ctx.getUser());
-                });
-                ctx.registerDeleted(entityType, true);
+
+        for (EntityId entityId : toRemove) {
+            ExportableEntity<EntityId> entity = exportableEntitiesService.findEntityById(entityId);
+            exportableEntitiesService.removeById(ctx.getTenantId(), entityId);
+
+            ThrowingRunnable callback = () -> {
+                entityNotificationService.logEntityAction(ctx.getTenantId(), entity.getId(), entity, null,
+                        ActionType.DELETED, ctx.getUser());
+            };
+            if (ctx.isRollbackOnError()) {
+                ctx.addEventCallback(callback);
+            } else {
+                try {
+                    callback.run();
+                } catch (ThingsboardException e) {
+                    throw new RuntimeException(e);
+                }
             }
-        });
+            ctx.registerDeleted(entityType, entityId.getEntityType() == EntityType.ENTITY_GROUP);
+        }
+        persistToCache(ctx);
     }
 
     private VersionLoadResult onError(EntityId externalId, Throwable e) {
