@@ -95,9 +95,7 @@ public class RefreshTokenExpCheckService {
                 futures.add(lExecService.submit(() -> {
                     try {
                         AdminSettings tenantMailSettings = getTenantMailSettings(tenantId);
-                        if (tenantMailSettings != null) {
-                            checkTokenExpires(tenantId, tenantMailSettings, this::saveTenantAdminSettings);
-                        }
+                        refreshTokenIfExpires(tenantId, tenantMailSettings, this::saveTenantAdminSettings);
                     } catch (Exception e) {
                         log.error("[{}] Error occurred while checking token", tenantId, e);
                     }
@@ -107,16 +105,25 @@ public class RefreshTokenExpCheckService {
             pageLink = pageLink.nextPageLink();
         } while (tenantIds.hasNext());
 
-        AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
-        checkTokenExpires(TenantId.SYS_TENANT_ID, adminSettings, adminSettingsService::saveAdminSettings);
+        AdminSettings systemMailSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
+        refreshTokenIfExpires(TenantId.SYS_TENANT_ID, systemMailSettings, adminSettingsService::saveAdminSettings);
     }
 
-    private void checkTokenExpires(TenantId tenantId, AdminSettings adminSettings, BiConsumer<TenantId, AdminSettings> saveFunction) throws Exception {
-        JsonNode jsonValue = adminSettings.getJsonValue();
-        if (jsonValue != null && jsonValue.has("enableOauth2") && jsonValue.get("enableOauth2").asBoolean()) {
-            if (OFFICE_365.name().equals(jsonValue.get("providerId").asText()) && jsonValue.has("refreshTokenExpires")) {
+    private void refreshTokenIfExpires(TenantId tenantId, AdminSettings adminSettings, BiConsumer<TenantId, AdminSettings> saveFunction) throws Exception {
+        if (adminSettings != null) {
+            JsonNode jsonValue = adminSettings.getJsonValue();
+            if (jsonValue != null && jsonValue.has("useSystemMailSettings") && !jsonValue.get("useSystemMailSettings").asBoolean() &&
+                    jsonValue.has("enableOauth2") && jsonValue.get("enableOauth2").asBoolean() && OFFICE_365.name().equals(jsonValue.get("providerId").asText()) &&
+                    jsonValue.has("refreshToken") && jsonValue.has("refreshTokenExpires")) {
                 long expiresIn = jsonValue.get("refreshTokenExpires").longValue();
-                if ((expiresIn - System.currentTimeMillis()) < 604800000L) { //less than 7 days
+                long tokenLifeDuration = expiresIn - System.currentTimeMillis();
+                if (tokenLifeDuration < 0) {
+                    ((ObjectNode) jsonValue).put("tokenGenerated", false);
+                    ((ObjectNode) jsonValue).remove("refreshToken");
+                    ((ObjectNode) jsonValue).remove("refreshTokenExpires");
+
+                    saveFunction.accept(tenantId, adminSettings);
+                } else if ((expiresIn - System.currentTimeMillis()) < 604800000L) { //less than 7 days
                     log.info("Trying to refresh refresh token.");
 
                     String clientId = jsonValue.get("clientId").asText();
