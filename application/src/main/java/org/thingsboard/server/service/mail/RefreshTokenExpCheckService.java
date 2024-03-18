@@ -123,7 +123,7 @@ public class RefreshTokenExpCheckService {
                     ((ObjectNode) jsonValue).remove("refreshTokenExpires");
 
                     saveFunction.accept(tenantId, adminSettings);
-                } else if ((expiresIn - System.currentTimeMillis()) < 604800000L) { //less than 7 days
+                } else if (tokenLifeDuration < 604800000L) { //less than 7 days
                     log.info("Trying to refresh refresh token.");
 
                     String clientId = jsonValue.get("clientId").asText();
