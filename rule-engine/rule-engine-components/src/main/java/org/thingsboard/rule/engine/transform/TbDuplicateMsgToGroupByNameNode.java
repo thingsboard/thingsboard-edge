@@ -75,6 +75,8 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
 
     private static final String CONSIDER_MESSAGE_ORIGINATOR_AS_A_GROUP_OWNER = "considerMessageOriginatorAsAGroupOwner";
 
+    private String groupName;
+
     @Override
     protected TbDuplicateMsgToGroupByNameNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         var config = TbNodeUtils.convert(configuration, TbDuplicateMsgToGroupByNameNodeConfiguration.class);
@@ -90,6 +92,7 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
 
     @Override
     protected ListenableFuture<List<TbMsg>> transform(TbContext ctx, TbMsg msg) {
+        groupName = TbNodeUtils.processPattern(config.getGroupName(), msg);
         return duplicate(ctx, msg);
     }
 
@@ -113,7 +116,7 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
 
     private EntityGroupId tryFindGroupByOwnerId(TbContext ctx, EntityId ownerId) {
         EntityGroupId entityGroupId = ctx.getPeContext().getEntityGroupService()
-                .findEntityGroupByTypeAndName(ctx.getTenantId(), ownerId, config.getGroupType(), config.getGroupName())
+                .findEntityGroupByTypeAndName(ctx.getTenantId(), ownerId, config.getGroupType(), groupName)
                 .map(IdBased::getId).orElse(null);
         if (entityGroupId != null) {
             return entityGroupId;
