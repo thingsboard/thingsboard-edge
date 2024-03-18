@@ -311,7 +311,7 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
                 asf.hasClearFilter() && asf.getClearFilter(),
                 asf.hasAckFilter(),
                 asf.hasAckFilter() && asf.getAckFilter()
-                );
+        );
     }
 
 
@@ -360,9 +360,13 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
         return DaoUtil.convertDataList(entityAlarmRepository.findAllByAlarmIdAndEntityTypeIn(id.getId(), propagationTypes));
     }
 
+    public List<EntityAlarm> findEntityAlarmRecordsByEntityId(TenantId tenantId, EntityId entityId) {
+        return DaoUtil.convertDataList(entityAlarmRepository.findAllByEntityId(entityId.getId()));
+    }
+
     @Override
-    public void deleteEntityAlarmRecords(TenantId tenantId, EntityId entityId) {
-        entityAlarmRepository.deleteByEntityId(entityId.getId());
+    public int deleteEntityAlarmRecords(TenantId tenantId, EntityId entityId) {
+        return entityAlarmRepository.deleteByEntityId(entityId.getId());
     }
 
     @Override
