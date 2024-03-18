@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2024 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 public class TelemetryClientTest extends AbstractContainerTest {
 
     @Test
-    public void testSendPostTelemetryRequestToCloud_performanceTest() throws Exception {
+    public void testSendPostTelemetryRequestToCloud_performanceTest() {
         Device device = saveAndAssignDeviceToEdge();
 
         Awaitility.await()
@@ -62,7 +62,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
             timeseriesPayload.addProperty(telemetryKey, idx);
             ResponseEntity deviceTelemetryResponse = edgeRestClient.getRestTemplate()
                     .postForEntity(edgeUrl + "/api/v1/{credentialsId}/telemetry",
-                            JacksonUtil.OBJECT_MAPPER.readTree(timeseriesPayload.toString()),
+                            JacksonUtil.toJsonNode(timeseriesPayload.toString()),
                             ResponseEntity.class,
                             accessToken);
             Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
@@ -90,7 +90,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testSendPostTelemetryRequestToCloud() throws Exception {
+    public void testSendPostTelemetryRequestToCloud() {
         List<String> keys = Arrays.asList("strTelemetryToCloud", "boolTelemetryToCloud", "doubleTelemetryToCloud", "longTelemetryToCloud");
 
         JsonObject timeseriesPayload = new JsonObject();
@@ -118,7 +118,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testSendPostTelemetryRequestToEdge() throws Exception {
+    public void testSendPostTelemetryRequestToEdge() {
         List<String> keys = Arrays.asList("strTelemetryToEdge", "boolTelemetryToEdge", "doubleTelemetryToEdge", "longTelemetryToEdge");
 
         JsonObject timeseriesPayload = new JsonObject();
@@ -146,7 +146,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     private List<TsKvEntry> sendPostTelemetryRequest(RestClient sourceRestClient, String sourceUrl, RestClient targetRestClient,
-                                                     JsonObject timeseriesPayload, List<String> keys) throws Exception {
+                                                     JsonObject timeseriesPayload, List<String> keys) {
         Device device = saveAndAssignDeviceToEdge();
 
         Awaitility.await()
@@ -159,7 +159,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
 
         ResponseEntity deviceTelemetryResponse = sourceRestClient.getRestTemplate()
                 .postForEntity(sourceUrl + "/api/v1/{credentialsId}/telemetry",
-                        JacksonUtil.OBJECT_MAPPER.readTree(timeseriesPayload.toString()),
+                        JacksonUtil.toJsonNode(timeseriesPayload.toString()),
                         ResponseEntity.class,
                         accessToken);
         Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
@@ -188,7 +188,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testSendPostAttributesRequestToCloud() throws Exception {
+    public void testSendPostAttributesRequestToCloud() {
         List<String> keys = Arrays.asList("strAttrToCloud", "boolAttrToCloud", "doubleAttrToCloud", "longAttrToCloud");
 
         JsonObject attrPayload = new JsonObject();
@@ -217,7 +217,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testSendPostAttributesRequestToEdge() throws Exception {
+    public void testSendPostAttributesRequestToEdge() {
         List<String> keys = Arrays.asList("strAttrToEdge", "boolAttrToEdge", "doubleAttrToEdge", "longAttrToEdge");
 
         JsonObject attrPayload = new JsonObject();
@@ -245,7 +245,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     private List<AttributeKvEntry> testSendPostAttributesRequest(RestClient sourceRestClient, String sourceUrl, RestClient targetRestClient,
-                                                                 JsonObject attributesPayload, List<String> keys) throws Exception {
+                                                                 JsonObject attributesPayload, List<String> keys) {
 
         Device device = saveAndAssignDeviceToEdge();
 
@@ -257,7 +257,8 @@ public class TelemetryClientTest extends AbstractContainerTest {
         String accessToken = deviceCredentials.getCredentialsId();
 
         ResponseEntity deviceClientsAttributes = sourceRestClient.getRestTemplate()
-                .postForEntity(sourceUrl + "/api/v1/" + accessToken + "/attributes/", JacksonUtil.OBJECT_MAPPER.readTree(attributesPayload.toString()),
+                .postForEntity(sourceUrl + "/api/v1/" + accessToken + "/attributes/",
+                        JacksonUtil.toJsonNode(attributesPayload.toString()),
                         ResponseEntity.class,
                         accessToken);
         Assert.assertTrue(deviceClientsAttributes.getStatusCode().is2xxSuccessful());
@@ -285,7 +286,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testSendAttributesUpdatedToEdge() throws Exception {
+    public void testSendAttributesUpdatedToEdge() {
         List<String> keys = Arrays.asList("strAttrToEdge", "boolAttrToEdge", "doubleAttrToEdge", "longAttrToEdge");
 
         JsonObject attrPayload = new JsonObject();
@@ -319,7 +320,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testSendAttributesUpdatedToCloud() throws Exception {
+    public void testSendAttributesUpdatedToCloud() {
         List<String> keys = Arrays.asList("strAttrToCloud", "boolAttrToCloud", "doubleAttrToCloud", "longAttrToCloud");
 
         JsonObject attrPayload = new JsonObject();
@@ -352,4 +353,5 @@ public class TelemetryClientTest extends AbstractContainerTest {
             }
         }
     }
+
 }

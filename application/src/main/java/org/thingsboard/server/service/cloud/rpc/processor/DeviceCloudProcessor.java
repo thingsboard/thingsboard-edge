@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2024 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -191,7 +191,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     private void reply(ToDeviceRpcRequest rpcRequest, int requestId, FromDeviceRpcResponse response) {
         try {
             Optional<RpcError> rpcError = response.getError();
-            ObjectNode body = JacksonUtil.OBJECT_MAPPER.createObjectNode();
+            ObjectNode body = JacksonUtil.newObjectNode();
             body.put("requestUUID", rpcRequest.getId().toString());
             body.put("expirationTime", rpcRequest.getExpirationTime());
             body.put("oneway", rpcRequest.isOneway());

@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2024 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -36,8 +39,6 @@ import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import static org.thingsboard.server.service.entitiy.DefaultTbNotificationEntityService.edgeTypeByActionType;
 
 /**
  * This event listener does not support async event processing because relay on ThreadLocal
@@ -87,13 +88,17 @@ public class CloudEventSourcingListener {
             return;
         }
         try {
-            if (event.getEntityId() != null && !saveEventSupportableEntityTypes.contains(event.getEntityId().getEntityType())) {
+            if (event.getEntityId() != null && !saveEventSupportableEntityTypes.contains(event.getEntityId().getEntityType())
+                    && !(event.getEntity() instanceof AlarmComment)) {
                 return;
             }
             log.trace("SaveEntityEvent called: {}", event);
-            EdgeEventActionType action = Boolean.TRUE.equals(event.getAdded()) ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED;
+            boolean isCreated = Boolean.TRUE.equals(event.getCreated());
+            String body = getBodyMsgForEntityEvent(event.getEntity());
+            CloudEventType cloudEventType = getCloudEventTypeForEntityEvent(event.getEntity());
+            EdgeEventActionType action = getActionForEntityEvent(event.getEntity(), isCreated);
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
-                    null, null, action);
+                    body, cloudEventType, action);
         } catch (Exception e) {
             log.error("failed to process SaveEntityEvent: {}", event);
         }
@@ -105,12 +110,15 @@ public class CloudEventSourcingListener {
             return;
         }
         try {
-            if (event.getEntityId() != null && !supportableEntityTypes.contains(event.getEntityId().getEntityType())) {
+            if (event.getEntityId() != null && !supportableEntityTypes.contains(event.getEntityId().getEntityType())
+                    && !(event.getEntity() instanceof AlarmComment)) {
                 return;
             }
             log.trace("DeleteEntityEvent called: {}", event);
+            CloudEventType type = getCloudEventTypeForEntityEvent(event.getEntity());
+            EdgeEventActionType actionType = getEdgeEventActionTypeForEntityEvent(event.getEntity());
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
-                    JacksonUtil.toString(event.getEntity()), null, EdgeEventActionType.DELETED);
+                    JacksonUtil.toString(event.getEntity()), type, actionType);
         } catch (Exception e) {
             log.error("failed to process DeleteEntityEvent: {}", event);
         }
@@ -127,7 +135,7 @@ public class CloudEventSourcingListener {
             }
             log.trace("ActionEntityEvent called: {}", event);
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), event.getEntityId(),
-                    event.getBody(), null, edgeTypeByActionType(event.getActionType()));
+                    event.getBody(), null, EdgeUtils.getEdgeEventActionTypeByActionType(event.getActionType()));
         } catch (Exception e) {
             log.error("failed to process ActionEntityEvent: {}", event);
         }
@@ -150,9 +158,39 @@ public class CloudEventSourcingListener {
             }
             log.trace("RelationActionEvent called: {}", event);
             tbClusterService.sendNotificationMsgToCloud(event.getTenantId(), null,
-                    JacksonUtil.toString(event.getRelation()), CloudEventType.RELATION, edgeTypeByActionType(event.getActionType()));
+                    JacksonUtil.toString(event.getRelation()), CloudEventType.RELATION, EdgeUtils.getEdgeEventActionTypeByActionType(event.getActionType()));
         } catch (Exception e) {
             log.error("failed to process RelationActionEvent: {}", event);
         }
+    }
+
+    private CloudEventType getCloudEventTypeForEntityEvent(Object entity) {
+        if (entity instanceof AlarmComment) {
+            return CloudEventType.ALARM_COMMENT;
+        }
+        return null;
+    }
+
+    private EdgeEventActionType getEdgeEventActionTypeForEntityEvent(Object entity) {
+        if (entity instanceof AlarmComment) {
+            return EdgeEventActionType.DELETED_COMMENT;
+        } else if (entity instanceof Alarm) {
+            return EdgeEventActionType.ALARM_DELETE;
+        }
+        return EdgeEventActionType.DELETED;
+    }
+
+    private String getBodyMsgForEntityEvent(Object entity) {
+        if (entity instanceof AlarmComment) {
+            return JacksonUtil.toString(entity);
+        }
+        return null;
+    }
+
+    private EdgeEventActionType getActionForEntityEvent(Object entity, boolean isCreated) {
+        if (entity instanceof AlarmComment) {
+            return isCreated ? EdgeEventActionType.ADDED_COMMENT : EdgeEventActionType.UPDATED_COMMENT;
+        }
+        return isCreated ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED;
     }
 }

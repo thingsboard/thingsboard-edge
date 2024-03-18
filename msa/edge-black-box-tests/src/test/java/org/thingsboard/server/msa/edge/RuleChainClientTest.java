@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2024 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,13 +17,16 @@ package org.thingsboard.server.msa.edge;
 
 import lombok.extern.slf4j.Slf4j;
 import org.awaitility.Awaitility;
+import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.rule.RuleChain;
+import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
 import java.util.Collections;
@@ -60,4 +63,36 @@ public class RuleChainClientTest extends AbstractContainerTest {
 
         unAssignFromEdgeAndDeleteRuleChain(savedRuleChainId);
     }
+
+    @Test
+    public void testUpdateRootRuleChain() {
+        PageData<RuleChain> ruleChains = cloudRestClient.getEdgeRuleChains(edge.getId(), new TimePageLink(100));
+        RuleChain rootRuleChain = ruleChains.getData().stream().filter(ruleChain -> ruleChain.getId().equals(edge.getRootRuleChainId())).findAny().orElse(null);
+        Assert.assertNotNull(rootRuleChain);
+        RuleChainMetaData rootRuleChainMetadata = cloudRestClient.getRuleChainMetaData(rootRuleChain.getId()).orElse(null);
+        Assert.assertNotNull(rootRuleChainMetadata);
+
+        // update metadata: enable debug mode for each node in rule chain
+        rootRuleChainMetadata.getNodes().forEach(s -> s.setDebugMode(true));
+        cloudRestClient.saveRuleChainMetaData(rootRuleChainMetadata);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<RuleChain> edgeRuleChains = cloudRestClient.getEdgeRuleChains(edge.getId(), new TimePageLink(100));
+                    return edgeRuleChains.getData().stream().filter(RuleChain::isRoot).count() == 1;
+                });
+
+        // revert metadata: disable debug mode for each node in rule chain
+        rootRuleChainMetadata.getNodes().forEach(s -> s.setDebugMode(false));
+        cloudRestClient.saveRuleChainMetaData(rootRuleChainMetadata);
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    PageData<RuleChain> edgeRuleChains = cloudRestClient.getEdgeRuleChains(edge.getId(), new TimePageLink(100));
+                    return edgeRuleChains.getData().stream().filter(RuleChain::isRoot).count() == 1;
+                });
+    }
+
 }

@@ -9,12 +9,14 @@
       },
       "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
       "name": "Device Profile Node",
-      "debugMode": false,
+      "debugMode": true,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "persistAlarmRulesState": false,
         "fetchAlarmRulesStateOnStart": false
-      },
-      "externalId": null
+      }
     },
     {
       "additionalInfo": {
@@ -23,11 +25,13 @@
       },
       "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
       "name": "Save Timeseries",
-      "debugMode": false,
+      "debugMode": true,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "defaultTTL": 0
-      },
-      "externalId": null
+      }
     },
     {
       "additionalInfo": {
@@ -36,11 +40,16 @@
       },
       "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
       "name": "Save Client Attributes",
-      "debugMode": false,
+      "debugMode": true,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 2,
       "configuration": {
-        "scope": "CLIENT_SCOPE"
-      },
-      "externalId": null
+        "scope": "CLIENT_SCOPE",
+        "notifyDevice": false,
+        "sendAttributesUpdatedNotification": false,
+        "updateAttributesOnlyOnValueChange": true
+      }
     },
     {
       "additionalInfo": {
@@ -49,11 +58,13 @@
       },
       "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
       "name": "Message Type Switch",
-      "debugMode": false,
+      "debugMode": true,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "version": 0
-      },
-      "externalId": null
+      }
     },
     {
       "additionalInfo": {
@@ -62,13 +73,15 @@
       },
       "type": "org.thingsboard.rule.engine.action.TbLogNode",
       "name": "Log RPC from Device",
-      "debugMode": false,
+      "debugMode": true,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "scriptLang": "TBEL",
-        "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
-        "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-      },
-      "externalId": null
+        "jsScript": "return '\nIncoming message:\n' + JSON.stringify(msg) + '\nIncoming metadata:\n' + JSON.stringify(metadata);",
+        "tbelScript": "return '\nIncoming message:\n' + JSON.stringify(msg) + '\nIncoming metadata:\n' + JSON.stringify(metadata);"
+      }
     },
     {
       "additionalInfo": {
@@ -77,13 +90,15 @@
       },
       "type": "org.thingsboard.rule.engine.action.TbLogNode",
       "name": "Log Other",
-      "debugMode": false,
+      "debugMode": true,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "scriptLang": "TBEL",
-        "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
-        "tbelScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);"
-      },
-      "externalId": null
+        "jsScript": "return '\nIncoming message:\n' + JSON.stringify(msg) + '\nIncoming metadata:\n' + JSON.stringify(metadata);",
+        "tbelScript": "return '\nIncoming message:\n' + JSON.stringify(msg) + '\nIncoming metadata:\n' + JSON.stringify(metadata);"
+      }
     },
     {
       "additionalInfo": {
@@ -92,24 +107,43 @@
       },
       "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
       "name": "RPC Call Request",
-      "debugMode": false,
+      "debugMode": true,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "timeoutInSeconds": 60
-      },
-      "externalId": null
+      }
     },
     {
       "additionalInfo": {
-        "layoutX": 1129,
-        "layoutY": 52
+        "layoutX": 1126,
+        "layoutY": 104
       },
       "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
-      "name": "Push to cloud",
-      "debugMode": false,
+      "name": "Push to Cloud (Timeseries & Attributes)",
+      "debugMode": true,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
       "configuration": {
         "scope": "SERVER_SCOPE"
+      }
+    },
+    {
+      "additionalInfo": {
+        "layoutX": 811,
+        "layoutY": 684
       },
-      "externalId": null
+      "type": "org.thingsboard.rule.engine.edge.TbMsgPushToCloudNode",
+      "name": "Push to Cloud",
+      "debugMode": true,
+      "singletonMode": false,
+      "queueName": null,
+      "configurationVersion": 0,
+      "configuration": {
+        "scope": "SERVER_SCOPE"
+      }
     }
   ],
   "connections": [
@@ -117,6 +151,16 @@
       "fromIndex": 0,
       "toIndex": 3,
       "type": "Success"
+    },
+    {
+      "fromIndex": 0,
+      "toIndex": 8,
+      "type": "Alarm Created"
+    },
+    {
+      "fromIndex": 0,
+      "toIndex": 8,
+      "type": "Alarm Updated"
     },
     {
       "fromIndex": 1,
@@ -155,22 +199,22 @@
     },
     {
       "fromIndex": 3,
-      "toIndex": 7,
+      "toIndex": 8,
       "type": "Attributes Deleted"
     },
     {
       "fromIndex": 3,
-      "toIndex": 7,
+      "toIndex": 8,
       "type": "Attributes Updated"
     },
     {
       "fromIndex": 3,
-      "toIndex": 7,
+      "toIndex": 8,
       "type": "Timeseries Deleted"
     },
     {
       "fromIndex": 3,
-      "toIndex": 7,
+      "toIndex": 8,
       "type": "Timeseries Updated"
     },
     {

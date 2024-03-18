@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2024 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
+import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.AlarmId;
@@ -95,6 +96,9 @@ public class DefaultCloudNotificationService implements CloudNotificationService
                 case RELATION:
                     future = processRelation(tenantId, cloudNotificationMsg);
                     break;
+                case ALARM_COMMENT:
+                    future = processAlarmComment(tenantId, cloudNotificationMsg);
+                    break;
                 default:
                     log.warn("Cloud event type [{}] is not designed to be pushed to cloud", cloudEventType);
                     future = Futures.immediateFuture(null);
@@ -121,7 +125,7 @@ public class DefaultCloudNotificationService implements CloudNotificationService
     }
 
 
-    private ListenableFuture<Void> processEntity(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
+    private ListenableFuture<Void> processEntity(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {
         EdgeEventActionType cloudEventActionType = EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
         CloudEventType cloudEventType = CloudEventType.valueOf(cloudNotificationMsg.getCloudEventType());
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEventType, new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
@@ -138,45 +142,37 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         }
     }
 
-    private ListenableFuture<Void> processAlarm(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
+    private ListenableFuture<Void> processAlarm(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
         AlarmId alarmId = new AlarmId(new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
-        switch (actionType) {
-            case DELETED:
-                Alarm deletedAlarm = JacksonUtil.OBJECT_MAPPER.readValue(cloudNotificationMsg.getEntityBody(), Alarm.class);
-                return cloudEventService.saveCloudEventAsync(tenantId,
-                        CloudEventType.ALARM,
-                        actionType,
-                        alarmId,
-                        JacksonUtil.OBJECT_MAPPER.valueToTree(deletedAlarm),
-                        0L);
-            default:
-                ListenableFuture<Alarm> future = alarmService.findAlarmByIdAsync(tenantId, alarmId);
-                return Futures.transformAsync(future, alarm -> {
-                    if (alarm != null) {
-                        CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(alarm.getOriginator().getEntityType());
-                        if (cloudEventType != null) {
-                            return cloudEventService.saveCloudEventAsync(tenantId,
-                                    CloudEventType.ALARM,
-                                    EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
-                                    alarmId,
-                                    null,
-                                    0L);
-                        }
-                    }
-                    return Futures.immediateFuture(null);
-                }, dbCallBackExecutor);
-
+        if (EdgeEventActionType.DELETED.equals(actionType) || EdgeEventActionType.ALARM_DELETE.equals(actionType)) {
+            Alarm deletedAlarm = JacksonUtil.fromString(cloudNotificationMsg.getEntityBody(), Alarm.class);
+            return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ALARM, actionType, alarmId, JacksonUtil.valueToTree(deletedAlarm), 0L);
         }
+        ListenableFuture<Alarm> future = alarmService.findAlarmByIdAsync(tenantId, alarmId);
+        return Futures.transformAsync(future, alarm -> {
+            if (alarm != null) {
+                CloudEventType cloudEventType = CloudUtils.getCloudEventTypeByEntityType(alarm.getOriginator().getEntityType());
+                if (cloudEventType != null) {
+                    return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ALARM, EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()), alarmId, null, 0L);
+                }
+            }
+            return Futures.immediateFuture(null);
+        }, dbCallBackExecutor);
     }
 
-    private ListenableFuture<Void> processRelation(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) throws Exception {
-        EntityRelation relation = JacksonUtil.OBJECT_MAPPER.readValue(cloudNotificationMsg.getEntityBody(), EntityRelation.class);
-        return cloudEventService.saveCloudEventAsync(tenantId,
-                CloudEventType.RELATION,
-                EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()),
-                null,
-                JacksonUtil.OBJECT_MAPPER.valueToTree(relation),
-                0L);
+    public ListenableFuture<Void> processAlarmComment(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {
+        EdgeEventActionType actionType = EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
+        AlarmId alarmId = new AlarmId(new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
+        AlarmComment alarmComment = JacksonUtil.fromString(cloudNotificationMsg.getEntityBody(), AlarmComment.class);
+        if (alarmComment == null) {
+            return Futures.immediateFuture(null);
+        }
+        return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.ALARM_COMMENT, actionType, alarmId, JacksonUtil.valueToTree(alarmComment), 0L);
+    }
+
+    private ListenableFuture<Void> processRelation(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {
+        EntityRelation relation = JacksonUtil.fromString(cloudNotificationMsg.getEntityBody(), EntityRelation.class);
+        return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.RELATION, EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()), null, JacksonUtil.valueToTree(relation), 0L);
     }
 }

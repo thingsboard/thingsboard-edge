@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2024 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -123,10 +123,8 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
 
     private ScheduledExecutorService scheduler;
 
-    /* merge comment
     @Value("${database.ts.type}")
     private String databaseTsType;
-     */
     @Value("${server.ws.dynamic_page_link.refresh_interval:6}")
     private long dynamicPageLinkRefreshInterval;
     @Value("${server.ws.dynamic_page_link.refresh_pool_size:1}")
@@ -149,12 +147,7 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
     public void initExecutor() {
         serviceId = serviceInfoProvider.getServiceId();
         wsCallBackExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("ws-entity-sub-callback"));
-
-        /* merge comment
         tsInSqlDB = databaseTsType.equalsIgnoreCase("sql") || databaseTsType.equalsIgnoreCase("timescale");
-         */
-        tsInSqlDB = true;
-
         ThreadFactory tbThreadFactory = ThingsBoardThreadFactory.forName("ws-entity-sub-scheduler");
         if (dynamicPageLinkRefreshPoolSize == 1) {
             scheduler = Executors.newSingleThreadScheduledExecutor(tbThreadFactory);
@@ -567,17 +560,14 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
         List<String> keys = cmd.getKeys();
         List<ReadTsKvQuery> finalTsKvQueryList;
         List<ReadTsKvQuery> tsKvQueryList = keys.stream().map(key -> {
-            var query = new BaseReadTsKvQuery(
-                    key, cmd.getStartTs(), cmd.getEndTs(), cmd.getInterval(), getLimit(cmd.getLimit()), cmd.getAgg()
-            );
+            var query = new BaseReadTsKvQuery(key, cmd.getStartTs(), cmd.getEndTs(), cmd.toAggregationParams(), getLimit(cmd.getLimit()));
             queriesKeys.put(query.getId(), query.getKey());
             return query;
         }).collect(Collectors.toList());
         if (cmd.isFetchLatestPreviousPoint()) {
             finalTsKvQueryList = new ArrayList<>(tsKvQueryList);
             finalTsKvQueryList.addAll(keys.stream().map(key -> {
-                        var query = new BaseReadTsKvQuery(
-                                key, cmd.getStartTs() - TimeUnit.DAYS.toMillis(365), cmd.getStartTs(), cmd.getInterval(), 1, cmd.getAgg());
+                        var query = new BaseReadTsKvQuery(key, cmd.getStartTs() - TimeUnit.DAYS.toMillis(365), cmd.getStartTs(), cmd.toAggregationParams(), 1);
                         queriesKeys.put(query.getId(), query.getKey());
                         return query;
                     }

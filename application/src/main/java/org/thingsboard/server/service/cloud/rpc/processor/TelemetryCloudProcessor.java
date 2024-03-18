@@ -1,5 +1,5 @@
 /**
- * Copyright © 2016-2023 The Thingsboard Authors
+ * Copyright © 2016-2024 The Thingsboard Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,6 +42,7 @@ public class TelemetryCloudProcessor extends BaseTelemetryProcessor {
     }
 
     public UplinkMsg convertTelemetryEventToUplink(TenantId tenantId, CloudEvent cloudEvent) {
+        log.trace("Executing convertTelemetryEventToUplink, cloudEvent [{}]", cloudEvent);
         EntityType entityType = EntityType.valueOf(cloudEvent.getType().name());
         EntityDataProto entityDataProto = convertTelemetryEventToEntityDataProto(
                 tenantId, entityType, cloudEvent.getEntityId(),
