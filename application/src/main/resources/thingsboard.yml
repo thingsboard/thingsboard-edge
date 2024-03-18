@@ -546,7 +546,7 @@ integrations:
     # - 'LAST': Only the last activity event in the reporting period is reported.
     # - 'FIRST_AND_LAST': Both the first and last activity events in the reporting period are reported.
     # - 'ALL': All activity events in the reporting period are reported.
-    reporting_strategy: "${INTEGRATIONS_ACTIVITY_REPORTING_STRATEGY:ALL}"
+    reporting_strategy: "${INTEGRATIONS_ACTIVITY_REPORTING_STRATEGY:LAST}"
 
 # Reports parameters
 reports:
