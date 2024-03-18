@@ -30,17 +30,11 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field appearance="outline" subscriptSizing="dynamic" style="width: 100%;">
-  <mat-select [formControl]="dateFormatFormControl" [compareWith]="dateFormatsCompare" >
-    <mat-option *ngFor="let dateFormat of dateFormatList" [value]="dateFormat">{{ dateFormatDisplayValue(dateFormat) }}</mat-option>
-  </mat-select>
-  <button #customFormatButton
-          *ngIf="dateFormatFormControl.value?.custom" matSuffix mat-icon-button (click)="openDateFormatSettingsPopup($event, customFormatButton)">
-    <tb-icon>edit</tb-icon>
-  </button>
-  <button #autoFormatButton
-          *ngIf="dateFormatFormControl.value?.auto && !dateFormatFormControl.value?.custom"
-          matSuffix mat-icon-button (click)="openAutoFormatSettingsPopup($event, autoFormatButton)">
-    <tb-icon>edit</tb-icon>
-  </button>
-</mat-form-field>
+<button type="button"
+        mat-stroked-button
+        class="tb-box-button"
+        [disabled]="disabled"
+        #matButton
+        (click)="openAutoFormatSettingsPopup($event, matButton)">
+  <tb-icon matButtonIcon>mdi:clock-edit-outline</tb-icon>
+</button>

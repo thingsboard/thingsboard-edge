@@ -30,17 +30,35 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field appearance="outline" subscriptSizing="dynamic" style="width: 100%;">
-  <mat-select [formControl]="dateFormatFormControl" [compareWith]="dateFormatsCompare" >
-    <mat-option *ngFor="let dateFormat of dateFormatList" [value]="dateFormat">{{ dateFormatDisplayValue(dateFormat) }}</mat-option>
-  </mat-select>
-  <button #customFormatButton
-          *ngIf="dateFormatFormControl.value?.custom" matSuffix mat-icon-button (click)="openDateFormatSettingsPopup($event, customFormatButton)">
-    <tb-icon>edit</tb-icon>
-  </button>
-  <button #autoFormatButton
-          *ngIf="dateFormatFormControl.value?.auto && !dateFormatFormControl.value?.custom"
-          matSuffix mat-icon-button (click)="openAutoFormatSettingsPopup($event, autoFormatButton)">
-    <tb-icon>edit</tb-icon>
-  </button>
-</mat-form-field>
+<div class="tb-auto-date-format-settings-panel" [formGroup]="autoDateFormatFormGroup">
+  <div class="tb-auto-date-format-settings-title" translate>date.time-granularity-formats</div>
+  <div class="tb-auto-date-format-settings-panel-content">
+    <div class="tb-form-row" *ngFor="let unit of formatTimeUnits">
+      <div class="fixed-title-width">{{ formatTimeUnitTranslations.get(unit) | translate }}</div>
+      <div fxFlex fxLayout="column" fxLayoutGap="8px"
+                  fxLayout.gt-xs="row" fxLayoutAlign.gt-xs="start center" fxLayoutGap.gt-xs="16px">
+        <mat-form-field class="tb-date-format-input flex" appearance="outline" subscriptSizing="dynamic">
+          <input required matInput [formControlName]="unit" placeholder="{{ 'widget-config.set' | translate }}">
+          <div matIconSuffix tb-help-popup="date/date-format" [tb-help-popup-style]="{width: '800px'}"></div>
+        </mat-form-field>
+        <mat-divider fxHide fxShow.gt-xs vertical></mat-divider>
+        <div class="preview-text" fxFlex>{{ previewText[unit] }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="tb-auto-date-format-settings-panel-buttons">
+    <button mat-button
+            color="primary"
+            type="button"
+            (click)="cancel()">
+      {{ 'action.cancel' | translate }}
+    </button>
+    <button mat-raised-button
+            color="primary"
+            type="button"
+            (click)="applyAutoDateFormatSettings()"
+            [disabled]="autoDateFormatFormGroup.invalid || !autoDateFormatFormGroup.dirty">
+      {{ 'action.apply' | translate }}
+    </button>
+  </div>
+</div>

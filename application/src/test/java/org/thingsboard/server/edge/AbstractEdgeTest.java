@@ -987,4 +987,11 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
                         .filter(groupTenantName::equals)
                         .count() == 1);
     }
+
+    protected List<EntityGroupId> getEntityGroupsIdsForEntity(EntityId entityId) throws Exception {
+        return JacksonUtil.convertValue(
+                doGet("/api/entityGroups/" + entityId.getEntityType() + "/" + entityId.getId(), JsonNode.class),
+                new TypeReference<>() {});
+    }
+
 }

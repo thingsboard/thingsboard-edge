@@ -136,6 +136,12 @@ import {
 import {
   TimeSeriesChartAnimationSettingsComponent
 } from '@home/components/widget/lib/settings/common/chart/time-series-chart-animation-settings.component';
+import {
+  AutoDateFormatSettingsPanelComponent
+} from '@home/components/widget/lib/settings/common/auto-date-format-settings-panel.component';
+import {
+  AutoDateFormatSettingsComponent
+} from '@home/components/widget/lib/settings/common/auto-date-format-settings.component';
 
 @NgModule({
   declarations: [
@@ -149,6 +155,8 @@ import {
     CssSizeInputComponent,
     DateFormatSelectComponent,
     DateFormatSettingsPanelComponent,
+    AutoDateFormatSettingsComponent,
+    AutoDateFormatSettingsPanelComponent,
     BackgroundSettingsComponent,
     BackgroundSettingsPanelComponent,
     ValueSourceComponent,
@@ -200,6 +208,8 @@ import {
     CssSizeInputComponent,
     DateFormatSelectComponent,
     DateFormatSettingsPanelComponent,
+    AutoDateFormatSettingsComponent,
+    AutoDateFormatSettingsPanelComponent,
     BackgroundSettingsComponent,
     BackgroundSettingsPanelComponent,
     ValueSourceComponent,

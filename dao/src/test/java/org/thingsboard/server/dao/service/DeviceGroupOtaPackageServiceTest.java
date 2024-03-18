@@ -304,7 +304,7 @@ public class DeviceGroupOtaPackageServiceTest extends AbstractServiceTest {
         DeviceGroupOtaPackage savedDgf = deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage);
         Assert.assertNotNull(savedDgf);
 
-        deviceGroupOtaPackageService.deleteDeviceGroupOtaPackage(savedDgf.getId());
+        deviceGroupOtaPackageService.deleteDeviceGroupOtaPackage(tenantId, savedDgf);
 
         DeviceGroupOtaPackage foundDfg = deviceGroupOtaPackageService.findDeviceGroupOtaPackageById(savedDgf.getId());
         Assert.assertNull(foundDfg);
