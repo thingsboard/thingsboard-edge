@@ -36,23 +36,26 @@ import { TranslateService } from '@ngx-translate/core';
 import { AuthService } from '@core/auth/auth.service';
 import {
   ColorPickerDialogComponent,
-  ColorPickerDialogData, ColorPickerDialogResult
+  ColorPickerDialogData,
+  ColorPickerDialogResult
 } from '@shared/components/dialog/color-picker-dialog.component';
 import {
   MaterialIconsDialogComponent,
-  MaterialIconsDialogData, MaterialIconsDialogResult
+  MaterialIconsDialogData,
+  MaterialIconsDialogResult
 } from '@shared/components/dialog/material-icons-dialog.component';
-import { ConfirmDialogComponent } from '@shared/components/dialog/confirm-dialog.component';
-import { AlertDialogComponent } from '@shared/components/dialog/alert-dialog.component';
-import { ErrorAlertDialogComponent } from '@shared/components/dialog/error-alert-dialog.component';
+import { ConfirmDialogComponent, ConfirmDialogData } from '@shared/components/dialog/confirm-dialog.component';
+import { AlertDialogComponent, AlertDialogData } from '@shared/components/dialog/alert-dialog.component';
+import {
+  ErrorAlertDialogComponent,
+  ErrorAlertDialogData
+} from '@shared/components/dialog/error-alert-dialog.component';
 import { TodoDialogComponent } from '@shared/components/dialog/todo-dialog.component';
 import { ProgressDialogComponent, ProgressDialogData } from '@shared/components/dialog/progress-dialog.component';
 
-@Injectable(
-  {
-    providedIn: 'root'
-  }
-)
+@Injectable({
+  providedIn: 'root'
+})
 export class DialogService {
 
   constructor(
@@ -63,7 +66,7 @@ export class DialogService {
   }
 
   confirm(title: string, message: string, cancel: string = null, ok: string = null, fullscreen: boolean = false): Observable<boolean> {
-    const dialogConfig: MatDialogConfig = {
+    const dialogConfig: MatDialogConfig<ConfirmDialogData> = {
       disableClose: true,
       data: {
         title,
@@ -75,12 +78,12 @@ export class DialogService {
     if (fullscreen) {
       dialogConfig.panelClass = ['tb-fullscreen-dialog'];
     }
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, dialogConfig);
+    const dialogRef = this.dialog.open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, dialogConfig);
     return dialogRef.afterClosed();
   }
 
   alert(title: string, message: string, ok: string = null, fullscreen: boolean = false): Observable<boolean> {
-    const dialogConfig: MatDialogConfig = {
+    const dialogConfig: MatDialogConfig<AlertDialogData> = {
       disableClose: true,
       data: {
         title,
@@ -91,12 +94,12 @@ export class DialogService {
     if (fullscreen) {
       dialogConfig.panelClass = ['tb-fullscreen-dialog'];
     }
-    const dialogRef = this.dialog.open(AlertDialogComponent, dialogConfig);
+    const dialogRef = this.dialog.open<AlertDialogComponent, AlertDialogData, boolean>(AlertDialogComponent, dialogConfig);
     return dialogRef.afterClosed();
   }
 
-  errorAlert(title: string, message: string, error: any, ok: string = null, fullscreen: boolean = false): Observable<any> {
-    const dialogConfig: MatDialogConfig = {
+  errorAlert(title: string, message: string, error: any, ok: string = null, fullscreen: boolean = false): Observable<boolean> {
+    const dialogConfig: MatDialogConfig<ErrorAlertDialogData> = {
       disableClose: true,
       data: {
         title,
@@ -108,7 +111,7 @@ export class DialogService {
     if (fullscreen) {
       dialogConfig.panelClass = ['tb-fullscreen-dialog'];
     }
-    const dialogRef = this.dialog.open(ErrorAlertDialogComponent, dialogConfig);
+    const dialogRef = this.dialog.open<ErrorAlertDialogComponent, ErrorAlertDialogData, boolean>(ErrorAlertDialogComponent, dialogConfig);
     return dialogRef.afterClosed();
   }
 

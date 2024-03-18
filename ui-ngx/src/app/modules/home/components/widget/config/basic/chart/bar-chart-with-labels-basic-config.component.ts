@@ -142,6 +142,8 @@ export class BarChartWithLabelsBasicConfigComponent extends BasicWidgetConfigCom
       tooltipDateFormat: [settings.tooltipDateFormat, []],
       tooltipDateFont: [settings.tooltipDateFont, []],
       tooltipDateColor: [settings.tooltipDateColor, []],
+      tooltipDateInterval: [settings.tooltipDateInterval, []],
+
       tooltipBackgroundColor: [settings.tooltipBackgroundColor, []],
       tooltipBackgroundBlur: [settings.tooltipBackgroundBlur, []],
 
@@ -193,6 +195,7 @@ export class BarChartWithLabelsBasicConfigComponent extends BasicWidgetConfigCom
     this.widgetConfig.config.settings.tooltipDateFormat = config.tooltipDateFormat;
     this.widgetConfig.config.settings.tooltipDateFont = config.tooltipDateFont;
     this.widgetConfig.config.settings.tooltipDateColor = config.tooltipDateColor;
+    this.widgetConfig.config.settings.tooltipDateInterval = config.tooltipDateInterval;
     this.widgetConfig.config.settings.tooltipBackgroundColor = config.tooltipBackgroundColor;
     this.widgetConfig.config.settings.tooltipBackgroundBlur = config.tooltipBackgroundBlur;
 
@@ -281,10 +284,12 @@ export class BarChartWithLabelsBasicConfigComponent extends BasicWidgetConfigCom
         this.barChartWidgetConfigForm.get('tooltipDateFormat').enable();
         this.barChartWidgetConfigForm.get('tooltipDateFont').enable();
         this.barChartWidgetConfigForm.get('tooltipDateColor').enable();
+        this.barChartWidgetConfigForm.get('tooltipDateInterval').enable();
       } else {
         this.barChartWidgetConfigForm.get('tooltipDateFormat').disable();
         this.barChartWidgetConfigForm.get('tooltipDateFont').disable();
         this.barChartWidgetConfigForm.get('tooltipDateColor').disable();
+        this.barChartWidgetConfigForm.get('tooltipDateInterval').disable();
       }
     } else {
       this.barChartWidgetConfigForm.get('tooltipValueFont').disable();
@@ -293,6 +298,7 @@ export class BarChartWithLabelsBasicConfigComponent extends BasicWidgetConfigCom
       this.barChartWidgetConfigForm.get('tooltipDateFormat').disable();
       this.barChartWidgetConfigForm.get('tooltipDateFont').disable();
       this.barChartWidgetConfigForm.get('tooltipDateColor').disable();
+      this.barChartWidgetConfigForm.get('tooltipDateInterval').disable();
       this.barChartWidgetConfigForm.get('tooltipBackgroundColor').disable();
       this.barChartWidgetConfigForm.get('tooltipBackgroundBlur').disable();
     }

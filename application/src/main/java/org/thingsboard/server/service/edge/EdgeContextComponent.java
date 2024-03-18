@@ -50,6 +50,7 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.resource.ResourceService;
@@ -310,6 +311,9 @@ public class EdgeContextComponent {
 
     @Autowired
     protected IntegrationService integrationService;
+
+    @Autowired
+    protected DeviceGroupOtaPackageService deviceGroupOtaPackageService;
 
     @Autowired
     private EntityGroupEdgeProcessor entityGroupProcessor;

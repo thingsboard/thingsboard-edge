@@ -31,9 +31,6 @@
 package org.thingsboard.server.service.integration;
 
 import org.thingsboard.integration.api.IntegrationCallback;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -46,12 +43,16 @@ import org.thingsboard.server.gen.transport.TransportProtos.PostAttributeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.PostTelemetryMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.SessionInfoProto;
 
+import java.util.UUID;
+
 /**
  * Created by ashvayka on 02.12.17.
  */
 public interface PlatformIntegrationService {
 
     void processUplinkData(AbstractIntegration info, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
+
+    void processUplinkData(AbstractIntegration info, UUID sessionId, DeviceUplinkDataProto data, IntegrationCallback<Void> callback);
 
     void processUplinkData(AbstractIntegration info, AssetUplinkDataProto data, IntegrationCallback<Void> callback);
 
@@ -67,12 +68,5 @@ public interface PlatformIntegrationService {
 
     void process(SessionInfoProto sessionInfo, PostAttributeMsg msg, IntegrationCallback<Void> callback);
 
-    void process(TenantId asset, TbMsg tbMsg, IntegrationCallback<Void> callback);
-
-    Device getOrCreateDevice(AbstractIntegration integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName);
-
-    Asset getOrCreateAsset(AbstractIntegration configuration, String assetName, String assetType, String assetLabel, String customerName, String groupName);
-
-    EntityView getOrCreateEntityView(AbstractIntegration configuration, Device device, org.thingsboard.server.gen.integration.EntityViewDataProto proto);
-
+    void process(TenantId tenantId, TbMsg tbMsg, IntegrationCallback<Void> callback);
 }

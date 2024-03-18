@@ -1,0 +1,186 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+$maxLegendWidth: 25%;
+$maxLegendHeight: 35%;
+
+.tb-time-series-chart-panel {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  &.overlay {
+    padding: 20px 24px 24px 24px;
+  }
+  > div:not(.tb-time-series-chart-overlay) {
+    z-index: 1;
+  }
+  .tb-time-series-chart-overlay {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    bottom: 12px;
+    right: 12px;
+  }
+  div.tb-widget-title {
+    padding: 0;
+  }
+  .tb-time-series-chart-content {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    &.legend-top {
+      flex-direction: column-reverse;
+    }
+    &.legend-right {
+      flex-direction: row;
+    }
+    &.legend-left {
+      flex-direction: row-reverse;
+    }
+    .tb-time-series-chart-shape {
+      flex: 1;
+      min-width: 0;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    &.legend-right, &.legend-left {
+      .tb-time-series-chart-legend {
+        display: inline-grid;
+        grid-auto-flow: column;
+        grid-template-rows: repeat(auto-fit, minmax(16px, min-content));
+        max-width: calc($maxLegendWidth - 8px);
+        height: fit-content;
+        max-height: 100%;
+      }
+    }
+    &.legend-top, &.legend-bottom {
+      .tb-time-series-chart-legend {
+        align-self: center;
+        &.tb-simple-legend {
+          justify-content: center;
+        }
+        &:not(.tb-simple-legend) {
+          width: 100%;
+        }
+      }
+    }
+    .tb-time-series-chart-legend {
+      display: flex;
+      align-items: flex-start;
+      align-self: stretch;
+      column-gap: 16px;
+      row-gap: 8px;
+      flex-wrap: wrap;
+      overflow: auto;
+      width: fit-content;
+      max-width: 100%;
+      max-height: calc($maxLegendHeight - 8px);
+      .tb-time-series-chart-legend-table {
+        border-spacing: 0;
+        table-layout: fixed;
+        &.vertical {
+          width: 100%;
+          table-layout: auto;
+          tbody {
+            th {
+              width: 95%;
+            }
+          }
+        }
+        th, td {
+          &:not(:last-child) {
+            padding-right: 16px;
+          }
+        }
+        thead tr, tbody tr:not(:last-child) {
+          th, td {
+            padding-bottom: 8px;
+          }
+        }
+        .tb-time-series-chart-legend-item {
+          align-items: flex-end;
+          &.left {
+            align-items: flex-start;
+          }
+        }
+      }
+      .tb-time-series-chart-legend-item {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: flex-start;
+        user-select: none;
+        .tb-time-series-chart-legend-item-label {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          color: #ccc;
+          white-space: nowrap;
+          cursor: pointer;
+          .tb-time-series-chart-legend-item-label-circle {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ccc;
+          }
+        }
+      }
+      .tb-time-series-chart-legend-type-label {
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 16px;
+        color: rgba(0, 0, 0, 0.38);
+        white-space: nowrap;
+        text-align: left;
+        &.right {
+          text-align: right;
+        }
+      }
+      .tb-time-series-chart-legend-value {
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 500;
+        line-height: 16px;
+        color: rgba(0, 0, 0, 0.87);
+        white-space: nowrap;
+        text-align: right;
+      }
+    }
+  }
+}

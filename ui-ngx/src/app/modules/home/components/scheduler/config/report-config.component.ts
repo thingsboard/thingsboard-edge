@@ -78,7 +78,7 @@ import { safeMerge } from '@home/components/scheduler/config/config.models';
 })
 export class ReportConfigComponent extends PageComponent implements ControlValueAccessor, OnInit, AfterViewInit, OnDestroy, Validator {
 
-  modelValue: ReportConfig | null;
+  private modelValue: ReportConfig | null;
 
   reportConfigFormGroup: UntypedFormGroup;
 
@@ -260,7 +260,7 @@ export class ReportConfigComponent extends PageComponent implements ControlValue
 
   private updateModel() {
     if (this.reportConfigFormGroup.valid) {
-      const value = this.reportConfigFormGroup.value;
+      const value = this.reportConfigFormGroup.getRawValue() as ReportConfig;
       this.modelValue = {...this.modelValue, ...value};
       this.propagateChange(this.modelValue);
     } else {

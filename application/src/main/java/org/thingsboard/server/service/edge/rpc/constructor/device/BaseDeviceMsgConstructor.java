@@ -35,6 +35,8 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
+import org.thingsboard.server.gen.edge.v1.DeviceGroupOtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
@@ -120,4 +122,10 @@ public abstract class BaseDeviceMsgConstructor implements DeviceMsgConstructor {
         }
         return builder;
     }
+
+    @Override
+    public DeviceGroupOtaPackageUpdateMsg constructDeviceGroupOtaUpdateMsg(UpdateMsgType msgType, DeviceGroupOtaPackage deviceGroupOtaPackage) {
+        return DeviceGroupOtaPackageUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(deviceGroupOtaPackage)).build();
+    }
+
 }
