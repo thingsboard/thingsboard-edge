@@ -198,5 +198,15 @@ export const entityFields: {[fieldName: string]: EntityField} = {
     keyName: 'originatorType',
     name: 'entity-field.originatorType',
     value: 'originatorType'
+  },
+  ownerName: {
+    keyName: 'ownerName',
+    name: 'entity-field.owner-name',
+    value: 'ownerName'
+  },
+  ownerType: {
+    keyName: 'ownerType',
+    name: 'entity-field.owner-type',
+    value: 'ownerType'
   }
 };

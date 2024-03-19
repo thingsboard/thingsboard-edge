@@ -2733,7 +2733,10 @@
         "configuration": "Configuration",
         "schedule": "Schedule",
         "originatorId": "Originator Id",
-        "originatorType": "Originator Type"
+        "originatorType": "Originator Type",
+        "label": "Label",
+        "owner-name": "Owner name",
+        "owner-type": "Owner type"
     },
     "entity-view": {
         "all": "All",
