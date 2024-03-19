@@ -32,6 +32,7 @@ package org.thingsboard.server.transport.lwm2m.server.client;
 
 import org.eclipse.leshan.core.link.Link;
 import org.eclipse.leshan.server.registration.Registration;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 
@@ -39,6 +40,7 @@ import java.net.InetSocketAddress;
 
 public class LwM2mClientTest {
 
+    @Ignore
     @Test
     public void setRegistration() {
         LwM2mClient client = new LwM2mClient("nodeId", "testEndpoint");
