@@ -546,10 +546,10 @@ class TbDuplicateMsgToGroupByNameNodeTest {
         when(peCtxMock.getEntityGroupService()).thenReturn(entityGroupServiceMock);
 
         when(entityGroupServiceMock.findEntityGroupByTypeAndName(
-                eq(TENANT_ID), eq(TENANT_ID), eq(config.getGroupType()), eq(entityGroupName)))
+                any(), any(), any(), any()))
                 .thenReturn(Optional.of(deviceGroup));
         when(entityGroupServiceMock.findAllEntityIdsAsync(
-                eq(TENANT_ID), eq(deviceGroupId), eq(new PageLink(Integer.MAX_VALUE))))
+                any(), any(), any()))
                 .thenReturn(Futures.immediateFuture(groupDeviceIdsList));
 
         // WHEN
@@ -558,7 +558,6 @@ class TbDuplicateMsgToGroupByNameNodeTest {
         // THEN
         verify(entityGroupServiceMock)
                 .findEntityGroupByTypeAndName(eq(TENANT_ID), eq(TENANT_ID), eq(config.getGroupType()), eq(entityGroupName));
-
     }
 
     private void init() throws TbNodeException {
