@@ -139,9 +139,6 @@ public class ThingsboardInstallService {
                     entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
                     entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
 
-                    // edge specific
-                    dataUpdateService.deleteAllWidgetBundlesAndTypes();
-
                     log.info("Updating system data...");
                     // dataUpdateService.upgradeRuleNodes();
                     systemDataLoaderService.loadSystemWidgets();
