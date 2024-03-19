@@ -553,7 +553,7 @@ public class HashPartitionService implements PartitionService {
         return tenantRoutingInfoMap.computeIfAbsent(tenantId, tenantRoutingInfoService::getRoutingInfo);
     }
 
-    private TenantId getIsolatedOrSystemTenantId(ServiceType serviceType, TenantId tenantId) {
+    protected TenantId getIsolatedOrSystemTenantId(ServiceType serviceType, TenantId tenantId) {
         return isIsolated(serviceType, tenantId) ? tenantId : TenantId.SYS_TENANT_ID;
     }
 
