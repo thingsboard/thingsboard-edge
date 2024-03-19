@@ -132,7 +132,7 @@ export class TbTimeSeriesChart {
 
   private darkMode = false;
 
-  private messageChannel = new BroadcastChannel('tbMessageChannel');
+  private darkModeObserver: MutationObserver;
 
   private topPointLabels = false;
 
@@ -154,7 +154,8 @@ export class TbTimeSeriesChart {
     this.settings = mergeDeep({} as TimeSeriesChartSettings,
       timeSeriesChartDefaultSettings,
       this.inputSettings as TimeSeriesChartSettings);
-    this.darkMode = this.settings.darkMode;
+    const dashboardPageElement = this.ctx.$containerParent.parents('.tb-dashboard-page');
+    this.darkMode = this.settings.darkMode || dashboardPageElement.hasClass('dark');
     this.setupYAxes();
     this.setupData();
     this.setupThresholds();
@@ -168,12 +169,15 @@ export class TbTimeSeriesChart {
       });
       this.shapeResize$.observe(this.chartElement);
     }
-    this.messageChannel.addEventListener('message', (event) => {
-      if (event?.data?.type === 'tbDarkMode') {
-        const darkMode = !!event?.data?.darkMode;
-        this.setDarkMode(darkMode);
+    this.darkModeObserver = new MutationObserver(mutations => {
+      for(let mutation of mutations) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const darkMode = dashboardPageElement.hasClass('dark');
+          this.setDarkMode(darkMode);
+        }
       }
     });
+    this.darkModeObserver.observe(dashboardPageElement[0], { attributes: true });
   }
 
   public update(): void {
@@ -280,7 +284,7 @@ export class TbTimeSeriesChart {
     }
     this.yMinSubject.complete();
     this.yMaxSubject.complete();
-    this.messageChannel.close();
+    this.darkModeObserver.disconnect();
   }
 
   public resize(): void {
