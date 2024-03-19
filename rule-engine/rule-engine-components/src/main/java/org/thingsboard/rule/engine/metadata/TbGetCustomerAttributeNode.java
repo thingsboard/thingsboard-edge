@@ -94,7 +94,6 @@ public class TbGetCustomerAttributeNode extends TbAbstractGetEntityDataNode<Cust
             case 0:
                 config = upgradeConfigToUseFetchToAndDataToFetch((ObjectNode) oldConfiguration);
                 hasChanges = true;
-                break;
             case 1:
                 if (!config.has("preserveOriginatorIfCustomer")) {
                     config.put("preserveOriginatorIfCustomer", true);

@@ -90,8 +90,8 @@ public class EntitiesCustomerIdAsyncLoaderTest {
     public void givenCustomerEntityType_whenFindEntityIdAsync_thenOK() throws ExecutionException, InterruptedException {
         // GIVEN
         var customer = new Customer(new CustomerId(UUID.randomUUID()));
-        var parentCustomer = customer.getParentCustomerId();
-        customer.setParentCustomerId(parentCustomer);
+        var parentCustomerId = customer.getParentCustomerId();
+        customer.setParentCustomerId(parentCustomerId);
 
         when(ctxMock.getCustomerService()).thenReturn(customerServiceMock);
         doReturn(Futures.immediateFuture(customer)).when(customerServiceMock).findCustomerByIdAsync(any(), any());
@@ -101,7 +101,7 @@ public class EntitiesCustomerIdAsyncLoaderTest {
         var actualCustomerId = EntitiesCustomerIdAsyncLoader.findEntityIdAsync(ctxMock, customer.getId()).get();
 
         // THEN
-        assertEquals(parentCustomer, actualCustomerId);
+        assertEquals(parentCustomerId, actualCustomerId);
     }
 
     @Test

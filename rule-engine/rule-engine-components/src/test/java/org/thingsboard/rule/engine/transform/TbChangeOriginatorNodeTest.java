@@ -189,9 +189,8 @@ public class TbChangeOriginatorNodeTest extends AbstractRuleNodeUpgradeTest {
 
         node.onMsg(ctx, msg);
 
-        ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
         ArgumentCaptor<EntityId> originatorCaptor = ArgumentCaptor.forClass(EntityId.class);
-        verify(ctx).transformMsgOriginator(msgCaptor.capture(), originatorCaptor.capture());
+        verify(ctx).transformMsgOriginator(eq(msg), originatorCaptor.capture());
 
         assertEquals(customer.getParentCustomerId(), originatorCaptor.getValue());
     }
@@ -216,7 +215,7 @@ public class TbChangeOriginatorNodeTest extends AbstractRuleNodeUpgradeTest {
         ArgumentCaptor<Exception> exceptionCaptor = ArgumentCaptor.forClass(Exception.class);
 
         node.onMsg(ctx, msg);
-        verify(ctx).tellFailure(same(msg), exceptionCaptor.capture());
+        verify(ctx).tellFailure(eq(msg), exceptionCaptor.capture());
 
         Exception capturedException = exceptionCaptor.getValue();
 

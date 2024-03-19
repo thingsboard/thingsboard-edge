@@ -490,7 +490,7 @@ public class TbGetCustomerAttributeNodeTest extends AbstractRuleNodeUpgradeTest 
                 .thenReturn(Futures.immediateFuture(customer));
 
         when(ctxMock.getTimeseriesService()).thenReturn(timeseriesServiceMock);
-        when(timeseriesServiceMock.findLatest(eq(TENANT_ID), eq(customer.getParentCustomerId()), argThat(new ListMatcher<>(expectedPatternProcessedKeysList))))
+        when(timeseriesServiceMock.findLatest(any(), any(), argThat(new ListMatcher<>(expectedPatternProcessedKeysList))))
                 .thenReturn(Futures.immediateFuture(timeseriesList));
 
         when(ctxMock.getDbCallbackExecutor()).thenReturn(DB_EXECUTOR);
@@ -502,6 +502,7 @@ public class TbGetCustomerAttributeNodeTest extends AbstractRuleNodeUpgradeTest 
         var actualMessageCaptor = ArgumentCaptor.forClass(TbMsg.class);
 
         verify(ctxMock, times(1)).tellSuccess(actualMessageCaptor.capture());
+        verify(timeseriesServiceMock).findLatest(eq(TENANT_ID), eq(customer.getParentCustomerId()), argThat(new ListMatcher<>(expectedPatternProcessedKeysList)));
         verify(ctxMock, never()).tellFailure(any(), any());
 
         var expectedMsgData = "{\"temp\":42," +
@@ -527,7 +528,7 @@ public class TbGetCustomerAttributeNodeTest extends AbstractRuleNodeUpgradeTest 
         when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
 
         when(ctxMock.getCustomerService()).thenReturn(customerServiceMock);
-        when(customerServiceMock.findCustomerByIdAsync(eq(TENANT_ID), eq(customer.getId())))
+        when(customerServiceMock.findCustomerByIdAsync(any(), any()))
                 .thenReturn(Futures.immediateFuture(customer));
 
         when(ctxMock.getDbCallbackExecutor()).thenReturn(DB_EXECUTOR);
@@ -539,6 +540,7 @@ public class TbGetCustomerAttributeNodeTest extends AbstractRuleNodeUpgradeTest 
 
         //THEN
         verify(ctxMock).tellFailure(eq(msg), exceptionCaptor.capture());
+        verify(customerServiceMock).findCustomerByIdAsync(eq(TENANT_ID), eq(customer.getId()));
 
         Exception capturedException = exceptionCaptor.getValue();
 
@@ -588,21 +590,21 @@ public class TbGetCustomerAttributeNodeTest extends AbstractRuleNodeUpgradeTest 
 
     private static Stream<Arguments> givenFromVersionAndConfig_whenUpgrade_thenVerifyHasChangesAndConfig() {
         return Stream.of(
-                // default config for version 0
+                //config for version 0
                 Arguments.of(0,
                         "{\"attrMapping\":{\"alarmThreshold\":\"threshold\"},\"telemetry\":false}",
                         true,
-                        "{\"dataToFetch\": \"ATTRIBUTES\", \"dataMapping\": {\"alarmThreshold\":\"threshold\"}, \"fetchTo\": \"METADATA\"}"),
-                // default config for version 1
+                        "{\"dataToFetch\": \"ATTRIBUTES\", \"dataMapping\": {\"alarmThreshold\":\"threshold\"}, \"fetchTo\": \"METADATA\", \"preserveOriginatorIfCustomer\": true}"),
+                //config for version 1
                 Arguments.of(1,
                         "{\"dataToFetch\": \"ATTRIBUTES\", \"dataMapping\": {\"alarmThreshold\":\"threshold\"}, \"fetchTo\": \"METADATA\"}",
                         true,
                         "{\"dataToFetch\": \"ATTRIBUTES\", \"dataMapping\": {\"alarmThreshold\":\"threshold\"}, \"fetchTo\": \"METADATA\", \"preserveOriginatorIfCustomer\": true}"),
-                // default config for version 1 with upgrade from version 1
+                //config for version 1 with upgrade from version 1
                 Arguments.of(1,
-                        "{\"dataToFetch\": \"ATTRIBUTES\", \"dataMapping\": { \"temp\": \"temp\"}, \"fetchTo\": \"METADATA\", \"preserveOriginatorIfCustomer\": false}",
+                        "{\"dataToFetch\": \"ATTRIBUTES\", \"dataMapping\": { \"temp\": \"temp\"}, \"fetchTo\": \"METADATA\", \"preserveOriginatorIfCustomer\": true}",
                         false,
-                        "{\"dataToFetch\": \"ATTRIBUTES\", \"dataMapping\": { \"temp\": \"temp\"}, \"fetchTo\": \"METADATA\", \"preserveOriginatorIfCustomer\": false}")
+                        "{\"dataToFetch\": \"ATTRIBUTES\", \"dataMapping\": { \"temp\": \"temp\"}, \"fetchTo\": \"METADATA\", \"preserveOriginatorIfCustomer\": true}")
         );
     }
 
