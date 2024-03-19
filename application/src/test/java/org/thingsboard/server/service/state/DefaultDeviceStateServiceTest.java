@@ -219,7 +219,7 @@ public class DefaultDeviceStateServiceTest {
 
         // THEN
         then(telemetrySubscriptionService).should().saveAttrAndNotify(
-                eq(TenantId.SYS_TENANT_ID), eq(deviceId), eq(DataConstants.SERVER_SCOPE), eq(LAST_CONNECT_TIME), eq(lastConnectTime), any()
+                eq(TenantId.SYS_TENANT_ID), eq(deviceId), eq(AttributeScope.SERVER_SCOPE), eq(LAST_CONNECT_TIME), eq(lastConnectTime), any()
         );
 
         var msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
@@ -303,7 +303,7 @@ public class DefaultDeviceStateServiceTest {
 
         // THEN
         then(telemetrySubscriptionService).should().saveAttrAndNotify(
-                eq(TenantId.SYS_TENANT_ID), eq(deviceId), eq(DataConstants.SERVER_SCOPE),
+                eq(TenantId.SYS_TENANT_ID), eq(deviceId), eq(AttributeScope.SERVER_SCOPE),
                 eq(LAST_DISCONNECT_TIME), eq(lastDisconnectTime), any()
         );
 
@@ -424,11 +424,11 @@ public class DefaultDeviceStateServiceTest {
 
         // THEN
         then(telemetrySubscriptionService).should().saveAttrAndNotify(
-                eq(TenantId.SYS_TENANT_ID), eq(deviceId), eq(DataConstants.SERVER_SCOPE),
+                eq(TenantId.SYS_TENANT_ID), eq(deviceId), eq(AttributeScope.SERVER_SCOPE),
                 eq(INACTIVITY_ALARM_TIME), eq(lastInactivityTime), any()
         );
         then(telemetrySubscriptionService).should().saveAttrAndNotify(
-                eq(TenantId.SYS_TENANT_ID), eq(deviceId), eq(DataConstants.SERVER_SCOPE),
+                eq(TenantId.SYS_TENANT_ID), eq(deviceId), eq(AttributeScope.SERVER_SCOPE),
                 eq(ACTIVITY_STATE), eq(false), any()
         );
 
@@ -464,11 +464,11 @@ public class DefaultDeviceStateServiceTest {
 
         // THEN
         then(telemetrySubscriptionService).should().saveAttrAndNotify(
-                eq(TenantId.SYS_TENANT_ID), eq(deviceId), eq(DataConstants.SERVER_SCOPE),
+                eq(TenantId.SYS_TENANT_ID), eq(deviceId), eq(AttributeScope.SERVER_SCOPE),
                 eq(INACTIVITY_ALARM_TIME), anyLong(), any()
         );
         then(telemetrySubscriptionService).should().saveAttrAndNotify(
-                eq(TenantId.SYS_TENANT_ID), eq(deviceId), eq(DataConstants.SERVER_SCOPE),
+                eq(TenantId.SYS_TENANT_ID), eq(deviceId), eq(AttributeScope.SERVER_SCOPE),
                 eq(ACTIVITY_STATE), eq(false), any()
         );
 
