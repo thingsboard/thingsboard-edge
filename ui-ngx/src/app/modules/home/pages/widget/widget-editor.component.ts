@@ -217,6 +217,9 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
     if (!this.widgetTypeDetails) {
       this.isDirty = true;
     }
+
+    // @voba - edge read-only
+    this.isReadOnly = true;
   }
 
   ngOnInit(): void {
