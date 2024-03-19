@@ -258,9 +258,13 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
 
     @Override
     public void processUplinkData(AbstractIntegration integration, DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
+        processUplinkData(integration, integration.getId().getId(), data, callback); //for local integration context sessionId is exact integrationId
+    }
+
+    @Override
+    public void processUplinkData(AbstractIntegration integration, UUID sessionId, DeviceUplinkDataProto data, IntegrationCallback<Void> callback) {
         Device device = getOrCreateDevice(integration, data.getDeviceName(), data.getDeviceType(), data.getDeviceLabel(), data.getCustomerName(), data.getGroupName());
 
-        UUID sessionId = integration.getId().getId(); //for local integration context sessionId is exact integrationId
         TransportProtos.SessionInfoProto.Builder builder = TransportProtos.SessionInfoProto.newBuilder()
                 .setSessionIdMSB(sessionId.getMostSignificantBits())
                 .setSessionIdLSB(sessionId.getLeastSignificantBits())
@@ -457,8 +461,7 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
     }
 
 
-    @Override
-    public Device getOrCreateDevice(AbstractIntegration integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName) {
+    private Device getOrCreateDevice(AbstractIntegration integration, String deviceName, String deviceType, String deviceLabel, String customerName, String groupName) {
         Device device = deviceService.findDeviceByTenantIdAndName(integration.getTenantId(), deviceName);
         if (device == null) {
             entityCreationLock.lock();
@@ -471,8 +474,7 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
         return device;
     }
 
-    @Override
-    public Asset getOrCreateAsset(AbstractIntegration integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
+    private Asset getOrCreateAsset(AbstractIntegration integration, String assetName, String assetType, String assetLabel, String customerName, String groupName) {
         Asset asset = assetService.findAssetByTenantIdAndName(integration.getTenantId(), assetName);
         if (asset == null) {
             entityCreationLock.lock();
@@ -485,8 +487,7 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
         return asset;
     }
 
-    @Override
-    public EntityView getOrCreateEntityView(AbstractIntegration configuration, Device device, EntityViewDataProto proto) {
+    private EntityView getOrCreateEntityView(AbstractIntegration configuration, Device device, EntityViewDataProto proto) {
         String entityViewName = proto.getViewName();
         EntityView entityView = entityViewService.findEntityViewByTenantIdAndName(configuration.getTenantId(), entityViewName);
         if (entityView == null) {

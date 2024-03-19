@@ -37,6 +37,7 @@ import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.AlarmStatus;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityId;
 
 import java.util.Map;
@@ -60,6 +61,7 @@ public class AlarmNotificationInfo implements RuleOriginatedNotificationInfo {
     private boolean acknowledged;
     private boolean cleared;
     private CustomerId alarmCustomerId;
+    private DashboardId dashboardId;
 
     @Override
     public Map<String, String> getTemplateData() {
@@ -83,6 +85,11 @@ public class AlarmNotificationInfo implements RuleOriginatedNotificationInfo {
     @Override
     public EntityId getStateEntityId() {
         return alarmOriginator;
+    }
+
+    @Override
+    public DashboardId getDashboardId() {
+        return dashboardId;
     }
 
 }

@@ -51,6 +51,8 @@ import { isDefinedAndNotNull, isEqual } from '@core/utils';
 import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'tb-originator-select',
@@ -76,7 +78,7 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
   singleEntityText = 'scheduler.single-entity';
 
   @Input()
-  groupOfEntitiesText = 'scheduler.group-of-entities';
+  groupOfEntitiesText = 'scheduler.group-entities';
 
   @Input()
   entitiesGroupOwnerText = 'scheduler.entities-group-owner';
@@ -112,6 +114,8 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
 
   currentUser = getCurrentAuthUser(this.store);
 
+  private destroy$ = new Subject<void>();
+
   private loadData = false;
 
   private propagateChange = (v: any) => { };
@@ -125,7 +129,9 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
       groupOriginatorId: [null],
       groupOwnerId: [null]
     });
-    this.originatorFormGroup.get('originator').valueChanges.subscribe(
+    this.originatorFormGroup.get('originator').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(
       (originator: string) => {
         if (originator === 'groupTenant' || originator === 'ownerGroup') {
           const originatorId = {
@@ -135,13 +141,24 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
           this.originatorFormGroup.patchValue({
             groupOriginatorId: originatorId,
             groupOwnerId: null
-          });
+          }, {emitEvent: false});
         } else if (originator === 'entity') {
-          this.originatorFormGroup.get('entityOriginatorId').patchValue(null);
+          this.originatorFormGroup.get('entityOriginatorId').patchValue(null, {emitEvent: false});
         }
       }
     );
-    this.originatorFormGroup.valueChanges.subscribe((value) => {
+    this.originatorFormGroup.get('groupOwnerId').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(
+      () => {
+        this.originatorFormGroup.patchValue({
+          groupOriginatorId: null
+        }, {emitEvent: false});
+      }
+    );
+    this.originatorFormGroup.valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((value) => {
       this.updateView(value);
     });
   }
@@ -160,6 +177,8 @@ export class OriginatorSelectComponent implements ControlValueAccessor, OnInit, 
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   setDisabledState(isDisabled: boolean): void {

@@ -64,7 +64,6 @@ import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsServ
 
 import jakarta.annotation.PreDestroy;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -90,7 +89,7 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
     protected final ApplicationEventPublisher eventPublisher;
 
     protected final TbQueueConsumer<TbProtoQueueMsg<N>> nfConsumer;
-    protected final Optional<JwtSettingsService> jwtSettingsService;
+    protected final JwtSettingsService jwtSettingsService;
 
     public void init(String nfConsumerThreadName) {
         this.notificationsConsumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(nfConsumerThreadName));
@@ -103,6 +102,11 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
         this.isReady = true;
         launchNotificationsConsumer();
         launchMainConsumers();
+    }
+
+    @Override
+    protected boolean filterTbApplicationEvent(PartitionChangeEvent event) {
+        return event.getServiceType() == getServiceType();
     }
 
     protected abstract ServiceType getServiceType();
@@ -173,7 +177,7 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
             }
         } else if (EntityType.TENANT.equals(componentLifecycleMsg.getEntityId().getEntityType())) {
             if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
-                jwtSettingsService.ifPresent(JwtSettingsService::reloadJwtSettings);
+                jwtSettingsService.reloadJwtSettings();
                 return;
             } else {
                 tenantProfileCache.evict(tenantId);

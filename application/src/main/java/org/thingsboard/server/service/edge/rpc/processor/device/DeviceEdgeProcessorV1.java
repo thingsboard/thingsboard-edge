@@ -91,4 +91,5 @@ public class DeviceEdgeProcessorV1 extends DeviceEdgeProcessor {
         CustomerId customerUUID = safeGetCustomerId(deviceUpdateMsg.getCustomerIdMSB(), deviceUpdateMsg.getCustomerIdLSB());
         device.setCustomerId(customerUUID != null ? customerUUID : customerId);
     }
+
 }

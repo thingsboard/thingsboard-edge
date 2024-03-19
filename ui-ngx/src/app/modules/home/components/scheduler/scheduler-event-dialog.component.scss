@@ -37,3 +37,13 @@
     }
   }
 }
+
+:host ::ng-deep {
+  form {
+    .mat-mdc-tab-body-wrapper, .mat-mdc-tab-body, .mat-mdc-tab-body-content {
+      margin-left: -15px;
+      padding-left: 15px;
+    }
+  }
+}
+

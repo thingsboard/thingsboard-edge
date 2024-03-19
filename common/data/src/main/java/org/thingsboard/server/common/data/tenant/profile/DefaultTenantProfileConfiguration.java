@@ -104,6 +104,8 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
 
     private String edgeEventRateLimits;
     private String edgeEventRateLimitsPerEdge;
+    private String edgeUplinkMessagesRateLimits;
+    private String edgeUplinkMessagesRateLimitsPerEdge;
 
     private int defaultStorageTtlDays;
     private int alarmsTtlDays;

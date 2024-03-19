@@ -51,7 +51,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -137,9 +136,7 @@ public class AdminController extends BaseController {
     private final SmsService smsService;
     private final AdminSettingsService adminSettingsService;
     private final SystemSecurityService systemSecurityService;
-    @Lazy
     private final JwtSettingsService jwtSettingsService;
-    @Lazy
     private final JwtTokenFactory tokenFactory;
     private final EntitiesVersionControlService versionControlService;
     private final TbAutoCommitSettingsService autoCommitSettingsService;
@@ -176,7 +173,7 @@ public class AdminController extends BaseController {
             adminSettings = checkNotNull(adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, key), "No Administration settings found for key: " + key);
         } else {
             accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.READ);
-            adminSettings =  getTenantAdminSettings(getTenantId(), key, systemByDefault);
+            adminSettings = getTenantAdminSettings(getTenantId(), key, systemByDefault);
         }
         if (adminSettings.getKey().equals("mail")) {
             ((ObjectNode) adminSettings.getJsonValue()).remove("password");

@@ -39,6 +39,7 @@ import {
   widgetButtonTypeTranslations
 } from '@shared/components/button/widget-button.models';
 import { merge } from 'rxjs';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-widget-button-appearance',
@@ -61,6 +62,17 @@ export class WidgetButtonAppearanceComponent implements OnInit, ControlValueAcce
   @Input()
   borderRadius: string;
 
+  @Input()
+  autoScale: boolean;
+
+  @Input()
+  @coerceBoolean()
+  withAutoScale = true;
+
+  @Input()
+  @coerceBoolean()
+  withBorderRadius = false;
+
   widgetButtonTypes = widgetButtonTypes;
 
   widgetButtonTypeTranslationMap = widgetButtonTypeTranslations;
@@ -80,7 +92,6 @@ export class WidgetButtonAppearanceComponent implements OnInit, ControlValueAcce
   ngOnInit(): void {
     this.appearanceFormGroup = this.fb.group({
       type: [null, []],
-      autoScale: [null, []],
       showLabel: [null, []],
       label: [null, []],
       showIcon: [null, []],
@@ -90,6 +101,12 @@ export class WidgetButtonAppearanceComponent implements OnInit, ControlValueAcce
       mainColor: [null, []],
       backgroundColor: [null, []]
     });
+    if (this.withAutoScale) {
+      this.appearanceFormGroup.addControl('autoScale', this.fb.control(null, []));
+    }
+    if (this.withBorderRadius) {
+      this.appearanceFormGroup.addControl('borderRadius', this.fb.control(null, []));
+    }
     const customStyle = this.fb.group({});
     for (const state of widgetButtonStates) {
       customStyle.addControl(state, this.fb.control(null, []));

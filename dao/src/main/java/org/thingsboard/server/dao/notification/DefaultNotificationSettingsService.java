@@ -110,6 +110,12 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
                 });
     }
 
+    @CacheEvict(cacheNames = CacheConstants.NOTIFICATION_SETTINGS_CACHE, key = "#tenantId")
+    @Override
+    public void deleteNotificationSettings(TenantId tenantId) {
+        adminSettingsService.deleteAdminSettingsByTenantIdAndKey(tenantId, SETTINGS_KEY);
+    }
+
     @Override
     public UserNotificationSettings saveUserNotificationSettings(TenantId tenantId, UserId userId, UserNotificationSettings settings) {
         UserSettings userSettings = new UserSettings();
@@ -228,7 +234,7 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
         } else {
             var requiredNotificationTypes = List.of(NotificationType.EDGE_CONNECTION, NotificationType.EDGE_COMMUNICATION_FAILURE);
             var existingNotificationTypes = notificationTemplateService.findNotificationTemplatesByTenantIdAndNotificationTypes(
-                            tenantId, requiredNotificationTypes, new PageLink(1))
+                            tenantId, requiredNotificationTypes, new PageLink(2))
                     .getData()
                     .stream()
                     .map(NotificationTemplate::getNotificationType)
