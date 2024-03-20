@@ -29,7 +29,6 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
-
 -- create new attribute_kv table schema
 DO
 $$
@@ -122,3 +121,9 @@ EXCEPTION
         RAISE EXCEPTION 'Error during COPY: %', SQLERRM;
 END
 $$;
+
+-- GROUP PERMISSION INDEX CREATE START
+
+CREATE INDEX IF NOT EXISTS idx_group_permission_tenant_id ON group_permission(tenant_id);
+
+-- GROUP PERMISSION INDEX CREATE END

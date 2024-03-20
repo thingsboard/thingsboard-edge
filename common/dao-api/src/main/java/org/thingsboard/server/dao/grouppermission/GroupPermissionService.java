@@ -84,4 +84,6 @@ public interface GroupPermissionService extends EntityDaoService {
 
     void deleteGroupPermissionsByTenantIdAndRoleId(TenantId tenantId, RoleId roleId);
 
+    boolean existsByUserGroupIdAndRoleId(EntityGroupId userGroupId, RoleId roleId);
+
 }

@@ -184,7 +184,7 @@ public class ThingsboardInstallService {
                 log.info("Installing DataBase schema for timeseries...");
 
                 if (noSqlKeyspaceService != null) {
-                   noSqlKeyspaceService.createDatabaseSchema();
+                    noSqlKeyspaceService.createDatabaseSchema();
                 }
 
                 tsDatabaseSchemaService.createDatabaseSchema();
