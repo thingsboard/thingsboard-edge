@@ -193,14 +193,12 @@ public class EdgeEventSourcingListener {
         Object oldEntity = event.getOldEntity();
         switch (event.getEntityId().getEntityType()) {
             case RULE_CHAIN:
-                if (entity instanceof RuleChain) {
-                    RuleChain ruleChain = (RuleChain) entity;
+                if (entity instanceof RuleChain ruleChain) {
                     return RuleChainType.EDGE.equals(ruleChain.getType());
                 }
                 break;
             case USER:
-                if (entity instanceof User) {
-                    User user = (User) entity;
+                if (entity instanceof User user) {
                     if (Authority.SYS_ADMIN.equals(user.getAuthority())) {
                         return false;
                     }
@@ -213,8 +211,7 @@ public class EdgeEventSourcingListener {
                 }
                 break;
             case OTA_PACKAGE:
-                if (entity instanceof OtaPackageInfo) {
-                    OtaPackageInfo otaPackageInfo = (OtaPackageInfo) entity;
+                if (entity instanceof OtaPackageInfo otaPackageInfo) {
                     return otaPackageInfo.hasUrl() || otaPackageInfo.isHasData();
                 }
                 break;
@@ -232,18 +229,18 @@ public class EdgeEventSourcingListener {
                 Integration integration = (Integration) event.getEntity();
                 return integration.isEdgeTemplate();
             case ENTITY_GROUP:
-                EntityGroup entityGroup = (EntityGroup) event.getEntity();
-                if (entityGroup.isGroupAll()) {
-                    log.trace("skipping entity in case of 'All' group: {}", entityGroup);
-                    return false;
-                }
-                if (entityGroup.isEdgeGroupAll()) {
-                    log.trace("skipping entity in case of Edge 'All' group: {}", entityGroup);
-                    return false;
+                if (event.getEntity() instanceof EntityGroup entityGroup) {
+                    if (entityGroup.isGroupAll()) {
+                        log.trace("skipping entity in case of 'All' group: {}", entityGroup);
+                        return false;
+                    }
+                    if (entityGroup.isEdgeGroupAll()) {
+                        log.trace("skipping entity in case of Edge 'All' group: {}", entityGroup);
+                        return false;
+                    }
                 }
                 break;
-            case API_USAGE_STATE:
-            case EDGE:
+            case API_USAGE_STATE, EDGE:
                 return false;
         }
         // Default: If the entity doesn't match any of the conditions, consider it as valid.
@@ -255,8 +252,7 @@ public class EdgeEventSourcingListener {
         if (user.getAdditionalInfo() instanceof NullNode) {
             user.setAdditionalInfo(null);
         }
-        if (user.getAdditionalInfo() instanceof ObjectNode) {
-            ObjectNode additionalInfo = ((ObjectNode) user.getAdditionalInfo());
+        if (user.getAdditionalInfo() instanceof ObjectNode additionalInfo) {
             additionalInfo.remove(UserServiceImpl.FAILED_LOGIN_ATTEMPTS);
             additionalInfo.remove(UserServiceImpl.LAST_LOGIN_TS);
             if (additionalInfo.isEmpty()) {
@@ -289,4 +285,5 @@ public class EdgeEventSourcingListener {
         }
         return isCreated ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED;
     }
+
 }
