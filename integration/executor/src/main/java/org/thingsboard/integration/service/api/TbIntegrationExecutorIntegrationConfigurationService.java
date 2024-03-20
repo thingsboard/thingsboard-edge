@@ -31,13 +31,13 @@
 package org.thingsboard.integration.service.api;
 
 import com.google.common.util.concurrent.Futures;
-import com.google.protobuf.ByteString;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
+import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.gen.integration.ConverterRequestProto;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
 import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
@@ -54,15 +55,10 @@ import org.thingsboard.server.gen.integration.IntegrationRequestProto;
 import org.thingsboard.server.gen.integration.TenantProfileRequestProto;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.integration.IntegrationConfigurationService;
-import org.thingsboard.server.service.integration.IntegrationProtoUtil;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -72,7 +68,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class TbIntegrationExecutorIntegrationConfigurationService implements IntegrationConfigurationService {
 
-    private final DataDecodingEncodingService dataDecodingEncodingService;
     private final TbQueueRequestTemplate<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> apiTemplate;
     private final ExecutorService callbackExecutor = ThingsBoardExecutors.newWorkStealingPool(4, "integration-api-callback");
 
@@ -152,8 +147,7 @@ public class TbIntegrationExecutorIntegrationConfigurationService implements Int
                         .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
                         .setTenantIdLSB(tenantId.getId().getLeastSignificantBits()))
                 .build()));
-        return Futures.transform(response, data -> this.<TenantProfile>decodeEntity(EntityType.TENANT_PROFILE,
-                        data.getValue().getTenantProfileResponse().getData()), callbackExecutor).get(1, TimeUnit.MINUTES);
+        return Futures.transform(response, this::parseTenantProfileFromProto, callbackExecutor).get(1, TimeUnit.MINUTES);
     }
 
     private List<IntegrationInfo> parseListFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
@@ -162,28 +156,27 @@ public class TbIntegrationExecutorIntegrationConfigurationService implements Int
         var response = proto.getValue().getIntegrationListResponse().getIntegrationInfoListList();
 
         for (var integrationInfoProto : response) {
-            result.add(IntegrationProtoUtil.toInfo(integrationInfoProto));
+            result.add(ProtoUtils.fromProto(integrationInfoProto));
         }
 
         return result;
     }
 
     private Integration parseIntegrationFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
-        ByteString data = proto.getValue().getIntegrationResponse().getData();
-        return decodeEntity(EntityType.INTEGRATION, data);
+        var responseProto = proto.getValue();
+        if (responseProto.hasIntegrationResponse()) {
+            return ProtoUtils.fromProto(responseProto.getIntegrationResponse());
+        }
+        return null;
     }
 
     private Converter parseConverterFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
-        ByteString data = proto.getValue().getConverterResponse().getData();
-        return decodeEntity(EntityType.CONVERTER, data);
+        var responseProto = proto.getValue();
+        return ProtoUtils.fromProto(responseProto.getConverterResponse());
     }
 
-    private <E> E decodeEntity(EntityType entityType, ByteString data) {
-        if (data == null || data.isEmpty()) {
-            return null;
-        }
-        Optional<E> entity = dataDecodingEncodingService.decode(data.toByteArray());
-        return entity.orElseThrow(() -> new RuntimeException("Can't decode the " + entityType.getNormalName().toLowerCase() + " from bytes"));
+    private TenantProfile parseTenantProfileFromProto(TbProtoQueueMsg<IntegrationApiResponseMsg> proto) {
+        var responseProto = proto.getValue();
+        return ProtoUtils.fromProto(responseProto.getTenantProfileResponse());
     }
-
 }

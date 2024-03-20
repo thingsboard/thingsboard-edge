@@ -86,7 +86,6 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.edge.rpc.CustomersHierarchyEdgeService;
 import org.thingsboard.server.service.edge.rpc.constructor.alarm.AlarmMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.alarm.AlarmMsgConstructorV1;
@@ -168,7 +167,7 @@ import org.thingsboard.server.service.edge.rpc.processor.relation.RelationEdgePr
 import org.thingsboard.server.service.edge.rpc.processor.resource.ResourceEdgeProcessorFactory;
 import org.thingsboard.server.service.edge.rpc.processor.resource.ResourceEdgeProcessorV1;
 import org.thingsboard.server.service.edge.rpc.processor.resource.ResourceEdgeProcessorV2;
-import org.thingsboard.server.service.entitiy.TbNotificationEntityService;
+import org.thingsboard.server.service.entitiy.TbLogEntityActionService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
@@ -186,7 +185,7 @@ public abstract class BaseEdgeProcessorTest {
     protected TelemetrySubscriptionService tsSubService;
 
     @MockBean
-    protected TbNotificationEntityService notificationEntityService;
+    protected TbLogEntityActionService logEntityActionService;
 
     @MockBean
     protected RuleChainService ruleChainService;
@@ -545,9 +544,6 @@ public abstract class BaseEdgeProcessorTest {
 
     @MockBean
     protected DbCallbackExecutorService dbCallbackExecutorService;
-    
-    @MockBean
-    protected DataDecodingEncodingService dataDecodingEncodingService;
 
     @MockBean
     protected WhiteLabelingService whiteLabelingService;
@@ -588,7 +584,7 @@ public abstract class BaseEdgeProcessorTest {
 
     @MockBean
     protected OwnersCacheService ownersCacheService;
-    
+
     protected EdgeId edgeId;
     protected TenantId tenantId;
     protected EdgeEvent edgeEvent;

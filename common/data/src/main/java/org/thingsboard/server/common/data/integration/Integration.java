@@ -32,8 +32,7 @@ package org.thingsboard.server.common.data.integration;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -48,7 +47,7 @@ import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @ToString(callSuper = true)
-@ApiModel
+@Schema
 @EqualsAndHashCode(callSuper = true)
 public class Integration extends AbstractIntegration implements ExportableEntity<IntegrationId> {
 
@@ -59,7 +58,6 @@ public class Integration extends AbstractIntegration implements ExportableEntity
     @NoXss
     @Length(fieldName = "routingKey")
     private String routingKey;
-    private IntegrationType type;
 
     @NoXss
     @Length(fieldName = "secret")
@@ -85,14 +83,13 @@ public class Integration extends AbstractIntegration implements ExportableEntity
         this.defaultConverterId = integration.getDefaultConverterId();
         this.downlinkConverterId = integration.getDownlinkConverterId();
         this.routingKey = integration.getRoutingKey();
-        this.type = integration.getType();
         this.secret = integration.getSecret();
         this.configuration = integration.getConfiguration();
         this.additionalInfo = integration.getAdditionalInfo();
         this.externalId = integration.getExternalId();
     }
 
-    @ApiModelProperty(position = 1, value = "JSON object with the Integration Id. " +
+    @Schema(description = "JSON object with the Integration Id. " +
             "Specify this field to update the Integration. " +
             "Referencing non-existing Integration Id will cause error. " +
             "Omit this field to create new Integration.")
@@ -101,13 +98,13 @@ public class Integration extends AbstractIntegration implements ExportableEntity
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the integration creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Timestamp of the integration creation, in milliseconds", example = "1609459200000", accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
     }
 
-    @ApiModelProperty(position = 4, value = "JSON object with the Uplink Converter Id", required = true)
+    @Schema(description = "JSON object with the Uplink Converter Id", required = true)
     public ConverterId getDefaultConverterId() {
         return defaultConverterId;
     }
@@ -116,7 +113,7 @@ public class Integration extends AbstractIntegration implements ExportableEntity
         this.defaultConverterId = defaultConverterId;
     }
 
-    @ApiModelProperty(position = 5, value = "JSON object with the Downlink Converter Id")
+    @Schema(description = "JSON object with the Downlink Converter Id")
     public ConverterId getDownlinkConverterId() {
         return downlinkConverterId;
     }
@@ -125,7 +122,7 @@ public class Integration extends AbstractIntegration implements ExportableEntity
         this.downlinkConverterId = downlinkConverterId;
     }
 
-    @ApiModelProperty(position = 6, value = "String value used by HTTP based integrations for the base URL construction and by the remote integrations. " +
+    @Schema(description = "String value used by HTTP based integrations for the base URL construction and by the remote integrations. " +
             "Remote integration uses this value along with the 'secret' for kind of security and validation to be able to connect to the platform using Grpc",
             required = true, example = "ca1a01b6-4ca1-3da5-54e4-a07090b65644")
     public String getRoutingKey() {
@@ -136,7 +133,7 @@ public class Integration extends AbstractIntegration implements ExportableEntity
         this.routingKey = routingKey;
     }
 
-    @ApiModelProperty(position = 12, value = "String value used by the remote integrations. " +
+    @Schema(description = "String value used by the remote integrations. " +
             "Remote integration uses this value along with the 'routingKey' for kind of security and validation to be able to connect to the platform using Grpc", example = "nl83m1ktpwpwwmww29sm")
     public String getSecret() {
         return secret;
@@ -146,7 +143,7 @@ public class Integration extends AbstractIntegration implements ExportableEntity
         this.secret = secret;
     }
 
-    @ApiModelProperty(position = 13, value = "JSON object representing integration configuration. Each integration type has specific configuration with the connectivity parameters " +
+    @Schema(description = "JSON object representing integration configuration. Each integration type has specific configuration with the connectivity parameters " +
             "(like 'host' and 'port' for MQTT type or 'baseUrl' for HTTP based type, etc.) " +
             "and other important parameters dependent on the integration type", required = true)
     public JsonNode getConfiguration() {
@@ -157,7 +154,7 @@ public class Integration extends AbstractIntegration implements ExportableEntity
         this.configuration = configuration;
     }
 
-    @ApiModelProperty(position = 14, value = "Additional parameters of the integration", dataType = "com.fasterxml.jackson.databind.JsonNode")
+    @Schema(description = "Additional parameters of the integration", implementation = com.fasterxml.jackson.databind.JsonNode.class)
     public JsonNode getAdditionalInfo() {
         return additionalInfo;
     }
@@ -176,13 +173,12 @@ public class Integration extends AbstractIntegration implements ExportableEntity
     public Integration(TenantId tenantId, String name, IntegrationType type,
                        Boolean enabled, Boolean isRemote, Boolean allowCreateDevicesOrAssets,
                        boolean isEdgeTemplate, ConverterId defaultConverterId, ConverterId downlinkConverterId,
-                       String routingKey, IntegrationType type1, boolean debugMode, String secret,
+                       String routingKey, boolean debugMode, String secret,
                        JsonNode configuration, JsonNode additionalInfo, IntegrationId externalId) {
         super(tenantId, name, type, debugMode, enabled, isRemote, allowCreateDevicesOrAssets, isEdgeTemplate);
         this.defaultConverterId = defaultConverterId;
         this.downlinkConverterId = downlinkConverterId;
         this.routingKey = routingKey;
-        this.type = type1;
         this.secret = secret;
         this.configuration = configuration;
         this.additionalInfo = additionalInfo;

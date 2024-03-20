@@ -43,6 +43,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.LifecycleEvent;
@@ -58,8 +59,8 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.service.integration.IntegrationContextComponent;
 import org.thingsboard.server.service.integration.RemoteIntegrationRpcService;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
@@ -207,7 +208,7 @@ public class TbCoreRemoteIntegrationRpcService extends IntegrationTransportGrpc.
             ListenableFuture<Void> future = ctx.getEventService().saveAsync(event);
             Futures.transform(future, r -> {
                 String key = "integration_status_" + event.getServiceId().toLowerCase();
-                ctx.getAttributesService().removeAll(tenantId, integrationId, "SERVER_SCOPE", Collections.singletonList(key));
+                ctx.getAttributesService().removeAll(tenantId, integrationId, AttributeScope.SERVER_SCOPE, Collections.singletonList(key));
                 return null;
             }, MoreExecutors.directExecutor());
 
