@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParser;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -42,6 +43,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.adaptor.JsonConverter;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
@@ -86,7 +88,6 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -166,9 +167,8 @@ import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemp
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInstructions;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -304,7 +304,7 @@ public class DefaultSolutionService implements SolutionService {
     public List<TenantSolutionTemplateInfo> getSolutionInfos(TenantId tenantId) throws ThingsboardException {
         try {
             List<String> solutionIds = solutions.stream().map(SolutionTemplate::getId).collect(Collectors.toList());
-            List<AttributeKvEntry> stateList = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, solutionIds.stream().map(this::toStatusKey).collect(Collectors.toList())).get();
+            List<AttributeKvEntry> stateList = attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, solutionIds.stream().map(this::toStatusKey).collect(Collectors.toList())).get();
 
             List<TenantSolutionTemplateInfo> result = new ArrayList<>();
 
@@ -325,7 +325,7 @@ public class DefaultSolutionService implements SolutionService {
     public TenantSolutionTemplateDetails getSolutionDetails(TenantId tenantId, String id) throws ThingsboardException {
         try {
             SolutionTemplateDetails details = solutionsMap.get(id);
-            Optional<AttributeKvEntry> state = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, toStatusKey(id)).get();
+            Optional<AttributeKvEntry> state = attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, toStatusKey(id)).get();
             return new TenantSolutionTemplateDetails(details, state.isPresent() && state.get().getBooleanValue().orElse(Boolean.FALSE));
         } catch (Exception e) {
             log.error("[{}] Failed to fetch solution list", tenantId, e);
@@ -336,7 +336,7 @@ public class DefaultSolutionService implements SolutionService {
     @Override
     public TenantSolutionTemplateInstructions getSolutionInstructions(TenantId tenantId, String id) throws ThingsboardException {
         try {
-            Optional<AttributeKvEntry> state = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, toInstructionsKey(id)).get();
+            Optional<AttributeKvEntry> state = attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, toInstructionsKey(id)).get();
             String body = state.orElseThrow(() -> new ThingsboardRuntimeException(ThingsboardErrorCode.ITEM_NOT_FOUND))
                     .getStrValue().orElseThrow(() -> new ThingsboardRuntimeException(ThingsboardErrorCode.ITEM_NOT_FOUND));
             return JacksonUtil.fromString(body, TenantSolutionTemplateInstructions.class);
@@ -365,7 +365,7 @@ public class DefaultSolutionService implements SolutionService {
     @Override
     public void deleteSolution(TenantId tenantId, String solutionId, User user) throws ThingsboardException {
         try {
-            Optional<AttributeKvEntry> entitiesOpt = attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, toCreatedEntitiesKey(solutionId)).get();
+            Optional<AttributeKvEntry> entitiesOpt = attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, toCreatedEntitiesKey(solutionId)).get();
             if (entitiesOpt.isPresent()) {
                 String entitiesListSrc = entitiesOpt.get().getValueAsString();
                 List<EntityId> entityIds = new ArrayList<>(Objects.requireNonNull(JacksonUtil.fromString(entitiesListSrc, new TypeReference<List<EntityId>>() {
@@ -380,7 +380,7 @@ public class DefaultSolutionService implements SolutionService {
                     }
                 }
 
-                attributesService.removeAll(tenantId, tenantId, DataConstants.SERVER_SCOPE, Arrays.asList(toCreatedEntitiesKey(solutionId), toStatusKey(solutionId), toInstructionsKey(solutionId))).get();
+                attributesService.removeAll(tenantId, tenantId, AttributeScope.SERVER_SCOPE, Arrays.asList(toCreatedEntitiesKey(solutionId), toStatusKey(solutionId), toInstructionsKey(solutionId))).get();
 
                 SolutionTemplateDetails solutionTemplate = solutionsMap.get(solutionId);
                 List<String> tsKeys = solutionTemplate.getTenantTelemetryKeys();
@@ -393,7 +393,7 @@ public class DefaultSolutionService implements SolutionService {
                 }
                 List<String> attrKeys = solutionTemplate.getTenantAttributeKeys();
                 if (tsKeys != null && !tsKeys.isEmpty()) {
-                    attributesService.removeAll(tenantId, tenantId, DataConstants.SERVER_SCOPE, attrKeys).get();
+                    attributesService.removeAll(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attrKeys).get();
                 }
             }
         } catch (Exception e) {
@@ -514,7 +514,7 @@ public class DefaultSolutionService implements SolutionService {
 
             TenantSolutionTemplateInstructions instructions = new TenantSolutionTemplateInstructions(ctx.getSolutionInstructions());
             AttributeKvEntry instructionAttribute = new BaseAttributeKvEntry(new StringDataEntry(toInstructionsKey(solutionId), JacksonUtil.toString(instructions)), ts);
-            attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, Arrays.asList(createdEntitiesAttribute, statusAttribute, instructionAttribute));
+            attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, Arrays.asList(createdEntitiesAttribute, statusAttribute, instructionAttribute));
 
             List<ReferenceableEntityDefinition> ruleChains = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "rule_chains.json", new TypeReference<>() {
             });
@@ -543,7 +543,7 @@ public class DefaultSolutionService implements SolutionService {
                 log.error("[{}][{}] Failed to delete the entity: {}", tenantId, solutionId, entityId, re);
             }
         }
-        attributesService.removeAll(tenantId, tenantId, DataConstants.SERVER_SCOPE, Arrays.asList(toCreatedEntitiesKey(solutionId), toStatusKey(solutionId), toInstructionsKey(solutionId)));
+        attributesService.removeAll(tenantId, tenantId, AttributeScope.SERVER_SCOPE, Arrays.asList(toCreatedEntitiesKey(solutionId), toStatusKey(solutionId), toInstructionsKey(solutionId)));
         ctx.getSolutionInstructions().setDetails(e.getMessage());
     }
 
@@ -676,7 +676,6 @@ public class DefaultSolutionService implements SolutionService {
                 ruleChainService.setRootRuleChain(ctx.getTenantId(), savedRuleChain.getId());
             }
             ctx.register(entityDefinition.getJsonId(), savedRuleChain);
-            tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.CREATED);
         }
     }
 
@@ -703,7 +702,6 @@ public class DefaultSolutionService implements SolutionService {
             RuleChain savedRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChainId);
             ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
             ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData, tbRuleChainService::updateRuleNodeConfiguration);
-            tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.UPDATED);
         }
     }
 
@@ -730,7 +728,6 @@ public class DefaultSolutionService implements SolutionService {
             RuleChain savedRuleChain = ruleChainService.findRuleChainById(ctx.getTenantId(), ruleChainId);
             ruleChainMetaData.setRuleChainId(savedRuleChain.getId());
             ruleChainService.saveRuleChainMetaData(ctx.getTenantId(), ruleChainMetaData, tbRuleChainService::updateRuleNodeConfiguration);
-            tbClusterService.broadcastEntityStateChangeEvent(ruleChain.getTenantId(), savedRuleChain.getId(), ComponentLifecycleEvent.UPDATED);
         }
     }
 
@@ -929,7 +926,6 @@ public class DefaultSolutionService implements SolutionService {
             ctx.addDeviceCredentials(deviceCredentialsInfo);
 
             result.put(entity, entityDef);
-            tbClusterService.onDeviceUpdated(entity, null);
         }
         return result;
     }
@@ -1416,7 +1412,7 @@ public class DefaultSolutionService implements SolutionService {
             if (randomNameData != null) {
                 attributes = JacksonUtil.toJsonNode(randomize(JacksonUtil.toString(attributes), randomNameData, null));
             }
-            attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE,
+            attributesService.save(tenantId, entityId, AttributeScope.SERVER_SCOPE,
                     new ArrayList<>(JsonConverter.convertToAttributes(new JsonParser().parse(JacksonUtil.toString(attributes)))));
         }
     }
@@ -1532,7 +1528,6 @@ public class DefaultSolutionService implements SolutionService {
             case RULE_CHAIN:
                 var ruleChainId = new RuleChainId(entityId.getId());
                 ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
-                tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainId, ComponentLifecycleEvent.DELETED);
                 break;
             case DEVICE_PROFILE:
                 deviceProfileService.deleteDeviceProfile(tenantId, new DeviceProfileId(entityId.getId()));

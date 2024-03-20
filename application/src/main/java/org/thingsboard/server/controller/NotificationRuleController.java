@@ -30,8 +30,8 @@
  */
 package org.thingsboard.server.controller;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -53,12 +53,11 @@ import org.thingsboard.server.common.data.notification.rule.trigger.config.Notif
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.notification.NotificationRuleService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-import javax.validation.Valid;
 import java.util.UUID;
 
 import static org.thingsboard.server.common.data.permission.Resource.NOTIFICATION;
@@ -140,11 +139,7 @@ public class NotificationRuleController extends BaseController {
             throw new IllegalArgumentException("Trigger type " + triggerType + " is not available");
         }
 
-        boolean created = notificationRule.getId() == null;
-        notificationRule = doSaveAndLog(EntityType.NOTIFICATION_RULE, notificationRule, notificationRuleService::saveNotificationRule);
-        tbClusterService.broadcastEntityStateChangeEvent(user.getTenantId(), notificationRule.getId(), created ?
-                ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-        return notificationRule;
+        return doSaveAndLog(EntityType.NOTIFICATION_RULE, notificationRule, notificationRuleService::saveNotificationRule);
     }
 
     @ApiOperation(value = "Get notification rule by id (getNotificationRuleById)",
@@ -165,15 +160,15 @@ public class NotificationRuleController extends BaseController {
                     SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @GetMapping("/rules")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
-    public PageData<NotificationRuleInfo> getNotificationRules(@ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+    public PageData<NotificationRuleInfo> getNotificationRules(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
                                                                @RequestParam int pageSize,
-                                                               @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+                                                               @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
                                                                @RequestParam int page,
-                                                               @ApiParam(value = "Case-insensitive 'substring' filter based on rule's name")
+                                                               @Parameter(description = "Case-insensitive 'substring' filter based on rule's name")
                                                                @RequestParam(required = false) String textSearch,
-                                                               @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+                                                               @Parameter(description = SORT_PROPERTY_DESCRIPTION)
                                                                @RequestParam(required = false) String sortProperty,
-                                                               @ApiParam(value = SORT_ORDER_DESCRIPTION)
+                                                               @Parameter(description = SORT_ORDER_DESCRIPTION)
                                                                @RequestParam(required = false) String sortOrder,
                                                                @AuthenticationPrincipal SecurityUser user) throws ThingsboardException {
         accessControlService.checkPermission(user, NOTIFICATION, Operation.READ);
@@ -192,7 +187,6 @@ public class NotificationRuleController extends BaseController {
         NotificationRuleId notificationRuleId = new NotificationRuleId(id);
         NotificationRule notificationRule = checkEntityId(notificationRuleId, notificationRuleService::findNotificationRuleById, Operation.DELETE);
         doDeleteAndLog(EntityType.NOTIFICATION_RULE, notificationRule, notificationRuleService::deleteNotificationRuleById);
-        tbClusterService.broadcastEntityStateChangeEvent(user.getTenantId(), notificationRuleId, ComponentLifecycleEvent.DELETED);
     }
 
 }

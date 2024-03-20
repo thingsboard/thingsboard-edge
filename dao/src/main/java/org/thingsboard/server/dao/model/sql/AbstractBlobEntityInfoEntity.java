@@ -31,20 +31,20 @@
 package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.persistence.Convert;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.blob.BlobEntityInfo;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
 
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import org.thingsboard.server.dao.util.mapping.JsonConverter;
+
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_ADDITIONAL_INFO_PROPERTY;
@@ -56,7 +56,6 @@ import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_TYPE_P
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 @MappedSuperclass
 public abstract class AbstractBlobEntityInfoEntity<T extends BlobEntityInfo> extends BaseSqlEntity<T> implements BaseEntity<T> {
 
@@ -75,7 +74,7 @@ public abstract class AbstractBlobEntityInfoEntity<T extends BlobEntityInfo> ext
     @Column(name = BLOB_ENTITY_CONTENT_TYPE_PROPERTY)
     private String contentType;
 
-    @Type(type = "json")
+    @Convert(converter = JsonConverter.class)
     @Column(name = BLOB_ENTITY_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 

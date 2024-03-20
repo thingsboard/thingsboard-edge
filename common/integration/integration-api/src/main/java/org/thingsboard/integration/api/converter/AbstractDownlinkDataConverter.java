@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParseException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.Base64Utils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
@@ -48,6 +47,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -114,7 +114,7 @@ public abstract class AbstractDownlinkDataConverter extends AbstractDataConverte
                 data = strData.getBytes(StandardCharsets.UTF_8);
                 break;
             case "BINARY":
-                data = Base64Utils.decodeFromString(strData);
+                data = Base64.getDecoder().decode(strData);
                 break;
             default:
                 throw new JsonParseException("Unknown downlink content type " + contentType);

@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard.common</groupId>
-        <version>3.6.3PE-SNAPSHOT</version>
+        <version>3.7.0PE-SNAPSHOT</version>
         <artifactId>transport</artifactId>
     </parent>
     <groupId>org.thingsboard.common.transport</groupId>
@@ -107,11 +107,6 @@
         <dependency>
             <groupId>org.junit.vintage</groupId>
             <artifactId>junit-vintage-engine</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-inline</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

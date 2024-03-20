@@ -32,7 +32,7 @@ package org.thingsboard.server.common.data.id;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.thingsboard.server.common.data.EntityType;
 
 import java.util.UUID;
@@ -50,7 +50,7 @@ public class IntegrationId extends UUIDBased implements EntityId {
         return new IntegrationId(UUID.fromString(integrationId));
     }
 
-    @ApiModelProperty(position = 2, required = true, value = "string", example = "INTEGRATION", allowableValues = "INTEGRATION")
+    @Schema(required = true, description = "string", example = "INTEGRATION", allowableValues = "INTEGRATION")
     @Override
     public EntityType getEntityType() {
         return EntityType.INTEGRATION;

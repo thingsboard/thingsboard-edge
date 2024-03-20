@@ -37,8 +37,10 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.msg.rule.engine.DeviceAttributesEventNotificationMsg;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -70,7 +72,7 @@ import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.provider.TbRuleEngineQueueFactory;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -174,7 +176,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
                 OtaPackageInfo otaPackageForDevice = otaPackageService.findOtaPackageInfoByDeviceIdAndType(device.getId(), deviceGroupOtaPackage.getOtaPackageType());
                 if (otaPackageForDevice != null) {
                     ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture =
-                            attributesService.find(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, getAttributeKey(otaPackageType, ID));
+                            attributesService.find(device.getTenantId(), device.getId(), AttributeScope.SERVER_SCOPE, getAttributeKey(otaPackageType, ID));
                     DonAsynchron.withCallback(oldFirmwareIdFuture, oldIdOpt -> {
                         if (oldIdOpt.isPresent()) {
                             OtaPackageId oldFirmwareId = new OtaPackageId(UUID.fromString(oldIdOpt.get().getValueAsString()));
@@ -212,7 +214,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
         OtaPackageInfo otaPackage = otaPackageService.findOtaPackageInfoByDeviceIdAndType(deviceId, otaPackageType);
         if (otaPackage != null) {
             ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture =
-                    attributesService.find(tenantId, deviceId, DataConstants.SERVER_SCOPE, getAttributeKey(otaPackageType, ID));
+                    attributesService.find(tenantId, deviceId, AttributeScope.SERVER_SCOPE, getAttributeKey(otaPackageType, ID));
             DonAsynchron.withCallback(oldFirmwareIdFuture, oldIdOpt -> {
                 if (oldIdOpt.isPresent()) {
                     OtaPackageId otaPackageId = new OtaPackageId(UUID.fromString(oldIdOpt.get().getValueAsString()));
@@ -236,7 +238,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
     }
 
     private void updateFirmware(Device device) {
-        ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture = attributesService.find(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, getAttributeKey(FIRMWARE, ID));
+        ListenableFuture<Optional<AttributeKvEntry>> oldFirmwareIdFuture = attributesService.find(device.getTenantId(), device.getId(), AttributeScope.SERVER_SCOPE, getAttributeKey(FIRMWARE, ID));
         DonAsynchron.withCallback(oldFirmwareIdFuture, oldIdOpt -> {
 
             OtaPackageId oldFirmwareId = null;
@@ -259,7 +261,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
     }
 
     private void updateSoftware(Device device) {
-        ListenableFuture<Optional<AttributeKvEntry>> oldSoftwareIdFuture = attributesService.find(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE, getAttributeKey(SOFTWARE, ID));
+        ListenableFuture<Optional<AttributeKvEntry>> oldSoftwareIdFuture = attributesService.find(device.getTenantId(), device.getId(), AttributeScope.SERVER_SCOPE, getAttributeKey(SOFTWARE, ID));
         DonAsynchron.withCallback(oldSoftwareIdFuture, oldIdOpt -> {
 
             OtaPackageId oldSoftwareId = null;
@@ -365,7 +367,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
             List<AttributeKvEntry> attributes = new ArrayList<>();
             attributes.add(new BaseAttributeKvEntry(ts, new StringDataEntry(getAttributeKey(firmware.getType(), ID), firmware.getId().toString())));
 
-            telemetryService.saveAndNotify(tenantId, deviceId, DataConstants.SERVER_SCOPE, attributes, new FutureCallback<>() {
+            telemetryService.saveAndNotify(tenantId, deviceId, AttributeScope.SERVER_SCOPE, attributes, new FutureCallback<>() {
                 @Override
                 public void onSuccess(@Nullable Void tmp) {
                     log.trace("[{}] Success save attributes with target OtaPackage!", deviceId);
@@ -475,7 +477,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
 
         remove(device, otaPackageType, attrToRemove);
 
-        telemetryService.saveAndNotify(tenantId, deviceId, DataConstants.SHARED_SCOPE, attributes, new FutureCallback<>() {
+        telemetryService.saveAndNotify(tenantId, deviceId, AttributeScope.SHARED_SCOPE, attributes, new FutureCallback<>() {
             @Override
             public void onSuccess(@Nullable Void tmp) {
                 log.trace("[{}] Success save attributes with target OtaPackage!", deviceId);
@@ -508,7 +510,7 @@ public class DefaultOtaPackageStateService implements OtaPackageStateService {
     }
 
     private void remove(Device device, OtaPackageType otaPackageType, List<String> attributesKeys) {
-        telemetryService.deleteAndNotify(device.getTenantId(), device.getId(), DataConstants.SHARED_SCOPE, attributesKeys,
+        telemetryService.deleteAndNotify(device.getTenantId(), device.getId(), AttributeScope.SHARED_SCOPE, attributesKeys,
                 new FutureCallback<>() {
                     @Override
                     public void onSuccess(@Nullable Void tmp) {
