@@ -34,8 +34,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.http.HttpStatus;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 
-import java.util.Date;
-
 @Schema
 public class ThingsboardErrorResponse {
     // HTTP Response Status Code
