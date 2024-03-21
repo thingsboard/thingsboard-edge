@@ -30,7 +30,8 @@
  */
 package org.thingsboard.server.controller;
 
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -41,7 +42,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.util.Base64Utils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -75,15 +75,15 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.resource.TbImageService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.RESOURCE_INCLUDE_SYSTEM_IMAGES_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.RESOURCE_SORT_PROPERTY_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.RESOURCE_TEXT_SEARCH_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 
@@ -108,7 +108,6 @@ public class ImageController extends BaseController {
     private static final String TENANT_IMAGE = "tenant";
 
     private static final String IMAGE_TYPE_PARAM_DESCRIPTION = "Type of the image: tenant or system";
-    private static final String IMAGE_TYPE_PARAM_ALLOWABLE_VALUES = "tenant, system";
     private static final String IMAGE_KEY_PARAM_DESCRIPTION = "Image resource key, for example thermostats_dashboard_background.jpeg";
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -138,9 +137,9 @@ public class ImageController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PutMapping(IMAGE_URL)
-    public TbResourceInfo updateImage(@ApiParam(value = IMAGE_TYPE_PARAM_DESCRIPTION, allowableValues = IMAGE_TYPE_PARAM_ALLOWABLE_VALUES, required = true)
+    public TbResourceInfo updateImage(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
                                       @PathVariable String type,
-                                      @ApiParam(value = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+                                      @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                       @PathVariable String key,
                                       @RequestPart MultipartFile file) throws Exception {
         TbResourceInfo imageInfo = checkImageInfo(type, key, Operation.WRITE);
@@ -158,9 +157,9 @@ public class ImageController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PutMapping(IMAGE_URL + "/info")
-    public TbResourceInfo updateImageInfo(@ApiParam(value = IMAGE_TYPE_PARAM_DESCRIPTION, allowableValues = IMAGE_TYPE_PARAM_ALLOWABLE_VALUES, required = true)
+    public TbResourceInfo updateImageInfo(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
                                           @PathVariable String type,
-                                          @ApiParam(value = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+                                          @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                           @PathVariable String key,
                                           @RequestBody TbResourceInfo request) throws ThingsboardException {
         TbResourceInfo imageInfo = checkImageInfo(type, key, Operation.WRITE);
@@ -171,9 +170,9 @@ public class ImageController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PutMapping(IMAGE_URL + "/public/{isPublic}")
-    public TbResourceInfo updateImagePublicStatus(@ApiParam(value = IMAGE_TYPE_PARAM_DESCRIPTION, allowableValues = IMAGE_TYPE_PARAM_ALLOWABLE_VALUES, required = true)
+    public TbResourceInfo updateImagePublicStatus(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
                                                   @PathVariable String type,
-                                                  @ApiParam(value = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+                                                  @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                                   @PathVariable String key,
                                                   @PathVariable boolean isPublic) throws ThingsboardException {
         TbResourceInfo imageInfo = checkImageInfo(type, key, Operation.WRITE);
@@ -184,9 +183,9 @@ public class ImageController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = IMAGE_URL, produces = "image/*")
-    public ResponseEntity<ByteArrayResource> downloadImage(@ApiParam(value = IMAGE_TYPE_PARAM_DESCRIPTION, allowableValues = IMAGE_TYPE_PARAM_ALLOWABLE_VALUES, required = true)
+    public ResponseEntity<ByteArrayResource> downloadImage(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
                                                            @PathVariable String type,
-                                                           @ApiParam(value = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+                                                           @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                                            @PathVariable String key,
                                                            @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
         return downloadIfChanged(type, key, etag, false);
@@ -201,9 +200,9 @@ public class ImageController extends BaseController {
 
     @GetMapping(value = "/api/noauth/whiteLabel/loginLogo/{type}/{key}", produces = "image/*")
     public ResponseEntity<ByteArrayResource> downloadLoginLogo(HttpServletRequest request,
-                                                               @ApiParam(value = IMAGE_TYPE_PARAM_DESCRIPTION, allowableValues = IMAGE_TYPE_PARAM_ALLOWABLE_VALUES, required = true)
+                                                               @Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
                                                                @PathVariable String type,
-                                                               @ApiParam(value = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+                                                               @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                                                @PathVariable String key,
                                                                @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
         return this.downloadLoginImage(request.getServerName(), type, key, etag, false);
@@ -211,9 +210,9 @@ public class ImageController extends BaseController {
 
     @GetMapping(value = "/api/noauth/whiteLabel/loginFavicon/{type}/{key}", produces = "image/*")
     public ResponseEntity<ByteArrayResource> downloadLoginFavicon(HttpServletRequest request,
-                                                                  @ApiParam(value = IMAGE_TYPE_PARAM_DESCRIPTION, allowableValues = IMAGE_TYPE_PARAM_ALLOWABLE_VALUES, required = true)
+                                                                  @Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
                                                                   @PathVariable String type,
-                                                                  @ApiParam(value = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+                                                                  @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                                                   @PathVariable String key,
                                                                   @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
         return this.downloadLoginImage(request.getServerName(), type, key, etag, true);
@@ -232,9 +231,9 @@ public class ImageController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = IMAGE_URL + "/export")
-    public ImageExportData exportImage(@ApiParam(value = IMAGE_TYPE_PARAM_DESCRIPTION, allowableValues = IMAGE_TYPE_PARAM_ALLOWABLE_VALUES, required = true)
+    public ImageExportData exportImage(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
                                        @PathVariable String type,
-                                       @ApiParam(value = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+                                       @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                        @PathVariable String key) throws Exception {
         TbResourceInfo imageInfo = checkImageInfo(type, key, Operation.READ);
         ImageDescriptor descriptor = imageInfo.getDescriptor(ImageDescriptor.class);
@@ -246,7 +245,7 @@ public class ImageController extends BaseController {
                 .resourceKey(imageInfo.getResourceKey())
                 .isPublic(imageInfo.isPublic())
                 .publicResourceKey(imageInfo.getPublicResourceKey())
-                .data(Base64Utils.encodeToString(data))
+                .data(Base64.getEncoder().encodeToString(data))
                 .build();
     }
 
@@ -271,15 +270,15 @@ public class ImageController extends BaseController {
         ImageDescriptor descriptor = new ImageDescriptor();
         descriptor.setMediaType(imageData.getMediaType());
         image.setDescriptorValue(descriptor);
-        image.setData(Base64Utils.decodeFromString(imageData.getData()));
+        image.setData(Base64.getDecoder().decode(imageData.getData()));
         return tbImageService.save(image, user);
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = IMAGE_URL + "/preview", produces = "image/png")
-    public ResponseEntity<ByteArrayResource> downloadImagePreview(@ApiParam(value = IMAGE_TYPE_PARAM_DESCRIPTION, allowableValues = IMAGE_TYPE_PARAM_ALLOWABLE_VALUES, required = true)
+    public ResponseEntity<ByteArrayResource> downloadImagePreview(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
                                                                   @PathVariable String type,
-                                                                  @ApiParam(value = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+                                                                  @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                                                   @PathVariable String key,
                                                                   @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
         return downloadIfChanged(type, key, etag, true);
@@ -287,26 +286,26 @@ public class ImageController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(IMAGE_URL + "/info")
-    public TbResourceInfo getImageInfo(@ApiParam(value = IMAGE_TYPE_PARAM_DESCRIPTION, allowableValues = IMAGE_TYPE_PARAM_ALLOWABLE_VALUES, required = true)
+    public TbResourceInfo getImageInfo(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
                                        @PathVariable String type,
-                                       @ApiParam(value = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+                                       @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                        @PathVariable String key) throws ThingsboardException {
         return checkImageInfo(type, key, Operation.READ);
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping("/api/images")
-    public PageData<TbResourceInfo> getImages(@ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true)
+    public PageData<TbResourceInfo> getImages(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
                                               @RequestParam int pageSize,
-                                              @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true)
+                                              @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
                                               @RequestParam int page,
-                                              @ApiParam(value = RESOURCE_INCLUDE_SYSTEM_IMAGES_DESCRIPTION)
+                                              @Parameter(description = RESOURCE_INCLUDE_SYSTEM_IMAGES_DESCRIPTION)
                                               @RequestParam(required = false) boolean includeSystemImages,
-                                              @ApiParam(value = RESOURCE_TEXT_SEARCH_DESCRIPTION)
+                                              @Parameter(description = RESOURCE_TEXT_SEARCH_DESCRIPTION)
                                               @RequestParam(required = false) String textSearch,
-                                              @ApiParam(value = SORT_PROPERTY_DESCRIPTION, allowableValues = RESOURCE_SORT_PROPERTY_ALLOWABLE_VALUES)
+                                              @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"createdTime", "title", "resourceType", "tenantId"}))
                                               @RequestParam(required = false) String sortProperty,
-                                              @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+                                              @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
                                               @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         TenantId tenantId = getTenantId();
@@ -321,9 +320,9 @@ public class ImageController extends BaseController {
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @DeleteMapping(IMAGE_URL)
-    public ResponseEntity<TbImageDeleteResult> deleteImage(@ApiParam(value = IMAGE_TYPE_PARAM_DESCRIPTION, allowableValues = IMAGE_TYPE_PARAM_ALLOWABLE_VALUES, required = true)
+    public ResponseEntity<TbImageDeleteResult> deleteImage(@Parameter(description = IMAGE_TYPE_PARAM_DESCRIPTION, schema = @Schema(allowableValues = {"tenant", "system"}), required = true)
                                                            @PathVariable String type,
-                                                           @ApiParam(value = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
+                                                           @Parameter(description = IMAGE_KEY_PARAM_DESCRIPTION, required = true)
                                                            @PathVariable String key,
                                                            @RequestParam(name = "force", required = false) boolean force) throws ThingsboardException {
         TbResourceInfo imageInfo = checkImageInfo(type, key, Operation.DELETE);

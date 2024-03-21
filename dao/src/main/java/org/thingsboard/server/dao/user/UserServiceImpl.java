@@ -453,6 +453,11 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     }
 
     @Override
+    public int countUsersByTenantIdAndRoleIdAndIdNotIn(TenantId tenantId, RoleId roleId, List<UserId> userIds) {
+        return userDao.countUsersByTenantIdAndRoleIdAndIdNotIn(tenantId, roleId, userIds);
+    }
+
+    @Override
     public void setUserCredentialsEnabled(TenantId tenantId, UserId userId, boolean enabled) {
         log.trace("Executing setUserCredentialsEnabled [{}], [{}]", userId, enabled);
         validateId(userId, INCORRECT_USER_ID + userId);

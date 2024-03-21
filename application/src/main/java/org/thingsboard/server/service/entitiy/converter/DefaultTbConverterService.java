@@ -57,15 +57,10 @@ public class DefaultTbConverterService extends AbstractTbEntityService implement
 
             autoCommit(user, savedConverter.getId());
 
-            if (!converter.isEdgeTemplate()) {
-                tbClusterService.broadcastEntityStateChangeEvent(savedConverter.getTenantId(), savedConverter.getId(),
-                        actionType.equals(ActionType.ADDED) ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-            }
-
-            notificationEntityService.logEntityAction(tenantId, savedConverter.getId(), savedConverter, null, actionType, user);
+            logEntityActionService.logEntityAction(tenantId, savedConverter.getId(), savedConverter, null, actionType, user);
             return savedConverter;
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CONVERTER), converter,
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.CONVERTER), converter,
                     actionType, user, e);
             throw e;
         }
@@ -77,18 +72,12 @@ public class DefaultTbConverterService extends AbstractTbEntityService implement
         TenantId tenantId = converter.getTenantId();
         ConverterId converterId = converter.getId();
         try {
-
             converterService.deleteConverter(tenantId, converterId);
 
-            if (!converter.isEdgeTemplate()) {
-                tbClusterService.broadcastEntityStateChangeEvent(tenantId, converterId, ComponentLifecycleEvent.DELETED);
-            }
-
-            notificationEntityService.logEntityAction(tenantId, converter.getId(), converter, null,
+            logEntityActionService.logEntityAction(tenantId, converter.getId(), converter, null,
                     actionType, user, converter.getId().toString());
-
         } catch (Exception e) {
-            notificationEntityService.logEntityAction(tenantId, emptyId(EntityType.CONVERTER),
+            logEntityActionService.logEntityAction(tenantId, emptyId(EntityType.CONVERTER),
                     actionType, user, e, converterId.getId().toString());
             throw e;
         }

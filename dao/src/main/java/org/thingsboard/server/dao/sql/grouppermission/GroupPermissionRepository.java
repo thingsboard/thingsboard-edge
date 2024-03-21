@@ -99,4 +99,6 @@ public interface GroupPermissionRepository extends JpaRepository<GroupPermission
             @Param("tenantId") UUID tenantId,
             @Param("roleId") UUID roleId,
             Pageable pageable);
+
+    boolean existsByUserGroupIdAndRoleId(UUID userGroupId, UUID roleId);
 }

@@ -121,6 +121,7 @@ import { UserId } from '@shared/models/id/user-id';
 import { UserSettingsService } from '@core/http/user-settings.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { DynamicComponentModule } from '@core/services/dynamic-component-factory.service';
+import { DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
 
 export interface IWidgetAction {
   name: string;
@@ -574,6 +575,7 @@ export interface WidgetConfigComponentData {
   settingsSchema: JsonSettingsSchema;
   dataKeySettingsSchema: JsonSettingsSchema;
   latestDataKeySettingsSchema: JsonSettingsSchema;
+  dataKeySettingsFunction: DataKeySettingsFunction;
   settingsDirective: string;
   dataKeySettingsDirective: string;
   latestDataKeySettingsDirective: string;
