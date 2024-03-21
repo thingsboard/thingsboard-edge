@@ -30,14 +30,12 @@
  */
 package org.thingsboard.server.service.install;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.sql.integration.IntegrationRepository;
 import org.thingsboard.server.service.install.update.DefaultDataUpdateService;
 
@@ -161,140 +159,6 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                 break;
             case "3.6.3":
                 updateSchema("3.6.3", 3006003, "3.7.0", 3007000, null);
-                break;
-            case "ce":
-                log.info("Updating schema ...");
-                Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "pe", SCHEMA_UPDATE_SQL);
-                try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
-                    try {
-                        String[] entityNames = new String[]{"device"};
-                        for (String entityName : entityNames) {
-                            conn.createStatement().execute("ALTER TABLE " + entityName + " DROP COLUMN search_text CASCADE");
-                        }
-                    } catch (Exception e) {}
-                    try {
-                        conn.createStatement().execute("ALTER TABLE customer ADD COLUMN parent_customer_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE dashboard ADD COLUMN customer_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        loadSql(schemaUpdateFile, conn);
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE integration ADD COLUMN downlink_converter_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE entity_group ADD COLUMN owner_id uuid"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE entity_group ADD COLUMN owner_type varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    conn.createStatement().execute("update converter set type = 'UPLINK' where type = 'CUSTOM'"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    try {
-                        conn.createStatement().execute("ALTER TABLE integration ADD COLUMN secret varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE integration ADD COLUMN is_remote boolean"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE integration ADD COLUMN enabled boolean DEFAULT true "); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE entity_group ADD CONSTRAINT group_name_per_owner_unq_key UNIQUE (owner_id, owner_type, type, name)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE integration ADD COLUMN allow_create_devices_or_assets boolean DEFAULT true "); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE oauth2_registration ADD COLUMN basic_parent_customer_name_pattern varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE oauth2_registration ADD COLUMN basic_user_groups_name_pattern varchar(1024)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE oauth2_client_registration_template ADD COLUMN basic_parent_customer_name_pattern varchar(255)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE oauth2_client_registration_template ADD COLUMN basic_user_groups_name_pattern varchar(1024)"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE edge_event ADD COLUMN entity_group_id uuid;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE alarm ADD COLUMN propagate_to_owner_hierarchy boolean DEFAULT false;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception e) {
-                    }
-                    try {
-                        conn.createStatement().execute("ALTER TABLE edge ADD COLUMN edge_license_key varchar(30) DEFAULT 'PUT_YOUR_EDGE_LICENSE_HERE';"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception ignored) {}
-                    try {
-                        conn.createStatement().execute("ALTER TABLE edge ADD COLUMN cloud_endpoint varchar(255) DEFAULT 'PUT_YOUR_CLOUD_ENDPOINT_HERE';"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception ignored) {}
-                    integrationRepository.findAll().forEach(integration -> {
-                        if (integration.getType().equals(IntegrationType.LORIOT)) {
-                            ObjectNode credentials = (ObjectNode) integration.getConfiguration().get("credentials");
-                            if (credentials.get("type").asText().equals("basic") && !credentials.has("username")) {
-                                credentials.set("username", credentials.get("email"));
-                                credentials.remove("email");
-                                integrationRepository.save(integration);
-                            }
-
-                        } else if (integration.getType().equals(IntegrationType.AZURE_EVENT_HUB)) {
-                            ObjectNode clientConfiguration = (ObjectNode) integration.getConfiguration().get("clientConfiguration");
-                            if (!clientConfiguration.has("connectionString")) {
-                                String connectionString = String.format("Endpoint=sb://%s.servicebus.windows.net/;SharedAccessKeyName=%s;SharedAccessKey=%s;EntityPath=%s",
-                                        clientConfiguration.get("namespaceName").textValue(),
-                                        clientConfiguration.get("sasKeyName").textValue(),
-                                        clientConfiguration.get("sasKey").textValue(),
-                                        clientConfiguration.get("eventHubName").textValue());
-                                clientConfiguration.put("connectionString", connectionString);
-                                clientConfiguration.remove("namespaceName");
-                                clientConfiguration.remove("eventHubName");
-                                clientConfiguration.remove("sasKeyName");
-                                clientConfiguration.remove("sasKey");
-                            }
-                            integrationRepository.save(integration);
-                        }
-                    });
-                    try {
-                        conn.createStatement().execute("ALTER TABLE scheduler_event ADD COLUMN originator_id uuid;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception ignored) {}
-                    try {
-                        conn.createStatement().execute("ALTER TABLE scheduler_event ADD COLUMN originator_type varchar(255);"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception ignored) {}
-                    try {
-                        conn.createStatement().execute("UPDATE scheduler_event set originator_id = ((configuration::json)->'originatorId'->>'id')::uuid, originator_type = (configuration::json)->'originatorId'->>'entityType' where originator_id IS NULL;"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception ignored) {}
-                    try {
-                        conn.createStatement().execute("CREATE INDEX IF NOT EXISTS idx_customer_tenant_id_parent_customer_id ON customer(tenant_id, parent_customer_id);");
-                    } catch (Exception ignored) {}
-                    try {
-                        conn.createStatement().execute("CREATE INDEX IF NOT EXISTS idx_scheduler_event_originator_id ON scheduler_event(tenant_id, originator_id);"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
-                    } catch (Exception ignored) {}
-                    log.info("Schema updated.");
-                } catch (Exception e) {
-                    log.error("Failed to update schema!!!");
-                }
-                break;
-            case "3.6.3":
-                updateSchema("3.6.3", 3006003, "3.6.4", 3006004, null);
                 break;
             default:
                 throw new RuntimeException("Unable to upgrade SQL database, unsupported fromVersion: " + fromVersion);
