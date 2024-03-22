@@ -48,6 +48,7 @@ import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
@@ -111,8 +112,8 @@ import org.thingsboard.server.service.entitiy.entityview.TbEntityViewService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -212,7 +213,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
             return Futures.immediateFuture(null);
         }
         String scope = attributesRequestMsg.getScope();
-        ListenableFuture<List<AttributeKvEntry>> findAttrFuture = attributesService.findAll(tenantId, entityId, scope);
+        ListenableFuture<List<AttributeKvEntry>> findAttrFuture = attributesService.findAll(tenantId, entityId, AttributeScope.valueOf(scope));
         return Futures.transformAsync(findAttrFuture, ssAttributes
                         -> processEntityAttributesAndAddToEdgeQueue(tenantId, entityId, edge, entityType, scope, ssAttributes, attributesRequestMsg),
                 dbCallbackExecutorService);
@@ -715,10 +716,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
                                EntityId entityGroupId) {
         log.trace("Pushing edge event to edge queue. tenantId [{}], edgeId [{}], type [{}], action[{}], entityId [{}], body [{}], entityGroupId [{}]",
                 tenantId, edgeId, type, action, entityId, body, entityGroupId);
-        EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
-        return Futures.transform(edgeEventService.saveAsync(edgeEvent), unused -> {
-            tbClusterService.onEdgeEventUpdate(tenantId, edgeId);
-            return null;
-        }, dbCallbackExecutorService);
+        EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, type, action, entityId, body);
+        return edgeEventService.saveAsync(edgeEvent);
     }
 }

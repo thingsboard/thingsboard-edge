@@ -32,16 +32,16 @@ package org.thingsboard.integration.http.thingpark;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.io.BaseEncoding;
+import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.Netty4ClientHttpRequestFactory;
-import org.springframework.util.concurrent.ListenableFuture;
-import org.springframework.util.concurrent.ListenableFutureCallback;
-import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.client.UnknownHttpStatusCodeException;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
@@ -51,6 +51,8 @@ import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.integration.http.AbstractHttpIntegration;
 import org.thingsboard.server.common.msg.TbMsg;
+import reactor.core.publisher.Mono;
+import reactor.netty.http.client.HttpClient;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -67,7 +69,6 @@ import java.util.concurrent.TimeUnit;
  * Created by ashvayka on 02.12.17.
  */
 @Slf4j
-@SuppressWarnings("deprecation")
 public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkIntegrationMsg> {
 
     private static final ThreadLocal<SimpleDateFormat> ISO8601 = ThreadLocal.withInitial(() -> new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
@@ -83,7 +84,7 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
     private String securityAsId;
     private String securityAsKey;
     private long maxTimeDiffInSeconds;
-    private AsyncRestTemplate httpClient;
+    private WebClient webClient;
     private String downlinkUrl;
 
     @Override
@@ -98,9 +99,15 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
         }
         if (downlinkConverter != null) {
             downlinkUrl = json.has("downlinkUrl") ? json.get("downlinkUrl").asText() : DEFAULT_DOWNLINK_URL;
-            Netty4ClientHttpRequestFactory nettyFactory = new Netty4ClientHttpRequestFactory(context.getEventLoopGroup());
-            nettyFactory.setSslContext(SslContextBuilder.forClient().build());
-            httpClient = new AsyncRestTemplate(nettyFactory);
+
+            HttpClient httpClient = HttpClient.create()
+                    .runOn(context.getEventLoopGroup());
+            SslContext sslContext = SslContextBuilder.forClient().build();
+            httpClient.secure(t -> t.sslContext(sslContext));
+
+            this.webClient = WebClient.builder()
+                    .clientConnector(new ReactorClientHttpConnector(httpClient))
+                    .build();
         }
     }
 
@@ -172,25 +179,24 @@ public class ThingParkIntegration extends AbstractHttpIntegration<ThingParkInteg
                         String token = getToken(params + securityAsKey);
                         params += "&Token=" + token;
                     }
-                    ListenableFuture<ResponseEntity<String>> future = httpClient.postForEntity(downlinkUrl + "?" + params, new HttpEntity<>(""), String.class);
-                    future.addCallback(new ListenableFutureCallback<>() {
-                        @Override
-                        public void onFailure(Throwable throwable) {
-                            if (throwable instanceof UnknownHttpStatusCodeException) {
-                                UnknownHttpStatusCodeException exception = (UnknownHttpStatusCodeException) throwable;
-                                reportDownlinkError(context, msg, "ERROR", new Exception(exception.getResponseBodyAsString()));
-                            } else {
-                                reportDownlinkError(context, msg, "ERROR", new Exception(throwable));
-                            }
-                        }
 
-                        @Override
-                        public void onSuccess(ResponseEntity<String> voidResponseEntity) {
-                            if (voidResponseEntity.getStatusCode().is2xxSuccessful()) {
-                                reportDownlinkOk(context, downlink);
-                            } else {
-                                reportDownlinkError(context, msg, voidResponseEntity.getBody(), new RuntimeException());
-                            }
+                    Mono<ResponseEntity<String>> resultMono = webClient.post()
+                            .uri(downlinkUrl + "?" + params)
+                            .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+                            .body(Mono.just(""), String.class)
+                            .exchangeToMono(clientResponse -> clientResponse.toEntity(String.class));
+
+                    resultMono.subscribe(responseEntity -> {
+                        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                            reportDownlinkOk(context, downlink);
+                        } else {
+                            reportDownlinkError(context, msg, responseEntity.getBody(), new RuntimeException());
+                        }
+                    }, throwable -> {
+                        if (throwable instanceof UnknownHttpStatusCodeException) {
+                            reportDownlinkError(context, msg, "ERROR", new Exception(((UnknownHttpStatusCodeException) throwable).getResponseBodyAsString()));
+                        } else {
+                            reportDownlinkError(context, msg, "ERROR", new Exception(throwable));
                         }
                     });
                 }

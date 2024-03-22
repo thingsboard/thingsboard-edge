@@ -34,21 +34,23 @@ import {
   EChartsOption,
   EChartsSeriesItem,
   EChartsTooltipTrigger,
-  EChartsTooltipWidgetSettings, getYAxis,
+  EChartsTooltipWidgetSettings,
   measureThresholdLabelOffset
 } from '@home/components/widget/lib/chart/echarts-widget.models';
 import {
-  autoDateFormat, AutoDateFormatSettings,
+  autoDateFormat,
+  AutoDateFormatSettings,
   ComponentStyle,
   Font,
-  simpleDateFormat,
-  textStyle, tsToFormatTimeUnit
+  textStyle,
+  tsToFormatTimeUnit
 } from '@shared/models/widget-settings.models';
 import { XAXisOption, YAXisOption } from 'echarts/types/dist/shared';
 import { CustomSeriesOption, LineSeriesOption } from 'echarts/charts';
 import {
   formatValue,
   isDefinedAndNotNull,
+  isFunction,
   isNumeric,
   isUndefined,
   isUndefinedOrNull,
@@ -58,7 +60,6 @@ import {
 } from '@core/utils';
 import { LinearGradientObject } from 'zrender/lib/graphic/LinearGradient';
 import tinycolor from 'tinycolor2';
-import Axis2D from 'echarts/types/src/coord/cartesian/Axis2D';
 import { ValueAxisBaseOption } from 'echarts/types/src/coord/axisCommonTypes';
 import { SeriesLabelOption } from 'echarts/types/src/util/types';
 import {
@@ -336,6 +337,12 @@ export const defaultXAxisTicksFormat: AutoDateFormatSettings = {
 
 export type TimeSeriesChartYAxisId = 'default' | string;
 
+export type TimeSeriesChartTicksGenerator =
+  (extent?: number[], interval?: number, niceTickExtent?: number[], intervalPrecision?: number) => {value: number}[];
+
+export type TimeSeriesChartTicksFormatter =
+  (value: any) => string;
+
 export interface TimeSeriesChartYAxisSettings extends TimeSeriesChartAxisSettings {
   id?: TimeSeriesChartYAxisId;
   order?: number;
@@ -345,8 +352,8 @@ export interface TimeSeriesChartYAxisSettings extends TimeSeriesChartAxisSetting
   splitNumber?: number;
   min?: number | string;
   max?: number | string;
-  intervalCalculator?: string;
-  ticksFormatter?: string;
+  ticksGenerator?: TimeSeriesChartTicksGenerator | string;
+  ticksFormatter?: TimeSeriesChartTicksFormatter | string;
 }
 
 export const timeSeriesChartYAxisValid = (axis: TimeSeriesChartYAxisSettings): boolean =>
@@ -624,7 +631,7 @@ export const timeSeriesChartDefaultSettings: TimeSeriesChartSettings = {
   animation: {
     animation: true,
     animationThreshold: 2000,
-    animationDuration: 1000,
+    animationDuration: 500,
     animationEasing: TimeSeriesChartAnimationEasing.cubicOut,
     animationDelay: 0,
     animationDurationUpdate: 300,
@@ -804,8 +811,6 @@ export interface TimeSeriesChartYAxis {
   decimals: number;
   settings: TimeSeriesChartYAxisSettings;
   option: YAXisOption & ValueAxisBaseOption;
-  intervalCalculator?: (axis: Axis2D) => number;
-  ticksFormatter?: (value: any) => string;
 }
 
 export const createTimeSeriesYAxis = (units: string,
@@ -816,11 +821,37 @@ export const createTimeSeriesYAxis = (units: string,
     settings.tickLabelColor, darkMode, 'axis.tickLabel');
   const yAxisNameStyle = createChartTextStyle(settings.labelFont,
     settings.labelColor, darkMode, 'axis.label');
-  let ticksFormatter: (value: any) => string;
-  if (settings.ticksFormatter && settings.ticksFormatter.length) {
-    ticksFormatter = parseFunction(settings.ticksFormatter, ['value']);
+
+  let ticksFormatter: TimeSeriesChartTicksFormatter;
+  if (settings.ticksFormatter) {
+    if (isFunction(settings.ticksFormatter)) {
+      ticksFormatter = settings.ticksFormatter as TimeSeriesChartTicksFormatter;
+    } else if (settings.ticksFormatter.length) {
+      ticksFormatter = parseFunction(settings.ticksFormatter, ['value']);
+    }
   }
-  const yAxis: TimeSeriesChartYAxis = {
+  let ticksGenerator: TimeSeriesChartTicksGenerator;
+  let minInterval: number;
+  let interval: number;
+  let splitNumber: number;
+  if (settings.ticksGenerator) {
+    if (isFunction(settings.ticksGenerator)) {
+      ticksGenerator = settings.ticksGenerator as TimeSeriesChartTicksGenerator;
+    } else if (settings.ticksGenerator.length) {
+      ticksGenerator = parseFunction(settings.ticksGenerator, ['extent', 'interval', 'niceTickExtent', 'intervalPrecision']);
+    }
+  }
+  if (!ticksGenerator) {
+    interval = settings.interval;
+    if (isUndefinedOrNull(interval)) {
+      if (isDefinedAndNotNull(settings.splitNumber)) {
+        splitNumber = settings.splitNumber;
+      } else {
+        minInterval = (1 / Math.pow(10, decimals));
+      }
+    }
+  }
+  return {
     id: settings.id,
     decimals,
     settings,
@@ -834,6 +865,10 @@ export const createTimeSeriesYAxis = (units: string,
       scale: true,
       min: settings.min,
       max: settings.max,
+      minInterval,
+      splitNumber,
+      interval,
+      ticksGenerator,
       name: settings.label,
       nameLocation: 'middle',
       nameRotate: settings.position === AxisPosition.left ? 90 : -90,
@@ -869,7 +904,8 @@ export const createTimeSeriesYAxis = (units: string,
           if (ticksFormatter) {
             try {
               result = ticksFormatter(value);
-            } catch (_e) {}
+            } catch (_e) {
+            }
           }
           if (isUndefined(result)) {
             result = formatValue(value, decimals, units, false);
@@ -885,54 +921,6 @@ export const createTimeSeriesYAxis = (units: string,
       }
     }
   };
-  if (settings.intervalCalculator && settings.intervalCalculator.length) {
-    yAxis.intervalCalculator = parseFunction(settings.intervalCalculator, ['axis']);
-  }
-  return yAxis;
-};
-
-export const updateYAxisIntervals = (chart: ECharts,
-                                     yAxis: TimeSeriesChartYAxis, empty: boolean): boolean => {
-  let changed = false;
-  let interval: number;
-  let splitNumber: number;
-  let minInterval: number;
-  if (!empty) {
-    interval = calculateYAxisInterval(chart, yAxis);
-    if (isUndefinedOrNull(interval)) {
-      if (isDefinedAndNotNull(yAxis.settings.splitNumber)) {
-        splitNumber = yAxis.settings.splitNumber;
-      } else {
-        minInterval = (1 / Math.pow(10, yAxis.decimals));
-      }
-    }
-  }
-  if (yAxis.option.interval !== interval) {
-    yAxis.option.interval = interval;
-    changed = true;
-  }
-  if (yAxis.option.splitNumber !== splitNumber) {
-    yAxis.option.splitNumber = splitNumber;
-    changed = true;
-  }
-  if (yAxis.option.minInterval !== minInterval) {
-    yAxis.option.minInterval = minInterval;
-    changed = true;
-  }
-  return changed;
-};
-
-const calculateYAxisInterval = (chart: ECharts, yAxis: TimeSeriesChartYAxis): number | undefined => {
-  let interval = yAxis.settings.interval;
-  if (yAxis.intervalCalculator) {
-    const axis = getYAxis(chart, yAxis.id);
-    if (axis) {
-      try {
-        interval = yAxis.intervalCalculator(axis);
-      } catch (_e) {}
-    }
-  }
-  return interval;
 };
 
 export const createTimeSeriesXAxisOption = (settings: TimeSeriesChartXAxisSettings,
@@ -1051,7 +1039,7 @@ const generateChartThresholds = (thresholdItems: TimeSeriesChartThresholdItem[],
       let seriesOption = item.option;
       if (!item.option) {
         const thresholdLabelStyle = createChartTextStyle(item.settings.labelFont,
-          item.settings.labelColor, darkMode, 'threshold.label');
+          item.settings.labelColor, false, 'threshold.label');
         seriesOption = {
           type: 'line',
           id: item.id,
@@ -1064,7 +1052,7 @@ const generateChartThresholds = (thresholdItems: TimeSeriesChartThresholdItem[],
             },
             lineStyle: {
               width: item.settings.lineWidth,
-              color: prepareChartThemeColor(item.settings.lineColor, darkMode, 'threshold.line'),
+              color: prepareChartThemeColor(item.settings.lineColor, false, 'threshold.line'),
               type: item.settings.lineType
             },
             label: {
@@ -1203,17 +1191,6 @@ export const updateDarkMode = (options: EChartsOption, settings: TimeSeriesChart
       }
     }
   }
-  for (const item of thresholdDataItems) {
-    if (Array.isArray(options.series)) {
-      const series = options.series.find(s => s.id === item.id);
-      if (series) {
-        series.markLine.lineStyle.color = prepareChartThemeColor(item.settings.lineColor, darkMode, 'threshold.line');
-        if (series.markLine?.label?.show) {
-          series.markLine.label.color = prepareChartThemeColor(item.settings.labelColor, darkMode, 'threshold.label');
-        }
-      }
-    }
-  }
   return options;
 };
 
@@ -1237,12 +1214,14 @@ const createTimeSeriesChartSeries = (item: TimeSeriesChartDataItem,
         focus: 'series'
       },
       dimensions: [
-        {name: 'intervalStart', type: 'number'},
-        {name: 'intervalEnd', type: 'number'}
+        {name: 'x', type: 'time', stack},
+        {name: 'y', type: 'float'},
+        {name: 'intervalStart', type: 'time'},
+        {name: 'intervalEnd', type: 'time'}
       ],
       encode: {
-        intervalStart: 2,
-        intervalEnd: 3
+        x: [0, 2, 3],
+        y: [1]
       }
     };
     item.option = seriesOption;
@@ -1254,6 +1233,9 @@ const createTimeSeriesChartSeries = (item: TimeSeriesChartDataItem,
         lineSettings.pointLabelFont, lineSettings.pointLabelColor, lineSettings.pointLabelPosition, darkMode);
       lineSeriesOption.step = lineSettings.step ? lineSettings.stepType : false;
       lineSeriesOption.smooth = lineSettings.smooth;
+      if (lineSettings.smooth) {
+        lineSeriesOption.smoothMonotone = 'x';
+      }
       lineSeriesOption.lineStyle = {
         width: lineSettings.showLine ? lineSettings.lineWidth : 0,
         type: lineSettings.lineType

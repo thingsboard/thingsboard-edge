@@ -32,6 +32,8 @@ package org.thingsboard.server.dao.sqlts;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -46,6 +48,7 @@ import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.dictionary.KeyDictionaryDao;
 import org.thingsboard.server.dao.model.sql.AbstractTsKvEntity;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvCompositeKey;
 import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
@@ -56,16 +59,6 @@ import org.thingsboard.server.dao.sqlts.ts.TsKvRepository;
 import org.thingsboard.server.dao.timeseries.TimeseriesDao;
 import org.thingsboard.server.dao.util.TimeUtils;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.IsoFields;
-import java.time.temporal.TemporalUnit;
-import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -86,6 +79,9 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
     protected TbSqlBlockingQueueWrapper<TsKvEntity> tsQueue;
     @Autowired
     private StatsFactory statsFactory;
+
+    @Autowired
+    private KeyDictionaryDao keyDictionaryDao;
 
     @PostConstruct
     protected void init() {
@@ -119,7 +115,7 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
         return service.submit(() -> {
             tsKvRepository.delete(
                     entityId.getId(),
-                    getOrSaveKeyId(query.getKey()),
+                    keyDictionaryDao.getOrSaveKeyId(query.getKey()),
                     query.getStartTs(),
                     query.getEndTs());
             return null;
@@ -128,7 +124,7 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
 
     @Override
     public ListenableFuture<TsKvEntry> findOneAsync(TenantId tenantId, EntityId entityId, long ts, String key) {
-        return Futures.immediateFuture(DaoUtil.getData(tsKvRepository.findById(new TsKvCompositeKey(entityId.getId(), getOrSaveKeyId(key), ts))));
+        return Futures.immediateFuture(DaoUtil.getData(tsKvRepository.findById(new TsKvCompositeKey(entityId.getId(), keyDictionaryDao.getOrSaveKeyId(key), ts))));
     }
 
     @Override
@@ -170,7 +166,7 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
     }
 
     private ReadTsKvQueryResult findAllAsyncWithLimit(EntityId entityId, ReadTsKvQuery query) {
-        Integer keyId = getOrSaveKeyId(query.getKey());
+        Integer keyId = keyDictionaryDao.getOrSaveKeyId(query.getKey());
         List<TsKvEntity> tsKvEntities = tsKvRepository.findAllWithLimit(
                 entityId.getId(),
                 keyId,
@@ -198,7 +194,7 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
     }
 
     protected TsKvEntity switchAggregation(EntityId entityId, String key, long startTs, long endTs, Aggregation aggregation) {
-        var keyId = getOrSaveKeyId(key);
+        var keyId = keyDictionaryDao.getOrSaveKeyId(key);
         switch (aggregation) {
             case AVG:
                 return tsKvRepository.findAvg(entityId.getId(), keyId, startTs, endTs);
