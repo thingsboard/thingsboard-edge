@@ -31,8 +31,7 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -54,6 +53,7 @@ import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.common.data.report.ReportData;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
@@ -89,9 +89,9 @@ public class ReportController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/report/{dashboardId}/download", method = RequestMethod.POST, produces = {"application/pdf", "image/jpeg", "image/png"})
     @ResponseBody
-    public DeferredResult<ResponseEntity<Resource>> downloadDashboardReport(@ApiParam(value = DASHBOARD_ID_PARAM_DESCRIPTION, required = true)
+    public DeferredResult<ResponseEntity<Resource>> downloadDashboardReport(@Parameter(description = DASHBOARD_ID_PARAM_DESCRIPTION, required = true)
                                                                             @PathVariable(DASHBOARD_ID) String strDashboardId,
-                                                                            @ApiParam(example = REPORT_PARAMS_EXAMPLE, required = true)
+                                                                            @Parameter(example = REPORT_PARAMS_EXAMPLE, required = true)
                                                                             @RequestBody JsonNode reportParams,
                                                                             HttpServletRequest request) throws ThingsboardException {
         DeferredResult<ResponseEntity<Resource>> result = new DeferredResult<>();
@@ -125,7 +125,7 @@ public class ReportController extends BaseController {
     @RequestMapping(value = "/report/test", method = RequestMethod.POST, produces = {"application/pdf", "image/jpeg", "image/png"})
     @ResponseBody
     public DeferredResult<ResponseEntity<Resource>> downloadTestReport(@RequestBody ReportConfig reportConfig,
-                                                                       @ApiParam(value = "A string value representing the report server endpoint.", example = "http://localhost:8383")
+                                                                       @Parameter(description = "A string value representing the report server endpoint.", example = "http://localhost:8383")
                                                                        @RequestParam(required = false) String reportsServerEndpointUrl) {
         DeferredResult<ResponseEntity<Resource>> result = new DeferredResult<>();
         try {
