@@ -215,6 +215,47 @@ message IntegrationInfoProto {
   bool allowCreateDevicesOrAssets = 9;
 }
 
+message IntegrationProto {
+  int64 integrationIdMSB = 1;
+  int64 integrationIdLSB = 2;
+  int64 createdTime = 3;
+  int64 tenantIdMSB = 4;
+  int64 tenantIdLSB = 5;
+  string type = 6;
+  string name = 7;
+  bool debugMode = 8;
+  bool enabled = 9;
+  bool remote = 10;
+  bool allowCreateDevicesOrAssets = 11;
+  bool isEdgeTemplate = 12;
+  int64 defaultConverterIdMSB = 13;
+  int64 defaultConverterIdLSB = 14;
+  optional int64 downlinkConverterIdMSB = 15;
+  optional int64 downlinkConverterIdLSB = 16;
+  string routingKey = 17;
+  string secret = 18;
+  string configuration = 19;
+  optional string additionalInfo = 20;
+  optional int64 externalIdMSB = 21;
+  optional int64 externalIdLSB = 22;
+}
+
+message ConverterProto {
+  int64 converterIdMSB = 1;
+  int64 converterIdLSB = 2;
+  int64 createdTime = 3;
+  int64 tenantIdMSB = 4;
+  int64 tenantIdLSB = 5;
+  string type = 6;
+  string name = 7;
+  bool debugMode = 8;
+  string configuration = 9;
+  optional string additionalInfo = 10;
+  bool isEdgeTemplate = 11;
+  optional int64 externalIdMSB = 12;
+  optional int64 externalIdLSB = 13;
+}
+
 message IntegrationInfoListRequestProto {
   string type = 1;
   bool enabled = 2;
@@ -233,10 +274,6 @@ message IntegrationRequestProto {
   string routingKey = 5;
 }
 
-message IntegrationResponseProto {
-  bytes data = 1;
-}
-
 message ConverterRequestProto {
   int64 converterIdMSB = 1;
   int64 converterIdLSB = 2;
@@ -244,17 +281,9 @@ message ConverterRequestProto {
   int64 tenantIdLSB = 4;
 }
 
-message ConverterResponseProto {
-  bytes data = 1;
-}
-
 message TenantProfileRequestProto {
   int64 tenantIdMSB = 1;
   int64 tenantIdLSB = 2;
-}
-
-message TenantProfileResponseProto {
-  bytes data = 1;
 }
 
 /* Request from Integration Executor Service to ThingsBoard Core Service */
@@ -268,22 +297,21 @@ message IntegrationApiRequestMsg {
 /* Response from ThingsBoard Core Service to Integration Executor Service */
 message IntegrationApiResponseMsg {
   IntegrationInfoListResponseProto integrationListResponse = 1;
-  IntegrationResponseProto integrationResponse = 2;
-  ConverterResponseProto converterResponse = 3;
-  TenantProfileResponseProto tenantProfileResponse = 4;
+  IntegrationProto integrationResponse = 2;
+  ConverterProto converterResponse = 3;
+  transport.TenantProfileProto tenantProfileResponse = 4;
 }
 
 /* High priority messages with low latency are handled by ThingsBoard Integration Executor Service separately */
 message ToIntegrationExecutorNotificationMsg {
-  bytes componentLifecycleMsg = 1 [deprecated = true];
-  transport.ComponentLifecycleMsgProto componentLifecycle = 2;
+  transport.ComponentLifecycleMsgProto componentLifecycle = 1;
 }
 
 message IntegrationValidationRequestProto {
   int64 idMSB = 1;
   int64 idLSB = 2;
   string serviceId = 3;
-  bytes configuration = 4;
+  IntegrationProto configuration = 4;
   string type = 5;
   int64 tenantIdMSB = 6;
   int64 tenantIdLSB = 7;

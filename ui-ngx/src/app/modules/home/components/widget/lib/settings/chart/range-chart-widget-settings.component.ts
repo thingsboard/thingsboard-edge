@@ -93,6 +93,8 @@ export class RangeChartWidgetSettingsComponent extends WidgetSettingsComponent {
       tooltipDateFormat: [settings.tooltipDateFormat, []],
       tooltipDateFont: [settings.tooltipDateFont, []],
       tooltipDateColor: [settings.tooltipDateColor, []],
+      tooltipDateInterval: [settings.tooltipDateInterval, []],
+
       tooltipBackgroundColor: [settings.tooltipBackgroundColor, []],
       tooltipBackgroundBlur: [settings.tooltipBackgroundBlur, []],
 
@@ -129,10 +131,12 @@ export class RangeChartWidgetSettingsComponent extends WidgetSettingsComponent {
         this.rangeChartWidgetSettingsForm.get('tooltipDateFormat').enable();
         this.rangeChartWidgetSettingsForm.get('tooltipDateFont').enable();
         this.rangeChartWidgetSettingsForm.get('tooltipDateColor').enable();
+        this.rangeChartWidgetSettingsForm.get('tooltipDateInterval').enable();
       } else {
         this.rangeChartWidgetSettingsForm.get('tooltipDateFormat').disable();
         this.rangeChartWidgetSettingsForm.get('tooltipDateFont').disable();
         this.rangeChartWidgetSettingsForm.get('tooltipDateColor').disable();
+        this.rangeChartWidgetSettingsForm.get('tooltipDateInterval').disable();
       }
     } else {
       this.rangeChartWidgetSettingsForm.get('tooltipValueFont').disable();
@@ -141,6 +145,7 @@ export class RangeChartWidgetSettingsComponent extends WidgetSettingsComponent {
       this.rangeChartWidgetSettingsForm.get('tooltipDateFormat').disable();
       this.rangeChartWidgetSettingsForm.get('tooltipDateFont').disable();
       this.rangeChartWidgetSettingsForm.get('tooltipDateColor').disable();
+      this.rangeChartWidgetSettingsForm.get('tooltipDateInterval').disable();
       this.rangeChartWidgetSettingsForm.get('tooltipBackgroundColor').disable();
       this.rangeChartWidgetSettingsForm.get('tooltipBackgroundBlur').disable();
     }

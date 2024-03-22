@@ -32,7 +32,7 @@ package org.thingsboard.server.common.data.translation;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.swagger.annotations.ApiModel;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -49,7 +49,7 @@ import java.io.Serializable;
 import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.getJson;
 import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.setJson;
 
-@ApiModel
+@Schema
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -57,9 +57,6 @@ import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.setJ
 @EqualsAndHashCode
 @Slf4j
 public class CustomTranslation implements Serializable {
-
-    private static final long serialVersionUID = 2809343057809549363L;
-
 
     private TenantId tenantId;
     private CustomerId customerId;

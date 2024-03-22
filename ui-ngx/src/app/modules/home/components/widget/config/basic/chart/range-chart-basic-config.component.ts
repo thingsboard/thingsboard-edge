@@ -123,6 +123,8 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
       tooltipDateFormat: [settings.tooltipDateFormat, []],
       tooltipDateFont: [settings.tooltipDateFont, []],
       tooltipDateColor: [settings.tooltipDateColor, []],
+      tooltipDateInterval: [settings.tooltipDateInterval, []],
+
       tooltipBackgroundColor: [settings.tooltipBackgroundColor, []],
       tooltipBackgroundBlur: [settings.tooltipBackgroundBlur, []],
 
@@ -170,6 +172,7 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
     this.widgetConfig.config.settings.tooltipDateFormat = config.tooltipDateFormat;
     this.widgetConfig.config.settings.tooltipDateFont = config.tooltipDateFont;
     this.widgetConfig.config.settings.tooltipDateColor = config.tooltipDateColor;
+    this.widgetConfig.config.settings.tooltipDateInterval = config.tooltipDateInterval;
     this.widgetConfig.config.settings.tooltipBackgroundColor = config.tooltipBackgroundColor;
     this.widgetConfig.config.settings.tooltipBackgroundBlur = config.tooltipBackgroundBlur;
 
@@ -240,10 +243,12 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
         this.rangeChartWidgetConfigForm.get('tooltipDateFormat').enable();
         this.rangeChartWidgetConfigForm.get('tooltipDateFont').enable();
         this.rangeChartWidgetConfigForm.get('tooltipDateColor').enable();
+        this.rangeChartWidgetConfigForm.get('tooltipDateInterval').enable();
       } else {
         this.rangeChartWidgetConfigForm.get('tooltipDateFormat').disable();
         this.rangeChartWidgetConfigForm.get('tooltipDateFont').disable();
         this.rangeChartWidgetConfigForm.get('tooltipDateColor').disable();
+        this.rangeChartWidgetConfigForm.get('tooltipDateInterval').disable();
       }
     } else {
       this.rangeChartWidgetConfigForm.get('tooltipValueFont').disable();
@@ -252,6 +257,7 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
       this.rangeChartWidgetConfigForm.get('tooltipDateFormat').disable();
       this.rangeChartWidgetConfigForm.get('tooltipDateFont').disable();
       this.rangeChartWidgetConfigForm.get('tooltipDateColor').disable();
+      this.rangeChartWidgetConfigForm.get('tooltipDateInterval').disable();
       this.rangeChartWidgetConfigForm.get('tooltipBackgroundColor').disable();
       this.rangeChartWidgetConfigForm.get('tooltipBackgroundBlur').disable();
     }

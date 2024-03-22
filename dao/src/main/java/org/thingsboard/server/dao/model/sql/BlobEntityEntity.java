@@ -31,38 +31,36 @@
 package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.springframework.util.Base64Utils;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
+import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Table;
 import java.nio.ByteBuffer;
+import java.util.Base64;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_ADDITIONAL_INFO_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_CONTENT_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_CUSTOMER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_DATA_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_NAME_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.BLOB_ENTITY_TYPE_PROPERTY;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = BLOB_ENTITY_TABLE_NAME)
 public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements BaseEntity<BlobEntity> {
 
@@ -84,7 +82,7 @@ public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements
     @Column(name = BLOB_ENTITY_DATA_PROPERTY)
     private String data;
 
-    @Type(type = "json")
+    @Convert(converter = JsonConverter.class)
     @Column(name = BLOB_ENTITY_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
@@ -107,7 +105,7 @@ public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements
         this.type = blobEntity.getType();
         this.contentType = blobEntity.getContentType();
         this.additionalInfo = blobEntity.getAdditionalInfo();
-        this.data = Base64Utils.encodeToString(blobEntity.getData().array());
+        this.data = Base64.getEncoder().encodeToString(blobEntity.getData().array());
     }
 
     @Override
@@ -124,7 +122,7 @@ public final class BlobEntityEntity extends BaseSqlEntity<BlobEntity> implements
         blobEntity.setType(type);
         blobEntity.setContentType(contentType);
         blobEntity.setAdditionalInfo(additionalInfo);
-        blobEntity.setData(ByteBuffer.wrap(Base64Utils.decodeFromString(data)));
+        blobEntity.setData(ByteBuffer.wrap(Base64.getDecoder().decode(data)));
         return blobEntity;
     }
 

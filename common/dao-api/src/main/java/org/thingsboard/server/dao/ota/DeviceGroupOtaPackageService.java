@@ -38,11 +38,13 @@ import org.thingsboard.server.common.data.ota.OtaPackageType;
 import java.util.UUID;
 
 public interface DeviceGroupOtaPackageService {
+
     DeviceGroupOtaPackage findDeviceGroupOtaPackageById(UUID id);
 
     DeviceGroupOtaPackage findDeviceGroupOtaPackageByGroupIdAndType(EntityGroupId groupId, OtaPackageType type);
 
     DeviceGroupOtaPackage saveDeviceGroupOtaPackage(TenantId tenantId, DeviceGroupOtaPackage deviceGroupOtaPackage);
 
-    void deleteDeviceGroupOtaPackage(UUID id);
+    void deleteDeviceGroupOtaPackage(TenantId tenantId, DeviceGroupOtaPackage deviceGroupOtaPackage);
+
 }
