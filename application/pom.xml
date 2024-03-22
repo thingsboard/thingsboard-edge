@@ -213,7 +213,6 @@
         <dependency>
             <groupId>org.thingsboard</groupId>
             <artifactId>ui-ngx</artifactId>
-            <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>

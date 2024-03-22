@@ -32,24 +32,17 @@ package org.thingsboard.server.dao.translation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.PredicateUtils;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.ResourceUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
 
-import java.io.IOException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -64,7 +57,7 @@ import static org.thingsboard.common.util.JacksonUtil.merge;
 @RequiredArgsConstructor
 public class BaseTranslationService implements TranslationService {
 
-    public static final String LOCALE_FILES_DIRECTORY_PATH = "public/assets/locale";
+    public static final String LOCALE_FILES_DIRECTORY_PATH = "/public/assets/locale";
     public static final String DEFAULT_LOCALE_CODE = "en_US";
     public static JsonNode DEFAULT_LOCALE_TRANSLATION;
     public static final Set<String> DEFAULT_LOCALE_KEYS;
@@ -75,11 +68,8 @@ public class BaseTranslationService implements TranslationService {
             LOCALES_INFO.put(availableLocale.toString(),
                     new TranslationInfo(availableLocale.toString(), availableLocale.getDisplayLanguage(), availableLocale.getDisplayCountry()));
         }
-        try {
-            DEFAULT_LOCALE_TRANSLATION = JacksonUtil.toJsonNode(new ClassPathResource(getLocaleFilePath(DEFAULT_LOCALE_CODE)).getFile());
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to retrieve default locale translation!", e);
-        }
+        DEFAULT_LOCALE_TRANSLATION = Objects.requireNonNull(readLocaleFile(getLocaleFilePath(DEFAULT_LOCALE_CODE)),
+                "Failed to retrieve default locale translation!");
         DEFAULT_LOCALE_KEYS = extractKeys(DEFAULT_LOCALE_TRANSLATION);
     }
 
@@ -153,13 +143,23 @@ public class BaseTranslationService implements TranslationService {
         return LOCALE_FILES_DIRECTORY_PATH + "/locale.constant-" + localeCode + ".json";
     }
 
-    @SneakyThrows
     private JsonNode mergeWithSystemLanguageTranslationIfExists(String localeCode, JsonNode jsonNode) {
-        String localeFilePath = getLocaleFilePath(localeCode);
-        if (ResourceUtils.resourceExists(this, new ClassPathResource(localeFilePath).getPath())) {
-            return merge(jsonNode, Objects.requireNonNull(JacksonUtil.toJsonNode(new ClassPathResource(localeFilePath).getFile())));
+        JsonNode systemTranslation = readLocaleFile(getLocaleFilePath(localeCode));
+        if (systemTranslation != null) {
+            return merge(jsonNode, systemTranslation);
         }
         return jsonNode;
+    }
+
+    private static JsonNode readLocaleFile(String localeFilePath) {
+        try (InputStream in = BaseTranslationService.class.getResourceAsStream(localeFilePath)) {
+            if (in == null){
+                return null;
+            }
+            return JacksonUtil.OBJECT_MAPPER.readTree(in);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read locale translation!", e);
+        }
     }
 
     private TranslationInfo buildLocaleInfo(String localeCode, JsonNode translation) {

@@ -32,8 +32,9 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.hash.Hashing;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ByteArrayResource;
@@ -58,6 +59,7 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
 import org.thingsboard.server.common.data.util.ThrowingSupplier;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.translation.TranslationCacheKey;
 import org.thingsboard.server.dao.translation.TranslationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -103,7 +105,7 @@ public class TranslationController extends BaseController {
                     " country display name and translation progress percentage." +
                     "\n\n Response example: " + CUSTOM_TRANSLATION_INFO_EXAMPLE +
                     ControllerConstants.WL_READ_CHECK
-            , produces = MediaType.APPLICATION_JSON_VALUE)
+            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/info", produces = "application/json")
     @ResponseBody
@@ -123,12 +125,12 @@ public class TranslationController extends BaseController {
     @ApiOperation(value = "Get end-user all-to-one translation (getFullTranslation)",
             notes = "Fetch the end-user translation for specified locale. The result is the merge of user custom translation, " +
                     "system language translation and default locale translation."
-            , produces = MediaType.APPLICATION_JSON_VALUE)
+            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/full/{localeCode}", produces = "application/json")
     @ResponseBody
     public ResponseEntity<JsonNode> getFullTranslation(
-            @ApiParam(value = "Locale code (e.g. 'en_US').")
+            @Parameter(description = "Locale code (e.g. 'en_US').")
             @PathVariable("localeCode") String localeCode,
             @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
         checkWhiteLabelingPermissions(Operation.READ);
@@ -153,11 +155,11 @@ public class TranslationController extends BaseController {
     @ApiOperation(value = "Download end-user all-to-one translation (downloadFullTranslation)",
             notes = "Fetch the end-user translation for the specified locale. The result is a json file with merged user custom translation, " +
                     "system language translation and default locale translation."
-            , produces = MediaType.APPLICATION_JSON_VALUE)
+            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/full/{localeCode}/download", produces = "application/json")
     @ResponseBody
-    public ResponseEntity<ByteArrayResource> downloadFullTranslation(@ApiParam(value = "Locale code (e.g. 'en_US').")
+    public ResponseEntity<ByteArrayResource> downloadFullTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
                                                                      @PathVariable("localeCode") String localeCode) throws Exception {
         checkWhiteLabelingPermissions(Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();

@@ -33,150 +33,122 @@ package org.thingsboard.server.dao.translation;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.translation.TranslationInfo;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.entity.AbstractCachedService;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
+import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
 
-import java.io.InputStream;
-import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
-import static org.thingsboard.common.util.JacksonUtil.extractKeys;
 import static org.thingsboard.common.util.JacksonUtil.merge;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class BaseTranslationService implements TranslationService {
+public class BaseCustomTranslationService extends AbstractCachedService<CustomTranslationCompositeKey, CustomTranslation, CustomTranslationEvictEvent> implements CustomTranslationService {
 
-    public static final String LOCALE_FILES_DIRECTORY_PATH = "/public/assets/locale";
-    public static final String DEFAULT_LOCALE_CODE = "en_US";
-    public static JsonNode DEFAULT_LOCALE_TRANSLATION;
-    public static final Set<String> DEFAULT_LOCALE_KEYS;
-    public static final Map<String, TranslationInfo> LOCALES_INFO = new HashMap<>();
+    private final CustomerService customerService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final CustomTranslationDao customTranslationDao;
 
-    static {
-        for (Locale availableLocale : DateFormat.getAvailableLocales()) {
-            LOCALES_INFO.put(availableLocale.toString(),
-                    new TranslationInfo(availableLocale.toString(), availableLocale.getDisplayLanguage(), availableLocale.getDisplayCountry()));
+    @Override
+    public CustomTranslation getCurrentCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        CustomTranslationCompositeKey key = new CustomTranslationCompositeKey(tenantId, customerId, localeCode);
+        CustomTranslation customTranslation = cache.getAndPutInTransaction(key, () -> customTranslationDao.findById(TenantId.SYS_TENANT_ID, key), true);
+        if (customTranslation == null) {
+            customTranslation = CustomTranslation.builder().localeCode(key.getLocaleCode()).value(JacksonUtil.newObjectNode()).build();
         }
-        DEFAULT_LOCALE_TRANSLATION = Objects.requireNonNull(readLocaleFile(getLocaleFilePath(DEFAULT_LOCALE_CODE)),
-                "Failed to retrieve default locale translation!");
-        DEFAULT_LOCALE_KEYS = extractKeys(DEFAULT_LOCALE_TRANSLATION);
+        return customTranslation;
     }
 
-    private final CustomTranslationService customTranslationService;
+    @Override
+    public JsonNode getMergedTenantCustomTranslation(TenantId tenantId, String localeCode) {
+        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null, localeCode).getValue().deepCopy();
+        JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue();
+        return merge(tenantCustomTranslation, systemCustomTranslation);
+    }
 
     @Override
-    public List<TranslationInfo> getSystemTranslationInfos() {
-        List<TranslationInfo> translationInfos = new ArrayList<>();
-        List<String> locales = customTranslationService.getCustomizedLocales(TenantId.SYS_TENANT_ID, null);
-        for (String locale : locales) {
-            translationInfos.add(buildLocaleInfo(locale, getSystemTranslation(locale)));
+    public JsonNode getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        JsonNode customerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode).getValue().deepCopy();
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        if (customer.isSubCustomer()) {
+            customerCustomTranslation = getMergedCustomerHierarchyCustomTranslation(tenantId, customer.getParentCustomerId(), localeCode, customerCustomTranslation);
         }
-        return translationInfos;
+        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null, localeCode).getValue();
+        JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue();
+
+        return merge(merge(customerCustomTranslation, tenantCustomTranslation), systemCustomTranslation);
     }
 
     @Override
-    public List<TranslationInfo> getTenantTranslationInfos(TenantId tenantId) {
-        List<TranslationInfo> translationInfos = new ArrayList<>();
-        List<String> locales = customTranslationService.getCustomizedLocales(tenantId, null);
-        for (String locale : locales) {
-            translationInfos.add(buildLocaleInfo(locale, getTenantTranslation(tenantId, locale)));
-        }
-        return translationInfos;
+    public CustomTranslation saveCustomTranslation(CustomTranslation customTranslation) {
+        customTranslationDao.save(customTranslation.getTenantId(), customTranslation);
+        publishEvictEvent(new CustomTranslationEvictEvent(new CustomTranslationCompositeKey(customTranslation.getTenantId(), customTranslation.getCustomerId(), customTranslation.getLocaleCode())));
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID).edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
+        return getCurrentCustomTranslation(customTranslation.getTenantId(), customTranslation.getCustomerId(), customTranslation.getLocaleCode());
     }
 
     @Override
-    public List<TranslationInfo> getCustomerTranslationInfos(TenantId tenantId, CustomerId customerId) {
-        List<TranslationInfo> translationInfos = new ArrayList<>();
-        List<String> locales = customTranslationService.getCustomizedLocales(tenantId, customerId);
-        for (String locale : locales) {
-            translationInfos.add(buildLocaleInfo(locale, getCustomerTranslation(tenantId, customerId, locale)));
-        }
-        return translationInfos;
+    public CustomTranslation patchCustomTranslation(CustomTranslation newCustomTranslation) {
+        CustomTranslation customTranslation = getCurrentCustomTranslation(newCustomTranslation.getTenantId(), newCustomTranslation.getCustomerId(), newCustomTranslation.getLocaleCode());
+        JacksonUtil.update(customTranslation.getValue(), newCustomTranslation.getValue());
+        return saveCustomTranslation(customTranslation);
     }
 
     @Override
-    public JsonNode getFullSystemTranslation(String localeCode) {
-        return merge(getSystemTranslation(localeCode), DEFAULT_LOCALE_TRANSLATION);
+    public CustomTranslation deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String key) {
+        CustomTranslation customTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode);
+        JacksonUtil.deleteKey(customTranslation.getValue(), key);
+        return saveCustomTranslation(customTranslation);
     }
 
     @Override
-    public JsonNode getFullTenantTranslation(TenantId tenantId, String localeCode) {
-        return merge(getTenantTranslation(tenantId, localeCode), DEFAULT_LOCALE_TRANSLATION);
+    public void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        CustomTranslationCompositeKey key = new CustomTranslationCompositeKey(tenantId, customerId, localeCode);
+        customTranslationDao.removeById(tenantId, key);
+        publishEvictEvent(new CustomTranslationEvictEvent(new CustomTranslationCompositeKey(tenantId, customerId, localeCode)));
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID).edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
     }
 
     @Override
-    public JsonNode getFullCustomerTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
-        return merge(getCustomerTranslation(tenantId, customerId, localeCode), DEFAULT_LOCALE_TRANSLATION);
+    public List<String> getCustomizedLocales(TenantId tenantId, CustomerId customerId) {
+        return customTranslationDao.findLocalesByTenantIdAndCustomerId(tenantId, customerId);
     }
 
     @Override
-    public JsonNode getSystemTranslation(String localeCode) {
-        JsonNode customTranslation = customTranslationService.getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode)
-                .getValue().deepCopy();
-        return mergeWithSystemLanguageTranslationIfExists(localeCode, customTranslation);
-    }
-
-    @Override
-    public JsonNode getTenantTranslation(TenantId tenantId, String localeCode) {
-        JsonNode customTranslation = customTranslationService.getMergedTenantCustomTranslation(tenantId, localeCode);
-        return mergeWithSystemLanguageTranslationIfExists(localeCode, customTranslation);
-    }
-
-    @Override
-    public JsonNode getCustomerTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
-        JsonNode customTranslation = customTranslationService.getMergedCustomerCustomTranslation(tenantId, customerId, localeCode);
-        return mergeWithSystemLanguageTranslationIfExists(localeCode, customTranslation);
-    }
-
-    private static String getLocaleFilePath(String localeCode) {
-        return LOCALE_FILES_DIRECTORY_PATH + "/locale.constant-" + localeCode + ".json";
-    }
-
-    private JsonNode mergeWithSystemLanguageTranslationIfExists(String localeCode, JsonNode jsonNode) {
-        JsonNode systemTranslation = readLocaleFile(getLocaleFilePath(localeCode));
-        if (systemTranslation != null) {
-            return merge(jsonNode, systemTranslation);
-        }
-        return jsonNode;
-    }
-
-    private static JsonNode readLocaleFile(String localeFilePath) {
-        try (InputStream in = BaseTranslationService.class.getResourceAsStream(localeFilePath)) {
-            if (in == null){
-                return null;
-            }
-            return JacksonUtil.OBJECT_MAPPER.readTree(in);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to read locale translation!", e);
+    public void deleteCustomTranslationByTenantId(TenantId tenantId) {
+        List<CustomTranslationCompositeKey> customTranslationIds = customTranslationDao.findCustomTranslationByTenantId(tenantId.getId());
+        for (CustomTranslationCompositeKey customTranslationId : customTranslationIds) {
+            deleteCustomTranslation(new TenantId(customTranslationId.getTenantId()), new CustomerId(customTranslationId.getCustomerId()), customTranslationId.getLocaleCode());
         }
     }
 
-    private TranslationInfo buildLocaleInfo(String localeCode, JsonNode translation) {
-        TranslationInfo translationInfo = LOCALES_INFO.getOrDefault(localeCode, new TranslationInfo());
-        return TranslationInfo.builder()
-                .localeCode(localeCode)
-                .country(translationInfo.getCountry())
-                .language(translationInfo.getLanguage())
-                .progress(calculateTranslationProgress(translation))
-                .build();
+    private JsonNode getMergedCustomerHierarchyCustomTranslation(TenantId tenantId, CustomerId customerId, String locale, JsonNode customTranslation) {
+        CustomTranslation parentCustomerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, locale);
+        JsonNode merged = merge(customTranslation, parentCustomerCustomTranslation.getValue());
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        if (customer.isSubCustomer()) {
+            return getMergedCustomerHierarchyCustomTranslation(tenantId, customer.getParentCustomerId(), locale, merged);
+        } else {
+            return merged;
+        }
     }
 
-    private int calculateTranslationProgress(JsonNode translation) {
-        Set<String> localeKeys = extractKeys(translation);
-        long translated = DEFAULT_LOCALE_KEYS.stream()
-                .filter(localeKeys::contains)
-                .count();
-        return (int) (((translated) * 100) / DEFAULT_LOCALE_KEYS.size());
+    @TransactionalEventListener(classes = CustomTranslationEvictEvent.class)
+    @Override
+    public void handleEvictEvent(CustomTranslationEvictEvent event) {
+        cache.evict(event.getKey());
     }
+
 }

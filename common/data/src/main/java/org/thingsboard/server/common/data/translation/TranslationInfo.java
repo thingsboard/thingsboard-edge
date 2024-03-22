@@ -30,8 +30,7 @@
  */
 package org.thingsboard.server.common.data.translation;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -41,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 
-@ApiModel
+@Schema
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -51,13 +50,13 @@ import java.io.Serializable;
 public class TranslationInfo implements Serializable {
 
     private static final long serialVersionUID = 4179263425113764744L;
-    @ApiModelProperty(position = 1, value = "Locale code formed by combining the ISO 639-1 language code and the ISO 3166-1 region code. For example, \"en_US\"")
+    @Schema(description = "Locale code formed by combining the ISO 639-1 language code and the ISO 3166-1 region code. For example, \"en_US\"")
     private String localeCode;
-    @ApiModelProperty(position = 2, value = "Locale code language display name. For example, \"English\"")
+    @Schema(description = "Locale code language display name. For example, \"English\"")
     private String language;
-    @ApiModelProperty(position = 3, value = "Locale code country display name. For example, \"USA\"")
+    @Schema(description = "Locale code country display name. For example, \"USA\"")
     private String country;
-    @ApiModelProperty(position = 4, value = "Number representing translation percentage progress. For example, 40 that means 40% of all keys are translated.")
+    @Schema(description = "Number representing translation percentage progress. For example, 40 that means 40% of all keys are translated.")
     private int progress;
 
     public TranslationInfo(String localeCode, String language, String country) {
