@@ -31,7 +31,7 @@
 package org.thingsboard.server.dao.sql.query;
 
 import lombok.Data;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.query.BooleanFilterPredicate;
@@ -317,28 +317,28 @@ public class EntityKeyMapping {
         if (entityKey.getType().equals(EntityKeyType.TIME_SERIES)) {
             String readFilter = "entities." + DefaultEntityQueryRepository.TS_READ_FLAG + " = 1 AND ";
             String join = (hasFilter() && hasFilterValues(ctx)) ? "inner join" : "left join";
-            return String.format("%s ts_kv_latest %s ON %s %s.entity_id=entities.id AND %s.key = (select key_id from ts_kv_dictionary where key = :%s_key_id) %s",
+            return String.format("%s ts_kv_latest %s ON %s %s.entity_id=entities.id AND %s.key = (select key_id from key_dictionary where key = :%s_key_id) %s",
                     join, alias, readFilter, alias, alias, alias, filterQuery);
         } else {
             String query;
             String readFilter = "entities." + DefaultEntityQueryRepository.ATTR_READ_FLAG + " = 1 AND ";
             if (!entityKey.getType().equals(EntityKeyType.ATTRIBUTE)) {
                 String join = (hasFilter() && hasFilterValues(ctx)) ? "inner join" : "left join";
-                query = String.format("%s attribute_kv %s ON %s %s.entity_id=entities.id AND %s.entity_type=%s AND %s.attribute_key=:%s_key_id",
-                        join, alias, readFilter, alias, alias, entityTypeStr, alias, alias);
-                String scope;
+                query = String.format("%s attribute_kv %s ON %s %s.entity_id=entities.id AND %s.attribute_key=(select key_id from key_dictionary where key = :%s_key_id)",
+                        join, alias, readFilter, alias, alias, alias);
+                int scope;
                 if (entityKey.getType().equals(EntityKeyType.CLIENT_ATTRIBUTE)) {
-                    scope = DataConstants.CLIENT_SCOPE;
+                    scope = AttributeScope.CLIENT_SCOPE.getId();
                 } else if (entityKey.getType().equals(EntityKeyType.SHARED_ATTRIBUTE)) {
-                    scope = DataConstants.SHARED_SCOPE;
+                    scope = AttributeScope.SHARED_SCOPE.getId();;
                 } else {
-                    scope = DataConstants.SERVER_SCOPE;
+                    scope = AttributeScope.SERVER_SCOPE.getId();;
                 }
-                query = String.format("%s AND %s.attribute_type='%s' %s", query, alias, scope, filterQuery);
+                query = String.format("%s AND %s.attribute_type=%s %s", query, alias, scope, filterQuery);
             } else {
                 String join = (hasFilter() && hasFilterValues(ctx)) ? "join LATERAL" : "left join LATERAL";
                 // Why don't we filter by entityTypeStr entity type here?
-                query = String.format("%s (select * from attribute_kv %s WHERE %s %s.entity_id=entities.id AND %s.attribute_key=:%s_key_id %s" +
+                query = String.format("%s (select * from attribute_kv %s WHERE %s %s.entity_id=entities.id AND %s.attribute_key=(select key_id from key_dictionary where key = :%s_key_id) %s" +
                                 "ORDER BY %s.last_update_ts DESC limit 1) as %s ON true",
                         join, alias, readFilter, alias, alias, alias, filterQuery, alias, alias);
             }

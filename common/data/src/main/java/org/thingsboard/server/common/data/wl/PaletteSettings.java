@@ -30,19 +30,18 @@
  */
 package org.thingsboard.server.common.data.wl;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.StringUtils;
 
-@ApiModel
+@Schema
 @Data
 @EqualsAndHashCode
 public class PaletteSettings {
-    @ApiModelProperty(position = 1, value = "Primary palette JSON", required = true)
+    @Schema(description = "Primary palette JSON", required = true)
     private Palette primaryPalette;
-    @ApiModelProperty(position = 2, value = "Accent palette JSON", required = true)
+    @Schema(description = "Accent palette JSON", required = true)
     private Palette accentPalette;
 
     public PaletteSettings merge(PaletteSettings otherPaletteSettings) {

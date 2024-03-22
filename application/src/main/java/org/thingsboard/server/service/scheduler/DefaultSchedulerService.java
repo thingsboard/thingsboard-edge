@@ -78,8 +78,8 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.partition.AbstractPartitionBasedService;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -304,9 +304,7 @@ public class DefaultSchedulerService extends AbstractPartitionBasedService<Tenan
                                 } else {
                                     device.setSoftwareId(firmwareId);
                                 }
-                                Device savedDevice = deviceService.saveDevice(device);
-                                clusterService.onDeviceUpdated(savedDevice, device);
-                                firmwareStateService.update(savedDevice);
+                                deviceService.saveDevice(device);
                                 break;
                             case ENTITY_GROUP:
                                 EntityGroup deviceGroup = entityGroupService.findEntityGroupById(tenantId, (EntityGroupId) originatorId);

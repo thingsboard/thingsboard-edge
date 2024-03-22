@@ -30,34 +30,33 @@
  */
 package org.thingsboard.server.common.data.menu;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@ApiModel
+@Schema
 @Data
 @EqualsAndHashCode
 public class CustomMenuItem {
 
-    @ApiModelProperty(position = 1, value = "Name of the menu item", example = "My Custom Menu", required = true)
+    @Schema(description = "Name of the menu item", example = "My Custom Menu", required = true)
     private String name;
-    @ApiModelProperty(position = 2, value = "URL of the menu item icon. Overrides 'materialIcon'", example = "My Custom Menu")
+    @Schema(description = "URL of the menu item icon. Overrides 'materialIcon'", example = "My Custom Menu")
     private String iconUrl;
-    @ApiModelProperty(position = 3, value = "Material icon name. See [Material Icons](https://fonts.google.com/icons?selected=Material+Icons) for examples", example = "Info")
+    @Schema(description = "Material icon name. See [Material Icons](https://fonts.google.com/icons?selected=Material+Icons) for examples", example = "Info")
     private String materialIcon;
-    @ApiModelProperty(position = 4, value = "URL to open in the iframe, when user clicks the menu item", example = "https://myexternalurl.com")
+    @Schema(description = "URL to open in the iframe, when user clicks the menu item", example = "https://myexternalurl.com")
     private String iframeUrl;
-    @ApiModelProperty(position = 5, value = "Id of the Dashboard to open, when user clicks the menu item", example = "https://mycompany.com")
+    @Schema(description = "Id of the Dashboard to open, when user clicks the menu item", example = "https://mycompany.com")
     private String dashboardId;
-    @ApiModelProperty(position = 6, value = "Hide the dashboard toolbar")
+    @Schema(description = "Hide the dashboard toolbar")
     private Boolean hideDashboardToolbar;
-    @ApiModelProperty(position = 7, value = "Set the access token of the current user to a new dashboard")
+    @Schema(description = "Set the access token of the current user to a new dashboard")
     private boolean setAccessToken;
-    @ApiModelProperty(position = 8, value = "List of child menu items")
+    @Schema(description = "List of child menu items")
     private List<CustomMenuItem> childMenuItems = new ArrayList<>();
 
 }

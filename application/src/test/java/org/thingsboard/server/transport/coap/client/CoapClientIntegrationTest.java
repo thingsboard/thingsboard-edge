@@ -41,6 +41,7 @@ import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -97,6 +98,7 @@ public class CoapClientIntegrationTest extends AbstractCoapIntegrationTest {
         processAfterTest();
     }
 
+    @Ignore // Uncomment when Californium 3.11 is released with https://github.com/eclipse-californium/californium/pull/2215
     @Test
     public void testConfirmableRequests() throws Exception {
         boolean confirmable = true;
@@ -105,6 +107,7 @@ public class CoapClientIntegrationTest extends AbstractCoapIntegrationTest {
         processTestRequestAttributesValuesFromTheServer(confirmable);
     }
 
+    @Ignore // Uncomment when Californium 3.11 is released with https://github.com/eclipse-californium/californium/pull/2215
     @Test
     public void testNonConfirmableRequests() throws Exception {
         boolean confirmable = false;

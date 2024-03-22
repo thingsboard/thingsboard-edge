@@ -31,10 +31,14 @@
 package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -42,19 +46,14 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
+import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Table;
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_DEBUG_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_NAME_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
@@ -62,7 +61,6 @@ import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPER
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 @Table(name = CONVERTER_TABLE_NAME)
 public final class ConverterEntity extends BaseSqlEntity<Converter> implements BaseEntity<Converter> {
 
@@ -79,11 +77,11 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements B
     @Column(name = CONVERTER_DEBUG_MODE_PROPERTY)
     private boolean debugMode;
 
-    @Type(type = "json")
+    @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.CONVERTER_CONFIGURATION_PROPERTY)
     private JsonNode configuration;
 
-    @Type(type = "json")
+    @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.CONVERTER_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
