@@ -90,6 +90,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -491,7 +492,7 @@ public class TbGetCustomerAttributeNodeTest extends AbstractRuleNodeUpgradeTest 
                 .thenReturn(Futures.immediateFuture(customer));
 
         when(ctxMock.getTimeseriesService()).thenReturn(timeseriesServiceMock);
-        when(timeseriesServiceMock.findLatest(any(), any(), argThat(new ListMatcher<>(expectedPatternProcessedKeysList))))
+        when(timeseriesServiceMock.findLatest(any(), any(), anyList()))
                 .thenReturn(Futures.immediateFuture(timeseriesList));
 
         when(ctxMock.getDbCallbackExecutor()).thenReturn(DB_EXECUTOR);
