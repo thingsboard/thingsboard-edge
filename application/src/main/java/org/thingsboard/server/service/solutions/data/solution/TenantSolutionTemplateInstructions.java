@@ -30,8 +30,7 @@
  */
 package org.thingsboard.server.service.solutions.data.solution;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -39,21 +38,21 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 
-@ApiModel
+@Schema
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class TenantSolutionTemplateInstructions {
 
-    @ApiModelProperty(position = 1, value = "Id of the group that contains main dashboard of the solution")
+    @Schema(description = "Id of the group that contains main dashboard of the solution")
     private EntityGroupId dashboardGroupId;
-    @ApiModelProperty(position = 2, value = "Id of the main dashboard of the solution")
+    @Schema(description = "Id of the main dashboard of the solution")
     private DashboardId dashboardId;
-    @ApiModelProperty(position = 3, value = "Id of the public customer if solution has public entities")
+    @Schema(description = "Id of the public customer if solution has public entities")
     private CustomerId publicId;
-    @ApiModelProperty(position = 4, value = "Is the main dashboard public")
+    @Schema(description = "Is the main dashboard public")
     private boolean mainDashboardPublic;
-    @ApiModelProperty(position = 5, value = "Markdown with solution usage instructions")
+    @Schema(description = "Markdown with solution usage instructions")
     private String details;
 
     public TenantSolutionTemplateInstructions(TenantSolutionTemplateInstructions instructions) {

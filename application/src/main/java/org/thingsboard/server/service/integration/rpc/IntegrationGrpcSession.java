@@ -43,9 +43,10 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.ConverterDebugEvent;
 import org.thingsboard.server.common.data.event.Event;
@@ -91,7 +92,7 @@ import org.thingsboard.server.gen.integration.UplinkResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.integration.IntegrationContextComponent;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -333,7 +334,7 @@ public final class IntegrationGrpcSession implements Closeable {
             return;
         }
 
-        ConverterDebugEvent event = FSTUtils.decode(proto.getEvent().toByteArray());
+        ConverterDebugEvent event = JavaSerDesUtil.decode(proto.getEvent().toByteArray());
 
         var newConverterEvent = ConverterDebugEvent.builder()
                 .tenantId(configuration.getTenantId())
@@ -353,7 +354,7 @@ public final class IntegrationGrpcSession implements Closeable {
     private void saveEvent(TenantId tenantId, EntityId entityId, TbEventProto proto) {
         try {
             if (proto.getEvent() != null && !proto.getEvent().isEmpty()) {
-                Event event = FSTUtils.decode(proto.getEvent().toByteArray());
+                Event event = JavaSerDesUtil.decode(proto.getEvent().toByteArray());
                 event.setTenantId(tenantId);
                 event.setEntityId(entityId.getId());
                 saveEvent(tenantId, entityId, event);
@@ -387,12 +388,12 @@ public final class IntegrationGrpcSession implements Closeable {
                     AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
 
                     future = Futures.transform(future, v -> {
-                        ctx.getAttributesService().save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+                        ctx.getAttributesService().save(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(attr));
                         return null;
                     }, MoreExecutors.directExecutor());
                 } else if (lcEvent.getLcEventType().equals("STOPPED")) {
                     future = Futures.transform(future, v -> {
-                        ctx.getAttributesService().removeAll(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(key));
+                        ctx.getAttributesService().removeAll(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(key));
                         return null;
                     }, MoreExecutors.directExecutor());
                 }

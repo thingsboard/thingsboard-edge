@@ -32,7 +32,7 @@ package org.thingsboard.server.common.data.permission;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -99,15 +99,15 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
             Arrays.asList(Operation.READ, Operation.RPC_CALL, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY);
 
     private TenantId tenantId;
-    @ApiModelProperty(position = 4, value = "JSON object with the User Group Id. Represent user group that will have permissions to perform operations against corresponding Entity Group.")
+    @Schema(description = "JSON object with the User Group Id. Represent user group that will have permissions to perform operations against corresponding Entity Group.")
     private EntityGroupId userGroupId;
-    @ApiModelProperty(position = 5, value = "JSON object with the Role Id. Represent set of permissions.")
+    @Schema(description = "JSON object with the Role Id. Represent set of permissions.")
     private RoleId roleId;
-    @ApiModelProperty(position = 6, value = "JSON object with the Entity Group Id. Represent entity (device, asset, etc.) group.")
+    @Schema(description = "JSON object with the Entity Group Id. Represent entity (device, asset, etc.) group.")
     private EntityGroupId entityGroupId;
-    @ApiModelProperty(position = 7, value = "Type of the entities in the group: DEVICE, ASSET, CUSTOMER, etc.")
+    @Schema(description = "Type of the entities in the group: DEVICE, ASSET, CUSTOMER, etc.")
     private EntityType entityGroupType;
-    @ApiModelProperty(position = 8, value = "Public or Private permissions. Private by default.", example = "false")
+    @Schema(description = "Public or Private permissions. Private by default.", example = "false")
     private boolean isPublic;
 
     public GroupPermission() {
@@ -128,13 +128,13 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
         this.isPublic = groupPermission.isPublic();
     }
 
-    @ApiModelProperty(position = 3, value = "JSON object with the Tenant Id.", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "JSON object with the Tenant Id.", accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     public TenantId getTenantId() {
         return tenantId;
     }
 
-    @ApiModelProperty(position = 8, value = "Name of the Group Permissions. Auto-generated", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Name of the Group Permissions. Auto-generated", accessMode = Schema.AccessMode.READ_ONLY)
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @Override
     public String getName() {
@@ -151,7 +151,7 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
         return EntityType.GROUP_PERMISSION;
     }
 
-    @ApiModelProperty(position = 1, value = "JSON object with the Group Permission Id. " +
+    @Schema(description = "JSON object with the Group Permission Id. " +
             "Specify this field to update the Group Permission. " +
             "Referencing non-existing Group Permission Id will cause error. " +
             "Omit this field to create new Group Permission." )
@@ -160,7 +160,7 @@ public class GroupPermission extends BaseData<GroupPermissionId> implements HasN
         return super.getId();
     }
 
-    @ApiModelProperty(position = 2, value = "Timestamp of the group permission creation, in milliseconds", example = "1609459200000", accessMode = ApiModelProperty.AccessMode.READ_ONLY)
+    @Schema(description = "Timestamp of the group permission creation, in milliseconds", example = "1609459200000", accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     public long getCreatedTime() {
         return super.getCreatedTime();
