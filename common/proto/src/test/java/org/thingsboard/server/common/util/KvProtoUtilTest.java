@@ -28,23 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.kv;
+package org.thingsboard.server.common.util;
+import org.junit.Test;
+import org.thingsboard.server.common.data.kv.DataType;
 
-import lombok.Getter;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public enum DataType {
+public class KvProtoUtilTest {
 
-    BOOLEAN(0),
-    LONG(1),
-    DOUBLE(2),
-    STRING(3),
-    JSON(4);
-
-    @Getter
-    private final int protoNumber; // Corresponds to KeyValueType
-
-    DataType(int protoNumber) {
-        this.protoNumber = protoNumber;
+    @Test
+    public void protoDataTypeSerialization() {
+        for (DataType dataType : DataType.values()) {
+            assertThat(KvProtoUtil.fromProto(KvProtoUtil.toProto(dataType))).as(dataType.name()).isEqualTo(dataType);
+        }
     }
 
 }
