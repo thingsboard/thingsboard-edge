@@ -31,10 +31,6 @@
 package org.thingsboard.server.service.mail;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
 import com.google.api.client.auth.oauth2.RefreshTokenRequest;
@@ -42,14 +38,18 @@ import com.google.api.client.auth.oauth2.TokenResponse;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -62,14 +62,12 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 
 import static org.thingsboard.server.common.data.mail.MailOauth2Provider.OFFICE_365;
@@ -85,7 +83,9 @@ public class RefreshTokenExpCheckService {
     private final AttributesService attributesService;
     private final ListeningExecutorService lExecService = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor());
 
-    @Scheduled(initialDelayString = "#{T(org.apache.commons.lang3.RandomUtils).nextLong(0, ${mail.oauth2.refreshTokenCheckingInterval})}", fixedDelayString = "${mail.oauth2.refreshTokenCheckingInterval}")
+    @Scheduled(initialDelayString = "#{T(org.apache.commons.lang3.RandomUtils).nextLong(0, ${mail.oauth2.refreshTokenCheckingInterval})}",
+            fixedDelayString = "${mail.oauth2.refreshTokenCheckingInterval}",
+            timeUnit = TimeUnit.SECONDS)
     public void check() throws Exception {
         PageLink pageLink = new PageLink(1000);
         PageData<TenantId> tenantIds;
@@ -100,7 +100,7 @@ public class RefreshTokenExpCheckService {
                             checkTokenExpires(tenantId, tenantMailSettings, this::saveTenantAdminSettings);
                         }
                     } catch (Exception e) {
-                        log.error("Error occurred while checking token");
+                        log.error("[{}] Error occurred while checking token", tenantId, e);
                     }
                 }));
             }
@@ -136,9 +136,10 @@ public class RefreshTokenExpCheckService {
             }
         }
     }
+
     private AdminSettings getTenantMailSettings(TenantId tenantId) throws Exception {
         List<AttributeKvEntry> attributeKvEntries =
-                attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, List.of("mail")).get();
+                attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, List.of("mail")).get();
         if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
             AdminSettings adminSettings = new AdminSettings();
             adminSettings.setKey("mail");
@@ -150,12 +151,12 @@ public class RefreshTokenExpCheckService {
     }
 
     @SneakyThrows
-    private AdminSettings saveTenantAdminSettings(TenantId tenantId, AdminSettings adminSettings)  {
+    private AdminSettings saveTenantAdminSettings(TenantId tenantId, AdminSettings adminSettings) {
         String jsonString = adminSettings.getJsonValue() == null ? "" : JacksonUtil.toString(adminSettings.getJsonValue());
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettings.getKey(), jsonString), ts));
-        attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes).get();
+        attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes).get();
         return adminSettings;
     }
 }

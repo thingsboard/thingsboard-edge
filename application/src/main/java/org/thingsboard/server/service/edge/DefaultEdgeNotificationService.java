@@ -75,8 +75,8 @@ import org.thingsboard.server.service.edge.rpc.processor.widget.WidgetBundleEdge
 import org.thingsboard.server.service.edge.rpc.processor.widget.WidgetTypeEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.wl.WhiteLabelingEdgeProcessor;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -300,6 +300,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                             break;
                         case TB_RESOURCE:
                             resourceEdgeProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
+                            break;
+                        case DEVICE_GROUP_OTA:
+                            deviceProcessor.processDeviceOtaNotification(tenantId, edgeNotificationMsg);
                             break;
                         default:
                             log.warn("[{}] Edge event type [{}] is not designed to be pushed to edge", tenantId, type);

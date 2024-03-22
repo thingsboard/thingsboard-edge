@@ -38,6 +38,7 @@ import lombok.Data;
 import org.thingsboard.rule.engine.analytics.incoming.MathFunction;
 import org.thingsboard.rule.engine.api.ScriptEngine;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
@@ -91,7 +92,7 @@ public class AggLatestMapping {
                     return Optional.of(latestTs.get(0));
                 }
             } else {
-                ListenableFuture<Optional<AttributeKvEntry>> latest = ctx.getAttributesService().find(ctx.getTenantId(), entityId, sourceScope, source);
+                ListenableFuture<Optional<AttributeKvEntry>> latest = ctx.getAttributesService().find(ctx.getTenantId(), entityId, AttributeScope.valueOf(sourceScope), source);
                 Optional<AttributeKvEntry> latestAttr = latest.get();
                 if (latestAttr.isPresent()) {
                     return Optional.of(latestAttr.get());
