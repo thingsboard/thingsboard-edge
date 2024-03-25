@@ -28,23 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.rpc;
+package org.thingsboard.server.common.util;
+import org.junit.Test;
+import org.thingsboard.server.common.data.kv.DataType;
 
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.rpc.Rpc;
-import org.thingsboard.server.common.data.rpc.RpcStatus;
-import org.thingsboard.server.dao.Dao;
+import static org.assertj.core.api.Assertions.assertThat;
 
-public interface RpcDao extends Dao<Rpc> {
-    PageData<Rpc> findAllByDeviceId(TenantId tenantId, DeviceId deviceId, PageLink pageLink);
+public class KvProtoUtilTest {
 
-    PageData<Rpc> findAllByDeviceIdAndStatus(TenantId tenantId, DeviceId deviceId, RpcStatus rpcStatus, PageLink pageLink);
-
-    PageData<Rpc> findAllRpcByTenantId(TenantId tenantId, PageLink pageLink);
-
-    int deleteOutdatedRpcByTenantId(TenantId tenantId, Long expirationTime);
+    @Test
+    public void protoDataTypeSerialization() {
+        for (DataType dataType : DataType.values()) {
+            assertThat(KvProtoUtil.fromProto(KvProtoUtil.toProto(dataType))).as(dataType.name()).isEqualTo(dataType);
+        }
+    }
 
 }
