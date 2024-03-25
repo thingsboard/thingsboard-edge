@@ -123,7 +123,7 @@ public class EventController extends BaseController {
 
     @ApiOperation(value = "Get Events by type (getEvents)",
             notes = "Returns a page of events for specified entity by specifying event type. " +
-                    PAGE_DATA_PARAMETERS, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/events/{entityType}/{entityId}/{eventType}", method = RequestMethod.GET)
     @ResponseBody
@@ -165,7 +165,7 @@ public class EventController extends BaseController {
                     "The call was deprecated to improve the performance of the system. " +
                     "Current implementation will return 'Lifecycle' events only. " +
                     "Use 'Get events by type' or 'Get events by filter' instead. " +
-                    PAGE_DATA_PARAMETERS, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/events/{entityType}/{entityId}", method = RequestMethod.GET)
     @ResponseBody
@@ -205,8 +205,7 @@ public class EventController extends BaseController {
     @ApiOperation(value = "Get Events by event filter (getEvents)",
             notes = "Returns a page of events for the chosen entity by specifying the event filter. " +
                     PAGE_DATA_PARAMETERS + NEW_LINE +
-                    EVENT_FILTER_DEFINITION,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    EVENT_FILTER_DEFINITION)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/events/{entityType}/{entityId}", method = RequestMethod.POST)
     @ResponseBody
