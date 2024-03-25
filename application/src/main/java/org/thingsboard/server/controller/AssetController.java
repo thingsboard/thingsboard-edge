@@ -158,7 +158,7 @@ public class AssetController extends BaseController {
     @RequestMapping(value = "/asset", method = RequestMethod.POST)
     @ResponseBody
     public Asset saveAsset(
-            @Parameter(description = "A JSON value representing the asset.", required = true)
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "A JSON value representing the asset.", required = true)
             @RequestBody Asset asset,
             @Parameter(description = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,

@@ -188,7 +188,7 @@ public class CustomerController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer", method = RequestMethod.POST)
     @ResponseBody
-    public Customer saveCustomer(@Parameter(description = "A JSON value representing the customer.") @RequestBody Customer customer,
+    public Customer saveCustomer(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "A JSON value representing the customer.") @RequestBody Customer customer,
                                  @Parameter(description = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
                                  @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
                                  @Parameter(description = ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION)
