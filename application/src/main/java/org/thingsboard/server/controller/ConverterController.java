@@ -183,7 +183,7 @@ public class ConverterController extends AutoCommitController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter", method = RequestMethod.POST)
     @ResponseBody
-    public Converter saveConverter(@Parameter(required = true, description = "A JSON value representing the converter.") @RequestBody Converter converter) throws Exception {
+    public Converter saveConverter(@io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, description = "A JSON value representing the converter.") @RequestBody Converter converter) throws Exception {
         converter.setTenantId(getCurrentUser().getTenantId());
         checkEntity(converter.getId(), converter, Resource.CONVERTER, null);
         return tbConverterService.save(converter, getCurrentUser());
