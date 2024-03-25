@@ -107,8 +107,7 @@ public class SelfRegistrationController extends BaseController {
                     "Specify existing Admin Settings Id to update the Self Registration parameters. " +
                     "Referencing non-existing Admin Settings Id will cause 'Not Found' error." +
                     "\n\n" + SELF_REGISTRATION_DESC +
-                    TENANT_AUTHORITY_PARAGRAPH + ControllerConstants.WL_WRITE_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    TENANT_AUTHORITY_PARAGRAPH + ControllerConstants.WL_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/selfRegistration/selfRegistrationParams", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
@@ -135,8 +134,7 @@ public class SelfRegistrationController extends BaseController {
 
     @ApiOperation(value = "Get Self Registration parameters (getSelfRegistrationParams)",
             notes = "Fetch the Self Registration parameters object for the tenant of the current user. "
-                    + TENANT_AUTHORITY_PARAGRAPH + WL_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + TENANT_AUTHORITY_PARAGRAPH + WL_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/selfRegistration/selfRegistrationParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -193,8 +191,7 @@ public class SelfRegistrationController extends BaseController {
 
     @ApiOperation(value = "Get Self Registration form parameters without authentication (getSignUpSelfRegistrationParams)",
             notes = "Fetch the Self Registration parameters based on the domain name from the request. Available for non-authorized users. " +
-                    "Contains the information to customize the sign-up form.",
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    "Contains the information to customize the sign-up form.")
     @RequestMapping(value = "/noauth/selfRegistration/signUpSelfRegistrationParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public SignUpSelfRegistrationParams getSignUpSelfRegistrationParams(

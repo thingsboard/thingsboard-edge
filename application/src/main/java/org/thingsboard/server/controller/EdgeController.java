@@ -403,8 +403,7 @@ public class EdgeController extends BaseController {
 
     @ApiOperation(value = "Get All Edge Infos for current user (getAllEdgeInfos)",
             notes = "Returns a page of edge info objects owned by the tenant or the customer of a current user. " +
-                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edgeInfos/all", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -460,8 +459,7 @@ public class EdgeController extends BaseController {
 
     @ApiOperation(value = "Get Customer Edge Infos (getCustomerEdgeInfos)",
             notes = "Returns a page of edge info objects owned by the specified customer. " +
-                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/edgeInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -567,8 +565,7 @@ public class EdgeController extends BaseController {
 
     @ApiOperation(value = "Get edges by Entity Group Id (getEdgesByEntityGroupId)",
             notes = "Returns a page of Edge objects that belongs to specified Entity Group Id. " +
-                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/edges", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -678,8 +675,7 @@ public class EdgeController extends BaseController {
     }
 
     @ApiOperation(value = "Check edge license (checkInstance)",
-            notes = "Checks license request from edge service by forwarding request to license portal.",
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Checks license request from edge service by forwarding request to license portal.")
     @RequestMapping(value = "/license/checkInstance", method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<JsonNode> checkInstance(@RequestBody JsonNode request) throws ThingsboardException {
@@ -693,8 +689,7 @@ public class EdgeController extends BaseController {
     }
 
     @ApiOperation(value = "Activate edge instance (activateInstance)",
-            notes = "Activates edge license on license portal.",
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Activates edge license on license portal.")
     @RequestMapping(value = "/license/activateInstance", params = {"licenseSecret", "releaseDate"}, method = RequestMethod.POST)
     @ResponseBody
     public ResponseEntity<JsonNode> activateInstance(@RequestParam String licenseSecret,

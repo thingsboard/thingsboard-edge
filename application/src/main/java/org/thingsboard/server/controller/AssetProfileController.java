@@ -238,7 +238,7 @@ public class AssetProfileController extends BaseController {
 
     @ApiOperation(value = "Get Asset Profiles By Ids (getAssetProfilesByIds)",
             notes = "Requested asset profiles must be owned by tenant which is performing the request. " +
-                    NEW_LINE + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    NEW_LINE + RBAC_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/assetProfileInfos", params = {"assetProfileIds"}, method = RequestMethod.GET)
     @ResponseBody

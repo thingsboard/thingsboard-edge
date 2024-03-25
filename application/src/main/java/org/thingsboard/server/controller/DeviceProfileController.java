@@ -298,8 +298,7 @@ public class DeviceProfileController extends BaseController {
 
     @ApiOperation(value = "Get Device Profiles By Ids (getDeviceProfilesByIds)",
             notes = "Requested device profiles must be owned by tenant which is performing the request. " +
-                    NEW_LINE + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    NEW_LINE + RBAC_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/deviceProfileInfos", params = {"deviceProfileIds"}, method = RequestMethod.GET)
     @ResponseBody

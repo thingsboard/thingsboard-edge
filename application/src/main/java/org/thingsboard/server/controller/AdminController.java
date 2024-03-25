@@ -191,7 +191,7 @@ public class AdminController extends BaseController {
     @RequestMapping(value = "/settings", method = RequestMethod.POST)
     @ResponseBody
     public AdminSettings saveAdminSettings(
-            @Parameter(description = "A JSON value representing the Administration Settings.")
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "A JSON value representing the Administration Settings.")
             @RequestBody AdminSettings adminSettings) throws Exception {
         Authority authority = getCurrentUser().getAuthority();
         adminSettings.setTenantId(getTenantId());

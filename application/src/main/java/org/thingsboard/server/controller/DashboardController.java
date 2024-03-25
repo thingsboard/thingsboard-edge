@@ -338,8 +338,7 @@ public class DashboardController extends BaseController {
 
     @ApiOperation(value = "Get All Dashboards for current user (getAllDashboards)",
             notes = "Returns a page of dashboard info objects owned by the tenant or the customer of a current user. "
-                    + DASHBOARD_INFO_DEFINITION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + DASHBOARD_INFO_DEFINITION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/dashboards/all", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -377,8 +376,7 @@ public class DashboardController extends BaseController {
 
     @ApiOperation(value = "Get Customer Dashboards (getCustomerDashboards)",
             notes = "Returns a page of dashboard info objects owned by the specified customer. "
-                    + DASHBOARD_INFO_DEFINITION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + DASHBOARD_INFO_DEFINITION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/dashboards", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -412,7 +410,7 @@ public class DashboardController extends BaseController {
 
     @ApiOperation(value = "Get dashboards by Dashboard Ids (getDashboardsByIds)",
             notes = "Returns a list of DashboardInfo objects based on the provided ids. Filters the list based on the user permissions. " +
-                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/dashboards", params = {"dashboardIds"}, method = RequestMethod.GET)
     @ResponseBody
@@ -432,7 +430,7 @@ public class DashboardController extends BaseController {
 
     @ApiOperation(value = "Get dashboards by Entity Group Id (getDashboardsByEntityGroupId)",
             notes = "Returns a page of Dashboard objects that belongs to specified Entity Group Id. " +
-                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/dashboards", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -480,8 +478,7 @@ public class DashboardController extends BaseController {
 
     @ApiOperation(value = "Export Dashboards (exportGroupDashboards)",
             notes = "Export the dashboards that belong to specified group id."
-                    + DASHBOARD_DEFINITION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + DASHBOARD_DEFINITION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/dashboards/export", params = {"limit"}, method = RequestMethod.GET)
     @ResponseBody
@@ -603,8 +600,7 @@ public class DashboardController extends BaseController {
 
     @ApiOperation(value = "Get Customer Home Dashboard Info (getCustomerHomeDashboardInfo)",
             notes = "Returns the home dashboard info object that is configured as 'homeDashboardId' parameter in the 'additionalInfo' of the corresponding customer. " +
-                    CUSTOMER_AUTHORITY_PARAGRAPH + WL_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    CUSTOMER_AUTHORITY_PARAGRAPH + WL_READ_CHECK)
     @PreAuthorize("hasAuthority('CUSTOMER_USER')")
     @RequestMapping(value = "/customer/dashboard/home/info", method = RequestMethod.GET)
     @ResponseBody
@@ -655,8 +651,7 @@ public class DashboardController extends BaseController {
 
     @ApiOperation(value = "Update Customer Home Dashboard Info (setCustomerHomeDashboardInfo)",
             notes = "Update the home dashboard assignment for the current customer. " +
-                    CUSTOMER_AUTHORITY_PARAGRAPH + WL_WRITE_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    CUSTOMER_AUTHORITY_PARAGRAPH + WL_WRITE_CHECK)
     @PreAuthorize("hasAuthority('CUSTOMER_USER')")
     @RequestMapping(value = "/customer/dashboard/home/info", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)

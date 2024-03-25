@@ -140,7 +140,7 @@ public class RoleController extends AutoCommitController {
     @ApiOperation(value = "Get Role by Id (getRoleById)",
             notes = "Fetch the Role object based on the provided Role Id. " +
                     ROLE_SHORT_DESCRIPTION + RBAC_READ_CHECK
-            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            )
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/role/{roleId}", method = RequestMethod.GET)
     @ResponseBody
@@ -157,7 +157,7 @@ public class RoleController extends AutoCommitController {
                     "Specify existing Role id to update the permission. " +
                     "Referencing non-existing Group Permission Id will cause 'Not Found' error." +
                     "\n\n" + ROLE_SHORT_DESCRIPTION + "\n\n" + ROLE_PERMISSIONS_DESCRIPTION +
-                    ControllerConstants.RBAC_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    ControllerConstants.RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/role", method = RequestMethod.POST)
     @ResponseBody
@@ -257,7 +257,7 @@ public class RoleController extends AutoCommitController {
     }
 
     @ApiOperation(value = "Get Roles By Ids (getRolesByIds)",
-            notes = "Returns the list of rows based on their ids. " + "\n\n" + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Returns the list of rows based on their ids. " + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/roles", params = {"roleIds"}, method = RequestMethod.GET)
     @ResponseBody

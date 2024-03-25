@@ -252,8 +252,7 @@ public class OtaPackageController extends BaseController {
 
     @ApiOperation(value = "Get group OTA Package Infos (getGroupOtaPackages)",
             notes = "Returns a page of OTA Package Info objects owned by tenant, and by entity group. " +
-                    PAGE_DATA_PARAMETERS + OTA_PACKAGE_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
-            responses = @ApiResponse(content = @Content(mediaType = APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + OTA_PACKAGE_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/otaPackages/group/{groupId}/{type}", method = RequestMethod.GET)
     @ResponseBody

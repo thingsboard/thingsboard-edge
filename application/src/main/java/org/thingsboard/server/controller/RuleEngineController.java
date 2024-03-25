@@ -101,8 +101,7 @@ public class RuleEngineController extends BaseController {
                     "Uses current User Id ( the one which credentials is used to perform the request) as the Rule Engine message originator. " +
                     MSG_DESCRIPTION +
                     "The default timeout of the request processing is 10 seconds."
-                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/", method = RequestMethod.POST)
     @ResponseBody
@@ -117,7 +116,7 @@ public class RuleEngineController extends BaseController {
                     "Uses specified Entity Id as the Rule Engine message originator. " +
                     MSG_DESCRIPTION +
                     "The default timeout of the request processing is 10 seconds."
-                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/{entityType}/{entityId}", method = RequestMethod.POST)
     @ResponseBody
@@ -136,7 +135,7 @@ public class RuleEngineController extends BaseController {
                     "Uses specified Entity Id as the Rule Engine message originator. " +
                     MSG_DESCRIPTION +
                     "The platform expects the timeout value in milliseconds."
-                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/{entityType}/{entityId}/{timeout}", method = RequestMethod.POST)
     @ResponseBody
@@ -158,7 +157,7 @@ public class RuleEngineController extends BaseController {
                     MSG_DESCRIPTION +
                     "If request sent for Device/Device Profile or Asset/Asset Profile entity, specified queue will be used instead of the queue selected in the device or asset profile. " +
                     "The platform expects the timeout value in milliseconds."
-                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/{entityType}/{entityId}/{queueName}/{timeout}", method = RequestMethod.POST)
     @ResponseBody

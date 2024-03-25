@@ -295,8 +295,7 @@ public class AssetController extends BaseController {
 
     @ApiOperation(value = "Get All Asset Infos for current user (getAllAssetInfos)",
             notes = "Returns a page of asset info objects owned by the tenant or the customer of a current user. "
-                    + ASSET_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + ASSET_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/assetInfos/all", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -356,8 +355,7 @@ public class AssetController extends BaseController {
 
     @ApiOperation(value = "Get Customer Asset Infos (getCustomerAssetInfos)",
             notes = "Returns a page of asset info objects owned by the specified customer. "
-                    + ASSET_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + ASSET_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/assetInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -438,8 +436,7 @@ public class AssetController extends BaseController {
 
     @ApiOperation(value = "Get assets by Entity Group Id (getAssetsByEntityGroupId)",
             notes = "Returns a page of asset objects that belongs to specified Entity Group Id. " +
-                    PAGE_DATA_PARAMETERS + "\n\n" + RBAC_GROUP_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + "\n\n" + RBAC_GROUP_READ_CHECK)
     @RequestMapping(value = "/entityGroup/{entityGroupId}/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Asset> getAssetsByEntityGroupId(

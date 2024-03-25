@@ -90,8 +90,7 @@ public class GroupPermissionController extends BaseController {
 
     @ApiOperation(value = "Get Group Permission (getGroupPermissionById)",
             notes = "Fetch the Group Permission object based on the provided Group Permission Id. " +
-                    GROUP_PERMISSION_DESCRIPTION + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    GROUP_PERMISSION_DESCRIPTION + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/groupPermission/{groupPermissionId}", method = RequestMethod.GET)
     @ResponseBody
@@ -105,7 +104,7 @@ public class GroupPermissionController extends BaseController {
     @ApiOperation(value = "Get Group Permission Info (getGroupPermissionInfoById)",
             notes = "Fetch the Group Permission Info object based on the provided Group Permission Id and the flag that controls what additional information to load: User or Entity Group. " +
                     GROUP_PERMISSION_INFO_DESCRIPTION + RBAC_READ_CHECK
-            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            )
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/groupPermission/info/{groupPermissionId}", method = RequestMethod.GET)
     @ResponseBody
@@ -123,7 +122,7 @@ public class GroupPermissionController extends BaseController {
                     "The newly created Group Permission id will be present in the response. " +
                     "Specify existing Group Permission id to update the permission. " +
                     "Referencing non-existing Group Permission Id will cause 'Not Found' error." +
-                    "\n\n" + GROUP_PERMISSION_DESCRIPTION + ControllerConstants.RBAC_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    "\n\n" + GROUP_PERMISSION_DESCRIPTION + ControllerConstants.RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/groupPermission", method = RequestMethod.POST)
     @ResponseBody
@@ -208,8 +207,7 @@ public class GroupPermissionController extends BaseController {
 
     @ApiOperation(value = "Get group permissions by User Group Id (getUserGroupPermissions)",
             notes = "Returns a list of group permission objects that belongs to specified User Group Id. " +
-                    GROUP_PERMISSION_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    GROUP_PERMISSION_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/userGroup/{userGroupId}/groupPermissions", method = RequestMethod.GET)
     @ResponseBody
@@ -226,8 +224,7 @@ public class GroupPermissionController extends BaseController {
 
     @ApiOperation(value = "Load User Group Permissions (loadUserGroupPermissionInfos)",
             notes = "Enrich a list of group permission objects with the information about Role, User and Entity Groups. " +
-                    GROUP_PERMISSION_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    GROUP_PERMISSION_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/userGroup/groupPermissions/info", method = RequestMethod.POST)
     @ResponseBody
@@ -242,8 +239,7 @@ public class GroupPermissionController extends BaseController {
 
     @ApiOperation(value = "Get group permissions by Entity Group Id (getEntityGroupPermissions)",
             notes = "Returns a list of group permission objects that is assigned for the specified Entity Group Id. " +
-                    GROUP_PERMISSION_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    GROUP_PERMISSION_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/groupPermissions", method = RequestMethod.GET)
     @ResponseBody
