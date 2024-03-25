@@ -149,7 +149,7 @@ public class TbIntegrationExecutorEventStorageService implements EventStorageSer
                 .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
                 .setEntityIdMSB(id.getId().getMostSignificantBits())
                 .setEntityIdLSB(id.getId().getLeastSignificantBits())
-                .addAllTsData(KvProtoUtil.tsToTsKvProtos(statsTs)).build(), new IntegrationCallback<>() {
+                .addAllTsData(KvProtoUtil.toTsKvProtoList(statsTs)).build(), new IntegrationCallback<>() {
             @Override
             public void onSuccess(Void msg) {
                 log.trace("[{}] Pushed integration statistics telemetry: {}", id, statistics);
