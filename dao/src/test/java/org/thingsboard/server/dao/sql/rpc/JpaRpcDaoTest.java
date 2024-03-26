@@ -28,23 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.rpc;
+package org.thingsboard.server.dao.sql.rpc;
 
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rpc.RpcStatus;
-import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.AbstractJpaDaoTest;
 
-public interface RpcDao extends Dao<Rpc> {
-    PageData<Rpc> findAllByDeviceId(TenantId tenantId, DeviceId deviceId, PageLink pageLink);
+import java.util.UUID;
 
-    PageData<Rpc> findAllByDeviceIdAndStatus(TenantId tenantId, DeviceId deviceId, RpcStatus rpcStatus, PageLink pageLink);
+import static org.assertj.core.api.Assertions.assertThat;
 
-    PageData<Rpc> findAllRpcByTenantId(TenantId tenantId, PageLink pageLink);
+public class JpaRpcDaoTest extends AbstractJpaDaoTest {
 
-    int deleteOutdatedRpcByTenantId(TenantId tenantId, Long expirationTime);
+    @Autowired
+    JpaRpcDao rpcDao;
+
+    @Test
+    public void deleteOutdated() {
+        Rpc rpc = new Rpc();
+        rpc.setTenantId(TenantId.SYS_TENANT_ID);
+        rpc.setDeviceId(new DeviceId(UUID.randomUUID()));
+        rpc.setStatus(RpcStatus.QUEUED);
+        rpc.setRequest(JacksonUtil.toJsonNode("{}"));
+        rpcDao.saveAndFlush(rpc.getTenantId(), rpc);
+
+        rpc.setId(null);
+        rpcDao.saveAndFlush(rpc.getTenantId(), rpc);
+
+        TenantId tenantId = TenantId.fromUUID(UUID.fromString("3d193a7a-774b-4c05-84d5-f7fdcf7a37cf"));
+        rpc.setId(null);
+        rpc.setTenantId(tenantId);
+        rpc.setDeviceId(new DeviceId(UUID.randomUUID()));
+        rpcDao.saveAndFlush(rpc.getTenantId(), rpc);
+
+        assertThat(rpcDao.deleteOutdatedRpcByTenantId(TenantId.SYS_TENANT_ID, 0L)).isEqualTo(0);
+        assertThat(rpcDao.deleteOutdatedRpcByTenantId(TenantId.SYS_TENANT_ID, Long.MAX_VALUE)).isEqualTo(2);
+        assertThat(rpcDao.deleteOutdatedRpcByTenantId(tenantId, System.currentTimeMillis() + 1)).isEqualTo(1);
+    }
 
 }

@@ -663,12 +663,13 @@ public class AdminController extends BaseController {
 
     private void dropRefreshTokenIfProviderInfoChanged(JsonNode newJsonValue, JsonNode oldJsonValue) {
         if (newJsonValue.has("enableOauth2") && newJsonValue.get("enableOauth2").asBoolean()) {
-            if (!newJsonValue.get("providerId").equals(oldJsonValue.get("providerId")) ||
-                    !newJsonValue.get("clientId").equals(oldJsonValue.get("clientId")) ||
-                    !newJsonValue.get("clientSecret").equals(oldJsonValue.get("clientSecret")) ||
-                    !newJsonValue.get("redirectUri").equals(oldJsonValue.get("redirectUri")) ||
+            if ((newJsonValue.has("useSystemMailSettings") && newJsonValue.get("useSystemMailSettings").asBoolean()) ||
+                    (!newJsonValue.get("providerId").equals(oldJsonValue.get("providerId"))) ||
+                    (!newJsonValue.get("clientId").equals(oldJsonValue.get("clientId"))) ||
+                    (!newJsonValue.get("clientSecret").equals(oldJsonValue.get("clientSecret"))) ||
+                    (!newJsonValue.get("redirectUri").equals(oldJsonValue.get("redirectUri"))) ||
                     (newJsonValue.has("providerTenantId") && !newJsonValue.get("providerTenantId").equals(oldJsonValue.get("providerTenantId")))) {
-                ((ObjectNode) newJsonValue).put("refreshTokenGenerated", false);
+                ((ObjectNode) newJsonValue).put("tokenGenerated", false);
                 ((ObjectNode) newJsonValue).remove("refreshToken");
             }
         }
