@@ -192,57 +192,59 @@ public class EdgeEventSourcingListener {
     private boolean isValidSaveEntityEventForEdgeProcessing(SaveEntityEvent<?> event) {
         Object entity = event.getEntity();
         Object oldEntity = event.getOldEntity();
-        switch (event.getEntityId().getEntityType()) {
-            case RULE_CHAIN:
-                if (entity instanceof RuleChain ruleChain) {
-                    return RuleChainType.EDGE.equals(ruleChain.getType());
-                }
-                break;
-            case USER:
-                if (entity instanceof User user) {
-                    if (Authority.SYS_ADMIN.equals(user.getAuthority())) {
+        if (event.getEntityId() != null) {
+            switch (event.getEntityId().getEntityType()) {
+                case RULE_CHAIN:
+                    if (entity instanceof RuleChain ruleChain) {
+                        return RuleChainType.EDGE.equals(ruleChain.getType());
+                    }
+                    break;
+                case USER:
+                    if (entity instanceof User user) {
+                        if (Authority.SYS_ADMIN.equals(user.getAuthority())) {
+                            return false;
+                        }
+                        if (oldEntity != null) {
+                            User oldUser = (User) oldEntity;
+                            cleanUpUserAdditionalInfo(oldUser);
+                            cleanUpUserAdditionalInfo(user);
+                            return !user.equals(oldUser);
+                        }
+                    }
+                    break;
+                case OTA_PACKAGE:
+                    if (entity instanceof OtaPackageInfo otaPackageInfo) {
+                        return otaPackageInfo.hasUrl() || otaPackageInfo.isHasData();
+                    }
+                    break;
+                case ALARM:
+                    if (entity instanceof AlarmApiCallResult || entity instanceof Alarm) {
                         return false;
                     }
-                    if (oldEntity != null) {
-                        User oldUser = (User) oldEntity;
-                        cleanUpUserAdditionalInfo(oldUser);
-                        cleanUpUserAdditionalInfo(user);
-                        return !user.equals(oldUser);
+                    break;
+                case TENANT:
+                    return !event.getCreated();
+                case CONVERTER:
+                    Converter converter = (Converter) event.getEntity();
+                    return converter.isEdgeTemplate();
+                case INTEGRATION:
+                    Integration integration = (Integration) event.getEntity();
+                    return integration.isEdgeTemplate();
+                case ENTITY_GROUP:
+                    if (event.getEntity() instanceof EntityGroup entityGroup) {
+                        if (entityGroup.isGroupAll()) {
+                            log.trace("skipping entity in case of 'All' group: {}", entityGroup);
+                            return false;
+                        }
+                        if (entityGroup.isEdgeGroupAll()) {
+                            log.trace("skipping entity in case of Edge 'All' group: {}", entityGroup);
+                            return false;
+                        }
                     }
-                }
-                break;
-            case OTA_PACKAGE:
-                if (entity instanceof OtaPackageInfo otaPackageInfo) {
-                    return otaPackageInfo.hasUrl() || otaPackageInfo.isHasData();
-                }
-                break;
-            case ALARM:
-                if (entity instanceof AlarmApiCallResult || entity instanceof Alarm) {
+                    break;
+                case API_USAGE_STATE, EDGE:
                     return false;
-                }
-                break;
-            case TENANT:
-                return !event.getCreated();
-            case CONVERTER:
-                Converter converter = (Converter) event.getEntity();
-                return converter.isEdgeTemplate();
-            case INTEGRATION:
-                Integration integration = (Integration) event.getEntity();
-                return integration.isEdgeTemplate();
-            case ENTITY_GROUP:
-                if (event.getEntity() instanceof EntityGroup entityGroup) {
-                    if (entityGroup.isGroupAll()) {
-                        log.trace("skipping entity in case of 'All' group: {}", entityGroup);
-                        return false;
-                    }
-                    if (entityGroup.isEdgeGroupAll()) {
-                        log.trace("skipping entity in case of Edge 'All' group: {}", entityGroup);
-                        return false;
-                    }
-                }
-                break;
-            case API_USAGE_STATE, EDGE:
-                return false;
+            }
         }
         // Default: If the entity doesn't match any of the conditions, consider it as valid.
         return true;

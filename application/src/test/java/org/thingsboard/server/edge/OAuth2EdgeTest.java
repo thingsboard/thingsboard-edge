@@ -58,6 +58,7 @@ public class OAuth2EdgeTest extends AbstractEdgeTest {
         loginSysAdmin();
 
         // enable oauth, verify nothing sent to edge
+        edgeImitator.allowIgnoredTypes();
         edgeImitator.expectMessageAmount(1);
         OAuth2Info oAuth2Info = createDefaultOAuth2Info();
         oAuth2Info = doPost("/api/oauth2/config", oAuth2Info, OAuth2Info.class);
@@ -80,6 +81,7 @@ public class OAuth2EdgeTest extends AbstractEdgeTest {
         result = JacksonUtil.fromString(oAuth2UpdateMsg.getEntity(), OAuth2Info.class, true);
         Assert.assertEquals(oAuth2Info, result);
 
+        edgeImitator.ignoreType(OAuth2UpdateMsg.class);
         loginTenantAdmin();
     }
 

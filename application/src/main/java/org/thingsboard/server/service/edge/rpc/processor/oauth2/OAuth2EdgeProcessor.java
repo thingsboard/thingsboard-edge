@@ -70,7 +70,6 @@ public class OAuth2EdgeProcessor extends BaseEdgeProcessor {
         if (oAuth2Info == null) {
             return Futures.immediateFuture(null);
         }
-
         EdgeEventType type = EdgeEventType.valueOf(edgeNotificationMsg.getType());
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
         return processActionForAllEdges(tenantId, type, actionType, null, JacksonUtil.toJsonNode(edgeNotificationMsg.getBody()), null);
