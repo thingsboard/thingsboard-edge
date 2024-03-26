@@ -65,7 +65,7 @@ public class CustomMenuController extends BaseController {
             notes = "Fetch the Custom Menu object for the end user. The custom menu is configured in the white labeling parameters. " +
                     "If custom menu configuration on the tenant level is present, it overrides the menu configuration of the system level. " +
                     "Similar, if the custom menu configuration on the customer level is present, it overrides the menu configuration of the tenant level."
-            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            )
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customMenu/customMenu", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -93,7 +93,7 @@ public class CustomMenuController extends BaseController {
                     "And there is no custom menu items configured on a tenant level. " +
                     "In such a case, the API call will return empty object for the tenant administrator. " +
                     ControllerConstants.WL_READ_CHECK
-            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            )
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customMenu/currentCustomMenu", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -113,7 +113,7 @@ public class CustomMenuController extends BaseController {
 
     @ApiOperation(value = "Create Or Update Custom Menu (saveCustomMenu)",
             notes = "Creates or Updates the Custom Menu configuration." +
-                    ControllerConstants.WL_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    ControllerConstants.WL_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customMenu/customMenu", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)

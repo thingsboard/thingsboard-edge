@@ -78,7 +78,7 @@ public class WhiteLabelingController extends BaseController {
     private WhiteLabelingService whiteLabelingService;
 
     @ApiOperation(value = "Get White Labeling parameters",
-            notes = "Returns white-labeling parameters for the current user.", responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Returns white-labeling parameters for the current user.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/whiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -97,7 +97,7 @@ public class WhiteLabelingController extends BaseController {
     }
 
     @ApiOperation(value = "Get Login White Labeling parameters",
-            notes = "Returns login white-labeling parameters based on the hostname from request.", responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Returns login white-labeling parameters based on the hostname from request.")
     @RequestMapping(value = "/noauth/whiteLabel/loginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public LoginWhiteLabelingParams getLoginWhiteLabelParams(HttpServletRequest request) throws Exception {
@@ -112,7 +112,7 @@ public class WhiteLabelingController extends BaseController {
                     "And there is no custom White Labeling  items configured on a tenant level. " +
                     "In such a case, the API call will return default object for the tenant administrator. " +
                     WL_READ_CHECK
-            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            )
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/currentWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -145,7 +145,7 @@ public class WhiteLabelingController extends BaseController {
                     "And there is no custom White Labeling  items configured on a tenant level. " +
                     "In such a case, the API call will return default object for the tenant administrator. " +
                     WL_READ_CHECK
-            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            )
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/currentLoginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
@@ -173,7 +173,6 @@ public class WhiteLabelingController extends BaseController {
     @ApiOperation(value = "Create Or Update White Labeling configuration (saveWhiteLabelParams)",
             notes = "Creates or Updates the White Labeling configuration." +
                     WL_WRITE_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/whiteLabelParams", method = RequestMethod.POST)
@@ -205,7 +204,6 @@ public class WhiteLabelingController extends BaseController {
     @ApiOperation(value = "Create Or Update Login White Labeling configuration (saveWhiteLabelParams)",
             notes = "Creates or Updates the White Labeling configuration." +
                     WL_WRITE_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/loginWhiteLabelParams", method = RequestMethod.POST)
@@ -237,7 +235,6 @@ public class WhiteLabelingController extends BaseController {
     @ApiOperation(value = "Preview Login White Labeling configuration (saveWhiteLabelParams)",
             notes = "Merge the White Labeling configuration with the parent configuration and return the result." +
                     WL_WRITE_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
             requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/previewWhiteLabelParams", method = RequestMethod.POST)
@@ -260,7 +257,7 @@ public class WhiteLabelingController extends BaseController {
 
     @ApiOperation(value = "Check White Labeling Allowed",
             notes = "Check if the White Labeling is enabled for the current user owner (tenant or customer)" +
-                    WL_WRITE_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    WL_WRITE_CHECK + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/whiteLabel/isWhiteLabelingAllowed", method = RequestMethod.GET)
     @ResponseBody
@@ -271,7 +268,7 @@ public class WhiteLabelingController extends BaseController {
 
     @ApiOperation(value = "Check Customer White Labeling Allowed",
             notes = "Check if the White Labeling is enabled for the customers of the current tenant" +
-                    WL_WRITE_CHECK + TENANT_AUTHORITY_PARAGRAPH, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    WL_WRITE_CHECK + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/whiteLabel/isCustomerWhiteLabelingAllowed", method = RequestMethod.GET)
     @ResponseBody
@@ -285,7 +282,7 @@ public class WhiteLabelingController extends BaseController {
     @RequestMapping(value = "/whiteLabel/mailTemplates", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public JsonNode saveMailTemplates(
-            @Parameter(description = "A JSON value representing the Administration Settings.")
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "A JSON value representing the Administration Settings.")
             @RequestBody JsonNode mailTemplates) throws Exception {
         checkWhiteLabelingPermissions(Operation.WRITE);
         return whiteLabelingService.saveMailTemplates(getTenantId(), mailTemplates);
