@@ -162,3 +162,5 @@ CREATE INDEX IF NOT EXISTS idx_resource_etag ON resource(tenant_id, etag);
 CREATE INDEX IF NOT EXISTS idx_resource_etag ON resource(tenant_id, etag);
 
 CREATE INDEX IF NOT EXISTS idx_resource_type_public_resource_key ON resource(resource_type, public_resource_key);
+
+CREATE INDEX IF NOT EXISTS idx_group_permission_tenant_id ON group_permission(tenant_id);

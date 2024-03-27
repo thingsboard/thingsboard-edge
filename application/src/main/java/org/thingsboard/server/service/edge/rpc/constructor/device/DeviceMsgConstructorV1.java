@@ -43,7 +43,6 @@ import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.nio.charset.StandardCharsets;
@@ -51,9 +50,6 @@ import java.nio.charset.StandardCharsets;
 @Component
 @TbCoreComponent
 public class DeviceMsgConstructorV1 extends BaseDeviceMsgConstructor {
-
-    @Autowired
-    private DataDecodingEncodingService dataDecodingEncodingService;
 
     @Autowired
     private ImageService imageService;
@@ -93,7 +89,7 @@ public class DeviceMsgConstructorV1 extends BaseDeviceMsgConstructor {
                     .setSoftwareIdLSB(device.getSoftwareId().getId().getLeastSignificantBits());
         }
         if (device.getDeviceData() != null) {
-            builder.setDeviceDataBytes(ByteString.copyFrom(dataDecodingEncodingService.encode(device.getDeviceData())));
+            builder.setDeviceDataBytes(ByteString.copyFrom(device.getDeviceDataBytes()));
         }
         return builder.build();
     }
@@ -124,7 +120,7 @@ public class DeviceMsgConstructorV1 extends BaseDeviceMsgConstructor {
                 .setName(deviceProfile.getName())
                 .setDefault(deviceProfile.isDefault())
                 .setType(deviceProfile.getType().name())
-                .setProfileDataBytes(ByteString.copyFrom(dataDecodingEncodingService.encode(deviceProfile.getProfileData())));
+                .setProfileDataBytes(ByteString.copyFrom(deviceProfile.getProfileDataBytes()));
         if (deviceProfile.getDefaultQueueName() != null) {
             builder.setDefaultQueueName(deviceProfile.getDefaultQueueName());
         }

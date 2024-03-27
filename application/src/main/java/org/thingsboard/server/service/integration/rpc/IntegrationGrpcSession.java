@@ -37,17 +37,16 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.FSTUtils;
-import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.event.ConverterDebugEvent;
 import org.thingsboard.server.common.data.event.Event;
@@ -68,12 +67,9 @@ import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
-import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.TbMsgCallback;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
-import org.thingsboard.server.common.transport.util.JsonUtils;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.ConnectRequestMsg;
 import org.thingsboard.server.gen.integration.ConnectResponseCode;
@@ -96,7 +92,7 @@ import org.thingsboard.server.gen.integration.UplinkResponseMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.service.integration.IntegrationContextComponent;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -237,73 +233,22 @@ public final class IntegrationGrpcSession implements Closeable {
                 for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
                     ctx.getRateLimitService().checkLimit(configuration.getTenantId(), data::toString);
                     ctx.getRateLimitService().checkLimit(configuration.getTenantId(), data.getDeviceName(), data::toString);
-                    Device device = ctx.getPlatformIntegrationService().getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), data.getDeviceLabel(), data.getCustomerName(), data.getGroupName());
 
-                    UUID sessionId = this.sessionId;
-                    TransportProtos.SessionInfoProto.Builder builder = TransportProtos.SessionInfoProto.newBuilder()
-                            .setSessionIdMSB(sessionId.getMostSignificantBits())
-                            .setSessionIdLSB(sessionId.getLeastSignificantBits())
-                            .setTenantIdMSB(device.getTenantId().getId().getMostSignificantBits())
-                            .setTenantIdLSB(device.getTenantId().getId().getLeastSignificantBits())
-                            .setDeviceIdMSB(device.getId().getId().getMostSignificantBits())
-                            .setDeviceIdLSB(device.getId().getId().getLeastSignificantBits())
-                            .setDeviceName(device.getName())
-                            .setDeviceType(device.getType())
-                            .setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits())
-                            .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits());
-
-                    if (device.getCustomerId() != null && !device.getCustomerId().isNullUid()) {
-                        builder.setCustomerIdMSB(device.getCustomerId().getId().getMostSignificantBits());
-                        builder.setCustomerIdLSB(device.getCustomerId().getId().getLeastSignificantBits());
-                    }
-
-                    TransportProtos.SessionInfoProto sessionInfo = builder.build();
-
-                    if (data.hasPostTelemetryMsg()) {
-                        //TODO: Empty callback may cause message to be acknowledged faster then it is pushed to queue?
-                        ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostTelemetryMsg(), null);
-                    }
-
-                    if (data.hasPostAttributesMsg()) {
-                        ctx.getPlatformIntegrationService().process(sessionInfo, data.getPostAttributesMsg(), null);
-                    }
+                    final UUID sessionId = this.sessionId;
+                    ctx.getPlatformIntegrationService().processUplinkData(configuration, sessionId, data, null);
                 }
             }
 
             if (msg.getAssetDataCount() > 0) {
                 for (AssetUplinkDataProto data : msg.getAssetDataList()) {
                     ctx.getRateLimitService().checkLimit(configuration.getTenantId(), data::toString);
-                    Asset asset = ctx.getPlatformIntegrationService().getOrCreateAsset(configuration, data.getAssetName(), data.getAssetType(), data.getAssetLabel(), data.getCustomerName(), data.getGroupName());
-
-                    if (data.hasPostTelemetryMsg()) {
-                        data.getPostTelemetryMsg().getTsKvListList()
-                                .forEach(tsKv -> {
-                                    TbMsgMetaData metaData = new TbMsgMetaData();
-                                    metaData.putValue("assetName", data.getAssetName());
-                                    metaData.putValue("assetType", data.getAssetType());
-                                    metaData.putValue("ts", tsKv.getTs() + "");
-                                    JsonObject json = JsonUtils.getJsonObject(tsKv.getKvList());
-                                    TbMsg tbMsg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
-                                    ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, null);
-                                });
-                    }
-
-                    if (data.hasPostAttributesMsg()) {
-                        TbMsgMetaData metaData = new TbMsgMetaData();
-                        metaData.putValue("assetName", data.getAssetName());
-                        metaData.putValue("assetType", data.getAssetType());
-                        JsonObject json = JsonUtils.getJsonObject(data.getPostAttributesMsg().getKvList());
-                        TbMsg tbMsg = TbMsg.newMsg(TbMsgType.POST_ATTRIBUTES_REQUEST, asset.getId(), asset.getCustomerId(), metaData, gson.toJson(json));
-                        ctx.getPlatformIntegrationService().process(asset.getTenantId(), tbMsg, null);
-                    }
+                    ctx.getPlatformIntegrationService().processUplinkData(configuration, data, null);
                 }
             }
 
             if (msg.getEntityViewDataCount() > 0) {
                 for (EntityViewDataProto data : msg.getEntityViewDataList()) {
-                    Device device = ctx.getPlatformIntegrationService()
-                            .getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), null, null, null);
-                    ctx.getPlatformIntegrationService().getOrCreateEntityView(configuration, device, data);
+                    ctx.getPlatformIntegrationService().processUplinkData(configuration, data, null);
                 }
             }
 
@@ -389,7 +334,7 @@ public final class IntegrationGrpcSession implements Closeable {
             return;
         }
 
-        ConverterDebugEvent event = FSTUtils.decode(proto.getEvent().toByteArray());
+        ConverterDebugEvent event = JavaSerDesUtil.decode(proto.getEvent().toByteArray());
 
         var newConverterEvent = ConverterDebugEvent.builder()
                 .tenantId(configuration.getTenantId())
@@ -409,7 +354,7 @@ public final class IntegrationGrpcSession implements Closeable {
     private void saveEvent(TenantId tenantId, EntityId entityId, TbEventProto proto) {
         try {
             if (proto.getEvent() != null && !proto.getEvent().isEmpty()) {
-                Event event = FSTUtils.decode(proto.getEvent().toByteArray());
+                Event event = JavaSerDesUtil.decode(proto.getEvent().toByteArray());
                 event.setTenantId(tenantId);
                 event.setEntityId(entityId.getId());
                 saveEvent(tenantId, entityId, event);
@@ -443,12 +388,12 @@ public final class IntegrationGrpcSession implements Closeable {
                     AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
 
                     future = Futures.transform(future, v -> {
-                        ctx.getAttributesService().save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+                        ctx.getAttributesService().save(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(attr));
                         return null;
                     }, MoreExecutors.directExecutor());
                 } else if (lcEvent.getLcEventType().equals("STOPPED")) {
                     future = Futures.transform(future, v -> {
-                        ctx.getAttributesService().removeAll(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(key));
+                        ctx.getAttributesService().removeAll(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(key));
                         return null;
                     }, MoreExecutors.directExecutor());
                 }

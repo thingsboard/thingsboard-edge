@@ -62,4 +62,5 @@ public class DeviceEdgeProcessorV2 extends DeviceEdgeProcessor {
         CustomerId customerUUID = device.getCustomerId() != null ? device.getCustomerId() : customerId;
         device.setCustomerId(customerUUID);
     }
+
 }

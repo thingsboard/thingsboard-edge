@@ -65,8 +65,8 @@ import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
-import javax.annotation.Nullable;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.Nullable;
+import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -124,7 +124,7 @@ public class DefaultSystemInfoService extends TbApplicationEventListener<Partiti
                 if (myPartition) {
                     if (scheduler == null) {
                         scheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("tb-system-info-scheduler"));
-                        scheduler.scheduleWithFixedDelay(this::saveCurrentSystemInfo, systemInfoPersistFrequencySeconds, systemInfoPersistFrequencySeconds, TimeUnit.SECONDS);
+                        scheduler.scheduleWithFixedDelay(this::saveCurrentSystemInfo, 0, systemInfoPersistFrequencySeconds, TimeUnit.SECONDS);
                     }
                 } else {
                     destroy();

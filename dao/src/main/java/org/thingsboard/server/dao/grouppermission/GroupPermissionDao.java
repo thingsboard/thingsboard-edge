@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.dao.grouppermission;
 
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -53,5 +55,7 @@ public interface GroupPermissionDao extends Dao<GroupPermission> {
     PageData<GroupPermission> findGroupPermissionsByTenantIdAndEntityGroupId(UUID tenantId, UUID entityGroupId, PageLink pageLink);
 
     PageData<GroupPermission> findGroupPermissionsByTenantIdAndRoleId(UUID tenantId, UUID roleId, PageLink pageLink);
+
+    boolean existsByUserGroupIdAndRoleId(EntityGroupId entityGroupId, RoleId RoleId);
 
 }

@@ -35,7 +35,8 @@ import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Timer;
 
 public interface StatsFactory {
-    StatsCounter createStatsCounter(String key, String statsName);
+
+    StatsCounter createStatsCounter(String key, String statsName, String... otherTags);
 
     DefaultCounter createDefaultCounter(String key, String... tags);
 

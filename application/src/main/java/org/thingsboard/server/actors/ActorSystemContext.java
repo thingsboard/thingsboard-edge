@@ -35,6 +35,8 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import jakarta.annotation.Nullable;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +60,7 @@ import org.thingsboard.script.api.tbel.TbelInvokeService;
 import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.actors.tenant.DebugTbRateLimits;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.event.ErrorEvent;
 import org.thingsboard.server.common.data.event.LifecycleEvent;
@@ -123,7 +126,6 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.queue.discovery.DiscoveryService;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.converter.DataConverterService;
@@ -151,8 +153,6 @@ import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.service.transport.TbCoreToTransportService;
 
-import javax.annotation.Nullable;
-import javax.annotation.PostConstruct;
 import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -217,10 +217,6 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private DiscoveryService discoveryService;
-
-    @Autowired
-    @Getter
-    private DataDecodingEncodingService encodingService;
 
     @Autowired
     @Getter
@@ -722,9 +718,9 @@ public class ActorSystemContext {
                 }
 
                 AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
-                attributesService.save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+                attributesService.save(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(attr));
             } else if (event.getLcEventType().equals("STOPPED")) {
-                attributesService.removeAll(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(key));
+                attributesService.removeAll(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(key));
             }
         }
     }
