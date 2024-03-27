@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
  * @author Andrew Shvayka
  */
 public enum EntityType {
-
     TENANT(1),
     CUSTOMER(2, true),
     USER(3, true),

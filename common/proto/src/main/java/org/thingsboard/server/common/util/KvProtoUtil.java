@@ -44,19 +44,10 @@ import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 public class KvProtoUtil {
-
-    private static final DataType[] dataTypeByProtoNumber;
-
-    static {
-        int arraySize = Arrays.stream(DataType.values()).mapToInt(DataType::getProtoNumber).max().orElse(0);
-        dataTypeByProtoNumber = new DataType[arraySize + 1];
-        Arrays.stream(DataType.values()).forEach(dataType -> dataTypeByProtoNumber[dataType.getProtoNumber()] = dataType);
-    }
 
     public static List<TransportProtos.TsKvProto> attrToTsKvProtos(List<AttributeKvEntry> result) {
         List<TransportProtos.TsKvProto> clientAttributes;
@@ -120,7 +111,7 @@ public class KvProtoUtil {
     public static TransportProtos.TsKvProto.Builder toKeyValueProto(long ts, KvEntry attr) {
         TransportProtos.KeyValueProto.Builder dataBuilder = TransportProtos.KeyValueProto.newBuilder();
         dataBuilder.setKey(attr.getKey());
-        dataBuilder.setType(toProto(attr.getDataType()));
+        dataBuilder.setType(TransportProtos.KeyValueType.forNumber(attr.getDataType().ordinal()));
         switch (attr.getDataType()) {
             case BOOLEAN:
                 attr.getBooleanValue().ifPresent(dataBuilder::setBoolV);
@@ -144,7 +135,7 @@ public class KvProtoUtil {
     public static TransportProtos.TsValueProto toTsValueProto(long ts, KvEntry attr) {
         TransportProtos.TsValueProto.Builder dataBuilder = TransportProtos.TsValueProto.newBuilder();
         dataBuilder.setTs(ts);
-        dataBuilder.setType(toProto(attr.getDataType()));
+        dataBuilder.setType(TransportProtos.KeyValueType.forNumber(attr.getDataType().ordinal()));
         switch (attr.getDataType()) {
             case BOOLEAN:
                 attr.getBooleanValue().ifPresent(dataBuilder::setBoolV);
@@ -173,7 +164,8 @@ public class KvProtoUtil {
 
     private static KvEntry getKvEntry(String key, TransportProtos.TsValueProto proto) {
         KvEntry entry = null;
-        switch (fromProto(proto.getType())) {
+        DataType type = DataType.values()[proto.getType().getNumber()];
+        switch (type) {
             case BOOLEAN:
                 entry = new BooleanDataEntry(key, proto.getBoolV());
                 break;
@@ -208,7 +200,8 @@ public class KvProtoUtil {
 
     private static KvEntry getKvEntry(TransportProtos.KeyValueProto proto) {
         KvEntry entry = null;
-        switch (fromProto(proto.getType())) {
+        DataType type = DataType.values()[proto.getType().getNumber()];
+        switch (type) {
             case BOOLEAN:
                 entry = new BooleanDataEntry(proto.getKey(), proto.getBoolV());
                 break;
@@ -227,13 +220,4 @@ public class KvProtoUtil {
         }
         return entry;
     }
-
-    public static TransportProtos.KeyValueType toProto(DataType dataType) {
-        return TransportProtos.KeyValueType.forNumber(dataType.getProtoNumber());
-    }
-
-    public static DataType fromProto(TransportProtos.KeyValueType keyValueType) {
-        return dataTypeByProtoNumber[keyValueType.getNumber()];
-    }
-
 }
