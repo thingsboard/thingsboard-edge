@@ -28,37 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.id;
+package org.thingsboard.server.common.util;
+import org.junit.Test;
+import org.thingsboard.server.common.data.kv.DataType;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.swagger.v3.oas.annotations.media.Schema;
-import org.thingsboard.server.common.data.EntityType;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.Serializable;
-import java.util.UUID;
+public class KvProtoUtilTest {
 
-/**
- * @author Andrew Shvayka
- */
-
-@JsonDeserialize(using = EntityIdDeserializer.class)
-@JsonSerialize(using = EntityIdSerializer.class)
-@Schema
-public interface EntityId extends HasUUID, Serializable { //NOSONAR, the constant is closely related to EntityId
-
-    UUID NULL_UUID = UUID.fromString("13814000-1dd2-11b2-8080-808080808080");
-
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "ID of the entity, time-based UUID v1", example = "784f394c-42b6-435a-983c-b7beff2784f9")
-    UUID getId();
-
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "DEVICE")
-    EntityType getEntityType();
-
-    @JsonIgnore
-    default boolean isNullUid() {
-        return NULL_UUID.equals(getId());
+    @Test
+    public void protoDataTypeSerialization() {
+        for (DataType dataType : DataType.values()) {
+            assertThat(KvProtoUtil.fromProto(KvProtoUtil.toProto(dataType))).as(dataType.name()).isEqualTo(dataType);
+        }
     }
 
 }

@@ -35,7 +35,7 @@ import {
   EChartsSeriesItem,
   EChartsTooltipTrigger,
   EChartsTooltipWidgetSettings,
-  measureThresholdLabelOffset
+  measureThresholdLabelOffset, timeAxisBandWidthCalculator
 } from '@home/components/widget/lib/chart/echarts-widget.models';
 import {
   autoDateFormat,
@@ -985,7 +985,8 @@ export const createTimeSeriesXAxisOption = (settings: TimeSeriesChartXAxisSettin
       }
     },
     min,
-    max
+    max,
+    bandWidthCalculator: timeAxisBandWidthCalculator
   };
 };
 

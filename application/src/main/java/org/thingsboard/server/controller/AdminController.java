@@ -191,7 +191,7 @@ public class AdminController extends BaseController {
     @RequestMapping(value = "/settings", method = RequestMethod.POST)
     @ResponseBody
     public AdminSettings saveAdminSettings(
-            @Parameter(description = "A JSON value representing the Administration Settings.")
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "A JSON value representing the Administration Settings.")
             @RequestBody AdminSettings adminSettings) throws Exception {
         Authority authority = getCurrentUser().getAuthority();
         adminSettings.setTenantId(getTenantId());
@@ -233,8 +233,7 @@ public class AdminController extends BaseController {
     }
 
     @ApiOperation(value = "Get the JWT Settings object (getJwtSettings)",
-            notes = "Get the JWT Settings object that contains JWT token policy, etc. " + SYSTEM_AUTHORITY_PARAGRAPH,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Get the JWT Settings object that contains JWT token policy, etc. " + SYSTEM_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('SYS_ADMIN')")
     @RequestMapping(value = "/jwtSettings", method = RequestMethod.GET)
     @ResponseBody
@@ -244,8 +243,7 @@ public class AdminController extends BaseController {
     }
 
     @ApiOperation(value = "Update JWT Settings (saveJwtSettings)",
-            notes = "Updates the JWT Settings object that contains JWT token policy, etc. The tokenSigningKey field is a Base64 encoded string." + SYSTEM_AUTHORITY_PARAGRAPH,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Updates the JWT Settings object that contains JWT token policy, etc. The tokenSigningKey field is a Base64 encoded string." + SYSTEM_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('SYS_ADMIN')")
     @RequestMapping(value = "/jwtSettings", method = RequestMethod.POST)
     @ResponseBody
@@ -665,12 +663,13 @@ public class AdminController extends BaseController {
 
     private void dropRefreshTokenIfProviderInfoChanged(JsonNode newJsonValue, JsonNode oldJsonValue) {
         if (newJsonValue.has("enableOauth2") && newJsonValue.get("enableOauth2").asBoolean()) {
-            if (!newJsonValue.get("providerId").equals(oldJsonValue.get("providerId")) ||
-                    !newJsonValue.get("clientId").equals(oldJsonValue.get("clientId")) ||
-                    !newJsonValue.get("clientSecret").equals(oldJsonValue.get("clientSecret")) ||
-                    !newJsonValue.get("redirectUri").equals(oldJsonValue.get("redirectUri")) ||
+            if ((newJsonValue.has("useSystemMailSettings") && newJsonValue.get("useSystemMailSettings").asBoolean()) ||
+                    (!newJsonValue.get("providerId").equals(oldJsonValue.get("providerId"))) ||
+                    (!newJsonValue.get("clientId").equals(oldJsonValue.get("clientId"))) ||
+                    (!newJsonValue.get("clientSecret").equals(oldJsonValue.get("clientSecret"))) ||
+                    (!newJsonValue.get("redirectUri").equals(oldJsonValue.get("redirectUri"))) ||
                     (newJsonValue.has("providerTenantId") && !newJsonValue.get("providerTenantId").equals(oldJsonValue.get("providerTenantId")))) {
-                ((ObjectNode) newJsonValue).put("refreshTokenGenerated", false);
+                ((ObjectNode) newJsonValue).put("tokenGenerated", false);
                 ((ObjectNode) newJsonValue).remove("refreshToken");
             }
         }

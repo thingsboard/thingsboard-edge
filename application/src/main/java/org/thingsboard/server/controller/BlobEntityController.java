@@ -106,8 +106,7 @@ public class BlobEntityController extends BaseController {
     @ApiOperation(value = "Get Blob Entity With Customer Info (getBlobEntityInfoById)",
             notes = "Fetch the BlobEntityWithCustomerInfo object based on the provided Blob entity Id. " +
                     BLOB_ENTITY_INFO_WITH_CUSTOMER_INFO_DESCRIPTION + INVALID_BLOB_ENTITY_ID +
-                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/blobEntity/info/{blobEntityId}", method = RequestMethod.GET)
     @ResponseBody
@@ -158,8 +157,7 @@ public class BlobEntityController extends BaseController {
     @ApiOperation(value = "Get Blob Entities (getBlobEntities)",
             notes = "Returns a page of BlobEntityWithCustomerInfo object that are available for the current user. "
                     + BLOB_ENTITY_INFO_WITH_CUSTOMER_INFO_DESCRIPTION + PAGE_DATA_PARAMETERS
-                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/blobEntities", method = RequestMethod.GET)
     @ResponseBody
@@ -204,8 +202,7 @@ public class BlobEntityController extends BaseController {
 
     @ApiOperation(value = "Get Blob Entities By Ids (getBlobEntitiesByIds)",
             notes = "Requested blob entities must be owned by tenant or assigned to customer which user is performing the request. "
-                    + BLOB_ENTITY_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + BLOB_ENTITY_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/blobEntities", params = {"blobEntityIds"}, method = RequestMethod.GET)
     @ResponseBody

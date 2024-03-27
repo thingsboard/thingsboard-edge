@@ -149,8 +149,7 @@ public class EntityRelationController extends BaseController {
     }
 
     @ApiOperation(value = "Get Relation (getRelation)",
-            notes = "Returns relation object between two specified entities if present. Otherwise throws exception. " + SECURITY_CHECKS_ENTITIES_DESCRIPTION,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Returns relation object between two specified entities if present. Otherwise throws exception. " + SECURITY_CHECKS_ENTITIES_DESCRIPTION)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/relation", method = RequestMethod.GET, params = {FROM_ID, FROM_TYPE, RELATION_TYPE, TO_ID, TO_TYPE})
     @ResponseBody
@@ -175,8 +174,7 @@ public class EntityRelationController extends BaseController {
 
     @ApiOperation(value = "Get List of Relations (findByFrom)",
             notes = "Returns list of relation objects for the specified entity by the 'from' direction. " +
-                    SECURITY_CHECKS_ENTITY_DESCRIPTION,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    SECURITY_CHECKS_ENTITY_DESCRIPTION)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/relations", method = RequestMethod.GET, params = {FROM_ID, FROM_TYPE})
     @ResponseBody
@@ -194,8 +192,7 @@ public class EntityRelationController extends BaseController {
 
     @ApiOperation(value = "Get List of Relation Infos (findInfoByFrom)",
             notes = "Returns list of relation info objects for the specified entity by the 'from' direction. " +
-                    SECURITY_CHECKS_ENTITY_DESCRIPTION + " " + RELATION_INFO_DESCRIPTION,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    SECURITY_CHECKS_ENTITY_DESCRIPTION + " " + RELATION_INFO_DESCRIPTION)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/relations/info", method = RequestMethod.GET, params = {FROM_ID, FROM_TYPE})
     @ResponseBody
@@ -213,8 +210,7 @@ public class EntityRelationController extends BaseController {
 
     @ApiOperation(value = "Get List of Relations (findByFrom)",
             notes = "Returns list of relation objects for the specified entity by the 'from' direction and relation type. " +
-                    SECURITY_CHECKS_ENTITY_DESCRIPTION,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    SECURITY_CHECKS_ENTITY_DESCRIPTION)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/relations", method = RequestMethod.GET, params = {FROM_ID, FROM_TYPE, RELATION_TYPE})
     @ResponseBody
@@ -234,8 +230,7 @@ public class EntityRelationController extends BaseController {
 
     @ApiOperation(value = "Get List of Relations (findByTo)",
             notes = "Returns list of relation objects for the specified entity by the 'to' direction. " +
-                    SECURITY_CHECKS_ENTITY_DESCRIPTION,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    SECURITY_CHECKS_ENTITY_DESCRIPTION)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/relations", method = RequestMethod.GET, params = {TO_ID, TO_TYPE})
     @ResponseBody
@@ -253,8 +248,7 @@ public class EntityRelationController extends BaseController {
 
     @ApiOperation(value = "Get List of Relation Infos (findInfoByTo)",
             notes = "Returns list of relation info objects for the specified entity by the 'to' direction. " +
-                    SECURITY_CHECKS_ENTITY_DESCRIPTION + " " + RELATION_INFO_DESCRIPTION,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    SECURITY_CHECKS_ENTITY_DESCRIPTION + " " + RELATION_INFO_DESCRIPTION)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/relations/info", method = RequestMethod.GET, params = {TO_ID, TO_TYPE})
     @ResponseBody
@@ -272,8 +266,7 @@ public class EntityRelationController extends BaseController {
 
     @ApiOperation(value = "Get List of Relations (findByTo)",
             notes = "Returns list of relation objects for the specified entity by the 'to' direction and relation type. " +
-                    SECURITY_CHECKS_ENTITY_DESCRIPTION,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    SECURITY_CHECKS_ENTITY_DESCRIPTION)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/relations", method = RequestMethod.GET, params = {TO_ID, TO_TYPE, RELATION_TYPE})
     @ResponseBody
@@ -294,7 +287,7 @@ public class EntityRelationController extends BaseController {
     @ApiOperation(value = "Find related entities (findByQuery)",
             notes = "Returns all entities that are related to the specific entity. " +
                     "The entity id, relation type, entity types, depth of the search, and other query parameters defined using complex 'EntityRelationsQuery' object. " +
-                    "See 'Model' tab of the Parameters for more info.", responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    "See 'Model' tab of the Parameters for more info.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/relations", method = RequestMethod.POST)
     @ResponseBody
@@ -310,7 +303,7 @@ public class EntityRelationController extends BaseController {
     @ApiOperation(value = "Find related entity infos (findInfoByQuery)",
             notes = "Returns all entity infos that are related to the specific entity. " +
                     "The entity id, relation type, entity types, depth of the search, and other query parameters defined using complex 'EntityRelationsQuery' object. " +
-                    "See 'Model' tab of the Parameters for more info. " + RELATION_INFO_DESCRIPTION, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    "See 'Model' tab of the Parameters for more info. " + RELATION_INFO_DESCRIPTION)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/relations/info", method = RequestMethod.POST)
     @ResponseBody

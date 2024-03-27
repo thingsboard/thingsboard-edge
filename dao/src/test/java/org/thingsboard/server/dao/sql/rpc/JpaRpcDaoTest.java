@@ -28,37 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.id;
+package org.thingsboard.server.dao.sql.rpc;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.swagger.v3.oas.annotations.media.Schema;
-import org.thingsboard.server.common.data.EntityType;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.rpc.Rpc;
+import org.thingsboard.server.common.data.rpc.RpcStatus;
+import org.thingsboard.server.dao.AbstractJpaDaoTest;
 
-import java.io.Serializable;
 import java.util.UUID;
 
-/**
- * @author Andrew Shvayka
- */
+import static org.assertj.core.api.Assertions.assertThat;
 
-@JsonDeserialize(using = EntityIdDeserializer.class)
-@JsonSerialize(using = EntityIdSerializer.class)
-@Schema
-public interface EntityId extends HasUUID, Serializable { //NOSONAR, the constant is closely related to EntityId
+public class JpaRpcDaoTest extends AbstractJpaDaoTest {
 
-    UUID NULL_UUID = UUID.fromString("13814000-1dd2-11b2-8080-808080808080");
+    @Autowired
+    JpaRpcDao rpcDao;
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "ID of the entity, time-based UUID v1", example = "784f394c-42b6-435a-983c-b7beff2784f9")
-    UUID getId();
+    @Test
+    public void deleteOutdated() {
+        Rpc rpc = new Rpc();
+        rpc.setTenantId(TenantId.SYS_TENANT_ID);
+        rpc.setDeviceId(new DeviceId(UUID.randomUUID()));
+        rpc.setStatus(RpcStatus.QUEUED);
+        rpc.setRequest(JacksonUtil.toJsonNode("{}"));
+        rpcDao.saveAndFlush(rpc.getTenantId(), rpc);
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, example = "DEVICE")
-    EntityType getEntityType();
+        rpc.setId(null);
+        rpcDao.saveAndFlush(rpc.getTenantId(), rpc);
 
-    @JsonIgnore
-    default boolean isNullUid() {
-        return NULL_UUID.equals(getId());
+        TenantId tenantId = TenantId.fromUUID(UUID.fromString("3d193a7a-774b-4c05-84d5-f7fdcf7a37cf"));
+        rpc.setId(null);
+        rpc.setTenantId(tenantId);
+        rpc.setDeviceId(new DeviceId(UUID.randomUUID()));
+        rpcDao.saveAndFlush(rpc.getTenantId(), rpc);
+
+        assertThat(rpcDao.deleteOutdatedRpcByTenantId(TenantId.SYS_TENANT_ID, 0L)).isEqualTo(0);
+        assertThat(rpcDao.deleteOutdatedRpcByTenantId(TenantId.SYS_TENANT_ID, Long.MAX_VALUE)).isEqualTo(2);
+        assertThat(rpcDao.deleteOutdatedRpcByTenantId(tenantId, System.currentTimeMillis() + 1)).isEqualTo(1);
     }
 
 }

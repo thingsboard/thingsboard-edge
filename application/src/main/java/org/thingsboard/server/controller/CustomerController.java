@@ -188,7 +188,7 @@ public class CustomerController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer", method = RequestMethod.POST)
     @ResponseBody
-    public Customer saveCustomer(@Parameter(description = "A JSON value representing the customer.") @RequestBody Customer customer,
+    public Customer saveCustomer(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "A JSON value representing the customer.") @RequestBody Customer customer,
                                  @Parameter(description = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
                                  @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
                                  @Parameter(description = ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION)
@@ -301,8 +301,7 @@ public class CustomerController extends BaseController {
 
     @ApiOperation(value = "Get All Customer Infos for current user (getAllCustomerInfos)",
             notes = "Returns a page of customer info objects owned by the tenant or the customer of a current user. " +
-                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customerInfos/all", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -340,8 +339,7 @@ public class CustomerController extends BaseController {
 
     @ApiOperation(value = "Get Customer sub-customers Infos (getCustomerCustomerInfos)",
             notes = "Returns a page of customer info objects owned by the specified customer. " +
-                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/customerInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -375,8 +373,7 @@ public class CustomerController extends BaseController {
 
     @ApiOperation(value = "Get customers by Customer Ids (getCustomersByEntityGroupId)",
             notes = "Returns a list of Customer objects based on the provided ids. Filters the list based on the user permissions. " +
-                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customers", params = {"customerIds"}, method = RequestMethod.GET)
     @ResponseBody
@@ -396,8 +393,7 @@ public class CustomerController extends BaseController {
 
     @ApiOperation(value = "Get customers by Entity Group Id (getCustomersByEntityGroupId)",
             notes = "Returns a page of Customer objects that belongs to specified Entity Group Id. " +
-                    PAGE_DATA_PARAMETERS + "\n\n" + RBAC_GROUP_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + "\n\n" + RBAC_GROUP_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/customers", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
