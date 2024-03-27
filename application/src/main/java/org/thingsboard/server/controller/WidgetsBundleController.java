@@ -251,8 +251,7 @@ public class WidgetsBundleController extends BaseController {
 
     @ApiOperation(value = "Get Widgets Bundles By Ids (getWidgetsBundlesByIds)",
             notes = "Requested widgets bundles must be system level or owned by tenant of the user which is performing the request. " +
-                    NEW_LINE + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    NEW_LINE + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/widgetsBundles", params = {"widgetsBundleIds"}, method = RequestMethod.GET)
     @ResponseBody

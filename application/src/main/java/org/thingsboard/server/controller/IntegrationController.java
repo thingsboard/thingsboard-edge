@@ -112,7 +112,7 @@ public class IntegrationController extends AutoCommitController {
             notes = "Fetch the Integration object based on the provided Integration Id. " +
                     "The server checks that the integration is owned by the same tenant. "
                     + NEW_LINE + RBAC_READ_CHECK
-            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            )
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/{integrationId}", method = RequestMethod.GET)
     @ResponseBody
@@ -127,7 +127,7 @@ public class IntegrationController extends AutoCommitController {
             notes = "Fetch the Integration object based on the provided routing key. " +
                     "The server checks that the integration is owned by the same tenant. "
                     + NEW_LINE + RBAC_READ_CHECK
-            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            )
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration/routingKey/{routingKey}", method = RequestMethod.GET)
     @ResponseBody
@@ -147,7 +147,7 @@ public class IntegrationController extends AutoCommitController {
                     "Integration configuration is validated for each type of the integration before it can be created. " +
                     INTEGRATION_CONFIGURATION_DEFINITION +
                     "Remove 'id', 'tenantId' from the request body example (below) to create new Integration entity. " +
-                    TENANT_AUTHORITY_PARAGRAPH, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integration", method = RequestMethod.POST)
     @ResponseBody
@@ -187,7 +187,7 @@ public class IntegrationController extends AutoCommitController {
 
     @ApiOperation(value = "Get Integrations (getIntegrations)",
             notes = "Returns a page of integrations owned by tenant. " +
-                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integrations", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -216,7 +216,7 @@ public class IntegrationController extends AutoCommitController {
 
     @ApiOperation(value = "Get Integration Infos (getIntegrationInfos)",
             notes = "Returns a page of integration infos owned by tenant. " +
-                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integrationInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -289,7 +289,7 @@ public class IntegrationController extends AutoCommitController {
 
     @ApiOperation(value = "Get Integrations By Ids (getIntegrationsByIds)",
             notes = "Requested integrations must be owned by tenant which is performing the request. " +
-                    NEW_LINE + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    NEW_LINE + RBAC_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/integrations", params = {"integrationIds"}, method = RequestMethod.GET)
     @ResponseBody
@@ -330,8 +330,7 @@ public class IntegrationController extends AutoCommitController {
                     "Second, remote edge service will receive a copy of assignment integration " +
                     EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION +
                     "Third, once integration will be delivered to edge service, it's going to start locally. " +
-                    "\n\nOnly integration edge template can be assigned to edge." + TENANT_AUTHORITY_PARAGRAPH,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    "\n\nOnly integration edge template can be assigned to edge." + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/edge/{edgeId}/integration/{integrationId}", method = RequestMethod.POST)
     @ResponseBody
@@ -365,8 +364,7 @@ public class IntegrationController extends AutoCommitController {
                     EDGE_UNASSIGN_ASYNC_FIRST_STEP_DESCRIPTION +
                     "Second, remote edge service will receive an 'unassign' command to remove integration " +
                     EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION +
-                    "Third, once 'unassign' command will be delivered to edge service, it's going to remove integration locally." + TENANT_AUTHORITY_PARAGRAPH,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    "Third, once 'unassign' command will be delivered to edge service, it's going to remove integration locally." + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/edge/{edgeId}/integration/{integrationId}", method = RequestMethod.DELETE)
     @ResponseBody

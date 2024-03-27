@@ -117,8 +117,7 @@ public class EntityViewController extends BaseController {
 
     @ApiOperation(value = "Get entity view (getEntityViewById)",
             notes = "Fetch the EntityView object based on the provided entity view id. "
-                    + ENTITY_VIEW_DESCRIPTION + MODEL_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + ENTITY_VIEW_DESCRIPTION + MODEL_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityView/{entityViewId}", method = RequestMethod.GET)
     @ResponseBody
@@ -131,8 +130,7 @@ public class EntityViewController extends BaseController {
 
     @ApiOperation(value = "Get entity view info (getEntityViewInfoById)",
             notes = "Fetch the Entity View info object based on the provided entity view id. "
-                    + ENTITY_VIEW_INFO_DESCRIPTION + MODEL_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + ENTITY_VIEW_INFO_DESCRIPTION + MODEL_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityView/info/{entityViewId}", method = RequestMethod.GET)
     @ResponseBody
@@ -146,8 +144,7 @@ public class EntityViewController extends BaseController {
     @ApiOperation(value = "Save or update entity view (saveEntityView)",
             notes = ENTITY_VIEW_DESCRIPTION + MODEL_DESCRIPTION +
                     "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new Entity View entity." +
-                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityView", method = RequestMethod.POST)
     @ResponseBody
@@ -182,8 +179,7 @@ public class EntityViewController extends BaseController {
     }
 
     @ApiOperation(value = "Get Entity View by name (getTenantEntityView)",
-            notes = "Fetch the Entity View object based on the tenant id and entity view name. " + TENANT_AUTHORITY_PARAGRAPH,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Fetch the Entity View object based on the tenant id and entity view name. " + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/tenant/entityViews", params = {"entityViewName"}, method = RequestMethod.GET)
     @ResponseBody
@@ -287,8 +283,7 @@ public class EntityViewController extends BaseController {
 
     @ApiOperation(value = "Get All Entity View Infos for current user (getAllEntityViewInfos)",
             notes = "Returns a page of entity view info objects owned by the tenant or the customer of a current user. "
-                    + ENTITY_VIEW_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + ENTITY_VIEW_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityViewInfos/all", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -344,8 +339,7 @@ public class EntityViewController extends BaseController {
 
     @ApiOperation(value = "Get Customer Entity View Infos (getCustomerEntityViewInfos)",
             notes = "Returns a page of entity view info objects owned by the specified customer. "
-                    + ENTITY_VIEW_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + ENTITY_VIEW_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/entityViewInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -388,7 +382,7 @@ public class EntityViewController extends BaseController {
     }
 
     @ApiOperation(value = "Get Entity Views By Ids (getEntityViewsByIds)",
-            notes = "Requested entity views must be owned by tenant or assigned to customer which user is performing the request. " + "\n\n" + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Requested entity views must be owned by tenant or assigned to customer which user is performing the request. " + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityViews", params = {"entityViewIds"}, method = RequestMethod.GET)
     @ResponseBody
@@ -426,7 +420,7 @@ public class EntityViewController extends BaseController {
 
     @ApiOperation(value = "Get entity views by Entity Group Id (getEntityViewsByEntityGroupId)",
             notes = "Returns a page of Entity View objects that belongs to specified Entity View Id. " +
-                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_GROUP_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entityGroup/{entityGroupId}/entityViews", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody

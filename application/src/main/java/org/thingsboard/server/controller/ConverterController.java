@@ -160,7 +160,7 @@ public class ConverterController extends AutoCommitController {
             notes = "Fetch the Converter object based on the provided Converter Id. " +
                     "The server checks that the converter is owned by the same tenant. "
                     + NEW_LINE + RBAC_READ_CHECK
-            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            )
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/{converterId}", method = RequestMethod.GET)
     @ResponseBody
@@ -179,11 +179,11 @@ public class ConverterController extends AutoCommitController {
                     "Converter name is unique in the scope of tenant. " + NEW_LINE +
                     CONVERTER_CONFIGURATION_DESCRIPTION +
                     "Remove 'id', 'tenantId' from the request body example (below) to create new converter entity. " +
-                    TENANT_AUTHORITY_PARAGRAPH, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter", method = RequestMethod.POST)
     @ResponseBody
-    public Converter saveConverter(@Parameter(required = true, description = "A JSON value representing the converter.") @RequestBody Converter converter) throws Exception {
+    public Converter saveConverter(@io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, description = "A JSON value representing the converter.") @RequestBody Converter converter) throws Exception {
         converter.setTenantId(getCurrentUser().getTenantId());
         checkEntity(converter.getId(), converter, Resource.CONVERTER, null);
         return tbConverterService.save(converter, getCurrentUser());
@@ -191,7 +191,7 @@ public class ConverterController extends AutoCommitController {
 
     @ApiOperation(value = "Get Converters (getConverters)",
             notes = "Returns a page of converters owned by tenant. " +
-                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + NEW_LINE + RBAC_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converters", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -235,7 +235,7 @@ public class ConverterController extends AutoCommitController {
     @ApiOperation(value = "Get latest debug input event (getLatestConverterDebugInput)",
             notes = "Returns a JSON object of the latest debug event representing the input message the converter processed. " + NEW_LINE +
                     CONVERTER_DEBUG_INPUT_DEFINITION +
-                    NEW_LINE + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    NEW_LINE + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/{converterId}/debugIn", method = RequestMethod.GET)
     @ResponseBody
@@ -371,14 +371,14 @@ public class ConverterController extends AutoCommitController {
     @ApiOperation(value = "Test converter function (testUpLinkConverter)",
             notes = "Returns a JSON object representing the result of the processed incoming message. " + NEW_LINE +
                     TEST_UPLINK_CONVERTER_DEFINITION
-            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            )
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/testUpLink", method = RequestMethod.POST)
     @ResponseBody
     public JsonNode testUpLinkConverter(
             @Parameter(description = "Script language: JS or TBEL")
             @RequestParam(required = false) ScriptLanguage scriptLang,
-            @Parameter(required = true, description = "A JSON value representing the input to the converter function.")
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, description = "A JSON value representing the input to the converter function.")
             @RequestBody JsonNode inputParams) throws ThingsboardException {
         String payloadBase64 = inputParams.get("payload").asText();
         byte[] payload = Base64.getDecoder().decode(payloadBase64);
@@ -412,14 +412,14 @@ public class ConverterController extends AutoCommitController {
     @ApiOperation(value = "Test converter function (testDownLinkConverter)",
             notes = "Returns a JSON object representing the result of the processed incoming message. " + NEW_LINE +
                     TEST_DOWNLINK_CONVERTER_DEFINITION
-            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            )
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converter/testDownLink", method = RequestMethod.POST)
     @ResponseBody
     public JsonNode testDownLinkConverter(
             @Parameter(description = "Script language: JS or TBEL")
             @RequestParam(required = false) ScriptLanguage scriptLang,
-            @Parameter(required = true, description = "A JSON value representing the input to the converter function.")
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true, description = "A JSON value representing the input to the converter function.")
             @RequestBody JsonNode inputParams) throws Exception {
         String data = inputParams.get("msg").asText();
         JsonNode metadata = inputParams.get("metadata");
@@ -494,7 +494,7 @@ public class ConverterController extends AutoCommitController {
 
     @ApiOperation(value = "Get Converters By Ids (getConvertersByIds)",
             notes = "Requested converters must be owned by tenant which is performing the request. " +
-                    NEW_LINE + RBAC_READ_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    NEW_LINE + RBAC_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/converters", params = {"converterIds"}, method = RequestMethod.GET)
     @ResponseBody

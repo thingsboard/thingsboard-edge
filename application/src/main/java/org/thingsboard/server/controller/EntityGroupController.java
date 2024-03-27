@@ -1301,8 +1301,7 @@ public class EntityGroupController extends AutoCommitController {
                     EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION +
                     "Third, once entity group will be delivered to edge service, edge will request entities of this group to be send to edge. " +
                     "Once entities will be delivered to edge service, they are going to be available for usage on remote edge instance." +
-                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}/entityGroup/{entityGroupId}/{groupType}", method = RequestMethod.POST)
     @ResponseBody
@@ -1343,8 +1342,7 @@ public class EntityGroupController extends AutoCommitController {
                     "Second, remote edge service will receive an 'unassign' command to remove entity group " +
                     EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION +
                     "Third, once 'unassign' command will be delivered to edge service, it's going to remove entity group and entities inside this group locally." +
-                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}/entityGroup/{entityGroupId}/{groupType}", method = RequestMethod.DELETE)
     @ResponseBody

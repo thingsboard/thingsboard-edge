@@ -131,8 +131,7 @@ public class SignUpController extends BaseController {
                     "See [Self Registration Controller](/swagger-ui.html#/self-registration-controller) for more details.  " +
                     "The result is either 'SUCCESS' or 'INACTIVE_USER_EXISTS'. " +
                     "If Success, the user will receive an email with instruction to activate the account. " +
-                    "The content of the email is customizable via the mail templates.",
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    "The content of the email is customizable via the mail templates.")
     @RequestMapping(value = "/noauth/signup", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     @ResponseBody
@@ -280,7 +279,7 @@ public class SignUpController extends BaseController {
     }
 
     @ApiOperation(value = "Resend Activation Email (resendEmailActivation)",
-            notes = "Request to resend the activation email for the user. Checks that user was not activated yet.", responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Request to resend the activation email for the user. Checks that user was not activated yet.")
     @RequestMapping(value = "/noauth/resendEmailActivation", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     public void resendEmailActivation(
@@ -315,7 +314,7 @@ public class SignUpController extends BaseController {
     @ApiOperation(value = "Activate User using code from Email (activateEmail)",
             notes = "Activate the user using code(link) from the activation email. " +
                     "Validates the code an redirects according to the signup flow. " +
-                    "Checks that user was not activated yet.", responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    "Checks that user was not activated yet.")
     @RequestMapping(value = "/noauth/activateEmail", params = {"emailCode"}, method = RequestMethod.GET)
     public ResponseEntity<String> activateEmail(
             @Parameter(description = "Activation token.", required = true)
@@ -353,7 +352,7 @@ public class SignUpController extends BaseController {
     }
 
     @ApiOperation(value = "Mobile Login redirect (mobileLogin)",
-            notes = "This method generates redirect to the special link that is handled by mobile application. Useful for email verification flow on mobile app.", responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "This method generates redirect to the special link that is handled by mobile application. Useful for email verification flow on mobile app.")
     @RequestMapping(value = "/noauth/login", params = {"pkgName"}, method = RequestMethod.GET)
     public ResponseEntity<String> mobileLogin(
             @Parameter(description = "Mobile app package name. Used to identify the application and build the redirect link.", required = true)
@@ -381,7 +380,7 @@ public class SignUpController extends BaseController {
     @ApiOperation(value = "Activate and login using code from Email (activateUserByEmailCode)",
             notes = "Activate the user using code(link) from the activation email and return the JWT Token. " +
                     "Sends the notification and email about user activation. " +
-                    "Checks that user was not activated yet.", responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    "Checks that user was not activated yet.")
     @RequestMapping(value = "/noauth/activateByEmailCode", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
     @ResponseBody
@@ -449,7 +448,7 @@ public class SignUpController extends BaseController {
     }
 
     @ApiOperation(value = "Check privacy policy (privacyPolicyAccepted)",
-            notes = "Checks that current user accepted the privacy policy.", responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Checks that current user accepted the privacy policy.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/signup/privacyPolicyAccepted", method = RequestMethod.GET)
     public @ResponseBody
@@ -460,7 +459,7 @@ public class SignUpController extends BaseController {
     }
 
     @ApiOperation(value = "Accept privacy policy (acceptPrivacyPolicy)",
-            notes = "Accept privacy policy by the current user.", responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Accept privacy policy by the current user.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/signup/acceptPrivacyPolicy", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
@@ -498,7 +497,7 @@ public class SignUpController extends BaseController {
     }
 
     @ApiOperation(value = "Check Terms Of User (termsOfUseAccepted)",
-            notes = "Checks that current user accepted the privacy policy.", responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Checks that current user accepted the privacy policy.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/signup/termsOfUseAccepted", method = RequestMethod.GET)
     public @ResponseBody
@@ -509,7 +508,7 @@ public class SignUpController extends BaseController {
     }
 
     @ApiOperation(value = "Accept Terms of Use (acceptTermsOfUse)",
-            notes = "Accept Terms of Use by the current user.", responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Accept Terms of Use by the current user.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/signup/acceptTermsOfUse", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)

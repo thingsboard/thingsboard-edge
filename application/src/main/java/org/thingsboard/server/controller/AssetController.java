@@ -120,8 +120,8 @@ public class AssetController extends BaseController {
             notes = "Fetch the Asset object based on the provided Asset Id. " +
                     "If the user has the authority of 'Tenant Administrator', the server checks that the asset is owned by the same tenant. " +
                     "If the user has the authority of 'Customer User', the server checks that the asset is assigned to the same customer."
-                    + "\n\n" + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + "\n\n" + RBAC_READ_CHECK
+            )
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset/{assetId}", method = RequestMethod.GET)
     @ResponseBody
@@ -136,8 +136,7 @@ public class AssetController extends BaseController {
             notes = "Fetch the Asset Info object based on the provided Asset Id. " +
                     "If the user has the authority of 'Tenant Administrator', the server checks that the asset is owned by the same tenant. " +
                     "If the user has the authority of 'Customer User', the server checks that the asset is assigned to the same customer."
-                    + ASSET_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + ASSET_INFO_DESCRIPTION + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset/info/{assetId}", method = RequestMethod.GET)
     @ResponseBody
@@ -154,13 +153,12 @@ public class AssetController extends BaseController {
                     "Specify existing Asset id to update the asset. " +
                     "Referencing non-existing Asset Id will cause 'Not Found' error. " +
                     "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new Asset entity. "
-                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + "\n\n" + ControllerConstants.RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset", method = RequestMethod.POST)
     @ResponseBody
     public Asset saveAsset(
-            @Parameter(description = "A JSON value representing the asset.", required = true)
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "A JSON value representing the asset.", required = true)
             @RequestBody Asset asset,
             @Parameter(description = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
@@ -191,8 +189,7 @@ public class AssetController extends BaseController {
 
     @ApiOperation(value = "Get Tenant Assets (getTenantAssets)",
             notes = "Returns a page of assets owned by tenant. " +
-                    PAGE_DATA_PARAMETERS + "\n\n" + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/tenant/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -222,8 +219,7 @@ public class AssetController extends BaseController {
     @ApiOperation(value = "Get Tenant Asset (getTenantAsset)",
             notes = "Requested asset must be owned by tenant that the user belongs to. " +
                     "Asset name is an unique property of asset. So it can be used to identify the asset."
-                    + "\n\n" + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/tenant/assets", params = {"assetName"}, method = RequestMethod.GET)
     @ResponseBody
@@ -237,8 +233,7 @@ public class AssetController extends BaseController {
 
     @ApiOperation(value = "Get Customer Assets (getCustomerAssets)",
             notes = "Returns a page of assets objects owned by customer. " +
-                    PAGE_DATA_PARAMETERS + "\n\n" + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -272,8 +267,7 @@ public class AssetController extends BaseController {
 
     @ApiOperation(value = "Get Assets (getUserAssets)",
             notes = "Returns a page of assets objects available for the current user. " +
-                    PAGE_DATA_PARAMETERS + ASSET_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + ASSET_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -301,8 +295,7 @@ public class AssetController extends BaseController {
 
     @ApiOperation(value = "Get All Asset Infos for current user (getAllAssetInfos)",
             notes = "Returns a page of asset info objects owned by the tenant or the customer of a current user. "
-                    + ASSET_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + ASSET_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/assetInfos/all", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -362,8 +355,7 @@ public class AssetController extends BaseController {
 
     @ApiOperation(value = "Get Customer Asset Infos (getCustomerAssetInfos)",
             notes = "Returns a page of asset info objects owned by the specified customer. "
-                    + ASSET_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    + ASSET_INFO_DESCRIPTION + " " + PAGE_DATA_PARAMETERS + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/{customerId}/assetInfos", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
@@ -408,8 +400,7 @@ public class AssetController extends BaseController {
     }
 
     @ApiOperation(value = "Get Assets By Ids (getAssetsByIds)",
-            notes = "Requested assets must be owned by tenant or assigned to customer which user is performing the request. " + "\n\n" + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Requested assets must be owned by tenant or assigned to customer which user is performing the request. " + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/assets", params = {"assetIds"}, method = RequestMethod.GET)
     @ResponseBody
@@ -430,8 +421,7 @@ public class AssetController extends BaseController {
     @ApiOperation(value = "Find related assets (findByQuery)",
             notes = "Returns all assets that are related to the specific entity. " +
                     "The entity id, relation type, asset types, depth of the search, and other query parameters defined using complex 'AssetSearchQuery' object. " +
-                    "See 'Model' tab of the Parameters for more info. \n\n" + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    "See 'Model' tab of the Parameters for more info. \n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/assets", method = RequestMethod.POST)
     @ResponseBody
@@ -446,8 +436,7 @@ public class AssetController extends BaseController {
 
     @ApiOperation(value = "Get assets by Entity Group Id (getAssetsByEntityGroupId)",
             notes = "Returns a page of asset objects that belongs to specified Entity Group Id. " +
-                    PAGE_DATA_PARAMETERS + "\n\n" + RBAC_GROUP_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    PAGE_DATA_PARAMETERS + "\n\n" + RBAC_GROUP_READ_CHECK)
     @RequestMapping(value = "/entityGroup/{entityGroupId}/assets", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<Asset> getAssetsByEntityGroupId(
@@ -483,8 +472,7 @@ public class AssetController extends BaseController {
     }
 
     @ApiOperation(value = "Get Asset Types (getAssetTypes)",
-            notes = "Deprecated. See 'getAssetProfileNames' API from Asset Profile Controller instead." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Deprecated. See 'getAssetProfileNames' API from Asset Profile Controller instead." + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/asset/types", method = RequestMethod.GET)
     @ResponseBody
@@ -497,8 +485,7 @@ public class AssetController extends BaseController {
     }
 
     @ApiOperation(value = "Import the bulk of assets (processAssetsBulkImport)",
-            notes = "There's an ability to import the bulk of assets using the only .csv file." + "\n\n" + RBAC_WRITE_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "There's an ability to import the bulk of assets using the only .csv file." + "\n\n" + RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping("/asset/bulk_import")
     public BulkImportResult<Asset> processAssetBulkImport(@RequestBody BulkImportRequest request) throws Exception {

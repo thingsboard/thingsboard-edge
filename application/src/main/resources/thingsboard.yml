@@ -1462,6 +1462,8 @@ swagger:
   api_path: "${SWAGGER_API_PATH:/api/**}"
   # Excluded API path match pattern of swagger UI links
   exclude_api_path: "${SWAGGER_API_PATH:/api/v1/integrations/**}"
+  # General swagger match pattern path of swagger UI links
+  security_path_regex: "${SWAGGER_SECURITY_PATH_REGEX:/api/.*}"
   # Nonsecurity API path match pattern of swagger UI links
   non_security_path_regex: "${SWAGGER_NON_SECURITY_PATH_REGEX:/api/(?:noauth|v1)/.*}"
   # The title on the API doc UI page

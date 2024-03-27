@@ -72,8 +72,7 @@ public class SolutionController extends BaseController {
     private SolutionService solutionService;
 
     @ApiOperation(value = "Get Solution templates (getSolutionTemplateInfos)",
-            notes = "Get a list of solution template descriptors" + "\n\n" + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Get a list of solution template descriptors" + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/templates/infos", method = RequestMethod.GET)
     @ResponseBody
@@ -83,8 +82,7 @@ public class SolutionController extends BaseController {
     }
 
     @ApiOperation(value = "Get Solution template details (getSolutionTemplateDetails)",
-            notes = "Get a solution template details based on the provided id" + "\n\n" + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Get a solution template details based on the provided id" + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/templates/details/{solutionTemplateId}", method = RequestMethod.GET)
     @ResponseBody
@@ -97,8 +95,7 @@ public class SolutionController extends BaseController {
     }
 
     @ApiOperation(value = "Get Solution Template Instructions (getSolutionTemplateInstructions)",
-            notes = "Get a solution template instructions based on the provided id" + "\n\n" + RBAC_READ_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Get a solution template instructions based on the provided id" + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/templates/instructions/{solutionTemplateId}", method = RequestMethod.GET)
     @ResponseBody
@@ -111,8 +108,7 @@ public class SolutionController extends BaseController {
     }
 
     @ApiOperation(value = "Install Solution Template (installSolutionTemplate)",
-            notes = "Install solution template based on the provided id" + "\n\n" + RBAC_WRITE_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Install solution template based on the provided id" + "\n\n" + RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/templates/{solutionTemplateId}/install", method = RequestMethod.POST)
     @ResponseBody
@@ -125,8 +121,7 @@ public class SolutionController extends BaseController {
     }
 
     @ApiOperation(value = "Uninstall Solution Template (uninstallSolutionTemplate)",
-            notes = "Uninstall solution template based on the provided id" + "\n\n" + RBAC_DELETE_CHECK,
-            responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            notes = "Uninstall solution template based on the provided id" + "\n\n" + RBAC_DELETE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/templates/{solutionTemplateId}/delete", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)

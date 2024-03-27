@@ -90,7 +90,7 @@ public class CustomTranslationController extends BaseController {
             notes = "Fetch end-user Custom Translation for specified locale. The custom translation is configured in the white labeling parameters. " +
                     "If custom translation translation is defined on the tenant level, it overrides the custom translation of the system level. " +
                     "Similar, if the custom translation is defined on the customer level, it overrides the translation configuration of the tenant level."
-            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            )
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/custom/merged/{localeCode}", produces = "application/json")
     @ResponseBody
@@ -116,7 +116,7 @@ public class CustomTranslationController extends BaseController {
                     "In such a case, the API call will return empty object for the tenant administrator. " +
                     "\n\n Response example: " + CUSTOM_TRANSLATION_EXAMPLE +
                     ControllerConstants.WL_READ_CHECK
-            , responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+            )
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/custom/{localeCode}", produces = "application/json")
     @ResponseBody
@@ -130,7 +130,7 @@ public class CustomTranslationController extends BaseController {
     @ApiOperation(value = "Create Or Update Custom Translation (saveCustomTranslation)",
             notes = "Creates or Updates the Custom Translation for specified locale." +
                     "\n\n Request example: " + CUSTOM_TRANSLATION_EXAMPLE +
-                    ControllerConstants.WL_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    ControllerConstants.WL_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping(value = "/translation/custom/{localeCode}")
     @ResponseStatus(value = HttpStatus.OK)

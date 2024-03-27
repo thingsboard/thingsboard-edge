@@ -45,8 +45,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
@@ -104,27 +103,19 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
                     if (role == null) {
                         return Futures.immediateFuture(null);
                     }
-                    PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
-                    PageData<Edge> edgesByTenantId;
                     List<ListenableFuture<Void>> futures = new ArrayList<>();
-                    do {
-                        edgesByTenantId = edgeService.findEdgesByTenantId(tenantId, pageLink);
-                        if (edgesByTenantId != null && edgesByTenantId.getData() != null && !edgesByTenantId.getData().isEmpty()) {
-                            for (Edge edge : edgesByTenantId.getData()) {
-                                if (EntityType.TENANT.equals(role.getOwnerId().getEntityType()) ||
-                                        edge.getOwnerId().equals(role.getOwnerId())) {
-                                    futures.add(saveEdgeEvent(tenantId, edge.getId(), type, actionType, entityId, null));
-                                }
-                            }
-                            if (edgesByTenantId.hasNext()) {
-                                pageLink = pageLink.nextPageLink();
-                            }
+                    PageDataIterable<Edge> edges = new PageDataIterable<>(
+                            link -> edgeService.findEdgesByTenantId(tenantId, link), 1024);
+                    for (Edge edge : edges) {
+                        if (EntityType.TENANT.equals(role.getOwnerId().getEntityType()) ||
+                                edge.getOwnerId().equals(role.getOwnerId())) {
+                            futures.add(saveEdgeEvent(tenantId, edge.getId(), type, actionType, entityId, null));
                         }
-                    } while (edgesByTenantId != null && edgesByTenantId.hasNext());
+                    }
                     return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
                 }, dbCallbackExecutorService);
             case DELETED:
-                return processActionForAllEdges(tenantId, type, actionType, entityId, originatorEdgeId);
+                return processActionForAllEdges(tenantId, type, actionType, entityId, null, originatorEdgeId);
             default:
                 return Futures.immediateFuture(null);
         }

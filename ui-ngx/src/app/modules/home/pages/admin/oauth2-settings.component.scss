@@ -28,7 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+@import '../../../../../scss/constants';
+
 :host{
+  .gap-xs-12 {
+    @media #{$mat-xs} {
+      gap: 12px;
+    }
+  }
+
+  .mdc-evolution-chip-set .mdc-evolution-chip {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
   .checkbox-row {
     margin-top: 1em;
   }
@@ -46,7 +59,7 @@
   }
 
   .container{
-    margin-bottom: 1em;
+    margin-bottom: 16px;
 
     .tb-highlight{
       margin: 0;
