@@ -31,8 +31,8 @@
 package org.thingsboard.server.msa.connectivity;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
+import lombok.extern.slf4j.Slf4j;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -41,18 +41,14 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
-import org.thingsboard.server.common.msg.session.FeatureType;
-import org.thingsboard.server.msa.AbstractContainerTest;
+import org.thingsboard.server.msa.AbstractCoapClientTest;
 import org.thingsboard.server.msa.DisableUIListeners;
-import org.thingsboard.server.msa.TestCoapClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevicePrototype;
-
+@Slf4j
 @DisableUIListeners
-public class CoapClientTest  extends AbstractContainerTest {
-    private TestCoapClient client;
-
+public class CoapClientTest extends AbstractCoapClientTest{
     private Device device;
     @BeforeMethod
     public void setUp() throws Exception {
@@ -63,6 +59,7 @@ public class CoapClientTest  extends AbstractContainerTest {
     @AfterMethod
     public void tearDown() {
         testRestClient.deleteDeviceIfExists(device.getId());
+        disconnect();
     }
 
     @Test
@@ -90,7 +87,6 @@ public class CoapClientTest  extends AbstractContainerTest {
         DeviceProfile deviceProfile = testRestClient.getDeviceProfileById(device.getDeviceProfileId());
 
         deviceProfile = updateDeviceProfileWithProvisioningStrategy(deviceProfile, DeviceProfileProvisionType.ALLOW_CREATE_NEW_DEVICES);
-
         JsonNode provisionResponse = JacksonUtil.fromBytes(createCoapClientAndPublish(testDeviceName));
 
         testRestClient.deleteDeviceIfExists(device.getId());
@@ -116,21 +112,5 @@ public class CoapClientTest  extends AbstractContainerTest {
 
         assertThat(response.get("status").asText()).isEqualTo("NOT_FOUND");
     }
-
-    private byte[] createCoapClientAndPublish(String deviceName) throws Exception {
-        String provisionRequestMsg = createTestProvisionMessage(deviceName);
-        client = new TestCoapClient(TestCoapClient.getFeatureTokenUrl(FeatureType.PROVISION));
-        return client.postMethod(provisionRequestMsg.getBytes()).getPayload();
-    }
-
-    private String createTestProvisionMessage(String deviceName) {
-        ObjectNode provisionRequest = JacksonUtil.newObjectNode();
-        provisionRequest.put("provisionDeviceKey", TEST_PROVISION_DEVICE_KEY);
-        provisionRequest.put("provisionDeviceSecret", TEST_PROVISION_DEVICE_SECRET);
-        if (deviceName != null) {
-            provisionRequest.put("deviceName", deviceName);
-        }
-        return provisionRequest.toString();
-    }
-
 }
+

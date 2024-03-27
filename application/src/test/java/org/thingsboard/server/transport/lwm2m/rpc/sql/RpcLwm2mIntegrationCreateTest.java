@@ -114,7 +114,7 @@ public class RpcLwm2mIntegrationCreateTest extends AbstractRpcLwM2MIntegrationTe
         String actualResult = sendRPCreateById(expectedPath, expectedValue);
         ObjectNode rpcActualResult = JacksonUtil.fromString(actualResult, ObjectNode.class);
         assertEquals(ResponseCode.BAD_REQUEST.getName(), rpcActualResult.get("result").asText());
-        String expectedObjectId = pathIdVerToObjectId((String) expectedPath);
+        String expectedObjectId = pathIdVerToObjectId(expectedPath);
         LwM2mPath expectedPathId = new LwM2mPath(expectedObjectId);
         String expected = "Specified object id " + expectedPathId.getObjectId() + " absent in the list supported objects of the client or is security object!";
         String actual = rpcActualResult.get("error").asText();
@@ -133,7 +133,7 @@ public class RpcLwm2mIntegrationCreateTest extends AbstractRpcLwM2MIntegrationTe
         String actualResult = sendRPCreateById(expectedPath, expectedValue);
         ObjectNode rpcActualResult = JacksonUtil.fromString(actualResult, ObjectNode.class);
         assertEquals(ResponseCode.BAD_REQUEST.getName(), rpcActualResult.get("result").asText());
-        String expectedObjectId = pathIdVerToObjectId((String) expectedPath);
+        String expectedObjectId = pathIdVerToObjectId(expectedPath);
         LwM2mPath expectedPathId = new LwM2mPath(expectedObjectId);
         String expected = "Specified object id " + expectedPathId.getObjectId() + " absent in the list supported objects of the client or is security object!";
         String actual = rpcActualResult.get("error").asText();

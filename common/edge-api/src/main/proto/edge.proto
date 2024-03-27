@@ -244,6 +244,11 @@ message DeviceUpdateMsg {
   string entity = 20;
 }
 
+message DeviceGroupOtaPackageUpdateMsg {
+  UpdateMsgType msgType = 1;
+  string entity = 2;
+}
+
 message DeviceProfileUpdateMsg {
   UpdateMsgType msgType = 1;
   int64 idMSB = 2;
@@ -886,4 +891,5 @@ message DownlinkMsg {
   WhiteLabelingProto whiteLabelingProto = 44;
   CustomMenuProto customMenuProto = 45;
   repeated AlarmCommentUpdateMsg alarmCommentUpdateMsg = 46;
+  repeated DeviceGroupOtaPackageUpdateMsg deviceGroupOtaPackageUpdateMsg = 47;
 }

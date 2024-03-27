@@ -1,0 +1,65 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-form-panel tb-time-series-thresholds-panel">
+  <div class="tb-form-panel-title">{{ 'widgets.time-series-chart.threshold.thresholds' | translate }}</div>
+  <div class="tb-form-table">
+    <div class="tb-form-table-header">
+      <div class="tb-form-table-header-cell tb-threshold-source-header" translate>widgets.time-series-chart.threshold.source</div>
+      <div class="tb-form-table-header-cell tb-threshold-key-value-header" translate>widgets.time-series-chart.threshold.key-value</div>
+      <div class="tb-form-table-header-cell tb-y-axis-header" translate>widgets.time-series-chart.axis.y-axis</div>
+      <div class="tb-form-table-header-cell tb-color-header" translate>widgets.color.color</div>
+      <div class="tb-form-table-header-cell tb-units-header" translate>widget-config.units-short</div>
+      <div class="tb-form-table-header-cell tb-decimals-header" translate>widget-config.decimals-short</div>
+      <div class="tb-form-table-header-cell tb-actions-header"></div>
+    </div>
+    <div *ngIf="thresholdsFormArray().controls.length; else noThresholds" class="tb-form-table-body">
+      <div *ngFor="let thresholdControl of thresholdsFormArray().controls; trackBy: trackByThreshold; let $index = index; let $last = last">
+        <tb-time-series-chart-threshold-row fxFlex
+                                    [formControl]="thresholdControl"
+                                    [yAxisIds]="yAxisIds"
+                                    (thresholdRemoved)="removeThreshold($index)">
+        </tb-time-series-chart-threshold-row>
+        <mat-divider *ngIf="!$last"></mat-divider>
+      </div>
+    </div>
+  </div>
+  <div>
+    <button type="button" mat-stroked-button color="primary" (click)="addThreshold()">
+      {{ 'widgets.time-series-chart.threshold.add-threshold' | translate }}
+    </button>
+  </div>
+</div>
+<ng-template #noThresholds>
+  <span fxLayoutAlign="center center"
+        class="tb-prompt">{{ 'widgets.time-series-chart.threshold.no-thresholds' | translate }}</span>
+</ng-template>

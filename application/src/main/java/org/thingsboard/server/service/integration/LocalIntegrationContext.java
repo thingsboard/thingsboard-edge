@@ -93,9 +93,7 @@ public class LocalIntegrationContext implements IntegrationContext {
 
     @Override
     public void createEntityView(EntityViewDataProto data, IntegrationCallback<Void> callback) {
-        Device device = ctx.getPlatformIntegrationService()
-                .getOrCreateDevice(configuration, data.getDeviceName(), data.getDeviceType(), null, null, null);
-        ctx.getPlatformIntegrationService().getOrCreateEntityView(configuration, device, data);
+        ctx.getPlatformIntegrationService().processUplinkData(configuration, data, callback);
     }
 
     @Override

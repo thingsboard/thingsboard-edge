@@ -31,31 +31,30 @@
 package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.JsonStringType;
+import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
-import javax.persistence.Column;
-import javax.persistence.MappedSuperclass;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TypeDef(name = "json", typeClass = JsonStringType.class)
 @MappedSuperclass
 public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSqlEntity<T> implements BaseEntity<T> {
 
-    public static final Map<String,String> customerColumnMap = new HashMap<>();
+    public static final Map<String, String> customerColumnMap = new HashMap<>();
+
     static {
         customerColumnMap.put("name", "title");
     }
@@ -93,7 +92,7 @@ public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSql
     @Column(name = ModelConstants.EMAIL_PROPERTY)
     private String email;
 
-    @Type(type = "json")
+    @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.CUSTOMER_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
