@@ -44,8 +44,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
@@ -105,32 +104,24 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                     if (groupPermission == null) {
                         return Futures.immediateFuture(null);
                     }
-                    PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
-                    PageData<EdgeId> pageData;
                     List<ListenableFuture<Void>> futures = new ArrayList<>();
-                    do {
-                        pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, groupPermission.getUserGroupId(), EntityType.USER, pageLink);
-                        if (pageData.getData().size() > 0) {
-                            for (EdgeId edgeId : pageData.getData()) {
-                                ListenableFuture<Boolean> checkFuture =
-                                        entityGroupService.checkEdgeEntityGroupByIdAsync(tenantId, edgeId, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
-                                futures.add(Futures.transformAsync(checkFuture, exists -> {
-                                    if (Boolean.TRUE.equals(exists)) {
-                                        return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
-                                    } else {
-                                        return Futures.immediateFuture(null);
-                                    }
-                                }, dbCallbackExecutorService));
+                    PageDataIterable<EdgeId> edgeIds = new PageDataIterable<>(
+                            link -> edgeService.findRelatedEdgeIdsByEntityId(tenantId, groupPermission.getUserGroupId(), EntityType.USER, link), 1024);
+                    for (EdgeId edgeId : edgeIds) {
+                        ListenableFuture<Boolean> checkFuture =
+                                entityGroupService.checkEdgeEntityGroupByIdAsync(tenantId, edgeId, groupPermission.getEntityGroupId(), groupPermission.getEntityGroupType());
+                        futures.add(Futures.transformAsync(checkFuture, exists -> {
+                            if (Boolean.TRUE.equals(exists)) {
+                                return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
+                            } else {
+                                return Futures.immediateFuture(null);
                             }
-                            if (pageData.hasNext()) {
-                                pageLink = pageLink.nextPageLink();
-                            }
-                        }
-                    } while (pageData.hasNext());
+                        }, dbCallbackExecutorService));
+                    }
                     return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
                 }, dbCallbackExecutorService);
             case DELETED:
-                return processActionForAllEdges(tenantId, type, actionType, entityId, originatorEdgeId);
+                return processActionForAllEdges(tenantId, type, actionType, entityId, null, originatorEdgeId);
             default:
                 return Futures.immediateFuture(null);
         }

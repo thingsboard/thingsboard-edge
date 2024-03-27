@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.oauth2.OAuth2Info;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -191,57 +192,59 @@ public class EdgeEventSourcingListener {
     private boolean isValidSaveEntityEventForEdgeProcessing(SaveEntityEvent<?> event) {
         Object entity = event.getEntity();
         Object oldEntity = event.getOldEntity();
-        switch (event.getEntityId().getEntityType()) {
-            case RULE_CHAIN:
-                if (entity instanceof RuleChain ruleChain) {
-                    return RuleChainType.EDGE.equals(ruleChain.getType());
-                }
-                break;
-            case USER:
-                if (entity instanceof User user) {
-                    if (Authority.SYS_ADMIN.equals(user.getAuthority())) {
+        if (event.getEntityId() != null) {
+            switch (event.getEntityId().getEntityType()) {
+                case RULE_CHAIN:
+                    if (entity instanceof RuleChain ruleChain) {
+                        return RuleChainType.EDGE.equals(ruleChain.getType());
+                    }
+                    break;
+                case USER:
+                    if (entity instanceof User user) {
+                        if (Authority.SYS_ADMIN.equals(user.getAuthority())) {
+                            return false;
+                        }
+                        if (oldEntity != null) {
+                            User oldUser = (User) oldEntity;
+                            cleanUpUserAdditionalInfo(oldUser);
+                            cleanUpUserAdditionalInfo(user);
+                            return !user.equals(oldUser);
+                        }
+                    }
+                    break;
+                case OTA_PACKAGE:
+                    if (entity instanceof OtaPackageInfo otaPackageInfo) {
+                        return otaPackageInfo.hasUrl() || otaPackageInfo.isHasData();
+                    }
+                    break;
+                case ALARM:
+                    if (entity instanceof AlarmApiCallResult || entity instanceof Alarm) {
                         return false;
                     }
-                    if (oldEntity != null) {
-                        User oldUser = (User) oldEntity;
-                        cleanUpUserAdditionalInfo(oldUser);
-                        cleanUpUserAdditionalInfo(user);
-                        return !user.equals(oldUser);
+                    break;
+                case TENANT:
+                    return !event.getCreated();
+                case CONVERTER:
+                    Converter converter = (Converter) event.getEntity();
+                    return converter.isEdgeTemplate();
+                case INTEGRATION:
+                    Integration integration = (Integration) event.getEntity();
+                    return integration.isEdgeTemplate();
+                case ENTITY_GROUP:
+                    if (event.getEntity() instanceof EntityGroup entityGroup) {
+                        if (entityGroup.isGroupAll()) {
+                            log.trace("skipping entity in case of 'All' group: {}", entityGroup);
+                            return false;
+                        }
+                        if (entityGroup.isEdgeGroupAll()) {
+                            log.trace("skipping entity in case of Edge 'All' group: {}", entityGroup);
+                            return false;
+                        }
                     }
-                }
-                break;
-            case OTA_PACKAGE:
-                if (entity instanceof OtaPackageInfo otaPackageInfo) {
-                    return otaPackageInfo.hasUrl() || otaPackageInfo.isHasData();
-                }
-                break;
-            case ALARM:
-                if (entity instanceof AlarmApiCallResult || entity instanceof Alarm) {
+                    break;
+                case API_USAGE_STATE, EDGE:
                     return false;
-                }
-                break;
-            case TENANT:
-                return !event.getCreated();
-            case CONVERTER:
-                Converter converter = (Converter) event.getEntity();
-                return converter.isEdgeTemplate();
-            case INTEGRATION:
-                Integration integration = (Integration) event.getEntity();
-                return integration.isEdgeTemplate();
-            case ENTITY_GROUP:
-                if (event.getEntity() instanceof EntityGroup entityGroup) {
-                    if (entityGroup.isGroupAll()) {
-                        log.trace("skipping entity in case of 'All' group: {}", entityGroup);
-                        return false;
-                    }
-                    if (entityGroup.isEdgeGroupAll()) {
-                        log.trace("skipping entity in case of Edge 'All' group: {}", entityGroup);
-                        return false;
-                    }
-                }
-                break;
-            case API_USAGE_STATE, EDGE:
-                return false;
+            }
         }
         // Default: If the entity doesn't match any of the conditions, consider it as valid.
         return true;
@@ -266,6 +269,8 @@ public class EdgeEventSourcingListener {
     private EdgeEventType getEdgeEventTypeForEntityEvent(Object entity) {
         if (entity instanceof AlarmComment) {
             return EdgeEventType.ALARM_COMMENT;
+        } else if (entity instanceof OAuth2Info) {
+            return EdgeEventType.OAUTH2;
         } else if (entity instanceof DeviceGroupOtaPackage) {
             return EdgeEventType.DEVICE_GROUP_OTA;
         }
@@ -274,6 +279,8 @@ public class EdgeEventSourcingListener {
 
     private String getBodyMsgForEntityEvent(Object entity) {
         if (entity instanceof AlarmComment || entity instanceof DeviceGroupOtaPackage) {
+            return JacksonUtil.toString(entity);
+        } else if (entity instanceof OAuth2Info) {
             return JacksonUtil.toString(entity);
         }
         return null;

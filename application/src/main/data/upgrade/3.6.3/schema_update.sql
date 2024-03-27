@@ -127,3 +127,10 @@ $$;
 CREATE INDEX IF NOT EXISTS idx_group_permission_tenant_id ON group_permission(tenant_id);
 
 -- GROUP PERMISSION INDEX CREATE END
+
+-- OAUTH2 PARAMS ALTER TABLE START
+
+ALTER TABLE oauth2_params
+    ADD COLUMN IF NOT EXISTS edge_enabled boolean DEFAULT false;
+
+-- OAUTH2 PARAMS ALTER TABLE END

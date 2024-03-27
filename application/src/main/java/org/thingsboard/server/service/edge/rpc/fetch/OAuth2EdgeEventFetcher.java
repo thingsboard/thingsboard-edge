@@ -28,30 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.oauth2;
+package org.thingsboard.server.service.edge.rpc.fetch;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.oauth2.OAuth2Info;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.oauth2.OAuth2Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@EqualsAndHashCode
-@Data
-@ToString
-@Builder(toBuilder = true)
-@NoArgsConstructor
 @AllArgsConstructor
-@Schema
-public class OAuth2Info {
-    @Schema(description = "Whether OAuth2 settings are enabled or not")
-    private boolean enabled;
-    @Schema(description = "Whether OAuth2 settings are enabled on Edge or not")
-    private boolean edgeEnabled;
-    @Schema(description = "List of configured OAuth2 clients. Cannot contain null values", required = true)
-    private List<OAuth2ParamsInfo> oauth2ParamsInfos;
+@Slf4j
+public class OAuth2EdgeEventFetcher implements EdgeEventFetcher {
+
+    private final OAuth2Service oAuth2Service;
+
+    @Override
+    public PageLink getPageLink(int pageSize) {
+        return null;
+    }
+
+    @Override
+    public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
+        List<EdgeEvent> result = new ArrayList<>();
+        OAuth2Info oAuth2Info = oAuth2Service.findOAuth2Info();
+        result.add(EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.OAUTH2,
+                EdgeEventActionType.ADDED, null, JacksonUtil.valueToTree(oAuth2Info)));
+        // returns PageData object to be in sync with other fetchers
+        return new PageData<>(result, 1, result.size(), false);
+    }
+
 }
