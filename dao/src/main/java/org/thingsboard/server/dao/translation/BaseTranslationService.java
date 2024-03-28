@@ -39,7 +39,9 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -48,6 +50,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.common.util.JacksonUtil.extractKeys;
 import static org.thingsboard.common.util.JacksonUtil.merge;
@@ -58,9 +63,11 @@ import static org.thingsboard.common.util.JacksonUtil.merge;
 public class BaseTranslationService implements TranslationService {
 
     public static final String LOCALE_FILES_DIRECTORY_PATH = "/public/assets/locale";
+    public static final Pattern LOCALE_FILE_PATTERN = Pattern.compile("locale\\.constant-(.*?)\\.json");
     public static final String DEFAULT_LOCALE_CODE = "en_US";
     public static JsonNode DEFAULT_LOCALE_TRANSLATION;
     public static final Set<String> DEFAULT_LOCALE_KEYS;
+    public static final Set<String> SYSTEM_LOCALE_LIST;
     public static final Map<String, TranslationInfo> LOCALES_INFO = new HashMap<>();
 
     static {
@@ -68,6 +75,7 @@ public class BaseTranslationService implements TranslationService {
             LOCALES_INFO.put(availableLocale.toString(),
                     new TranslationInfo(availableLocale.toString(), availableLocale.getDisplayLanguage(), availableLocale.getDisplayCountry()));
         }
+        SYSTEM_LOCALE_LIST = readSystemLocaleCodes();
         DEFAULT_LOCALE_TRANSLATION = Objects.requireNonNull(readLocaleFile(getLocaleFilePath(DEFAULT_LOCALE_CODE)),
                 "Failed to retrieve default locale translation!");
         DEFAULT_LOCALE_KEYS = extractKeys(DEFAULT_LOCALE_TRANSLATION);
@@ -78,7 +86,8 @@ public class BaseTranslationService implements TranslationService {
     @Override
     public List<TranslationInfo> getSystemTranslationInfos() {
         List<TranslationInfo> translationInfos = new ArrayList<>();
-        List<String> locales = customTranslationService.getCustomizedLocales(TenantId.SYS_TENANT_ID, null);
+        Set<String> locales = customTranslationService.getCustomizedLocales(TenantId.SYS_TENANT_ID, null);
+        locales.addAll(SYSTEM_LOCALE_LIST);
         for (String locale : locales) {
             translationInfos.add(buildLocaleInfo(locale, getSystemTranslation(locale)));
         }
@@ -88,7 +97,8 @@ public class BaseTranslationService implements TranslationService {
     @Override
     public List<TranslationInfo> getTenantTranslationInfos(TenantId tenantId) {
         List<TranslationInfo> translationInfos = new ArrayList<>();
-        List<String> locales = customTranslationService.getCustomizedLocales(tenantId, null);
+        Set<String> locales = customTranslationService.getCustomizedLocales(tenantId, null);
+        locales.addAll(SYSTEM_LOCALE_LIST);
         for (String locale : locales) {
             translationInfos.add(buildLocaleInfo(locale, getTenantTranslation(tenantId, locale)));
         }
@@ -98,7 +108,8 @@ public class BaseTranslationService implements TranslationService {
     @Override
     public List<TranslationInfo> getCustomerTranslationInfos(TenantId tenantId, CustomerId customerId) {
         List<TranslationInfo> translationInfos = new ArrayList<>();
-        List<String> locales = customTranslationService.getCustomizedLocales(tenantId, customerId);
+        Set<String> locales = customTranslationService.getCustomizedLocales(tenantId, customerId);
+        locales.addAll(SYSTEM_LOCALE_LIST);
         for (String locale : locales) {
             translationInfos.add(buildLocaleInfo(locale, getCustomerTranslation(tenantId, customerId, locale)));
         }
@@ -153,13 +164,34 @@ public class BaseTranslationService implements TranslationService {
 
     private static JsonNode readLocaleFile(String localeFilePath) {
         try (InputStream in = BaseTranslationService.class.getResourceAsStream(localeFilePath)) {
-            if (in == null){
+            if (in == null) {
                 return null;
             }
             return JacksonUtil.OBJECT_MAPPER.readTree(in);
         } catch (Exception e) {
             throw new RuntimeException("Failed to read locale translation!", e);
         }
+    }
+
+    private static Set<String> readSystemLocaleCodes() {
+        List<String> filenames = new ArrayList<>();
+        try (InputStream in = BaseTranslationService.class.getResourceAsStream(LOCALE_FILES_DIRECTORY_PATH);
+             BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+            String resource;
+            while ((resource = br.readLine()) != null) {
+                filenames.add(resource);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get list of system locales!", e);
+        }
+        return filenames.stream().map(filename -> {
+            Matcher matcher = LOCALE_FILE_PATTERN.matcher(filename);
+            if (matcher.find()) {
+                return matcher.group(1);
+            } else {
+                return null;
+            }
+        }).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
     private TranslationInfo buildLocaleInfo(String localeCode, JsonNode translation) {

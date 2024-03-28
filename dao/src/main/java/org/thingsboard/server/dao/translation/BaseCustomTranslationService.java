@@ -49,6 +49,7 @@ import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.thingsboard.common.util.JacksonUtil.merge;
 
@@ -122,7 +123,7 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     }
 
     @Override
-    public List<String> getCustomizedLocales(TenantId tenantId, CustomerId customerId) {
+    public Set<String> getCustomizedLocales(TenantId tenantId, CustomerId customerId) {
         return customTranslationDao.findLocalesByTenantIdAndCustomerId(tenantId, customerId);
     }
 

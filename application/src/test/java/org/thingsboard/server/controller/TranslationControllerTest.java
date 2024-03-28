@@ -58,6 +58,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
 
     private static final String ES_ES = "es_ES";
     private static final String EN_AU = "en_AU";
+    private static final String EN_US = "en_US";
     private static final String AR_QA = "ar_QA";
 
     @Autowired
@@ -194,31 +195,27 @@ public class TranslationControllerTest extends AbstractControllerTest {
     }
 
     private void checkTranslationInfo() throws Exception {
-        JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"spanish\"}");
-        doPost("/api/translation/custom/" + ES_ES, esCustomTranslation, CustomTranslation.class);
+        JsonNode auCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"australian\"}");
+        doPost("/api/translation/custom/" + EN_AU, auCustomTranslation, CustomTranslation.class);
 
-        JsonNode itCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"australian\"}");
-        doPost("/api/translation/custom/" + EN_AU, itCustomTranslation, CustomTranslation.class);
-
-        List<TranslationInfo> tenantTranslationInfos = doGetTyped("/api/translation/info", new TypeReference<>() {
+        List<TranslationInfo> translationInfos = doGetTyped("/api/translation/info", new TypeReference<>() {
         });
-        assertThat(tenantTranslationInfos).hasSize(2);
 
-        Optional<TranslationInfo> spanish = tenantTranslationInfos.stream().filter(info -> info.getLocaleCode().equals(ES_ES))
+        Optional<TranslationInfo> defaultLocaleInfo = translationInfos.stream().filter(info -> info.getLocaleCode().equals(EN_US))
                 .findFirst();
-        assertThat(spanish).isPresent();
-        TranslationInfo spanishInfo = spanish.get();
-        Locale spanishLocale = new Locale("es", "ES");
+        assertThat(defaultLocaleInfo).isPresent();
+        TranslationInfo englishInfo = defaultLocaleInfo.get();
+        Locale spanishLocale = new Locale("en", "US");
 
-        assertThat(spanishInfo.getLocaleCode()).isEqualTo(spanishLocale.toString());
-        assertThat(spanishInfo.getCountry()).isEqualTo(spanishLocale.getDisplayCountry());
-        assertThat(spanishInfo.getLanguage()).isEqualTo(spanishLocale.getDisplayLanguage());
-        assertThat(spanishInfo.getProgress()).isGreaterThan(0);
+        assertThat(englishInfo.getLocaleCode()).isEqualTo(spanishLocale.toString());
+        assertThat(englishInfo.getCountry()).isEqualTo(spanishLocale.getDisplayCountry());
+        assertThat(englishInfo.getLanguage()).isEqualTo(spanishLocale.getDisplayLanguage());
+        assertThat(englishInfo.getProgress()).isEqualTo(100);
 
-        Optional<TranslationInfo> italian = tenantTranslationInfos.stream().filter(info -> info.getLocaleCode().equals(EN_AU))
+        Optional<TranslationInfo> australian = translationInfos.stream().filter(info -> info.getLocaleCode().equals(EN_AU))
                 .findFirst();
-        assertThat(italian).isPresent();
-        TranslationInfo italianInfo = italian.get();
+        assertThat(australian).isPresent();
+        TranslationInfo italianInfo = australian.get();
         Locale italianLocale = new Locale("en", "AU");
 
         assertThat(italianInfo.getLocaleCode()).isEqualTo(italianLocale.toString());

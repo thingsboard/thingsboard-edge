@@ -44,6 +44,7 @@ import org.thingsboard.server.dao.translation.CustomTranslationDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -71,7 +72,7 @@ public class JpaCustomTranslationDao implements CustomTranslationDao {
     }
 
     @Override
-    public List<String> findLocalesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+    public Set<String> findLocalesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
         return customTranslationRepository.findLocalesByTenantIdAndCustomerId(tenantId.getId(), customerId == null ? EntityId.NULL_UUID : customerId.getId());
     }
 

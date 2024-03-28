@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import java.util.List;
+import java.util.Set;
 
 public interface CustomTranslationService {
 
@@ -53,7 +54,7 @@ public interface CustomTranslationService {
 
     void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
-    List<String> getCustomizedLocales(TenantId tenantId, CustomerId customerId);
+    Set<String> getCustomizedLocales(TenantId tenantId, CustomerId customerId);
 
     void deleteCustomTranslationByTenantId(TenantId tenantId);
 }

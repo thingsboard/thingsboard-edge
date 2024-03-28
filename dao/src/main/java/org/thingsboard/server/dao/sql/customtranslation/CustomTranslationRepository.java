@@ -39,13 +39,14 @@ import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
 import org.thingsboard.server.dao.model.sql.CustomTranslationEntity;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 
 public interface CustomTranslationRepository extends JpaRepository<CustomTranslationEntity, CustomTranslationCompositeKey> {
 
     @Query(value = "SELECT DISTINCT c.localeCode FROM CustomTranslationEntity c WHERE c.tenantId = :tenantId AND c.customerId = :customerId")
-    List<String> findLocalesByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId, @Param("customerId") UUID customerId);
+    Set<String> findLocalesByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId, @Param("customerId") UUID customerId);
 
     @Transactional
     @Modifying
