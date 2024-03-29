@@ -361,9 +361,6 @@ import {
   TimeSeriesChartLineSettingsComponent
 } from '@home/components/widget/lib/settings/chart/time-series-chart-line-settings.component';
 import {
-  TimeSeriesChartFillSettingsComponent
-} from '@home/components/widget/lib/settings/chart/time-series-chart-fill-settings.component';
-import {
   TimeSeriesChartBarSettingsComponent
 } from '@home/components/widget/lib/settings/chart/time-series-chart-bar-settings.component';
 import {
@@ -491,7 +488,6 @@ import {
     TimeSeriesChartKeySettingsComponent,
     TimeSeriesChartLineSettingsComponent,
     TimeSeriesChartBarSettingsComponent,
-    TimeSeriesChartFillSettingsComponent,
     TimeSeriesChartWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
@@ -623,7 +619,6 @@ import {
     TimeSeriesChartKeySettingsComponent,
     TimeSeriesChartLineSettingsComponent,
     TimeSeriesChartBarSettingsComponent,
-    TimeSeriesChartFillSettingsComponent,
     TimeSeriesChartWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
