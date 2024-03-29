@@ -47,22 +47,23 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.util.LogSettingsComponent;
 import org.thingsboard.integration.service.api.IntegrationApiService;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
 import org.thingsboard.server.common.data.event.RawDataEvent;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
 import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.IntegrationInfoProto;
 import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
-import org.thingsboard.server.service.integration.IntegrationProtoUtil;
 
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -92,7 +93,7 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
         this.contextComponent = contextComponent;
         this.configuration = configuration;
         this.logSettingsComponent = logSettingsComponent;
-        this.integrationInfoProto = IntegrationProtoUtil.toProto(configuration);
+        this.integrationInfoProto = ProtoUtils.toProto((AbstractIntegration) configuration);
     }
 
     @Override
@@ -224,7 +225,7 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     private void doSaveEvent(TbEventSource tbEventSource, EntityId entityId, Event event, String deviceName, IntegrationCallback<Void> callback) {
         var builder = TbIntegrationEventProto.newBuilder()
                 .setSource(tbEventSource)
-                .setEvent(ByteString.copyFrom(FSTUtils.encode(event)));
+                .setEvent(ByteString.copyFrom(JavaSerDesUtil.encode(event)));
         builder.setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits());
         builder.setTenantIdLSB(configuration.getTenantId().getId().getLeastSignificantBits());
         if (event.getEntityId() != null) {

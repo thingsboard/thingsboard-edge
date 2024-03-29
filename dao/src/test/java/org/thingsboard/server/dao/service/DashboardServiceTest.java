@@ -99,9 +99,8 @@ public class DashboardServiceTest extends AbstractServiceTest {
     public void testSaveDashboardWithEmptyTenant() {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle("My dashboard");
-        Assertions.assertThrows(DataValidationException.class, () -> {
-            dashboardService.saveDashboard(dashboard);
-        });
+        Assertions.assertThrows(DataValidationException.class, () ->
+                dashboardService.saveDashboard(dashboard));
     }
     
     @Test
@@ -109,9 +108,8 @@ public class DashboardServiceTest extends AbstractServiceTest {
         Dashboard dashboard = new Dashboard();
         dashboard.setTitle("My dashboard");
         dashboard.setTenantId(TenantId.fromUUID(Uuids.timeBased()));
-        Assertions.assertThrows(DataValidationException.class, () -> {
-            dashboardService.saveDashboard(dashboard);
-        });
+        Assertions.assertThrows(DataValidationException.class, () ->
+                dashboardService.saveDashboard(dashboard));
     }
 
     @Test
@@ -192,7 +190,7 @@ public class DashboardServiceTest extends AbstractServiceTest {
 
         List<DashboardInfo> loadedMobileDashboards = new ArrayList<>();
         PageLink pageLink = new PageLink(16, 0, null, new SortOrder("title", SortOrder.Direction.ASC));
-        PageData<DashboardInfo> pageData = null;
+        PageData<DashboardInfo> pageData;
         do {
             pageData = dashboardService.findMobileDashboardsByTenantId(tenantId, pageLink);
             loadedMobileDashboards.addAll(pageData.getData());
@@ -206,7 +204,7 @@ public class DashboardServiceTest extends AbstractServiceTest {
             Integer order2 = o2.getMobileOrder();
             if (order1 == null && order2 == null) {
                 return o1.getTitle().compareTo(o2.getTitle());
-            } else if (order1 == null && order2 != null) {
+            } else if (order1 == null) {
                 return 1;
             }  else if (order2 == null) {
                 return -1;

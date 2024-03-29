@@ -34,7 +34,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.Base64Utils;
+import java.util.Base64;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.script.api.ScriptInvokeService;
@@ -69,7 +69,7 @@ public class ScriptUplinkEvaluator extends AbstractScriptEvaluator {
         if (ScriptLanguage.JS.equals(scriptLang)) {
             try {
                 String[] args = new String[2];
-                args[0] = Base64Utils.encodeToString(data);
+                args[0] = Base64.getEncoder().encodeToString(data);
                 args[1] = JacksonUtil.toString(metadata.getKvMap());
                 return args;
             } catch (Throwable th) {

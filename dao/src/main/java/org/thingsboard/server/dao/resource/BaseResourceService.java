@@ -58,8 +58,8 @@ import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.validator.ResourceDataValidator;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.List;
 import java.util.Optional;
@@ -106,8 +106,8 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
                 saved = new TbResource(resourceInfo);
             }
             publishEvictEvent(new ResourceInfoEvictEvent(tenantId, resource.getId()));
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(saved.getTenantId())
-                    .entityId(saved.getId()).created(resource.getId() == null).build());
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(saved.getTenantId()).entityId(saved.getId())
+                    .entity(saved).created(resource.getId() == null).build());
             return saved;
         } catch (Exception t) {
             publishEvictEvent(new ResourceInfoEvictEvent(resource.getTenantId(), resource.getId()));
@@ -171,10 +171,10 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
         if (!force) {
             resourceValidator.validateDelete(tenantId, resourceId);
         }
+        TbResource resource = findResourceById(tenantId, resourceId);
         resourceDao.removeById(tenantId, resourceId.getId());
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(resourceId).build());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entity(resource).entityId(resourceId).build());
     }
-
 
     @Override
     public PageData<TbResourceInfo> findAllTenantResourcesByTenantId(TbResourceInfoFilter filter, PageLink pageLink) {
@@ -255,7 +255,7 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
 
                 @Override
                 protected void removeEntity(TenantId tenantId, TbResource entity) {
-                    deleteResource(tenantId, new TbResourceId(entity.getUuidId()));
+                    deleteResource(tenantId, entity.getId());
                 }
             };
 

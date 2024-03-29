@@ -46,8 +46,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
@@ -348,15 +347,11 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             case TENANT:
                 List<ListenableFuture<Void>> futures = new ArrayList<>();
                 if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
-                    PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
-                    PageData<TenantId> tenantsIds;
-                    do {
-                        tenantsIds = tenantService.findTenantsIds(pageLink);
-                        for (TenantId tenantId1 : tenantsIds.getData()) {
-                            futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, null, JacksonUtil.valueToTree(entityId), sourceEdgeId, null));
-                        }
-                        pageLink = pageLink.nextPageLink();
-                    } while (tenantsIds.hasNext());
+                    PageDataIterable<TenantId> tenantIds = new PageDataIterable<>(
+                            link -> tenantService.findTenantsIds(link), 1024);
+                    for (TenantId tenantId1 : tenantIds) {
+                        futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, null, JacksonUtil.valueToTree(entityId), sourceEdgeId, null));
+                    }
                 } else {
                     futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, null, JacksonUtil.valueToTree(entityId), sourceEdgeId, null);
                 }
