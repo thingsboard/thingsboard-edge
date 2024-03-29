@@ -86,6 +86,7 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -243,12 +244,12 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Override
     @Transactional
     public Tenant saveTenant(Tenant tenant) {
-        return saveTenant(tenant, true);
+        return saveTenant(tenant, null);
     }
 
     @Override
     @Transactional
-    public Tenant saveTenant(Tenant tenant, boolean publishSaveEvent) {
+    public Tenant saveTenant(Tenant tenant, Consumer<TenantId> defaultEntitiesCreator) {
         log.trace("Executing saveTenant [{}]", tenant);
         tenant.setRegion(DEFAULT_TENANT_REGION);
         if (tenant.getTenantProfileId() == null) {
@@ -257,31 +258,32 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         }
         tenantValidator.validate(tenant, Tenant::getId);
         boolean create = tenant.getId() == null;
+
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
-        publishEvictEvent(new TenantEvictEvent(savedTenant.getId(), create));
-        if (publishSaveEvent) {
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedTenant.getId())
-                    .entityId(savedTenant.getId()).entity(savedTenant).created(create).build());
-        }
-        if (tenant.getId() == null) {
-            deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
-            assetProfileService.createDefaultAssetProfile(savedTenant.getId());
+        TenantId tenantId = savedTenant.getId();
+        publishEvictEvent(new TenantEvictEvent(tenantId, create));
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId)
+                .entityId(tenantId).entity(savedTenant).created(create).build());
 
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DEVICE);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ENTITY_VIEW);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.EDGE);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DASHBOARD);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
+        if (create) {
+            deviceProfileService.createDefaultDeviceProfile(tenantId);
+            assetProfileService.createDefaultAssetProfile(tenantId);
 
-            entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
-            entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
-            apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
-            try {
-                notificationSettingsService.createDefaultNotificationConfigs(savedTenant.getId());
-            } catch (Throwable e) {
-                log.error("Failed to create default notification configs for tenant {}", savedTenant.getId(), e);
+            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.CUSTOMER);
+            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.ASSET);
+            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.DEVICE);
+            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.ENTITY_VIEW);
+            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.EDGE);
+            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.DASHBOARD);
+            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.USER);
+
+            entityGroupService.findOrCreateTenantUsersGroup(tenantId);
+            entityGroupService.findOrCreateTenantAdminsGroup(tenantId);
+            apiUsageStateService.createDefaultApiUsageState(tenantId, null);
+            notificationSettingsService.createDefaultNotificationConfigs(tenantId);
+
+            if (defaultEntitiesCreator != null) {
+                defaultEntitiesCreator.accept(tenantId);
             }
         }
         return savedTenant;
