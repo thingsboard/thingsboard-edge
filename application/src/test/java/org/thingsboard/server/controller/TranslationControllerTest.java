@@ -33,7 +33,6 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
@@ -51,7 +50,6 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.thingsboard.server.common.data.id.TenantId.SYS_TENANT_ID;
 
 @DaoSqlTest
 public class TranslationControllerTest extends AbstractControllerTest {
@@ -208,8 +206,6 @@ public class TranslationControllerTest extends AbstractControllerTest {
         Locale spanishLocale = new Locale("en", "US");
 
         assertThat(englishInfo.getLocaleCode()).isEqualTo(spanishLocale.toString());
-        assertThat(englishInfo.getCountry()).isEqualTo(spanishLocale.getDisplayCountry());
-        assertThat(englishInfo.getLanguage()).isEqualTo(spanishLocale.getDisplayLanguage());
         assertThat(englishInfo.getProgress()).isEqualTo(100);
 
         Optional<TranslationInfo> australian = translationInfos.stream().filter(info -> info.getLocaleCode().equals(EN_AU))
@@ -219,8 +215,6 @@ public class TranslationControllerTest extends AbstractControllerTest {
         Locale italianLocale = new Locale("en", "AU");
 
         assertThat(italianInfo.getLocaleCode()).isEqualTo(italianLocale.toString());
-        assertThat(italianInfo.getCountry()).isEqualTo(italianLocale.getDisplayCountry());
-        assertThat(italianInfo.getLanguage()).isEqualTo(italianLocale.getDisplayLanguage());
         assertThat(italianInfo.getProgress()).isEqualTo(0);
     }
 

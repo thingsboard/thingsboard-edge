@@ -35,7 +35,6 @@ import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 
-import java.util.List;
 import java.util.Set;
 
 public interface CustomTranslationService {

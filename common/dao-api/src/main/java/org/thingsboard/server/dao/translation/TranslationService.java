@@ -39,22 +39,10 @@ import java.util.List;
 
 public interface TranslationService {
 
-    List<TranslationInfo> getSystemTranslationInfos();
+    List<TranslationInfo> getTranslationInfos(TenantId tenantId, CustomerId customerId);
 
-    List<TranslationInfo> getTenantTranslationInfos(TenantId tenantId);
+    JsonNode getLocaleTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
-    List<TranslationInfo> getCustomerTranslationInfos(TenantId tenantId, CustomerId customerId);
-
-    JsonNode getSystemTranslation(String localeCode);
-
-    JsonNode getTenantTranslation(TenantId tenantId, String localeCode);
-
-    JsonNode getCustomerTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
-
-    JsonNode getFullSystemTranslation(String localeCode);
-
-    JsonNode getFullTenantTranslation(TenantId tenantId, String localeCode);
-
-    JsonNode getFullCustomerTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
+    JsonNode getFullTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
 }

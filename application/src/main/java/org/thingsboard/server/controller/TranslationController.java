@@ -65,10 +65,12 @@ import org.thingsboard.server.dao.translation.TranslationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.translation.TbTranslationService;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
+import java.text.DateFormat;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
@@ -84,14 +86,10 @@ public class TranslationController extends BaseController {
             "[\n" +
             "  {\n" +
             "    \"localeCode\": \"it_IT\",\n" +
-            "    \"language\": \"Italian\",\n" +
-            "    \"country\": \"Italy\",\n" +
             "    \"progress\": 100\n" +
             "  },\n" +
             "  {\n" +
             "    \"localeCode\": \"pl_PL\",\n" +
-            "    \"language\": \"Polish\",\n" +
-            "    \"country\": \"Poland\",\n" +
             "    \"progress\": 12\n" +
             "  }\n" +
             "]" +
@@ -109,17 +107,20 @@ public class TranslationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/info", produces = "application/json")
     @ResponseBody
-    public List<TranslationInfo> getTranslationInfos() throws ThingsboardException, IOException {
-        Authority authority = getCurrentUser().getAuthority();
+    public List<TranslationInfo> getTranslationInfos() throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.READ);
-        if (Authority.SYS_ADMIN.equals(authority)) {
-            return translationService.getSystemTranslationInfos();
-        } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            return translationService.getTenantTranslationInfos(getCurrentUser().getTenantId());
-        } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            return translationService.getCustomerTranslationInfos(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
-        }
-        return Collections.emptyList();
+        return translationService.getTranslationInfos(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
+    }
+
+    @ApiOperation(value = "Get list of available system locales (getAvailableLocales)")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @GetMapping(value = "/translation/locales", produces = "application/json")
+    @ResponseBody
+    public List<String> getAvailableLocales() {
+        return Arrays.stream(DateFormat.getAvailableLocales())
+                .map(Locale::toString)
+                .filter(s -> !s.isEmpty())
+                .collect(Collectors.toList());
     }
 
     @ApiOperation(value = "Get end-user all-to-one translation (getFullTranslation)",
@@ -138,18 +139,21 @@ public class TranslationController extends BaseController {
         CustomerId customerId = getCurrentUser().getCustomerId();
 
         TranslationCacheKey cacheKey = TranslationCacheKey.forLocale(tenantId, customerId, localeCode);
-        Authority authority = getCurrentUser().getAuthority();
-
-        if (Authority.SYS_ADMIN.equals(authority)) {
-            return getFullTranslationIfChanged(cacheKey, etag, () -> translationService.getFullSystemTranslation(localeCode));
-        } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            return getFullTranslationIfChanged(cacheKey, etag, () -> translationService.getFullTenantTranslation(tenantId, localeCode));
-        } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            return getFullTranslationIfChanged(cacheKey, etag, () -> translationService.getFullCustomerTranslation(tenantId, getCurrentUser().getCustomerId(), localeCode));
+        if (StringUtils.isNotEmpty(etag)) {
+            etag = StringUtils.remove(etag, '\"'); // etag is wrapped in double quotes due to HTTP specification
+            if (etag.equals(tbTranslationService.getETag(cacheKey))) {
+                return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
+            }
         }
+
+        JsonNode fullTranslation = translationService.getFullTranslation(tenantId, customerId, localeCode);
+        String calculatedEtag = calculateTranslationEtag(fullTranslation);
+        tbTranslationService.putETag(cacheKey, calculatedEtag);
         return ResponseEntity.ok()
                 .header("Content-Type", MediaType.APPLICATION_JSON.toString())
-                .body(JacksonUtil.newObjectNode());
+                .eTag(calculatedEtag)
+                .cacheControl(CacheControl.noCache())
+                .body(fullTranslation);
     }
 
     @ApiOperation(value = "Download end-user all-to-one translation (downloadFullTranslation)",
@@ -164,17 +168,8 @@ public class TranslationController extends BaseController {
         checkWhiteLabelingPermissions(Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
         CustomerId customerId = getCurrentUser().getCustomerId();
-        Authority authority = getCurrentUser().getAuthority();
 
-        JsonNode fullSystemTranslation = null;
-        if (Authority.SYS_ADMIN.equals(authority)) {
-            fullSystemTranslation = translationService.getFullSystemTranslation(localeCode);
-        } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            fullSystemTranslation = translationService.getFullTenantTranslation(tenantId, localeCode);
-        } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            fullSystemTranslation = translationService.getFullCustomerTranslation(tenantId, customerId, localeCode);
-        }
-        checkNotNull(fullSystemTranslation);
+        JsonNode fullSystemTranslation = checkNotNull(translationService.getFullTranslation(tenantId, customerId, localeCode));
 
         String fileName = localeCode + "_custom_translation.json";
         ByteArrayResource translation = new ByteArrayResource(fullSystemTranslation.toString().getBytes());
@@ -185,24 +180,6 @@ public class TranslationController extends BaseController {
                 .contentLength(translation.contentLength())
                 .header("Content-Type", MediaType.APPLICATION_JSON.toString())
                 .body(translation);
-    }
-
-    private ResponseEntity<JsonNode> getFullTranslationIfChanged(TranslationCacheKey cacheKey, String etag, ThrowingSupplier<JsonNode> fullTranslationSupplier) throws Exception {
-        if (StringUtils.isNotEmpty(etag)) {
-            etag = StringUtils.remove(etag, '\"'); // etag is wrapped in double quotes due to HTTP specification
-            if (etag.equals(tbTranslationService.getETag(cacheKey))) {
-                return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
-            }
-        }
-
-        JsonNode fullTranslation = fullTranslationSupplier.get();
-        String calculatedEtag = calculateTranslationEtag(fullTranslation);
-        tbTranslationService.putETag(cacheKey, calculatedEtag);
-        return ResponseEntity.ok()
-                .header("Content-Type", MediaType.APPLICATION_JSON.toString())
-                .eTag(calculatedEtag)
-                .cacheControl(CacheControl.noCache())
-                .body(fullTranslation);
     }
 
     protected String calculateTranslationEtag(JsonNode translation) {

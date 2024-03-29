@@ -42,14 +42,14 @@ import org.thingsboard.server.common.data.translation.TranslationInfo;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -62,108 +62,81 @@ import static org.thingsboard.common.util.JacksonUtil.merge;
 @RequiredArgsConstructor
 public class BaseTranslationService implements TranslationService {
 
+    private static final ReentrantLock progressCalculationLock = new ReentrantLock();
     public static final String LOCALE_FILES_DIRECTORY_PATH = "/public/assets/locale";
     public static final Pattern LOCALE_FILE_PATTERN = Pattern.compile("locale\\.constant-(.*?)\\.json");
     public static final String DEFAULT_LOCALE_CODE = "en_US";
-    public static JsonNode DEFAULT_LOCALE_TRANSLATION;
+    public static final JsonNode DEFAULT_LOCALE_TRANSLATION;
     public static final Set<String> DEFAULT_LOCALE_KEYS;
     public static final Set<String> SYSTEM_LOCALE_LIST;
-    public static final Map<String, TranslationInfo> LOCALES_INFO = new HashMap<>();
+    private final ConcurrentMap<String, Integer> translationProgressMap = new ConcurrentHashMap<>();
+    private final CustomTranslationService customTranslationService;
 
     static {
-        for (Locale availableLocale : DateFormat.getAvailableLocales()) {
-            LOCALES_INFO.put(availableLocale.toString(),
-                    new TranslationInfo(availableLocale.toString(), availableLocale.getDisplayLanguage(), availableLocale.getDisplayCountry()));
-        }
         SYSTEM_LOCALE_LIST = readSystemLocaleCodes();
-        DEFAULT_LOCALE_TRANSLATION = Objects.requireNonNull(readLocaleFile(getLocaleFilePath(DEFAULT_LOCALE_CODE)),
+        DEFAULT_LOCALE_TRANSLATION = Objects.requireNonNull(getSystemLocaleTranslation(DEFAULT_LOCALE_CODE),
                 "Failed to retrieve default locale translation!");
         DEFAULT_LOCALE_KEYS = extractKeys(DEFAULT_LOCALE_TRANSLATION);
     }
 
-    private final CustomTranslationService customTranslationService;
-
     @Override
-    public List<TranslationInfo> getSystemTranslationInfos() {
+    public List<TranslationInfo> getTranslationInfos(TenantId tenantId, CustomerId customerId) {
         List<TranslationInfo> translationInfos = new ArrayList<>();
-        Set<String> locales = customTranslationService.getCustomizedLocales(TenantId.SYS_TENANT_ID, null);
-        locales.addAll(SYSTEM_LOCALE_LIST);
-        for (String locale : locales) {
-            translationInfos.add(buildLocaleInfo(locale, getSystemTranslation(locale)));
+        Set<String> customizedLocales = customTranslationService.getCustomizedLocales(tenantId, customerId);
+        for (String locale : customizedLocales) {
+            JsonNode customTranslation = getLocaleTranslation(tenantId, customerId, locale);
+            translationInfos.add(createTranslationInfo(locale, customTranslation));
+        }
+        Set<String> notCustomizedLocales = new HashSet<>(SYSTEM_LOCALE_LIST);
+        notCustomizedLocales.removeAll(customizedLocales);
+        for (String locale : notCustomizedLocales) {
+            translationInfos.add(createTranslationInfo(locale, getSystemLocaleTranslationProgress(locale)));
         }
         return translationInfos;
     }
 
     @Override
-    public List<TranslationInfo> getTenantTranslationInfos(TenantId tenantId) {
-        List<TranslationInfo> translationInfos = new ArrayList<>();
-        Set<String> locales = customTranslationService.getCustomizedLocales(tenantId, null);
-        locales.addAll(SYSTEM_LOCALE_LIST);
-        for (String locale : locales) {
-            translationInfos.add(buildLocaleInfo(locale, getTenantTranslation(tenantId, locale)));
+    public JsonNode getLocaleTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        JsonNode customTranslation;
+        if (tenantId.isSysTenantId()) {
+            customTranslation = customTranslationService.getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue().deepCopy();
+        } else if (customerId == null || customerId.isNullUid()) {
+            customTranslation = customTranslationService.getMergedTenantCustomTranslation(tenantId, localeCode);
+        } else {
+            customTranslation = customTranslationService.getMergedCustomerCustomTranslation(tenantId, customerId, localeCode);
         }
-        return translationInfos;
-    }
-
-    @Override
-    public List<TranslationInfo> getCustomerTranslationInfos(TenantId tenantId, CustomerId customerId) {
-        List<TranslationInfo> translationInfos = new ArrayList<>();
-        Set<String> locales = customTranslationService.getCustomizedLocales(tenantId, customerId);
-        locales.addAll(SYSTEM_LOCALE_LIST);
-        for (String locale : locales) {
-            translationInfos.add(buildLocaleInfo(locale, getCustomerTranslation(tenantId, customerId, locale)));
-        }
-        return translationInfos;
-    }
-
-    @Override
-    public JsonNode getFullSystemTranslation(String localeCode) {
-        return merge(getSystemTranslation(localeCode), DEFAULT_LOCALE_TRANSLATION);
-    }
-
-    @Override
-    public JsonNode getFullTenantTranslation(TenantId tenantId, String localeCode) {
-        return merge(getTenantTranslation(tenantId, localeCode), DEFAULT_LOCALE_TRANSLATION);
-    }
-
-    @Override
-    public JsonNode getFullCustomerTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
-        return merge(getCustomerTranslation(tenantId, customerId, localeCode), DEFAULT_LOCALE_TRANSLATION);
-    }
-
-    @Override
-    public JsonNode getSystemTranslation(String localeCode) {
-        JsonNode customTranslation = customTranslationService.getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode)
-                .getValue().deepCopy();
         return mergeWithSystemLanguageTranslationIfExists(localeCode, customTranslation);
     }
 
     @Override
-    public JsonNode getTenantTranslation(TenantId tenantId, String localeCode) {
-        JsonNode customTranslation = customTranslationService.getMergedTenantCustomTranslation(tenantId, localeCode);
-        return mergeWithSystemLanguageTranslationIfExists(localeCode, customTranslation);
+    public JsonNode getFullTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        JsonNode translation = getLocaleTranslation(tenantId, customerId, localeCode);
+        return merge(translation, DEFAULT_LOCALE_TRANSLATION);
     }
 
-    @Override
-    public JsonNode getCustomerTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
-        JsonNode customTranslation = customTranslationService.getMergedCustomerCustomTranslation(tenantId, customerId, localeCode);
-        return mergeWithSystemLanguageTranslationIfExists(localeCode, customTranslation);
+    private TranslationInfo createTranslationInfo(String locale, JsonNode translation) {
+        return createTranslationInfo(locale, calculateTranslationProgress(translation));
     }
 
-    private static String getLocaleFilePath(String localeCode) {
+    private TranslationInfo createTranslationInfo(String locale, int progress) {
+        return new TranslationInfo(locale, progress);
+    }
+
+    private static String getSystemLocaleFilePath(String localeCode) {
         return LOCALE_FILES_DIRECTORY_PATH + "/locale.constant-" + localeCode + ".json";
     }
 
     private JsonNode mergeWithSystemLanguageTranslationIfExists(String localeCode, JsonNode jsonNode) {
-        JsonNode systemTranslation = readLocaleFile(getLocaleFilePath(localeCode));
+        JsonNode systemTranslation = getSystemLocaleTranslation(localeCode);
         if (systemTranslation != null) {
             return merge(jsonNode, systemTranslation);
         }
         return jsonNode;
     }
 
-    private static JsonNode readLocaleFile(String localeFilePath) {
-        try (InputStream in = BaseTranslationService.class.getResourceAsStream(localeFilePath)) {
+    private static JsonNode getSystemLocaleTranslation(String localeCode) {
+        String filePath = getSystemLocaleFilePath(localeCode);
+        try (InputStream in = BaseTranslationService.class.getResourceAsStream(filePath)) {
             if (in == null) {
                 return null;
             }
@@ -194,14 +167,23 @@ public class BaseTranslationService implements TranslationService {
         }).filter(Objects::nonNull).collect(Collectors.toSet());
     }
 
-    private TranslationInfo buildLocaleInfo(String localeCode, JsonNode translation) {
-        TranslationInfo translationInfo = LOCALES_INFO.getOrDefault(localeCode, new TranslationInfo());
-        return TranslationInfo.builder()
-                .localeCode(localeCode)
-                .country(translationInfo.getCountry())
-                .language(translationInfo.getLanguage())
-                .progress(calculateTranslationProgress(translation))
-                .build();
+    public int getSystemLocaleTranslationProgress(String locale) {
+        Integer progress = translationProgressMap.get(locale);
+        if (progress == null) {
+            progressCalculationLock.lock();
+            try {
+                progress = translationProgressMap.get(locale);
+                if (progress == null) {
+                    JsonNode systemLocaleTranslation = getSystemLocaleTranslation(locale);
+                    progress = calculateTranslationProgress(systemLocaleTranslation);
+                    translationProgressMap.put(locale, progress);
+                    log.debug("Fetch locale {} translation progress into cache: {}", locale, progress);
+                }
+            } finally {
+                progressCalculationLock.unlock();
+            }
+        }
+        return progress;
     }
 
     private int calculateTranslationProgress(JsonNode translation) {
