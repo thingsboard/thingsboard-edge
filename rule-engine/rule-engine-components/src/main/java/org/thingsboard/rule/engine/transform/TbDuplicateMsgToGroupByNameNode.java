@@ -97,24 +97,25 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
     }
 
     @Override
-    protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
-        var entityGroupId = detectTargetEntityGroupId(ctx, original);
+    protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, TbMsg msg) {
+        String groupName = TbNodeUtils.processPattern(config.getGroupName(), msg);
+        var entityGroupId = detectTargetEntityGroupId(ctx, msg.getOriginator(), groupName);
         return ctx.getPeContext().getEntityGroupService().findAllEntityIdsAsync(ctx.getTenantId(), entityGroupId, new PageLink(Integer.MAX_VALUE));
     }
 
-    private EntityGroupId detectTargetEntityGroupId(TbContext ctx, EntityId originator) {
+    private EntityGroupId detectTargetEntityGroupId(TbContext ctx, EntityId originator, String groupName) {
         if (config.isSearchEntityGroupForTenantOnly()) {
-            return tryFindGroupByOwnerId(ctx, ctx.getTenantId());
+            return tryFindGroupByOwnerId(ctx, ctx.getTenantId(), groupName);
         }
         if (config.isConsiderMessageOriginatorAsAGroupOwner() &&
                 (originator.getEntityType() == EntityType.TENANT ||
                         originator.getEntityType() == EntityType.CUSTOMER)) {
-            return tryFindGroupByOwnerId(ctx, originator);
+            return tryFindGroupByOwnerId(ctx, originator, groupName);
         }
-        return tryFindGroupByOwnerId(ctx, ctx.getPeContext().getOwner(ctx.getTenantId(), originator));
+        return tryFindGroupByOwnerId(ctx, ctx.getPeContext().getOwner(ctx.getTenantId(), originator), groupName);
     }
 
-    private EntityGroupId tryFindGroupByOwnerId(TbContext ctx, EntityId ownerId) {
+    private EntityGroupId tryFindGroupByOwnerId(TbContext ctx, EntityId ownerId, String groupName) {
         EntityGroupId entityGroupId = ctx.getPeContext().getEntityGroupService()
                 .findEntityGroupByTypeAndName(ctx.getTenantId(), ownerId, config.getGroupType(), groupName)
                 .map(IdBased::getId).orElse(null);
@@ -122,9 +123,9 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
             return entityGroupId;
         } else {
             if (!EntityType.TENANT.equals(ownerId.getEntityType())) {
-                return tryFindGroupByOwnerId(ctx, ctx.getPeContext().getOwner(ctx.getTenantId(), ownerId));
+                return tryFindGroupByOwnerId(ctx, ctx.getPeContext().getOwner(ctx.getTenantId(), ownerId), groupName);
             } else {
-                throw new RuntimeException("Can't find group with type: " + config.getGroupType() + " name: " + config.getGroupName() + "!");
+                throw new RuntimeException("Can't find group with type: " + config.getGroupType() + " name: " + groupName + "!");
             }
         }
     }
