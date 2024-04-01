@@ -66,17 +66,27 @@ import org.thingsboard.server.common.data.group.ColumnType;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.dao.audit.AuditLogLevelFilter;
 import org.thingsboard.server.dao.audit.AuditLogLevelMask;
 import org.thingsboard.server.dao.audit.AuditLogLevelProperties;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
+import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.tenant.TenantService;
 
 import java.io.IOException;
@@ -85,6 +95,7 @@ import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -100,9 +111,14 @@ import static org.junit.Assert.assertNotNull;
 public abstract class AbstractServiceTest {
 
     public static final TenantId SYSTEM_TENANT_ID = TenantId.SYS_TENANT_ID;
+    public static final String TEST_TENANT_NAME = "My tenant " + UUID.randomUUID();
 
     @Autowired
     protected TenantService tenantService;
+    @Autowired
+    protected RoleService roleService;
+    @Autowired
+    protected GroupPermissionService groupPermissionService;
 
     protected TenantId tenantId;
 
@@ -182,7 +198,7 @@ public abstract class AbstractServiceTest {
 
     public Tenant createTenant() {
         Tenant tenant = new Tenant();
-        tenant.setTitle("My tenant " + UUID.randomUUID());
+        tenant.setTitle(TEST_TENANT_NAME);
         Tenant savedTenant = tenantService.saveTenant(tenant);
         assertNotNull(savedTenant);
         return savedTenant;
@@ -243,6 +259,38 @@ public abstract class AbstractServiceTest {
         EntityGroup savedGroup = getEntityGroupService().saveEntityGroup(tenantId, tenantId, testDevicesGroup);
         Assert.assertNotNull(savedGroup);
         return savedGroup;
+    }
+
+    protected Role createGenericRole(TenantId tenantId, CustomerId customerId, String name, Map<Resource, List<Operation>> permissions) {
+        return createRole(tenantId, customerId, name, RoleType.GENERIC, permissions);
+    }
+
+    protected Role createGroupRole(TenantId tenantId, CustomerId customerId, String name, List<Operation> permissions) {
+        return createRole(tenantId, customerId, name, RoleType.GROUP, permissions);
+    }
+
+    private Role createRole(TenantId tenantId, CustomerId customerId, String name, RoleType roleType, Object permissions) {
+        Role role = new Role();
+        role.setTenantId(tenantId);
+        role.setCustomerId(customerId);
+        role.setName(name);
+        role.setType(roleType);
+        role.setPermissions(JacksonUtil.valueToTree(permissions));
+        return roleService.saveRole(tenantId, role);
+    }
+
+    protected GroupPermission createGroupPermission(TenantId tenantId, EntityGroupId userGroupId, RoleId genericRoleId) {
+        return createGroupPermission(tenantId, userGroupId, genericRoleId, null, null);
+    }
+
+    protected GroupPermission createGroupPermission(TenantId tenantId, EntityGroupId userGroupId, RoleId roleId, EntityGroupId entityGroupId, EntityType entityGroupType) {
+        GroupPermission groupPermission = new GroupPermission();
+        groupPermission.setTenantId(tenantId);
+        groupPermission.setUserGroupId(userGroupId);
+        groupPermission.setRoleId(roleId);
+        groupPermission.setEntityGroupId(entityGroupId);
+        groupPermission.setEntityGroupType(entityGroupType);
+        return groupPermissionService.saveGroupPermission(tenantId, groupPermission);
     }
 
     protected DeviceService getDeviceService() {
