@@ -6402,7 +6402,9 @@
         "integration-routing-key-conflict": "Failed to load the integration with external id <b>{{entityId}}</b><br/>due to the same integration key is already present in the database for another integration.<br/>Please consider enabling the <b>auto-generate integration key</b> setting in the restore form.",
         "auto-generate-integration-key": "Auto-generate integration key",
         "runtime-failed": "<b>Failed:</b> {{message}}",
-        "auto-commit-settings-read-only-hint": "Auto-commit feature doesn't work with enabled read-only option in Repository settings."
+        "auto-commit-settings-read-only-hint": "Auto-commit feature doesn't work with enabled read-only option in Repository settings.",
+        "rollback-on-error": "Rollback on error",
+        "rollback-on-error-hint": "If you have a large amount of entities to restore, consider disabling this option to increase performance.\n Note, if an error occurs over the course of version loading, already persisted entities (with relations, attributes, etc.) will stay as is"
     },
     "widget": {
         "widget-library": "Widgets library",
