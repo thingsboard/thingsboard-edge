@@ -312,7 +312,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
                                                            EntityDataQuery query, List<EntityData> data) {
         EntityDataQuery entityQuery;
         List<String> entityIds = data.stream().map(d -> d.getEntityId().getId().toString()).toList();
-        EntityDataPageLink entityDataPageLink = new EntityDataPageLink(query.getPageLink().getPageSize(), 0, query.getPageLink().getTextSearch(), query.getPageLink().getSortOrder());
+        EntityDataPageLink pageLink = new EntityDataPageLink(query.getPageLink().getPageSize(), 0, null, query.getPageLink().getSortOrder());
 
         if (EntityFilterType.ENTITY_GROUP_LIST.equals(query.getEntityFilter().getType()) ||
                 EntityFilterType.ENTITY_GROUP_NAME.equals(query.getEntityFilter().getType())) {
@@ -320,14 +320,14 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             filter.setGroupType(getEntityTypeByEntityGroupFilter(query));
             filter.setEntityGroupList(entityIds);
 
-            entityQuery = new EntityDataQuery(filter, entityDataPageLink, query.getEntityFields(), query.getLatestValues(), null);
+            entityQuery = new EntityDataQuery(filter, pageLink, query.getEntityFields(), query.getLatestValues(), null);
         } else {
             EntityType entityType = data.isEmpty() ? null : data.get(0).getEntityId().getEntityType();
             EntityListFilter filter = new EntityListFilter();
             filter.setEntityType(entityType);
             filter.setEntityList(entityIds);
 
-            entityQuery = new EntityDataQuery(filter, entityDataPageLink, query.getEntityFields(), query.getLatestValues(), null);
+            entityQuery = new EntityDataQuery(filter, pageLink, query.getEntityFields(), query.getLatestValues(), null);
         }
         return this.entityQueryDao.findEntityDataByQuery(tenantId, customerId, userPermissions, entityQuery);
     }
