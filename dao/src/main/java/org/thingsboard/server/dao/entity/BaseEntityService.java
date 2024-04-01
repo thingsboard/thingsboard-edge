@@ -56,8 +56,13 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.query.EntityCountQuery;
 import org.thingsboard.server.common.data.query.EntityData;
+import org.thingsboard.server.common.data.query.EntityDataPageLink;
 import org.thingsboard.server.common.data.query.EntityDataQuery;
 import org.thingsboard.server.common.data.query.EntityFilterType;
+import org.thingsboard.server.common.data.query.EntityGroupListFilter;
+import org.thingsboard.server.common.data.query.EntityGroupNameFilter;
+import org.thingsboard.server.common.data.query.EntityKey;
+import org.thingsboard.server.common.data.query.EntityListFilter;
 import org.thingsboard.server.common.data.query.RelationsQueryFilter;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -73,6 +78,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 import static org.thingsboard.server.dao.service.Validator.validateEntityDataPageLink;
@@ -267,7 +273,63 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
         validateEntityDataQuery(query);
-        return this.entityQueryDao.findEntityDataByQuery(tenantId, customerId, userPermissions, query);
+
+        if (EntityFilterType.RELATIONS_QUERY.equals(query.getEntityFilter().getType())) {
+            return this.entityQueryDao.findEntityDataByQuery(tenantId, customerId, userPermissions, query);
+        }
+
+        // 1 step - find entity data by filter and sort columns
+        PageData<EntityData> entityDataByQuery = findEntityIdsByFilterAndSorterColumns(tenantId, customerId, userPermissions, query);
+        if (entityDataByQuery == null || entityDataByQuery.getData().isEmpty()) {
+            return entityDataByQuery;
+        }
+        // 2 step - find entity data by entity ids from the 1st step
+        PageData<EntityData> result = findEntityDataByEntityIds(tenantId, customerId, userPermissions, query, entityDataByQuery.getData());
+        return new PageData<>(result.getData(), entityDataByQuery.getTotalPages(), entityDataByQuery.getTotalElements(), entityDataByQuery.hasNext());
+    }
+
+    private PageData<EntityData> findEntityIdsByFilterAndSorterColumns(TenantId tenantId, CustomerId customerId,
+                                                                       MergedUserPermissions userPermissions, EntityDataQuery query) {
+        List<EntityKey> entityFields = null;
+        List<EntityKey> latestValues = null;
+        if (query.getPageLink().getSortOrder() != null) {
+            if (query.getEntityFields() != null) {
+                entityFields = query.getEntityFields().stream()
+                        .filter(entityKey -> entityKey.getKey().equals(query.getPageLink().getSortOrder().getKey().getKey()))
+                        .collect(Collectors.toList());
+            }
+            if (query.getLatestValues() != null) {
+                latestValues = query.getLatestValues().stream()
+                        .filter(entityKey -> entityKey.getKey().equals(query.getPageLink().getSortOrder().getKey().getKey()))
+                        .collect(Collectors.toList());
+            }
+        }
+        EntityDataQuery entityQuery = new EntityDataQuery(query.getEntityFilter(), query.getPageLink(), entityFields, latestValues, query.getKeyFilters());
+        return this.entityQueryDao.findEntityDataByQuery(tenantId, customerId, userPermissions, entityQuery);
+    }
+
+    private PageData<EntityData> findEntityDataByEntityIds(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions,
+                                                           EntityDataQuery query, List<EntityData> data) {
+        EntityDataQuery entityQuery;
+        List<String> entityIds = data.stream().map(d -> d.getEntityId().getId().toString()).toList();
+        EntityDataPageLink entityDataPageLink = new EntityDataPageLink(query.getPageLink().getPageSize(), 0, query.getPageLink().getTextSearch(), query.getPageLink().getSortOrder());
+
+        if (EntityFilterType.ENTITY_GROUP_LIST.equals(query.getEntityFilter().getType()) ||
+                EntityFilterType.ENTITY_GROUP_NAME.equals(query.getEntityFilter().getType())) {
+            EntityGroupListFilter filter = new EntityGroupListFilter();
+            filter.setGroupType(getEntityTypeByEntityGroupFilter(query));
+            filter.setEntityGroupList(entityIds);
+
+            entityQuery = new EntityDataQuery(filter, entityDataPageLink, query.getEntityFields(), query.getLatestValues(), null);
+        } else {
+            EntityType entityType = data.isEmpty() ? null : data.get(0).getEntityId().getEntityType();
+            EntityListFilter filter = new EntityListFilter();
+            filter.setEntityType(entityType);
+            filter.setEntityList(entityIds);
+
+            entityQuery = new EntityDataQuery(filter, entityDataPageLink, query.getEntityFields(), query.getLatestValues(), null);
+        }
+        return this.entityQueryDao.findEntityDataByQuery(tenantId, customerId, userPermissions, entityQuery);
     }
 
     @Override
@@ -321,8 +383,7 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
     }
 
     private CustomerId getCustomerId(HasId<?> entity) {
-        if (entity instanceof HasCustomerId) {
-            HasCustomerId hasCustomerId = (HasCustomerId) entity;
+        if (entity instanceof HasCustomerId hasCustomerId) {
             CustomerId customerId = hasCustomerId.getCustomerId();
             if (customerId == null) {
                 customerId = NULL_CUSTOMER_ID;
@@ -364,4 +425,14 @@ public class BaseEntityService extends AbstractEntityService implements EntitySe
             throw new IncorrectParameterException("Relation query filter root entity should not be blank");
         }
     }
+
+    private EntityType getEntityTypeByEntityGroupFilter(EntityDataQuery query) {
+        if (EntityFilterType.ENTITY_GROUP_LIST.equals(query.getEntityFilter().getType())) {
+            return ((EntityGroupListFilter) query.getEntityFilter()).getGroupType();
+        } else if (EntityFilterType.ENTITY_GROUP_NAME.equals(query.getEntityFilter().getType())) {
+            return ((EntityGroupNameFilter) query.getEntityFilter()).getGroupType();
+        }
+        return null;
+    }
+
 }
