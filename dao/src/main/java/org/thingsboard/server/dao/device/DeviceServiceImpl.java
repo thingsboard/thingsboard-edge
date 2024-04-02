@@ -53,6 +53,8 @@ import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.Tenant;
+import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.device.DeviceSearchQuery;
 import org.thingsboard.server.common.data.device.credentials.BasicMqttCredentials;
 import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
@@ -84,11 +86,13 @@ import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
+import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
+import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -128,6 +132,9 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
 
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    private TenantService tenantService;
 
     @Autowired
     private DataValidator<Device> deviceValidator;
@@ -260,8 +267,8 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
                 entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
                 countService.publishCountEntityEvictEvent(savedDevice.getTenantId(), EntityType.DEVICE);
             }
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedDevice.getTenantId())
-                    .entityId(savedDevice.getId()).created(device.getId() == null).build());
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedDevice.getTenantId()).entityId(savedDevice.getId())
+                    .entity(savedDevice).oldEntity(oldDevice).created(device.getId() == null).build());
             return savedDevice;
         } catch (Exception t) {
             handleEvictEvent(deviceCacheEvictEvent);
@@ -341,7 +348,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         DeviceCacheEvictEvent deviceCacheEvictEvent = new DeviceCacheEvictEvent(device.getTenantId(), device.getId(), device.getName(), null);
         publishEvictEvent(deviceCacheEvictEvent);
         countService.publishCountEntityEvictEvent(tenantId, EntityType.DEVICE);
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(device.getId()).build());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(device.getId()).entity(device).build());
     }
 
     @Override
@@ -507,16 +514,16 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public Device assignDeviceToTenant(TenantId tenantId, Device device) {
         log.trace("Executing assignDeviceToTenant [{}][{}]", tenantId, device);
-        List<EntityView> entityViews = entityViewService.findEntityViewsByTenantIdAndEntityId(device.getTenantId(), device.getId());
+        TenantId oldTenantId = device.getTenantId();
+        Tenant oldTenant = tenantService.findTenantById(oldTenantId);
+        List<EntityView> entityViews = entityViewService.findEntityViewsByTenantIdAndEntityId(oldTenantId, device.getId());
         if (!CollectionUtils.isEmpty(entityViews)) {
             throw new DataValidationException("Can't assign device that has entity views to another tenant!");
         }
 
-        eventService.removeEvents(device.getTenantId(), device.getId());
+        eventService.removeEvents(oldTenantId, device.getId());
 
-        relationService.removeRelations(device.getTenantId(), device.getId());
-
-        TenantId oldTenantId = device.getTenantId();
+        relationService.removeRelations(oldTenantId, device.getId());
 
         device.setTenantId(tenantId);
         device.setCustomerId(null);
@@ -532,6 +539,9 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         // result device object will have different tenant id and will not remove entity from cache
         publishEvictEvent(oldTenantEvent);
         publishEvictEvent(newTenantEvent);
+
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entity(savedDevice)
+                .entityId(savedDevice.getId()).body(JacksonUtil.toString(oldTenant)).actionType(ActionType.ASSIGNED_TO_TENANT).build());
 
         return savedDevice;
     }
@@ -613,7 +623,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         }
     };
 
-    private final PaginatedRemover<CustomerId, Device> customerDevicesRemover = new PaginatedRemover<CustomerId, Device>() {
+    private final PaginatedRemover<CustomerId, Device> customerDevicesRemover = new PaginatedRemover<>() {
 
         @Override
         protected PageData<Device> findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {

@@ -49,6 +49,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -95,9 +96,7 @@ public class RefreshTokenExpCheckService {
                 futures.add(lExecService.submit(() -> {
                     try {
                         AdminSettings tenantMailSettings = getTenantMailSettings(tenantId);
-                        if (tenantMailSettings != null) {
-                            checkTokenExpires(tenantId, tenantMailSettings, this::saveTenantAdminSettings);
-                        }
+                        refreshTokenIfExpires(tenantId, tenantMailSettings, this::saveTenantAdminSettings);
                     } catch (Exception e) {
                         log.error("[{}] Error occurred while checking token", tenantId, e);
                     }
@@ -107,16 +106,25 @@ public class RefreshTokenExpCheckService {
             pageLink = pageLink.nextPageLink();
         } while (tenantIds.hasNext());
 
-        AdminSettings adminSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
-        checkTokenExpires(TenantId.SYS_TENANT_ID, adminSettings, adminSettingsService::saveAdminSettings);
+        AdminSettings systemMailSettings = adminSettingsService.findAdminSettingsByKey(TenantId.SYS_TENANT_ID, "mail");
+        refreshTokenIfExpires(TenantId.SYS_TENANT_ID, systemMailSettings, adminSettingsService::saveAdminSettings);
     }
 
-    private void checkTokenExpires(TenantId tenantId, AdminSettings adminSettings, BiConsumer<TenantId, AdminSettings> saveFunction) throws Exception {
-        JsonNode jsonValue = adminSettings.getJsonValue();
-        if (jsonValue != null && jsonValue.has("enableOauth2") && jsonValue.get("enableOauth2").asBoolean()) {
-            if (OFFICE_365.name().equals(jsonValue.get("providerId").asText()) && jsonValue.has("refreshTokenExpires")) {
+    private void refreshTokenIfExpires(TenantId tenantId, AdminSettings adminSettings, BiConsumer<TenantId, AdminSettings> saveFunction) throws Exception {
+        if (adminSettings != null) {
+            JsonNode jsonValue = adminSettings.getJsonValue();
+            if (jsonValue != null && jsonValue.has("useSystemMailSettings") && !jsonValue.get("useSystemMailSettings").asBoolean() &&
+                    jsonValue.has("enableOauth2") && jsonValue.get("enableOauth2").asBoolean() && OFFICE_365.name().equals(jsonValue.get("providerId").asText()) &&
+                    jsonValue.has("refreshToken") && jsonValue.has("refreshTokenExpires")) {
                 long expiresIn = jsonValue.get("refreshTokenExpires").longValue();
-                if ((expiresIn - System.currentTimeMillis()) < 604800000L) { //less than 7 days
+                long tokenLifeDuration = expiresIn - System.currentTimeMillis();
+                if (tokenLifeDuration < 0) {
+                    ((ObjectNode) jsonValue).put("tokenGenerated", false);
+                    ((ObjectNode) jsonValue).remove("refreshToken");
+                    ((ObjectNode) jsonValue).remove("refreshTokenExpires");
+
+                    saveFunction.accept(tenantId, adminSettings);
+                } else if (tokenLifeDuration < 604800000L) { //less than 7 days
                     log.info("Trying to refresh refresh token.");
 
                     String clientId = jsonValue.get("clientId").asText();
@@ -138,7 +146,7 @@ public class RefreshTokenExpCheckService {
 
     private AdminSettings getTenantMailSettings(TenantId tenantId) throws Exception {
         List<AttributeKvEntry> attributeKvEntries =
-                attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, List.of("mail")).get();
+                attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, List.of("mail")).get();
         if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
             AdminSettings adminSettings = new AdminSettings();
             adminSettings.setKey("mail");
@@ -155,7 +163,7 @@ public class RefreshTokenExpCheckService {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettings.getKey(), jsonString), ts));
-        attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes).get();
+        attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes).get();
         return adminSettings;
     }
 }

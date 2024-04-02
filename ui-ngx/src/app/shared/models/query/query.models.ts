@@ -913,6 +913,9 @@ export function entityDataToEntityInfo(entityData: EntityData): EntityInfo {
         } catch (e) {}
       }
     }
+    if (fields.queueName && fields.serviceId) {
+      entityInfo.name = fields.queueName.value + '_' + fields.serviceId.value;
+    }
   }
   return entityInfo;
 }

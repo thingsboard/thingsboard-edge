@@ -198,5 +198,15 @@ export const entityFields: {[fieldName: string]: EntityField} = {
     keyName: 'originatorType',
     name: 'entity-field.originatorType',
     value: 'originatorType'
+  },
+  queueName: {
+    keyName: 'queueName',
+    name: 'entity-field.queue-name',
+    value: 'queueName'
+  },
+  serviceId: {
+    keyName: 'serviceId',
+    name: 'entity-field.service-id',
+    value: 'serviceId'
   }
 };

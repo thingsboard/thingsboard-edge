@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.DataConstants;
@@ -217,7 +218,7 @@ public class BaseSelfRegistrationService implements SelfRegistrationService {
 
     private void saveEntityAttributes(TenantId tenantId, EntityId entityId, List<AttributeKvEntry> attributes) {
         try {
-            attributesService.save(tenantId, entityId, DataConstants.SERVER_SCOPE, attributes).get();
+            attributesService.save(tenantId, entityId, AttributeScope.SERVER_SCOPE, attributes).get();
         } catch (Exception e) {
             log.error("Unable to save Self Registration Params to attributes!", e);
             throw new IncorrectParameterException("Unable to save Self Registration Params to attributes!");
@@ -251,7 +252,7 @@ public class BaseSelfRegistrationService implements SelfRegistrationService {
     private String getEntityAttributeValue(TenantId tenantId, EntityId entityId, String key) {
         List<AttributeKvEntry> attributeKvEntries;
         try {
-            attributeKvEntries = attributesService.find(tenantId, entityId, DataConstants.SERVER_SCOPE, Collections.singletonList(key)).get();
+            attributeKvEntries = attributesService.find(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(key)).get();
         } catch (Exception e) {
             log.error("Unable to read Self Registration Params from attributes!", e);
             throw new IncorrectParameterException("Unable to read Self Registration Params from attributes!");

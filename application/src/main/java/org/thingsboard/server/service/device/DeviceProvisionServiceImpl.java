@@ -37,8 +37,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.DeviceProfileProvisionType;
@@ -96,7 +95,6 @@ public class DeviceProvisionServiceImpl implements DeviceProvisionService {
     private static final String DEVICE_PROVISION_STATE = "provisionState";
     private static final String PROVISIONED_STATE = "provisioned";
 
-    private final TbClusterService clusterService;
     private final DeviceProfileService deviceProfileService;
     private final DeviceService deviceService;
     private final DeviceCredentialsService deviceCredentialsService;
@@ -104,9 +102,8 @@ public class DeviceProvisionServiceImpl implements DeviceProvisionService {
     private final AuditLogService auditLogService;
     private final PartitionService partitionService;
 
-    public DeviceProvisionServiceImpl(TbQueueProducerProvider producerProvider, TbClusterService clusterService, DeviceProfileService deviceProfileService, DeviceService deviceService, DeviceCredentialsService deviceCredentialsService, AttributesService attributesService, AuditLogService auditLogService, PartitionService partitionService) {
+    public DeviceProvisionServiceImpl(TbQueueProducerProvider producerProvider, DeviceProfileService deviceProfileService, DeviceService deviceService, DeviceCredentialsService deviceCredentialsService, AttributesService attributesService, AuditLogService auditLogService, PartitionService partitionService) {
         ruleEngineMsgProducer = producerProvider.getRuleEngineMsgProducer();
-        this.clusterService = clusterService;
         this.deviceProfileService = deviceProfileService;
         this.deviceService = deviceService;
         this.deviceCredentialsService = deviceCredentialsService;
@@ -204,7 +201,7 @@ public class DeviceProvisionServiceImpl implements DeviceProvisionService {
     private ProvisionResponse processProvision(Device device, ProvisionRequest provisionRequest) {
         try {
             Optional<AttributeKvEntry> provisionState = attributesService.find(device.getTenantId(), device.getId(),
-                    DataConstants.SERVER_SCOPE, DEVICE_PROVISION_STATE).get();
+                    AttributeScope.SERVER_SCOPE, DEVICE_PROVISION_STATE).get();
             if (provisionState != null && provisionState.isPresent() && !provisionState.get().getValueAsString().equals(PROVISIONED_STATE)) {
                 notify(device, provisionRequest, TbMsgType.PROVISION_FAILURE, false);
                 throw new ProvisionFailedException(ProvisionResponseStatus.FAILURE.name());
@@ -235,7 +232,6 @@ public class DeviceProvisionServiceImpl implements DeviceProvisionService {
                 provisionRequest.setDeviceName(newDeviceName);
             }
             Device savedDevice = deviceService.saveDevice(provisionRequest, profile);
-            clusterService.onDeviceUpdated(savedDevice, null);
             saveProvisionStateAttribute(savedDevice).get();
             pushDeviceCreatedEventToRuleEngine(savedDevice);
             notify(savedDevice, provisionRequest, TbMsgType.PROVISION_SUCCESS, true);
@@ -260,7 +256,7 @@ public class DeviceProvisionServiceImpl implements DeviceProvisionService {
     }
 
     private ListenableFuture<List<String>> saveProvisionStateAttribute(Device device) {
-        return attributesService.save(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE,
+        return attributesService.save(device.getTenantId(), device.getId(), AttributeScope.SERVER_SCOPE,
                 Collections.singletonList(new BaseAttributeKvEntry(new StringDataEntry(DEVICE_PROVISION_STATE, PROVISIONED_STATE),
                         System.currentTimeMillis())));
     }

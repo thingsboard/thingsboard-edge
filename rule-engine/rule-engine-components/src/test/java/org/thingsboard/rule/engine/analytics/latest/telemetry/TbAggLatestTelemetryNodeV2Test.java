@@ -57,6 +57,7 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.TbPeContext;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -370,7 +371,7 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
         config.setRelationType(EntityRelation.CONTAINS_TYPE);
         config.setOutMsgType(TbMsgType.POST_TELEMETRY_REQUEST.name());
 
-        when(attributesService.find(eq(tenantId), any(), eq(DataConstants.SERVER_SCOPE), anyCollection()))
+        when(attributesService.find(eq(tenantId), any(), eq(AttributeScope.SERVER_SCOPE), anyCollection()))
                 .thenReturn(Futures.immediateFuture(Collections.emptyList()));
 
         node.init(ctx, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));

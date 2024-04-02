@@ -35,7 +35,6 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
@@ -213,5 +212,31 @@ public class EntityGroupControllerTest extends AbstractControllerTest {
         doPost("/api/entityGroup/" + savedEntityGroup.getId() + "/addEntities", strEntityIds)
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString("Unable to add entity with other owner than group. Entity id: " + deviceId)));
+    }
+
+    @Test
+    public void testShouldNotDeleteTenantAdminGroupIfNoTenantAdminsLeft() throws Exception {
+        loginTenantAdmin();
+
+        EntityGroup tenantAdministratorsGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId,
+                EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME).get();
+
+        doDelete("/api/entityGroup/" + tenantAdministratorsGroup.getId())
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("At least one tenant administrator must remain!")));
+    }
+
+    @Test
+    public void testShouldNotDeleteLastTenantAdmin() throws Exception {
+        loginTenantAdmin();
+
+        EntityGroup tenantAdministratorsGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId,
+                EntityType.USER, EntityGroup.GROUP_TENANT_ADMINS_NAME).get();
+
+        List<String> strEntityIds = new ArrayList<>();
+        strEntityIds.add(tenantAdminUser.getId().getId().toString());
+        doPost("/api/entityGroup/" + tenantAdministratorsGroup.getId() + "/deleteEntities", strEntityIds)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("At least one tenant administrator must remain!")));
     }
 }

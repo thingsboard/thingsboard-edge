@@ -46,7 +46,7 @@ import { DialogService } from '@core/services/dialog.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ImportExportService } from '@shared/import-export/import-export.service';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
-import { AssetProfile, TB_SERVICE_QUEUE } from '@shared/models/asset.models';
+import { AssetProfile } from '@shared/models/asset.models';
 import { AssetProfileService } from '@core/http/asset-profile.service';
 import { AssetProfileComponent } from '@home/components/profile/asset-profile.component';
 import { AssetProfileTabsComponent } from './asset-profile-tabs.component';
@@ -98,8 +98,7 @@ export class AssetProfilesTableConfigResolver implements Resolve<EntityTableConf
         name: this.translate.instant('asset-profile.set-default'),
         icon: 'flag',
         isEnabled: (assetProfile) => !assetProfile.default  &&
-          this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.WRITE) &&
-          TB_SERVICE_QUEUE !== assetProfile.name,
+          this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.WRITE),
         onAction: ($event, entity) => this.setDefaultAssetProfile($event, entity)
       }
        */
@@ -117,12 +116,11 @@ export class AssetProfilesTableConfigResolver implements Resolve<EntityTableConf
     this.config.deleteEntity = id => this.assetProfileService.deleteAssetProfile(id.id);
     this.config.onEntityAction = action => this.onAssetProfileAction(action);
     this.config.deleteEnabled = (assetProfile) => assetProfile && !assetProfile.default &&
-      this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.DELETE) && TB_SERVICE_QUEUE !== assetProfile.name;
+      this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.DELETE);
     this.config.entitySelectionEnabled = (assetProfile) => assetProfile && !assetProfile.default &&
-      this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.DELETE) && TB_SERVICE_QUEUE !== assetProfile.name;
+      this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.DELETE);
     this.config.detailsReadonly = (assetProfile) =>
-      !this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.WRITE)
-      || assetProfile && TB_SERVICE_QUEUE === assetProfile.name;
+      !this.userPermissionsService.hasGenericPermission(Resource.ASSET_PROFILE, Operation.WRITE);
     this.config.addActionDescriptors = this.configureAddActions();
   }
 

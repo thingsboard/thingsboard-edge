@@ -34,6 +34,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -82,8 +83,9 @@ public class JpaRpcDao extends JpaAbstractDao<RpcEntity, Rpc> implements RpcDao 
         return DaoUtil.toPageData(rpcRepository.findAllByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink)));
     }
 
+    @Transactional
     @Override
-    public Long deleteOutdatedRpcByTenantId(TenantId tenantId, Long expirationTime) {
+    public int deleteOutdatedRpcByTenantId(TenantId tenantId, Long expirationTime) {
         return rpcRepository.deleteOutdatedRpcByTenantId(tenantId.getId(), expirationTime);
     }
 

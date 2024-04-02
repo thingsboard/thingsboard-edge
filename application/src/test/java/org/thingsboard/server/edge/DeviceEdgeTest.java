@@ -336,7 +336,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
                 (DefaultTenantProfileConfiguration) tenantProfile.getProfileData().getConfiguration();
         profileConfiguration.setMaxDevices(1);
         tenantProfile.getProfileData().setConfiguration(profileConfiguration);
-        doPost("/api/tenantProfile/", tenantProfile, TenantProfile.class);
+        doPost("/api/tenantProfile", tenantProfile, TenantProfile.class);
 
         loginTenantAdmin();
 
@@ -631,6 +631,9 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         Device device = doGet("/api/device/" + newDeviceId, Device.class);
         Assert.assertNotNull(device);
         Assert.assertEquals("Edge Device 2", device.getName());
+
+        var deviceGroups = getEntityGroupsIdsForEntity(device.getId());
+        Assert.assertEquals("Device must have 2 groups - 'All' and 'Edge All group'", 2, deviceGroups.size());
     }
 
     @Test
@@ -652,7 +655,6 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
                 device.getId().getId(), EdgeEventType.DEVICE, body);
         edgeImitator.expectMessageAmount(1);
         edgeEventService.saveAsync(edgeEvent).get();
-        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();

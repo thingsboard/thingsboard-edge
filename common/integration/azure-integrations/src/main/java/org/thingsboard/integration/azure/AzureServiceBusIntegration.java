@@ -41,7 +41,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.Base64Utils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -59,6 +58,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -274,7 +274,7 @@ public class AzureServiceBusIntegration extends AbstractIntegration<AzureService
         } else if ("TEXT".equals(contentType)) {
             return new TextNode(new String(message.getBody().toBytes(), StandardCharsets.UTF_8));
         } else { //BINARY
-            return new TextNode(Base64Utils.encodeToString(message.getBody().toBytes()));
+            return new TextNode(Base64.getEncoder().encodeToString(message.getBody().toBytes()));
         }
     }
 }

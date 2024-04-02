@@ -87,7 +87,6 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     public static final String INCORRECT_ASSET_PROFILE_ID = "Incorrect assetProfileId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_ASSET_ID = "Incorrect assetId ";
-    public static final String TB_SERVICE_QUEUE = "TbServiceQueue";
 
     @Autowired
     private AssetDao assetDao;
@@ -149,16 +148,12 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     }
 
     @Override
-    public Asset saveAsset(Asset asset, boolean doValidate) {
-        return doSaveAsset(asset, doValidate);
+    public Asset saveAsset(Asset asset) {
+        return saveAsset(asset, true);
     }
 
     @Override
-    public Asset saveAsset(Asset asset) {
-        return doSaveAsset(asset, true);
-    }
-
-    private Asset doSaveAsset(Asset asset, boolean doValidate) {
+    public Asset saveAsset(Asset asset, boolean doValidate) {
         log.trace("Executing saveAsset [{}]", asset);
         Asset oldAsset = null;
         if (doValidate) {

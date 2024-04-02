@@ -136,6 +136,18 @@ import {
 import {
   TimeSeriesChartAnimationSettingsComponent
 } from '@home/components/widget/lib/settings/common/chart/time-series-chart-animation-settings.component';
+import {
+  AutoDateFormatSettingsPanelComponent
+} from '@home/components/widget/lib/settings/common/auto-date-format-settings-panel.component';
+import {
+  AutoDateFormatSettingsComponent
+} from '@home/components/widget/lib/settings/common/auto-date-format-settings.component';
+import {
+  TimeSeriesChartFillSettingsComponent
+} from '@home/components/widget/lib/settings/common/chart/time-series-chart-fill-settings.component';
+import {
+  TimeSeriesChartThresholdSettingsComponent
+} from '@home/components/widget/lib/settings/common/chart/time-series-chart-threshold-settings.component';
 
 @NgModule({
   declarations: [
@@ -149,6 +161,8 @@ import {
     CssSizeInputComponent,
     DateFormatSelectComponent,
     DateFormatSettingsPanelComponent,
+    AutoDateFormatSettingsComponent,
+    AutoDateFormatSettingsPanelComponent,
     BackgroundSettingsComponent,
     BackgroundSettingsPanelComponent,
     ValueSourceComponent,
@@ -181,6 +195,8 @@ import {
     TimeSeriesChartYAxisRowComponent,
     TimeSeriesChartYAxisSettingsPanelComponent,
     TimeSeriesChartAnimationSettingsComponent,
+    TimeSeriesChartFillSettingsComponent,
+    TimeSeriesChartThresholdSettingsComponent,
     DataKeyInputComponent,
     EntityAliasInputComponent
   ],
@@ -200,6 +216,8 @@ import {
     CssSizeInputComponent,
     DateFormatSelectComponent,
     DateFormatSettingsPanelComponent,
+    AutoDateFormatSettingsComponent,
+    AutoDateFormatSettingsPanelComponent,
     BackgroundSettingsComponent,
     BackgroundSettingsPanelComponent,
     ValueSourceComponent,
@@ -232,6 +250,8 @@ import {
     TimeSeriesChartYAxisRowComponent,
     TimeSeriesChartYAxisSettingsPanelComponent,
     TimeSeriesChartAnimationSettingsComponent,
+    TimeSeriesChartFillSettingsComponent,
+    TimeSeriesChartThresholdSettingsComponent,
     DataKeyInputComponent,
     EntityAliasInputComponent
   ],
