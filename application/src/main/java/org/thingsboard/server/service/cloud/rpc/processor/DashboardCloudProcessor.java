@@ -102,10 +102,7 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
         DashboardId dashboardId = new DashboardId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (cloudEvent.getAction()) {
-            case ADDED:
-            case UPDATED:
-            case ASSIGNED_TO_CUSTOMER:
-            case UNASSIGNED_FROM_CUSTOMER:
+            case ADDED, UPDATED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER -> {
                 Dashboard dashboard = dashboardService.findDashboardById(cloudEvent.getTenantId(), dashboardId);
                 if (dashboard != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
@@ -117,14 +114,14 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
                 } else {
                     log.info("Skipping event as dashboard was not found [{}]", cloudEvent);
                 }
-                break;
-            case DELETED:
+            }
+            case DELETED -> {
                 DashboardUpdateMsg dashboardUpdateMsg = ((DashboardMsgConstructor)
                         dashboardMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDashboardDeleteMsg(dashboardId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDashboardUpdateMsg(dashboardUpdateMsg).build();
-                break;
+            }
         }
         return msg;
     }
@@ -147,4 +144,5 @@ public class DashboardCloudProcessor extends BaseDashboardProcessor {
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         return customer != null ? customer.getId() : null;
     }
+
 }

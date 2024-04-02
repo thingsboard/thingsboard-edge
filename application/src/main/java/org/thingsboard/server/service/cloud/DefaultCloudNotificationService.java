@@ -79,29 +79,15 @@ public class DefaultCloudNotificationService implements CloudNotificationService
             ListenableFuture<Void> future;
             switch (cloudEventType) {
                 // TODO: voba - handle cloud updates
-                case EDGE:
-                case ASSET:
-                case DEVICE:
-                case ASSET_PROFILE:
-                case DEVICE_PROFILE:
-                case ENTITY_VIEW:
-                case DASHBOARD:
-                case RULE_CHAIN:
-                case TB_RESOURCE:
-                    future = processEntity(tenantId, cloudNotificationMsg);
-                    break;
-                case ALARM:
-                    future = processAlarm(tenantId, cloudNotificationMsg);
-                    break;
-                case RELATION:
-                    future = processRelation(tenantId, cloudNotificationMsg);
-                    break;
-                case ALARM_COMMENT:
-                    future = processAlarmComment(tenantId, cloudNotificationMsg);
-                    break;
-                default:
+                case EDGE, ASSET, DEVICE, ASSET_PROFILE, DEVICE_PROFILE, ENTITY_VIEW, DASHBOARD, RULE_CHAIN, TB_RESOURCE ->
+                        future = processEntity(tenantId, cloudNotificationMsg);
+                case ALARM -> future = processAlarm(tenantId, cloudNotificationMsg);
+                case RELATION -> future = processRelation(tenantId, cloudNotificationMsg);
+                case ALARM_COMMENT -> future = processAlarmComment(tenantId, cloudNotificationMsg);
+                default -> {
                     log.warn("Cloud event type [{}] is not designed to be pushed to cloud", cloudEventType);
                     future = Futures.immediateFuture(null);
+                }
             }
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override
@@ -129,17 +115,11 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         EdgeEventActionType cloudEventActionType = EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction());
         CloudEventType cloudEventType = CloudEventType.valueOf(cloudNotificationMsg.getCloudEventType());
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEventType, new UUID(cloudNotificationMsg.getEntityIdMSB(), cloudNotificationMsg.getEntityIdLSB()));
-        switch (cloudEventActionType) {
-            case ADDED:
-            case UPDATED:
-            case CREDENTIALS_UPDATED:
-            case ASSIGNED_TO_CUSTOMER:
-            case UNASSIGNED_FROM_CUSTOMER:
-            case DELETED:
-                return cloudEventService.saveCloudEventAsync(tenantId, cloudEventType, cloudEventActionType, entityId, null, 0L);
-            default:
-                return Futures.immediateFuture(null);
-        }
+        return switch (cloudEventActionType) {
+            case ADDED, UPDATED, CREDENTIALS_UPDATED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER, DELETED ->
+                    cloudEventService.saveCloudEventAsync(tenantId, cloudEventType, cloudEventActionType, entityId, null, 0L);
+            default -> Futures.immediateFuture(null);
+        };
     }
 
     private ListenableFuture<Void> processAlarm(TenantId tenantId, TransportProtos.CloudNotificationMsgProto cloudNotificationMsg) {
@@ -175,4 +155,5 @@ public class DefaultCloudNotificationService implements CloudNotificationService
         EntityRelation relation = JacksonUtil.fromString(cloudNotificationMsg.getEntityBody(), EntityRelation.class);
         return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.RELATION, EdgeEventActionType.valueOf(cloudNotificationMsg.getCloudEventAction()), null, JacksonUtil.valueToTree(relation), 0L);
     }
+
 }

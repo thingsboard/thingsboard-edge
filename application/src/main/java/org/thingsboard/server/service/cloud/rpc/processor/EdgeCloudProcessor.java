@@ -64,4 +64,5 @@ public class EdgeCloudProcessor extends BaseEdgeProcessor {
         }
         return Futures.immediateFuture(null);
     }
+
 }

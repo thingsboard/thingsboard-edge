@@ -23,7 +23,6 @@ import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.sync.ie.EntityExportData;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -56,9 +55,7 @@ public class AssetProfileImportService extends BaseEntityImportService<AssetProf
 
     @Override
     protected void onEntitySaved(User user, AssetProfile savedAssetProfile, AssetProfile oldAssetProfile) {
-        clusterService.broadcastEntityStateChangeEvent(user.getTenantId(), savedAssetProfile.getId(),
-                oldAssetProfile == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-        entityNotificationService.logEntityAction(savedAssetProfile.getTenantId(), savedAssetProfile.getId(),
+        logEntityActionService.logEntityAction(savedAssetProfile.getTenantId(), savedAssetProfile.getId(),
                 savedAssetProfile, null, oldAssetProfile == null ? ActionType.ADDED : ActionType.UPDATED, user);
     }
 

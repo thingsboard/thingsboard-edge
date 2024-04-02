@@ -109,10 +109,7 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         AssetId assetId = new AssetId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (cloudEvent.getAction()) {
-            case ADDED:
-            case UPDATED:
-            case ASSIGNED_TO_CUSTOMER:
-            case UNASSIGNED_FROM_CUSTOMER:
+            case ADDED, UPDATED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER -> {
                 Asset asset = assetService.findAssetById(cloudEvent.getTenantId(), assetId);
                 if (asset != null) {
                     if (BaseAssetService.TB_SERVICE_QUEUE.equals(asset.getType())) {
@@ -134,14 +131,14 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
                 } else {
                     log.debug("Skipping event as asset was not found [{}]", cloudEvent);
                 }
-                break;
-            case DELETED:
+            }
+            case DELETED -> {
                 AssetUpdateMsg assetUpdateMsg = ((AssetMsgConstructor)
                         assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetDeleteMsg(assetId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAssetUpdateMsg(assetUpdateMsg).build();
-                break;
+            }
         }
         return msg;
     }
@@ -160,4 +157,5 @@ public class AssetCloudProcessor extends BaseAssetProcessor {
         }
         asset.setCustomerId(customer != null ? customer.getId() : null);
     }
+
 }

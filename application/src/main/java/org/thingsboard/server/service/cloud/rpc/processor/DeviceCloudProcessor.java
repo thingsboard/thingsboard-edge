@@ -221,10 +221,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         DeviceId deviceId = new DeviceId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (cloudEvent.getAction()) {
-            case ADDED:
-            case UPDATED:
-            case ASSIGNED_TO_CUSTOMER:
-            case UNASSIGNED_FROM_CUSTOMER:
+            case ADDED, UPDATED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER -> {
                 Device device = deviceService.findDeviceById(cloudEvent.getTenantId(), deviceId);
                 if (device != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
@@ -242,15 +239,15 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 } else {
                     log.info("Skipping event as device was not found [{}]", cloudEvent);
                 }
-                break;
-            case DELETED:
+            }
+            case DELETED -> {
                 DeviceUpdateMsg deviceUpdateMsg = ((DeviceMsgConstructor)
                         deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDeviceDeleteMsg(deviceId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDeviceUpdateMsg(deviceUpdateMsg).build();
-                break;
-            case CREDENTIALS_UPDATED:
+            }
+            case CREDENTIALS_UPDATED -> {
                 DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, deviceId);
                 if (deviceCredentials != null) {
                     DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = ((DeviceMsgConstructor)
@@ -261,7 +258,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 } else {
                     log.info("Skipping event as device credentials was not found [{}]", cloudEvent);
                 }
-                break;
+            }
         }
         return msg;
     }
@@ -285,4 +282,5 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
     protected DeviceCredentials constructDeviceCredentialsFromUpdateMsg(TenantId tenantId, DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg) {
         return JacksonUtil.fromString(deviceCredentialsUpdateMsg.getEntity(), DeviceCredentials.class, true);
     }
+
 }

@@ -33,7 +33,6 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
@@ -65,7 +64,6 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                     EntityView entityViewById = entityViewService.findEntityViewById(tenantId, entityViewId);
                     if (entityViewById != null) {
                         entityViewService.deleteEntityView(tenantId, entityViewId);
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId, ComponentLifecycleEvent.DELETED);
                         pushEntityViewDeletedEventToRuleEngine(tenantId, entityViewById);
                     }
                     return Futures.immediateFuture(null);
@@ -81,8 +79,6 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
     private void saveOrUpdateEntityView(TenantId tenantId, EntityViewId entityViewId, EntityViewUpdateMsg entityViewUpdateMsg, Long queueStartTs) {
         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateEntityView(tenantId, entityViewId, entityViewUpdateMsg);
         Boolean created = resultPair.getFirst();
-        tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityViewId,
-                created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
         if (created) {
             pushEntityViewCreatedEventToRuleEngine(tenantId, entityViewId);
         }
@@ -127,10 +123,7 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         EntityViewId entityViewId = new EntityViewId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (cloudEvent.getAction()) {
-            case ADDED:
-            case UPDATED:
-            case ASSIGNED_TO_CUSTOMER:
-            case UNASSIGNED_FROM_CUSTOMER:
+            case ADDED, UPDATED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER -> {
                 EntityView entityView = entityViewService.findEntityViewById(cloudEvent.getTenantId(), entityViewId);
                 if (entityView != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
@@ -142,14 +135,14 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
                 } else {
                     log.info("Skipping event as entity view was not found [{}]", cloudEvent);
                 }
-                break;
-            case DELETED:
+            }
+            case DELETED -> {
                 EntityViewUpdateMsg entityViewUpdateMsg = ((EntityViewMsgConstructor)
                         entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityViewDeleteMsg(entityViewId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addEntityViewUpdateMsg(entityViewUpdateMsg).build();
-                break;
+            }
         }
         return msg;
     }
@@ -168,4 +161,5 @@ public class EntityViewCloudProcessor extends BaseEntityViewProcessor {
         }
         entityView.setCustomerId(customer != null ? customer.getId() : null);
     }
+
 }
