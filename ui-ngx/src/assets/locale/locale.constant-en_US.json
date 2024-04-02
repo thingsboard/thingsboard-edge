@@ -2549,6 +2549,8 @@
         "type-ota-package": "OTA package",
         "type-rpc": "RPC",
         "type-queue": "Queue",
+        "type-queue-stats": "Queue statistics",
+        "type-queues-stats": "Queues statistics",
         "type-notification": "Notification",
         "type-notification-rule": "Notification rule",
         "type-notification-rules": "Notification rules",
@@ -2746,7 +2748,10 @@
         "configuration": "Configuration",
         "schedule": "Schedule",
         "originatorId": "Originator Id",
-        "originatorType": "Originator Type"
+        "originatorType": "Originator Type",
+        "label": "Label",
+        "queue-name": "Queue name",
+        "service-id": "Service Id"
     },
     "entity-view": {
         "all": "All",
@@ -5134,6 +5139,7 @@
                 "EDGE_GROUP": "Edge Group",
                 "OTA_PACKAGE": "Ota package",
                 "QUEUE": "Queue",
+                "QUEUE_STATS": "Queue Stats",
                 "VERSION_CONTROL": "Version control",
                 "ASSET_PROFILE": "Asset Profile",
                 "NOTIFICATION": "Notification"

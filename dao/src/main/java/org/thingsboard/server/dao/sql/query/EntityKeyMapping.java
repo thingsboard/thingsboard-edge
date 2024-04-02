@@ -95,7 +95,8 @@ public class EntityKeyMapping {
     public static final String ORIGINATOR_ID = "originatorId";
     public static final String ORIGINATOR_TYPE = "originatorType";
     public static final String EDGE_TEMPLATE = "edgeTemplate";
-
+    public static final String QUEUE_NAME = "queueName";
+    public static final String SERVICE_ID = "serviceId";
 
     public static final List<String> typedEntityFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, NAME, TYPE, ADDITIONAL_INFO);
     public static final List<String> widgetEntityFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, NAME);
@@ -145,6 +146,7 @@ public class EntityKeyMapping {
         allowedEntityFieldMap.put(EntityType.API_USAGE_STATE, apiUsageStateEntityFields);
         allowedEntityFieldMap.put(EntityType.DEVICE_PROFILE, Set.of(CREATED_TIME, NAME, TYPE));
         allowedEntityFieldMap.put(EntityType.ASSET_PROFILE, Set.of(CREATED_TIME, NAME));
+        allowedEntityFieldMap.put(EntityType.QUEUE_STATS, new HashSet<>(Arrays.asList(CREATED_TIME, QUEUE_NAME, SERVICE_ID)));
 
         entityFieldColumnMap.put(CREATED_TIME, ModelConstants.CREATED_TIME_PROPERTY);
         entityFieldColumnMap.put(ENTITY_TYPE, ModelConstants.ENTITY_TYPE_PROPERTY);
@@ -170,6 +172,8 @@ public class EntityKeyMapping {
         entityFieldColumnMap.put(ORIGINATOR_ID, ModelConstants.SCHEDULER_EVENT_ORIGINATOR_ID_PROPERTY);
         entityFieldColumnMap.put(ORIGINATOR_TYPE, ModelConstants.SCHEDULER_EVENT_ORIGINATOR_TYPE_PROPERTY);
         entityFieldColumnMap.put(EDGE_TEMPLATE, ModelConstants.INTEGRATION_IS_EDGE_TEMPLATE_MODE_PROPERTY);
+        entityFieldColumnMap.put(QUEUE_NAME, ModelConstants.QUEUE_STATS_QUEUE_NAME_PROPERTY);
+        entityFieldColumnMap.put(SERVICE_ID, ModelConstants.QUEUE_STATS_SERVICE_ID_PROPERTY);
 
         Map<String, String> contactBasedAliases = new HashMap<>();
         contactBasedAliases.put(NAME, TITLE);

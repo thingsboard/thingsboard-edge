@@ -130,7 +130,7 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, Expor
 
     Long countByAssetProfileId(UUID assetProfileId);
 
-    Long countByTenantIdAndTypeIsNot(UUID tenantId, String type);
+    Long countByTenantId(UUID tenantId);
 
     @Query("SELECT a.id FROM AssetEntity a WHERE a.tenantId = :tenantId AND (a.customerId is null OR a.customerId = uuid('13814000-1dd2-11b2-8080-808080808080'))")
     Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId, Pageable pageable);
