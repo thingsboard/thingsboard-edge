@@ -75,8 +75,6 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
 
     private static final String CONSIDER_MESSAGE_ORIGINATOR_AS_A_GROUP_OWNER = "considerMessageOriginatorAsAGroupOwner";
 
-    private String groupName;
-
     @Override
     protected TbDuplicateMsgToGroupByNameNodeConfiguration loadNodeConfiguration(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         var config = TbNodeUtils.convert(configuration, TbDuplicateMsgToGroupByNameNodeConfiguration.class);
@@ -92,7 +90,6 @@ public class TbDuplicateMsgToGroupByNameNode extends TbAbstractDuplicateMsgNode<
 
     @Override
     protected ListenableFuture<List<TbMsg>> transform(TbContext ctx, TbMsg msg) {
-        groupName = TbNodeUtils.processPattern(config.getGroupName(), msg);
         return duplicate(ctx, msg);
     }
 
