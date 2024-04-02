@@ -167,49 +167,33 @@ BEGIN
 END;
 $$;
 
---move tenant attributes
-
-DO
-$$
-DECLARE
-    insert_record  RECORD;
-    insert_cursor CURSOR FOR SELECT a.entity_id AS tenant_id, json_data.key AS locale,
-                                    json_data.value AS value
-                             FROM attribute_kv a,
-                                  json_each_text((a.str_v::json ->> 'translationMap')::json) AS json_data
-                             WHERE  a.attribute_key = 'customTranslation' and a.entity_type = 'TENANT';
-BEGIN
-    OPEN insert_cursor;
-    LOOP
-        FETCH insert_cursor INTO insert_record;
-        EXIT WHEN NOT FOUND;
-        INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
-           VALUES (insert_record.tenant_id, '13814000-1dd2-11b2-8080-808080808080', insert_record.locale, insert_record.value);
-    END LOOP;
-    CLOSE insert_cursor;
-END;
-$$;
-
---move custom attributes
+--move customTranslation attributes
 
 DO
 $$
 DECLARE
     tenantId uuid;
     insert_record  RECORD;
-    insert_cursor CURSOR FOR SELECT a.entity_id AS customer_id, json_data.key AS locale,
+    insert_cursor CURSOR FOR SELECT a.entity_id AS entity_id, json_data.key AS locale,
                                     json_data.value AS value
                              FROM attribute_kv a,
-                                 json_each_text((a.str_v::json ->> 'translationMap')::json) AS json_data
-                             WHERE  a.attribute_key = 'customTranslation' and a.entity_type = 'CUSTOMER';
+                                  json_each_text((a.str_v::json ->> 'translationMap')::json) AS json_data
+                             WHERE a.attribute_key = (SELECT key_id FROM key_dictionary WHERE key = 'customTranslation');
 BEGIN
     OPEN insert_cursor;
     LOOP
         FETCH insert_cursor INTO insert_record;
         EXIT WHEN NOT FOUND;
-        SELECT tenant_id INTO tenantId FROM customer where id = insert_record.customer_id;
-        INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
-            VALUES (tenantId, insert_record.customer_id, insert_record.locale, insert_record.value);
+        IF EXISTS(SELECT 1 FROM tenant WHERE id = insert_record.entity_id) THEN
+            INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
+                VALUES (insert_record.entity_id, '13814000-1dd2-11b2-8080-808080808080', insert_record.locale, insert_record.value);
+        ELSE
+            IF EXISTS(SELECT 1 FROM customer WHERE id = insert_record.entity_id) THEN
+                SELECT tenant_id INTO tenantId FROM customer where id = insert_record.entity_id;
+                INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
+                    VALUES (tenantId, insert_record.entity_id, insert_record.locale, insert_record.value);
+            END IF;
+        END IF;
     END LOOP;
     CLOSE insert_cursor;
 END;
@@ -218,12 +202,7 @@ $$;
 -- delete settings and attributes
 
 DELETE FROM admin_settings WHERE key = 'customTranslation';
-
-DELETE FROM attribute_kv WHERE entity_type = 'TENANT' AND entity_id IN (SELECT id FROM TENANT)
-                           AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'customTranslation';
-
-DELETE FROM attribute_kv WHERE entity_type = 'CUSTOMER' AND entity_id IN (SELECT id FROM CUSTOMER)
-                           AND attribute_type = 'SERVER_SCOPE' AND  attribute_key = 'customTranslation';
+DELETE FROM attribute_kv WHERE attribute_key = (SELECT key_id FROM key_dictionary WHERE key = 'customTranslation');
 
 --CUSTOM TRANSLATION MIGRATION END
 
