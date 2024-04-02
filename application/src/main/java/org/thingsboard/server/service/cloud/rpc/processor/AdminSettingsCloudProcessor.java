@@ -51,7 +51,7 @@ public class AdminSettingsCloudProcessor extends BaseEdgeProcessor {
             }
         } else {
             List<AttributeKvEntry> attributes = new ArrayList<>();
-            attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettingsMsg.getKey(), adminSettingsMsg.getJsonValue().asText()), System.currentTimeMillis()));
+            attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettingsMsg.getKey(), JacksonUtil.toString(adminSettingsMsg.getJsonValue())), System.currentTimeMillis()));
             attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes);
         }
         return Futures.immediateFuture(null);
