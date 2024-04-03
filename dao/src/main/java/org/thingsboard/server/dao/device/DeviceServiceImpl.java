@@ -158,7 +158,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public DeviceInfo findDeviceInfoById(TenantId tenantId, DeviceId deviceId) {
         log.trace("Executing findDeviceInfoById [{}]", deviceId);
-        validateId(deviceId, INCORRECT_DEVICE_ID + deviceId);
+        validateId(deviceId, id -> INCORRECT_DEVICE_ID + id);
         return deviceInfoDao.findById(tenantId, deviceId.getId());
     }
 
@@ -359,7 +359,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public PageData<Device> findDevicesByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return deviceDao.findDevicesByTenantIdAndType(tenantId.getId(), type, pageLink);
@@ -431,8 +431,8 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public void deleteDevicesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing deleteDevicesByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         customerDevicesRemover.removeEntities(tenantId, customerId);
     }
 
@@ -486,7 +486,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public PageData<Device> findDevicesByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
         log.trace("Executing findDevicesByEntityGroupId, groupId [{}], pageLink [{}]", groupId, pageLink);
-        validateId(groupId, "Incorrect entityGroupId " + groupId);
+        validateId(groupId, id -> "Incorrect entityGroupId " + id);
         validatePageLink(pageLink);
         return deviceDao.findDevicesByEntityGroupId(groupId.getId(), pageLink);
     }
@@ -640,8 +640,8 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
                                                                                 PageLink pageLink) {
         log.trace("Executing findByEntityGroupIdAndDeviceProfileAndFirmwareIsNull, groupId [{}], deviceProfileId [{}], " +
                 " firmwareType [{}]", groupId, deviceProfileId, type);
-        validateId(groupId, "Incorrect groupId" + groupId);
-        validateId(deviceProfileId, "Incorrect deviceProfileId" + deviceProfileId);
+        validateId(groupId, id -> "Incorrect groupId" + id);
+        validateId(deviceProfileId, id -> "Incorrect deviceProfileId" + id);
         validatePageLink(pageLink);
         return deviceDao.findByEntityGroupAndDeviceProfileAndEmptyOtaPackage(groupId.getId(), deviceProfileId.getId(), type, pageLink);
     }
@@ -652,7 +652,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
                                                                   PageLink pageLink) {
         log.trace("Executing findByDeviceProfileAndEmptyFirmware,  deviceProfileId [{}], firmwareType [{}]",
                 deviceProfileId, type);
-        validateId(deviceProfileId, "Incorrect deviceProfileId" + deviceProfileId);
+        validateId(deviceProfileId, id -> "Incorrect deviceProfileId" + id);
         validatePageLink(pageLink);
         return deviceDao.findByDeviceProfileAndEmptyOtaPackage(tenantId.getId(), deviceProfileId.getId(), type, pageLink);
     }
@@ -660,8 +660,8 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public Long countByEntityGroupAndEmptyOtaPackage(EntityGroupId groupId, OtaPackageId otaPackageId, OtaPackageType type) {
         log.trace("Executing countByEntityGroupAndDeviceProfileAndEmptyOtaPackage, groupId [{}], otaPackageId [{}], firmwareType [{}]", groupId, otaPackageId, type);
-        validateId(groupId, "Incorrect groupId" + groupId);
-        validateId(otaPackageId, "Incorrect deviceProfileId" + otaPackageId);
+        validateId(groupId, id -> "Incorrect groupId" + id);
+        validateId(otaPackageId, id -> "Incorrect deviceProfileId" + id);
 
         return deviceDao.countByEntityGroupAndEmptyOtaPackage(groupId.getId(), otaPackageId.getId(), type);
     }
@@ -669,7 +669,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public Long countByDeviceProfileAndEmptyOtaPackage(TenantId tenantId, DeviceProfileId deviceProfileId, OtaPackageType type) {
         log.trace("Executing countByDeviceProfileAndEmptyOtaPackage,  deviceProfileId [{}], firmwareType [{}]", deviceProfileId, type);
-        validateId(deviceProfileId, "Incorrect deviceProfileId" + deviceProfileId);
+        validateId(deviceProfileId, id -> "Incorrect deviceProfileId" + id);
 
         return deviceDao.countByDeviceProfileAndEmptyOtaPackage(tenantId.getId(), deviceProfileId.getId(), type);
     }

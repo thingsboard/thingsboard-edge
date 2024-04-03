@@ -307,8 +307,8 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public void deleteEdgesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing deleteEdgesByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         customerEdgesRemover.removeEntities(tenantId, customerId);
     }
 
@@ -439,7 +439,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityIds(TenantId tenantId, List<EntityId> entityIds, EntityType entityType, PageLink pageLink) {
         log.trace("Executing findEdgeIdsByTenantIdAndEntityIds, tenantId [{}], entityIds [{}], entityType [{}], pageLink [{}]", tenantId, entityIds, entityType, pageLink);
-        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
         validatePageLink(pageLink);
         return edgeDao.findEdgeIdsByTenantIdAndEntityIds(tenantId.getId(),
                 entityIds.stream().map(EntityId::getId).collect(Collectors.toList()),
@@ -450,7 +450,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, EntityType groupType, PageLink pageLink) {
         log.trace("Executing findEdgeIdsByTenantIdAndEntityGroupIds, tenantId [{}], entityGroupIds [{}]", tenantId, entityGroupIds);
-        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
         Validator.validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
         validatePageLink(pageLink);
         List<UUID> entityGroupUuids = entityGroupIds.stream().map(UUIDBased::getId).collect(Collectors.toList());
@@ -460,7 +460,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<EdgeId> findEdgeIdsByTenantIdAndGroupEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
         log.trace("Executing findEdgeIdsByTenantIdAndGroupEntityId, tenantId [{}], entityId [{}]", tenantId, entityId);
-        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
         validatePageLink(pageLink);
         return edgeDao.findEdgeIdsByTenantIdAndGroupEntityId(tenantId.getId(), entityId.getId(), entityId.getEntityType(), pageLink);
     }
@@ -572,7 +572,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<Edge> findEdgesByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
         log.trace("Executing findEdgesByEntityGroupId, groupId [{}], pageLink [{}]", groupId, pageLink);
-        validateId(groupId, "Incorrect entityGroupId " + groupId);
+        validateId(groupId, id -> "Incorrect entityGroupId " + id);
         validatePageLink(pageLink);
         return edgeDao.findEdgesByEntityGroupId(groupId.getId(), pageLink);
     }
@@ -715,7 +715,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<EdgeInfo> findEdgeInfosByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findEdgeInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return edgeInfoDao.findEdgesByTenantId(tenantId.getId(), pageLink);
     }
@@ -723,7 +723,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<EdgeInfo> findEdgeInfosByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
         log.trace("Executing findEdgeInfosByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return edgeInfoDao.findEdgesByTenantIdAndType(tenantId.getId(), type, pageLink);
@@ -732,7 +732,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<EdgeInfo> findTenantEdgeInfosByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findTenantEdgeInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return edgeInfoDao.findTenantEdgesByTenantId(tenantId.getId(), pageLink);
     }
@@ -740,7 +740,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<EdgeInfo> findTenantEdgeInfosByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
         log.trace("Executing findTenantEdgeInfosByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return edgeInfoDao.findTenantEdgesByTenantIdAndType(tenantId.getId(), type, pageLink);
@@ -749,8 +749,8 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<EdgeInfo> findEdgeInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
         log.trace("Executing findEdgeInfosByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validatePageLink(pageLink);
         return edgeInfoDao.findEdgesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
     }
@@ -758,8 +758,8 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<EdgeInfo> findEdgeInfosByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink) {
         log.trace("Executing findEdgeInfosByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}], type [{}], pageLink [{}]", tenantId, customerId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return edgeInfoDao.findEdgesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
@@ -768,8 +768,8 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<EdgeInfo> findEdgeInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
         log.trace("Executing findEdgeInfosByTenantIdAndCustomerIdIncludingSubCustomers, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validatePageLink(pageLink);
         return edgeInfoDao.findEdgesByTenantIdAndCustomerIdIncludingSubCustomers(tenantId.getId(), customerId.getId(), pageLink);
     }
@@ -778,8 +778,8 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     public PageData<EdgeInfo> findEdgeInfosByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink) {
         log.trace("Executing findEdgeInfosByTenantIdAndCustomerIdAndTypeIncludingSubCustomers, tenantId [{}], customerId [{}], type [{}], pageLink [{}]",
                 tenantId, customerId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return edgeInfoDao.findEdgesByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(tenantId.getId(), customerId.getId(), type, pageLink);

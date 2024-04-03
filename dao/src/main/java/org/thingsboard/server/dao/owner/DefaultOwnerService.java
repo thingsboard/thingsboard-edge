@@ -190,7 +190,7 @@ public class DefaultOwnerService implements OwnerService {
     @Override
     public PageData<EntityInfo> findTenantOwnerByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findTenantOwnerByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return this.ownerInfoDao.findTenantOwnerByTenantId(tenantId.getId(), pageLink);
     }
@@ -198,7 +198,7 @@ public class DefaultOwnerService implements OwnerService {
     @Override
     public PageData<EntityInfo> findCustomerOwnersByTenantIdIncludingTenant(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findCustomerOwnersByTenantIdIncludingTenant, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return this.ownerInfoDao.findCustomerOwnersByTenantIdIncludingTenant(tenantId.getId(), pageLink);
     }
@@ -206,7 +206,7 @@ public class DefaultOwnerService implements OwnerService {
     @Override
     public PageData<EntityInfo> findCustomerOwnersByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findCustomerOwnersByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return this.ownerInfoDao.findCustomerOwnersByTenantId(tenantId.getId(), pageLink);
     }
@@ -214,7 +214,7 @@ public class DefaultOwnerService implements OwnerService {
     @Override
     public PageData<EntityInfo> findCustomerOwnersByIdsAndTenantId(TenantId tenantId, List<CustomerId> ownerIds, PageLink pageLink) {
         log.trace("Executing findCustomerOwnersByIdsAndTenantIdIncludingTenant, tenantId [{}], ownerIds [{}], pageLink [{}]", tenantId, ownerIds, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validateIds(ownerIds, INCORRECT_OWNER_IDS + ownerIds);
         validatePageLink(pageLink);
         return this.ownerInfoDao.findCustomerOwnersByIdsAndTenantId(tenantId.getId(),

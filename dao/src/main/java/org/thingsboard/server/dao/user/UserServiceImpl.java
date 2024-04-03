@@ -150,7 +150,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     @Override
     public UserInfo findUserInfoById(TenantId tenantId, UserId userId) {
         log.trace("Executing findUserInfoById [{}]", userId);
-        validateId(userId, INCORRECT_USER_ID + userId);
+        validateId(userId, id -> INCORRECT_USER_ID + id);
         return userInfoDao.findById(tenantId, userId.getId());
     }
 
@@ -164,7 +164,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     @Override
     public ListenableFuture<List<User>> findUsersByTenantIdAndIdsAsync(TenantId tenantId, List<UserId> userIds) {
         log.trace("Executing findUsersByTenantIdAndIdsAsync, tenantId [{}], userIds [{}]", tenantId, userIds);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validateIds(userIds, "Incorrect userIds " + userIds);
         return userDao.findUsersByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(userIds));
     }
@@ -403,7 +403,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     @Override
     public PageData<User> findAllCustomerUsers(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findAllCustomerUsers, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return userDao.findAllCustomerUsers(tenantId.getId(), pageLink);
     }
@@ -419,7 +419,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     @Override
     public PageData<User> findUsersByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
         log.trace("Executing findUsersByEntityGroupId, groupId [{}], pageLink [{}]", groupId, pageLink);
-        validateId(groupId, "Incorrect entityGroupId " + groupId);
+        validateId(groupId, id -> "Incorrect entityGroupId " + id);
         validatePageLink(pageLink);
         return userDao.findUsersByEntityGroupId(groupId.getId(), pageLink);
     }
@@ -511,7 +511,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     @Override
     public PageData<UserInfo> findUserInfosByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findUserInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return userInfoDao.findUsersByTenantId(tenantId.getId(), pageLink);
     }
@@ -519,7 +519,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     @Override
     public PageData<UserInfo> findTenantUserInfosByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findTenantUserInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return userInfoDao.findTenantUsersByTenantId(tenantId.getId(), pageLink);
     }
@@ -527,8 +527,8 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     @Override
     public PageData<UserInfo> findUserInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
         log.trace("Executing findUserInfosByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validatePageLink(pageLink);
         return userInfoDao.findUsersByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
     }
@@ -536,8 +536,8 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     @Override
     public PageData<UserInfo> findUserInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
         log.trace("Executing findUserInfosByTenantIdAndCustomerIdIncludingSubCustomers, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validatePageLink(pageLink);
         return userInfoDao.findUsersByTenantIdAndCustomerIdIncludingSubCustomers(tenantId.getId(), customerId.getId(), pageLink);
     }

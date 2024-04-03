@@ -243,14 +243,14 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
     @Override
     public OtaPackageInfo findOtaPackageInfoByDeviceIdAndType(DeviceId deviceId, OtaPackageType type) {
         log.trace("Executing findOtaPackageInfoByDeviceIdAndType [{}] [{}]", deviceId, type);
-        validateId(deviceId, "Incorrect deviceId " + deviceId);
+        validateId(deviceId, id -> "Incorrect deviceId " + id);
         return otaPackageInfoDao.findOtaPackageInfoByDeviceIdAndType(deviceId.getId(), type);
     }
 
     @Override
     public PageData<OtaPackageInfo> findOtaPackageInfosByGroupIdAndHasData(EntityGroupId deviceGroupId, OtaPackageType type, PageLink pageLink) {
         log.trace("Executing findOtaPackagesByGroupIdAndHasData, groupId [{}], pageLink [{}]", deviceGroupId, pageLink);
-        validateId(deviceGroupId, "Incorrect deviceGroupId " + deviceGroupId);
+        validateId(deviceGroupId, id -> "Incorrect deviceGroupId " + id);
         validatePageLink(pageLink);
         return otaPackageInfoDao.findOtaPackageInfosByGroupIdAndHasData(deviceGroupId.getId(), type, pageLink);
     }

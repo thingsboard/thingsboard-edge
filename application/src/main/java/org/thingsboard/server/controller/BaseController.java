@@ -697,7 +697,7 @@ public abstract class BaseController {
 
     User checkUserId(UserId userId, Operation operation) throws ThingsboardException {
         try {
-            validateId(userId, "Incorrect userId " + userId);
+            validateId(userId, id -> "Incorrect userId " + id);
             User user = userService.findUserById(getCurrentUser().getTenantId(), userId);
             checkNotNull(user, "User with id [" + userId + "] is not found");
             if (operation != Operation.READ || !getCurrentUser().getId().equals(userId)) {
@@ -711,7 +711,7 @@ public abstract class BaseController {
 
     UserInfo checkUserInfoId(UserId userId, Operation operation) throws ThingsboardException {
         try {
-            validateId(userId, "Incorrect userId " + userId);
+            validateId(userId, id -> "Incorrect userId " + id);
             UserInfo user = userService.findUserInfoById(getCurrentUser().getTenantId(), userId);
             checkNotNull(user, "User with id [" + userId + "] is not found");
             if (operation != Operation.READ || !getCurrentUser().getId().equals(userId)) {
@@ -1056,7 +1056,7 @@ public abstract class BaseController {
 
     protected EntityGroupInfo checkEntityGroupId(EntityGroupId entityGroupId, Operation operation) throws ThingsboardException {
         try {
-            validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+            validateId(entityGroupId, id -> "Incorrect entityGroupId " + id);
             EntityGroupInfo entityGroup = entityGroupService.findEntityGroupInfoById(getTenantId(), entityGroupId);
             checkNotNull(entityGroup, "Entity group with id [" + entityGroupId + "] is not found");
             accessControlService.checkEntityGroupInfoPermission(getCurrentUser(), operation, entityGroup);
@@ -1113,7 +1113,7 @@ public abstract class BaseController {
 
     Rpc checkRpcId(RpcId rpcId) throws ThingsboardException {
         try {
-            validateId(rpcId, "Incorrect rpcId " + rpcId);
+            validateId(rpcId, id -> "Incorrect rpcId " + id);
             Rpc rpc = rpcService.findById(getCurrentUser().getTenantId(), rpcId);
             checkNotNull(rpc, "RPC with id [" + rpcId + "] is not found");
             checkDeviceId(rpc.getDeviceId(), Operation.RPC_CALL);

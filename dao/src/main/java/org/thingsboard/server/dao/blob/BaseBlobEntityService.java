@@ -76,35 +76,35 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
     @Override
     public BlobEntity findBlobEntityById(TenantId tenantId, BlobEntityId blobEntityId) {
         log.trace("Executing findBlobEntityById [{}]", blobEntityId);
-        validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
+        validateId(blobEntityId, id -> INCORRECT_BLOB_ENTITY_ID + id);
         return blobEntityDao.findById(tenantId, blobEntityId.getId());
     }
 
     @Override
     public BlobEntityInfo findBlobEntityInfoById(TenantId tenantId, BlobEntityId blobEntityId) {
         log.trace("Executing findBlobEntityInfoById [{}]", blobEntityId);
-        validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
+        validateId(blobEntityId, id -> INCORRECT_BLOB_ENTITY_ID + id);
         return blobEntityInfoDao.findById(tenantId, blobEntityId.getId());
     }
 
     @Override
     public BlobEntityWithCustomerInfo findBlobEntityWithCustomerInfoById(TenantId tenantId, BlobEntityId blobEntityId) {
         log.trace("Executing findBlobEntityWithCustomerInfoById [{}]", blobEntityId);
-        validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
+        validateId(blobEntityId, id -> INCORRECT_BLOB_ENTITY_ID + id);
         return blobEntityInfoDao.findBlobEntityWithCustomerInfoById(tenantId.getId(), blobEntityId.getId());
     }
 
     @Override
     public ListenableFuture<BlobEntityInfo> findBlobEntityInfoByIdAsync(TenantId tenantId, BlobEntityId blobEntityId) {
         log.trace("Executing findBlobEntityInfoByIdAsync [{}]", blobEntityId);
-        validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
+        validateId(blobEntityId, id -> INCORRECT_BLOB_ENTITY_ID + id);
         return blobEntityInfoDao.findByIdAsync(tenantId, blobEntityId.getId());
     }
 
     @Override
     public ListenableFuture<List<BlobEntityInfo>> findBlobEntityInfoByIdsAsync(TenantId tenantId, List<BlobEntityId> blobEntityIds) {
         log.trace("Executing findBlobEntityInfoByIdsAsync, tenantId [{}], blobEntityIds [{}]", tenantId, blobEntityIds);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validateIds(blobEntityIds, "Incorrect blobEntityIds " + blobEntityIds);
         return blobEntityInfoDao.findBlobEntitiesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(blobEntityIds));
     }
@@ -139,7 +139,7 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
     @Override
     public void deleteBlobEntity(TenantId tenantId, BlobEntityId blobEntityId) {
         log.trace("Executing deleteBlobEntity [{}]", blobEntityId);
-        validateId(blobEntityId, INCORRECT_BLOB_ENTITY_ID + blobEntityId);
+        validateId(blobEntityId, id -> INCORRECT_BLOB_ENTITY_ID + id);
         deleteEntityRelations(tenantId, blobEntityId);
         blobEntityDao.removeById(tenantId, blobEntityId.getId());
     }
@@ -147,15 +147,15 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
     @Override
     public void deleteBlobEntitiesByTenantId(TenantId tenantId) {
         log.trace("Executing deleteBlobEntitiesByTenantId, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantBlobEntitiesRemover.removeEntities(tenantId, tenantId);
     }
 
     @Override
     public void deleteBlobEntitiesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing deleteBlobEntitiesByTenantIdAndCustomerId, tenantId [{}], customerId", tenantId, customerId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         customerBlobEntitiesRemover.removeEntities(tenantId, customerId);
     }
 

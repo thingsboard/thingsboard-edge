@@ -287,7 +287,7 @@ public class DeviceProfileServiceImpl extends AbstractCachedEntityService<Device
     @Override
     public ListenableFuture<List<DeviceProfileInfo>> findDeviceProfilesByIdsAsync(TenantId tenantId, List<DeviceProfileId> deviceProfileIds) {
         log.trace("Executing findDeviceProfilesByIdsAsync, tenantId [{}], deviceProfileIds [{}]", tenantId, deviceProfileIds);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validateIds(deviceProfileIds, "Incorrect deviceProfileIds " + deviceProfileIds);
         return deviceProfileDao.findDeviceProfilesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(deviceProfileIds));
     }

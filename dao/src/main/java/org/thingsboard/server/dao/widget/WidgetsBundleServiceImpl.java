@@ -195,7 +195,7 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
     @Override
     public ListenableFuture<List<WidgetsBundle>> findSystemWidgetsBundlesByIdsAsync(TenantId tenantId, List<WidgetsBundleId> widgetsBundleIds) {
         log.trace("Executing findSystemWidgetsBundlesByIdsAsync, tenantId [{}], widgetsBundleIds [{}]", tenantId, widgetsBundleIds);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validateIds(widgetsBundleIds, "Incorrect widgetsBundleIds " + widgetsBundleIds);
         return widgetsBundleDao.findSystemWidgetBundlesByIdsAsync(tenantId.getId(), toUUIDs(widgetsBundleIds));
     }
@@ -203,7 +203,7 @@ public class WidgetsBundleServiceImpl implements WidgetsBundleService {
     @Override
     public ListenableFuture<List<WidgetsBundle>> findAllTenantWidgetsBundlesByIdsAsync(TenantId tenantId, List<WidgetsBundleId> widgetsBundleIds) {
         log.trace("Executing findAllTenantWidgetsBundlesByIdsAsync, tenantId [{}], widgetsBundleIds [{}]", tenantId, widgetsBundleIds);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validateIds(widgetsBundleIds, "Incorrect widgetsBundleIds " + widgetsBundleIds);
         return widgetsBundleDao.findAllTenantWidgetBundlesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(widgetsBundleIds));
     }
