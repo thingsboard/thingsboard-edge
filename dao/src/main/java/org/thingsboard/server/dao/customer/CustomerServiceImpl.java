@@ -276,7 +276,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     public Customer findOrCreatePublicCustomer(TenantId tenantId, EntityId ownerId) {
         log.trace("Executing findOrCreatePublicCustomer, tenantId [{}], ownerId [{}]", tenantId, ownerId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        Validator.validateEntityId(ownerId, INCORRECT_OWNER_ID + ownerId);
+        Validator.validateEntityId(ownerId, id -> INCORRECT_OWNER_ID + id);
         try {
             Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, ownerId,
                     EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
@@ -321,7 +321,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     public EntityGroup findOrCreatePublicUserGroup(TenantId tenantId, EntityId ownerId) {
         log.trace("Executing findOrCreatePublicUserGroup, tenantId [{}], ownerId [{}]", tenantId, ownerId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        Validator.validateEntityId(ownerId, INCORRECT_OWNER_ID + ownerId);
+        Validator.validateEntityId(ownerId, id -> INCORRECT_OWNER_ID + id);
         Customer publicCustomer = findOrCreatePublicCustomer(tenantId, ownerId);
         return entityGroupService.findOrCreatePublicUsersGroup(publicCustomer.getTenantId(), publicCustomer.getId());
     }
@@ -330,7 +330,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     public Role findOrCreatePublicUserEntityGroupRole(TenantId tenantId, EntityId ownerId) {
         log.trace("Executing findOrCreatePublicUserRole, tenantId [{}], ownerId [{}]", tenantId, ownerId);
         Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        Validator.validateEntityId(ownerId, INCORRECT_OWNER_ID + ownerId);
+        Validator.validateEntityId(ownerId, id -> INCORRECT_OWNER_ID + id);
         Customer publicCustomer = findOrCreatePublicCustomer(tenantId, ownerId);
         Role publicUserRole = roleService.findOrCreatePublicUsersEntityGroupRole(publicCustomer.getTenantId(), publicCustomer.getId());
         return publicUserRole;
