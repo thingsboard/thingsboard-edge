@@ -51,7 +51,7 @@ import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
 import java.util.List;
 import java.util.Set;
 
-import static org.thingsboard.common.util.JacksonUtil.merge;
+import static org.thingsboard.common.util.JacksonUtil.update;
 
 @Service
 @Slf4j
@@ -74,22 +74,22 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
 
     @Override
     public JsonNode getMergedTenantCustomTranslation(TenantId tenantId, String localeCode) {
-        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null, localeCode).getValue().deepCopy();
-        JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue();
-        return merge(tenantCustomTranslation, systemCustomTranslation);
+        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null, localeCode).getValue();
+        JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue().deepCopy();
+        return update(systemCustomTranslation, tenantCustomTranslation);
     }
 
     @Override
     public JsonNode getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
-        JsonNode customerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode).getValue().deepCopy();
+        JsonNode customerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode).getValue();
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {
             customerCustomTranslation = getMergedCustomerHierarchyCustomTranslation(tenantId, customer.getParentCustomerId(), localeCode, customerCustomTranslation);
         }
-        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null, localeCode).getValue();
-        JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue();
+        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null, localeCode).getValue().deepCopy();
+        JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue().deepCopy();
 
-        return merge(merge(customerCustomTranslation, tenantCustomTranslation), systemCustomTranslation);
+        return update(systemCustomTranslation, update(tenantCustomTranslation, customerCustomTranslation));
     }
 
     @Override
@@ -103,7 +103,7 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     @Override
     public CustomTranslation patchCustomTranslation(CustomTranslation newCustomTranslation) {
         CustomTranslation customTranslation = getCurrentCustomTranslation(newCustomTranslation.getTenantId(), newCustomTranslation.getCustomerId(), newCustomTranslation.getLocaleCode());
-        JacksonUtil.update(customTranslation.getValue(), newCustomTranslation.getValue());
+        update(customTranslation.getValue(), newCustomTranslation.getValue());
         return saveCustomTranslation(customTranslation);
     }
 
@@ -136,8 +136,8 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     }
 
     private JsonNode getMergedCustomerHierarchyCustomTranslation(TenantId tenantId, CustomerId customerId, String locale, JsonNode customTranslation) {
-        CustomTranslation parentCustomerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, locale);
-        JsonNode merged = merge(customTranslation, parentCustomerCustomTranslation.getValue());
+        JsonNode parentCustomerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, locale).getValue().deepCopy();
+        JsonNode merged = update(parentCustomerCustomTranslation, customTranslation);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {
             return getMergedCustomerHierarchyCustomTranslation(tenantId, customer.getParentCustomerId(), locale, merged);

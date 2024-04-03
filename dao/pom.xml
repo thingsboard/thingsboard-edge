@@ -263,11 +263,6 @@
             <groupId>com.drewnoakes</groupId>
             <artifactId>metadata-extractor</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.thingsboard</groupId>
-            <artifactId>ui-ngx</artifactId>
-            <scope>runtime</scope>
-        </dependency>
     </dependencies>
     <build>
         <plugins>

@@ -429,33 +429,6 @@ public class JacksonUtil {
         }
     }
 
-    public static JsonNode merge(JsonNode mainNode, JsonNode updateNode) {
-        Iterator<String> fieldNames = updateNode.fieldNames();
-        while (fieldNames.hasNext()) {
-            String fieldName = fieldNames.next();
-            JsonNode jsonNode = mainNode.get(fieldName);
-            if (jsonNode != null) {
-                if (jsonNode.isObject()) {
-                    merge(jsonNode, updateNode.get(fieldName));
-                } else if (jsonNode.isArray()) {
-                    for (int i = 0; i < jsonNode.size(); i++) {
-                        merge(jsonNode.get(i), updateNode.get(fieldName).get(i));
-                    }
-                }
-            } else {
-                if (mainNode instanceof ObjectNode) {
-                    // Overwrite field
-                    JsonNode value = updateNode.get(fieldName);
-                    if (value.isNull()) {
-                        continue;
-                    }
-                    ((ObjectNode) mainNode).set(fieldName, value);
-                }
-            }
-        }
-        return mainNode;
-    }
-
     public static JsonNode update(JsonNode mainNode, JsonNode updateNode) {
         Iterator<String> fieldNames = updateNode.fieldNames();
         while (fieldNames.hasNext()) {

@@ -30,12 +30,22 @@
  */
 package org.thingsboard.server.service.translation;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.translation.TranslationInfo;
 import org.thingsboard.server.dao.translation.TranslationCacheKey;
 
+import java.util.List;
+
 public interface TbTranslationService {
+
+    List<TranslationInfo> getTranslationInfos(TenantId tenantId, CustomerId customerId);
+
+    JsonNode getLoginTranslation(String localeCode);
+
+    JsonNode getFullTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
     CustomTranslation saveCustomTranslation(CustomTranslation customTranslation);
 

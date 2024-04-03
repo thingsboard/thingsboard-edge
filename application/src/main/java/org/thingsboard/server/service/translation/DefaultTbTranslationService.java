@@ -30,33 +30,70 @@
  */
 package org.thingsboard.server.service.translation;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.translation.TranslationInfo;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.translation.TranslationCacheKey;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.common.util.JacksonUtil.extractKeys;
+import static org.thingsboard.common.util.JacksonUtil.newObjectNode;
+import static org.thingsboard.common.util.JacksonUtil.update;
 
 @Service
 @Slf4j
 @TbCoreComponent
 public class DefaultTbTranslationService extends AbstractTbEntityService implements TbTranslationService {
 
-    private final TbClusterService clusterService;
-    private final CustomTranslationService customTranslationService;
+    public static final String LOCALE_FILES_DIRECTORY_PATH = "/public/assets/locale";
+    public static final Pattern LOCALE_FILE_PATTERN = Pattern.compile("locale\\.constant-(.*?)\\.json");
+    public static final String DEFAULT_LOCALE_CODE = "en_US";
+    private static final Set<String> DEFAULT_LOCALE_KEYS;
+    private static final Map<String, JsonNode> TRANSLATION_VALUE_MAP = new HashMap<>();
+    private static final Map<String, TranslationInfo> TRANSLATION_INFO_MAP = new HashMap<>();
     private final Cache<TranslationCacheKey, String> etagCache;
+    private final CustomTranslationService customTranslationService;
+    private final TbClusterService clusterService;
+
+    static {
+        JsonNode defaultTranslation = readSystemLocaleTranslation(DEFAULT_LOCALE_CODE);
+        DEFAULT_LOCALE_KEYS = extractKeys(defaultTranslation);
+
+        Set<String> systemLocaleCodes = getSystemLocaleCodes();
+        for (String localeCode : systemLocaleCodes) {
+            JsonNode systemLocaleTranslation = readSystemLocaleTranslation(localeCode);
+            TRANSLATION_INFO_MAP.put(localeCode, createTranslationInfo(localeCode, systemLocaleTranslation));
+            TRANSLATION_VALUE_MAP.put(localeCode, update(defaultTranslation.deepCopy(), systemLocaleTranslation));
+        }
+    }
 
     public DefaultTbTranslationService(TbClusterService clusterService, CustomTranslationService customTranslationService,
                                        @Value("${cache.translation.etag.timeToLiveInMinutes:44640}") int cacheTtl,
@@ -67,6 +104,38 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
                 .expireAfterAccess(cacheTtl, TimeUnit.MINUTES)
                 .maximumSize(cacheMaxSize)
                 .build();
+    }
+
+    @Override
+    public List<TranslationInfo> getTranslationInfos(TenantId tenantId, CustomerId customerId) {
+        Map<String, TranslationInfo> translationInfos = new HashMap<>(TRANSLATION_INFO_MAP);
+
+        Set<String> customizedLocales = customTranslationService.getCustomizedLocales(tenantId, customerId);
+        for (String customizedLocale : customizedLocales) {
+            JsonNode customTranslation = getMergedCustomTranslation(tenantId, customerId, customizedLocale);
+            if (translationInfos.containsKey(customizedLocale)) {
+                JsonNode systemTranslation = readSystemLocaleTranslation(customizedLocale);
+                customTranslation = update(systemTranslation, customTranslation);
+            }
+            translationInfos.put(customizedLocale, createTranslationInfo(customizedLocale, customTranslation));
+        }
+        return new ArrayList<>(translationInfos.values());
+    }
+
+    @Override
+    public JsonNode getLoginTranslation(String localeCode) {
+        ObjectNode loginPageTranslation = newObjectNode();
+        JsonNode fullTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE));
+        loginPageTranslation.set("login", fullTranslation.get("login"));
+        loginPageTranslation.set("signup", fullTranslation.get("signup"));
+        return loginPageTranslation;
+    }
+
+    @Override
+    public JsonNode getFullTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        JsonNode customTranslation = getMergedCustomTranslation(tenantId, customerId, localeCode);
+        JsonNode systemTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE)).deepCopy();
+        return update(systemTranslation, customTranslation);
     }
 
     @Override
@@ -117,6 +186,71 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
                     .collect(Collectors.toSet());
             etagCache.invalidateAll(keysToInvalidate);
         }
+    }
+
+    private static TranslationInfo createTranslationInfo(String localeCode, JsonNode translation) {
+        int progress = calculateTranslationProgress(translation);
+        Locale locale = Locale.forLanguageTag(localeCode.replace("_", "-"));
+        return TranslationInfo.builder()
+                .localeCode(localeCode)
+                .country(locale.getDisplayCountry())
+                .language(locale.getDisplayLanguage() + " (" + locale.getDisplayLanguage(locale) + ")")
+                .progress(progress)
+                .build();
+    }
+
+    private JsonNode getMergedCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        JsonNode customTranslation;
+        if (tenantId.isSysTenantId()) {
+            customTranslation = customTranslationService.getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue().deepCopy();
+        } else if (customerId == null || customerId.isNullUid()) {
+            customTranslation = customTranslationService.getMergedTenantCustomTranslation(tenantId, localeCode);
+        } else {
+            customTranslation = customTranslationService.getMergedCustomerCustomTranslation(tenantId, customerId, localeCode);
+        }
+        return customTranslation;
+    }
+
+    private static JsonNode readSystemLocaleTranslation(String localeCode) {
+        String filePath = LOCALE_FILES_DIRECTORY_PATH + "/locale.constant-" + localeCode + ".json";
+        try (InputStream in = DefaultTbTranslationService.class.getResourceAsStream(filePath)) {
+            return JacksonUtil.OBJECT_MAPPER.readTree(in);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read locale translation for " + localeCode + "!", e);
+        }
+    }
+
+    private static Set<String> getSystemLocaleCodes() {
+        List<String> filenames = new ArrayList<>();
+        try (InputStream in = DefaultTbTranslationService.class.getResourceAsStream(LOCALE_FILES_DIRECTORY_PATH);
+             BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
+            String resource;
+            while ((resource = br.readLine()) != null) {
+                filenames.add(resource);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get list of system locales!", e);
+        }
+        return filenames.stream().map(DefaultTbTranslationService::getLocaleFromFileName)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+    }
+
+    private static String getLocaleFromFileName(String filename) {
+        Matcher matcher = LOCALE_FILE_PATTERN.matcher(filename);
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            return null;
+        }
+    }
+
+    private static int calculateTranslationProgress(JsonNode translation) {
+        Set<String> localeKeys = extractKeys(translation);
+        long translated = DEFAULT_LOCALE_KEYS.stream()
+                .filter(localeKeys::contains)
+                .count();
+        return (int) (((translated) * 100) / DEFAULT_LOCALE_KEYS.size());
     }
 
     private void evictFromCache(TenantId tenantId) {

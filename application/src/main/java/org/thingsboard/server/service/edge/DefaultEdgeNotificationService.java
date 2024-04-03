@@ -307,6 +307,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                             break;
                         case DEVICE_GROUP_OTA:
                             deviceProcessor.processDeviceOtaNotification(tenantId, edgeNotificationMsg);
+                            break;
                         case OAUTH2:
                             oAuth2EdgeProcessor.processOAuth2Notification(tenantId, edgeNotificationMsg);
                             break;

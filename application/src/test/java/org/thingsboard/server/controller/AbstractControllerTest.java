@@ -49,7 +49,6 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.permission.ShareGroupRequest;
-import org.thingsboard.server.common.data.translation.CustomTranslationEdgeOutdated;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 
@@ -142,7 +141,6 @@ public abstract class AbstractControllerTest extends AbstractNotifyEntityTest {
 
         doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
         doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
-        doPost("/api/customTranslation/customTranslation", new CustomTranslationEdgeOutdated(), CustomTranslationEdgeOutdated.class);
     }
 
     protected EntityGroupInfo createSharedPublicEntityGroup(String name, EntityType entityType, EntityId ownerId) throws Exception {

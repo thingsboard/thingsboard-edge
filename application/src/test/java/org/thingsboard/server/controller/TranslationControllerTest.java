@@ -199,23 +199,25 @@ public class TranslationControllerTest extends AbstractControllerTest {
         List<TranslationInfo> translationInfos = doGetTyped("/api/translation/info", new TypeReference<>() {
         });
 
-        Optional<TranslationInfo> defaultLocaleInfo = translationInfos.stream().filter(info -> info.getLocaleCode().equals(EN_US))
+        Optional<TranslationInfo> defaultLocaleInfo = translationInfos.stream().filter(info -> EN_US.equalsIgnoreCase(info.getLocaleCode()))
                 .findFirst();
         assertThat(defaultLocaleInfo).isPresent();
         TranslationInfo englishInfo = defaultLocaleInfo.get();
-        Locale spanishLocale = new Locale("en", "US");
 
-        assertThat(englishInfo.getLocaleCode()).isEqualTo(spanishLocale.toString());
+        assertThat(englishInfo.getLocaleCode()).isEqualToIgnoringCase(EN_US);
+        assertThat(englishInfo.getLanguage()).isEqualToIgnoringCase("English (English)");
+        assertThat(englishInfo.getCountry()).isEqualToIgnoringCase("United States");
         assertThat(englishInfo.getProgress()).isEqualTo(100);
 
-        Optional<TranslationInfo> australian = translationInfos.stream().filter(info -> info.getLocaleCode().equals(EN_AU))
+        Optional<TranslationInfo> australian = translationInfos.stream().filter(info -> EN_AU.equalsIgnoreCase(info.getLocaleCode()))
                 .findFirst();
         assertThat(australian).isPresent();
-        TranslationInfo italianInfo = australian.get();
-        Locale italianLocale = new Locale("en", "AU");
+        TranslationInfo australianInfo = australian.get();
 
-        assertThat(italianInfo.getLocaleCode()).isEqualTo(italianLocale.toString());
-        assertThat(italianInfo.getProgress()).isEqualTo(0);
+        assertThat(australianInfo.getLocaleCode()).isEqualToIgnoringCase(EN_AU);
+        assertThat(australianInfo.getLanguage()).isEqualToIgnoringCase("English (English)");
+        assertThat(australianInfo.getCountry()).isEqualToIgnoringCase("Australia");
+        assertThat(australianInfo.getProgress()).isEqualTo(0);
     }
 
     private TranslationInfo getTranslationInfo(String localeCode) throws Exception {

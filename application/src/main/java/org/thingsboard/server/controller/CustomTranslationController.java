@@ -92,7 +92,7 @@ public class CustomTranslationController extends BaseController {
                     "Similar, if the custom translation is defined on the customer level, it overrides the translation configuration of the tenant level."
             )
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @GetMapping(value = "/translation/custom/merged/{localeCode}", produces = "application/json")
+    @GetMapping(value = "/translation/custom/merged/{localeCode}")
     @ResponseBody
     public JsonNode getMergedCustomTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
                                                @PathVariable("localeCode") String localeCode) throws ThingsboardException {
@@ -118,7 +118,7 @@ public class CustomTranslationController extends BaseController {
                     ControllerConstants.WL_READ_CHECK
             )
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @GetMapping(value = "/translation/custom/{localeCode}", produces = "application/json")
+    @GetMapping(value = "/translation/custom/{localeCode}")
     @ResponseBody
     public CustomTranslation getCustomTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
                                                   @PathVariable("localeCode") String localeCode) throws ThingsboardException {
