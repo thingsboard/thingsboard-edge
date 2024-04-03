@@ -134,7 +134,7 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     public ListenableFuture<List<Integration>> findIntegrationsByIdsAsync(TenantId tenantId, List<IntegrationId> integrationIds) {
         log.trace("Executing findIntegrationsByIdsAsync, tenantId [{}], integrationIds [{}]", tenantId, integrationIds);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        validateIds(integrationIds, "Incorrect integrationIds " + integrationIds);
+        validateIds(integrationIds, ids -> "Incorrect integrationIds " + ids);
         return integrationDao.findIntegrationsByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(integrationIds));
     }
 

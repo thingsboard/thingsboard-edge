@@ -165,7 +165,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     public ListenableFuture<List<Customer>> findCustomersByTenantIdAndIdsAsync(TenantId tenantId, List<CustomerId> customerIds) {
         log.trace("Executing findCustomersByTenantIdAndIdsAsync, tenantId [{}], customerIds [{}]", tenantId, customerIds);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        validateIds(customerIds, "Incorrect customerIds " + customerIds);
+        validateIds(customerIds, ids -> "Incorrect customerIds " + ids);
         return customerDao.findCustomersByTenantIdAndIdsAsync(tenantId.getId(), customerIds.stream().map(CustomerId::getId).collect(Collectors.toList()));
     }
 
@@ -362,7 +362,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public PageData<Customer> findCustomersByEntityGroupIds(List<EntityGroupId> groupIds, List<CustomerId> additionalCustomerIds, PageLink pageLink) {
         log.trace("Executing findCustomersByEntityGroupId, groupIds [{}], additionalCustomerIds [{}], pageLink [{}]", groupIds, additionalCustomerIds, pageLink);
-        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateIds(groupIds, ids -> "Incorrect groupIds " + ids);
         validatePageLink(pageLink);
         return customerDao.findCustomersByEntityGroupIds(toUUIDs(groupIds), toUUIDs(additionalCustomerIds), pageLink);
     }

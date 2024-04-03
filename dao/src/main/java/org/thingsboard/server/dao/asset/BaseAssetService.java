@@ -358,7 +358,7 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     @Override
     public PageData<Asset> findAssetsByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink) {
         log.trace("Executing findAssetsByEntityGroupIds, groupIds [{}], pageLink [{}]", groupIds, pageLink);
-        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateIds(groupIds, ids -> "Incorrect groupIds " + ids);
         validatePageLink(pageLink);
         return assetDao.findAssetsByEntityGroupIds(toUUIDs(groupIds), pageLink);
     }
@@ -366,7 +366,7 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     @Override
     public PageData<Asset> findAssetsByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink) {
         log.trace("Executing findAssetsByEntityGroupIdsAndType, groupIds [{}], type [{}], pageLink [{}]", groupIds, type, pageLink);
-        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateIds(groupIds, ids -> "Incorrect groupIds " + ids);
         validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return assetDao.findAssetsByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);

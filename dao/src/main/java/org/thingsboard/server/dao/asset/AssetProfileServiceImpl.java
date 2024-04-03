@@ -244,7 +244,7 @@ public class AssetProfileServiceImpl extends AbstractCachedEntityService<AssetPr
     public ListenableFuture<List<AssetProfileInfo>> findAssetProfilesByIdsAsync(TenantId tenantId, List<AssetProfileId> assetProfileIds) {
         log.trace("Executing findAssetProfilesByIdsAsync, tenantId [{}], assetProfileIds [{}]", tenantId, assetProfileIds);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        validateIds(assetProfileIds, "Incorrect assetProfileIds " + assetProfileIds);
+        validateIds(assetProfileIds, ids -> "Incorrect assetProfileIds " + ids);
         return assetProfileDao.findAssetProfilesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(assetProfileIds));
     }
 

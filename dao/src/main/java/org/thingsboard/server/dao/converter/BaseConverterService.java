@@ -122,7 +122,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     public ListenableFuture<List<Converter>> findConvertersByIdsAsync(TenantId tenantId, List<ConverterId> converterIds) {
         log.trace("Executing findConvertersByIdsAsync, tenantId [{}], converterIds [{}]", tenantId, converterIds);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        validateIds(converterIds, "Incorrect converterIds " + converterIds);
+        validateIds(converterIds, ids -> "Incorrect converterIds " + ids);
         return converterDao.findConvertersByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(converterIds));
     }
 

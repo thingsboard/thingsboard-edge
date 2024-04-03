@@ -105,7 +105,7 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
     public ListenableFuture<List<BlobEntityInfo>> findBlobEntityInfoByIdsAsync(TenantId tenantId, List<BlobEntityId> blobEntityIds) {
         log.trace("Executing findBlobEntityInfoByIdsAsync, tenantId [{}], blobEntityIds [{}]", tenantId, blobEntityIds);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        validateIds(blobEntityIds, "Incorrect blobEntityIds " + blobEntityIds);
+        validateIds(blobEntityIds, ids -> "Incorrect blobEntityIds " + ids);
         return blobEntityInfoDao.findBlobEntitiesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(blobEntityIds));
     }
 

@@ -494,7 +494,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public PageData<Device> findDevicesByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink) {
         log.trace("Executing findDevicesByEntityGroupIds, groupIds [{}], pageLink [{}]", groupIds, pageLink);
-        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateIds(groupIds, ids -> "Incorrect groupIds " + ids);
         validatePageLink(pageLink);
         return deviceDao.findDevicesByEntityGroupIds(toUUIDs(groupIds), pageLink);
     }
@@ -502,7 +502,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public PageData<Device> findDevicesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink) {
         log.trace("Executing findDevicesByEntityGroupIdsAndType, groupIds [{}], type [{}], pageLink [{}]", groupIds, type, pageLink);
-        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateIds(groupIds, ids -> "Incorrect groupIds " + ids);
         validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return deviceDao.findDevicesByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);

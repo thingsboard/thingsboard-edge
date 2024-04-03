@@ -451,7 +451,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, EntityType groupType, PageLink pageLink) {
         log.trace("Executing findEdgeIdsByTenantIdAndEntityGroupIds, tenantId [{}], entityGroupIds [{}]", tenantId, entityGroupIds);
         Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
-        Validator.validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        Validator.validateIds(entityGroupIds, ids -> "Incorrect entityGroupIds " + ids);
         validatePageLink(pageLink);
         List<UUID> entityGroupUuids = entityGroupIds.stream().map(UUIDBased::getId).collect(Collectors.toList());
         return edgeDao.findEdgeIdsByTenantIdAndEntityGroupIds(tenantId.getId(), entityGroupUuids, groupType, pageLink);
@@ -580,7 +580,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<Edge> findEdgesByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink) {
         log.trace("Executing findEdgesByEntityGroupIds, groupIds [{}], pageLink [{}]", groupIds, pageLink);
-        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateIds(groupIds, ids -> "Incorrect groupIds " + ids);
         validatePageLink(pageLink);
         return edgeDao.findEdgesByEntityGroupIds(toUUIDs(groupIds), pageLink);
     }
@@ -588,7 +588,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public PageData<Edge> findEdgesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink) {
         log.trace("Executing findEdgesByEntityGroupIdsAndType, groupIds [{}], type [{}], pageLink [{}]", groupIds, type, pageLink);
-        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateIds(groupIds, ids -> "Incorrect groupIds " + ids);
         validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return edgeDao.findEdgesByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);

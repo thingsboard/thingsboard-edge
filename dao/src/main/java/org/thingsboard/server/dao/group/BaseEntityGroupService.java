@@ -578,7 +578,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public PageData<EntityGroupInfo> findEntityGroupInfosByIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, PageLink pageLink) {
         log.trace("Executing findEntityGroupInfosByIds, entityGroupIds [{}], pageLink [{}]", entityGroupIds, pageLink);
-        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validateIds(entityGroupIds, ids -> "Incorrect entityGroupIds " + ids);
         validatePageLink(pageLink);
         return entityGroupInfoDao.findEntityGroupsByIds(tenantId.getId(), toUUIDs(entityGroupIds), pageLink);
     }
@@ -586,7 +586,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public PageData<EntityInfo> findEntityGroupEntityInfosByIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, PageLink pageLink) {
         log.trace("Executing findEntityGroupEntityInfosByIds, entityGroupIds [{}], pageLink [{}]", entityGroupIds, pageLink);
-        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validateIds(entityGroupIds, ids -> "Incorrect entityGroupIds " + ids);
         validatePageLink(pageLink);
         return entityGroupInfoDao.findEntityGroupEntityInfosByIds(tenantId.getId(), toUUIDs(entityGroupIds), pageLink);
     }
@@ -600,7 +600,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
-        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validateIds(entityGroupIds, ids -> "Incorrect entityGroupIds " + ids);
         validatePageLink(pageLink);
         return this.entityGroupInfoDao.findEntityGroupsByTypeOrIds(tenantId.getId(), parentEntityId.getId(),
                 parentEntityId.getEntityType(), groupType, toUUIDs(entityGroupIds), pageLink);
@@ -614,7 +614,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
-        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validateIds(entityGroupIds, ids -> "Incorrect entityGroupIds " + ids);
         validatePageLink(pageLink);
         return this.entityGroupInfoDao.findEntityGroupEntityInfosByTypeOrIds(tenantId.getId(), parentEntityId.getId(),
                 parentEntityId.getEntityType(), groupType, toUUIDs(entityGroupIds), pageLink);

@@ -241,7 +241,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Override
     public ListenableFuture<List<Tenant>> findTenantsByIdsAsync(TenantId callerId, List<TenantId> tenantIds) {
         log.trace("Executing findTenantsByIdsAsync, callerId [{}], tenantIds [{}]", callerId, tenantIds);
-        validateIds(tenantIds, "Incorrect tenantIds " + tenantIds);
+        validateIds(tenantIds, ids -> "Incorrect tenantIds " + ids);
         return tenantDao.findTenantsByIdsAsync(callerId.getId(), toUUIDs(tenantIds));
     }
 

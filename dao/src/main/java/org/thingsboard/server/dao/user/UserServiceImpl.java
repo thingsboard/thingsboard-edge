@@ -165,7 +165,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     public ListenableFuture<List<User>> findUsersByTenantIdAndIdsAsync(TenantId tenantId, List<UserId> userIds) {
         log.trace("Executing findUsersByTenantIdAndIdsAsync, tenantId [{}], userIds [{}]", tenantId, userIds);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        validateIds(userIds, "Incorrect userIds " + userIds);
+        validateIds(userIds, ids -> "Incorrect userIds " + ids);
         return userDao.findUsersByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(userIds));
     }
 
@@ -427,7 +427,7 @@ public class UserServiceImpl extends AbstractEntityService implements UserServic
     @Override
     public PageData<User> findUsersByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink) {
         log.trace("Executing findUsersByEntityGroupIds, groupIds [{}], pageLink [{}]", groupIds, pageLink);
-        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateIds(groupIds, ids -> "Incorrect groupIds " + ids);
         validatePageLink(pageLink);
         return userDao.findUsersByEntityGroupIds(toUUIDs(groupIds), pageLink);
     }

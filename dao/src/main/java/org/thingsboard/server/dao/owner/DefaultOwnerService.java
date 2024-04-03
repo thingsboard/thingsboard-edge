@@ -215,7 +215,7 @@ public class DefaultOwnerService implements OwnerService {
     public PageData<EntityInfo> findCustomerOwnersByIdsAndTenantId(TenantId tenantId, List<CustomerId> ownerIds, PageLink pageLink) {
         log.trace("Executing findCustomerOwnersByIdsAndTenantIdIncludingTenant, tenantId [{}], ownerIds [{}], pageLink [{}]", tenantId, ownerIds, pageLink);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        validateIds(ownerIds, INCORRECT_OWNER_IDS + ownerIds);
+        validateIds(ownerIds, ids -> INCORRECT_OWNER_IDS + ids);
         validatePageLink(pageLink);
         return this.ownerInfoDao.findCustomerOwnersByIdsAndTenantId(tenantId.getId(),
                 ownerIds.stream().map(CustomerId::getId).collect(Collectors.toList()), pageLink);

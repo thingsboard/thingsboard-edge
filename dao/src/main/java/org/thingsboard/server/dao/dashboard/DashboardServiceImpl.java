@@ -170,7 +170,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     @Override
     public ListenableFuture<List<DashboardInfo>> findDashboardInfoByIdsAsync(TenantId tenantId, List<DashboardId> dashboardIds) {
         log.trace("Executing findDashboardInfoByIdsAsync, dashboardIds [{}]", dashboardIds);
-        validateIds(dashboardIds, "Incorrect dashboardIds " + dashboardIds);
+        validateIds(dashboardIds, ids -> "Incorrect dashboardIds " + ids);
         return dashboardInfoDao.findDashboardsByIdsAsync(tenantId.getId(), toUUIDs(dashboardIds));
     }
 
@@ -354,7 +354,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     @Override
     public PageData<DashboardInfo> findDashboardsByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink) {
         log.trace("Executing findDashboardsByEntityGroupIds, groupIds [{}], pageLink [{}]", groupIds, pageLink);
-        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateIds(groupIds, ids -> "Incorrect groupIds " + ids);
         validatePageLink(pageLink);
         return dashboardInfoDao.findDashboardsByEntityGroupIds(toUUIDs(groupIds), pageLink);
     }
@@ -362,7 +362,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     @Override
     public PageData<DashboardInfo> findMobileDashboardsByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink) {
         log.trace("Executing findMobileDashboardsByEntityGroupIds, groupIds [{}], pageLink [{}]", groupIds, pageLink);
-        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateIds(groupIds, ids -> "Incorrect groupIds " + ids);
         validatePageLink(pageLink);
         return dashboardInfoDao.findMobileDashboardsByEntityGroupIds(toUUIDs(groupIds), pageLink);
     }

@@ -198,7 +198,7 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
     public ListenableFuture<List<EntityView>> findEntityViewsByTenantIdAndIdsAsync(TenantId tenantId, List<EntityViewId> entityViewIds) {
         log.trace("Executing findEntityViewsByTenantIdAndIdsAsync, tenantId [{}], entityViewIds [{}]", tenantId, entityViewIds);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        validateIds(entityViewIds, "Incorrect entityViewIds " + entityViewIds);
+        validateIds(entityViewIds, ids -> "Incorrect entityViewIds " + ids);
         return entityViewDao.findEntityViewsByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(entityViewIds));
     }
 
@@ -336,7 +336,7 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
     @Override
     public PageData<EntityView> findEntityViewsByEntityGroupIds(List<EntityGroupId> groupIds, PageLink pageLink) {
         log.trace("Executing findEntityViewsByEntityGroupIds, groupIds [{}], pageLink [{}]", groupIds, pageLink);
-        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateIds(groupIds, ids -> "Incorrect groupIds " + ids);
         validatePageLink(pageLink);
         return entityViewDao.findEntityViewsByEntityGroupIds(toUUIDs(groupIds), pageLink);
     }
@@ -344,7 +344,7 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
     @Override
     public PageData<EntityView> findEntityViewsByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink) {
         log.trace("Executing findEntityViewsByEntityGroupIdsAndType, groupIds [{}], type [{}], pageLink [{}]", groupIds, type, pageLink);
-        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateIds(groupIds, ids -> "Incorrect groupIds " + ids);
         validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return entityViewDao.findEntityViewsByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);

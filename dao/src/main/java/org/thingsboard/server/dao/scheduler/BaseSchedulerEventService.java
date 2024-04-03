@@ -123,7 +123,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     public ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfoByIdsAsync(TenantId tenantId, List<SchedulerEventId> schedulerEventIds) {
         log.trace("Executing findSchedulerEventInfoByIdsAsync, tenantId [{}], schedulerEventIds [{}]", tenantId, schedulerEventIds);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        validateIds(schedulerEventIds, "Incorrect schedulerEventIds " + schedulerEventIds);
+        validateIds(schedulerEventIds, ids -> "Incorrect schedulerEventIds " + ids);
         return schedulerEventInfoDao.findSchedulerEventsByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(schedulerEventIds));
     }
 

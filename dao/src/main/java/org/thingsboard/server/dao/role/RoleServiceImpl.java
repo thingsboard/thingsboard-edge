@@ -118,7 +118,7 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     public ListenableFuture<List<Role>> findRolesByIdsAsync(TenantId tenantId, List<RoleId> roleIds) {
         log.trace("Executing findRolesByIdsAsync, tenantId [{}], roleIds [{}]", tenantId, roleIds);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        validateIds(roleIds, "Incorrect roleIds " + roleIds);
+        validateIds(roleIds, ids -> "Incorrect roleIds " + ids);
         return roleDao.findRolesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(roleIds));
     }
 
