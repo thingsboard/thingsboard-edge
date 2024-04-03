@@ -126,7 +126,7 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     public Optional<Role> findRoleByTenantIdAndName(TenantId tenantId, String name) {
         log.trace("Executing findRoleByTenantIdAndName, tenantId [{}], name [{}]", tenantId, name);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateString(name, INCORRECT_ROLE_NAME + name);
+        validateString(name, n -> INCORRECT_ROLE_NAME + n);
         return roleDao.findRoleByTenantIdAndName(tenantId.getId(), name);
     }
 
@@ -135,7 +135,7 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         log.trace("Executing findRoleByByTenantIdAndCustomerIdAndName, tenantId [{}], customerId [{}], name [{}]", tenantId, customerId, name);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validateString(name, INCORRECT_ROLE_NAME + name);
+        validateString(name, n -> INCORRECT_ROLE_NAME + n);
         return roleDao.findRoleByByTenantIdAndCustomerIdAndName(tenantId.getId(), customerId.getId(), name);
     }
 

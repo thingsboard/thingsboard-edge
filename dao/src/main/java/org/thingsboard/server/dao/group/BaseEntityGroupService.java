@@ -672,7 +672,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
-        validateString(name, "Incorrect name " + name);
+        validateString(name, n -> "Incorrect name " + n);
         return ENTITY_GROUP_RELATION_PREFIX + groupType.name();
     }
 

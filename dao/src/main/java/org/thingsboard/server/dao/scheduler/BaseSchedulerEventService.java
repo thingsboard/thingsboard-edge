@@ -152,7 +152,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     public List<SchedulerEventWithCustomerInfo> findSchedulerEventsByTenantIdAndType(TenantId tenantId, String type) {
         log.trace("Executing findSchedulerEventsByTenantIdAndType, tenantId [{}], type [{}]", tenantId, type);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateString(type, "Incorrect type " + type);
+        validateString(type, t -> "Incorrect type " + t);
         return schedulerEventInfoDao.findSchedulerEventsByTenantIdAndType(tenantId.getId(), type);
     }
 
@@ -169,7 +169,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
         log.trace("Executing findSchedulerEventsByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}], type [{}]", tenantId, customerId, type);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validateString(type, "Incorrect type " + type);
+        validateString(type, t -> "Incorrect type " + t);
         return schedulerEventInfoDao.findSchedulerEventsByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type);
     }
 

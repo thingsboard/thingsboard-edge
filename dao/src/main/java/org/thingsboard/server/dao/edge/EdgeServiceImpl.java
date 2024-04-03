@@ -589,7 +589,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     public PageData<Edge> findEdgesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink) {
         log.trace("Executing findEdgesByEntityGroupIdsAndType, groupIds [{}], type [{}], pageLink [{}]", groupIds, type, pageLink);
         validateIds(groupIds, "Incorrect groupIds " + groupIds);
-        validateString(type, "Incorrect type " + type);
+        validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return edgeDao.findEdgesByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);
     }
@@ -724,7 +724,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     public PageData<EdgeInfo> findEdgeInfosByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
         log.trace("Executing findEdgeInfosByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateString(type, "Incorrect type " + type);
+        validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return edgeInfoDao.findEdgesByTenantIdAndType(tenantId.getId(), type, pageLink);
     }
@@ -741,7 +741,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     public PageData<EdgeInfo> findTenantEdgeInfosByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
         log.trace("Executing findTenantEdgeInfosByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateString(type, "Incorrect type " + type);
+        validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return edgeInfoDao.findTenantEdgesByTenantIdAndType(tenantId.getId(), type, pageLink);
     }
@@ -760,7 +760,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         log.trace("Executing findEdgeInfosByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}], type [{}], pageLink [{}]", tenantId, customerId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validateString(type, "Incorrect type " + type);
+        validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return edgeInfoDao.findEdgesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
     }
@@ -780,7 +780,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                 tenantId, customerId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
         validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validateString(type, "Incorrect type " + type);
+        validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return edgeInfoDao.findEdgesByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(tenantId.getId(), customerId.getId(), type, pageLink);
     }

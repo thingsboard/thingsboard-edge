@@ -360,7 +360,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     public PageData<Device> findDevicesByTenantIdAndType(TenantId tenantId, String type, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantIdAndType, tenantId [{}], type [{}], pageLink [{}]", tenantId, type, pageLink);
         validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateString(type, "Incorrect type " + type);
+        validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return deviceDao.findDevicesByTenantIdAndType(tenantId.getId(), type, pageLink);
     }
@@ -503,7 +503,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     public PageData<Device> findDevicesByEntityGroupIdsAndType(List<EntityGroupId> groupIds, String type, PageLink pageLink) {
         log.trace("Executing findDevicesByEntityGroupIdsAndType, groupIds [{}], type [{}], pageLink [{}]", groupIds, type, pageLink);
         validateIds(groupIds, "Incorrect groupIds " + groupIds);
-        validateString(type, "Incorrect type " + type);
+        validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return deviceDao.findDevicesByEntityGroupIdsAndType(toUUIDs(groupIds), type, pageLink);
     }
