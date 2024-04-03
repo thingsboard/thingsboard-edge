@@ -90,12 +90,18 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
         if (tenant == null) {
             throw new RuntimeException("[{" + TenantId.SYS_TENANT_ID + "}] tenantUpdateMsg {" + tenantUpdateMsg + "} cannot be converted to tenant");
         }
-        switch (tenantUpdateMsg.getMsgType()) {
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                tenantService.saveTenant(tenant, true, false);
-                break;
-            case UNRECOGNIZED:
-                return handleUnsupportedMsgType(tenantUpdateMsg.getMsgType());
+        try {
+            cloudSynchronizationManager.getSync().set(true);
+
+            switch (tenantUpdateMsg.getMsgType()) {
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    tenantService.saveTenant(tenant, true, false);
+                    break;
+                case UNRECOGNIZED:
+                    return handleUnsupportedMsgType(tenantUpdateMsg.getMsgType());
+            }
+        } finally {
+            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
