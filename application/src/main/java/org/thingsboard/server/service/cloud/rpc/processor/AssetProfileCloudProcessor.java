@@ -97,8 +97,6 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                         }
                         Pair<Boolean, Boolean> resultPair = super.saveOrUpdateAssetProfile(tenantId, assetProfileId, assetProfileUpdateMsg);
                         boolean created = resultPair.getFirst();
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId,
-                                created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
                         AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
                         if (!assetProfile.isDefault() && assetProfileMsg.isDefault()) {
                             assetProfileService.setDefaultAssetProfile(tenantId, assetProfileId);
@@ -106,7 +104,6 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                         if (removePreviousProfile) {
                             updateAssets(tenantId, assetProfileId, assetProfileByName.getId());
                             assetProfileService.deleteAssetProfile(tenantId, assetProfileByName.getId());
-                            tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileByName.getId(), ComponentLifecycleEvent.DELETED);
                         }
                         if (created) {
                             pushAssetProfileCreatedEventToRuleEngine(tenantId, assetProfileId);
@@ -119,7 +116,6 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                     AssetProfile assetProfile = assetProfileService.findAssetProfileById(tenantId, assetProfileId);
                     if (assetProfile != null) {
                         assetProfileService.deleteAssetProfile(tenantId, assetProfileId);
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, assetProfileId, ComponentLifecycleEvent.DELETED);
                         pushAssetProfileDeletedEventToRuleEngine(tenantId, assetProfile);
                     }
                     break;
@@ -168,8 +164,7 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
         AssetProfileId assetProfileId = new AssetProfileId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (cloudEvent.getAction()) {
-            case ADDED:
-            case UPDATED:
+            case ADDED, UPDATED -> {
                 AssetProfile assetProfile = assetProfileService.findAssetProfileById(cloudEvent.getTenantId(), assetProfileId);
                 if (assetProfile != null && !BaseAssetService.TB_SERVICE_QUEUE.equals(assetProfile.getName())) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
@@ -181,14 +176,14 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
                 } else {
                     log.info("Skipping event as asset profile was not found [{}]", cloudEvent);
                 }
-                break;
-            case DELETED:
+            }
+            case DELETED -> {
                 AssetProfileUpdateMsg assetProfileUpdateMsg = ((AssetMsgConstructor)
                         assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetProfileDeleteMsg(assetProfileId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAssetProfileUpdateMsg(assetProfileUpdateMsg).build();
-                break;
+            }
         }
         return msg;
     }
@@ -222,4 +217,5 @@ public class AssetProfileCloudProcessor extends BaseAssetProfileProcessor {
         }
         assetProfile.setDefaultDashboardId(dashboard != null ? dashboard.getId() : null);
     }
+
 }

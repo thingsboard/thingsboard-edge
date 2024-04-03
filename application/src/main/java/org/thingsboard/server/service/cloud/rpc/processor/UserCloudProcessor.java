@@ -169,4 +169,5 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
         // TODO: @voba - save or update user password history?
         return userService.saveUserCredentials(tenantId, userCredentials, false);
     }
+
 }

@@ -50,7 +50,7 @@ public class EntityCloudProcessor extends BaseEdgeProcessor {
         EntityId entityId = EntityIdFactory.getByCloudEventTypeAndUuid(cloudEvent.getType(), cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (entityId.getEntityType()) {
-            case USER:
+            case USER -> {
                 UserCredentialsRequestMsg userCredentialsRequestMsg = UserCredentialsRequestMsg.newBuilder()
                         .setUserIdMSB(entityId.getId().getMostSignificantBits())
                         .setUserIdLSB(entityId.getId().getLeastSignificantBits())
@@ -59,8 +59,8 @@ public class EntityCloudProcessor extends BaseEdgeProcessor {
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addUserCredentialsRequestMsg(userCredentialsRequestMsg)
                         .build();
-                break;
-            case DEVICE:
+            }
+            case DEVICE -> {
                 DeviceCredentialsRequestMsg deviceCredentialsRequestMsg = DeviceCredentialsRequestMsg.newBuilder()
                         .setDeviceIdMSB(entityId.getId().getMostSignificantBits())
                         .setDeviceIdLSB(entityId.getId().getLeastSignificantBits())
@@ -69,10 +69,10 @@ public class EntityCloudProcessor extends BaseEdgeProcessor {
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDeviceCredentialsRequestMsg(deviceCredentialsRequestMsg)
                         .build();
-                break;
-            default:
-                log.info("Skipping event as entity type doesn't supported [{}]", cloudEvent);
+            }
+            default -> log.info("Skipping event as entity type doesn't supported [{}]", cloudEvent);
         }
         return msg;
     }
+
 }

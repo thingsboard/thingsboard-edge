@@ -125,4 +125,5 @@ public class WidgetBundleCloudProcessor extends BaseEdgeProcessor {
                 .addWidgetBundleTypesRequestMsg(widgetBundleTypesRequestMsg);
         return builder.build();
     }
+
 }

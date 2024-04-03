@@ -51,7 +51,6 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.page.PageDataIterable;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.device.DeviceProfileService;
@@ -62,7 +61,6 @@ import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.constructor.device.DeviceMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.device.profile.BaseDeviceProfileProcessor;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Component
@@ -105,7 +103,6 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                         if (created) {
                             pushDeviceProfileCreatedEventToRuleEngine(tenantId, deviceProfileId);
                         }
-                        notifyCluster(tenantId, deviceProfile, created);
                     } finally {
                         deviceCreationLock.unlock();
                     }
@@ -114,8 +111,6 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                     DeviceProfile deviceProfileToDelete = deviceProfileService.findDeviceProfileById(tenantId, deviceProfileId);
                     if (deviceProfileToDelete != null) {
                         deviceProfileService.deleteDeviceProfile(tenantId, deviceProfileId);
-                        tbClusterService.onDeviceProfileDelete(deviceProfileToDelete, null);
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, deviceProfileId, ComponentLifecycleEvent.DELETED);
                         pushDeviceProfileDeletedEventToRuleEngine(tenantId, deviceProfileToDelete);
                     }
                     break;
@@ -146,24 +141,6 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
         }
     }
 
-    private void notifyCluster(TenantId tenantId, DeviceProfile deviceProfile, boolean created) {
-        boolean isFirmwareChanged = false;
-        boolean isSoftwareChanged = false;
-        if (!created) {
-            DeviceProfile oldDeviceProfile = deviceProfileService.findDeviceProfileById(tenantId, deviceProfile.getId());
-            if (!Objects.equals(deviceProfile.getFirmwareId(), oldDeviceProfile.getFirmwareId())) {
-                isFirmwareChanged = true;
-            }
-            if (!Objects.equals(deviceProfile.getSoftwareId(), oldDeviceProfile.getSoftwareId())) {
-                isSoftwareChanged = true;
-            }
-        }
-        tbClusterService.onDeviceProfileChange(deviceProfile, null);
-        tbClusterService.broadcastEntityStateChangeEvent(tenantId, deviceProfile.getId(),
-                created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
-        otaPackageStateService.update(deviceProfile, isFirmwareChanged, isSoftwareChanged);
-    }
-
     private void updateDevices(TenantId tenantId, DeviceProfileId newDeviceProfileId, DeviceProfileId previousDeviceProfileId) {
         PageDataIterable<DeviceInfo> deviceInfosIterable = new PageDataIterable<>(
                 link -> deviceService.findDeviceInfosByFilter(DeviceInfoFilter.builder().tenantId(tenantId).deviceProfileId(previousDeviceProfileId).build(), link), 1024);
@@ -182,8 +159,7 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
         DeviceProfileId deviceProfileId = new DeviceProfileId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (cloudEvent.getAction()) {
-            case ADDED:
-            case UPDATED:
+            case ADDED, UPDATED -> {
                 DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(cloudEvent.getTenantId(), deviceProfileId);
                 if (deviceProfile != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
@@ -196,14 +172,14 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
                 } else {
                     log.info("Skipping event as device profile was not found [{}]", cloudEvent);
                 }
-                break;
-            case DELETED:
+            }
+            case DELETED -> {
                 DeviceProfileUpdateMsg deviceProfileUpdateMsg = ((DeviceMsgConstructor)
                         deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDeviceProfileDeleteMsg(deviceProfileId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDeviceProfileUpdateMsg(deviceProfileUpdateMsg).build();
-                break;
+            }
         }
         return msg;
     }
@@ -237,4 +213,5 @@ public class DeviceProfileCloudProcessor extends BaseDeviceProfileProcessor {
         }
         deviceProfile.setDefaultDashboardId(dashboard != null ? dashboard.getId() : null);
     }
+
 }
