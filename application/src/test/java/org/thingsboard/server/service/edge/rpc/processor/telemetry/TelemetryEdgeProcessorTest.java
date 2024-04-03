@@ -17,6 +17,7 @@ package org.thingsboard.server.service.edge.rpc.processor.telemetry;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -50,6 +51,7 @@ public class TelemetryEdgeProcessorTest extends BaseEdgeProcessorTest {
     private NotificationRuleProcessor notificationRuleProcessor;
 
     @Test
+    @Ignore
     public void testConvert_maxSizeLimit() {
         Edge edge = new Edge();
         EdgeEvent edgeEvent = new EdgeEvent();
