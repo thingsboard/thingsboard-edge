@@ -554,7 +554,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public PageData<EntityGroupInfo> findEntityGroupInfosByOwnersAndType(TenantId tenantId, List<EntityId> ownerIds, EntityType groupType, PageLink pageLink) {
         log.trace("Executing findEntityGroupInfosByOwnersAndType, ownerIds [{}], groupType [{}], pageLink [{}]", ownerIds, groupType, pageLink);
-        validateEntityIds(ownerIds, INCORRECT_OWNER_ENTITY_IDS + ownerIds);
+        validateEntityIds(ownerIds, ids -> INCORRECT_OWNER_ENTITY_IDS + ids);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
@@ -566,7 +566,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public PageData<EntityInfo> findEntityGroupEntityInfosByOwnersAndType(TenantId tenantId, List<EntityId> ownerIds, EntityType groupType, PageLink pageLink) {
         log.trace("Executing findEntityGroupEntityInfosByOwnersAndType, ownerIds [{}], groupType [{}], pageLink [{}]", ownerIds, groupType, pageLink);
-        validateEntityIds(ownerIds, INCORRECT_OWNER_ENTITY_IDS + ownerIds);
+        validateEntityIds(ownerIds, ids -> INCORRECT_OWNER_ENTITY_IDS + ids);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
