@@ -49,6 +49,9 @@ public class OAuth2CloudProcessor extends BaseEdgeProcessor {
         if (oAuth2Info == null) {
             throw new RuntimeException("[{" + TenantId.SYS_TENANT_ID + "}] oAuth2UpdateMsg {" + oAuth2UpdateMsg + "} cannot be converted to OAuth2Info");
         }
+        if (oAuth2Info.isEnabled() && !oAuth2Info.isEdgeEnabled()) {
+            oAuth2Info.setEnabled(false);
+        }
         oAuth2Info.getOauth2ParamsInfos().forEach(pi -> pi.getClientRegistrations().forEach(cr -> {
             cr.getMapperConfig().setAllowUserCreation(false);
             cr.getMapperConfig().setActivateUser(false);
