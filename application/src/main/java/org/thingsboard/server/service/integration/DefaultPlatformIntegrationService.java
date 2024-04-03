@@ -38,6 +38,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -125,8 +127,6 @@ import org.thingsboard.server.service.profile.DefaultTbDeviceProfileCache;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -362,7 +362,7 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
                 throw new RuntimeException("Not supported!");
         }
 
-        List<TsKvEntry> statistics = KvProtoUtil.toTsKvEntityList(data.getTsDataList());
+        List<TsKvEntry> statistics = KvProtoUtil.fromTsValueProtoList(data.getTsDataList());
         telemetrySubscriptionService.saveAndNotifyInternal(tenantId, entityid, statistics, new FutureCallback<>() {
             @Override
             public void onSuccess(Integer result) {
