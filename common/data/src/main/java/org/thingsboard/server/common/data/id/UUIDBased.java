@@ -84,7 +84,7 @@ public abstract class UUIDBased implements HasUUID, Serializable {
 
     @Override
     public String toString() {
-        return id.toString();
+        return String.valueOf(id);
     }
 
 }

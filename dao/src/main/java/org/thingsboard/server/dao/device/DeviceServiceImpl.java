@@ -145,7 +145,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public Device findDeviceById(TenantId tenantId, DeviceId deviceId) {
         log.trace("Executing findDeviceById [{}]", deviceId);
-        validateId(deviceId, INCORRECT_DEVICE_ID + deviceId);
+        validateId(deviceId, id -> INCORRECT_DEVICE_ID + id);
         if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
             return cache.getAndPutInTransaction(new DeviceCacheKey(deviceId),
                     () -> deviceDao.findById(tenantId, deviceId.getId()), true);
@@ -165,7 +165,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public ListenableFuture<Device> findDeviceByIdAsync(TenantId tenantId, DeviceId deviceId) {
         log.trace("Executing findDeviceById [{}]", deviceId);
-        validateId(deviceId, INCORRECT_DEVICE_ID + deviceId);
+        validateId(deviceId, id -> INCORRECT_DEVICE_ID + id);
         if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
             return deviceDao.findByIdAsync(tenantId, deviceId.getId());
         } else {
@@ -176,7 +176,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public Device findDeviceByTenantIdAndName(TenantId tenantId, String name) {
         log.trace("Executing findDeviceByTenantIdAndName [{}][{}]", tenantId, name);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         return cache.getAndPutInTransaction(new DeviceCacheKey(tenantId, name),
                 () -> deviceDao.findDeviceByTenantIdAndName(tenantId.getId(), name).orElse(null), true);
     }
@@ -325,7 +325,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Transactional
     @Override
     public void deleteDevice(final TenantId tenantId, final DeviceId deviceId) {
-        validateId(deviceId, INCORRECT_DEVICE_ID + deviceId);
+        validateId(deviceId, id -> INCORRECT_DEVICE_ID + id);
         if (entityViewService.existsByTenantIdAndEntityId(tenantId, deviceId)) {
             throw new DataValidationException("Can't delete device that has entity views!");
         }
@@ -351,7 +351,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public PageData<Device> findDevicesByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id ->INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return deviceDao.findDevicesByTenantId(tenantId.getId(), pageLink);
     }
@@ -371,7 +371,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         if (filter == null) {
             throw new IncorrectParameterException("Filter is empty!");
         }
-        validateId(filter.getTenantId(), INCORRECT_TENANT_ID + filter.getTenantId());
+        validateId(filter.getTenantId(), id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return deviceInfoDao.findDeviceInfosByFilter(filter, pageLink);
     }
@@ -392,22 +392,22 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public ListenableFuture<List<Device>> findDevicesByTenantIdAndIdsAsync(TenantId tenantId, List<DeviceId> deviceIds) {
         log.trace("Executing findDevicesByTenantIdAndIdsAsync, tenantId [{}], deviceIds [{}]", tenantId, deviceIds);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateIds(deviceIds, "Incorrect deviceIds " + deviceIds);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateIds(deviceIds, ids -> "Incorrect deviceIds " + ids);
         return deviceDao.findDevicesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(deviceIds));
     }
 
     @Override
     public List<Device> findDevicesByIds(List<DeviceId> deviceIds) {
         log.trace("Executing findDevicesByIdsAsync, deviceIds [{}]", deviceIds);
-        validateIds(deviceIds, "Incorrect deviceIds " + deviceIds);
+        validateIds(deviceIds, ids-> "Incorrect deviceIds " + ids);
         return deviceDao.findDevicesByIds(toUUIDs(deviceIds));
     }
 
     @Override
     public ListenableFuture<List<Device>> findDevicesByIdsAsync(List<DeviceId> deviceIds) {
         log.trace("Executing findDevicesByIdsAsync, deviceIds [{}]", deviceIds);
-        validateIds(deviceIds, "Incorrect deviceIds " + deviceIds);
+        validateIds(deviceIds, ids-> "Incorrect deviceIds " + ids);
         return deviceDao.findDevicesByIdsAsync(toUUIDs(deviceIds));
     }
 
@@ -415,15 +415,15 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public void deleteDevicesByTenantId(TenantId tenantId) {
         log.trace("Executing deleteDevicesByTenantId, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantDevicesRemover.removeEntities(tenantId, tenantId);
     }
 
     @Override
     public PageData<Device> findDevicesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validatePageLink(pageLink);
         return deviceDao.findDevicesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
     }
@@ -439,9 +439,9 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public PageData<Device> findDevicesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type, PageLink pageLink) {
         log.trace("Executing findDevicesByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}], type [{}], pageLink [{}]", tenantId, customerId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validateString(type, "Incorrect type " + type);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
+        validateString(type, t -> "Incorrect type " + t);
         validatePageLink(pageLink);
         return deviceDao.findDevicesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
     }
@@ -449,9 +449,9 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public ListenableFuture<List<Device>> findDevicesByTenantIdCustomerIdAndIdsAsync(TenantId tenantId, CustomerId customerId, List<DeviceId> deviceIds) {
         log.trace("Executing findDevicesByTenantIdCustomerIdAndIdsAsync, tenantId [{}], customerId [{}], deviceIds [{}]", tenantId, customerId, deviceIds);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validateIds(deviceIds, "Incorrect deviceIds " + deviceIds);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
+        validateIds(deviceIds, ids -> "Incorrect deviceIds " + ids);
         return deviceDao.findDevicesByTenantIdCustomerIdAndIdsAsync(tenantId.getId(),
                 customerId.getId(), toUUIDs(deviceIds));
     }
@@ -478,7 +478,7 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @Override
     public ListenableFuture<List<EntitySubtype>> findDeviceTypesByTenantId(TenantId tenantId) {
         log.trace("Executing findDeviceTypesByTenantId, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         return deviceDao.findTenantDeviceTypesAsync(tenantId.getId());
     }
 

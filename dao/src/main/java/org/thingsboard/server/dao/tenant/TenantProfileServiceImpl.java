@@ -67,6 +67,7 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 public class TenantProfileServiceImpl extends AbstractCachedEntityService<TenantProfileCacheKey, TenantProfile, TenantProfileEvictEvent> implements TenantProfileService {
 
     private static final String INCORRECT_TENANT_PROFILE_ID = "Incorrect tenantProfileId ";
+    public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
     @Autowired
     private TenantProfileDao tenantProfileDao;
@@ -90,7 +91,7 @@ public class TenantProfileServiceImpl extends AbstractCachedEntityService<Tenant
     @Override
     public TenantProfile findTenantProfileById(TenantId tenantId, TenantProfileId tenantProfileId) {
         log.trace("Executing findTenantProfileById [{}]", tenantProfileId);
-        Validator.validateId(tenantProfileId, INCORRECT_TENANT_PROFILE_ID + tenantProfileId);
+        Validator.validateId(tenantProfileId, id -> INCORRECT_TENANT_PROFILE_ID + id);
         return cache.getAndPutInTransaction(TenantProfileCacheKey.fromId(tenantProfileId),
                 () -> tenantProfileDao.findById(tenantId, tenantProfileId.getId()), true);
     }
@@ -127,7 +128,8 @@ public class TenantProfileServiceImpl extends AbstractCachedEntityService<Tenant
     @Override
     public void deleteTenantProfile(TenantId tenantId, TenantProfileId tenantProfileId) {
         log.trace("Executing deleteTenantProfile [{}]", tenantProfileId);
-        validateId(tenantId, INCORRECT_TENANT_PROFILE_ID + tenantProfileId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(tenantProfileId, id -> INCORRECT_TENANT_PROFILE_ID + id);
         TenantProfile tenantProfile = tenantProfileDao.findById(tenantId, tenantProfileId.getId());
         if (tenantProfile != null && tenantProfile.isDefault()) {
             throw new DataValidationException("Deletion of Default Tenant Profile is prohibited!");
@@ -202,7 +204,8 @@ public class TenantProfileServiceImpl extends AbstractCachedEntityService<Tenant
     @Override
     public boolean setDefaultTenantProfile(TenantId tenantId, TenantProfileId tenantProfileId) {
         log.trace("Executing setDefaultTenantProfile [{}]", tenantProfileId);
-        validateId(tenantId, INCORRECT_TENANT_PROFILE_ID + tenantProfileId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(tenantProfileId, id -> INCORRECT_TENANT_PROFILE_ID + id);
         TenantProfile tenantProfile = tenantProfileDao.findById(tenantId, tenantProfileId.getId());
         if (!tenantProfile.isDefault()) {
             tenantProfile.setDefault(true);
