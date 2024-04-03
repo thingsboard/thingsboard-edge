@@ -76,6 +76,12 @@ public class Validator {
         }
     }
 
+    static void validateEntityId(EntityId entityId, List<EntityId> ids, Function<List<EntityId>, String> errorMessageFunction) {
+        if (entityId == null || entityId.getId() == null) {
+            throw new IncorrectParameterException(errorMessageFunction.apply(ids));
+        }
+    }
+
     /**
      * This method validate <code>String</code> string. If string is invalid than throw
      * <code>IncorrectParameterException</code> exception
@@ -201,12 +207,23 @@ public class Validator {
         }
     }
 
+    @Deprecated
     public static void validateEntityIds(List<EntityId> ids, String errorMessage) {
         if (ids == null || ids.isEmpty()) {
             throw new IncorrectParameterException(errorMessage);
         } else {
             for (EntityId id : ids) {
                 validateEntityId(id, errorMessage);
+            }
+        }
+    }
+
+    public static void validateEntityIds(List<EntityId> ids, Function<List<EntityId>, String> errorMessageFunction) {
+        if (ids == null || ids.isEmpty()) {
+            throw new IncorrectParameterException(errorMessageFunction.apply(ids));
+        } else {
+            for (EntityId id : ids) {
+                validateEntityId(id, ids, errorMessageFunction);
             }
         }
     }
