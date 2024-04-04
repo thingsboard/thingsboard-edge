@@ -1554,12 +1554,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
   }
 
   private exportWidgetData(widgetExportType: WidgetExportType) {
-    let filename: string;
-    if (this.widgetContext.widgetTitle && this.widgetContext.widgetTitle.length) {
-      filename = this.utils.customTranslation(this.widgetContext.widgetTitle, this.widgetContext.widgetTitle);
-    } else {
-      filename = this.utils.customTranslation(this.widget.config.title, this.widget.config.title);
-    }
+    let filename = this.widget.config.titleByPattern;
     const data = this.prepareWidgetExportData();
     if (isObservable(data)) {
       data.subscribe((d) => {
