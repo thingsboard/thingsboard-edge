@@ -74,7 +74,7 @@ import static org.thingsboard.common.util.JacksonUtil.update;
 @TbCoreComponent
 public class DefaultTbTranslationService extends AbstractTbEntityService implements TbTranslationService {
 
-    public static final String LOCALE_FILES_DIRECTORY_PATH = "/public/assets/locale";
+    public static final String LOCALE_FILES_DIRECTORY_PATH = "public/assets/locale";
     public static final Pattern LOCALE_FILE_PATTERN = Pattern.compile("locale\\.constant-(.*?)\\.json");
     public static final String DEFAULT_LOCALE_CODE = "en_US";
     private static final Set<String> DEFAULT_LOCALE_KEYS;
@@ -224,7 +224,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
 
     private static JsonNode readSystemLocaleTranslation(String localeCode) {
         String filePath = LOCALE_FILES_DIRECTORY_PATH + "/locale.constant-" + localeCode + ".json";
-        try (InputStream in = DefaultTbTranslationService.class.getResourceAsStream(filePath)) {
+        try (InputStream in = DefaultTbTranslationService.class.getClassLoader().getResourceAsStream(filePath)) {
             return JacksonUtil.OBJECT_MAPPER.readTree(in);
         } catch (Exception e) {
             throw new RuntimeException("Failed to read locale translation for " + localeCode + "!", e);
@@ -233,7 +233,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
 
     private static Set<String> getSystemLocaleCodes() {
         List<String> filenames = new ArrayList<>();
-        try (InputStream in = DefaultTbTranslationService.class.getResourceAsStream(LOCALE_FILES_DIRECTORY_PATH);
+        try (InputStream in = DefaultTbTranslationService.class.getClassLoader().getResourceAsStream(LOCALE_FILES_DIRECTORY_PATH);
              BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
             String resource;
             while ((resource = br.readLine()) != null) {
@@ -242,6 +242,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         } catch (Exception e) {
             throw new RuntimeException("Failed to get list of system locales!", e);
         }
+        log.trace("List of system translated locales: " + filenames);
         return filenames.stream().map(DefaultTbTranslationService::getLocaleFromFileName)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
