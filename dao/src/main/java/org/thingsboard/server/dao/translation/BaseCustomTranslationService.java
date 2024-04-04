@@ -108,9 +108,9 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     }
 
     @Override
-    public CustomTranslation deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String key) {
+    public CustomTranslation deleteCustomTranslationKeyByPath(TenantId tenantId, CustomerId customerId, String localeCode, String keyPath) {
         CustomTranslation customTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode);
-        JacksonUtil.deleteKey(customTranslation.getValue(), key);
+        JacksonUtil.deleteByKeyPath(customTranslation.getValue(), keyPath);
         return saveCustomTranslation(customTranslation);
     }
 

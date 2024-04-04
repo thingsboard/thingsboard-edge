@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
@@ -108,7 +109,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
 
     @Override
     public List<TranslationInfo> getTranslationInfos(TenantId tenantId, CustomerId customerId) {
-        Map<String, TranslationInfo> translationInfos = new HashMap<>(TRANSLATION_INFO_MAP);
+        Map<String, TranslationInfo> translationInfos = JacksonUtil.clone(TRANSLATION_INFO_MAP);
 
         Set<String> customizedLocales = customTranslationService.getCustomizedLocales(tenantId, customerId);
         for (String customizedLocale : customizedLocales) {
@@ -139,6 +140,16 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     }
 
     @Override
+    public JsonNode getTranslatedOnlyTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        JsonNode customTranslation = getMergedCustomTranslation(tenantId, customerId, localeCode);
+        if (TRANSLATION_VALUE_MAP.containsKey(localeCode)) {
+            JsonNode systemTranslation = readSystemLocaleTranslation(localeCode);
+            customTranslation = update(systemTranslation, customTranslation);
+        }
+        return customTranslation;
+    }
+
+    @Override
     public CustomTranslation saveCustomTranslation(CustomTranslation customTranslation) {
         CustomTranslation saved = customTranslationService.saveCustomTranslation(customTranslation);
         evictFromCache(customTranslation.getTenantId());
@@ -153,10 +164,10 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     }
 
     @Override
-    public CustomTranslation deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String key) {
-        CustomTranslation saved = customTranslationService.deleteCustomTranslationKey(tenantId, customerId, localeCode, key);
+    public String deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String keyPath) {
+        customTranslationService.deleteCustomTranslationKeyByPath(tenantId, customerId, localeCode, keyPath);
         evictFromCache(tenantId);
-        return saved;
+        return getParentValueForKey(tenantId, customerId, localeCode, keyPath);
     }
 
     @Override
@@ -251,6 +262,25 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
                 .filter(localeKeys::contains)
                 .count();
         return (int) (((translated) * 100) / DEFAULT_LOCALE_KEYS.size());
+    }
+
+    private String getParentValueForKey(TenantId tenantId, CustomerId customerId, String localeCode, String key) {
+        JsonNode parentTranslation;
+        if (customerId != null && !customerId.isNullUid()) {
+            Customer customer = customerService.findCustomerById(tenantId, customerId);
+            if (customer.isSubCustomer()) {
+                parentTranslation = getMergedCustomTranslation(tenantId, customer.getParentCustomerId(), localeCode);
+            } else {
+                parentTranslation = getMergedCustomTranslation(tenantId, null, localeCode);
+            }
+        } else {
+            if (tenantId.isSysTenantId()) {
+                parentTranslation = TRANSLATION_VALUE_MAP.get(localeCode);
+            } else {
+                parentTranslation = getMergedCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode);
+            }
+        }
+        return JacksonUtil.getKeyByPath(parentTranslation, key);
     }
 
     private void evictFromCache(TenantId tenantId) {

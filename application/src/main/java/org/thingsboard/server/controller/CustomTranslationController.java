@@ -152,7 +152,7 @@ public class CustomTranslationController extends BaseController {
     @ApiOperation(value = "Update Custom Translation for specified translation keys only (patchCustomTranslation)",
             notes = "The API call is designed to update the custom translation for specified key only. " +
                     "\n\n Request example: " + CUSTOM_TRANSLATION_PATCH_EXAMPLE +
-                    ControllerConstants.WL_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    ControllerConstants.WL_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PatchMapping(value = "/translation/custom/{localeCode}")
     @ResponseStatus(value = HttpStatus.OK)
@@ -171,27 +171,28 @@ public class CustomTranslationController extends BaseController {
         return tbTranslationService.patchCustomTranslation(customTranslation);
     }
 
-    @ApiOperation(value = "Delete specified key of Custom Translation (deleteCustomTranslationKey)",
-            notes = "The API call is designed to delete specified key of the custom translation. " +
-                    ControllerConstants.WL_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+    @ApiOperation(value = "Delete specified key of Custom Translation (deleteCustomTranslationKey) ",
+            notes = "The API call is designed to delete specified key of the custom translation and return as a result parent translation." +
+                    "(e.g. if tenant translation for key is 'value1' and customer translation is 'value2' then by deletinf key onn customer level you will get 'value1' in response) " +
+                    ControllerConstants.WL_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @DeleteMapping(value = "/translation/custom/{localeCode}/{key}")
+    @DeleteMapping(value = "/translation/custom/{localeCode}/{keyPath}")
     @ResponseStatus(value = HttpStatus.OK)
-    public CustomTranslation deleteCustomTranslationKey(@Parameter(description = "Locale code (e.g. 'en_US').")
+    public String deleteCustomTranslationKey(@Parameter(description = "Locale code (e.g. 'en_US').")
                                                         @PathVariable("localeCode") String localeCode,
                                                         @Parameter(description = "A string value representing key of the custom translation (e.g. 'notification.active').")
-                                                        @PathVariable String key) throws ThingsboardException {
+                                                        @PathVariable String keyPath) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
         SecurityUser currentUser = getCurrentUser();
         return tbTranslationService.deleteCustomTranslationKey(currentUser.getTenantId(), currentUser.getCustomerId(),
-                localeCode, key);
+                localeCode, keyPath);
     }
 
     @ApiOperation(value = "Upload Custom Translation (uploadCustomTranslation)",
             notes = "Upload the Custom Translation for specified locale." +
                     "\n\n Request example: " + CUSTOM_TRANSLATION_EXAMPLE +
-                    ControllerConstants.WL_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    ControllerConstants.WL_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping(value = "/translation/custom/{localeCode}/upload")
     @ResponseStatus(value = HttpStatus.OK)
@@ -213,7 +214,7 @@ public class CustomTranslationController extends BaseController {
 
     @ApiOperation(value = "Delete Custom Translation for specified locale (deleteCustomTranslation)",
             notes = "Delete entire custom translation settings for end-user" +
-                    ControllerConstants.WL_WRITE_CHECK, responses = @ApiResponse(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)))
+                    ControllerConstants.WL_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @DeleteMapping(value = "/translation/custom/{localeCode}")
     @ResponseStatus(value = HttpStatus.OK)

@@ -166,16 +166,16 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
     @Test
     public void shouldDeleteCustomTranslationKey() throws Exception {
         loginSysAdmin();
-        checkDeleteCustomTranslationKey();
+        checkDeleteCustomTranslationKey("", "save alarm");
 
         loginTenantAdmin();
-        checkDeleteCustomTranslationKey();
+        checkDeleteCustomTranslationKey("save alarm", "tenant save alarm");
 
         loginCustomerAdminUser();
-        checkDeleteCustomTranslationKey();
+        checkDeleteCustomTranslationKey("tenant save alarm", "customer save alarm");
 
         loginSubCustomerAdminUser();
-        checkDeleteCustomTranslationKey();
+        checkDeleteCustomTranslationKey("customer save alarm", "subcustomer save alarm");
     }
 
     @Test
@@ -252,8 +252,8 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
         assertThat(updatedCT2.getValue()).isEqualTo(expectedResult2);
     }
 
-    private void checkDeleteCustomTranslationKey() throws Exception {
-        JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"save\":{\"alarm\":\"save alarm\", \"device\":\"save device\"}, \"update\" : \"system\" ," +
+    private void checkDeleteCustomTranslationKey(String parentValue, String currentValue) throws Exception {
+        JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"save\":{\"alarm\":\"" + currentValue + "\", \"device\":\"save device\"}, \"update\" : \"system\" ," +
                 " \"remove\" : \"system\", \"search\":\"system\"}");
         doPost("/api/translation/custom/" + ES_ES, esCustomTranslation, CustomTranslation.class);
 
@@ -261,7 +261,8 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
         assertThat(savedCT.getValue()).isEqualTo(esCustomTranslation);
 
         //delete key "save.alarm"
-        doDelete("/api/translation/custom/" + ES_ES + "/" + "save.alarm", CustomTranslation.class);
+        String actualParentValue = doDelete("/api/translation/custom/" + ES_ES + "/" + "save.alarm", String.class);
+        assertThat(actualParentValue).isEqualTo(parentValue);
 
         JsonNode expectedResult = JacksonUtil.toJsonNode("{\"save\":{\"device\":\"save device\"}, \"update\" : \"system\" ," +
                 " \"remove\" : \"system\", \"search\":\"system\"}");
@@ -269,11 +270,13 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
         assertThat(updatedCT.getValue()).isEqualTo(expectedResult);
 
         //delete key "save"
-        doDelete("/api/translation/custom/" + ES_ES + "/" + "save", CustomTranslation.class);
+        doDelete("/api/translation/custom/" + ES_ES + "/" + "save", String.class);
 
         JsonNode expectedResult2 = JacksonUtil.toJsonNode("{\"update\" : \"system\", \"remove\" : \"system\", \"search\":\"system\"}");
         CustomTranslation updatedCT2 = doGet("/api/translation/custom/" + ES_ES, CustomTranslation.class);
         assertThat(updatedCT2.getValue()).isEqualTo(expectedResult2);
+
+        doPost("/api/translation/custom/" + ES_ES, esCustomTranslation, CustomTranslation.class);
     }
 
     private <R> CustomTranslation uploadCustomTranslation(HttpMethod httpMethod, String url, String mediaType, byte[] content) throws Exception {

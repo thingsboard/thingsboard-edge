@@ -77,6 +77,8 @@ import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_COD
 @RequiredArgsConstructor
 public class TranslationController extends BaseController {
 
+    public static final List<String> LOCALE_CODES_TO_EXCLUDE = Arrays.asList("ru_UA", "ccp_IN");
+
     private static final String CUSTOM_TRANSLATION_INFO_EXAMPLE = "\n\n" +
             MARKDOWN_CODE_BLOCK_START +
             "[\n" +
@@ -118,7 +120,8 @@ public class TranslationController extends BaseController {
     public JsonNode getAvailableLocales() {
         ObjectNode result = JacksonUtil.newObjectNode();
         List<Locale> availableLocales = Arrays.stream(DateFormat.getAvailableLocales())
-                .filter(availableLocale -> !availableLocale.toString().isBlank() && availableLocale.getScript().isBlank())
+                .filter(availableLocale -> !availableLocale.toString().isBlank() && availableLocale.toString().contains("_")
+                        && availableLocale.getScript().isBlank() && !LOCALE_CODES_TO_EXCLUDE.contains(availableLocale.toString()))
                 .toList();
         for (Locale availableLocale : availableLocales) {
             String displayLanguage = availableLocale.getDisplayLanguage(availableLocale);
@@ -168,6 +171,18 @@ public class TranslationController extends BaseController {
                 .eTag(calculatedEtag)
                 .cacheControl(CacheControl.noCache())
                 .body(fullTranslation);
+    }
+
+    @ApiOperation(value = "Get end-user translated only part of translation (getTranslatedOnlyTranslation)")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @GetMapping(value = "/translation/translatedOnly/{localeCode}")
+    @ResponseBody
+    public JsonNode getTranslatedOnlyTranslation(@PathVariable("localeCode") String localeCode) throws Exception {
+        checkWhiteLabelingPermissions(Operation.READ);
+        TenantId tenantId = getCurrentUser().getTenantId();
+        CustomerId customerId = getCurrentUser().getCustomerId();
+
+        return tbTranslationService.getTranslatedOnlyTranslation(tenantId, customerId, localeCode);
     }
 
     @ApiOperation(value = "Download end-user all-to-one translation (downloadFullTranslation)",

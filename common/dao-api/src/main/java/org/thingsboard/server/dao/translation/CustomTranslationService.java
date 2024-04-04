@@ -49,7 +49,7 @@ public interface CustomTranslationService {
 
     CustomTranslation patchCustomTranslation(CustomTranslation customTranslation);
 
-    CustomTranslation deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String key);
+    CustomTranslation deleteCustomTranslationKeyByPath(TenantId tenantId, CustomerId customerId, String localeCode, String key);
 
     void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
