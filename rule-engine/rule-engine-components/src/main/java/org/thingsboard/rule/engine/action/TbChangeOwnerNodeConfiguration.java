@@ -32,21 +32,22 @@ package org.thingsboard.rule.engine.action;
 
 import lombok.Data;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.server.common.data.EntityType;
 
 @Data
 public class TbChangeOwnerNodeConfiguration implements NodeConfiguration<TbChangeOwnerNodeConfiguration> {
 
     private String ownerNamePattern;
-    private String ownerType;
+    private EntityType ownerType;
 
-    private long ownerCacheExpiration;
     private boolean createOwnerIfNotExists;
+    private boolean createOwnerOnOriginatorLevel;
 
     @Override
     public TbChangeOwnerNodeConfiguration defaultConfiguration() {
         TbChangeOwnerNodeConfiguration configuration = new TbChangeOwnerNodeConfiguration();
         configuration.setCreateOwnerIfNotExists(false);
-        configuration.setOwnerCacheExpiration(300);
+        configuration.setCreateOwnerOnOriginatorLevel(false);
         return configuration;
     }
 }

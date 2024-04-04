@@ -968,8 +968,8 @@ class DefaultTbContext implements TbContext, TbPeContext {
     }
 
     @Override
-    public void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId, EntityType entityType) throws ThingsboardException {
-        mainCtx.getOwnersCacheService().changeEntityOwner(tenantId, targetOwnerId, entityId, entityType);
+    public void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId) throws ThingsboardException {
+        mainCtx.getOwnersCacheService().changeEntityOwner(tenantId, targetOwnerId, entityId);
     }
 
     @Override

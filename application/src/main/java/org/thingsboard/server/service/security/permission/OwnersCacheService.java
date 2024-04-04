@@ -84,7 +84,7 @@ public interface OwnersCacheService {
 
     void changeDeviceOwner(TenantId tenantId, EntityId targetOwnerId, Device device) throws ThingsboardException;
 
-    void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId, EntityType entityType) throws ThingsboardException;
+    void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId) throws ThingsboardException;
 
     boolean isChildOwner(TenantId tenantId, CustomerId parentOwnerId, CustomerId childOwnerId);
 

@@ -215,8 +215,8 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
     }
 
     @Override
-    public void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId, EntityType entityType) throws ThingsboardException {
-        switch (entityType) {
+    public void changeEntityOwner(TenantId tenantId, EntityId targetOwnerId, EntityId entityId) throws ThingsboardException {
+        switch (entityId.getEntityType()) {
             case DEVICE:
                 changeDeviceOwner(tenantId, targetOwnerId, getDeviceById(tenantId, entityId));
                 break;
