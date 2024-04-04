@@ -755,6 +755,7 @@ export enum WidgetConfigMode {
 export interface WidgetConfig {
   configMode?: WidgetConfigMode;
   title?: string;
+  titleByPattern?: string;
   titleFont?: Font;
   titleColor?: string;
   titleIcon?: string;
