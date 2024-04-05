@@ -30,12 +30,14 @@
  */
 package org.thingsboard.rule.engine.action;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.AbstractRuleNodeUpgradeTest;
@@ -48,6 +50,7 @@ import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -56,11 +59,15 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.customer.CustomerService;
 
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatNoException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -70,15 +77,18 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
+
+    private static final Set<EntityType> supportedEntityTypes = EnumSet.of(EntityType.TENANT, EntityType.CUSTOMER);
+    private static final String supportedEntityTypesStr = supportedEntityTypes.stream().map(Enum::name).collect(Collectors.joining(", "));
 
     private final TenantId TENANT_ID = new TenantId(UUID.fromString("d369bbbf-4b21-4ee4-aa6a-afe0073c238e"));
     private final DeviceId DEVICE_ID = new DeviceId(UUID.fromString("48bc5450-a122-498b-9a88-90438e560cbb"));
+    private final ListeningExecutor dbCallbackExecutor = new TestDbCallbackExecutor();
 
     private TbChangeOwnerNodeConfiguration config;
     private TbChangeOwnerNode node;
-    private ListeningExecutor dbCallbackExecutor;
 
     @Mock
     private TbContext ctxMock;
@@ -87,11 +97,10 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
     @Mock
     private CustomerService customerServiceMock;
 
-    @Before
-    public void setUp() throws Exception {
+    @BeforeEach
+    public void setUp() {
         config = new TbChangeOwnerNodeConfiguration().defaultConfiguration();
-        node = new TbChangeOwnerNode();
-        dbCallbackExecutor = new TestDbCallbackExecutor();
+        node = spy(new TbChangeOwnerNode());
     }
 
     @Test
@@ -161,10 +170,11 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
     }
 
     @Test
-    public void givenDeviceOwnerTenantAndCreateOwnerIfNotExistsIsTrueAndCreateOwnerOnOriginatorLevelIsTrue_whenOnMsg_thenChangeOwnerToCustomerOriginatorLevel() throws Exception {
+    public void givenDeviceOwnerCustomerAndCreateOwnerIfNotExistsIsTrueAndCreateOwnerOnOriginatorLevelIsTrue_whenOnMsg_thenChangeOwnerToCustomerOriginatorLevel() throws Exception {
+        CustomerId ownerId = new CustomerId(UUID.fromString("07c86754-bd6c-4b56-bd8d-df0e21ffcf9b"));
         CustomerId newCustomerId = new CustomerId(UUID.fromString("04ce4d31-e5f4-4925-a51b-48c6a42aca58"));
         Device device = new Device(DEVICE_ID);
-        device.setOwnerId(TENANT_ID);
+        device.setOwnerId(ownerId);
         config.setOwnerType(EntityType.CUSTOMER);
         config.setOwnerNamePattern("${ownerName}");
         config.setCreateOwnerIfNotExists(true);
@@ -178,7 +188,7 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         when(customerServiceMock.findCustomerByTenantIdAndTitle(any(), any())).thenReturn(Optional.empty());
         when(customerServiceMock.saveCustomer(any())).thenReturn(new Customer(newCustomerId));
         when(ctxMock.getPeContext()).thenReturn(peContextMock);
-        when(peContextMock.getOwner(any(), any())).thenReturn(TENANT_ID);
+        when(peContextMock.getOwner(any(), any())).thenReturn(ownerId);
 
         TbMsg msg = TbMsg.newMsg(
                 TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID,
@@ -190,34 +200,61 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         Customer newCustomer = new Customer();
         newCustomer.setTitle("Test Customer");
         newCustomer.setTenantId(TENANT_ID);
-        newCustomer.setOwnerId(TENANT_ID);
+        newCustomer.setOwnerId(ownerId);
         verify(customerServiceMock).saveCustomer(eq(newCustomer));
         verify(peContextMock, times(2)).getOwner(TENANT_ID, DEVICE_ID);
         verify(peContextMock).changeEntityOwner(eq(TENANT_ID), eq(newCustomerId), eq(DEVICE_ID));
     }
 
     @Test
-    public void givenDefaultConfig_whenInit_thenThrowsException() {
+    public void givenDefaultConfig_whenInit_thenOk() {
         var configuration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
-        assertThatThrownBy(() -> node.init(ctxMock, configuration))
-                .isInstanceOf(TbNodeException.class)
-                .hasMessage("Owner type should be specified!");
+        assertThatNoException().isThrownBy(() -> node.init(ctxMock, configuration));
     }
 
-    @Test
-    public void givenConfigWithUnsupportedType_whenInit_thenThrowsException() {
-        config.setOwnerType(EntityType.DEVICE);
+    @ParameterizedTest
+    @EnumSource(EntityType.class)
+    public void givenConfigAnyOwnerType_whenInit_thenVerify(EntityType ownerType) {
+        config.setOwnerType(ownerType);
         var configuration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
-        assertThatThrownBy(() -> node.init(ctxMock, configuration))
-                .isInstanceOf(TbNodeException.class)
-                .hasMessage("Unsupported owner type 'DEVICE'! Only TENANT, CUSTOMER types are allowed.");
+        if (ownerType == null) {
+            assertThatThrownBy(() -> node.init(ctxMock, configuration))
+                    .isInstanceOf(TbNodeException.class)
+                    .hasMessage("Owner type should be specified!");
+            return;
+        }
+        if (!supportedEntityTypes.contains(ownerType)) {
+            assertThatThrownBy(() -> node.init(ctxMock, configuration))
+                    .isInstanceOf(TbNodeException.class)
+                    .hasMessage("Unsupported owner type '" + ownerType +
+                            "'! Only " + supportedEntityTypesStr + " types are allowed.");
+            return;
+        }
+        if (EntityType.CUSTOMER.equals(ownerType) && StringUtils.isBlank(config.getOwnerNamePattern())) {
+            assertThatThrownBy(() -> node.init(ctxMock, configuration))
+                    .isInstanceOf(TbNodeException.class)
+                    .hasMessage("Owner name should be specified!");
+        }
     }
 
     private static Stream<Arguments> givenFromVersionAndConfig_whenUpgrade_thenVerifyHasChangesAndConfig() {
         return Stream.of(
+                // config for version 0 with ownerCacheExpiration
                 Arguments.of(0,
                         "{\"ownerCacheExpiration\":300,\"createOwnerIfNotExists\":false}",
                         true,
+                        "{\"createOwnerIfNotExists\":false,\"createOwnerOnOriginatorLevel\":false}"
+                ),
+                // config for version 0
+                Arguments.of(0,
+                        "{\"createOwnerIfNotExists\":false}",
+                        true,
+                        "{\"createOwnerIfNotExists\":false,\"createOwnerOnOriginatorLevel\":false}"
+                ),
+                // config for version 1
+                Arguments.of(1,
+                        "{\"createOwnerIfNotExists\":false,\"createOwnerOnOriginatorLevel\":false}",
+                        false,
                         "{\"createOwnerIfNotExists\":false,\"createOwnerOnOriginatorLevel\":false}"
                 )
         );
@@ -225,6 +262,6 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
 
     @Override
     protected TbNode getTestNode() {
-        return spy(new TbChangeOwnerNode());
+        return node;
     }
 }

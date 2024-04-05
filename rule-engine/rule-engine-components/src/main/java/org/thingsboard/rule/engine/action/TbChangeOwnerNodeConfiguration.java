@@ -46,6 +46,7 @@ public class TbChangeOwnerNodeConfiguration implements NodeConfiguration<TbChang
     @Override
     public TbChangeOwnerNodeConfiguration defaultConfiguration() {
         TbChangeOwnerNodeConfiguration configuration = new TbChangeOwnerNodeConfiguration();
+        configuration.setOwnerType(EntityType.TENANT);
         configuration.setCreateOwnerIfNotExists(false);
         configuration.setCreateOwnerOnOriginatorLevel(false);
         return configuration;

@@ -192,10 +192,10 @@ public class TbChangeOwnerNode implements TbNode {
         boolean hasChanges = false;
         switch (fromVersion) {
             case 0:
-                if (!oldConfiguration.has("createOwnerOnOriginatorLevel") && oldConfiguration.has("ownerCacheExpiration")) {
+                if (!oldConfiguration.has("createOwnerOnOriginatorLevel")) {
                     hasChanges = true;
-                    ((ObjectNode) oldConfiguration).put("createOwnerOnOriginatorLevel", false);
-                    ((ObjectNode) oldConfiguration).remove("ownerCacheExpiration");
+                    ((ObjectNode) oldConfiguration).put("createOwnerOnOriginatorLevel", false)
+                            .remove("ownerCacheExpiration");
                 }
                 break;
             default:
