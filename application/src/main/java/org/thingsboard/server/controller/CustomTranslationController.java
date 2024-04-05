@@ -178,7 +178,7 @@ public class CustomTranslationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @DeleteMapping(value = "/translation/custom/{localeCode}/{keyPath}")
     @ResponseStatus(value = HttpStatus.OK)
-    public String deleteCustomTranslationKey(@Parameter(description = "Locale code (e.g. 'en_US').")
+    public CustomTranslation deleteCustomTranslationKey(@Parameter(description = "Locale code (e.g. 'en_US').")
                                                         @PathVariable("localeCode") String localeCode,
                                                         @Parameter(description = "A string value representing key of the custom translation (e.g. 'notification.active').")
                                                         @PathVariable String keyPath) throws ThingsboardException {

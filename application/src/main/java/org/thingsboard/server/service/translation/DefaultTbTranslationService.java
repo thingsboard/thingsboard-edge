@@ -36,6 +36,8 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -50,11 +52,12 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 
-import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -140,7 +143,52 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     }
 
     @Override
-    public JsonNode getTranslatedOnlyTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+    public JsonNode getTranslationForBasicEdit(TenantId tenantId, CustomerId customerId, String localeCode) {
+        JsonNode fullTranslation = getFullTranslation(tenantId, customerId, localeCode).deepCopy();
+        JsonNode currentCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, localeCode).getValue().deepCopy();
+        JsonNode originalTranslation = TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE);
+        JsonNode parentTranslation = getParentTranslation(tenantId, customerId, localeCode);
+        JsonNode translatedOnlyTranslation = translatedOnly(tenantId, customerId, localeCode);
+
+        getTranslationForEdit(fullTranslation, currentCustomTranslation, parentTranslation, originalTranslation, translatedOnlyTranslation);
+        return fullTranslation;
+    }
+
+    private void getTranslationForEdit(JsonNode fullTranslation, JsonNode customTranslation, JsonNode parentTranslation, JsonNode originTranslation, JsonNode translatedTranslation) {
+        Iterator<String> fieldNamesIterator = fullTranslation.fieldNames();
+        while (fieldNamesIterator.hasNext()) {
+            String fieldName = fieldNamesIterator.next();
+            JsonNode fullNode = fullTranslation.get(fieldName);
+            JsonNode customNode = customTranslation == null ? null : customTranslation.get(fieldName);
+            JsonNode parentNode = parentTranslation == null ? null : parentTranslation.get(fieldName);
+            JsonNode originNode = originTranslation == null ? null : originTranslation.get(fieldName);
+            JsonNode translatedNode = translatedTranslation == null ? null : translatedTranslation.get(fieldName);
+            if (fullNode.isObject()) {
+                getTranslationForEdit(fullNode, customNode, parentNode, originNode, translatedNode);
+            } else {
+                ObjectNode info = newObjectNode();
+                info.put("translated", fullNode.asText());
+                info.put("original", originNode == null ? "" : originNode.asText());
+                info.put("parent", parentNode == null ? "" : parentNode.asText());
+                String state;
+                if (customNode != null) {
+                    if (parentNode == null) {
+                        state = "A";
+                    } else {
+                        state = "C";
+                    }
+                } else if (translatedNode != null) {
+                    state = "T";
+                } else {
+                    state = "U";
+                }
+                info.put("state", state);
+                ((ObjectNode) fullTranslation).set(fieldName, info);
+            }
+        }
+    }
+
+    private JsonNode translatedOnly(TenantId tenantId, CustomerId customerId, String localeCode) {
         JsonNode customTranslation = getMergedCustomTranslation(tenantId, customerId, localeCode);
         if (TRANSLATION_VALUE_MAP.containsKey(localeCode)) {
             JsonNode systemTranslation = readSystemLocaleTranslation(localeCode);
@@ -164,10 +212,10 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     }
 
     @Override
-    public String deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String keyPath) {
-        customTranslationService.deleteCustomTranslationKeyByPath(tenantId, customerId, localeCode, keyPath);
+    public CustomTranslation deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String keyPath) {
+        CustomTranslation customTranslation = customTranslationService.deleteCustomTranslationKeyByPath(tenantId, customerId, localeCode, keyPath);
         evictFromCache(tenantId);
-        return getParentValueForKey(tenantId, customerId, localeCode, keyPath);
+        return customTranslation;
     }
 
     @Override
@@ -233,16 +281,13 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
 
     private static Set<String> getSystemLocaleCodes() {
         List<String> filenames = new ArrayList<>();
-        try (InputStream in = DefaultTbTranslationService.class.getClassLoader().getResourceAsStream(LOCALE_FILES_DIRECTORY_PATH);
-             BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
-            String resource;
-            while ((resource = br.readLine()) != null) {
-                filenames.add(resource);
-            }
-        } catch (Exception e) {
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        try {
+            Resource[] resources = resolver.getResources("classpath:public/assets/locale/*.json");
+            Arrays.stream(resources).forEach(resource -> filenames.add(resource.getFilename()));
+        } catch (IOException e) {
             throw new RuntimeException("Failed to get list of system locales!", e);
         }
-        log.trace("List of system translated locales: " + filenames);
         return filenames.stream().map(DefaultTbTranslationService::getLocaleFromFileName)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
@@ -265,23 +310,23 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         return (int) (((translated) * 100) / DEFAULT_LOCALE_KEYS.size());
     }
 
-    private String getParentValueForKey(TenantId tenantId, CustomerId customerId, String localeCode, String key) {
+    private JsonNode getParentTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
         JsonNode parentTranslation;
         if (customerId != null && !customerId.isNullUid()) {
             Customer customer = customerService.findCustomerById(tenantId, customerId);
             if (customer.isSubCustomer()) {
-                parentTranslation = getMergedCustomTranslation(tenantId, customer.getParentCustomerId(), localeCode);
+                parentTranslation = getFullTranslation(tenantId, customer.getParentCustomerId(), localeCode);
             } else {
-                parentTranslation = getMergedCustomTranslation(tenantId, null, localeCode);
+                parentTranslation = getFullTranslation(tenantId, null, localeCode);
             }
         } else {
             if (tenantId.isSysTenantId()) {
-                parentTranslation = TRANSLATION_VALUE_MAP.get(localeCode);
+                parentTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE));
             } else {
-                parentTranslation = getMergedCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode);
+                parentTranslation = getFullTranslation(TenantId.SYS_TENANT_ID, null, localeCode);
             }
         }
-        return JacksonUtil.getKeyByPath(parentTranslation, key);
+        return parentTranslation;
     }
 
     private void evictFromCache(TenantId tenantId) {

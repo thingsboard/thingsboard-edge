@@ -67,22 +67,22 @@ public class TranslationControllerTest extends AbstractControllerTest {
     @Test
     public void shouldGetCorrectFullTranslation() throws Exception {
         loginSysAdmin();
-        JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"system\", \"update\" : \"system\" ," +
+        JsonNode systemCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"system\", \"update\" : \"system\" ," +
                 " \"remove\" : \"system\", \"search\":\"system\"}");
-        doPost("/api/translation/custom/" + ES_ES, esCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, systemCustomTranslation, CustomTranslation.class);
 
         loginTenantAdmin();
-        JsonNode itTenantCustomTranslation = JacksonUtil.toJsonNode("{\"update\" : \"tenant\" ," +
+        JsonNode tenantCustomTranslation = JacksonUtil.toJsonNode("{\"update\" : \"tenant\" ," +
                 " \"remove\" : \"tenant\", \"search\":\"tenant\"}");
-        doPost("/api/translation/custom/" + ES_ES, itTenantCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, tenantCustomTranslation, CustomTranslation.class);
 
         loginCustomerAdminUser();
-        JsonNode plCustomerCustomTranslation = JacksonUtil.toJsonNode("{\"remove\" : \"customer\", \"search\":\"customer\"}");
-        doPost("/api/translation/custom/" + ES_ES, plCustomerCustomTranslation, CustomTranslation.class);
+        JsonNode customerCustomTranslation = JacksonUtil.toJsonNode("{\"remove\" : \"customer\", \"search\":\"customer\"}");
+        doPost("/api/translation/custom/" + ES_ES, customerCustomTranslation, CustomTranslation.class);
 
         loginSubCustomerAdminUser();
-        JsonNode plSubCustomerCustomTranslation = JacksonUtil.toJsonNode("{\"search\":\"subCustomer\"}");
-        doPost("/api/translation/custom/" + ES_ES, plSubCustomerCustomTranslation, CustomTranslation.class);
+        JsonNode subCustomerCustomTranslation = JacksonUtil.toJsonNode("{\"search\":\"subCustomer\"}");
+        doPost("/api/translation/custom/" + ES_ES, subCustomerCustomTranslation, CustomTranslation.class);
 
         // get full system translation
         loginSysAdmin();
@@ -90,12 +90,6 @@ public class TranslationControllerTest extends AbstractControllerTest {
         assertThat(fullSystemTranslation.get("save").asText()).isEqualTo("system");
         assertThat(fullSystemTranslation.get("access").get("unauthorized").asText()).isEqualTo("No autorizado");
         assertThat(fullSystemTranslation.get("solution-template").get("solution-template").asText()).isEqualTo("Solution template");
-
-        // get translated only translation
-        JsonNode translatedSystemTranslation = doGet("/api/translation/translatedOnly/" + ES_ES, JsonNode.class);
-        assertThat(translatedSystemTranslation.get("save").asText()).isEqualTo("system");
-        assertThat(translatedSystemTranslation.get("access").get("unauthorized").asText()).isEqualTo("No autorizado");
-        assertThat(translatedSystemTranslation.get("solution-template")).isNull();
 
         // get full tenant translation
         loginTenantAdmin();
@@ -105,14 +99,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
         assertThat(fullTenantTranslation.get("access").get("unauthorized").asText()).isEqualTo("No autorizado");
         assertThat(fullTenantTranslation.get("solution-template").get("solution-template").asText()).isEqualTo("Solution template");
 
-        // get translated only translation
-        JsonNode translatedTenantTranslation = doGet("/api/translation/translatedOnly/" + ES_ES, JsonNode.class);
-        assertThat(translatedTenantTranslation.get("save").asText()).isEqualTo("system");
-        assertThat(fullTenantTranslation.get("update").asText()).isEqualTo("tenant");
-        assertThat(translatedTenantTranslation.get("access").get("unauthorized").asText()).isEqualTo("No autorizado");
-        assertThat(translatedSystemTranslation.get("solution-template")).isNull();
-
-        // get merged customer custom translation
+        // get full customer custom translation
         loginCustomerAdminUser();
         JsonNode fullCustomerTranslation = doGet("/api/translation/full/" + ES_ES, JsonNode.class);
         assertThat(fullCustomerTranslation.get("save").asText()).isEqualTo("system");
@@ -121,15 +108,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
         assertThat(fullCustomerTranslation.get("access").get("unauthorized").asText()).isEqualTo("No autorizado");
         assertThat(fullCustomerTranslation.get("solution-template").get("solution-template").asText()).isEqualTo("Solution template");
 
-        // get translated only translation
-        JsonNode translatedCustomerTranslation = doGet("/api/translation/translatedOnly/" + ES_ES, JsonNode.class);
-        assertThat(translatedCustomerTranslation.get("save").asText()).isEqualTo("system");
-        assertThat(translatedCustomerTranslation.get("update").asText()).isEqualTo("tenant");
-        assertThat(translatedCustomerTranslation.get("remove").asText()).isEqualTo("customer");
-        assertThat(translatedCustomerTranslation.get("access").get("unauthorized").asText()).isEqualTo("No autorizado");
-        assertThat(translatedCustomerTranslation.get("solution-template")).isNull();
-
-        // get merged subcustomer custom translation
+        // get full subcustomer custom translation
         loginSubCustomerAdminUser();
         JsonNode fullSubCustomerTranslation = doGet("/api/translation/full/" + ES_ES, JsonNode.class);
         assertThat(fullSubCustomerTranslation.get("save").asText()).isEqualTo("system");
@@ -138,15 +117,72 @@ public class TranslationControllerTest extends AbstractControllerTest {
         assertThat(fullSubCustomerTranslation.get("search").asText()).isEqualTo("subCustomer");
         assertThat(fullSubCustomerTranslation.get("access").get("unauthorized").asText()).isEqualTo("No autorizado");
         assertThat(fullSubCustomerTranslation.get("solution-template").get("solution-template").asText()).isEqualTo("Solution template");
+    }
 
-        // get translated only translation
-        JsonNode translatedSubCustomerTranslation = doGet("/api/translation/translatedOnly/" + ES_ES, JsonNode.class);
-        assertThat(translatedSubCustomerTranslation.get("save").asText()).isEqualTo("system");
-        assertThat(translatedSubCustomerTranslation.get("update").asText()).isEqualTo("tenant");
-        assertThat(translatedSubCustomerTranslation.get("remove").asText()).isEqualTo("customer");
-        assertThat(translatedSubCustomerTranslation.get("search").asText()).isEqualTo("subCustomer");
-        assertThat(translatedSubCustomerTranslation.get("access").get("unauthorized").asText()).isEqualTo("No autorizado");
-        assertThat(translatedSubCustomerTranslation.get("solution-template")).isNull();
+    @Test
+    public void shouldGetCorrectTranslationForBasicEdit() throws Exception {
+        loginSysAdmin();
+        JsonNode systemCustomTranslation = JacksonUtil.toJsonNode("{\"account\": {\"account\" : \"systemAccount\"}, \"save\":\"system\", \"update\" : \"system\" ," +
+                " \"remove\" : \"system\", \"search\":\"system\"}");
+        doPost("/api/translation/custom/" + ES_ES, systemCustomTranslation, CustomTranslation.class);
+
+        loginTenantAdmin();
+        JsonNode tenantCustomTranslation = JacksonUtil.toJsonNode("{\"account\": {\"account\" : \"tenantAccount\"}, \"update\" : \"tenant\" ," +
+                " \"remove\" : \"tenant\", \"search\":\"tenant\"}");
+        doPost("/api/translation/custom/" + ES_ES, tenantCustomTranslation, CustomTranslation.class);
+
+        loginCustomerAdminUser();
+        JsonNode customerCustomTranslation = JacksonUtil.toJsonNode("{\"account\": {\"account\" : \"customerAccount\"}, \"remove\" : \"customer\", \"search\":\"customer\"}");
+        doPost("/api/translation/custom/" + ES_ES, customerCustomTranslation, CustomTranslation.class);
+
+        loginSubCustomerAdminUser();
+        JsonNode subCustomerCustomTranslation = JacksonUtil.toJsonNode("{\"account\": {\"account\" : \"subCustomerAccount\"}, \"search\":\"subCustomer\"}");
+        doPost("/api/translation/custom/" + ES_ES, subCustomerCustomTranslation, CustomTranslation.class);
+
+        // get system translation for edit
+        loginSysAdmin();
+        JsonNode systemTranslationForEdit = doGet("/api/translation/edit/basic/" + ES_ES, JsonNode.class);
+        verifyInfo(systemTranslationForEdit.get("account").get("account"), "systemAccount", "Account", "Cuenta", "C");
+        verifyInfo(systemTranslationForEdit.get("save"), "system", "", "", "A");
+        verifyInfo(systemTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", "No autorizado", "T");
+        verifyInfo(systemTranslationForEdit.get("solution-template").get("solution-template"), "Solution template", "Solution template", "Solution template", "U");
+
+        // get tenant translation for edit
+        loginTenantAdmin();
+        JsonNode tenantTranslationForEdit = doGet("/api/translation/edit/basic/" + ES_ES, JsonNode.class);
+        verifyInfo(tenantTranslationForEdit.get("account").get("account"), "tenantAccount", "Account", "systemAccount", "C");
+        verifyInfo(tenantTranslationForEdit.get("save"), "system", "", "system", "T");
+        verifyInfo(tenantTranslationForEdit.get("update"), "tenant", "", "system", "C");
+        verifyInfo(tenantTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", "No autorizado", "T");
+        verifyInfo(tenantTranslationForEdit.get("solution-template").get("solution-template"), "Solution template", "Solution template", "Solution template", "U");
+
+        // get customer for edit
+        loginCustomerAdminUser();
+        JsonNode customerTranslationForEdit = doGet("/api/translation/edit/basic/" + ES_ES, JsonNode.class);
+        verifyInfo(customerTranslationForEdit.get("account").get("account"), "customerAccount", "Account", "tenantAccount", "C");
+        verifyInfo(customerTranslationForEdit.get("save"), "system", "", "system", "T");
+        verifyInfo(customerTranslationForEdit.get("update"), "tenant", "", "tenant", "T");
+        verifyInfo(customerTranslationForEdit.get("remove"), "customer", "", "tenant", "C");
+        verifyInfo(customerTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", "No autorizado", "T");
+        verifyInfo(customerTranslationForEdit.get("solution-template").get("solution-template"), "Solution template", "Solution template", "Solution template", "U");
+
+        // get subcustomer translation  for edit
+        loginSubCustomerAdminUser();
+        JsonNode subCustomerTranslation = doGet("/api/translation/edit/basic/" + ES_ES, JsonNode.class);
+        verifyInfo(subCustomerTranslation.get("account").get("account"), "subCustomerAccount", "Account", "customerAccount", "C");
+        verifyInfo(subCustomerTranslation.get("save"), "system", "", "system", "T");
+        verifyInfo(subCustomerTranslation.get("update"), "tenant", "", "tenant", "T");
+        verifyInfo(subCustomerTranslation.get("remove"), "customer", "", "customer", "T");
+        verifyInfo(subCustomerTranslation.get("search"), "subCustomer", "", "customer", "C");
+        verifyInfo(subCustomerTranslation.get("access").get("unauthorized"), "No autorizado", "Unauthorized", "No autorizado", "T");
+        verifyInfo(subCustomerTranslation.get("solution-template").get("solution-template"), "Solution template", "Solution template", "Solution template", "U");
+    }
+
+    private static void verifyInfo(JsonNode keyInfo, String translation, String origin, String parent, String state) {
+        assertThat(keyInfo.get("translated").asText()).isEqualTo(translation);
+        assertThat(keyInfo.get("original").asText()).isEqualTo(origin);
+        assertThat(keyInfo.get("parent").asText()).isEqualTo(parent);
+        assertThat(keyInfo.get("state").asText()).isEqualTo(state);
     }
 
     @Test

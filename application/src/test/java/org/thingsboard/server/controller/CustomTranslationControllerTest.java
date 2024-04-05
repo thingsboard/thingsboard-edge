@@ -261,8 +261,7 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
         assertThat(savedCT.getValue()).isEqualTo(esCustomTranslation);
 
         //delete key "save.alarm"
-        String actualParentValue = doDelete("/api/translation/custom/" + ES_ES + "/" + "save.alarm", String.class);
-        assertThat(actualParentValue).isEqualTo(parentValue);
+        doDelete("/api/translation/custom/" + ES_ES + "/" + "save.alarm", CustomTranslation.class);
 
         JsonNode expectedResult = JacksonUtil.toJsonNode("{\"save\":{\"device\":\"save device\"}, \"update\" : \"system\" ," +
                 " \"remove\" : \"system\", \"search\":\"system\"}");
@@ -270,7 +269,7 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
         assertThat(updatedCT.getValue()).isEqualTo(expectedResult);
 
         //delete key "save"
-        doDelete("/api/translation/custom/" + ES_ES + "/" + "save", String.class);
+        doDelete("/api/translation/custom/" + ES_ES + "/" + "save", CustomTranslation.class);
 
         JsonNode expectedResult2 = JacksonUtil.toJsonNode("{\"update\" : \"system\", \"remove\" : \"system\", \"search\":\"system\"}");
         CustomTranslation updatedCT2 = doGet("/api/translation/custom/" + ES_ES, CustomTranslation.class);

@@ -175,14 +175,14 @@ public class TranslationController extends BaseController {
 
     @ApiOperation(value = "Get end-user translated only part of translation (getTranslatedOnlyTranslation)")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @GetMapping(value = "/translation/translatedOnly/{localeCode}")
+    @GetMapping(value = "/translation/edit/basic/{localeCode}")
     @ResponseBody
-    public JsonNode getTranslatedOnlyTranslation(@PathVariable("localeCode") String localeCode) throws Exception {
+    public JsonNode getTranslationForBasicEdit(@PathVariable("localeCode") String localeCode) throws Exception {
         checkWhiteLabelingPermissions(Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
         CustomerId customerId = getCurrentUser().getCustomerId();
 
-        return tbTranslationService.getTranslatedOnlyTranslation(tenantId, customerId, localeCode);
+        return tbTranslationService.getTranslationForBasicEdit(tenantId, customerId, localeCode);
     }
 
     @ApiOperation(value = "Download end-user all-to-one translation (downloadFullTranslation)",

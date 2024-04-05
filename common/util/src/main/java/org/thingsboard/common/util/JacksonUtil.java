@@ -469,21 +469,4 @@ public class JacksonUtil {
         return mainNode;
     }
 
-    public static String getKeyByPath(JsonNode mainNode, String key) {
-        String[] fieldPath = key.trim().split("\\.");
-        var node = (ObjectNode) mainNode;
-        for (int i = 0; i < fieldPath.length; i++) {
-            var fieldName = fieldPath[i];
-            var last = i == (fieldPath.length - 1);
-            if (last) {
-                 return node.get(fieldName) == null ? "" : node.get(fieldName).asText();
-            } else {
-                if (!node.has(fieldName)) {
-                    break;
-                }
-                node = (ObjectNode) node.get(fieldName);
-            }
-        }
-        return mainNode.asText();
-    }
 }

@@ -47,13 +47,13 @@ public interface TbTranslationService {
 
     JsonNode getFullTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
-    JsonNode getTranslatedOnlyTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
+    JsonNode getTranslationForBasicEdit(TenantId tenantId, CustomerId customerId, String localeCode);
 
     CustomTranslation saveCustomTranslation(CustomTranslation customTranslation);
 
     CustomTranslation patchCustomTranslation(CustomTranslation customTranslation);
 
-    String deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String key);
+    CustomTranslation deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String key);
 
     void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
