@@ -69,6 +69,7 @@ import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
+import org.thingsboard.server.dao.queue.QueueStatsService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rpc.RpcService;
@@ -178,6 +179,10 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Autowired
     private QueueService queueService;
 
+    @Lazy
+    @Autowired
+    private QueueStatsService queueStatsService;
+
     @Autowired
     private AdminSettingsService adminSettingsService;
 
@@ -218,7 +223,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Override
     public Tenant findTenantById(TenantId tenantId) {
         log.trace("Executing findTenantById [{}]", tenantId);
-        Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
 
         return cache.getAndPutInTransaction(tenantId, () -> tenantDao.findById(tenantId, tenantId.getId()), true);
     }
@@ -226,21 +231,21 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Override
     public TenantInfo findTenantInfoById(TenantId tenantId) {
         log.trace("Executing findTenantInfoById [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         return tenantDao.findTenantInfoById(tenantId, tenantId.getId());
     }
 
     @Override
     public ListenableFuture<Tenant> findTenantByIdAsync(TenantId callerId, TenantId tenantId) {
         log.trace("Executing findTenantByIdAsync [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         return tenantDao.findByIdAsync(callerId, tenantId.getId());
     }
 
     @Override
     public ListenableFuture<List<Tenant>> findTenantsByIdsAsync(TenantId callerId, List<TenantId> tenantIds) {
         log.trace("Executing findTenantsByIdsAsync, callerId [{}], tenantIds [{}]", callerId, tenantIds);
-        validateIds(tenantIds, "Incorrect tenantIds " + tenantIds);
+        validateIds(tenantIds, ids -> "Incorrect tenantIds " + ids);
         return tenantDao.findTenantsByIdsAsync(callerId.getId(), toUUIDs(tenantIds));
     }
 
@@ -300,7 +305,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     public void deleteTenant(TenantId tenantId) {
         log.trace("Executing deleteTenant [{}]", tenantId);
         Tenant tenant = findTenantById(tenantId);
-        Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, null);
         entityViewService.deleteEntityViewsByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
@@ -338,6 +343,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
                 .entity(tenant).entityId(tenantId).build());
         relationService.deleteEntityRelations(tenantId, tenantId);
         alarmService.deleteEntityAlarmRecordsByTenantId(tenantId);
+        queueStatsService.deleteByTenantId(tenantId);
         customTranslationService.deleteCustomTranslationByTenantId(tenantId);
     }
 

@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.id.NotificationTemplateId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.QueueStatsId;
 import org.thingsboard.server.common.data.id.RpcId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
@@ -189,6 +190,9 @@ public class TenantIdLoader {
                 break;
             case GROUP_PERMISSION:
                 tenantEntity = ctx.getPeContext().getGroupPermissionService().findGroupPermissionById(ctxTenantId, new GroupPermissionId(id));
+                break;
+            case QUEUE_STATS:
+                tenantEntity = ctx.getQueueStatsService().findQueueStatsById(ctxTenantId, new QueueStatsId(id));
                 break;
             default:
                 throw new RuntimeException("Unexpected entity type: " + entityId.getEntityType());

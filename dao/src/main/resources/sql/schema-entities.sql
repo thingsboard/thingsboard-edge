@@ -1072,6 +1072,15 @@ CREATE TABLE IF NOT EXISTS alarm_types (
     CONSTRAINT fk_entity_tenant_id FOREIGN KEY (tenant_id) REFERENCES tenant(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS queue_stats (
+    id uuid NOT NULL CONSTRAINT queue_stats_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid NOT NULL,
+    queue_name varchar(255) NOT NULL,
+    service_id varchar(255) NOT NULL,
+    CONSTRAINT queue_stats_name_unq_key UNIQUE (tenant_id, queue_name, service_id)
+);
+
 CREATE TABLE IF NOT EXISTS custom_translation (
     tenant_id UUID NOT NULL,
     customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',

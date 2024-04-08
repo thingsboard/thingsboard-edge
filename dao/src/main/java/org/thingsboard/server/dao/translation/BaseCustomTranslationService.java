@@ -67,7 +67,11 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
         CustomTranslationCompositeKey key = new CustomTranslationCompositeKey(tenantId, customerId, localeCode);
         CustomTranslation customTranslation = cache.getAndPutInTransaction(key, () -> customTranslationDao.findById(TenantId.SYS_TENANT_ID, key), true);
         if (customTranslation == null) {
-            customTranslation = CustomTranslation.builder().localeCode(key.getLocaleCode()).value(JacksonUtil.newObjectNode()).build();
+            customTranslation = CustomTranslation.builder()
+                    .localeCode(key.getLocaleCode())
+                    .tenantId(tenantId)
+                    .customerId(customerId)
+                    .value(JacksonUtil.newObjectNode()).build();
         }
         return customTranslation;
     }
