@@ -36,6 +36,7 @@ import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.elements.exception.ConnectorException;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.ClaimRequest;
 import org.thingsboard.server.common.data.Customer;
@@ -109,7 +110,6 @@ public class CoapClaimDeviceTest extends AbstractCoapIntegrationTest {
     public void testClaimingDevice() throws Exception {
         processTestClaimingDevice(false);
     }
-
     @Test
     public void testClaimingDeviceWithoutSecretAndDuration() throws Exception {
         processTestClaimingDevice(true);

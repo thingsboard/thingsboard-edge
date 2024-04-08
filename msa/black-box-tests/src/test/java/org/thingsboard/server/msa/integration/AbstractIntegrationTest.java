@@ -71,8 +71,8 @@ import static org.thingsboard.server.msa.prototypes.DevicePrototypes.defaultDevi
 
 @DisableUIListeners
 public abstract class AbstractIntegrationTest extends AbstractContainerTest {
-    protected static final String LOGIN = "tenant@thingsboard.org";
-    protected static final String PASSWORD = "tenant";
+    public static final String LOGIN = "tenant@thingsboard.org";
+    public static final String PASSWORD = "tenant";
     protected Device device;
     private RuleChainId defaultRuleChainId;
     protected Integration integration;
