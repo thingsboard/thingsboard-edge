@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.transport.lwm2m.server.store;
 
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.core.SecurityMode;
 import org.eclipse.leshan.core.peer.OscoreIdentity;
 import org.eclipse.leshan.server.security.NonUniqueSecurityInfoException;
@@ -41,6 +42,7 @@ import org.thingsboard.server.transport.lwm2m.secure.TbLwM2MSecurityInfo;
 
 import java.util.concurrent.locks.Lock;
 
+@Slf4j
 public class TbLwM2mRedisSecurityStore implements TbEditableSecurityStore {
     private static final String SEC_EP = "SEC#EP#";
     private static final String LOCK_EP = "LOCK#EP#";

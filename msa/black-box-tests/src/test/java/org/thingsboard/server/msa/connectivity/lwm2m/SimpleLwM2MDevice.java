@@ -68,16 +68,6 @@ public class SimpleLwM2MDevice extends BaseInstanceEnabler implements Destroyabl
     public SimpleLwM2MDevice() {
     }
 
-    public SimpleLwM2MDevice(ScheduledExecutorService executorService) {
-        try {
-            executorService.scheduleWithFixedDelay(() -> {
-                fireResourceChange(9);
-            }, 1, 1, TimeUnit.SECONDS); // 30 MIN
-        } catch (Throwable e) {
-            log.error("[{}]Throwable", e.toString());
-            e.printStackTrace();
-        }
-    }
 
 
     @Override
