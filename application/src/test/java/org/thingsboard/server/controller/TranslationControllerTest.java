@@ -143,46 +143,50 @@ public class TranslationControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         JsonNode systemTranslationForEdit = doGet("/api/translation/edit/basic/" + ES_ES, JsonNode.class);
         verifyInfo(systemTranslationForEdit.get("account").get("account"), "systemAccount", "Account", "Cuenta", "C");
-        verifyInfo(systemTranslationForEdit.get("save"), "system", "", "", "A");
-        verifyInfo(systemTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", "No autorizado", "T");
-        verifyInfo(systemTranslationForEdit.get("solution-template").get("solution-template"), "Solution template", "Solution template", "Solution template", "U");
+        verifyInfo(systemTranslationForEdit.get("save"), "system", null, null, "A");
+        verifyInfo(systemTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
+        verifyInfo(systemTranslationForEdit.get("solution-template").get("solution-template"), "Solution template", "Solution template", null, "U");
 
         // get tenant translation for edit
         loginTenantAdmin();
         JsonNode tenantTranslationForEdit = doGet("/api/translation/edit/basic/" + ES_ES, JsonNode.class);
         verifyInfo(tenantTranslationForEdit.get("account").get("account"), "tenantAccount", "Account", "systemAccount", "C");
-        verifyInfo(tenantTranslationForEdit.get("save"), "system", "", "system", "T");
-        verifyInfo(tenantTranslationForEdit.get("update"), "tenant", "", "system", "C");
-        verifyInfo(tenantTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", "No autorizado", "T");
-        verifyInfo(tenantTranslationForEdit.get("solution-template").get("solution-template"), "Solution template", "Solution template", "Solution template", "U");
+        verifyInfo(tenantTranslationForEdit.get("save"), "system", null, null, "T");
+        verifyInfo(tenantTranslationForEdit.get("update"), "tenant", null, "system", "C");
+        verifyInfo(tenantTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
+        verifyInfo(tenantTranslationForEdit.get("solution-template").get("solution-template"), "Solution template", "Solution template", null, "U");
 
         // get customer for edit
         loginCustomerAdminUser();
         JsonNode customerTranslationForEdit = doGet("/api/translation/edit/basic/" + ES_ES, JsonNode.class);
         verifyInfo(customerTranslationForEdit.get("account").get("account"), "customerAccount", "Account", "tenantAccount", "C");
-        verifyInfo(customerTranslationForEdit.get("save"), "system", "", "system", "T");
-        verifyInfo(customerTranslationForEdit.get("update"), "tenant", "", "tenant", "T");
-        verifyInfo(customerTranslationForEdit.get("remove"), "customer", "", "tenant", "C");
-        verifyInfo(customerTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", "No autorizado", "T");
-        verifyInfo(customerTranslationForEdit.get("solution-template").get("solution-template"), "Solution template", "Solution template", "Solution template", "U");
+        verifyInfo(customerTranslationForEdit.get("save"), "system", null, null, "T");
+        verifyInfo(customerTranslationForEdit.get("update"), "tenant", null, null, "T");
+        verifyInfo(customerTranslationForEdit.get("remove"), "customer", null, "tenant", "C");
+        verifyInfo(customerTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
+        verifyInfo(customerTranslationForEdit.get("solution-template").get("solution-template"), "Solution template", "Solution template", null, "U");
 
         // get subcustomer translation  for edit
         loginSubCustomerAdminUser();
         JsonNode subCustomerTranslation = doGet("/api/translation/edit/basic/" + ES_ES, JsonNode.class);
         verifyInfo(subCustomerTranslation.get("account").get("account"), "subCustomerAccount", "Account", "customerAccount", "C");
-        verifyInfo(subCustomerTranslation.get("save"), "system", "", "system", "T");
-        verifyInfo(subCustomerTranslation.get("update"), "tenant", "", "tenant", "T");
-        verifyInfo(subCustomerTranslation.get("remove"), "customer", "", "customer", "T");
-        verifyInfo(subCustomerTranslation.get("search"), "subCustomer", "", "customer", "C");
-        verifyInfo(subCustomerTranslation.get("access").get("unauthorized"), "No autorizado", "Unauthorized", "No autorizado", "T");
-        verifyInfo(subCustomerTranslation.get("solution-template").get("solution-template"), "Solution template", "Solution template", "Solution template", "U");
+        verifyInfo(subCustomerTranslation.get("save"), "system", null, null, "T");
+        verifyInfo(subCustomerTranslation.get("update"), "tenant", null, null, "T");
+        verifyInfo(subCustomerTranslation.get("remove"), "customer", null, null, "T");
+        verifyInfo(subCustomerTranslation.get("search"), "subCustomer", null, "customer", "C");
+        verifyInfo(subCustomerTranslation.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
+        verifyInfo(subCustomerTranslation.get("solution-template").get("solution-template"), "Solution template", "Solution template", null, "U");
     }
 
     private static void verifyInfo(JsonNode keyInfo, String translation, String origin, String parent, String state) {
-        assertThat(keyInfo.get("translated").asText()).isEqualTo(translation);
-        assertThat(keyInfo.get("original").asText()).isEqualTo(origin);
-        assertThat(keyInfo.get("parent").asText()).isEqualTo(parent);
-        assertThat(keyInfo.get("state").asText()).isEqualTo(state);
+        assertThat(keyInfo.get("t").asText()).isEqualTo(translation);
+        if (origin != null) {
+            assertThat(keyInfo.get("o").asText()).isEqualTo(origin);
+        }
+        if (parent != null) {
+            assertThat(keyInfo.get("p").asText()).isEqualTo(parent);
+        }
+        assertThat(keyInfo.get("s").asText()).isEqualTo(state);
     }
 
     @Test

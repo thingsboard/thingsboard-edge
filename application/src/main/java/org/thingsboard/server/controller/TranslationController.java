@@ -173,9 +173,11 @@ public class TranslationController extends BaseController {
                 .body(fullTranslation);
     }
 
-    @ApiOperation(value = "Get end-user translated only part of translation (getTranslatedOnlyTranslation)")
+    @ApiOperation(value = "Get end-user multi-translation for basic edit (getTranslationForBasicEdit)",
+            notes = "Fetch the translation info map where value is info object containing key translation, origin translation, " +
+                    "translation of parent level, translation status.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @GetMapping(value = "/translation/edit/basic/{localeCode}")
+    @GetMapping(value = "/translation/edit/basic/{localeCode}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public JsonNode getTranslationForBasicEdit(@PathVariable("localeCode") String localeCode) throws Exception {
         checkWhiteLabelingPermissions(Operation.READ);

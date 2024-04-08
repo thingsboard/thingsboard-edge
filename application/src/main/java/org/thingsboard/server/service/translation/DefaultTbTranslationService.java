@@ -129,26 +129,26 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     @Override
     public JsonNode getLoginTranslation(String localeCode) {
         ObjectNode loginPageTranslation = newObjectNode();
-        JsonNode fullTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE));
-        loginPageTranslation.set("login", fullTranslation.get("login"));
-        loginPageTranslation.set("signup", fullTranslation.get("signup"));
+        JsonNode defaultTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE));
+        loginPageTranslation.set("login", defaultTranslation.get("login"));
+        loginPageTranslation.set("signup", defaultTranslation.get("signup"));
         return loginPageTranslation;
     }
 
     @Override
     public JsonNode getFullTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
         JsonNode customTranslation = getMergedCustomTranslation(tenantId, customerId, localeCode);
-        JsonNode systemTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE)).deepCopy();
-        return update(systemTranslation, customTranslation);
+        JsonNode defaultTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE)).deepCopy();
+        return update(defaultTranslation, customTranslation);
     }
 
     @Override
     public JsonNode getTranslationForBasicEdit(TenantId tenantId, CustomerId customerId, String localeCode) {
         JsonNode fullTranslation = getFullTranslation(tenantId, customerId, localeCode).deepCopy();
-        JsonNode currentCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, localeCode).getValue().deepCopy();
+        JsonNode currentCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, localeCode).getValue();
         JsonNode originalTranslation = TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE);
         JsonNode parentTranslation = getParentTranslation(tenantId, customerId, localeCode);
-        JsonNode translatedOnlyTranslation = translatedOnly(tenantId, customerId, localeCode);
+        JsonNode translatedOnlyTranslation = getTranslatedOnlyTranslation(tenantId, customerId, localeCode);
 
         getTranslationForEdit(fullTranslation, currentCustomTranslation, parentTranslation, originalTranslation, translatedOnlyTranslation);
         return fullTranslation;
@@ -167,28 +167,30 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
                 getTranslationForEdit(fullNode, customNode, parentNode, originNode, translatedNode);
             } else {
                 ObjectNode info = newObjectNode();
-                info.put("translated", fullNode.asText());
-                info.put("original", originNode == null ? "" : originNode.asText());
-                info.put("parent", parentNode == null ? "" : parentNode.asText());
+                info.put("t", fullNode.asText()); // translated value
+                if (originNode != null) {
+                    info.put("o", originNode.asText()); // original translation
+                }
                 String state;
                 if (customNode != null) {
                     if (parentNode == null) {
                         state = "A";
                     } else {
                         state = "C";
+                        info.put("p", parentNode.asText()); // parent translation
                     }
                 } else if (translatedNode != null) {
                     state = "T";
                 } else {
                     state = "U";
                 }
-                info.put("state", state);
+                info.put("s", state); // state
                 ((ObjectNode) fullTranslation).set(fieldName, info);
             }
         }
     }
 
-    private JsonNode translatedOnly(TenantId tenantId, CustomerId customerId, String localeCode) {
+    private JsonNode getTranslatedOnlyTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
         JsonNode customTranslation = getMergedCustomTranslation(tenantId, customerId, localeCode);
         if (TRANSLATION_VALUE_MAP.containsKey(localeCode)) {
             JsonNode systemTranslation = readSystemLocaleTranslation(localeCode);
