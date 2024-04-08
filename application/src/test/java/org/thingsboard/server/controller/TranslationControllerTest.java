@@ -145,7 +145,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
         verifyInfo(systemTranslationForEdit.get("account").get("account"), "systemAccount", "Account", "Cuenta", "C");
         verifyInfo(systemTranslationForEdit.get("save"), "system", null, null, "A");
         verifyInfo(systemTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
-        verifyInfo(systemTranslationForEdit.get("solution-template").get("solution-template"), "Solution template", "Solution template", null, "U");
+        verifyInfo(systemTranslationForEdit.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
 
         // get tenant translation for edit
         loginTenantAdmin();
@@ -154,7 +154,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
         verifyInfo(tenantTranslationForEdit.get("save"), "system", null, null, "T");
         verifyInfo(tenantTranslationForEdit.get("update"), "tenant", null, "system", "C");
         verifyInfo(tenantTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
-        verifyInfo(tenantTranslationForEdit.get("solution-template").get("solution-template"), "Solution template", "Solution template", null, "U");
+        verifyInfo(tenantTranslationForEdit.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
 
         // get customer for edit
         loginCustomerAdminUser();
@@ -164,7 +164,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
         verifyInfo(customerTranslationForEdit.get("update"), "tenant", null, null, "T");
         verifyInfo(customerTranslationForEdit.get("remove"), "customer", null, "tenant", "C");
         verifyInfo(customerTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
-        verifyInfo(customerTranslationForEdit.get("solution-template").get("solution-template"), "Solution template", "Solution template", null, "U");
+        verifyInfo(customerTranslationForEdit.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
 
         // get subcustomer translation  for edit
         loginSubCustomerAdminUser();
@@ -175,11 +175,13 @@ public class TranslationControllerTest extends AbstractControllerTest {
         verifyInfo(subCustomerTranslation.get("remove"), "customer", null, null, "T");
         verifyInfo(subCustomerTranslation.get("search"), "subCustomer", null, "customer", "C");
         verifyInfo(subCustomerTranslation.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
-        verifyInfo(subCustomerTranslation.get("solution-template").get("solution-template"), "Solution template", "Solution template", null, "U");
+        verifyInfo(subCustomerTranslation.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
     }
 
-    private static void verifyInfo(JsonNode keyInfo, String translation, String origin, String parent, String state) {
-        assertThat(keyInfo.get("t").asText()).isEqualTo(translation);
+    private static void verifyInfo(JsonNode keyInfo, String translated, String origin, String parent, String state) {
+        if (translated != null) {
+            assertThat(keyInfo.get("t").asText()).isEqualTo(translated);
+        }
         if (origin != null) {
             assertThat(keyInfo.get("o").asText()).isEqualTo(origin);
         }

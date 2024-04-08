@@ -167,7 +167,6 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
                 getTranslationForEdit(fullNode, customNode, parentNode, originNode, translatedNode);
             } else {
                 ObjectNode info = newObjectNode();
-                info.put("t", fullNode.asText()); // translated value
                 if (originNode != null) {
                     info.put("o", originNode.asText()); // original translation
                 }
@@ -175,12 +174,15 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
                 if (customNode != null) {
                     if (parentNode == null) {
                         state = "A";
+                        info.put("t", fullNode.asText()); // translated value
                     } else {
                         state = "C";
                         info.put("p", parentNode.asText()); // parent translation
+                        info.put("t", fullNode.asText()); // translated value
                     }
                 } else if (translatedNode != null) {
                     state = "T";
+                    info.put("t", fullNode.asText()); // translated value
                 } else {
                     state = "U";
                 }
