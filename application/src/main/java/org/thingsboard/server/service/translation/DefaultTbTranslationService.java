@@ -147,79 +147,33 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         JsonNode fullTranslation = getFullTranslation(tenantId, customerId, localeCode).deepCopy();
         JsonNode currentCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, localeCode).getValue();
         JsonNode originalTranslation = TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE);
-        JsonNode parentTranslation = getParentTranslation(tenantId, customerId, localeCode);
-        JsonNode translatedOnlyTranslation = getTranslatedOnlyTranslation(tenantId, customerId, localeCode);
+        JsonNode resourceTranslation = null;
+        if (TRANSLATION_VALUE_MAP.containsKey(localeCode)) {
+            resourceTranslation = readSystemLocaleTranslation(localeCode);
+        }
+        JsonNode translated = getTranslated(tenantId, customerId, localeCode, resourceTranslation);
+        JsonNode parentTranslated = getParentTranslatedOnly(tenantId, customerId, localeCode, resourceTranslation);
 
-        getTranslationForEdit(fullTranslation, currentCustomTranslation, parentTranslation, originalTranslation, translatedOnlyTranslation);
+        buildTranslationInfoForEdit(fullTranslation, translated, parentTranslated, originalTranslation, currentCustomTranslation);
         return fullTranslation;
     }
 
-    private void getTranslationForEdit(JsonNode fullTranslation, JsonNode customTranslation, JsonNode parentTranslation, JsonNode originTranslation, JsonNode translatedTranslation) {
-        Iterator<String> fieldNamesIterator = fullTranslation.fieldNames();
-        while (fieldNamesIterator.hasNext()) {
-            String fieldName = fieldNamesIterator.next();
-            JsonNode fullNode = fullTranslation.get(fieldName);
-            JsonNode customNode = customTranslation == null ? null : customTranslation.get(fieldName);
-            JsonNode parentNode = parentTranslation == null ? null : parentTranslation.get(fieldName);
-            JsonNode originNode = originTranslation == null ? null : originTranslation.get(fieldName);
-            JsonNode translatedNode = translatedTranslation == null ? null : translatedTranslation.get(fieldName);
-            if (fullNode.isObject()) {
-                getTranslationForEdit(fullNode, customNode, parentNode, originNode, translatedNode);
-            } else {
-                ObjectNode info = newObjectNode();
-                if (originNode != null) {
-                    info.put("o", originNode.asText()); // original translation
-                }
-                String state;
-                if (customNode != null) {
-                    if (parentNode == null) {
-                        state = "A";
-                        info.put("t", fullNode.asText()); // translated value
-                    } else {
-                        state = "C";
-                        info.put("p", parentNode.asText()); // parent translation
-                        info.put("t", fullNode.asText()); // translated value
-                    }
-                } else if (translatedNode != null) {
-                    state = "T";
-                    info.put("t", fullNode.asText()); // translated value
-                } else {
-                    state = "U";
-                }
-                info.put("s", state); // state
-                ((ObjectNode) fullTranslation).set(fieldName, info);
-            }
-        }
-    }
-
-    private JsonNode getTranslatedOnlyTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
-        JsonNode customTranslation = getMergedCustomTranslation(tenantId, customerId, localeCode);
-        if (TRANSLATION_VALUE_MAP.containsKey(localeCode)) {
-            JsonNode systemTranslation = readSystemLocaleTranslation(localeCode);
-            customTranslation = update(systemTranslation, customTranslation);
-        }
-        return customTranslation;
-    }
-
     @Override
-    public CustomTranslation saveCustomTranslation(CustomTranslation customTranslation) {
-        CustomTranslation saved = customTranslationService.saveCustomTranslation(customTranslation);
+    public void saveCustomTranslation(CustomTranslation customTranslation) {
+        customTranslationService.saveCustomTranslation(customTranslation);
         evictFromCache(customTranslation.getTenantId());
-        return saved;
     }
 
     @Override
-    public CustomTranslation patchCustomTranslation(CustomTranslation customTranslation) {
-        CustomTranslation saved = customTranslationService.patchCustomTranslation(customTranslation);
-        evictFromCache(customTranslation.getTenantId());
-        return saved;
-    }
-
-    @Override
-    public CustomTranslation deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String keyPath) {
-        CustomTranslation customTranslation = customTranslationService.deleteCustomTranslationKeyByPath(tenantId, customerId, localeCode, keyPath);
+    public void patchCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode customTranslation) {
+        customTranslationService.patchCustomTranslation(tenantId, customerId, localeCode, customTranslation);
         evictFromCache(tenantId);
-        return customTranslation;
+    }
+
+    @Override
+    public void deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String keyPath) {
+        customTranslationService.deleteCustomTranslationKeyByPath(tenantId, customerId, localeCode, keyPath);
+        evictFromCache(tenantId);
     }
 
     @Override
@@ -314,20 +268,66 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         return (int) (((translated) * 100) / DEFAULT_LOCALE_KEYS.size());
     }
 
-    private JsonNode getParentTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+    private void buildTranslationInfoForEdit(JsonNode fullTranslation, JsonNode translated, JsonNode parentTranslated, JsonNode original, JsonNode custom) {
+        Iterator<String> fieldNamesIterator = fullTranslation.fieldNames();
+        while (fieldNamesIterator.hasNext()) {
+            String fieldName = fieldNamesIterator.next();
+            JsonNode fullNode = fullTranslation.get(fieldName);
+            JsonNode customNode = custom == null ? null : custom.get(fieldName);
+            JsonNode parentNode = parentTranslated == null ? null : parentTranslated.get(fieldName);
+            JsonNode originNode = original == null ? null : original.get(fieldName);
+            JsonNode translatedNode = translated == null ? null : translated.get(fieldName);
+            if (fullNode.isObject()) {
+                buildTranslationInfoForEdit(fullNode, translatedNode, parentNode, originNode, customNode);
+            } else {
+                ObjectNode info = newObjectNode();
+                if (originNode != null) {
+                    info.put("o", originNode.asText()); // original translation
+                }
+                String state;
+                if (customNode != null) {
+                    if (parentNode == null) {
+                        state = "A";
+                        info.put("t", fullNode.asText()); // translated value
+                    } else {
+                        state = "C";
+                        info.put("p", parentNode.asText()); // parent translation
+                        info.put("t", fullNode.asText()); // translated value
+                    }
+                } else if (translatedNode != null) {
+                    state = "T";
+                    info.put("t", fullNode.asText()); // translated value
+                } else {
+                    state = "U";
+                }
+                info.put("s", state); // state
+                ((ObjectNode) fullTranslation).set(fieldName, info);
+            }
+        }
+    }
+
+    private JsonNode getTranslated(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode resourceTranslation) {
+        JsonNode result = getMergedCustomTranslation(tenantId, customerId, localeCode);
+        if (resourceTranslation != null) {
+            result = update(resourceTranslation.deepCopy(), result);
+        }
+        return result;
+    }
+
+    private JsonNode getParentTranslatedOnly(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode resourceTranslation) {
         JsonNode parentTranslation;
         if (customerId != null && !customerId.isNullUid()) {
             Customer customer = customerService.findCustomerById(tenantId, customerId);
             if (customer.isSubCustomer()) {
-                parentTranslation = getFullTranslation(tenantId, customer.getParentCustomerId(), localeCode);
+                parentTranslation = getTranslated(tenantId, customer.getParentCustomerId(), localeCode, resourceTranslation);
             } else {
-                parentTranslation = getFullTranslation(tenantId, null, localeCode);
+                parentTranslation = getTranslated(tenantId, null, localeCode, resourceTranslation);
             }
         } else {
             if (tenantId.isSysTenantId()) {
-                parentTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE));
+                parentTranslation = resourceTranslation;
             } else {
-                parentTranslation = getFullTranslation(TenantId.SYS_TENANT_ID, null, localeCode);
+                parentTranslation = getTranslated(TenantId.SYS_TENANT_ID, null, localeCode, resourceTranslation);
             }
         }
         return parentTranslation;

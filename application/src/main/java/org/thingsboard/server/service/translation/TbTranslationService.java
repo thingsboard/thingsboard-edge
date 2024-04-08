@@ -49,11 +49,11 @@ public interface TbTranslationService {
 
     JsonNode getTranslationForBasicEdit(TenantId tenantId, CustomerId customerId, String localeCode);
 
-    CustomTranslation saveCustomTranslation(CustomTranslation customTranslation);
+    void saveCustomTranslation(CustomTranslation customTranslation);
 
-    CustomTranslation patchCustomTranslation(CustomTranslation customTranslation);
+    void patchCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode customTranslation);
 
-    CustomTranslation deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String key);
+    void deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String key);
 
     void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 

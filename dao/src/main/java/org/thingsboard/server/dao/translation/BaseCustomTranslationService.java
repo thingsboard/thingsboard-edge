@@ -51,6 +51,7 @@ import org.thingsboard.server.dao.model.sql.CustomTranslationCompositeKey;
 import java.util.List;
 import java.util.Set;
 
+import static org.thingsboard.common.util.JacksonUtil.deleteByKeyPath;
 import static org.thingsboard.common.util.JacksonUtil.update;
 
 @Service
@@ -97,25 +98,24 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     }
 
     @Override
-    public CustomTranslation saveCustomTranslation(CustomTranslation customTranslation) {
+    public void saveCustomTranslation(CustomTranslation customTranslation) {
         customTranslationDao.save(customTranslation.getTenantId(), customTranslation);
         publishEvictEvent(new CustomTranslationEvictEvent(new CustomTranslationCompositeKey(customTranslation.getTenantId(), customTranslation.getCustomerId(), customTranslation.getLocaleCode())));
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID).edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
-        return getCurrentCustomTranslation(customTranslation.getTenantId(), customTranslation.getCustomerId(), customTranslation.getLocaleCode());
     }
 
     @Override
-    public CustomTranslation patchCustomTranslation(CustomTranslation newCustomTranslation) {
-        CustomTranslation customTranslation = getCurrentCustomTranslation(newCustomTranslation.getTenantId(), newCustomTranslation.getCustomerId(), newCustomTranslation.getLocaleCode());
-        update(customTranslation.getValue(), newCustomTranslation.getValue());
-        return saveCustomTranslation(customTranslation);
+    public void patchCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode newCustomTranslation) {
+        CustomTranslation customTranslation = customTranslationDao.findById(tenantId, new CustomTranslationCompositeKey(tenantId, customerId, localeCode));
+        update(customTranslation.getValue(), newCustomTranslation);
+        saveCustomTranslation(customTranslation);
     }
 
     @Override
-    public CustomTranslation deleteCustomTranslationKeyByPath(TenantId tenantId, CustomerId customerId, String localeCode, String keyPath) {
-        CustomTranslation customTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode);
-        JacksonUtil.deleteByKeyPath(customTranslation.getValue(), keyPath);
-        return saveCustomTranslation(customTranslation);
+    public void deleteCustomTranslationKeyByPath(TenantId tenantId, CustomerId customerId, String localeCode, String keyPath) {
+        CustomTranslation customTranslation =  customTranslationDao.findById(tenantId, new CustomTranslationCompositeKey(tenantId, customerId, localeCode));
+        deleteByKeyPath(customTranslation.getValue(), keyPath);
+        saveCustomTranslation(customTranslation);
     }
 
     @Override

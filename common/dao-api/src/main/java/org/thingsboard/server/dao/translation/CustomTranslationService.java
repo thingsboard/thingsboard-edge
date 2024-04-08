@@ -45,11 +45,11 @@ public interface CustomTranslationService {
 
     JsonNode getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
-    CustomTranslation saveCustomTranslation(CustomTranslation customTranslation);
+    void saveCustomTranslation(CustomTranslation customTranslation);
 
-    CustomTranslation patchCustomTranslation(CustomTranslation customTranslation);
+    void patchCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode customTranslation);
 
-    CustomTranslation deleteCustomTranslationKeyByPath(TenantId tenantId, CustomerId customerId, String localeCode, String key);
+    void deleteCustomTranslationKeyByPath(TenantId tenantId, CustomerId customerId, String localeCode, String key);
 
     void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 

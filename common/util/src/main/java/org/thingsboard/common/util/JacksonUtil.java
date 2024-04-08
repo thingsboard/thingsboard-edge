@@ -466,6 +466,9 @@ public class JacksonUtil {
                 node = (ObjectNode) node.get(fieldName);
             }
         }
+        if (node.isEmpty()) {
+            deleteByKeyPath(mainNode, key.substring(0, key.lastIndexOf(".")));
+        }
         return mainNode;
     }
 

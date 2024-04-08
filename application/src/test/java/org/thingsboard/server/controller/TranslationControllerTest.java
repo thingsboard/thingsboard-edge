@@ -69,20 +69,20 @@ public class TranslationControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         JsonNode systemCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"system\", \"update\" : \"system\" ," +
                 " \"remove\" : \"system\", \"search\":\"system\"}");
-        doPost("/api/translation/custom/" + ES_ES, systemCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, systemCustomTranslation);
 
         loginTenantAdmin();
         JsonNode tenantCustomTranslation = JacksonUtil.toJsonNode("{\"update\" : \"tenant\" ," +
                 " \"remove\" : \"tenant\", \"search\":\"tenant\"}");
-        doPost("/api/translation/custom/" + ES_ES, tenantCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, tenantCustomTranslation);
 
         loginCustomerAdminUser();
         JsonNode customerCustomTranslation = JacksonUtil.toJsonNode("{\"remove\" : \"customer\", \"search\":\"customer\"}");
-        doPost("/api/translation/custom/" + ES_ES, customerCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, customerCustomTranslation);
 
         loginSubCustomerAdminUser();
         JsonNode subCustomerCustomTranslation = JacksonUtil.toJsonNode("{\"search\":\"subCustomer\"}");
-        doPost("/api/translation/custom/" + ES_ES, subCustomerCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, subCustomerCustomTranslation);
 
         // get full system translation
         loginSysAdmin();
@@ -124,20 +124,20 @@ public class TranslationControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         JsonNode systemCustomTranslation = JacksonUtil.toJsonNode("{\"account\": {\"account\" : \"systemAccount\"}, \"save\":\"system\", \"update\" : \"system\" ," +
                 " \"remove\" : \"system\", \"search\":\"system\"}");
-        doPost("/api/translation/custom/" + ES_ES, systemCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, systemCustomTranslation);
 
         loginTenantAdmin();
         JsonNode tenantCustomTranslation = JacksonUtil.toJsonNode("{\"account\": {\"account\" : \"tenantAccount\"}, \"update\" : \"tenant\" ," +
                 " \"remove\" : \"tenant\", \"search\":\"tenant\"}");
-        doPost("/api/translation/custom/" + ES_ES, tenantCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, tenantCustomTranslation);
 
         loginCustomerAdminUser();
         JsonNode customerCustomTranslation = JacksonUtil.toJsonNode("{\"account\": {\"account\" : \"customerAccount\"}, \"remove\" : \"customer\", \"search\":\"customer\"}");
-        doPost("/api/translation/custom/" + ES_ES, customerCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, customerCustomTranslation);
 
         loginSubCustomerAdminUser();
         JsonNode subCustomerCustomTranslation = JacksonUtil.toJsonNode("{\"account\": {\"account\" : \"subCustomerAccount\"}, \"search\":\"subCustomer\"}");
-        doPost("/api/translation/custom/" + ES_ES, subCustomerCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, subCustomerCustomTranslation);
 
         // get system translation for edit
         loginSysAdmin();
@@ -211,7 +211,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         //check progress is 0
         JsonNode customTranslation = JacksonUtil.toJsonNode("{\"save\":\"arabic\"}");
-        doPost("/api/translation/custom/" + AR_QA, customTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + AR_QA, customTranslation);
 
         TranslationInfo arabic = getTranslationInfo(AR_QA);
         assertThat(arabic.getProgress()).isEqualTo(0);
@@ -226,7 +226,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
             ((ObjectNode) customTranslation).set(fieldName, fullCustomerTranslation.get(fieldName));
             count--;
         }
-        doPost("/api/translation/custom/" + AR_QA, customTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + AR_QA, customTranslation);
 
         Set<String> fullTranslationKeys = JacksonUtil.extractKeys(fullCustomerTranslation);
         Set<String> translated = JacksonUtil.extractKeys(customTranslation);
@@ -238,11 +238,11 @@ public class TranslationControllerTest extends AbstractControllerTest {
         //login as tenant, translate all keys, check progress is 100
         loginTenantAdmin();
         JsonNode tenantCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"arabic\"}");
-        doPost("/api/translation/custom/" + AR_QA, tenantCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + AR_QA, tenantCustomTranslation);
         TranslationInfo tenantArabicInfo = getTranslationInfo(AR_QA);
         assertThat(tenantArabicInfo.getProgress()).isEqualTo(updatedSystemArabicInfo.getProgress());
 
-        doPost("/api/translation/custom/" + AR_QA, fullCustomerTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + AR_QA, fullCustomerTranslation);
         TranslationInfo updatedTenantArabic = getTranslationInfo(AR_QA);
         assertThat(updatedTenantArabic.getProgress()).isEqualTo(100);
     }
@@ -252,7 +252,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"system\", \"update\" : \"system\" ," +
                 " \"remove\" : \"system\", \"search\":\"system\"}");
-        doPost("/api/translation/custom/" + ES_ES, esCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + ES_ES, esCustomTranslation);
 
         //download full translation
         byte[] contentAsByteArray = doGet("/api/translation/full/" + ES_ES).andExpect(status().isOk())
@@ -266,7 +266,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
 
     private void checkTranslationInfo() throws Exception {
         JsonNode auCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"australian\"}");
-        doPost("/api/translation/custom/" + EN_AU, auCustomTranslation, CustomTranslation.class);
+        doPost("/api/translation/custom/" + EN_AU, auCustomTranslation);
 
         List<TranslationInfo> translationInfos = doGetTyped("/api/translation/info", new TypeReference<>() {
         });

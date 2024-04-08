@@ -32,11 +32,8 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -119,7 +116,6 @@ public class CustomTranslationController extends BaseController {
             )
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/custom/{localeCode}")
-    @ResponseBody
     public CustomTranslation getCustomTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
                                                   @PathVariable("localeCode") String localeCode) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.READ);
@@ -134,7 +130,7 @@ public class CustomTranslationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping(value = "/translation/custom/{localeCode}")
     @ResponseStatus(value = HttpStatus.OK)
-    public CustomTranslation saveCustomTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
+    public void saveCustomTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
                                                    @PathVariable("localeCode") String localeCode,
                                                    @Parameter(description = "A JSON value representing the custom translation. See API call notes above for valid example.")
                                                    @RequestBody JsonNode customTranslationValue) throws ThingsboardException {
@@ -146,7 +142,7 @@ public class CustomTranslationController extends BaseController {
                 .localeCode(localeCode)
                 .value(customTranslationValue)
                 .build();
-        return tbTranslationService.saveCustomTranslation(customTranslation);
+        tbTranslationService.saveCustomTranslation(customTranslation);
     }
 
     @ApiOperation(value = "Update Custom Translation for specified translation keys only (patchCustomTranslation)",
@@ -156,19 +152,15 @@ public class CustomTranslationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PatchMapping(value = "/translation/custom/{localeCode}")
     @ResponseStatus(value = HttpStatus.OK)
-    public CustomTranslation patchCustomTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
+    public void patchCustomTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
                                                     @PathVariable("localeCode") String localeCode,
                                                     @Parameter(description = "A JSON value representing the custom translation. See API call notes above for valid example.")
                                                     @RequestBody JsonNode newCustomTranslation) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
-        CustomTranslation customTranslation = CustomTranslation.builder()
-                .tenantId(getCurrentUser().getTenantId())
-                .customerId(getCurrentUser().getCustomerId())
-                .localeCode(localeCode)
-                .value(newCustomTranslation)
-                .build();
-        return tbTranslationService.patchCustomTranslation(customTranslation);
+        SecurityUser currentUser = getCurrentUser();
+        tbTranslationService.patchCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
+                localeCode, newCustomTranslation);
     }
 
     @ApiOperation(value = "Delete specified key of Custom Translation (deleteCustomTranslationKey) ",
@@ -178,14 +170,14 @@ public class CustomTranslationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @DeleteMapping(value = "/translation/custom/{localeCode}/{keyPath}")
     @ResponseStatus(value = HttpStatus.OK)
-    public CustomTranslation deleteCustomTranslationKey(@Parameter(description = "Locale code (e.g. 'en_US').")
+    public void deleteCustomTranslationKey(@Parameter(description = "Locale code (e.g. 'en_US').")
                                                         @PathVariable("localeCode") String localeCode,
                                                         @Parameter(description = "A string value representing key of the custom translation (e.g. 'notification.active').")
                                                         @PathVariable String keyPath) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
         SecurityUser currentUser = getCurrentUser();
-        return tbTranslationService.deleteCustomTranslationKey(currentUser.getTenantId(), currentUser.getCustomerId(),
+        tbTranslationService.deleteCustomTranslationKey(currentUser.getTenantId(), currentUser.getCustomerId(),
                 localeCode, keyPath);
     }
 
@@ -196,7 +188,7 @@ public class CustomTranslationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping(value = "/translation/custom/{localeCode}/upload")
     @ResponseStatus(value = HttpStatus.OK)
-    public CustomTranslation uploadCustomTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
+    public void uploadCustomTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
                                                      @PathVariable("localeCode") String localeCode,
                                                      @RequestPart MultipartFile file) throws Exception {
         checkWhiteLabelingPermissions(Operation.WRITE);
@@ -209,7 +201,7 @@ public class CustomTranslationController extends BaseController {
         customTranslation.setLocaleCode(localeCode);
         customTranslation.setValueBytes(file.getBytes());
 
-        return tbTranslationService.saveCustomTranslation(customTranslation);
+        tbTranslationService.saveCustomTranslation(customTranslation);
     }
 
     @ApiOperation(value = "Delete Custom Translation for specified locale (deleteCustomTranslation)",
