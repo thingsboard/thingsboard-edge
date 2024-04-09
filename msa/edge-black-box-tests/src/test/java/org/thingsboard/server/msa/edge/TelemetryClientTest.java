@@ -153,7 +153,7 @@ public class TelemetryClientTest extends AbstractContainerTest {
                 Assert.assertEquals(true, kvEntry.getBooleanValue().get());
             }
             if (kvEntry.getKey().equals("doubleTelemetryToEdge")) {
-                Assert.assertEquals(42.0, (double) kvEntry.getDoubleValue().get(), 0.0);
+                Assert.assertEquals(42.0, kvEntry.getDoubleValue().get(), 0.0);
             }
             if (kvEntry.getKey().equals("longTelemetryToEdge")) {
                 Assert.assertEquals(72L, kvEntry.getLongValue().get().longValue());
@@ -174,10 +174,9 @@ public class TelemetryClientTest extends AbstractContainerTest {
         String accessToken = deviceCredentials.getCredentialsId();
 
         ResponseEntity deviceTelemetryResponse = sourceRestClient.getRestTemplate()
-                .postForEntity(sourceUrl + "/api/v1/{credentialsId}/telemetry",
+                .postForEntity(sourceUrl + "/api/v1/" + accessToken + "/telemetry",
                         JacksonUtil.toJsonNode(timeseriesPayload.toString()),
-                        ResponseEntity.class,
-                        accessToken);
+                        ResponseEntity.class);
         Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
 
         Awaitility.await()
@@ -273,10 +272,9 @@ public class TelemetryClientTest extends AbstractContainerTest {
         String accessToken = deviceCredentials.getCredentialsId();
 
         ResponseEntity deviceClientsAttributes = sourceRestClient.getRestTemplate()
-                .postForEntity(sourceUrl + "/api/v1/" + accessToken + "/attributes/",
+                .postForEntity(sourceUrl + "/api/v1/" + accessToken + "/attributes",
                         JacksonUtil.toJsonNode(attributesPayload.toString()),
-                        ResponseEntity.class,
-                        accessToken);
+                        ResponseEntity.class);
         Assert.assertTrue(deviceClientsAttributes.getStatusCode().is2xxSuccessful());
 
         Awaitility.await()

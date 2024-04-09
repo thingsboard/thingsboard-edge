@@ -244,7 +244,7 @@ public class DeviceClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void sendDeviceToCloud() throws Exception {
+    public void sendDeviceToCloud() {
         Device savedDeviceOnEdge = saveDeviceOnEdge("Edge Device 2", "default");
 
         Awaitility.await()
@@ -525,7 +525,6 @@ public class DeviceClientTest extends AbstractContainerTest {
                 });
 
         Optional<DeviceCredentials> deviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
-
         Assert.assertTrue(deviceCredentials.isPresent());
 
         // subscribe to rpc requests to edge
@@ -540,6 +539,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         ObjectNode initialRequestBody = JacksonUtil.newObjectNode();
         initialRequestBody.put("method", "setGpio");
         initialRequestBody.put("params", "{\"pin\":\"23\", \"value\": 1}");
+        initialRequestBody.put("timeout", "20000");
         cloudRestClient.handleOneWayDeviceRPCRequest(device.getId(), initialRequestBody);
 
         // verify that rpc request was received
@@ -697,7 +697,7 @@ public class DeviceClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testClaimDevice() throws InterruptedException {
+    public void testClaimDevice() {
         // create customer, user and device
         Customer customer = new Customer();
         customer.setTitle("Claim Test Customer");

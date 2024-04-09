@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
@@ -93,7 +94,6 @@ import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.exception.DataValidationException;
 
-import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -222,8 +222,11 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             Edge savedEdge = edgeDao.save(edge.getTenantId(), edge);
             publishEvictEvent(evictEvent);
             entityGroupService.addEntityToEntityGroupAll(savedEdge.getTenantId(), savedEdge.getOwnerId(), savedEdge.getId());
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedEdge.getTenantId())
-                    .entityId(savedEdge.getId()).entity(savedEdge).created(edge.getId() == null).build());
+            // edge-only: event should be published on the Cloud
+            if (edgesEnabled) {
+                eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedEdge.getTenantId())
+                        .entityId(savedEdge.getId()).entity(savedEdge).created(edge.getId() == null).build());
+            }
             return savedEdge;
         } catch (Exception t) {
             handleEvictEvent(evictEvent);
@@ -249,7 +252,10 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
         edgeDao.removeById(tenantId, edgeId.getId());
 
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(edgeId).build());
+        // edge-only: event should be published on the Cloud
+        if (edgesEnabled) {
+            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(edgeId).build());
+        }
         publishEvictEvent(new EdgeCacheEvictEvent(edge.getTenantId(), edge.getName(), null));
     }
 
@@ -338,7 +344,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             return Futures.successfulAsList(futures);
         }, MoreExecutors.directExecutor());
 
-        edges = Futures.transform(edges, new Function<List<Edge>, List<Edge>>() {
+        edges = Futures.transform(edges, new Function<>() {
             @Nullable
             @Override
             public List<Edge> apply(@Nullable List<Edge> edgeList) {
@@ -483,7 +489,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     }
 
     private PaginatedRemover<TenantId, Edge> tenantEdgesRemover =
-            new PaginatedRemover<TenantId, Edge>() {
+            new PaginatedRemover<>() {
 
                 @Override
                 protected PageData<Edge> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
@@ -496,7 +502,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                 }
             };
 
-    private PaginatedRemover<CustomerId, Edge> customerEdgesRemover = new PaginatedRemover<CustomerId, Edge>() {
+    private PaginatedRemover<CustomerId, Edge> customerEdgesRemover = new PaginatedRemover<>() {
 
         @Override
         protected PageData<Edge> findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {
@@ -622,7 +628,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId, String tbRuleChainInputNodeClassName) {
         List<RuleChain> edgeRuleChains = findEdgeRuleChains(tenantId, edgeId);
-        List<RuleChainId> edgeRuleChainIds = edgeRuleChains.stream().map(IdBased::getId).collect(Collectors.toList());
+        List<RuleChainId> edgeRuleChainIds = edgeRuleChains.stream().map(IdBased::getId).toList();
         ObjectNode result = JacksonUtil.newObjectNode();
         for (RuleChain edgeRuleChain : edgeRuleChains) {
             List<RuleNode> ruleNodes =
@@ -631,8 +637,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                 List<RuleChainId> connectedRuleChains =
                         ruleNodes.stream()
                                 .filter(rn -> rn.getType().equals(tbRuleChainInputNodeClassName))
-                                .map(rn -> new RuleChainId(UUID.fromString(rn.getConfiguration().get("ruleChainId").asText())))
-                                .collect(Collectors.toList());
+                                .map(rn -> new RuleChainId(UUID.fromString(rn.getConfiguration().get("ruleChainId").asText()))).toList();
                 List<String> missingRuleChains = new ArrayList<>();
                 for (RuleChainId connectedRuleChain : connectedRuleChains) {
                     if (!edgeRuleChainIds.contains(connectedRuleChain)) {
@@ -799,10 +804,9 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         List<AttributeKvEntry> edgeAttributes =
                 attributesService.find(tenantId, edgeId, AttributeScope.SERVER_SCOPE, attributesKeys).get();
         List<String> edgeAttributeKeys =
-                edgeAttributes.stream().map(KvEntry::getKey).collect(Collectors.toList());
+                edgeAttributes.stream().map(KvEntry::getKey).toList();
         List<String> missingAttributeKeys = attributesKeys.stream()
-                .filter(element -> !edgeAttributeKeys.contains(element))
-                .collect(Collectors.toList());
+                .filter(element -> !edgeAttributeKeys.contains(element)).toList();
         if (missingAttributeKeys.isEmpty()) {
             return null;
         }

@@ -257,10 +257,9 @@ public class AlarmClientTest extends AbstractContainerTest {
         telemetry.addProperty("temperature", 100);
 
         ResponseEntity deviceTelemetryResponse = cloudRestClient.getRestTemplate()
-                .postForEntity(tbUrl + "/api/v1/" + accessToken + "/telemetry/",
+                .postForEntity(tbUrl + "/api/v1/" + accessToken + "/telemetry",
                         JacksonUtil.toJsonNode(telemetry.toString()),
-                        ResponseEntity.class,
-                        accessToken);
+                        ResponseEntity.class);
 
         Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
 
@@ -335,10 +334,9 @@ public class AlarmClientTest extends AbstractContainerTest {
         telemetry.addProperty("temperature", 100);
 
         ResponseEntity deviceTelemetryResponse = edgeRestClient.getRestTemplate()
-                .postForEntity(edgeUrl + "/api/v1/" + accessToken + "/telemetry/",
+                .postForEntity(edgeUrl + "/api/v1/" + accessToken + "/telemetry",
                         JacksonUtil.toJsonNode(telemetry.toString()),
-                        ResponseEntity.class,
-                        accessToken);
+                        ResponseEntity.class);
 
         Assert.assertTrue(deviceTelemetryResponse.getStatusCode().is2xxSuccessful());
 
@@ -472,4 +470,5 @@ public class AlarmClientTest extends AbstractContainerTest {
         }
         return rootRuleChainId;
     }
+
 }

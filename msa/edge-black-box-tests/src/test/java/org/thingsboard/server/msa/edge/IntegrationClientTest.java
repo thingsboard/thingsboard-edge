@@ -66,7 +66,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class IntegrationClientTest extends AbstractContainerTest {
 
     @Test
-    public void testIntegrations() throws Exception {
+    public void testIntegrations() {
         JsonNode edgeAttributes = JacksonUtil.toJsonNode("{\"valAttr\":\"val3\", \"baseUrl\":\"" + edgeUrl + "\"}");
         cloudRestClient.saveEntityAttributesV1(edge.getId(), DataConstants.SERVER_SCOPE, edgeAttributes);
 
@@ -169,7 +169,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val2", true);
     }
 
-    private void validateEdgeAttributesUpdate(Integration savedIntegration) throws JsonProcessingException {
+    private void validateEdgeAttributesUpdate(Integration savedIntegration) {
         ObjectNode updatedIntegrationConfig = JacksonUtil.newObjectNode();
         updatedIntegrationConfig.putObject("metadata").put("key", "${{valAttr}}");
         savedIntegration.setConfiguration(updatedIntegrationConfig);

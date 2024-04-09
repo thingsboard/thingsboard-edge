@@ -211,7 +211,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 retries,
                 additionalInfo);
 
-        // @voba - changes to be in sync with cloud version
+        // edge: changes to be in sync with cloud version
         SecurityUser dummySecurityUser = new SecurityUser();
         tbCoreDeviceRpcService.processRestApiRpcRequest(rpcRequest,
                 fromDeviceRpcResponse -> reply(rpcRequest, deviceRpcCallMsg.getRequestId(), fromDeviceRpcResponse),

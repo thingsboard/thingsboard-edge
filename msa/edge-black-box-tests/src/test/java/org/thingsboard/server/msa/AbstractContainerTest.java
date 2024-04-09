@@ -127,7 +127,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class AbstractContainerTest {
@@ -222,7 +221,7 @@ public abstract class AbstractContainerTest {
 
         PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
 
-        for (WidgetsBundleId widgetsBundleId : pageData.getData().stream().map(WidgetsBundle::getId).collect(Collectors.toList())) {
+        for (WidgetsBundleId widgetsBundleId : pageData.getData().stream().map(WidgetsBundle::getId).toList()) {
             Awaitility.await()
                     .pollInterval(1000, TimeUnit.MILLISECONDS)
                     .atMost(60, TimeUnit.SECONDS).
@@ -466,51 +465,21 @@ public abstract class AbstractContainerTest {
 
     protected void assertEntitiesByIdsAndType(List<EntityId> entityIds, EntityType entityType) {
         switch (entityType) {
-            case DEVICE_PROFILE:
-                assertDeviceProfiles(entityIds);
-                break;
-            case ASSET_PROFILE:
-                assertAssetProfiles(entityIds);
-                break;
-            case RULE_CHAIN:
-                assertRuleChains(entityIds);
-                break;
-            case WIDGETS_BUNDLE:
-                assertWidgetsBundles(entityIds);
-                break;
-            case WIDGET_TYPE:
-                assertWidgetTypes(entityIds);
-                break;
-            case DEVICE:
-                assertDevices(entityIds);
-                break;
-            case ASSET:
-                assertAssets(entityIds);
-                break;
-            case ENTITY_VIEW:
-                assertEntityViews(entityIds);
-                break;
-            case DASHBOARD:
-                assertDashboards(entityIds);
-                break;
-            case USER:
-                assertUsers(entityIds);
-                break;
-            case OTA_PACKAGE:
-                assertOtaPackages(entityIds);
-                break;
-            case QUEUE:
-                assertQueues(entityIds);
-                break;
-            case ROLE:
-                assertRoles(entityIds);
-                break;
-            case CONVERTER:
-                assertConverters(entityIds);
-                break;
-            case INTEGRATION:
-                assertIntegrations(entityIds);
-                break;
+            case DEVICE_PROFILE -> assertDeviceProfiles(entityIds);
+            case ASSET_PROFILE -> assertAssetProfiles(entityIds);
+            case RULE_CHAIN -> assertRuleChains(entityIds);
+            case WIDGETS_BUNDLE -> assertWidgetsBundles(entityIds);
+            case WIDGET_TYPE -> assertWidgetTypes(entityIds);
+            case DEVICE -> assertDevices(entityIds);
+            case ASSET -> assertAssets(entityIds);
+            case ENTITY_VIEW -> assertEntityViews(entityIds);
+            case DASHBOARD -> assertDashboards(entityIds);
+            case USER -> assertUsers(entityIds);
+            case OTA_PACKAGE -> assertOtaPackages(entityIds);
+            case QUEUE -> assertQueues(entityIds);
+            case ROLE -> assertRoles(entityIds);
+            case CONVERTER -> assertConverters(entityIds);
+            case INTEGRATION -> assertIntegrations(entityIds);
         }
     }
 
@@ -719,8 +688,8 @@ public abstract class AbstractContainerTest {
             Optional<Converter> cloudConverter = cloudRestClient.getConverterById(converterId);
             Converter expected = edgeConverter.get();
             Converter actual = cloudConverter.get();
-            Assert.assertEquals("Edge converter isEdgeTemplate incorrect", false, expected.isEdgeTemplate());
-            Assert.assertEquals("Cloud converter isEdgeTemplate incorrect", true, actual.isEdgeTemplate());
+            Assert.assertFalse("Edge converter isEdgeTemplate incorrect", expected.isEdgeTemplate());
+            Assert.assertTrue("Cloud converter isEdgeTemplate incorrect", actual.isEdgeTemplate());
             actual.setEdgeTemplate(false);
             Assert.assertEquals("Converters on cloud and edge are different", expected, actual);
         }
@@ -733,8 +702,8 @@ public abstract class AbstractContainerTest {
             Optional<Integration> cloudIntegration = cloudRestClient.getIntegrationById(integrationId);
             Integration expected = edgeIntegration.get();
             Integration actual = cloudIntegration.get();
-            Assert.assertEquals("Edge integration isEdgeTemplate incorrect", false, expected.isEdgeTemplate());
-            Assert.assertEquals("Cloud integration isEdgeTemplate incorrect", true, actual.isEdgeTemplate());
+            Assert.assertFalse("Edge integration isEdgeTemplate incorrect", expected.isEdgeTemplate());
+            Assert.assertTrue("Cloud integration isEdgeTemplate incorrect", actual.isEdgeTemplate());
             actual.setEdgeTemplate(false);
 
             // configuration must be reset, because configuration on cloud contains placeholders
@@ -869,7 +838,7 @@ public abstract class AbstractContainerTest {
                 });
     }
 
-    protected RuleChainId createRuleChainAndAssignToEdge(String ruleChainName) throws Exception {
+    protected RuleChainId createRuleChainAndAssignToEdge(String ruleChainName) {
         RuleChain ruleChain = new RuleChain();
         ruleChain.setName(ruleChainName);
         ruleChain.setType(RuleChainType.EDGE);
@@ -886,7 +855,7 @@ public abstract class AbstractContainerTest {
         return savedRuleChain.getId();
     }
 
-    private void createRuleChainMetadata(RuleChain ruleChain) throws Exception {
+    private void createRuleChainMetadata(RuleChain ruleChain) {
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         ruleChainMetaData.setRuleChainId(ruleChain.getId());
 
