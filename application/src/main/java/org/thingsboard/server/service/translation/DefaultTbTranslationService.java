@@ -88,12 +88,12 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     private final TbClusterService clusterService;
 
     static {
-        JsonNode defaultTranslation = readSystemLocaleTranslation(DEFAULT_LOCALE_CODE);
+        JsonNode defaultTranslation = readResourceLocaleTranslation(DEFAULT_LOCALE_CODE);
         DEFAULT_LOCALE_KEYS = extractKeys(defaultTranslation);
 
-        Set<String> systemLocaleCodes = getSystemLocaleCodes();
+        Set<String> systemLocaleCodes = getAvailableResourceLocaleCodes();
         for (String localeCode : systemLocaleCodes) {
-            JsonNode systemLocaleTranslation = readSystemLocaleTranslation(localeCode);
+            JsonNode systemLocaleTranslation = readResourceLocaleTranslation(localeCode);
             TRANSLATION_INFO_MAP.put(localeCode, createTranslationInfo(localeCode, systemLocaleTranslation));
             TRANSLATION_VALUE_MAP.put(localeCode, update(defaultTranslation.deepCopy(), systemLocaleTranslation));
         }
@@ -118,8 +118,8 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         for (String customizedLocale : customizedLocales) {
             JsonNode customTranslation = getMergedCustomTranslation(tenantId, customerId, customizedLocale);
             if (translationInfos.containsKey(customizedLocale)) {
-                JsonNode systemTranslation = readSystemLocaleTranslation(customizedLocale);
-                customTranslation = update(systemTranslation, customTranslation);
+                JsonNode resourceTranslation = readResourceLocaleTranslation(customizedLocale);
+                customTranslation = update(resourceTranslation, customTranslation);
             }
             translationInfos.put(customizedLocale, createTranslationInfo(customizedLocale, customTranslation));
         }
@@ -149,7 +149,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         JsonNode originalTranslation = TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE);
         JsonNode resourceTranslation = null;
         if (TRANSLATION_VALUE_MAP.containsKey(localeCode)) {
-            resourceTranslation = readSystemLocaleTranslation(localeCode);
+            resourceTranslation = readResourceLocaleTranslation(localeCode);
         }
         JsonNode translated = getTranslated(tenantId, customerId, localeCode, resourceTranslation);
         JsonNode parentTranslated = getParentTranslatedOnly(tenantId, customerId, localeCode, resourceTranslation);
@@ -228,7 +228,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         return customTranslation;
     }
 
-    private static JsonNode readSystemLocaleTranslation(String localeCode) {
+    private static JsonNode readResourceLocaleTranslation(String localeCode) {
         String filePath = LOCALE_FILES_DIRECTORY_PATH + "/locale.constant-" + localeCode + ".json";
         try (InputStream in = DefaultTbTranslationService.class.getClassLoader().getResourceAsStream(filePath)) {
             return JacksonUtil.OBJECT_MAPPER.readTree(in);
@@ -237,7 +237,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         }
     }
 
-    private static Set<String> getSystemLocaleCodes() {
+    private static Set<String> getAvailableResourceLocaleCodes() {
         List<String> filenames = new ArrayList<>();
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         try {
