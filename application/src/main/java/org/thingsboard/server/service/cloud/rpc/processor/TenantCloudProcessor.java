@@ -49,7 +49,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
             tenant.setTitle("Tenant");
             tenant.setId(tenantId);
             tenant.setCreatedTime(Uuids.unixTimestamp(tenantId.getId()));
-            Tenant savedTenant = tenantService.saveTenant(tenant, false, false);
+            Tenant savedTenant = tenantService.saveTenant(tenant, null, false);
             apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
 
             requestForAdditionalData(tenantId, tenantId, queueStartTs).get();
@@ -68,7 +68,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
 
             switch (tenantUpdateMsg.getMsgType()) {
                 case ENTITY_UPDATED_RPC_MESSAGE:
-                    tenantService.saveTenant(tenant, true, false);
+                    tenantService.saveTenant(tenant, null, false);
                     break;
                 case UNRECOGNIZED:
                     return handleUnsupportedMsgType(tenantUpdateMsg.getMsgType());
