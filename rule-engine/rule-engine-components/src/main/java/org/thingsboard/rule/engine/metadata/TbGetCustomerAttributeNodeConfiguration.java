@@ -28,29 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.transform;
+package org.thingsboard.rule.engine.metadata;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
+import org.thingsboard.rule.engine.util.TbMsgSource;
+
+import java.util.HashMap;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class TbChangeOriginatorNodeConfiguration extends TbAbstractTransformNodeConfigurationWithRelationQuery implements NodeConfiguration<TbChangeOriginatorNodeConfiguration> {
+public class TbGetCustomerAttributeNodeConfiguration extends TbGetEntityDataNodeConfiguration {
 
-    private static final String CUSTOMER_SOURCE = "CUSTOMER";
-
-    private String originatorSource;
-
-    private String entityType;
-    private String entityNamePattern;
     private boolean preserveOriginatorIfCustomer;
 
     @Override
-    public TbChangeOriginatorNodeConfiguration defaultConfiguration() {
-        var configuration = new TbChangeOriginatorNodeConfiguration();
-        configuration.setOriginatorSource(CUSTOMER_SOURCE);
-        configuration.setRelationsQuery(getDefaultRelationQuery());
+    public TbGetCustomerAttributeNodeConfiguration defaultConfiguration() {
+        var configuration = new TbGetCustomerAttributeNodeConfiguration();
+        var dataMapping = new HashMap<String, String>();
+        dataMapping.putIfAbsent("alarmThreshold", "threshold");
+        configuration.setDataMapping(dataMapping);
+        configuration.setDataToFetch(DataToFetch.ATTRIBUTES);
+        configuration.setFetchTo(TbMsgSource.METADATA);
         configuration.setPreserveOriginatorIfCustomer(false);
         return configuration;
     }
