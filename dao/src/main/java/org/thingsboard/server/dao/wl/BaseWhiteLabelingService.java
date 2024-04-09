@@ -569,6 +569,11 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
                         key), true);
     }
 
+    @Override
+    public WhiteLabeling findByDomainName(String domainName) {
+        return whiteLabelingDao.findByDomain(TenantId.SYS_TENANT_ID, domainName);
+    }
+
     @TransactionalEventListener(classes = WhiteLabelingEvictEvent.class)
     @Override
     public void handleEvictEvent(WhiteLabelingEvictEvent event) {

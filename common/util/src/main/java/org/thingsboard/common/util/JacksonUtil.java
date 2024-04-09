@@ -451,6 +451,38 @@ public class JacksonUtil {
         return mainNode;
     }
 
+    public static JsonNode merge(JsonNode mainNode, JsonNode updateNode) {
+        mergeNodes(mainNode, updateNode);
+        return mainNode;
+    }
+    public static void mergeNodes(JsonNode mainNode, JsonNode updateNode) {
+        Iterator<String> fieldNames = updateNode.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldName = fieldNames.next();
+            JsonNode jsonNode = mainNode.get(fieldName);
+            if (jsonNode != null) {
+                if (jsonNode.isObject()) {
+                    mergeNodes(jsonNode, updateNode.get(fieldName));
+                } else if (jsonNode.isArray()) {
+                    for (int i = 0; i < jsonNode.size(); i++) {
+                        mergeNodes(jsonNode.get(i), updateNode.get(fieldName).get(i));
+                    }
+                } else {
+                    ((ObjectNode) mainNode).set(fieldName, updateNode.get(fieldName));
+                }
+            } else {
+                if (mainNode instanceof ObjectNode) {
+                    // Overwrite field
+                    JsonNode value = updateNode.get(fieldName);
+                    if (value.isNull()) {
+                        continue;
+                    }
+                    ((ObjectNode) mainNode).set(fieldName, value);
+                }
+            }
+        }
+    }
+
     public static JsonNode deleteByKeyPath(JsonNode mainNode, String key) {
         String[] fieldPath = key.trim().split("\\.");
         var node = (ObjectNode) mainNode;

@@ -53,7 +53,7 @@ import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.setJ
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder(toBuilder=true)
 @EqualsAndHashCode
 @Slf4j
 public class CustomTranslation implements Serializable {

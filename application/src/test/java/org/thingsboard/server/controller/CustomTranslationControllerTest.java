@@ -37,6 +37,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.thingsboard.common.util.JacksonUtil;
@@ -83,32 +84,45 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
 
         //check if full translation modified
         loginSysAdmin();
-        assertThat(getFullTranslationResponseStatus(ES_ES, sysAdminEtag)).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+        assertThat(getFullTranslationResponse(ES_ES, sysAdminEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
 
         loginTenantAdmin();
-        assertThat(getFullTranslationResponseStatus(ES_ES, tenantEtag)).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+        tenantEtag = getFullTranslationResponse(ES_ES, tenantEtag).getHeader("ETag");
 
         loginCustomerAdminUser();
-        assertThat(getFullTranslationResponseStatus(ES_ES, customerAdminEtag)).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+        customerAdminEtag = getFullTranslationResponse(ES_ES, customerAdminEtag).getHeader("ETag");
 
         loginSubCustomerAdminUser();
-        assertThat(getFullTranslationResponseStatus(ES_ES, subCustomerEtag)).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+        assertThat(getFullTranslationResponse(ES_ES, subCustomerEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+
+        // check not modified
+        loginSysAdmin();
+        assertThat(getFullTranslationResponse(ES_ES, sysAdminEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+
+        loginTenantAdmin();
+        assertThat(getFullTranslationResponse(ES_ES, tenantEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+
+        loginCustomerAdminUser();
+        assertThat(getFullTranslationResponse(ES_ES, customerAdminEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+
+        loginSubCustomerAdminUser();
+        assertThat(getFullTranslationResponse(ES_ES, subCustomerEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
 
         //update system custom translation and check full translation is being modofied everywhere
         loginSysAdmin();
         JsonNode newCustomTranslation = JacksonUtil.toJsonNode("{\"update\" : \"system\"}");
         doPost("/api/translation/custom/" + ES_ES, newCustomTranslation);
 
-        assertThat(getFullTranslationResponseStatus(ES_ES, sysAdminEtag)).isEqualTo(HttpStatus.OK.value());
+        assertThat(getFullTranslationResponse(ES_ES, sysAdminEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
 
         loginTenantAdmin();
-        assertThat(getFullTranslationResponseStatus(ES_ES, tenantEtag)).isEqualTo(HttpStatus.OK.value());
+        assertThat(getFullTranslationResponse(ES_ES, tenantEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
 
         loginCustomerAdminUser();
-        assertThat(getFullTranslationResponseStatus(ES_ES, customerAdminEtag)).isEqualTo(HttpStatus.OK.value());
+        assertThat(getFullTranslationResponse(ES_ES, customerAdminEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
 
         loginSubCustomerAdminUser();
-        assertThat(getFullTranslationResponseStatus(ES_ES, subCustomerEtag)).isEqualTo(HttpStatus.OK.value());
+        assertThat(getFullTranslationResponse(ES_ES, subCustomerEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
     @Test
@@ -219,11 +233,12 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
                 .andReturn().getResponse().getHeader("ETag");
     }
 
-    private int getFullTranslationResponseStatus(String localeCode, String etag) throws Exception {
+    private MockHttpServletResponse getFullTranslationResponse(String localeCode, String etag) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setIfNoneMatch(etag);
-        return doGet("/api/translation/full/" + localeCode, headers)
-                .andReturn().getResponse().getStatus();
+        MockHttpServletResponse response = doGet("/api/translation/full/" + localeCode, headers)
+                .andReturn().getResponse();
+        return response;
     }
 
     private void checkPatchCustomTranslation() throws Exception {

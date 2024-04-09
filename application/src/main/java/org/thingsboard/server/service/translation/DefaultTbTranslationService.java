@@ -46,8 +46,10 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.translation.TranslationCacheKey;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
@@ -69,8 +71,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.common.util.JacksonUtil.extractKeys;
+import static org.thingsboard.common.util.JacksonUtil.merge;
 import static org.thingsboard.common.util.JacksonUtil.newObjectNode;
-import static org.thingsboard.common.util.JacksonUtil.update;
 
 @Service
 @Slf4j
@@ -85,6 +87,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     private static final Map<String, TranslationInfo> TRANSLATION_INFO_MAP = new HashMap<>();
     private final Cache<TranslationCacheKey, String> etagCache;
     private final CustomTranslationService customTranslationService;
+    private final WhiteLabelingService whiteLabelingService;
     private final TbClusterService clusterService;
 
     static {
@@ -93,17 +96,19 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
 
         Set<String> systemLocaleCodes = getAvailableResourceLocaleCodes();
         for (String localeCode : systemLocaleCodes) {
-            JsonNode systemLocaleTranslation = readResourceLocaleTranslation(localeCode);
-            TRANSLATION_INFO_MAP.put(localeCode, createTranslationInfo(localeCode, systemLocaleTranslation));
-            TRANSLATION_VALUE_MAP.put(localeCode, update(defaultTranslation.deepCopy(), systemLocaleTranslation));
+            JsonNode resourceLocaleTranslation = readResourceLocaleTranslation(localeCode);
+            TRANSLATION_INFO_MAP.put(localeCode, createTranslationInfo(localeCode, resourceLocaleTranslation));
+            TRANSLATION_VALUE_MAP.put(localeCode, merge(defaultTranslation.deepCopy(), resourceLocaleTranslation));
         }
     }
 
     public DefaultTbTranslationService(TbClusterService clusterService, CustomTranslationService customTranslationService,
+                                       WhiteLabelingService whiteLabelingService,
                                        @Value("${cache.translation.etag.timeToLiveInMinutes:44640}") int cacheTtl,
                                        @Value("${cache.translation.etag.maxSize:1000000}") int cacheMaxSize) {
         this.clusterService = clusterService;
         this.customTranslationService = customTranslationService;
+        this.whiteLabelingService = whiteLabelingService;
         this.etagCache = Caffeine.newBuilder()
                 .expireAfterAccess(cacheTtl, TimeUnit.MINUTES)
                 .maximumSize(cacheMaxSize)
@@ -119,7 +124,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
             JsonNode customTranslation = getMergedCustomTranslation(tenantId, customerId, customizedLocale);
             if (translationInfos.containsKey(customizedLocale)) {
                 JsonNode resourceTranslation = readResourceLocaleTranslation(customizedLocale);
-                customTranslation = update(resourceTranslation, customTranslation);
+                customTranslation = merge(resourceTranslation, customTranslation);
             }
             translationInfos.put(customizedLocale, createTranslationInfo(customizedLocale, customTranslation));
         }
@@ -127,11 +132,19 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     }
 
     @Override
-    public JsonNode getLoginTranslation(String localeCode) {
+    public JsonNode getLoginTranslation(String localeCode, String domainName) {
+        WhiteLabeling whiteLabeling = whiteLabelingService.findByDomainName(domainName);
+        JsonNode fullTranslation;
+        if (whiteLabeling != null) {
+            TenantId tenantId = whiteLabeling.getTenantId();
+            CustomerId customerId = whiteLabeling.getCustomerId();
+            fullTranslation = getFullTranslation(tenantId, customerId, localeCode);
+        } else {
+            fullTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE));
+        }
         ObjectNode loginPageTranslation = newObjectNode();
-        JsonNode defaultTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE));
-        loginPageTranslation.set("login", defaultTranslation.get("login"));
-        loginPageTranslation.set("signup", defaultTranslation.get("signup"));
+        loginPageTranslation.set("login", fullTranslation.get("login"));
+        loginPageTranslation.set("signup", fullTranslation.get("signup"));
         return loginPageTranslation;
     }
 
@@ -139,7 +152,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     public JsonNode getFullTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
         JsonNode customTranslation = getMergedCustomTranslation(tenantId, customerId, localeCode);
         JsonNode defaultTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE)).deepCopy();
-        return update(defaultTranslation, customTranslation);
+        return merge(defaultTranslation, customTranslation);
     }
 
     @Override
@@ -147,12 +160,9 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         JsonNode fullTranslation = getFullTranslation(tenantId, customerId, localeCode).deepCopy();
         JsonNode currentCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, localeCode).getValue();
         JsonNode originalTranslation = TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE);
-        JsonNode resourceTranslation = null;
-        if (TRANSLATION_VALUE_MAP.containsKey(localeCode)) {
-            resourceTranslation = readResourceLocaleTranslation(localeCode);
-        }
-        JsonNode translated = getTranslated(tenantId, customerId, localeCode, resourceTranslation);
-        JsonNode parentTranslated = getParentTranslatedOnly(tenantId, customerId, localeCode, resourceTranslation);
+        JsonNode resourceTranslation = TRANSLATION_VALUE_MAP.containsKey(localeCode) ? readResourceLocaleTranslation(localeCode) : JacksonUtil.newObjectNode();
+        JsonNode translated = getTranslated(tenantId, customerId, localeCode, resourceTranslation.deepCopy());
+        JsonNode parentTranslated = getParentTranslatedOnly(tenantId, customerId, localeCode, resourceTranslation.deepCopy());
 
         buildTranslationInfoForEdit(fullTranslation, translated, parentTranslated, originalTranslation, currentCustomTranslation);
         return fullTranslation;
@@ -286,13 +296,12 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
                 }
                 String state;
                 if (customNode != null) {
-                    if (parentNode == null) {
+                    info.put("t", fullNode.asText()); // translated value
+                    if (parentNode == null && originNode == null) {
                         state = "A";
-                        info.put("t", fullNode.asText()); // translated value
                     } else {
                         state = "C";
-                        info.put("p", parentNode.asText()); // parent translation
-                        info.put("t", fullNode.asText()); // translated value
+                        info.put("p", Objects.requireNonNullElse(parentNode, original).asText()); // parent translation
                     }
                 } else if (translatedNode != null) {
                     state = "T";
@@ -307,11 +316,12 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     }
 
     private JsonNode getTranslated(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode resourceTranslation) {
-        JsonNode result = getMergedCustomTranslation(tenantId, customerId, localeCode);
+        JsonNode customTransaltion = getMergedCustomTranslation(tenantId, customerId, localeCode);
         if (resourceTranslation != null) {
-            result = update(resourceTranslation.deepCopy(), result);
+            return merge(resourceTranslation, customTransaltion);
+        } else {
+            return customTransaltion;
         }
-        return result;
     }
 
     private JsonNode getParentTranslatedOnly(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode resourceTranslation) {

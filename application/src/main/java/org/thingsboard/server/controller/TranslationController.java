@@ -34,10 +34,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.hash.Hashing;
 import io.swagger.v3.oas.annotations.Parameter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -68,6 +69,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
 
@@ -137,8 +139,8 @@ public class TranslationController extends BaseController {
     @ResponseBody
     public JsonNode getLoginPageTranslation(
             @Parameter(description = "Locale code (e.g. 'en_US').")
-            @PathVariable("localeCode") String localeCode) {
-        return tbTranslationService.getLoginTranslation(localeCode);
+            @PathVariable("localeCode") String localeCode, HttpServletRequest request) {
+        return tbTranslationService.getLoginTranslation(localeCode, request.getServerName());
     }
 
     @ApiOperation(value = "Get end-user all-to-one translation (getFullTranslation)",
@@ -147,37 +149,34 @@ public class TranslationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/full/{localeCode}")
     @ResponseBody
-    public ResponseEntity<JsonNode> getFullTranslation(
+    public void getFullTranslation(
             @Parameter(description = "Locale code (e.g. 'en_US').")
             @PathVariable("localeCode") String localeCode,
-            @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag) throws Exception {
+            @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
+            @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader,
+            HttpServletResponse response) throws Exception {
         checkWhiteLabelingPermissions(Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
         CustomerId customerId = getCurrentUser().getCustomerId();
 
         TranslationCacheKey cacheKey = TranslationCacheKey.forLocale(tenantId, customerId, localeCode);
-        if (StringUtils.isNotEmpty(etag)) {
-            etag = StringUtils.remove(etag, '\"'); // etag is wrapped in double quotes due to HTTP specification
-            if (etag.equals(tbTranslationService.getETag(cacheKey))) {
-                return ResponseEntity.status(HttpStatus.NOT_MODIFIED).build();
-            }
+        if (StringUtils.isNotEmpty(etag) && StringUtils.remove(etag, '\"').equals(tbTranslationService.getETag(cacheKey))) {
+            response.setStatus(HttpStatus.NOT_MODIFIED.value());
+        } else {
+            JsonNode fullTranslation = tbTranslationService.getFullTranslation(tenantId, customerId, localeCode);
+            String calculatedEtag = calculateTranslationEtag(fullTranslation);
+            tbTranslationService.putETag(cacheKey, calculatedEtag);
+            response.setHeader("Etag", calculatedEtag);
+            response.setContentType(APPLICATION_JSON_VALUE);
+            compressResponseWithGzipIFAccepted(acceptEncodingHeader, response, JacksonUtil.writeValueAsBytes(fullTranslation));
         }
-
-        JsonNode fullTranslation = tbTranslationService.getFullTranslation(tenantId, customerId, localeCode);
-        String calculatedEtag = calculateTranslationEtag(fullTranslation);
-        tbTranslationService.putETag(cacheKey, calculatedEtag);
-        return ResponseEntity.ok()
-                .header("Content-Type", MediaType.APPLICATION_JSON.toString())
-                .eTag(calculatedEtag)
-                .cacheControl(CacheControl.noCache())
-                .body(fullTranslation);
     }
 
     @ApiOperation(value = "Get end-user multi-translation for basic edit (getTranslationForBasicEdit)",
             notes = "Fetch the translation info map where value is info object containing key translation, origin translation, " +
                     "translation of parent level, translation status.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @GetMapping(value = "/translation/edit/basic/{localeCode}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/translation/edit/basic/{localeCode}", produces = APPLICATION_JSON_VALUE)
     @ResponseBody
     public JsonNode getTranslationForBasicEdit(@PathVariable("localeCode") String localeCode) throws Exception {
         checkWhiteLabelingPermissions(Operation.READ);

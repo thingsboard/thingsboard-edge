@@ -43,7 +43,7 @@ public interface TbTranslationService {
 
     List<TranslationInfo> getTranslationInfos(TenantId tenantId, CustomerId customerId);
 
-    JsonNode getLoginTranslation(String localeCode);
+    JsonNode getLoginTranslation(String localeCode, String domainName);
 
     JsonNode getFullTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
