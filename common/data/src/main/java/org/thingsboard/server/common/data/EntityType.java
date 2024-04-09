@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
  * @author Andrew Shvayka
  */
 public enum EntityType {
-
     TENANT(1),
     CUSTOMER(2, true),
     USER(3, true),
@@ -86,7 +85,8 @@ public enum EntityType {
     NOTIFICATION_TEMPLATE (30),
     NOTIFICATION_REQUEST (31),
     NOTIFICATION (32),
-    NOTIFICATION_RULE (33);
+    NOTIFICATION_RULE (33),
+    QUEUE_STATS(34);
 
     @Getter
     private final int protoNumber; // Corresponds to EntityTypeProto

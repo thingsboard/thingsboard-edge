@@ -376,6 +376,14 @@ public class TestRestClient {
                 .as(DeviceProfile.class);
     }
 
+    public void deleteDeviceProfileIfExists(DeviceProfile deviceProfile) {
+        given().spec(requestSpec)
+                .delete("/api/deviceProfile/" + deviceProfile.getId().getId().toString())
+                .then()
+                .statusCode(anyOf(is(HTTP_OK), is(HTTP_NOT_FOUND)));
+    }
+
+
     public RuleChainMetaData getRuleChainMetadata(RuleChainId ruleChainId) {
         return given().spec(requestSpec)
                 .get("/api/ruleChain/{ruleChainId}/metadata", ruleChainId.getId())

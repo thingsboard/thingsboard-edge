@@ -472,43 +472,16 @@ public abstract class BaseEdgeProcessor {
 
     private boolean doSaveIfEdgeIsOffline(EdgeEventType type,
                                           EdgeEventActionType action) {
-        switch (action) {
-            case TIMESERIES_UPDATED:
-            case ALARM_ACK:
-            case ALARM_CLEAR:
-            case ALARM_ASSIGNED:
-            case ALARM_UNASSIGNED:
-            case CREDENTIALS_REQUEST:
-            case ADDED_COMMENT:
-            case UPDATED_COMMENT:
-                return true;
-        }
+        return switch (action) {
+            case TIMESERIES_UPDATED, ALARM_ACK, ALARM_CLEAR, ALARM_ASSIGNED, ALARM_UNASSIGNED, CREDENTIALS_REQUEST, ADDED_COMMENT, UPDATED_COMMENT ->
+                    true;
+            default -> switch (type) {
+                case ALARM, ALARM_COMMENT, RULE_CHAIN, RULE_CHAIN_METADATA, CUSTOMER, TENANT, TENANT_PROFILE, WIDGETS_BUNDLE, WIDGET_TYPE, ADMIN_SETTINGS, OTA_PACKAGE, QUEUE, RELATION, ROLE, INTEGRATION, CONVERTER, WHITE_LABELING, LOGIN_WHITE_LABELING, CUSTOM_TRANSLATION, CUSTOM_MENU, MAIL_TEMPLATES ->
+                        true;
+                default -> false;
+            };
+        };
 
-        switch (type) {
-            case ALARM:
-            case ALARM_COMMENT:
-            case RULE_CHAIN:
-            case RULE_CHAIN_METADATA:
-            case CUSTOMER:
-            case TENANT:
-            case TENANT_PROFILE:
-            case WIDGETS_BUNDLE:
-            case WIDGET_TYPE:
-            case ADMIN_SETTINGS:
-            case OTA_PACKAGE:
-            case QUEUE:
-            case RELATION:
-            case ROLE:
-            case INTEGRATION:
-            case CONVERTER:
-            case WHITE_LABELING:
-            case LOGIN_WHITE_LABELING:
-            case CUSTOM_TRANSLATION:
-            case CUSTOM_MENU:
-            case MAIL_TEMPLATES:
-                return true;
-        }
-        return false;
     }
 
     private ListenableFuture<Void> doSaveEdgeEvent(TenantId tenantId, EdgeId edgeId, EdgeEventType type, EdgeEventActionType action, EntityId entityId, JsonNode body,
@@ -561,32 +534,16 @@ public abstract class BaseEdgeProcessor {
     }
 
     protected UpdateMsgType getUpdateMsgType(EdgeEventActionType actionType) {
-        switch (actionType) {
-            case UPDATED:
-            case CREDENTIALS_UPDATED:
-            case UPDATED_COMMENT:
-                return UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
-            case ADDED:
-            case ADDED_TO_ENTITY_GROUP:
-            case ASSIGNED_TO_EDGE:
-            case RELATION_ADD_OR_UPDATE:
-            case ADDED_COMMENT:
-                return UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
-            case DELETED:
-            case UNASSIGNED_FROM_EDGE:
-            case RELATION_DELETED:
-            case REMOVED_FROM_ENTITY_GROUP:
-            case CHANGE_OWNER:
-            case DELETED_COMMENT:
-            case ALARM_DELETE:
-                return UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
-            case ALARM_ACK:
-                return UpdateMsgType.ALARM_ACK_RPC_MESSAGE;
-            case ALARM_CLEAR:
-                return UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE;
-            default:
-                throw new RuntimeException("Unsupported actionType [" + actionType + "]");
-        }
+        return switch (actionType) {
+            case UPDATED, CREDENTIALS_UPDATED, UPDATED_COMMENT -> UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE;
+            case ADDED, ADDED_TO_ENTITY_GROUP, ASSIGNED_TO_EDGE, RELATION_ADD_OR_UPDATE, ADDED_COMMENT ->
+                    UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE;
+            case DELETED, UNASSIGNED_FROM_EDGE, RELATION_DELETED, REMOVED_FROM_ENTITY_GROUP, CHANGE_OWNER, DELETED_COMMENT, ALARM_DELETE ->
+                    UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE;
+            case ALARM_ACK -> UpdateMsgType.ALARM_ACK_RPC_MESSAGE;
+            case ALARM_CLEAR -> UpdateMsgType.ALARM_CLEAR_RPC_MESSAGE;
+            default -> throw new RuntimeException("Unsupported actionType [" + actionType + "]");
+        };
     }
 
     public ListenableFuture<Void> processEntityNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {
@@ -722,15 +679,11 @@ public abstract class BaseEdgeProcessor {
     }
 
     private ListenableFuture<Void> processEntityNotificationForAllEdges(TenantId tenantId, EdgeEventType type, EdgeEventActionType actionType, EntityId entityId, EdgeId sourceEdgeId) {
-        switch (actionType) {
-            case ADDED:
-            case UPDATED:
-            case DELETED:
-            case CREDENTIALS_UPDATED: // used by USER entity
-                return processActionForAllEdges(tenantId, type, actionType, entityId, null, sourceEdgeId);
-            default:
-                return Futures.immediateFuture(null);
-        }
+        return switch (actionType) {
+            case ADDED, UPDATED, DELETED, CREDENTIALS_UPDATED -> // used by USER entity
+                    processActionForAllEdges(tenantId, type, actionType, entityId, null, sourceEdgeId);
+            default -> Futures.immediateFuture(null);
+        };
     }
 
     protected EntityId constructEntityId(String entityTypeStr, long entityIdMSB, long entityIdLSB) {
@@ -785,28 +738,20 @@ public abstract class BaseEdgeProcessor {
     }
 
     protected boolean isEntityExists(TenantId tenantId, EntityId entityId) {
-        switch (entityId.getEntityType()) {
-            case TENANT:
-                return tenantService.findTenantById(tenantId) != null;
-            case DEVICE:
-                return deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId())) != null;
-            case ASSET:
-                return assetService.findAssetById(tenantId, new AssetId(entityId.getId())) != null;
-            case ENTITY_VIEW:
-                return entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId())) != null;
-            case CUSTOMER:
-                return customerService.findCustomerById(tenantId, new CustomerId(entityId.getId())) != null;
-            case USER:
-                return userService.findUserById(tenantId, new UserId(entityId.getId())) != null;
-            case DASHBOARD:
-                return dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId())) != null;
-            case EDGE:
-                return edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId())) != null;
-            case ENTITY_GROUP:
-                return entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(entityId.getId())) != null;
-            default:
-                return false;
-        }
+        return switch (entityId.getEntityType()) {
+            case TENANT -> tenantService.findTenantById(tenantId) != null;
+            case DEVICE -> deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId())) != null;
+            case ASSET -> assetService.findAssetById(tenantId, new AssetId(entityId.getId())) != null;
+            case ENTITY_VIEW ->
+                    entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId())) != null;
+            case CUSTOMER -> customerService.findCustomerById(tenantId, new CustomerId(entityId.getId())) != null;
+            case USER -> userService.findUserById(tenantId, new UserId(entityId.getId())) != null;
+            case DASHBOARD -> dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId())) != null;
+            case EDGE -> edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId())) != null;
+            case ENTITY_GROUP ->
+                    entityGroupService.findEntityGroupById(tenantId, new EntityGroupId(entityId.getId())) != null;
+            default -> false;
+        };
     }
 
     protected void createRelationFromEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId) {
@@ -848,55 +793,55 @@ public abstract class BaseEdgeProcessor {
         EntityId newOwnerId = getOwnerId(tenantId, customerId);
         EntityId currentOwnerId;
         switch (entityId.getEntityType()) {
-            case DEVICE:
+            case DEVICE -> {
                 Device device = deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId()));
                 currentOwnerId = device.getOwnerId();
                 if (!newOwnerId.equals(currentOwnerId)) {
                     ownersCacheService.changeDeviceOwner(tenantId, newOwnerId, device);
                 }
-                break;
-            case ASSET:
+            }
+            case ASSET -> {
                 Asset asset = assetService.findAssetById(tenantId, new AssetId(entityId.getId()));
                 currentOwnerId = asset.getOwnerId();
                 if (!newOwnerId.equals(currentOwnerId)) {
                     ownersCacheService.changeAssetOwner(tenantId, newOwnerId, asset);
                 }
-                break;
-            case ENTITY_VIEW:
+            }
+            case ENTITY_VIEW -> {
                 EntityView entityView = entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
                 currentOwnerId = entityView.getOwnerId();
                 if (!newOwnerId.equals(currentOwnerId)) {
                     ownersCacheService.changeEntityViewOwner(tenantId, newOwnerId, entityView);
                 }
-                break;
-            case USER:
+            }
+            case USER -> {
                 User user = userService.findUserById(tenantId, new UserId(entityId.getId()));
                 currentOwnerId = user.getOwnerId();
                 if (!newOwnerId.equals(currentOwnerId)) {
                     ownersCacheService.changeUserOwner(tenantId, newOwnerId, user);
                 }
-                break;
-            case DASHBOARD:
+            }
+            case DASHBOARD -> {
                 Dashboard dashboard = dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId()));
                 currentOwnerId = dashboard.getOwnerId();
                 if (!newOwnerId.equals(currentOwnerId)) {
                     ownersCacheService.changeDashboardOwner(tenantId, newOwnerId, dashboard);
                 }
-                break;
-            case CUSTOMER:
+            }
+            case CUSTOMER -> {
                 Customer customer = customerService.findCustomerById(tenantId, new CustomerId(entityId.getId()));
                 currentOwnerId = customer.getOwnerId();
                 if (!newOwnerId.equals(currentOwnerId)) {
                     ownersCacheService.changeCustomerOwner(tenantId, newOwnerId, customer);
                 }
-                break;
-            case EDGE:
+            }
+            case EDGE -> {
                 Edge edge = edgeService.findEdgeById(tenantId, new EdgeId(entityId.getId()));
                 currentOwnerId = edge.getOwnerId();
                 if (!newOwnerId.equals(currentOwnerId)) {
                     ownersCacheService.changeEdgeOwner(tenantId, newOwnerId, edge);
                 }
-                break;
+            }
         }
     }
 
@@ -914,37 +859,25 @@ public abstract class BaseEdgeProcessor {
     }
 
     protected AssetProfile checkIfAssetProfileDefaultFieldsAssignedToEdge(TenantId tenantId, EdgeId edgeId, AssetProfile assetProfile, EdgeVersion edgeVersion) {
-        switch (edgeVersion) {
-            case V_3_3_3:
-            case V_3_3_0:
-            case V_3_4_0:
-                if (assetProfile.getDefaultDashboardId() != null
-                        && isEntityNotAssignedToEdge(tenantId, assetProfile.getDefaultDashboardId(), edgeId)) {
-                    assetProfile.setDefaultDashboardId(null);
-                }
-                if (assetProfile.getDefaultEdgeRuleChainId() != null
-                        && isEntityNotAssignedToEdge(tenantId, assetProfile.getDefaultEdgeRuleChainId(), edgeId)) {
-                    assetProfile.setDefaultEdgeRuleChainId(null);
-                }
-                break;
+        if (EdgeVersion.V_3_3_0.equals(edgeVersion) || EdgeVersion.V_3_3_3.equals(edgeVersion) || EdgeVersion.V_3_4_0.equals(edgeVersion)) {
+            if (assetProfile.getDefaultDashboardId() != null && isEntityNotAssignedToEdge(tenantId, assetProfile.getDefaultDashboardId(), edgeId)) {
+                assetProfile.setDefaultDashboardId(null);
+            }
+            if (assetProfile.getDefaultEdgeRuleChainId() != null && isEntityNotAssignedToEdge(tenantId, assetProfile.getDefaultEdgeRuleChainId(), edgeId)) {
+                assetProfile.setDefaultEdgeRuleChainId(null);
+            }
         }
         return assetProfile;
     }
 
     protected DeviceProfile checkIfDeviceProfileDefaultFieldsAssignedToEdge(TenantId tenantId, EdgeId edgeId, DeviceProfile deviceProfile, EdgeVersion edgeVersion) {
-        switch (edgeVersion) {
-            case V_3_3_3:
-            case V_3_3_0:
-            case V_3_4_0:
-                if (deviceProfile.getDefaultDashboardId() != null
-                        && isEntityNotAssignedToEdge(tenantId, deviceProfile.getDefaultDashboardId(), edgeId)) {
-                    deviceProfile.setDefaultDashboardId(null);
-                }
-                if (deviceProfile.getDefaultEdgeRuleChainId() != null
-                        && isEntityNotAssignedToEdge(tenantId, deviceProfile.getDefaultEdgeRuleChainId(), edgeId)) {
-                    deviceProfile.setDefaultEdgeRuleChainId(null);
-                }
-                break;
+        if (EdgeVersion.V_3_3_0.equals(edgeVersion) || EdgeVersion.V_3_3_3.equals(edgeVersion) || EdgeVersion.V_3_4_0.equals(edgeVersion)) {
+            if (deviceProfile.getDefaultDashboardId() != null && isEntityNotAssignedToEdge(tenantId, deviceProfile.getDefaultDashboardId(), edgeId)) {
+                deviceProfile.setDefaultDashboardId(null);
+            }
+            if (deviceProfile.getDefaultEdgeRuleChainId() != null && isEntityNotAssignedToEdge(tenantId, deviceProfile.getDefaultEdgeRuleChainId(), edgeId)) {
+                deviceProfile.setDefaultEdgeRuleChainId(null);
+            }
         }
         return deviceProfile;
     }
@@ -959,4 +892,5 @@ public abstract class BaseEdgeProcessor {
         }
         return true;
     }
+
 }

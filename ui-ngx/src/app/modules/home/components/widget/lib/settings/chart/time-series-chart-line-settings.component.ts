@@ -43,11 +43,11 @@ import {
   lineSeriesStepTypeTranslations,
   seriesLabelPositions,
   seriesLabelPositionTranslations,
-  timeSeriesChartShapes,
-  timeSeriesChartShapeTranslations, TimeSeriesChartType,
+  TimeSeriesChartType,
   timeSeriesLineTypes,
   timeSeriesLineTypeTranslations
 } from '@home/components/widget/lib/chart/time-series-chart.models';
+import { echartsShapes, echartsShapeTranslations } from '@home/components/widget/lib/chart/echarts-widget.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { merge } from 'rxjs';
@@ -82,9 +82,9 @@ export class TimeSeriesChartLineSettingsComponent implements OnInit, ControlValu
 
   seriesLabelPositionTranslations = seriesLabelPositionTranslations;
 
-  timeSeriesChartShapes = timeSeriesChartShapes;
+  echartsShapes = echartsShapes;
 
-  timeSeriesChartShapeTranslations = timeSeriesChartShapeTranslations;
+  echartsShapeTranslations = echartsShapeTranslations;
 
   pointLabelPreviewFn = this._pointLabelPreviewFn.bind(this);
 
@@ -118,6 +118,8 @@ export class TimeSeriesChartLineSettingsComponent implements OnInit, ControlValu
       pointLabelPosition: [null, []],
       pointLabelFont: [null, []],
       pointLabelColor: [null, []],
+      enablePointLabelBackground: [null, []],
+      pointLabelBackground: [null, []],
       pointShape: [null, []],
       pointSize: [null, [Validators.min(0)]],
       fillAreaSettings: [null, []]
@@ -127,7 +129,8 @@ export class TimeSeriesChartLineSettingsComponent implements OnInit, ControlValu
     });
     merge(this.lineSettingsFormGroup.get('showLine').valueChanges,
       this.lineSettingsFormGroup.get('step').valueChanges,
-      this.lineSettingsFormGroup.get('showPointLabel').valueChanges)
+      this.lineSettingsFormGroup.get('showPointLabel').valueChanges,
+      this.lineSettingsFormGroup.get('enablePointLabelBackground').valueChanges)
     .subscribe(() => {
       this.updateValidators();
     });
@@ -162,6 +165,7 @@ export class TimeSeriesChartLineSettingsComponent implements OnInit, ControlValu
     const showLine: boolean = this.lineSettingsFormGroup.get('showLine').value;
     const step: boolean = this.lineSettingsFormGroup.get('step').value;
     const showPointLabel: boolean = this.lineSettingsFormGroup.get('showPointLabel').value;
+    const enablePointLabelBackground: boolean = this.lineSettingsFormGroup.get('enablePointLabelBackground').value;
     if (showLine) {
       this.lineSettingsFormGroup.get('step').enable({emitEvent: false});
       if (step) {
@@ -184,10 +188,18 @@ export class TimeSeriesChartLineSettingsComponent implements OnInit, ControlValu
       this.lineSettingsFormGroup.get('pointLabelPosition').enable({emitEvent: false});
       this.lineSettingsFormGroup.get('pointLabelFont').enable({emitEvent: false});
       this.lineSettingsFormGroup.get('pointLabelColor').enable({emitEvent: false});
+      this.lineSettingsFormGroup.get('enablePointLabelBackground').enable({emitEvent: false});
+      if (enablePointLabelBackground) {
+        this.lineSettingsFormGroup.get('pointLabelBackground').enable({emitEvent: false});
+      } else {
+        this.lineSettingsFormGroup.get('pointLabelBackground').disable({emitEvent: false});
+      }
     } else {
       this.lineSettingsFormGroup.get('pointLabelPosition').disable({emitEvent: false});
       this.lineSettingsFormGroup.get('pointLabelFont').disable({emitEvent: false});
       this.lineSettingsFormGroup.get('pointLabelColor').disable({emitEvent: false});
+      this.lineSettingsFormGroup.get('enablePointLabelBackground').disable({emitEvent: false});
+      this.lineSettingsFormGroup.get('pointLabelBackground').disable({emitEvent: false});
     }
   }
 
