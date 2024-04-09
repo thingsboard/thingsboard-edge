@@ -34,39 +34,49 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
+import org.thingsboard.rule.engine.AbstractRuleNodeUpgradeTest;
 import org.thingsboard.rule.engine.TestDbCallbackExecutor;
 import org.thingsboard.rule.engine.api.TbContext;
+import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.customer.CustomerService;
 
 import java.util.NoSuchElementException;
+import java.util.UUID;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class TbChangeOriginatorNodeTest {
+public class TbChangeOriginatorNodeTest extends AbstractRuleNodeUpgradeTest {
 
     private static final String CUSTOMER_SOURCE = "CUSTOMER";
 
@@ -76,7 +86,8 @@ public class TbChangeOriginatorNodeTest {
     private TbContext ctx;
     @Mock
     private AssetService assetService;
-
+    @Mock
+    private CustomerService customerService;
     private ListeningExecutor dbExecutor;
 
     @Before
@@ -157,14 +168,90 @@ public class TbChangeOriginatorNodeTest {
         assertEquals("Failed to find new originator!", exceptionCaptor.getValue().getMessage());
     }
 
+    @Test
+    public void originatorCanBeChangedToParentCustomerId() throws TbNodeException {
+        init();
+        TenantId tenantId = new TenantId(Uuids.timeBased());
+        UUID parentCustomerId = Uuids.timeBased();
+        UUID customerId = Uuids.timeBased();
+        var customer = new Customer(new CustomerId(customerId));
+        customer.setParentCustomerId(new CustomerId(parentCustomerId));
+
+        RuleChainId ruleChainId = new RuleChainId(Uuids.timeBased());
+        RuleNodeId ruleNodeId = new RuleNodeId(Uuids.timeBased());
+
+        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, customer.getId(), TbMsgMetaData.EMPTY, TbMsgDataType.JSON, TbMsg.EMPTY_JSON_OBJECT, ruleChainId, ruleNodeId);
+
+        when(ctx.getTenantId()).thenReturn(tenantId);
+        when(ctx.getCustomerService()).thenReturn(customerService);
+        when(customerService.findCustomerByIdAsync(tenantId, customer.getId()))
+                .thenReturn(Futures.immediateFuture(customer));
+
+        node.onMsg(ctx, msg);
+
+        ArgumentCaptor<EntityId> originatorCaptor = ArgumentCaptor.forClass(EntityId.class);
+        verify(ctx).transformMsgOriginator(eq(msg), originatorCaptor.capture());
+
+        assertEquals(customer.getParentCustomerId(), originatorCaptor.getValue());
+    }
+
+    @Test
+    public void originatorCantBeChangedToParentCustomerId() throws TbNodeException {
+        init();
+        TenantId tenantId = new TenantId(Uuids.timeBased());
+        UUID customerId = Uuids.timeBased();
+        var customer = new Customer(new CustomerId(customerId));
+
+        RuleChainId ruleChainId = new RuleChainId(Uuids.timeBased());
+        RuleNodeId ruleNodeId = new RuleNodeId(Uuids.timeBased());
+
+        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, customer.getId(), TbMsgMetaData.EMPTY, TbMsgDataType.JSON, TbMsg.EMPTY_JSON_OBJECT, ruleChainId, ruleNodeId);
+
+        when(ctx.getTenantId()).thenReturn(tenantId);
+        when(ctx.getCustomerService()).thenReturn(customerService);
+        when(customerService.findCustomerByIdAsync(tenantId, customer.getId()))
+                .thenReturn(Futures.immediateFuture(customer));
+
+        ArgumentCaptor<Exception> exceptionCaptor = ArgumentCaptor.forClass(Exception.class);
+
+        node.onMsg(ctx, msg);
+        verify(ctx).tellFailure(eq(msg), exceptionCaptor.capture());
+
+        Exception capturedException = exceptionCaptor.getValue();
+
+        assertInstanceOf(NoSuchElementException.class, capturedException);
+        assertEquals("Failed to find new originator!", exceptionCaptor.getValue().getMessage());
+    }
+
     public void init() throws TbNodeException {
         TbChangeOriginatorNodeConfiguration config = new TbChangeOriginatorNodeConfiguration();
         config.setOriginatorSource(CUSTOMER_SOURCE);
+        config.setPreserveOriginatorIfCustomer(false);
         TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
 
         when(ctx.getDbCallbackExecutor()).thenReturn(dbExecutor);
 
         node = new TbChangeOriginatorNode();
         node.init(null, nodeConfiguration);
+    }
+
+    private static Stream<Arguments> givenFromVersionAndConfig_whenUpgrade_thenVerifyHasChangesAndConfig() {
+        return Stream.of(
+                // default config for version 0
+                Arguments.of(0,
+                        "{\"relationsQuery\": {\"direction\": \"FROM\",\"maxLevel\": 1,\"filters\": [{\"relationType\": \"Contains\",\"entityTypes\": []}],\"fetchLastLevelOnly\": false},\"originatorSource\": \"CUSTOMER\"}",
+                        true,
+                        "{\"relationsQuery\": {\"direction\": \"FROM\",\"maxLevel\": 1,\"filters\": [{\"relationType\": \"Contains\",\"entityTypes\": []}],\"fetchLastLevelOnly\": false},\"originatorSource\": \"CUSTOMER\",\"preserveOriginatorIfCustomer\": true}"),
+                // default config for version 1 with upgrade from version 0
+                Arguments.of(0,
+                        "{\"relationsQuery\": {\"direction\": \"FROM\",\"maxLevel\": 1,\"filters\": [{\"relationType\": \"Contains\",\"entityTypes\": []}],\"fetchLastLevelOnly\": false},\"originatorSource\": \"CUSTOMER\",\"preserveOriginatorIfCustomer\": false}",
+                        false,
+                        "{\"relationsQuery\": {\"direction\": \"FROM\",\"maxLevel\": 1,\"filters\": [{\"relationType\": \"Contains\",\"entityTypes\": []}],\"fetchLastLevelOnly\": false},\"originatorSource\": \"CUSTOMER\",\"preserveOriginatorIfCustomer\": false}")
+        );
+    }
+
+    @Override
+    protected TbNode getTestNode() {
+        return spy(TbChangeOriginatorNode.class);
     }
 }

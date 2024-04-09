@@ -28,44 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.coap.rpc;
+package org.thingsboard.server.msa.connectivity;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.thingsboard.server.common.data.CoapDeviceType;
-import org.thingsboard.server.common.data.TransportPayloadType;
-import org.thingsboard.server.dao.service.DaoSqlTest;
-import org.thingsboard.server.transport.coap.CoapTestConfigProperties;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import org.thingsboard.server.msa.AbstractLwm2mClientTest;
+import org.thingsboard.server.msa.DisableUIListeners;
 
-@Slf4j
-@DaoSqlTest
-public class CoapServerSideRpcProtoIntegrationTest extends AbstractCoapServerSideRpcIntegrationTest {
+import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
+import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 
-    @Before
-    public void beforeTest() throws Exception {
-        CoapTestConfigProperties configProperties = CoapTestConfigProperties.builder()
-                .deviceName("RPC test device")
-                .coapDeviceType(CoapDeviceType.DEFAULT)
-                .transportPayloadType(TransportPayloadType.PROTOBUF)
-                .rpcRequestProtoSchema(RPC_REQUEST_PROTO_SCHEMA)
-                .build();
-        processBeforeTest(configProperties);
+@DisableUIListeners
+public class Lwm2mClientNoSecTest extends AbstractLwm2mClientTest {
+
+    @BeforeMethod
+    public void setUp() throws Exception {
+        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
+        initTest("lwm2m-NoSec");
     }
 
-    @After
-    public void afterTest() throws Exception {
-        processAfterTest();
+    @AfterMethod
+    public void tearDown() {
+        destroyAfter();
     }
 
     @Test
-    public void testServerCoapOneWayRpc() throws Exception {
-        processOneWayRpcTest(true);
-    }
-
-    @Test
-    public void testServerCoapTwoWayRpc() throws Exception {
-        processTwoWayRpcTest("{\"payload\":\"{\\\"value1\\\":\\\"A\\\",\\\"value2\\\":\\\"B\\\"}\"}", true);
+    public void connectLwm2mClientNoSecWithLwm2mServer() throws Exception {
+        connectLwm2mClientNoSec();
     }
 }

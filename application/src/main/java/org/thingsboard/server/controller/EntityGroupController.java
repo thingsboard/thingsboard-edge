@@ -258,7 +258,7 @@ public class EntityGroupController extends AutoCommitController {
                 }
             }
         } else {
-            validateEntityId(parentEntityId, "Incorrect entity group ownerId " + parentEntityId);
+            validateEntityId(parentEntityId, id -> "Incorrect entity group ownerId " + id);
         }
 
         EntityGroupInfo entityGroupInfo = new EntityGroupInfo(entityGroup, ownersCacheService.fetchOwnersHierarchy(getTenantId(), parentEntityId));

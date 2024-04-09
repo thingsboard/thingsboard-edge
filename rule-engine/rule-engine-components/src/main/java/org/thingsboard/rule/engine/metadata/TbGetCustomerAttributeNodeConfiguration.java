@@ -28,21 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.msa.connectivity;
+package org.thingsboard.rule.engine.metadata;
 
-import org.testng.annotations.Test;
-import org.thingsboard.server.msa.AbstractLwm2mClientTest;
-import org.thingsboard.server.msa.DisableUIListeners;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.rule.engine.util.TbMsgSource;
 
-@DisableUIListeners
-public class Lwm2mClientTest extends AbstractLwm2mClientTest {
+import java.util.HashMap;
 
-    @Test
-    public void connectLwm2mClientNoSecWithLwm2mServer() throws Exception {
-        connectLwm2mClientNoSec();
-    }
-    @Test
-    public void connectLwm2mClientPskWithLwm2mServer() throws Exception {
-        connectLwm2mClientPsk();
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class TbGetCustomerAttributeNodeConfiguration extends TbGetEntityDataNodeConfiguration {
+
+    private boolean preserveOriginatorIfCustomer;
+
+    @Override
+    public TbGetCustomerAttributeNodeConfiguration defaultConfiguration() {
+        var configuration = new TbGetCustomerAttributeNodeConfiguration();
+        var dataMapping = new HashMap<String, String>();
+        dataMapping.putIfAbsent("alarmThreshold", "threshold");
+        configuration.setDataMapping(dataMapping);
+        configuration.setDataToFetch(DataToFetch.ATTRIBUTES);
+        configuration.setFetchTo(TbMsgSource.METADATA);
+        configuration.setPreserveOriginatorIfCustomer(false);
+        return configuration;
     }
 }
