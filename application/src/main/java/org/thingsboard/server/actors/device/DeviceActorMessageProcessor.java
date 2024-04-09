@@ -271,14 +271,12 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
     }
 
     private boolean isSendNewRpcAvailable() {
-        switch (rpcSubmitStrategy) {
-            case SEQUENTIAL_ON_ACK_FROM_DEVICE:
-                return toDeviceRpcPendingMap.values().stream().filter(md -> !md.isDelivered()).findAny().isEmpty();
-            case SEQUENTIAL_ON_RESPONSE_FROM_DEVICE:
-                return toDeviceRpcPendingMap.values().stream().filter(ToDeviceRpcRequestMetadata::isDelivered).findAny().isEmpty();
-            default:
-                return true;
-        }
+        return switch (rpcSubmitStrategy) {
+            case SEQUENTIAL_ON_ACK_FROM_DEVICE -> toDeviceRpcPendingMap.values().stream().filter(md -> !md.isDelivered()).findAny().isEmpty();
+            case SEQUENTIAL_ON_RESPONSE_FROM_DEVICE ->
+                    toDeviceRpcPendingMap.values().stream().filter(ToDeviceRpcRequestMetadata::isDelivered).findAny().isEmpty();
+            default -> true;
+        };
     }
 
     private void createRpc(ToDeviceRpcRequest request, RpcStatus status) {
