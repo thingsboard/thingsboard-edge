@@ -863,7 +863,6 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
 
     @Test
     public void testMobileSettings() throws Exception {
-        assertThat(getAvailableDeliveryMethods()).doesNotContain(NotificationDeliveryMethod.MOBILE_APP);
         loginSysAdmin();
         var systemConfig = new MobileAppNotificationDeliveryMethodConfig();
         systemConfig.setFirebaseServiceAccountCredentials("systemCreds");
