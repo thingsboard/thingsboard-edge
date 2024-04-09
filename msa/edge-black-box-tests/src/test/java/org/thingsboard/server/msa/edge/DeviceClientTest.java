@@ -15,7 +15,6 @@
  */
 package org.thingsboard.server.msa.edge;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonObject;
@@ -184,7 +183,7 @@ public class DeviceClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void sendDeviceToCloud() throws Exception {
+    public void sendDeviceToCloud() {
         // create device on edge
         Device savedDeviceOnEdge = saveDeviceOnEdge("Edge Device 2", "default");
         Awaitility.await()
@@ -486,7 +485,6 @@ public class DeviceClientTest extends AbstractContainerTest {
                 });
 
         Optional<DeviceCredentials> deviceCredentials = edgeRestClient.getDeviceCredentialsByDeviceId(device.getId());
-
         Assert.assertTrue(deviceCredentials.isPresent());
 
         // subscribe to rpc requests to edge
@@ -501,6 +499,7 @@ public class DeviceClientTest extends AbstractContainerTest {
         ObjectNode initialRequestBody = JacksonUtil.newObjectNode();
         initialRequestBody.put("method", "setGpio");
         initialRequestBody.put("params", "{\"pin\":\"23\", \"value\": 1}");
+        initialRequestBody.put("timeout", "20000");
         cloudRestClient.handleOneWayDeviceRPCRequest(device.getId(), initialRequestBody);
 
         // verify that rpc request was received
@@ -658,7 +657,7 @@ public class DeviceClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testClaimDevice() throws Exception {
+    public void testClaimDevice() {
         // create customer, user and device
         Customer customer = new Customer();
         customer.setTitle("Claim Test Customer");
@@ -708,7 +707,7 @@ public class DeviceClientTest extends AbstractContainerTest {
     }
 
     @Test
-    public void testSharedAttributeUpdates() throws JsonProcessingException {
+    public void testSharedAttributeUpdates() {
         // create device on cloud and assign to edge
         Device savedDevice = saveAndAssignDeviceToEdge();
 

@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 public class AssetClientTest extends AbstractContainerTest {
 
     @Test
-    public void testAssets() throws Exception {
+    public void testAssets() {
         // create asset #1 and assign to edge
         Asset savedAsset1 = saveAndAssignAssetToEdge("Building");
         cloudRestClient.assignAssetToEdge(edge.getId(), savedAsset1.getId());

@@ -195,7 +195,7 @@ public abstract class AbstractContainerTest {
 
         PageData<WidgetsBundle> pageData = edgeRestClient.getWidgetsBundles(new PageLink(100));
 
-        for (WidgetsBundleId widgetsBundleId : pageData.getData().stream().map(WidgetsBundle::getId).collect(Collectors.toList())) {
+        for (WidgetsBundleId widgetsBundleId : pageData.getData().stream().map(WidgetsBundle::getId).toList()) {
             Awaitility.await()
                     .pollInterval(1000, TimeUnit.MILLISECONDS)
                     .atMost(60, TimeUnit.SECONDS).
@@ -422,42 +422,18 @@ public abstract class AbstractContainerTest {
 
     protected void assertEntitiesByIdsAndType(List<EntityId> entityIds, EntityType entityType) {
         switch (entityType) {
-            case DEVICE_PROFILE:
-                assertDeviceProfiles(entityIds);
-                break;
-            case ASSET_PROFILE:
-                assertAssetProfiles(entityIds);
-                break;
-            case RULE_CHAIN:
-                assertRuleChains(entityIds);
-                break;
-            case WIDGETS_BUNDLE:
-                assertWidgetsBundles(entityIds);
-                break;
-            case WIDGET_TYPE:
-                assertWidgetTypes(entityIds);
-                break;
-            case DEVICE:
-                assertDevices(entityIds);
-                break;
-            case ASSET:
-                assertAssets(entityIds);
-                break;
-            case ENTITY_VIEW:
-                assertEntityViews(entityIds);
-                break;
-            case DASHBOARD:
-                assertDashboards(entityIds);
-                break;
-            case USER:
-                assertUsers(entityIds);
-                break;
-            case OTA_PACKAGE:
-                assertOtaPackages(entityIds);
-                break;
-            case QUEUE:
-                assertQueues(entityIds);
-                break;
+            case DEVICE_PROFILE -> assertDeviceProfiles(entityIds);
+            case ASSET_PROFILE -> assertAssetProfiles(entityIds);
+            case RULE_CHAIN -> assertRuleChains(entityIds);
+            case WIDGETS_BUNDLE -> assertWidgetsBundles(entityIds);
+            case WIDGET_TYPE -> assertWidgetTypes(entityIds);
+            case DEVICE -> assertDevices(entityIds);
+            case ASSET -> assertAssets(entityIds);
+            case ENTITY_VIEW -> assertEntityViews(entityIds);
+            case DASHBOARD -> assertDashboards(entityIds);
+            case USER -> assertUsers(entityIds);
+            case OTA_PACKAGE -> assertOtaPackages(entityIds);
+            case QUEUE -> assertQueues(entityIds);
         }
     }
 
@@ -738,7 +714,7 @@ public abstract class AbstractContainerTest {
         } catch (Exception ignored) {}
     }
 
-    protected RuleChainId createRuleChainAndAssignToEdge(String ruleChainName) throws Exception {
+    protected RuleChainId createRuleChainAndAssignToEdge(String ruleChainName) {
         RuleChain ruleChain = new RuleChain();
         ruleChain.setName(ruleChainName);
         ruleChain.setType(RuleChainType.EDGE);
@@ -755,7 +731,7 @@ public abstract class AbstractContainerTest {
         return savedRuleChain.getId();
     }
 
-    private void createRuleChainMetadata(RuleChain ruleChain) throws Exception {
+    private void createRuleChainMetadata(RuleChain ruleChain) {
         RuleChainMetaData ruleChainMetaData = new RuleChainMetaData();
         ruleChainMetaData.setRuleChainId(ruleChain.getId());
 

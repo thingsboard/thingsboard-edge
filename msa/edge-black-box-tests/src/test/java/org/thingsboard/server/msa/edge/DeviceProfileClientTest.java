@@ -260,7 +260,7 @@ public class DeviceProfileClientTest extends AbstractContainerTest {
         List<LwM2MBootstrapServerCredential> bootstrap = new ArrayList<>();
         AbstractLwM2MBootstrapServerCredential bootstrapServerCredential = new NoSecLwM2MBootstrapServerCredential();
         bootstrapServerCredential.setServerPublicKey("PUBLIC_KEY");
-        bootstrapServerCredential.setShortServerId(123);
+        bootstrapServerCredential.setShortServerId(0);
         bootstrapServerCredential.setBootstrapServerIs(true);
         bootstrapServerCredential.setHost("localhost");
         bootstrapServerCredential.setPort(5687);
