@@ -173,14 +173,14 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
     @Override
     public OtaPackage findOtaPackageById(TenantId tenantId, OtaPackageId otaPackageId) {
         log.trace("Executing findOtaPackageById [{}]", otaPackageId);
-        validateId(otaPackageId, INCORRECT_OTA_PACKAGE_ID + otaPackageId);
+        validateId(otaPackageId, id -> INCORRECT_OTA_PACKAGE_ID + id);
         return otaPackageDao.findById(tenantId, otaPackageId.getId());
     }
 
     @Override
     public OtaPackageInfo findOtaPackageInfoById(TenantId tenantId, OtaPackageId otaPackageId) {
         log.trace("Executing findOtaPackageInfoById [{}]", otaPackageId);
-        validateId(otaPackageId, INCORRECT_OTA_PACKAGE_ID + otaPackageId);
+        validateId(otaPackageId, id -> INCORRECT_OTA_PACKAGE_ID + id);
         return cache.getAndPutInTransaction(new OtaPackageCacheKey(otaPackageId),
                 () -> otaPackageInfoDao.findById(tenantId, otaPackageId.getId()), true);
     }
@@ -188,14 +188,14 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
     @Override
     public ListenableFuture<OtaPackageInfo> findOtaPackageInfoByIdAsync(TenantId tenantId, OtaPackageId otaPackageId) {
         log.trace("Executing findOtaPackageInfoByIdAsync [{}]", otaPackageId);
-        validateId(otaPackageId, INCORRECT_OTA_PACKAGE_ID + otaPackageId);
+        validateId(otaPackageId, id -> INCORRECT_OTA_PACKAGE_ID + id);
         return otaPackageInfoDao.findByIdAsync(tenantId, otaPackageId.getId());
     }
 
     @Override
     public PageData<OtaPackageInfo> findTenantOtaPackagesByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findTenantOtaPackagesByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return otaPackageInfoDao.findOtaPackageInfoByTenantId(tenantId, pageLink);
     }
@@ -203,7 +203,7 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
     @Override
     public PageData<OtaPackageInfo> findTenantOtaPackagesByTenantIdAndDeviceProfileIdAndTypeAndHasData(TenantId tenantId, DeviceProfileId deviceProfileId, OtaPackageType otaPackageType, PageLink pageLink) {
         log.trace("Executing findTenantOtaPackagesByTenantIdAndHasData, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return otaPackageInfoDao.findOtaPackageInfoByTenantIdAndDeviceProfileIdAndTypeAndHasData(tenantId, deviceProfileId, otaPackageType, pageLink);
     }
@@ -211,7 +211,7 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
     @Override
     public void deleteOtaPackage(TenantId tenantId, OtaPackageId otaPackageId) {
         log.trace("Executing deleteOtaPackage [{}]", otaPackageId);
-        validateId(otaPackageId, INCORRECT_OTA_PACKAGE_ID + otaPackageId);
+        validateId(otaPackageId, id -> INCORRECT_OTA_PACKAGE_ID + id);
         try {
             otaPackageDao.removeById(tenantId, otaPackageId.getId());
             publishEvictEvent(new OtaPackageCacheEvictEvent(otaPackageId));
@@ -240,7 +240,7 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
     @Override
     public void deleteOtaPackagesByTenantId(TenantId tenantId) {
         log.trace("Executing deleteOtaPackagesByTenantId, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantOtaPackageRemover.removeEntities(tenantId, tenantId);
     }
 
