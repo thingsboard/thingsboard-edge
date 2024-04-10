@@ -391,7 +391,7 @@ public class TelemetryController extends BaseController {
     public DeferredResult<ResponseEntity> saveEntityAttributesV1(
             @Parameter(description = ENTITY_TYPE_PARAM_DESCRIPTION, required = true, schema = @Schema(defaultValue = "DEVICE")) @PathVariable("entityType") String entityType,
             @Parameter(description = ENTITY_ID_PARAM_DESCRIPTION, required = true) @PathVariable("entityId") String entityIdStr,
-            @Parameter(description = ATTRIBUTES_SCOPE_DESCRIPTION, schema = @Schema(allowableValues = {"SERVER_SCOPE", "SHARED_SCOPE"})) @PathVariable("scope")AttributeScope scope,
+            @Parameter(description = ATTRIBUTES_SCOPE_DESCRIPTION, schema = @Schema(allowableValues = {"SERVER_SCOPE", "SHARED_SCOPE"})) @PathVariable("scope") AttributeScope scope,
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = ATTRIBUTES_JSON_REQUEST_DESCRIPTION, required = true) @RequestBody JsonNode request) throws ThingsboardException {
         EntityId entityId = EntityIdFactory.getByTypeAndId(entityType, entityIdStr);
         return saveAttributes(getTenantId(), entityId, scope, request);
@@ -930,4 +930,5 @@ public class TelemetryController extends BaseController {
         }
         return entry.getValue();
     }
+
 }

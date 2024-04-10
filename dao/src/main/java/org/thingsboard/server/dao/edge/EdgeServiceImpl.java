@@ -49,7 +49,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
@@ -663,7 +662,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         if (persistToTelemetry) {
             futureKvEntry = timeseriesService.findLatest(tenantId, edgeId, key);
         } else {
-            futureKvEntry = attributesService.find(tenantId, edgeId, DataConstants.SERVER_SCOPE, key);
+            futureKvEntry = attributesService.find(tenantId, edgeId, AttributeScope.SERVER_SCOPE, key);
         }
         return Futures.transformAsync(futureKvEntry, kvEntryOpt ->
                 Futures.immediateFuture(kvEntryOpt.flatMap(KvEntry::getBooleanValue).orElse(false)), MoreExecutors.directExecutor());
