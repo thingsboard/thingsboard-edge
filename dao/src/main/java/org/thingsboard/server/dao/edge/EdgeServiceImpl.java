@@ -32,7 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -430,7 +430,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     }
 
     private PaginatedRemover<TenantId, Edge> tenantEdgesRemover =
-            new PaginatedRemover<TenantId, Edge>() {
+            new PaginatedRemover<>() {
 
                 @Override
                 protected PageData<Edge> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
@@ -529,7 +529,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId, String tbRuleChainInputNodeClassName) {
         List<RuleChain> edgeRuleChains = findEdgeRuleChains(tenantId, edgeId);
-        List<RuleChainId> edgeRuleChainIds = edgeRuleChains.stream().map(IdBased::getId).collect(Collectors.toList());
+        List<RuleChainId> edgeRuleChainIds = edgeRuleChains.stream().map(IdBased::getId).toList();
         ObjectNode result = JacksonUtil.newObjectNode();
         for (RuleChain edgeRuleChain : edgeRuleChains) {
             List<RuleNode> ruleNodes =
@@ -538,8 +538,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                 List<RuleChainId> connectedRuleChains =
                         ruleNodes.stream()
                                 .filter(rn -> rn.getType().equals(tbRuleChainInputNodeClassName))
-                                .map(rn -> new RuleChainId(UUID.fromString(rn.getConfiguration().get("ruleChainId").asText())))
-                                .collect(Collectors.toList());
+                                .map(rn -> new RuleChainId(UUID.fromString(rn.getConfiguration().get("ruleChainId").asText()))).toList();
                 List<String> missingRuleChains = new ArrayList<>();
                 for (RuleChainId connectedRuleChain : connectedRuleChains) {
                     if (!edgeRuleChainIds.contains(connectedRuleChain)) {
@@ -565,7 +564,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         if (persistToTelemetry) {
             futureKvEntry = timeseriesService.findLatest(tenantId, edgeId, key);
         } else {
-            futureKvEntry = attributesService.find(tenantId, edgeId, DataConstants.SERVER_SCOPE, key);
+            futureKvEntry = attributesService.find(tenantId, edgeId, AttributeScope.SERVER_SCOPE, key);
         }
         return Futures.transformAsync(futureKvEntry, kvEntryOpt ->
                 Futures.immediateFuture(kvEntryOpt.flatMap(KvEntry::getBooleanValue).orElse(false)), MoreExecutors.directExecutor());
