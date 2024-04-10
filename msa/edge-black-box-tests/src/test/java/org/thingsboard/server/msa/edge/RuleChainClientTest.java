@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 public class RuleChainClientTest extends AbstractContainerTest {
 
     @Test
-    public void testRuleChains() throws Exception {
+    public void testRuleChains() {
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)

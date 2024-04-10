@@ -34,15 +34,15 @@ import java.util.stream.Collectors;
 public class AssetProfileClientTest extends AbstractContainerTest {
 
     @Test
-    public void testAssetProfiles() throws Exception {
-        verifyAssetProfilesOnEdge(2);
+    public void testAssetProfiles() {
+        verifyAssetProfilesOnEdge(1);
 
         // create asset profile
         DashboardId dashboardId = createDashboardAndAssignToEdge("Asset Profile Test Dashboard");
         RuleChainId savedRuleChainId = createRuleChainAndAssignToEdge("Asset Profile Test RuleChain");
         AssetProfile savedAssetProfile = createCustomAssetProfile(dashboardId, savedRuleChainId);
 
-        verifyAssetProfilesOnEdge(3);
+        verifyAssetProfilesOnEdge(2);
 
         // update asset profile
         savedAssetProfile.setName("Buildings Updated");
@@ -53,7 +53,7 @@ public class AssetProfileClientTest extends AbstractContainerTest {
                 .until(() -> "Buildings Updated".equals(edgeRestClient.getAssetProfileById(savedAssetProfile.getId()).get().getName()));
         // delete asset profile
         cloudRestClient.deleteAssetProfile(savedAssetProfile.getId());
-        verifyAssetProfilesOnEdge(2);
+        verifyAssetProfilesOnEdge(1);
 
         unAssignFromEdgeAndDeleteDashboard(dashboardId);
         unAssignFromEdgeAndDeleteRuleChain(savedRuleChainId);

@@ -16,7 +16,7 @@
 package org.thingsboard.server.dao.sql.query;
 
 import lombok.Data;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.query.BooleanFilterPredicate;
@@ -75,6 +75,8 @@ public class EntityKeyMapping {
     public static final String PHONE = "phone";
     public static final String ADDITIONAL_INFO = "additionalInfo";
     public static final String RELATED_PARENT_ID = "parentId";
+    public static final String QUEUE_NAME = "queueName";
+    public static final String SERVICE_ID = "serviceId";
 
     public static final List<String> typedEntityFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, NAME, TYPE, ADDITIONAL_INFO);
     public static final List<String> widgetEntityFields = Arrays.asList(CREATED_TIME, ENTITY_TYPE, NAME);
@@ -106,6 +108,7 @@ public class EntityKeyMapping {
         allowedEntityFieldMap.put(EntityType.API_USAGE_STATE, apiUsageStateEntityFields);
         allowedEntityFieldMap.put(EntityType.DEVICE_PROFILE, Set.of(CREATED_TIME, NAME, TYPE));
         allowedEntityFieldMap.put(EntityType.ASSET_PROFILE, Set.of(CREATED_TIME, NAME));
+        allowedEntityFieldMap.put(EntityType.QUEUE_STATS, new HashSet<>(Arrays.asList(CREATED_TIME, QUEUE_NAME, SERVICE_ID)));
 
         entityFieldColumnMap.put(CREATED_TIME, ModelConstants.CREATED_TIME_PROPERTY);
         entityFieldColumnMap.put(ENTITY_TYPE, ModelConstants.ENTITY_TYPE_PROPERTY);
@@ -126,6 +129,8 @@ public class EntityKeyMapping {
         entityFieldColumnMap.put(PHONE, ModelConstants.PHONE_PROPERTY);
         entityFieldColumnMap.put(ADDITIONAL_INFO, ModelConstants.ADDITIONAL_INFO_PROPERTY);
         entityFieldColumnMap.put(RELATED_PARENT_ID, "parent_id");
+        entityFieldColumnMap.put(QUEUE_NAME, ModelConstants.QUEUE_STATS_QUEUE_NAME_PROPERTY);
+        entityFieldColumnMap.put(SERVICE_ID, ModelConstants.QUEUE_STATS_SERVICE_ID_PROPERTY);
 
         Map<String, String> contactBasedAliases = new HashMap<>();
         contactBasedAliases.put(NAME, TITLE);
@@ -258,28 +263,28 @@ public class EntityKeyMapping {
         }
         if (entityKey.getType().equals(EntityKeyType.TIME_SERIES)) {
             String join = (hasFilter() && hasFilterValues(ctx)) ? "inner join" : "left join";
-            return String.format("%s ts_kv_latest %s ON %s.entity_id=entities.id AND %s.key = (select key_id from ts_kv_dictionary where key = :%s_key_id) %s",
+            return String.format("%s ts_kv_latest %s ON %s.entity_id=entities.id AND %s.key = (select key_id from key_dictionary where key = :%s_key_id) %s",
                     join, alias, alias, alias, alias, filterQuery);
         } else {
             String query;
             if (!entityKey.getType().equals(EntityKeyType.ATTRIBUTE)) {
                 String join = (hasFilter() && hasFilterValues(ctx)) ? "inner join" : "left join";
-                query = String.format("%s attribute_kv %s ON %s.entity_id=entities.id AND %s.entity_type=%s AND %s.attribute_key=:%s_key_id ",
-                        join, alias, alias, alias, entityTypeStr, alias, alias);
-                String scope;
+                query = String.format("%s attribute_kv %s ON %s.entity_id=entities.id AND %s.attribute_key=(select key_id from key_dictionary where key = :%s_key_id) ",
+                        join, alias, alias, alias, alias);
+                int scope;
                 if (entityKey.getType().equals(EntityKeyType.CLIENT_ATTRIBUTE)) {
-                    scope = DataConstants.CLIENT_SCOPE;
+                    scope = AttributeScope.CLIENT_SCOPE.getId();
                 } else if (entityKey.getType().equals(EntityKeyType.SHARED_ATTRIBUTE)) {
-                    scope = DataConstants.SHARED_SCOPE;
+                    scope = AttributeScope.SHARED_SCOPE.getId();;
                 } else {
-                    scope = DataConstants.SERVER_SCOPE;
+                    scope = AttributeScope.SERVER_SCOPE.getId();;
                 }
-                query = String.format("%s AND %s.attribute_type='%s' %s", query, alias, scope, filterQuery);
+                query = String.format("%s AND %s.attribute_type=%s %s", query, alias, scope, filterQuery);
             } else {
                 String join = (hasFilter() && hasFilterValues(ctx)) ? "join LATERAL" : "left join LATERAL";
-                query = String.format("%s (select * from attribute_kv %s WHERE %s.entity_id=entities.id AND %s.entity_type=%s AND %s.attribute_key=:%s_key_id %s " +
+                query = String.format("%s (select * from attribute_kv %s WHERE %s.entity_id=entities.id  AND %s.attribute_key=(select key_id from key_dictionary where key = :%s_key_id) %s " +
                                 "ORDER BY %s.last_update_ts DESC limit 1) as %s ON true",
-                        join, alias, alias, alias, entityTypeStr, alias, alias, filterQuery, alias, alias);
+                        join, alias, alias, alias, alias, filterQuery, alias, alias);
             }
             return query;
         }

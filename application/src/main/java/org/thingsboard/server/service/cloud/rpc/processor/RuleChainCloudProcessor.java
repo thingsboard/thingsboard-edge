@@ -29,11 +29,9 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
-import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataRequestMsg;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
@@ -41,11 +39,8 @@ import org.thingsboard.server.gen.edge.v1.RuleChainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -66,12 +61,7 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
                     if (ruleChainMsg == null) {
                         throw new RuntimeException("[{" + tenantId + "}] ruleChainUpdateMsg {" + ruleChainUpdateMsg + "} cannot be converted to rule chain");
                     }
-                    RuleChain ruleChain = ruleChainService.findRuleChainById(tenantId, ruleChainId);
-                    boolean created = false;
                     boolean isRoot = ruleChainMsg.isRoot();
-                    if (ruleChain == null) {
-                        created = true;
-                    }
                     ruleChainMsg.setRoot(false);
                     ruleChainMsg.setType(RuleChainType.CORE);
                     ruleChainService.saveRuleChain(ruleChainMsg);
@@ -79,24 +69,11 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
                     if (isRoot) {
                         ruleChainService.setRootRuleChain(tenantId, ruleChainId);
                     }
-                    tbClusterService.broadcastEntityStateChangeEvent(ruleChainMsg.getTenantId(), ruleChainMsg.getId(),
-                            created ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
                     return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.RULE_CHAIN, EdgeEventActionType.RULE_CHAIN_METADATA_REQUEST, ruleChainId, null, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     RuleChain ruleChainById = ruleChainService.findRuleChainById(tenantId, ruleChainId);
                     if (ruleChainById != null) {
-                        List<RuleNode> referencingRuleNodes = ruleChainService.getReferencingRuleChainNodes(tenantId, ruleChainId);
-
-                        Set<RuleChainId> referencingRuleChainIds = referencingRuleNodes.stream().map(RuleNode::getRuleChainId).collect(Collectors.toSet());
-
                         ruleChainService.deleteRuleChainById(tenantId, ruleChainId);
-
-                        referencingRuleChainIds.remove(ruleChainId);
-
-                        referencingRuleChainIds.forEach(referencingRuleChainId ->
-                                tbClusterService.broadcastEntityStateChangeEvent(tenantId, referencingRuleChainId, ComponentLifecycleEvent.UPDATED));
-
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainId, ComponentLifecycleEvent.DELETED);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
@@ -123,7 +100,6 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
                     }
                     if (ruleChainMetadata.getNodes().size() > 0) {
                         ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata, Function.identity());
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, ruleChainMetadata.getRuleChainId(), ComponentLifecycleEvent.UPDATED);
                     }
                     break;
                 case UNRECOGNIZED:
@@ -148,4 +124,5 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
                 .addRuleChainMetadataRequestMsg(ruleChainMetadataRequestMsg);
         return builder.build();
     }
+
 }

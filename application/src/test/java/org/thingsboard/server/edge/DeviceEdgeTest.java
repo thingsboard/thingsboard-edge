@@ -285,7 +285,7 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
                 (DefaultTenantProfileConfiguration) tenantProfile.getProfileData().getConfiguration();
         profileConfiguration.setMaxDevices(1);
         tenantProfile.getProfileData().setConfiguration(profileConfiguration);
-        doPost("/api/tenantProfile/", tenantProfile, TenantProfile.class);
+        doPost("/api/tenantProfile", tenantProfile, TenantProfile.class);
 
         loginTenantAdmin();
 
@@ -604,7 +604,6 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
                 device.getId().getId(), EdgeEventType.DEVICE, body);
         edgeImitator.expectMessageAmount(1);
         edgeEventService.saveAsync(edgeEvent).get();
-        clusterService.onEdgeEventUpdate(tenantId, edge.getId());
         Assert.assertTrue(edgeImitator.waitForMessages());
 
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();

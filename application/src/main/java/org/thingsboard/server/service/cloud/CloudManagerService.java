@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.cluster.TbClusterService;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -412,49 +412,17 @@ public class CloudManagerService {
             UplinkMsg uplinkMsg = null;
             try {
                 switch (cloudEvent.getAction()) {
-                    case UPDATED:
-                    case ADDED:
-                    case DELETED:
-                    case ALARM_ACK:
-                    case ALARM_CLEAR:
-                    case ALARM_DELETE:
-                    case CREDENTIALS_UPDATED:
-                    case RELATION_ADD_OR_UPDATE:
-                    case RELATION_DELETED:
-                    case ASSIGNED_TO_CUSTOMER:
-                    case UNASSIGNED_FROM_CUSTOMER:
-                    case ADDED_COMMENT:
-                    case UPDATED_COMMENT:
-                    case DELETED_COMMENT:
-                        uplinkMsg = convertEntityEventToUplink(this.tenantId, cloudEvent);
-                        break;
-                    case ATTRIBUTES_UPDATED:
-                    case POST_ATTRIBUTES:
-                    case ATTRIBUTES_DELETED:
-                    case TIMESERIES_UPDATED:
-                        uplinkMsg = telemetryProcessor.convertTelemetryEventToUplink(this.tenantId, cloudEvent);
-                        break;
-                    case ATTRIBUTES_REQUEST:
-                        uplinkMsg = telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
-                        break;
-                    case RELATION_REQUEST:
-                        uplinkMsg = relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
-                        break;
-                    case RULE_CHAIN_METADATA_REQUEST:
-                        uplinkMsg = ruleChainProcessor.convertRuleChainMetadataRequestEventToUplink(cloudEvent);
-                        break;
-                    case CREDENTIALS_REQUEST:
-                        uplinkMsg = entityProcessor.convertCredentialsRequestEventToUplink(cloudEvent);
-                        break;
-                    case RPC_CALL:
-                        uplinkMsg = deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
-                        break;
-                    case WIDGET_BUNDLE_TYPES_REQUEST:
-                        uplinkMsg = widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
-                        break;
-                    case ENTITY_VIEW_REQUEST:
-                        uplinkMsg = entityViewProcessor.convertEntityViewRequestEventToUplink(cloudEvent);
-                        break;
+                    case UPDATED, ADDED, DELETED, ALARM_ACK, ALARM_CLEAR, ALARM_DELETE, CREDENTIALS_UPDATED, RELATION_ADD_OR_UPDATE, RELATION_DELETED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER, ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT ->
+                            uplinkMsg = convertEntityEventToUplink(this.tenantId, cloudEvent);
+                    case ATTRIBUTES_UPDATED, POST_ATTRIBUTES, ATTRIBUTES_DELETED, TIMESERIES_UPDATED ->
+                            uplinkMsg = telemetryProcessor.convertTelemetryEventToUplink(this.tenantId, cloudEvent);
+                    case ATTRIBUTES_REQUEST -> uplinkMsg = telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
+                    case RELATION_REQUEST -> uplinkMsg = relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
+                    case RULE_CHAIN_METADATA_REQUEST -> uplinkMsg = ruleChainProcessor.convertRuleChainMetadataRequestEventToUplink(cloudEvent);
+                    case CREDENTIALS_REQUEST -> uplinkMsg = entityProcessor.convertCredentialsRequestEventToUplink(cloudEvent);
+                    case RPC_CALL -> uplinkMsg = deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
+                    case WIDGET_BUNDLE_TYPES_REQUEST -> uplinkMsg = widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
+                    case ENTITY_VIEW_REQUEST -> uplinkMsg = entityViewProcessor.convertEntityViewRequestEventToUplink(cloudEvent);
                 }
             } catch (Exception e) {
                 log.error("Exception during converting events from queue, skipping event [{}]", cloudEvent, e);
@@ -506,7 +474,7 @@ public class CloudManagerService {
 
     private ListenableFuture<Long> getLongAttrByKey(String attrKey) {
         ListenableFuture<Optional<AttributeKvEntry>> future =
-                attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, attrKey);
+                attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attrKey);
         return Futures.transform(future, attributeKvEntryOpt -> {
             if (attributeKvEntryOpt != null && attributeKvEntryOpt.isPresent()) {
                 AttributeKvEntry attributeKvEntry = attributeKvEntryOpt.get();
@@ -522,7 +490,7 @@ public class CloudManagerService {
         List<AttributeKvEntry> attributes = Arrays.asList(
                 new BaseAttributeKvEntry(new LongDataEntry(QUEUE_START_TS_ATTR_KEY, startTs), System.currentTimeMillis()),
                 new BaseAttributeKvEntry(new LongDataEntry(QUEUE_SEQ_ID_OFFSET_ATTR_KEY, seqIdOffset), System.currentTimeMillis()));
-        attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
+        attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes);
     }
 
     private void onUplinkResponse(UplinkResponseMsg msg) {
@@ -725,11 +693,11 @@ public class CloudManagerService {
     }
 
     private void save(String key, long value) {
-        tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, tenantId, DataConstants.SERVER_SCOPE, key, value, new AttributeSaveCallback(key, value));
+        tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, tenantId, AttributeScope.SERVER_SCOPE, key, value, new AttributeSaveCallback(key, value));
     }
 
     private void save(String key, boolean value) {
-        tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, tenantId, DataConstants.SERVER_SCOPE, key, value, new AttributeSaveCallback(key, value));
+        tsSubService.saveAttrAndNotify(TenantId.SYS_TENANT_ID, tenantId, AttributeScope.SERVER_SCOPE, key, value, new AttributeSaveCallback(key, value));
     }
 
     private static class AttributeSaveCallback implements FutureCallback<Void> {
@@ -751,4 +719,5 @@ public class CloudManagerService {
             log.warn("Failed to update attribute [{}] with value [{}]", key, value, t);
         }
     }
+
 }

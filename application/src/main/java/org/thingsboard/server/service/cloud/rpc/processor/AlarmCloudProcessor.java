@@ -96,4 +96,5 @@ public class AlarmCloudProcessor extends BaseAlarmProcessor {
     protected Alarm constructAlarmFromUpdateMsg(TenantId tenantId, AlarmId alarmId, EntityId originatorId, AlarmUpdateMsg alarmUpdateMsg) {
         return JacksonUtil.fromString(alarmUpdateMsg.getEntity(), Alarm.class, true);
     }
+
 }

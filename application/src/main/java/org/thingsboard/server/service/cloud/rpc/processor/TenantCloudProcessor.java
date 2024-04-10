@@ -21,14 +21,13 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
@@ -50,7 +49,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
             tenant.setTitle("Tenant");
             tenant.setId(tenantId);
             tenant.setCreatedTime(Uuids.unixTimestamp(tenantId.getId()));
-            Tenant savedTenant = tenantService.saveTenant(tenant, false);
+            Tenant savedTenant = tenantService.saveTenant(tenant, null, false);
             apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
 
             requestForAdditionalData(tenantId, tenantId, queueStartTs).get();
@@ -64,13 +63,18 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
         if (tenant == null) {
             throw new RuntimeException("[{" + TenantId.SYS_TENANT_ID + "}] tenantUpdateMsg {" + tenantUpdateMsg + "} cannot be converted to tenant");
         }
-        switch (tenantUpdateMsg.getMsgType()) {
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                tenantService.saveTenant(tenant, false);
-                notifyCluster(tenant.getId(), tenant);
-                break;
-            case UNRECOGNIZED:
-                return handleUnsupportedMsgType(tenantUpdateMsg.getMsgType());
+        try {
+            cloudSynchronizationManager.getSync().set(true);
+
+            switch (tenantUpdateMsg.getMsgType()) {
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    tenantService.saveTenant(tenant, null, false);
+                    break;
+                case UNRECOGNIZED:
+                    return handleUnsupportedMsgType(tenantUpdateMsg.getMsgType());
+            }
+        } finally {
+            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
@@ -102,17 +106,12 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
 
     private void removeTenantAttributes(TenantId tenantId) {
         try {
-            List<AttributeKvEntry> attributeKvEntries =
-                    attributesService.findAll(tenantId, tenantId, DataConstants.SERVER_SCOPE).get();
+            List<AttributeKvEntry> attributeKvEntries = attributesService.findAll(tenantId, tenantId, AttributeScope.SERVER_SCOPE).get();
             List<String> attrKeys = attributeKvEntries.stream().map(KvEntry::getKey).collect(Collectors.toList());
-            attributesService.removeAll(tenantId, tenantId, DataConstants.SERVER_SCOPE, attrKeys);
+            attributesService.removeAll(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attrKeys);
         } catch (Exception e) {
             log.error("Unable to remove tenant attributes", e);
         }
     }
 
-    private void notifyCluster(TenantId tenantId, Tenant savedTenant) {
-        tbClusterService.onTenantChange(savedTenant, null);
-        tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedTenant.getId(), ComponentLifecycleEvent.UPDATED);
-    }
 }

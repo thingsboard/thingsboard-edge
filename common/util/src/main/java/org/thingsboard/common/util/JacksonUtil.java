@@ -30,6 +30,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.kv.KvEntry;
 
@@ -50,6 +51,7 @@ import java.util.regex.Pattern;
 /**
  * Created by Valerii Sosliuk on 5/12/2017.
  */
+@Slf4j
 public class JacksonUtil {
 
     public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -126,6 +128,14 @@ public class JacksonUtil {
         }
     }
 
+    public static <T> T fromBytes(byte[] bytes, TypeReference<T> valueTypeRef) {
+        try {
+            return bytes != null ? OBJECT_MAPPER.readValue(bytes, valueTypeRef) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given string value cannot be transformed to Json object: " + Arrays.toString(bytes), e);
+        }
+    }
+
     public static JsonNode fromBytes(byte[] bytes) {
         try {
             return OBJECT_MAPPER.readTree(bytes);
@@ -148,6 +158,20 @@ public class JacksonUtil {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static String toPlainText(String data) {
+        if (data == null) {
+            return null;
+        }
+        if (data.startsWith("\"") && data.endsWith("\"") && data.length() >= 2) {
+            final String dataBefore = data;
+            try {
+                data = JacksonUtil.fromString(data, String.class);
+            } catch (Exception ignored) {}
+            log.trace("Trimming double quotes. Before trim: [{}], after trim: [{}]", dataBefore, data);
+        }
+        return data;
     }
 
     public static <T> T treeToValue(JsonNode node, Class<T> clazz) {

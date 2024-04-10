@@ -78,4 +78,5 @@ public class RelationCloudProcessor extends BaseRelationProcessor {
     protected EntityRelation constructEntityRelationFromUpdateMsg(RelationUpdateMsg relationUpdateMsg) {
         return JacksonUtil.fromString(relationUpdateMsg.getEntity(), EntityRelation.class, true);
     }
+
 }

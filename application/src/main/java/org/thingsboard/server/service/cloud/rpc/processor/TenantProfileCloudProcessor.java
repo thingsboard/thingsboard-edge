@@ -26,7 +26,6 @@ import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.page.PageDataIterable;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.gen.edge.v1.TenantProfileUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
@@ -66,13 +65,11 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
                     }
 
                     clearRateLimitsProfileConfiguration(tenantProfileMsg);
-                    TenantProfile savedTenantProfile = tenantProfileService.saveTenantProfile(tenantId, tenantProfileMsg, false);
-                    notifyCluster(tenantId, savedTenantProfile);
+                    tenantProfileService.saveTenantProfile(tenantId, tenantProfileMsg, false);
 
                     if (removePreviousProfile) {
                         updateTenants(tenantProfileMsg.getId(), tenantProfileByName.getId());
                         tenantProfileService.deleteTenantProfile(tenantId, tenantProfileByName.getId());
-                        tbClusterService.broadcastEntityStateChangeEvent(tenantId, tenantProfileByName.getId(), ComponentLifecycleEvent.DELETED);
                     }
 
                     break;
@@ -108,6 +105,18 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
         configuration.setEdgeEventRateLimits(null);
         configuration.setEdgeEventRateLimitsPerEdge(null);
 
+        configuration.setRpcTtlDays(0);
+        configuration.setMaxJSExecutions(0);
+        configuration.setMaxREExecutions(0);
+        configuration.setMaxDPStorageDays(0);
+        configuration.setMaxTbelExecutions(0);
+        configuration.setQueueStatsTtlDays(0);
+        configuration.setMaxTransportMessages(0);
+        configuration.setDefaultStorageTtlDays(0);
+        configuration.setMaxTransportDataPoints(0);
+        configuration.setRuleEngineExceptionsTtlDays(0);
+        configuration.setMaxRuleNodeExecutionsPerMessage(0);
+
         tenantProfile.getProfileData().setConfiguration(configuration);
     }
 
@@ -137,11 +146,6 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
                 tenantService.saveTenant(tenant);
             }
         }
-    }
-
-    private void notifyCluster(TenantId tenantId, TenantProfile savedTenantProfile) {
-        tbClusterService.onTenantProfileChange(savedTenantProfile, null);
-        tbClusterService.broadcastEntityStateChangeEvent(tenantId, savedTenantProfile.getId(), ComponentLifecycleEvent.UPDATED);
     }
 
 }

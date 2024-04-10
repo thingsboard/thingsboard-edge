@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.tenant.profile.TenantProfileConfiguration;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TenantProfileDao;
 import org.thingsboard.server.dao.tenant.TenantService;
@@ -71,14 +72,14 @@ public class ApiUsageStateServiceImpl extends AbstractEntityService implements A
     @Override
     public void deleteApiUsageStateByTenantId(TenantId tenantId) {
         log.trace("Executing deleteUsageRecordsByTenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         apiUsageStateDao.deleteApiUsageStateByTenantId(tenantId);
     }
 
     @Override
     public void deleteApiUsageStateByEntityId(EntityId entityId) {
         log.trace("Executing deleteApiUsageStateByEntityId [{}]", entityId);
-        validateId(entityId.getId(), "Invalid entity id");
+        validateId(entityId.getId(), id -> "Invalid entity id " + id);
         apiUsageStateDao.deleteApiUsageStateByEntityId(entityId);
     }
 
@@ -86,7 +87,7 @@ public class ApiUsageStateServiceImpl extends AbstractEntityService implements A
     public ApiUsageState createDefaultApiUsageState(TenantId tenantId, EntityId entityId) {
         entityId = Objects.requireNonNullElse(entityId, tenantId);
         log.trace("Executing createDefaultUsageRecord [{}]", entityId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         ApiUsageState apiUsageState = new ApiUsageState();
         apiUsageState.setTenantId(tenantId);
         apiUsageState.setEntityId(entityId);
@@ -141,29 +142,32 @@ public class ApiUsageStateServiceImpl extends AbstractEntityService implements A
     @Override
     public ApiUsageState update(ApiUsageState apiUsageState) {
         log.trace("Executing save [{}]", apiUsageState.getTenantId());
-        validateId(apiUsageState.getTenantId(), INCORRECT_TENANT_ID + apiUsageState.getTenantId());
+        validateId(apiUsageState.getTenantId(), id -> INCORRECT_TENANT_ID + id);
         validateId(apiUsageState.getId(), "Can't save new usage state. Only update is allowed!");
-        return apiUsageStateDao.save(apiUsageState.getTenantId(), apiUsageState);
+        ApiUsageState savedState = apiUsageStateDao.save(apiUsageState.getTenantId(), apiUsageState);
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedState.getTenantId()).entityId(savedState.getId())
+                .entity(savedState).build());
+        return savedState;
     }
 
     @Override
     public ApiUsageState findTenantApiUsageState(TenantId tenantId) {
         log.trace("Executing findTenantUsageRecord, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         return apiUsageStateDao.findTenantApiUsageState(tenantId.getId());
     }
 
     @Override
     public ApiUsageState findApiUsageStateByEntityId(EntityId entityId) {
-        validateId(entityId.getId(), "Invalid entity id");
+        validateId(entityId.getId(), id -> "Invalid entity id " + id);
         return apiUsageStateDao.findApiUsageStateByEntityId(entityId);
     }
 
     @Override
     public ApiUsageState findApiUsageStateById(TenantId tenantId, ApiUsageStateId id) {
         log.trace("Executing findApiUsageStateById, tenantId [{}], apiUsageStateId [{}]", tenantId, id);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(id, "Incorrect apiUsageStateId " + id);
+        validateId(tenantId, t -> INCORRECT_TENANT_ID + t);
+        validateId(id, u -> "Incorrect apiUsageStateId " + u);
         return apiUsageStateDao.findById(tenantId, id.getId());
     }
 
