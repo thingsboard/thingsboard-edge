@@ -95,29 +95,15 @@ public class DefaultCloudNotificationService implements CloudNotificationService
             ListenableFuture<Void> future;
             switch (cloudEventType) {
                 // TODO: voba - handle cloud updates
-                case EDGE:
-                case ASSET:
-                case DEVICE:
-                case ASSET_PROFILE:
-                case DEVICE_PROFILE:
-                case ENTITY_VIEW:
-                case DASHBOARD:
-                case RULE_CHAIN:
-                case TB_RESOURCE:
-                    future = processEntity(tenantId, cloudNotificationMsg);
-                    break;
-                case ALARM:
-                    future = processAlarm(tenantId, cloudNotificationMsg);
-                    break;
-                case RELATION:
-                    future = processRelation(tenantId, cloudNotificationMsg);
-                    break;
-                case ALARM_COMMENT:
-                    future = processAlarmComment(tenantId, cloudNotificationMsg);
-                    break;
-                default:
+                case EDGE, ASSET, DEVICE, ASSET_PROFILE, DEVICE_PROFILE, ENTITY_VIEW, DASHBOARD, RULE_CHAIN, TB_RESOURCE ->
+                        future = processEntity(tenantId, cloudNotificationMsg);
+                case ALARM -> future = processAlarm(tenantId, cloudNotificationMsg);
+                case RELATION -> future = processRelation(tenantId, cloudNotificationMsg);
+                case ALARM_COMMENT -> future = processAlarmComment(tenantId, cloudNotificationMsg);
+                default -> {
                     log.warn("Cloud event type [{}] is not designed to be pushed to cloud", cloudEventType);
                     future = Futures.immediateFuture(null);
+                }
             }
             Futures.addCallback(future, new FutureCallback<>() {
                 @Override

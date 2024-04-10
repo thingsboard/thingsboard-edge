@@ -31,11 +31,14 @@
 package org.thingsboard.server.service.edge;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpHost;
-import org.apache.http.conn.ssl.DefaultHostnameVerifier;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.client5.http.io.HttpClientConnectionManager;
+import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
+import org.apache.hc.core5.http.HttpHost;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -47,7 +50,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
-import javax.annotation.PostConstruct;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.HashMap;
@@ -119,21 +121,26 @@ public class DefaultEdgeLicenseService implements EdgeLicenseService {
         } else if (proxyEnabled) {
             log.warn("Going to use Proxy Server: [{}:{}]", System.getProperty("tb.proxy.host"), System.getProperty("tb.proxy.port"));
             httpClient = HttpClients.custom()
-                    .setSSLHostnameVerifier(new DefaultHostnameVerifier())
-                    .setProxy(new HttpHost(System.getProperty("tb.proxy.host"), Integer.parseInt(System.getProperty("tb.proxy.port")), "https")).build();
+                    .setConnectionManager(createConnectionManager())
+                    .setProxy(new HttpHost("https", System.getProperty("tb.proxy.host"), Integer.parseInt(System.getProperty("tb.proxy.port")))).build();
             HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
             factory.setHttpClient(httpClient);
             factory.setConnectTimeout(CONNECT_TIMEOUT);
             factory.setReadTimeout(READ_TIMEOUT);
             return new RestTemplate(factory);
         } else {
-            httpClient = HttpClients.custom().setSSLHostnameVerifier(new DefaultHostnameVerifier()).build();
+            httpClient = HttpClients.custom().setConnectionManager(createConnectionManager()).build();
             HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
             factory.setHttpClient(httpClient);
             factory.setConnectTimeout(CONNECT_TIMEOUT);
             factory.setReadTimeout(READ_TIMEOUT);
             return new RestTemplate(factory);
         }
+    }
+
+    private HttpClientConnectionManager createConnectionManager() {
+        var socketFactory = SSLConnectionSocketFactory.getSocketFactory();
+        return PoolingHttpClientConnectionManagerBuilder.create().setSSLSocketFactory(socketFactory).build();
     }
 }
 

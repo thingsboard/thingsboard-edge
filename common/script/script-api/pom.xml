@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.thingsboard.common</groupId>
-        <version>3.6.3EDGEPE-SNAPSHOT</version>
+        <version>3.7.0EDGEPE-SNAPSHOT</version>
         <artifactId>script</artifactId>
     </parent>
     <groupId>org.thingsboard.common.script</groupId>
@@ -66,6 +66,10 @@
         <dependency>
             <groupId>org.javadelight</groupId>
             <artifactId>delight-nashorn-sandbox</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.nashorn</groupId>
+            <artifactId>nashorn-core</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>

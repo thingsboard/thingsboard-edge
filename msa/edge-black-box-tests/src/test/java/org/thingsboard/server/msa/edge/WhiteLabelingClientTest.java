@@ -355,4 +355,5 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
                 .atMost(60, TimeUnit.SECONDS)
                 .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId().getId()));
     }
+
 }

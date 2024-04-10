@@ -46,7 +46,6 @@ import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
@@ -85,6 +84,7 @@ import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
+import org.thingsboard.server.dao.queue.QueueStatsService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -254,8 +254,6 @@ public interface TbContext {
 
     TbMsg attributesDeletedActionMsg(EntityId originator, RuleNodeId ruleNodeId, String scope, List<String> keys);
 
-    void onEdgeEventUpdate(TenantId tenantId, EdgeId edgeId);
-
     /*
      *
      *  METHODS TO PROCESS THE MESSAGES
@@ -333,6 +331,8 @@ public interface TbContext {
     EdgeEventService getEdgeEventService();
 
     QueueService getQueueService();
+
+    QueueStatsService getQueueStatsService();
 
     CloudEventService getCloudEventService();
 

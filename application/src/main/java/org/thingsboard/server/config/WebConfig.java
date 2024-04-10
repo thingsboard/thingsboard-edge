@@ -34,8 +34,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.thingsboard.server.utils.MiscUtils;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Controller
@@ -50,6 +50,11 @@ public class WebConfig {
     public void redirectSwagger(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String baseUrl = MiscUtils.constructBaseUrl(request);
         response.sendRedirect(baseUrl + "/swagger-ui/");
+    }
+
+    @RequestMapping("/swagger-ui/")
+    public String redirectSwaggerIndex() throws IOException {
+        return "forward:/swagger-ui/index.html";
     }
 
 }

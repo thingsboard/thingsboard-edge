@@ -144,4 +144,5 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
         entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.DASHBOARD);
         entityGroupService.createEntityGroupAll(savedCustomer.getTenantId(), savedCustomer.getId(), EntityType.USER);
     }
+
 }

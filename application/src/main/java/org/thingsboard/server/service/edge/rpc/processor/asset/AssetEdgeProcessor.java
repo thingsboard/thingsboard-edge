@@ -165,7 +165,7 @@ public abstract class AssetEdgeProcessor extends BaseAssetProcessor implements A
             case UPDATED:
             case ASSIGNED_TO_EDGE:
                 Asset asset = assetService.findAssetById(edgeEvent.getTenantId(), assetId);
-                if (asset != null && !BaseAssetService.TB_SERVICE_QUEUE.equals(asset.getType())) {
+                if (asset != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     AssetUpdateMsg assetUpdateMsg = ((AssetMsgConstructor)
                             assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetUpdatedMsg(msgType, asset, entityGroupId);

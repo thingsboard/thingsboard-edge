@@ -78,6 +78,7 @@ import org.thingsboard.server.common.data.notification.template.NotificationTemp
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.queue.QueueStats;
 import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
@@ -101,6 +102,7 @@ import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
+import org.thingsboard.server.dao.queue.QueueStatsService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -181,6 +183,8 @@ public class TenantIdLoaderTest {
     private GroupPermissionService groupPermissionService;
     @Mock
     private TbPeContext tbPeContext;
+    @Mock
+    private QueueStatsService queueStatsService;
 
     private TenantId tenantId;
     private TenantProfileId tenantProfileId;
@@ -456,6 +460,12 @@ public class TenantIdLoaderTest {
                 when(tbPeContext.getGroupPermissionService()).thenReturn(groupPermissionService);
                 doReturn(groupPermission).when(groupPermissionService).findGroupPermissionById(eq(tenantId), any());
 
+                break;
+            case QUEUE_STATS:
+                QueueStats queueStats = new QueueStats();
+                queueStats.setTenantId(tenantId);
+                when(ctx.getQueueStatsService()).thenReturn(queueStatsService);
+                doReturn(queueStats).when(queueStatsService).findQueueStatsById(eq(tenantId), any());
                 break;
             default:
                 throw new RuntimeException("Unexpected originator EntityType " + entityType);

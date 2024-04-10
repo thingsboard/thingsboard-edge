@@ -36,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
@@ -66,9 +66,10 @@ public class AdminSettingsCloudProcessor extends BaseEdgeProcessor {
             }
         } else {
             List<AttributeKvEntry> attributes = new ArrayList<>();
-            attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettingsMsg.getKey(), adminSettingsMsg.getJsonValue().asText()), System.currentTimeMillis()));
-            attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
+            attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettingsMsg.getKey(), JacksonUtil.toString(adminSettingsMsg.getJsonValue())), System.currentTimeMillis()));
+            attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes);
         }
         return Futures.immediateFuture(null);
     }
+
 }

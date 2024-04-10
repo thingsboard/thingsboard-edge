@@ -63,14 +63,14 @@ public class BaseDeviceGroupOtaPackageService implements DeviceGroupOtaPackageSe
     @Override
     public DeviceGroupOtaPackage findDeviceGroupOtaPackageById(UUID id) {
         log.trace("Executing findDeviceGroupOtaPackageById [{}]", id);
-        validateId(id, "Incorrect DeviceGroupOtaPackageId" + id);
+        validateId(id, uuid -> "Incorrect DeviceGroupOtaPackageId" + uuid);
         return deviceGroupOtaPackageDao.findDeviceGroupOtaPackageById(id);
     }
 
     @Override
     public DeviceGroupOtaPackage findDeviceGroupOtaPackageByGroupIdAndType(EntityGroupId groupId, OtaPackageType otaPackageType) {
         log.trace("Executing findDeviceGroupOtaPackageByGroupIdAndType [{}], [{}]", groupId, otaPackageType);
-        validateId(groupId, "Incorrect groupId" + groupId);
+        validateId(groupId, id -> "Incorrect groupId" + id);
         return deviceGroupOtaPackageDao.findDeviceGroupOtaPackageByGroupIdAndType(groupId.getId(), otaPackageType);
     }
 
@@ -94,7 +94,7 @@ public class BaseDeviceGroupOtaPackageService implements DeviceGroupOtaPackageSe
     public void deleteDeviceGroupOtaPackage(TenantId tenantId, DeviceGroupOtaPackage deviceGroupOtaPackage) {
         UUID id = deviceGroupOtaPackage.getId();
         log.trace("Executing deleteDeviceGroupOtaPackage [{}]", id);
-        validateId(id, "Incorrect DeviceGroupOtaPackageId" + id);
+        validateId(id, uuid -> "Incorrect DeviceGroupOtaPackageId" + uuid);
         deviceGroupOtaPackageDao.deleteDeviceGroupOtaPackage(id);
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entity(deviceGroupOtaPackage)
                 .entityId(deviceGroupOtaPackage.getGroupId()).build());

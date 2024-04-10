@@ -32,7 +32,7 @@ package org.thingsboard.server.transport.lwm2m.client;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.client.resource.BaseInstanceEnabler;
-import org.eclipse.leshan.client.servers.ServerIdentity;
+import org.eclipse.leshan.client.servers.LwM2mServer;
 import org.eclipse.leshan.core.model.ObjectModel;
 import org.eclipse.leshan.core.model.ResourceModel;
 import org.eclipse.leshan.core.node.LwM2mMultipleResource;
@@ -108,7 +108,7 @@ public class LwM2mBinaryAppDataContainer extends BaseInstanceEnabler implements 
     }
 
     @Override
-    public ReadResponse read(ServerIdentity identity, int resourceId) {
+    public ReadResponse read(LwM2mServer identity, int resourceId) {
         try {
             switch (resourceId) {
                 case 0:
@@ -133,7 +133,7 @@ public class LwM2mBinaryAppDataContainer extends BaseInstanceEnabler implements 
     }
 
     @Override
-    public WriteResponse write(ServerIdentity identity, boolean replace, int resourceId, LwM2mResource value) {
+    public WriteResponse write(LwM2mServer identity, boolean replace, int resourceId, LwM2mResource value) {
         log.info("Write on Device resource /[{}]/[{}]/[{}]", getModel().id, getId(), resourceId);
         switch (resourceId) {
             case 0:

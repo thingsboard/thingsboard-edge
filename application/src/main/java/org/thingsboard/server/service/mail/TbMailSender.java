@@ -44,7 +44,7 @@ import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -53,8 +53,8 @@ import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.mail.MailOauth2Provider;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -243,7 +243,7 @@ public class TbMailSender extends JavaMailSenderImpl {
         List<AttributeKvEntry> attributes = new ArrayList<>();
         long ts = System.currentTimeMillis();
         attributes.add(new BaseAttributeKvEntry(new StringDataEntry(adminSettings.getKey(), jsonString), ts));
-        ctx.getAttributesService().save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes).get();
+        ctx.getAttributesService().save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes).get();
     }
 
     public AdminSettings getSystemMailSettings() {
@@ -252,7 +252,7 @@ public class TbMailSender extends JavaMailSenderImpl {
 
     public String getTenantMailAttributeValue(TenantId tenantId) throws Exception {
         List<AttributeKvEntry> attributeKvEntries =
-                ctx.getAttributesService().find(tenantId, tenantId, DataConstants.SERVER_SCOPE, Collections.singletonList("mail")).get();
+                ctx.getAttributesService().find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, Collections.singletonList("mail")).get();
         if (attributeKvEntries != null && !attributeKvEntries.isEmpty()) {
             AttributeKvEntry kvEntry = attributeKvEntries.get(0);
             return kvEntry.getValueAsString();

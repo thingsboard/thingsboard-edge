@@ -94,82 +94,82 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     @Override
     public SchedulerEvent findSchedulerEventById(TenantId tenantId, SchedulerEventId schedulerEventId) {
         log.trace("Executing findSchedulerEventById [{}]", schedulerEventId);
-        validateId(schedulerEventId, INCORRECT_SCHEDULER_EVENT_ID + schedulerEventId);
+        validateId(schedulerEventId, id -> INCORRECT_SCHEDULER_EVENT_ID + id);
         return schedulerEventDao.findById(tenantId, schedulerEventId.getId());
     }
 
     @Override
     public SchedulerEventInfo findSchedulerEventInfoById(TenantId tenantId, SchedulerEventId schedulerEventId) {
         log.trace("Executing findSchedulerEventInfoById [{}]", schedulerEventId);
-        validateId(schedulerEventId, INCORRECT_SCHEDULER_EVENT_ID + schedulerEventId);
+        validateId(schedulerEventId, id -> INCORRECT_SCHEDULER_EVENT_ID + id);
         return schedulerEventInfoDao.findById(tenantId, schedulerEventId.getId());
     }
 
     @Override
     public SchedulerEventWithCustomerInfo findSchedulerEventWithCustomerInfoById(TenantId tenantId, SchedulerEventId schedulerEventId) {
         log.trace("Executing findSchedulerEventWithCustomerInfoById [{}]", schedulerEventId);
-        validateId(schedulerEventId, INCORRECT_SCHEDULER_EVENT_ID + schedulerEventId);
+        validateId(schedulerEventId, id -> INCORRECT_SCHEDULER_EVENT_ID + id);
         return schedulerEventInfoDao.findSchedulerEventWithCustomerInfoById(tenantId.getId(), schedulerEventId.getId());
     }
 
     @Override
     public ListenableFuture<SchedulerEventInfo> findSchedulerEventInfoByIdAsync(TenantId tenantId, SchedulerEventId schedulerEventId) {
         log.trace("Executing findSchedulerEventInfoByIdAsync [{}]", schedulerEventId);
-        validateId(schedulerEventId, INCORRECT_SCHEDULER_EVENT_ID + schedulerEventId);
+        validateId(schedulerEventId, id -> INCORRECT_SCHEDULER_EVENT_ID + id);
         return schedulerEventInfoDao.findByIdAsync(tenantId, schedulerEventId.getId());
     }
 
     @Override
     public ListenableFuture<List<SchedulerEventInfo>> findSchedulerEventInfoByIdsAsync(TenantId tenantId, List<SchedulerEventId> schedulerEventIds) {
         log.trace("Executing findSchedulerEventInfoByIdsAsync, tenantId [{}], schedulerEventIds [{}]", tenantId, schedulerEventIds);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateIds(schedulerEventIds, "Incorrect schedulerEventIds " + schedulerEventIds);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateIds(schedulerEventIds, ids -> "Incorrect schedulerEventIds " + ids);
         return schedulerEventInfoDao.findSchedulerEventsByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(schedulerEventIds));
     }
 
     @Override
     public List<SchedulerEventInfo> findSchedulerEventsByTenantId(TenantId tenantId) {
         log.trace("Executing findSchedulerEventsByTenantId, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         return schedulerEventInfoDao.findSchedulerEventsByTenantId(tenantId.getId());
     }
 
     @Override
     public List<SchedulerEventInfo> findSchedulerEventsByTenantIdAndEnabled(TenantId tenantId, boolean enabled) {
         log.trace("Executing findSchedulerEventsByTenantIdAndEnabled, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         return schedulerEventInfoDao.findSchedulerEventsByTenantIdAndEnabled(tenantId.getId(), enabled);
     }
 
     @Override
     public List<SchedulerEventWithCustomerInfo> findSchedulerEventsWithCustomerInfoByTenantId(TenantId tenantId) {
         log.trace("Executing findSchedulerEventsWithCustomerInfoByTenantId, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         return schedulerEventInfoDao.findSchedulerEventsWithCustomerInfoByTenantId(tenantId.getId());
     }
 
     @Override
     public List<SchedulerEventWithCustomerInfo> findSchedulerEventsByTenantIdAndType(TenantId tenantId, String type) {
         log.trace("Executing findSchedulerEventsByTenantIdAndType, tenantId [{}], type [{}]", tenantId, type);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateString(type, "Incorrect type " + type);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateString(type, t -> "Incorrect type " + t);
         return schedulerEventInfoDao.findSchedulerEventsByTenantIdAndType(tenantId.getId(), type);
     }
 
     @Override
     public List<SchedulerEventWithCustomerInfo> findSchedulerEventsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing findSchedulerEventsByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         return schedulerEventInfoDao.findSchedulerEventsByTenantIdAndCustomerId(tenantId.getId(), customerId.getId());
     }
 
     @Override
     public List<SchedulerEventWithCustomerInfo> findSchedulerEventsByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, String type) {
         log.trace("Executing findSchedulerEventsByTenantIdAndCustomerIdAndType, tenantId [{}], customerId [{}], type [{}]", tenantId, customerId, type);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validateString(type, "Incorrect type " + type);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
+        validateString(type, t -> "Incorrect type " + t);
         return schedulerEventInfoDao.findSchedulerEventsByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type);
     }
 
@@ -196,7 +196,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     @Override
     public void deleteSchedulerEvent(TenantId tenantId, SchedulerEventId schedulerEventId) {
         log.trace("Executing deleteSchedulerEvent [{}]", schedulerEventId);
-        validateId(schedulerEventId, INCORRECT_SCHEDULER_EVENT_ID + schedulerEventId);
+        validateId(schedulerEventId, id -> INCORRECT_SCHEDULER_EVENT_ID + id);
         deleteEntityRelations(tenantId, schedulerEventId);
         schedulerEventDao.removeById(tenantId, schedulerEventId.getId());
         entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.SCHEDULER_EVENT);
@@ -206,7 +206,7 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     @Override
     public void deleteSchedulerEventsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteSchedulerEventsByTenantId, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         List<SchedulerEventInfo> schedulerEvents = schedulerEventInfoDao.findSchedulerEventsByTenantId(tenantId.getId());
         for (SchedulerEventInfo schedulerEvent : schedulerEvents) {
             deleteSchedulerEvent(tenantId, schedulerEvent.getId());
@@ -216,8 +216,8 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     @Override
     public void deleteSchedulerEventsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing deleteSchedulerEventsByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         List<SchedulerEventWithCustomerInfo> schedulerEvents = schedulerEventInfoDao.findSchedulerEventsByTenantIdAndCustomerId(tenantId.getId(), customerId.getId());
         for (SchedulerEventInfo schedulerEvent : schedulerEvents) {
             deleteSchedulerEvent(tenantId, schedulerEvent.getId());
@@ -263,8 +263,8 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     @Override
     public PageData<SchedulerEventInfo> findSchedulerEventInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink) {
         log.trace("Executing findSchedulerEventInfosByTenantIdAndEdgeId, tenantId [{}], edgeId [{}]", tenantId, edgeId);
-        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
-        Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
+        Validator.validateId(edgeId, id -> "Incorrect edgeId " + id);
         return schedulerEventInfoDao.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
     }
 
@@ -272,8 +272,8 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     public PageData<SchedulerEvent> findSchedulerEventsByTenantIdAndEdgeId(TenantId tenantId,
                                                                             EdgeId edgeId, PageLink pageLink) {
         log.trace("Executing findSchedulerEventsByTenantIdAndEdgeId, tenantId [{}], edgeId [{}]", tenantId, edgeId);
-        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
-        Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
+        Validator.validateId(edgeId, id -> "Incorrect edgeId " + id);
         return schedulerEventDao.findSchedulerEventsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
     }
 

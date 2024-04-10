@@ -31,7 +31,7 @@
 package org.thingsboard.server.common.data.group;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -44,7 +44,7 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 public class EntityGroupInfo extends EntityGroup {
 
-    @ApiModelProperty(position = 10, required = true, value = "List of the entity group owners.")
+    @Schema(required = true, description = "List of the entity group owners.")
     private Set<EntityId> ownerIds;
 
     public EntityGroupInfo() {

@@ -211,7 +211,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 retries,
                 additionalInfo);
 
-        // @voba - changes to be in sync with cloud version
+        // edge: changes to be in sync with cloud version
         SecurityUser dummySecurityUser = new SecurityUser();
         tbCoreDeviceRpcService.processRestApiRpcRequest(rpcRequest,
                 fromDeviceRpcResponse -> reply(rpcRequest, deviceRpcCallMsg.getRequestId(), fromDeviceRpcResponse),
@@ -253,9 +253,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
         UplinkMsg msg = null;
         EntityGroupId entityGroupId = cloudEvent.getEntityGroupId() != null ? new EntityGroupId(cloudEvent.getEntityGroupId()) : null;
         switch (cloudEvent.getAction()) {
-            case ADDED:
-            case UPDATED:
-            case ADDED_TO_ENTITY_GROUP:
+            case ADDED, UPDATED, ADDED_TO_ENTITY_GROUP -> {
                 Device device = deviceService.findDeviceById(cloudEvent.getTenantId(), deviceId);
                 if (device != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
@@ -273,16 +271,15 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 } else {
                     log.info("Skipping event as device was not found [{}]", cloudEvent);
                 }
-                break;
-            case DELETED:
-            case REMOVED_FROM_ENTITY_GROUP:
+            }
+            case DELETED, REMOVED_FROM_ENTITY_GROUP -> {
                 DeviceUpdateMsg deviceUpdateMsg = ((DeviceMsgConstructor)
                         deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDeviceDeleteMsg(deviceId, entityGroupId);
                 msg = UplinkMsg.newBuilder()
                         .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDeviceUpdateMsg(deviceUpdateMsg).build();
-                break;
-            case CREDENTIALS_UPDATED:
+            }
+            case CREDENTIALS_UPDATED -> {
                 DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(tenantId, deviceId);
                 if (deviceCredentials != null) {
                     DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = ((DeviceMsgConstructor)
@@ -293,7 +290,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
                 } else {
                     log.info("Skipping event as device credentials was not found [{}]", cloudEvent);
                 }
-                break;
+            }
         }
         return msg;
     }

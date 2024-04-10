@@ -31,11 +31,10 @@
 package org.thingsboard.server.common.data.notification.settings;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.AssertTrue;
 import lombok.Data;
 import org.apache.commons.lang3.StringUtils;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
-
-import javax.validation.constraints.AssertTrue;
 
 @Data
 public class MobileAppNotificationDeliveryMethodConfig implements NotificationDeliveryMethodConfig {

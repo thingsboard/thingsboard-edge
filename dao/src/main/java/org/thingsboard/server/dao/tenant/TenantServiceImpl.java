@@ -69,6 +69,7 @@ import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
+import org.thingsboard.server.dao.queue.QueueStatsService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rpc.RpcService;
@@ -86,6 +87,7 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -177,6 +179,10 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Autowired
     private QueueService queueService;
 
+    @Lazy
+    @Autowired
+    private QueueStatsService queueStatsService;
+
     @Autowired
     private AdminSettingsService adminSettingsService;
 
@@ -214,7 +220,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Override
     public Tenant findTenantById(TenantId tenantId) {
         log.trace("Executing findTenantById [{}]", tenantId);
-        Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
 
         return cache.getAndPutInTransaction(tenantId, () -> tenantDao.findById(tenantId, tenantId.getId()), true);
     }
@@ -222,37 +228,32 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Override
     public TenantInfo findTenantInfoById(TenantId tenantId) {
         log.trace("Executing findTenantInfoById [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         return tenantDao.findTenantInfoById(tenantId, tenantId.getId());
     }
 
     @Override
     public ListenableFuture<Tenant> findTenantByIdAsync(TenantId callerId, TenantId tenantId) {
         log.trace("Executing findTenantByIdAsync [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         return tenantDao.findByIdAsync(callerId, tenantId.getId());
     }
 
     @Override
     public ListenableFuture<List<Tenant>> findTenantsByIdsAsync(TenantId callerId, List<TenantId> tenantIds) {
         log.trace("Executing findTenantsByIdsAsync, callerId [{}], tenantIds [{}]", callerId, tenantIds);
-        validateIds(tenantIds, "Incorrect tenantIds " + tenantIds);
+        validateIds(tenantIds, ids -> "Incorrect tenantIds " + ids);
         return tenantDao.findTenantsByIdsAsync(callerId.getId(), toUUIDs(tenantIds));
     }
 
     @Transactional
-    @Override
-    public Tenant saveTenant(Tenant tenant)  {
-        return doSaveTenant(tenant, true);
+    public Tenant saveTenant(Tenant tenant) {
+        return saveTenant(tenant, null, true);
     }
 
+    @Override
     @Transactional
-    @Override
-    public Tenant saveTenant(Tenant tenant, boolean doValidate) {
-        return doSaveTenant(tenant, doValidate);
-    }
-
-    private Tenant doSaveTenant(Tenant tenant, boolean doValidate) {
+    public Tenant saveTenant(Tenant tenant, Consumer<TenantId> defaultEntitiesCreator, boolean doValidate) {
         log.trace("Executing saveTenant [{}]", tenant);
         tenant.setRegion(DEFAULT_TENANT_REGION);
         if (tenant.getTenantProfileId() == null) {
@@ -263,28 +264,32 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
             tenantValidator.validate(tenant, Tenant::getId);
         }
         boolean create = tenant.getId() == null;
+
         Tenant savedTenant = tenantDao.save(tenant.getId(), tenant);
-        publishEvictEvent(new TenantEvictEvent(savedTenant.getId(), create));
-        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedTenant.getId()).entityId(savedTenant.getId()).created(create).build());
-        if (tenant.getId() == null) {
-            deviceProfileService.createDefaultDeviceProfile(savedTenant.getId());
-            assetProfileService.createDefaultAssetProfile(savedTenant.getId());
+        TenantId tenantId = savedTenant.getId();
+        publishEvictEvent(new TenantEvictEvent(tenantId, create));
+        eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId)
+                .entityId(tenantId).entity(savedTenant).created(create).build());
 
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.CUSTOMER);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ASSET);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DEVICE);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.ENTITY_VIEW);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.EDGE);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.DASHBOARD);
-            entityGroupService.createEntityGroupAll(savedTenant.getId(), savedTenant.getId(), EntityType.USER);
+        if (create) {
+            deviceProfileService.createDefaultDeviceProfile(tenantId);
+            assetProfileService.createDefaultAssetProfile(tenantId);
 
-            entityGroupService.findOrCreateTenantUsersGroup(savedTenant.getId());
-            entityGroupService.findOrCreateTenantAdminsGroup(savedTenant.getId());
-            apiUsageStateService.createDefaultApiUsageState(savedTenant.getId(), null);
-            try {
-                notificationSettingsService.createDefaultNotificationConfigs(savedTenant.getId());
-            } catch (Throwable e) {
-                log.error("Failed to create default notification configs for tenant {}", savedTenant.getId(), e);
+            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.CUSTOMER);
+            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.ASSET);
+            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.DEVICE);
+            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.ENTITY_VIEW);
+            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.EDGE);
+            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.DASHBOARD);
+            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.USER);
+
+            entityGroupService.findOrCreateTenantUsersGroup(tenantId);
+            entityGroupService.findOrCreateTenantAdminsGroup(tenantId);
+            apiUsageStateService.createDefaultApiUsageState(tenantId, null);
+            notificationSettingsService.createDefaultNotificationConfigs(tenantId);
+
+            if (defaultEntitiesCreator != null) {
+                defaultEntitiesCreator.accept(tenantId);
             }
         }
         return savedTenant;
@@ -298,7 +303,8 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Override
     public void deleteTenant(TenantId tenantId) {
         log.trace("Executing deleteTenant [{}]", tenantId);
-        Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        Tenant tenant = findTenantById(tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, null);
         entityViewService.deleteEntityViewsByTenantId(tenantId);
         widgetsBundleService.deleteWidgetsBundlesByTenantId(tenantId);
@@ -332,9 +338,11 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
         publishEvictEvent(new TenantEvictEvent(tenantId, true));
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(tenantId).build());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId)
+                .entity(tenant).entityId(tenantId).build());
         relationService.deleteEntityRelations(tenantId, tenantId);
         alarmService.deleteEntityAlarmRecordsByTenantId(tenantId);
+        queueStatsService.deleteByTenantId(tenantId);
     }
 
     @Override

@@ -46,6 +46,7 @@ import org.thingsboard.rule.engine.util.TbMsgSource;
 import org.thingsboard.rule.engine.metadata.TbGetAttributesNode;
 import org.thingsboard.rule.engine.metadata.TbGetAttributesNodeConfiguration;
 import org.thingsboard.server.actors.ActorSystemContext;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EventInfo;
@@ -189,9 +190,9 @@ public abstract class AbstractRuleEngineFlowIntegrationTest extends AbstractRule
         device.setType("default");
         device = doPost("/api/device", device, Device.class);
 
-        attributesService.save(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE,
+        attributesService.save(device.getTenantId(), device.getId(), AttributeScope.SERVER_SCOPE,
                 Collections.singletonList(new BaseAttributeKvEntry(new StringDataEntry("serverAttributeKey1", "serverAttributeValue1"), System.currentTimeMillis()))).get();
-        attributesService.save(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE,
+        attributesService.save(device.getTenantId(), device.getId(), AttributeScope.SERVER_SCOPE,
                 Collections.singletonList(new BaseAttributeKvEntry(new StringDataEntry("serverAttributeKey2", "serverAttributeValue2"), System.currentTimeMillis()))).get();
 
         TbMsgCallback tbMsgCallback = Mockito.mock(TbMsgCallback.class);
@@ -314,9 +315,9 @@ public abstract class AbstractRuleEngineFlowIntegrationTest extends AbstractRule
         device.setType("default");
         device = doPost("/api/device", device, Device.class);
 
-        attributesService.save(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE,
+        attributesService.save(device.getTenantId(), device.getId(), AttributeScope.SERVER_SCOPE,
                 Collections.singletonList(new BaseAttributeKvEntry(new StringDataEntry("serverAttributeKey1", "serverAttributeValue1"), System.currentTimeMillis()))).get();
-        attributesService.save(device.getTenantId(), device.getId(), DataConstants.SERVER_SCOPE,
+        attributesService.save(device.getTenantId(), device.getId(), AttributeScope.SERVER_SCOPE,
                 Collections.singletonList(new BaseAttributeKvEntry(new StringDataEntry("serverAttributeKey2", "serverAttributeValue2"), System.currentTimeMillis()))).get();
 
         TbMsgCallback tbMsgCallback = Mockito.mock(TbMsgCallback.class);

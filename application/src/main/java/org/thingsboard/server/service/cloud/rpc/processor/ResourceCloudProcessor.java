@@ -120,8 +120,7 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
         TbResourceId tbResourceId = new TbResourceId(cloudEvent.getEntityId());
         UplinkMsg msg = null;
         switch (cloudEvent.getAction()) {
-            case ADDED:
-            case UPDATED:
+            case ADDED, UPDATED -> {
                 TbResource tbResource = resourceService.findResourceById(cloudEvent.getTenantId(), tbResourceId);
                 if (tbResource != null) {
                     UpdateMsgType msgType = getUpdateMsgType(cloudEvent.getAction());
@@ -132,7 +131,7 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
                             .addResourceUpdateMsg(resourceUpdateMsg)
                             .build();
                 }
-                break;
+            }
         }
         return msg;
     }
@@ -141,4 +140,5 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
     protected TbResource constructResourceFromUpdateMsg(TenantId tenantId, TbResourceId tbResourceId, ResourceUpdateMsg resourceUpdateMsg) {
         return JacksonUtil.fromString(resourceUpdateMsg.getEntity(), TbResource.class, true);
     }
+
 }

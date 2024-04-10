@@ -94,7 +94,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
             if (converter.getId() == null) {
                 entityCountService.publishCountEntityEvictEvent(converter.getTenantId(), EntityType.CONVERTER);
             }
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(converter.getTenantId()).entity(converter)
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedConverter.getTenantId()).entity(savedConverter)
                     .entityId(savedConverter.getId()).created(converter.getId() == null).build());
             return savedConverter;
         } catch (Exception t) {
@@ -107,7 +107,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     @Override
     public Converter findConverterById(TenantId tenantId, ConverterId converterId) {
         log.trace("Executing findConverterById [{}]", converterId);
-        validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
+        validateId(converterId, id -> INCORRECT_CONVERTER_ID + id);
         return converterDao.findById(tenantId, converterId.getId());
     }
 
@@ -121,22 +121,22 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     @Override
     public ListenableFuture<Converter> findConverterByIdAsync(TenantId tenantId, ConverterId converterId) {
         log.trace("Executing findConverterById [{}]", converterId);
-        validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
+        validateId(converterId, id -> INCORRECT_CONVERTER_ID + id);
         return converterDao.findByIdAsync(tenantId, converterId.getId());
     }
 
     @Override
     public ListenableFuture<List<Converter>> findConvertersByIdsAsync(TenantId tenantId, List<ConverterId> converterIds) {
         log.trace("Executing findConvertersByIdsAsync, tenantId [{}], converterIds [{}]", tenantId, converterIds);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateIds(converterIds, "Incorrect converterIds " + converterIds);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateIds(converterIds, ids -> "Incorrect converterIds " + ids);
         return converterDao.findConvertersByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(converterIds));
     }
 
     @Override
     public PageData<Converter> findTenantConverters(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findTenantConverters, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return converterDao.findCoreConvertersByTenantId(tenantId.getId(), pageLink);
     }
@@ -144,7 +144,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     @Override
     public PageData<Converter> findTenantEdgeTemplateConverters(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findTenantEdgeTemplateConverters, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return converterDao.findEdgeTemplateConvertersByTenantId(tenantId.getId(), pageLink);
     }
@@ -153,7 +153,8 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     @Transactional
     public void deleteConverter(TenantId tenantId, ConverterId converterId) {
         log.trace("Executing deleteConverter [{}]", converterId);
-        validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
+        Converter converter = findConverterById(tenantId, converterId);
+        validateId(converterId, id -> INCORRECT_CONVERTER_ID + id);
         try {
             converterDao.removeById(tenantId, converterId.getId());
         } catch (Exception t) {
@@ -166,7 +167,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
                 throw t;
             }
         }
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(converterId).build());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entity(converter).entityId(converterId).build());
         deleteEntityRelations(tenantId, converterId);
         entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.CONVERTER);
     }
@@ -174,7 +175,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     @Override
     public void deleteConvertersByTenantId(TenantId tenantId) {
         log.trace("Executing deleteConvertersByTenantId, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantConvertersRemover.removeEntities(tenantId, tenantId);
     }
 

@@ -83,4 +83,5 @@ public class OtaPackageCloudProcessor extends BaseEdgeProcessor {
         }
         return Futures.immediateFuture(null);
     }
+
 }

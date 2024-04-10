@@ -38,6 +38,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,12 +53,13 @@ import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
-import org.thingsboard.server.common.data.FSTUtils;
+import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
@@ -116,7 +119,7 @@ import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
+import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.DataConverterService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
@@ -125,8 +128,6 @@ import org.thingsboard.server.service.profile.DefaultTbDeviceProfileCache;
 import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -168,7 +169,7 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
 
     @Autowired
     @Lazy
-    private DataDecodingEncodingService encodingService;
+    private TbQueueProducerProvider producerProvider;
 
     @Autowired
     @Lazy
@@ -370,7 +371,7 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
                 throw new RuntimeException("Not supported!");
         }
 
-        List<TsKvEntry> statistics = KvProtoUtil.toTsKvEntityList(data.getTsDataList());
+        List<TsKvEntry> statistics = KvProtoUtil.fromTsValueProtoList(data.getTsDataList());
         telemetrySubscriptionService.saveAndNotifyInternal(tenantId, entityid, statistics, new FutureCallback<>() {
             @Override
             public void onSuccess(Integer result) {
@@ -386,7 +387,7 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
 
     private void saveEvent(TenantId tenantId, EntityId entityId, TbIntegrationEventProto proto, IntegrationApiCallback callback) {
         try {
-            Event event = FSTUtils.decode(proto.getEvent().toByteArray());
+            Event event = JavaSerDesUtil.decode(proto.getEvent().toByteArray());
             event.setTenantId(tenantId);
             event.setEntityId(entityId.getId());
 
@@ -411,12 +412,12 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
                     AttributeKvEntry attr = new BaseAttributeKvEntry(new JsonDataEntry(key, JacksonUtil.toString(value)), event.getCreatedTime());
 
                     saveEventFuture = Futures.transformAsync(saveEventFuture, v -> {
-                        attributesService.save(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(attr));
+                        attributesService.save(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(attr));
                         return null;
                     }, MoreExecutors.directExecutor());
                 } else if (lcEvent.getLcEventType().equals("STOPPED")) {
                     saveEventFuture = Futures.transformAsync(saveEventFuture, v -> {
-                        attributesService.removeAll(tenantId, entityId, "SERVER_SCOPE", Collections.singletonList(key));
+                        attributesService.removeAll(tenantId, entityId, AttributeScope.SERVER_SCOPE, Collections.singletonList(key));
                         return null;
                     }, MoreExecutors.directExecutor());
                 }
@@ -566,7 +567,6 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
             }
 
             createRelationFromIntegration(integration, device.getId());
-            clusterService.onDeviceUpdated(device, null);
             pushDeviceCreatedEventToRuleEngine(integration, device);
         } else {
             throw new ThingsboardRuntimeException("Creating devices is forbidden!", ThingsboardErrorCode.PERMISSION_DENIED);

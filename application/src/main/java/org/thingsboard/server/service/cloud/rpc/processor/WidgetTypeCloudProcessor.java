@@ -84,4 +84,5 @@ public class WidgetTypeCloudProcessor extends BaseEdgeProcessor {
         }
         return Futures.immediateFuture(null);
     }
+
 }

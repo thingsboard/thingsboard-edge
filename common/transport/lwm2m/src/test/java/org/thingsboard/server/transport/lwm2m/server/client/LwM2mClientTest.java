@@ -30,8 +30,9 @@
  */
 package org.thingsboard.server.transport.lwm2m.server.client;
 
+import org.eclipse.leshan.core.endpoint.EndpointUriUtil;
 import org.eclipse.leshan.core.link.Link;
-import org.eclipse.leshan.core.request.Identity;
+import org.eclipse.leshan.core.peer.IpPeer;
 import org.eclipse.leshan.server.registration.Registration;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -44,7 +45,8 @@ public class LwM2mClientTest {
     public void setRegistration() {
         LwM2mClient client = new LwM2mClient("nodeId", "testEndpoint");
         Registration registration = new Registration
-                .Builder("test", "testEndpoint", Identity.unsecure(new InetSocketAddress(1000)))
+                .Builder("testId", "testEndpoint", new IpPeer(new InetSocketAddress(1000)),
+                        EndpointUriUtil.createUri("coap://localhost:5685"))
                 .objectLinks(new Link[0])
                 .build();
 

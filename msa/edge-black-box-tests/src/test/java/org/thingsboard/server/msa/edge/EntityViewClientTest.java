@@ -56,7 +56,7 @@ import java.util.concurrent.TimeUnit;
 public class EntityViewClientTest extends AbstractContainerTest {
 
     @Test
-    public void testEntityViews() throws Exception {
+    public void testEntityViews() {
         Device device = saveDeviceAndAssignEntityGroupToEdge(createEntityGroup(EntityType.DEVICE));
 
         // create entity view #1, add to group #1 and assign group #1 to edge

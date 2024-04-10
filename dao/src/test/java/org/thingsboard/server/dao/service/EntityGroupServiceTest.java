@@ -42,7 +42,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ShortEntityView;
@@ -328,12 +328,12 @@ public class EntityGroupServiceTest extends AbstractServiceTest {
         List<ListenableFuture<List<String>>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
-            attributeFutures.add(saveStringAttribute(device.getId(), "serverAttr1", "serverValue1_" + i, DataConstants.SERVER_SCOPE));
-            attributeFutures.add(saveLongAttribute(device.getId(), "serverAttr2", i, DataConstants.SERVER_SCOPE));
-            attributeFutures.add(saveStringAttribute(device.getId(), "sharedAttr1", "sharedValue1_" + i, DataConstants.SHARED_SCOPE));
-            attributeFutures.add(saveLongAttribute(device.getId(), "sharedAttr2", i, DataConstants.SHARED_SCOPE));
-            attributeFutures.add(saveStringAttribute(device.getId(), "clientAttr1", "clientValue1_" + i, DataConstants.CLIENT_SCOPE));
-            attributeFutures.add(saveLongAttribute(device.getId(), "clientAttr2", i, DataConstants.CLIENT_SCOPE));
+            attributeFutures.add(saveStringAttribute(device.getId(), "serverAttr1", "serverValue1_" + i, AttributeScope.SERVER_SCOPE));
+            attributeFutures.add(saveLongAttribute(device.getId(), "serverAttr2", i, AttributeScope.SERVER_SCOPE));
+            attributeFutures.add(saveStringAttribute(device.getId(), "sharedAttr1", "sharedValue1_" + i, AttributeScope.SHARED_SCOPE));
+            attributeFutures.add(saveLongAttribute(device.getId(), "sharedAttr2", i, AttributeScope.SHARED_SCOPE));
+            attributeFutures.add(saveStringAttribute(device.getId(), "clientAttr1", "clientValue1_" + i, AttributeScope.CLIENT_SCOPE));
+            attributeFutures.add(saveLongAttribute(device.getId(), "clientAttr2", i, AttributeScope.CLIENT_SCOPE));
         }
         Futures.successfulAsList(attributeFutures).get();
 
@@ -406,12 +406,12 @@ public class EntityGroupServiceTest extends AbstractServiceTest {
         device = deviceService.saveDevice(device);
 
         List<ListenableFuture<List<String>>> attributeFutures = new ArrayList<>();
-        attributeFutures.add(saveStringAttribute(device.getId(), "serverAttr1", "serverValue1_1", DataConstants.SERVER_SCOPE));
-        attributeFutures.add(saveLongAttribute(device.getId(), "serverAttr2", 1, DataConstants.SERVER_SCOPE));
-        attributeFutures.add(saveStringAttribute(device.getId(), "sharedAttr1", "sharedValue1_1", DataConstants.SHARED_SCOPE));
-        attributeFutures.add(saveLongAttribute(device.getId(), "sharedAttr2", 1, DataConstants.SHARED_SCOPE));
-        attributeFutures.add(saveStringAttribute(device.getId(), "clientAttr1", "clientValue1_1", DataConstants.CLIENT_SCOPE));
-        attributeFutures.add(saveLongAttribute(device.getId(), "clientAttr2", 1, DataConstants.CLIENT_SCOPE));
+        attributeFutures.add(saveStringAttribute(device.getId(), "serverAttr1", "serverValue1_1", AttributeScope.SERVER_SCOPE));
+        attributeFutures.add(saveLongAttribute(device.getId(), "serverAttr2", 1, AttributeScope.SERVER_SCOPE));
+        attributeFutures.add(saveStringAttribute(device.getId(), "sharedAttr1", "sharedValue1_1", AttributeScope.SHARED_SCOPE));
+        attributeFutures.add(saveLongAttribute(device.getId(), "sharedAttr2", 1, AttributeScope.SHARED_SCOPE));
+        attributeFutures.add(saveStringAttribute(device.getId(), "clientAttr1", "clientValue1_1", AttributeScope.CLIENT_SCOPE));
+        attributeFutures.add(saveLongAttribute(device.getId(), "clientAttr2", 1, AttributeScope.CLIENT_SCOPE));
         Futures.successfulAsList(attributeFutures).get();
 
         entityGroupService.addEntityToEntityGroup(tenantId, testDevicesWithAttributesGroup.getId(), device.getId());
@@ -513,13 +513,13 @@ public class EntityGroupServiceTest extends AbstractServiceTest {
     }
      */
 
-    private ListenableFuture<List<String>> saveStringAttribute(EntityId entityId, String key, String value, String scope) {
+    private ListenableFuture<List<String>> saveStringAttribute(EntityId entityId, String key, String value, AttributeScope scope) {
         KvEntry attrValue = new StringDataEntry(key, value);
         AttributeKvEntry attr = new BaseAttributeKvEntry(attrValue, 42L);
         return attributesService.save(SYSTEM_TENANT_ID, entityId, scope, Collections.singletonList(attr));
     }
 
-    private ListenableFuture<List<String>> saveLongAttribute(EntityId entityId, String key, long value, String scope) {
+    private ListenableFuture<List<String>> saveLongAttribute(EntityId entityId, String key, long value, AttributeScope scope) {
         KvEntry attrValue = new LongDataEntry(key, value);
         AttributeKvEntry attr = new BaseAttributeKvEntry(attrValue, 42L);
         return attributesService.save(SYSTEM_TENANT_ID, entityId, scope, Collections.singletonList(attr));
