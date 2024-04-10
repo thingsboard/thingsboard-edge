@@ -212,17 +212,20 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         assertThatNoException().isThrownBy(() -> node.init(ctxMock, configuration));
     }
 
+    @Test
+    public void givenOwnerTypeNull_whenInit_thenThrowsException() {
+        config.setOwnerType(null);
+        var configuration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
+        assertThatThrownBy(() -> node.init(ctxMock, configuration))
+                .isInstanceOf(TbNodeException.class)
+                .hasMessage("Owner type should be specified!");
+    }
+
     @ParameterizedTest
     @EnumSource(EntityType.class)
     public void givenConfigAnyOwnerType_whenInit_thenVerify(EntityType ownerType) {
         config.setOwnerType(ownerType);
         var configuration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
-        if (ownerType == null) {
-            assertThatThrownBy(() -> node.init(ctxMock, configuration))
-                    .isInstanceOf(TbNodeException.class)
-                    .hasMessage("Owner type should be specified!");
-            return;
-        }
         if (!supportedEntityTypes.contains(ownerType)) {
             assertThatThrownBy(() -> node.init(ctxMock, configuration))
                     .isInstanceOf(TbNodeException.class)
