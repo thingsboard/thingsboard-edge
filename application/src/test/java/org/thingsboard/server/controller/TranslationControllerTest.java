@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.settings.AdminSettingsDao;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
@@ -262,6 +263,37 @@ public class TranslationControllerTest extends AbstractControllerTest {
         assertThat(downloadedCustomTranslation.get("save").asText()).isEqualTo("system");
         assertThat(downloadedCustomTranslation.get("access").get("unauthorized").asText()).isEqualTo("No autorizado");
         assertThat(downloadedCustomTranslation.get("solution-template").get("solution-template").asText()).isEqualTo("Solution template");
+    }
+
+    @Test
+    public void shouldGetCorrectLoginTranslation() throws Exception {
+        // get login system translation
+        loginSysAdmin();
+        JsonNode loginSystemTranslation = doGet("/api/noauth/translation/login/" + ES_ES, JsonNode.class);
+        assertThat(loginSystemTranslation.get("login").get("login").asText()).isEqualTo("Entrar");
+        JsonNode enloginSystemTranslation = doGet("/api/noauth/translation/login/" + EN_US, JsonNode.class);
+        assertThat(enloginSystemTranslation.get("login").get("login").asText()).isEqualTo("Login");
+
+        // get login tenant translation
+        loginTenantAdmin();
+        JsonNode loginTenantTranslation = doGet("/api/noauth/translation/login/" + ES_ES, JsonNode.class);
+        assertThat(loginTenantTranslation.get("login").get("login").asText()).isEqualTo("Entrar");
+        JsonNode enloginTenantTranslation = doGet("/api/noauth/translation/login/" + EN_US, JsonNode.class);
+        assertThat(enloginTenantTranslation.get("login").get("login").asText()).isEqualTo("Login");
+
+        // get login customer custom translation
+        loginCustomerAdminUser();
+        JsonNode loginCustomerTranslation = doGet("/api/noauth/translation/login/" + ES_ES, JsonNode.class);
+        assertThat(loginCustomerTranslation.get("login").get("login").asText()).isEqualTo("Entrar");
+        JsonNode enLoginCustomerTranslation = doGet("/api/noauth/translation/login/" + EN_US, JsonNode.class);
+        assertThat(enLoginCustomerTranslation.get("login").get("login").asText()).isEqualTo("Login");
+
+        // get login subcustomer custom translation
+        loginSubCustomerAdminUser();
+        JsonNode loginSubCustomerTranslation = doGet("/api/noauth/translation/login/" + ES_ES, JsonNode.class);
+        assertThat(loginSubCustomerTranslation.get("login").get("login").asText()).isEqualTo("Entrar");
+        JsonNode enLoginSubCustomerTranslation = doGet("/api/noauth/translation/login/" + EN_US, JsonNode.class);
+        assertThat(enLoginSubCustomerTranslation.get("login").get("login").asText()).isEqualTo("Login");
     }
 
     private void checkTranslationInfo() throws Exception {

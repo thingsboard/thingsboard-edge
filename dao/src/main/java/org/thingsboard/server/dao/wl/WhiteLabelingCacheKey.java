@@ -30,9 +30,47 @@
  */
 package org.thingsboard.server.dao.wl;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
+
+import java.io.Serializable;
 
 @Data
-public class WhiteLabelingEvictEvent {
-    private final WhiteLabelingCacheKey key;
+@AllArgsConstructor
+@NoArgsConstructor
+public class WhiteLabelingCacheKey implements Serializable {
+
+    private WhiteLabelingCompositeKey key;
+    private String domainName;
+
+    public static WhiteLabelingCacheKey forKey(WhiteLabelingCompositeKey key) {
+        return new WhiteLabelingCacheKey(key, null);
+    }
+
+    public static WhiteLabelingCacheKey forDomainName(String domainName) {
+        return new WhiteLabelingCacheKey(null, domainName);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("WhiteLabelingCacheKey{");
+        if (domainName != null) {
+            builder.append("domainName=").append(domainName);
+        } else {
+            if (key.getTenantId() != null) {
+                builder.append("tenantId=").append(key.getTenantId());
+            }
+            if (key.getCustomerId() != null) {
+                builder.append(",customerId=").append(key.getCustomerId());
+            }
+            if (key.getType() != null) {
+                builder.append(",type=").append(key.getType());
+            }
+        }
+        builder.append("}");
+        return builder.toString();
+    }
 }
