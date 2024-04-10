@@ -67,13 +67,22 @@ public interface CustomerDao extends Dao<Customer>, TenantEntityDao, ExportableC
     PageData<Customer> findCustomersByTenantId(UUID tenantId, PageLink pageLink);
 
     /**
-     * Find customers by tenantId and customer title.
+     * Find customer by tenantId and customer title.
      *
      * @param tenantId the tenantId
      * @param title the customer title
      * @return the optional customer object
      */
-    Optional<Customer> findCustomersByTenantIdAndTitle(UUID tenantId, String title);
+    Optional<Customer> findCustomerByTenantIdAndTitle(UUID tenantId, String title);
+
+    /**
+     * Find public customer by tenantId and ownerId.
+     *
+     * @param tenantId the tenantId
+     * @param ownerId the ownerId
+     * @return the optional public customer object
+     */
+    Optional<Customer> findPublicCustomerByTenantIdAndOwnerId(UUID tenantId, UUID ownerId);
 
     /**
      * Find customers by tenantId and customer Ids.

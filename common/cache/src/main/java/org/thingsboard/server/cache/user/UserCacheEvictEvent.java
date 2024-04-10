@@ -28,27 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.action;
+package org.thingsboard.server.cache.user;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import lombok.RequiredArgsConstructor;
+import org.thingsboard.server.common.data.id.TenantId;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class TbDeleteRelationNodeConfiguration extends TbAbstractRelationActionNodeConfiguration implements NodeConfiguration<TbDeleteRelationNodeConfiguration> {
+@RequiredArgsConstructor
+public class UserCacheEvictEvent {
 
-    private boolean deleteForSingleEntity;
+    private final TenantId tenantId;
+    private final String newEmail;
+    private final String oldEmail;
 
-    @Override
-    public TbDeleteRelationNodeConfiguration defaultConfiguration() {
-        TbDeleteRelationNodeConfiguration configuration = new TbDeleteRelationNodeConfiguration();
-        configuration.setDeleteForSingleEntity(false);
-        configuration.setDirection(EntitySearchDirection.FROM);
-        configuration.setRelationType(EntityRelation.CONTAINS_TYPE);
-        configuration.setEntityNamePattern("");
-        return configuration;
-    }
 }

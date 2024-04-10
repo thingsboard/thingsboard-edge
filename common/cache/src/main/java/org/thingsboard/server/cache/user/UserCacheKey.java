@@ -28,16 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.util;
+package org.thingsboard.server.cache.user;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.EntityId;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@Data
-public class EntityContainer {
+import java.io.Serial;
+import java.io.Serializable;
 
-    private EntityId entityId;
-    private EntityType entityType;
+@Getter
+@EqualsAndHashCode
+@RequiredArgsConstructor
+@Builder
+public class UserCacheKey implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 7357353074893750678L;
+
+    private final TenantId tenantId;
+    private final String email;
+
+    @Override
+    public String toString() {
+        return tenantId + "_" + email;
+    }
 
 }

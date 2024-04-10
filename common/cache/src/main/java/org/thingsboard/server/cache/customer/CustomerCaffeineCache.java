@@ -28,27 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.action;
+package org.thingsboard.server.cache.customer;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
-import org.thingsboard.server.common.data.relation.EntityRelation;
-import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.Customer;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class TbDeleteRelationNodeConfiguration extends TbAbstractRelationActionNodeConfiguration implements NodeConfiguration<TbDeleteRelationNodeConfiguration> {
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("CustomerCache")
+public class CustomerCaffeineCache extends CaffeineTbTransactionalCache<CustomerCacheKey, Customer> {
 
-    private boolean deleteForSingleEntity;
-
-    @Override
-    public TbDeleteRelationNodeConfiguration defaultConfiguration() {
-        TbDeleteRelationNodeConfiguration configuration = new TbDeleteRelationNodeConfiguration();
-        configuration.setDeleteForSingleEntity(false);
-        configuration.setDirection(EntitySearchDirection.FROM);
-        configuration.setRelationType(EntityRelation.CONTAINS_TYPE);
-        configuration.setEntityNamePattern("");
-        return configuration;
+    public CustomerCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.CUSTOMER_CACHE);
     }
+
 }

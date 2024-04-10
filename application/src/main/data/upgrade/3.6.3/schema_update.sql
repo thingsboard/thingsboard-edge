@@ -29,6 +29,86 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
+-- UPDATE PUBLIC CUSTOMERS START
+
+ALTER TABLE customer ADD COLUMN IF NOT EXISTS is_public boolean DEFAULT false;
+UPDATE customer SET is_public = true WHERE title = 'Public';
+
+-- UPDATE PUBLIC CUSTOMERS END
+
+-- UPDATE CUSTOMERS WITH SAME TITLE START
+
+CREATE OR REPLACE PROCEDURE update_customers_with_the_same_title()
+    LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    customer_record RECORD;
+    title_exists    BOOLEAN;
+    new_title       TEXT;
+BEGIN
+    RAISE NOTICE 'Starting the customer and edge entity groups update process.';
+
+    FOR customer_record IN
+        SELECT id, tenant_id, title, duplicate_number
+        FROM (
+                 SELECT
+                     id,
+                     tenant_id,
+                     title,
+                     ROW_NUMBER() OVER(PARTITION BY tenant_id, title ORDER BY id) AS duplicate_number
+                 FROM customer
+             ) AS duplicate_customers
+        WHERE duplicate_number > 1
+        LOOP
+            -- Attempt with 'duplicate' suffix
+            new_title := customer_record.title || ' duplicate ' || (customer_record.duplicate_number - 1)::TEXT;
+
+            -- Check if new_title already exists for the same tenant_id
+            SELECT EXISTS (
+                SELECT 1
+                FROM customer
+                WHERE tenant_id = customer_record.tenant_id
+                  AND title = new_title
+            ) INTO title_exists;
+
+            -- If generated title exists, use customer id instead to create a unique title
+            IF title_exists THEN
+                new_title := customer_record.title || ' duplicate ' || customer_record.id::TEXT;
+            END IF;
+
+            -- Update the customer title
+            UPDATE customer
+            SET title = new_title
+            WHERE id = customer_record.id;
+            RAISE NOTICE 'Updated customer with id: % with new title: %', customer_record.id, new_title;
+
+            -- Update edge entity groups where the ownerId matches
+            UPDATE entity_group
+            SET name = CONCAT('[Edge][', new_title, ']', SUBSTRING(name FROM LENGTH('[Edge][' || customer_record.title || ']') + 1))
+            WHERE owner_id = customer_record.id
+              AND owner_type = 'CUSTOMER'
+              AND name LIKE CONCAT('[Edge][', customer_record.title, ']%');
+
+            RAISE NOTICE 'Updated edge entity groups for customer with id: % to reflect new title.', customer_record.id;
+        END LOOP;
+    RAISE NOTICE 'Customers and edge entity groups update process completed successfully!';
+END;
+$$;
+
+call update_customers_with_the_same_title();
+
+DROP PROCEDURE IF EXISTS update_customers_with_the_same_title;
+
+-- UPDATE CUSTOMERS WITH SAME TITLE END
+
+-- CUSTOMER UNIQUE CONSTRAINT UPDATE START
+
+ALTER TABLE customer DROP CONSTRAINT IF EXISTS customer_title_unq_key;
+ALTER TABLE customer ADD CONSTRAINT customer_title_unq_key UNIQUE (tenant_id, title);
+
+-- CUSTOMER UNIQUE CONSTRAINT UPDATE END
+
 -- create new attribute_kv table schema
 DO
 $$

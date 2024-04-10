@@ -28,3 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+package org.thingsboard.server.cache.customer;
+
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.thingsboard.server.common.data.id.TenantId;
+
+@Data
+@RequiredArgsConstructor
+public class CustomerCacheEvictEvent {
+
+    private final TenantId tenantId;
+    private final String newTitle;
+    private final String oldTitle;
+
+}

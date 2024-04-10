@@ -205,8 +205,6 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         }
     }
 
-
-
     @Override
     public Dashboard assignDashboardToCustomer(TenantId tenantId, DashboardId dashboardId, CustomerId customerId) {
         Dashboard dashboard = findDashboardById(tenantId, dashboardId);

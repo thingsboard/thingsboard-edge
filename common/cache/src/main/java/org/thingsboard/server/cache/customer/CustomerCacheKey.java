@@ -28,14 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.action;
+package org.thingsboard.server.cache.customer;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@Data
-public abstract class TbAbstractCustomerActionNodeConfiguration {
+import java.io.Serial;
+import java.io.Serializable;
 
-    private String customerNamePattern;
-    private long customerCacheExpiration;
+@Getter
+@EqualsAndHashCode
+@RequiredArgsConstructor
+@Builder
+public class CustomerCacheKey implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 5706958428811356925L;
+
+    private final TenantId tenantId;
+    private final String title;
+
+    @Override
+    public String toString() {
+        return tenantId + "_" + title;
+    }
 
 }

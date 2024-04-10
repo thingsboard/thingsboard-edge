@@ -81,9 +81,8 @@ public class JpaCustomerDao extends JpaAbstractDao<CustomerEntity, Customer> imp
     }
 
     @Override
-    public Optional<Customer> findCustomersByTenantIdAndTitle(UUID tenantId, String title) {
-        Customer customer = DaoUtil.getData(customerRepository.findByTenantIdAndTitle(tenantId, title));
-        return Optional.ofNullable(customer);
+    public Optional<Customer> findCustomerByTenantIdAndTitle(UUID tenantId, String title) {
+        return Optional.ofNullable(DaoUtil.getData(customerRepository.findByTenantIdAndTitle(tenantId, title)));
     }
 
     @Override
@@ -111,6 +110,15 @@ public class JpaCustomerDao extends JpaAbstractDao<CustomerEntity, Customer> imp
                         DaoUtil.toPageable(pageLink, CustomerEntity.customerColumnMap)));
     }
 
+    @Override
+    public Optional<Customer> findPublicCustomerByTenantIdAndOwnerId(UUID tenantId, UUID ownerId) {
+        var customerEntity = tenantId.equals(ownerId) ?
+                customerRepository.findPublicCustomerByTenantIdAndNullCustomerId(tenantId) :
+                customerRepository.findPublicCustomerByTenantIdAndCustomerId(tenantId, ownerId);
+        return Optional.ofNullable(DaoUtil.getData(customerEntity));
+    }
+
+    @Override
     public Long countByTenantId(TenantId tenantId) {
         return customerRepository.countByTenantId(tenantId.getId());
     }
@@ -122,7 +130,7 @@ public class JpaCustomerDao extends JpaAbstractDao<CustomerEntity, Customer> imp
 
     @Override
     public Customer findByTenantIdAndName(UUID tenantId, String name) {
-        return findCustomersByTenantIdAndTitle(tenantId, name).orElse(null);
+        return findCustomerByTenantIdAndTitle(tenantId, name).orElse(null);
     }
 
     @Override
@@ -133,7 +141,7 @@ public class JpaCustomerDao extends JpaAbstractDao<CustomerEntity, Customer> imp
     @Override
     public PageData<CustomerId> findIdsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink) {
         Page<UUID> page;
-        if(customerId == null){
+        if (customerId == null) {
             page = customerRepository.findIdsByTenantIdAndNullCustomerId(tenantId, DaoUtil.toPageable(pageLink));
         } else {
             page = customerRepository.findIdsByTenantIdAndCustomerId(tenantId, customerId, DaoUtil.toPageable(pageLink));

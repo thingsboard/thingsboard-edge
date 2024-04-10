@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
@@ -68,10 +67,12 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
+import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -89,12 +90,12 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import static org.thingsboard.server.dao.customer.CustomerServiceImpl.PUBLIC_CUSTOMER_SUFFIX;
+import static org.thingsboard.server.dao.customer.CustomerServiceImpl.toPublicSubCustomerTitle;
+
 @Slf4j
 @Service
 public class DefaultOwnersCacheService implements OwnersCacheService {
-
-    @Autowired
-    private TbClusterService clusterService;
 
     @Autowired
     private EntityGroupService entityGroupService;
@@ -128,6 +129,12 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     @Autowired
     protected UserPermissionsService userPermissionsService;
+
+    @Autowired
+    private CustomerDao customerDao;
+
+    @Autowired
+    private EntityService entityService;
 
     @Override
     public Set<EntityId> fetchOwnersHierarchy(TenantId tenantId, EntityId entityId) {
@@ -183,15 +190,31 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     @Override
     public void changeCustomerOwner(TenantId tenantId, EntityId targetOwnerId, Customer customer) throws ThingsboardException {
-        Set<EntityId> ownerIds = getChildOwners(tenantId, customer.getId());
-        if (!ownerIds.contains(targetOwnerId)) {
-            changeEntityOwner(tenantId, targetOwnerId, customer.getId(),
-                    customer,
-                    customerService::saveCustomer);
-        } else {
+        var childOwnerIds = getChildOwners(tenantId, customer.getId());
+        if (childOwnerIds.contains(targetOwnerId)) {
             // Making Sub-Customer as a Parent Customer - NOT OK.
             throw new ThingsboardException("Owner of the Customer can't be changed to its Sub-Customer!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
+        if (customer.isPublic()) {
+            var publicCustomerForTargetOwnerOpt = customerDao
+                    .findPublicCustomerByTenantIdAndOwnerId(tenantId.getId(), targetOwnerId.getId());
+            boolean hasPublicCustomer = publicCustomerForTargetOwnerOpt.isPresent();
+            if (hasPublicCustomer) {
+                // Only 1 public customer allowed within one owner.
+                throw new ThingsboardException("Target owner already has a public customer!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+            }
+            if (EntityType.TENANT.equals(targetOwnerId.getEntityType())) {
+                customer.setTitle(PUBLIC_CUSTOMER_SUFFIX);
+            } else {
+                Optional<String> ownerNameOpt = entityService.fetchEntityName(tenantId, targetOwnerId);
+                String ownerName = ownerNameOpt.orElseThrow(
+                        () -> new RuntimeException("Failed to fetch owner name for ownerId: " + targetOwnerId.getId().toString()));
+                customer.setTitle(toPublicSubCustomerTitle(ownerName));
+            }
+        }
+        changeEntityOwner(tenantId, targetOwnerId, customer.getId(),
+                customer,
+                customerService::saveCustomer);
     }
 
     @Override
