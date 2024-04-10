@@ -148,6 +148,12 @@ import {
 import {
   TimeSeriesChartThresholdSettingsComponent
 } from '@home/components/widget/lib/settings/common/chart/time-series-chart-threshold-settings.component';
+import {
+  TimeSeriesChartStateRowComponent
+} from '@home/components/widget/lib/settings/common/chart/time-series-chart-state-row.component';
+import {
+  TimeSeriesChartStatesPanelComponent
+} from '@home/components/widget/lib/settings/common/chart/time-series-chart-states-panel.component';
 
 @NgModule({
   declarations: [
@@ -197,6 +203,8 @@ import {
     TimeSeriesChartAnimationSettingsComponent,
     TimeSeriesChartFillSettingsComponent,
     TimeSeriesChartThresholdSettingsComponent,
+    TimeSeriesChartStatesPanelComponent,
+    TimeSeriesChartStateRowComponent,
     DataKeyInputComponent,
     EntityAliasInputComponent
   ],
@@ -252,6 +260,8 @@ import {
     TimeSeriesChartAnimationSettingsComponent,
     TimeSeriesChartFillSettingsComponent,
     TimeSeriesChartThresholdSettingsComponent,
+    TimeSeriesChartStatesPanelComponent,
+    TimeSeriesChartStateRowComponent,
     DataKeyInputComponent,
     EntityAliasInputComponent
   ],
