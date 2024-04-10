@@ -54,6 +54,7 @@ import {
   TimeSeriesChartYAxisId
 } from '@home/components/widget/lib/chart/time-series-chart.models';
 import { WidgetConfigComponentData } from '@home/models/widget-component.models';
+import { WidgetService } from '@core/http/widget.service';
 
 @Component({
   selector: 'tb-time-series-chart-widget-settings',
@@ -92,8 +93,11 @@ export class TimeSeriesChartWidgetSettingsComponent extends WidgetSettingsCompon
 
   chartType: TimeSeriesChartType = TimeSeriesChartType.default;
 
+  functionScopeVariables = this.widgetService.getWidgetScopeVariables();
+
   constructor(protected store: Store<AppState>,
               private $injector: Injector,
+              private widgetService: WidgetService,
               private fb: UntypedFormBuilder) {
     super(store);
   }
@@ -144,6 +148,7 @@ export class TimeSeriesChartWidgetSettingsComponent extends WidgetSettingsCompon
       tooltipTrigger: [settings.tooltipTrigger, []],
       tooltipValueFont: [settings.tooltipValueFont, []],
       tooltipValueColor: [settings.tooltipValueColor, []],
+      tooltipValueFormatter: [settings.tooltipValueFormatter, []],
       tooltipShowDate: [settings.tooltipShowDate, []],
       tooltipDateFormat: [settings.tooltipDateFormat, []],
       tooltipDateFont: [settings.tooltipDateFont, []],
@@ -158,6 +163,9 @@ export class TimeSeriesChartWidgetSettingsComponent extends WidgetSettingsCompon
       background: [settings.background, []],
       padding: [settings.padding, []]
     });
+    if (this.chartType === TimeSeriesChartType.state) {
+      this.timeSeriesChartWidgetSettingsForm.addControl('states', this.fb.control(settings.states, []));
+    }
   }
 
   protected validatorTriggers(): string[] {
@@ -183,6 +191,7 @@ export class TimeSeriesChartWidgetSettingsComponent extends WidgetSettingsCompon
       this.timeSeriesChartWidgetSettingsForm.get('tooltipTrigger').enable();
       this.timeSeriesChartWidgetSettingsForm.get('tooltipValueFont').enable();
       this.timeSeriesChartWidgetSettingsForm.get('tooltipValueColor').enable();
+      this.timeSeriesChartWidgetSettingsForm.get('tooltipValueFormatter').enable();
       this.timeSeriesChartWidgetSettingsForm.get('tooltipShowDate').enable({emitEvent: false});
       this.timeSeriesChartWidgetSettingsForm.get('tooltipBackgroundColor').enable();
       this.timeSeriesChartWidgetSettingsForm.get('tooltipBackgroundBlur').enable();
@@ -200,6 +209,7 @@ export class TimeSeriesChartWidgetSettingsComponent extends WidgetSettingsCompon
     } else {
       this.timeSeriesChartWidgetSettingsForm.get('tooltipValueFont').disable();
       this.timeSeriesChartWidgetSettingsForm.get('tooltipValueColor').disable();
+      this.timeSeriesChartWidgetSettingsForm.get('tooltipValueFormatter').disable();
       this.timeSeriesChartWidgetSettingsForm.get('tooltipShowDate').disable({emitEvent: false});
       this.timeSeriesChartWidgetSettingsForm.get('tooltipDateFormat').disable();
       this.timeSeriesChartWidgetSettingsForm.get('tooltipDateFont').disable();
