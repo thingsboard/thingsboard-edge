@@ -104,7 +104,7 @@ public class Integration extends AbstractIntegration implements ExportableEntity
         return super.getCreatedTime();
     }
 
-    @Schema(description = "JSON object with the Uplink Converter Id", required = true)
+    @Schema(description = "JSON object with the Uplink Converter Id", requiredMode = Schema.RequiredMode.REQUIRED)
     public ConverterId getDefaultConverterId() {
         return defaultConverterId;
     }
@@ -124,7 +124,7 @@ public class Integration extends AbstractIntegration implements ExportableEntity
 
     @Schema(description = "String value used by HTTP based integrations for the base URL construction and by the remote integrations. " +
             "Remote integration uses this value along with the 'secret' for kind of security and validation to be able to connect to the platform using Grpc",
-            required = true, example = "ca1a01b6-4ca1-3da5-54e4-a07090b65644")
+            requiredMode = Schema.RequiredMode.REQUIRED, example = "ca1a01b6-4ca1-3da5-54e4-a07090b65644")
     public String getRoutingKey() {
         return routingKey;
     }
@@ -145,7 +145,7 @@ public class Integration extends AbstractIntegration implements ExportableEntity
 
     @Schema(description = "JSON object representing integration configuration. Each integration type has specific configuration with the connectivity parameters " +
             "(like 'host' and 'port' for MQTT type or 'baseUrl' for HTTP based type, etc.) " +
-            "and other important parameters dependent on the integration type", required = true)
+            "and other important parameters dependent on the integration type", requiredMode = Schema.RequiredMode.REQUIRED)
     public JsonNode getConfiguration() {
         return configuration;
     }

@@ -105,7 +105,7 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         this.tenantId = tenantId;
     }
 
-    @Schema(required = true, description = "The type of the integration")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The type of the integration")
     public IntegrationType getType() {
         return type;
     }
@@ -151,7 +151,7 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         allowCreateDevicesOrAssets = allow;
     }
 
-    @Schema(required = true, description = "Integration Name", example = "Http Integration")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Integration Name", example = "Http Integration")
     @Override
     public String getName() {
         return name;

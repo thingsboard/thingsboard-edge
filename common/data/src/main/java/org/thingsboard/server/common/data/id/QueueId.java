@@ -50,7 +50,7 @@ public class QueueId extends UUIDBased implements EntityId {
         return new QueueId(UUID.fromString(queueId));
     }
 
-    @Schema(required = true, description = "string", example = "QUEUE", allowableValues = "QUEUE")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "QUEUE", allowableValues = "QUEUE")
     @Override
     public EntityType getEntityType() {
         return EntityType.QUEUE;
