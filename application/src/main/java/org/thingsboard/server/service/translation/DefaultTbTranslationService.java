@@ -140,7 +140,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
             CustomerId customerId = whiteLabeling.getCustomerId();
             fullTranslation = getFullTranslation(tenantId, customerId, localeCode);
         } else {
-            fullTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE));
+            fullTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE)).deepCopy();
         }
         ObjectNode loginPageTranslation = newObjectNode();
         loginPageTranslation.set("login", fullTranslation.get("login"));
@@ -164,7 +164,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     public JsonNode getTranslationForBasicEdit(TenantId tenantId, CustomerId customerId, String localeCode) {
         JsonNode fullTranslation = getFullTranslation(tenantId, customerId, localeCode).deepCopy();
         JsonNode currentCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, localeCode);
-        JsonNode originalTranslation = TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE);
+        JsonNode originalTranslation = TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE).deepCopy();
         JsonNode resourceTranslation = TRANSLATION_VALUE_MAP.containsKey(localeCode) ? readResourceLocaleTranslation(localeCode) : JacksonUtil.newObjectNode();
         JsonNode translated = getTranslated(tenantId, customerId, localeCode, resourceTranslation.deepCopy());
         JsonNode parentTranslated = getParentTranslatedOnly(tenantId, customerId, localeCode, resourceTranslation.deepCopy());
