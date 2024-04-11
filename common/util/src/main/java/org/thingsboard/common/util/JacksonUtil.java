@@ -483,8 +483,8 @@ public class JacksonUtil {
         }
     }
 
-    public static JsonNode deleteByKeyPath(JsonNode mainNode, String key) {
-        String[] fieldPath = key.trim().split("\\.");
+    public static JsonNode deleteByKeyPath(JsonNode mainNode, String keyPath) {
+        String[] fieldPath = keyPath.trim().split("\\.");
         var node = (ObjectNode) mainNode;
         for (int i = 0; i < fieldPath.length; i++) {
             var fieldName = fieldPath[i];
@@ -498,8 +498,8 @@ public class JacksonUtil {
                 node = (ObjectNode) node.get(fieldName);
             }
         }
-        if (node.isEmpty()) {
-            deleteByKeyPath(mainNode, key.substring(0, key.lastIndexOf(".")));
+        if (node.isEmpty() && keyPath.contains(".")) {
+            deleteByKeyPath(mainNode, keyPath.substring(0, keyPath.lastIndexOf(".")));
         }
         return mainNode;
     }

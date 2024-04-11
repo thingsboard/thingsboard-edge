@@ -242,6 +242,65 @@ public class TranslationControllerTest extends AbstractControllerTest {
         verifyInfo(subCustomerTranslation.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
         verifyInfo(subCustomerTranslation.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
         verifyInfo(subCustomerTranslation.get("newSubCustomer"), null, "newSubCustomerEnglish", null, "A");
+
+        //set value for added key
+        loginSysAdmin();
+        systemCustomTranslation = JacksonUtil.toJsonNode("{\"newSystem\":\"newSystemES\"}");
+        doPatch("/api/translation/custom/" + ES_ES, systemCustomTranslation);
+
+        loginTenantAdmin();
+        tenantCustomTranslation = JacksonUtil.toJsonNode("{\"newTenant\":\"newTenantES\"}");
+        doPatch("/api/translation/custom/" + ES_ES, tenantCustomTranslation);
+
+        loginCustomerAdminUser();
+        customerCustomTranslation = JacksonUtil.toJsonNode("{\"newCustomer\":\"newCustomerES\"}");
+        doPatch("/api/translation/custom/" + ES_ES, customerCustomTranslation);
+
+        loginSubCustomerAdminUser();
+        subCustomerCustomTranslation = JacksonUtil.toJsonNode("{\"newSubCustomer\":\"newSubCustomerES\"}");
+        doPatch("/api/translation/custom/" + ES_ES, subCustomerCustomTranslation);
+
+        // get system translation for edit
+        loginSysAdmin();
+        systemTranslationForEdit = doGet("/api/translation/edit/basic/" + ES_ES, JsonNode.class);
+        verifyInfo(systemTranslationForEdit.get("account").get("account"), "systemAccount", "Account", "Cuenta", "C");
+        verifyInfo(systemTranslationForEdit.get("save"), "system", null, null, "A");
+        verifyInfo(systemTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
+        verifyInfo(systemTranslationForEdit.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
+        verifyInfo(systemTranslationForEdit.get("newSystem"), "newSystemES", "newSystemEnglish", null, "A");
+
+        // get tenant translation for edit
+        loginTenantAdmin();
+        tenantTranslationForEdit = doGet("/api/translation/edit/basic/" + ES_ES, JsonNode.class);
+        verifyInfo(tenantTranslationForEdit.get("account").get("account"), "tenantAccount", "Account", "systemAccount", "C");
+        verifyInfo(tenantTranslationForEdit.get("save"), "system", null, null, "T");
+        verifyInfo(tenantTranslationForEdit.get("update"), "tenant", null, "system", "C");
+        verifyInfo(tenantTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
+        verifyInfo(tenantTranslationForEdit.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
+        verifyInfo(tenantTranslationForEdit.get("newTenant"), "newTenantES", "newTenantEnglish", null, "A");
+
+        // get customer for edit
+        loginCustomerAdminUser();
+        customerTranslationForEdit = doGet("/api/translation/edit/basic/" + ES_ES, JsonNode.class);
+        verifyInfo(customerTranslationForEdit.get("account").get("account"), "customerAccount", "Account", "tenantAccount", "C");
+        verifyInfo(customerTranslationForEdit.get("save"), "system", null, null, "T");
+        verifyInfo(customerTranslationForEdit.get("update"), "tenant", null, null, "T");
+        verifyInfo(customerTranslationForEdit.get("remove"), "customer", null, "tenant", "C");
+        verifyInfo(customerTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
+        verifyInfo(customerTranslationForEdit.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
+        verifyInfo(customerTranslationForEdit.get("newCustomer"), "newCustomerES", "newCustomerEnglish", null, "A");
+
+        // get subcustomer translation  for edit
+        loginSubCustomerAdminUser();
+        subCustomerTranslation = doGet("/api/translation/edit/basic/" + ES_ES, JsonNode.class);
+        verifyInfo(subCustomerTranslation.get("account").get("account"), "subCustomerAccount", "Account", "customerAccount", "C");
+        verifyInfo(subCustomerTranslation.get("save"), "system", null, null, "T");
+        verifyInfo(subCustomerTranslation.get("update"), "tenant", null, null, "T");
+        verifyInfo(subCustomerTranslation.get("remove"), "customer", null, null, "T");
+        verifyInfo(subCustomerTranslation.get("search"), "subCustomer", null, "customer", "C");
+        verifyInfo(subCustomerTranslation.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
+        verifyInfo(subCustomerTranslation.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
+        verifyInfo(subCustomerTranslation.get("newSubCustomer"), "newSubCustomerES", "newSubCustomerEnglish", null, "A");
     }
 
     private static void verifyInfo(JsonNode keyInfo, String translated, String origin, String parent, String state) {

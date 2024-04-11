@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor.wl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -257,7 +258,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             switch (entityId.getEntityType()) {
                 case TENANT:
                     if (TenantId.SYS_TENANT_ID.equals(entityId)) {
-                        CustomTranslation systemCustomTranslation =
+                        JsonNode systemCustomTranslation =
                                 customTranslationService.getCurrentCustomTranslation( (TenantId) entityId, null, "");
                         if (isDefaultCustomTranslation(systemCustomTranslation)) {
                             return null;
@@ -269,7 +270,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                                 .setSystemCustomTranslationMsg(customTranslationProto)
                                 .build();
                     } else {
-                        CustomTranslation tenantCustomTranslation =
+                        JsonNode tenantCustomTranslation =
                                 customTranslationService.getCurrentCustomTranslation(edgeEvent.getTenantId(), null, "");
                         if (isDefaultCustomTranslation(tenantCustomTranslation)) {
                             return null;
@@ -284,7 +285,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     break;
                 case CUSTOMER:
                     CustomerId customerId = new CustomerId(entityId.getId());
-                    CustomTranslation customerCustomTranslation =
+                    JsonNode customerCustomTranslation =
                             customTranslationService.getCurrentCustomTranslation(edgeEvent.getTenantId(), customerId, "");
                     if (isDefaultCustomTranslation(customerCustomTranslation)) {
                         return null;
@@ -302,8 +303,8 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         return result;
     }
 
-    private boolean isDefaultCustomTranslation(CustomTranslation customTranslation) {
-        return customTranslation.getValue().isEmpty();
+    private boolean isDefaultCustomTranslation(JsonNode customTranslation) {
+        return customTranslation.isEmpty();
     }
 
     public DownlinkMsg convertCustomMenuEventToDownlink(EdgeEvent edgeEvent) {

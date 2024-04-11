@@ -197,8 +197,8 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         uploadCustomTranslation("/api/translation/custom/" + ES_ES + "/upload", CUSTOM_TRANSLATION_BYTES);
 
-        CustomTranslation retrieved = doGet("/api/translation/custom/" + ES_ES, CustomTranslation.class);
-        assertThat(retrieved.getValue().get("save").asText()).isEqualTo("save alarm");
+        JsonNode retrieved = doGet("/api/translation/custom/" + ES_ES, JsonNode.class);
+        assertThat(retrieved.get("save").asText()).isEqualTo("save alarm");
     }
 
     @Test
@@ -209,23 +209,23 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
 
         doDelete("/api/translation/custom/" + ES_ES);
 
-        CustomTranslation retrieved = doGet("/api/translation/custom/" + ES_ES, CustomTranslation.class);
-        assertThat(retrieved.getValue()).isEmpty();
+        JsonNode retrieved = doGet("/api/translation/custom/" + ES_ES, JsonNode.class);
+        assertThat(retrieved).isEmpty();
     }
 
     private void updateSpanishCustomTranslation(JsonNode newCustomTranslation) throws Exception {
         doPost("/api/translation/custom/" + ES_ES, newCustomTranslation);
 
-        CustomTranslation updatedCustomTranslation = doGet("/api/translation/custom/" + ES_ES, CustomTranslation.class);
-        assertThat(updatedCustomTranslation.getValue()).isEqualTo(newCustomTranslation);
+        JsonNode updatedCustomTranslation = doGet("/api/translation/custom/" + ES_ES, JsonNode.class);
+        assertThat(updatedCustomTranslation).isEqualTo(newCustomTranslation);
     }
 
     private void checkSaveCustomTranslation(String localeCode) throws Exception {
         JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"" + StringUtils.randomAlphabetic(10) + "\"}");
         doPost("/api/translation/custom/" + localeCode, esCustomTranslation);
 
-        CustomTranslation savedCT =  doGet("/api/translation/custom/" + ES_ES, CustomTranslation.class);
-        assertThat(savedCT.getValue()).isEqualTo(esCustomTranslation);
+        JsonNode savedCT =  doGet("/api/translation/custom/" + ES_ES, JsonNode.class);
+        assertThat(savedCT).isEqualTo(esCustomTranslation);
     }
 
     private String getFullTranslation(String localeCode) throws Exception {
@@ -246,8 +246,8 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
                 " \"remove\" : \"system\", \"search\":\"system\"}");
         doPost("/api/translation/custom/" + ES_ES, esCustomTranslation);
 
-        CustomTranslation savedCT = doGet("/api/translation/custom/" + ES_ES, CustomTranslation.class);
-        assertThat(savedCT.getValue()).isEqualTo(esCustomTranslation);
+        JsonNode savedCT = doGet("/api/translation/custom/" + ES_ES, JsonNode.class);
+        assertThat(savedCT).isEqualTo(esCustomTranslation);
 
         //patch with new value for "save.alarm" element
         JsonNode newValueForKeyWithDot = JacksonUtil.toJsonNode("{\"save.alarm\":\"new value\"}");
@@ -255,16 +255,16 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
 
         JsonNode expectedResult = JacksonUtil.toJsonNode("{\"save\":{\"alarm\":\"new value\"}, \"update\" : \"system\" ," +
                 " \"remove\" : \"system\", \"search\":\"system\"}");
-        CustomTranslation updatedCT = doGet("/api/translation/custom/" + ES_ES, CustomTranslation.class);
-        assertThat(updatedCT.getValue()).isEqualTo(expectedResult);
+        JsonNode updatedCT = doGet("/api/translation/custom/" + ES_ES, JsonNode.class);
+        assertThat(updatedCT).isEqualTo(expectedResult);
 
         JsonNode newValueForKeyWithoutDot = JacksonUtil.toJsonNode("{\"update\":\"update alarm\"}");
         doPatch("/api/translation/custom/" + ES_ES, newValueForKeyWithoutDot);
 
         JsonNode expectedResult2 = JacksonUtil.toJsonNode("{\"save\":{\"alarm\":\"new value\"}, \"update\" : \"update alarm\" ," +
                 " \"remove\" : \"system\", \"search\":\"system\"}");
-        CustomTranslation updatedCT2 = doGet("/api/translation/custom/" + ES_ES, CustomTranslation.class);
-        assertThat(updatedCT2.getValue()).isEqualTo(expectedResult2);
+        JsonNode updatedCT2 = doGet("/api/translation/custom/" + ES_ES, JsonNode.class);
+        assertThat(updatedCT2).isEqualTo(expectedResult2);
     }
 
     private void checkDeleteCustomTranslationKey() throws Exception {
@@ -272,31 +272,31 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
                 " \"remove\" : \"system\", \"search\":\"system\"}");
         doPost("/api/translation/custom/" + ES_ES, esCustomTranslation);
 
-        CustomTranslation savedCT = doGet("/api/translation/custom/" + ES_ES, CustomTranslation.class);
-        assertThat(savedCT.getValue()).isEqualTo(esCustomTranslation);
+        JsonNode savedCT = doGet("/api/translation/custom/" + ES_ES, JsonNode.class);
+        assertThat(savedCT).isEqualTo(esCustomTranslation);
 
         //delete key "save.alarm"
         doDelete("/api/translation/custom/" + ES_ES + "/" + "save.alarm");
 
         JsonNode expectedResult = JacksonUtil.toJsonNode("{\"save\":{\"device\":\"save device\"}, \"update\" : \"system\" ," +
                 " \"remove\" : \"system\", \"search\":\"system\"}");
-        CustomTranslation updatedCT = doGet("/api/translation/custom/" + ES_ES, CustomTranslation.class);
-        assertThat(updatedCT.getValue()).isEqualTo(expectedResult);
+        JsonNode updatedCT = doGet("/api/translation/custom/" + ES_ES, JsonNode.class);
+        assertThat(updatedCT).isEqualTo(expectedResult);
 
         //delete key "save.device"
         doDelete("/api/translation/custom/" + ES_ES + "/" + "save.device");
 
         JsonNode expectedResult2 = JacksonUtil.toJsonNode("{\"update\" : \"system\" ," +
                 " \"remove\" : \"system\", \"search\":\"system\"}");
-        CustomTranslation updatedCT2 = doGet("/api/translation/custom/" + ES_ES, CustomTranslation.class);
-        assertThat(updatedCT2.getValue()).isEqualTo(expectedResult2);
+        JsonNode updatedCT2 = doGet("/api/translation/custom/" + ES_ES, JsonNode.class);
+        assertThat(updatedCT2).isEqualTo(expectedResult2);
 
         //delete key "save"
         doDelete("/api/translation/custom/" + ES_ES + "/" + "save");
 
         JsonNode expectedResult3 = JacksonUtil.toJsonNode("{\"update\" : \"system\", \"remove\" : \"system\", \"search\":\"system\"}");
-        CustomTranslation updatedCT3 = doGet("/api/translation/custom/" + ES_ES, CustomTranslation.class);
-        assertThat(updatedCT3.getValue()).isEqualTo(expectedResult3);
+        JsonNode updatedCT3 = doGet("/api/translation/custom/" + ES_ES, JsonNode.class);
+        assertThat(updatedCT3).isEqualTo(expectedResult3);
 
         doPost("/api/translation/custom/" + ES_ES, esCustomTranslation);
     }

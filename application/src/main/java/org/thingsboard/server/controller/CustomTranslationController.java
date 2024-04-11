@@ -95,7 +95,7 @@ public class CustomTranslationController extends BaseController {
                                                @PathVariable("localeCode") String localeCode) throws ThingsboardException {
         Authority authority = getCurrentUser().getAuthority();
         if (Authority.SYS_ADMIN.equals(authority)) {
-            return customTranslationService.getCurrentCustomTranslation(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId(), localeCode).getValue();
+            return customTranslationService.getCurrentCustomTranslation(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId(), localeCode);
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
             return customTranslationService.getMergedTenantCustomTranslation(getCurrentUser().getTenantId(), localeCode);
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
@@ -116,7 +116,7 @@ public class CustomTranslationController extends BaseController {
             )
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/custom/{localeCode}")
-    public CustomTranslation getCustomTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
+    public JsonNode getCustomTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
                                                   @PathVariable("localeCode") String localeCode) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.READ);
         SecurityUser currentUser = getCurrentUser();

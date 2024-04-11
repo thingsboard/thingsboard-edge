@@ -65,7 +65,7 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     private final CustomTranslationDao customTranslationDao;
 
     @Override
-    public CustomTranslation getCurrentCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+    public JsonNode getCurrentCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
         CustomTranslationCompositeKey key = new CustomTranslationCompositeKey(tenantId, customerId, localeCode);
         CustomTranslation customTranslation = cache.getAndPutInTransaction(key, () -> customTranslationDao.findById(TenantId.SYS_TENANT_ID, key), true);
         if (customTranslation == null) {
@@ -75,25 +75,25 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
                     .customerId(customerId)
                     .value(JacksonUtil.newObjectNode()).build();
         }
-        return customTranslation;
+        return customTranslation.getValue().deepCopy();
     }
 
     @Override
     public JsonNode getMergedTenantCustomTranslation(TenantId tenantId, String localeCode) {
-        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null, localeCode).getValue();
-        JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue().deepCopy();
+        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null, localeCode);
+        JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode);
         return merge(systemCustomTranslation, tenantCustomTranslation);
     }
 
     @Override
     public JsonNode getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
-        JsonNode customerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode).getValue();
+        JsonNode customerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {
             customerCustomTranslation = getMergedCustomerHierarchyCustomTranslation(tenantId, customer.getParentCustomerId(), localeCode, customerCustomTranslation);
         }
-        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null, localeCode).getValue().deepCopy();
-        JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue().deepCopy();
+        JsonNode tenantCustomTranslation = getCurrentCustomTranslation(tenantId, null, localeCode);
+        JsonNode systemCustomTranslation = getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode);
 
         return merge(systemCustomTranslation, merge(tenantCustomTranslation, customerCustomTranslation));
     }
@@ -107,18 +107,24 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
 
     @Override
     public void patchCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode updateValue) {
-        CustomTranslation currentCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode);
-        CustomTranslation newCustomTranslation = currentCustomTranslation.toBuilder()
-                .value(update(currentCustomTranslation.getValue().deepCopy(), updateValue))
+        JsonNode currentCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode);
+        CustomTranslation newCustomTranslation = CustomTranslation.builder()
+                .tenantId(tenantId)
+                .customerId(customerId)
+                .localeCode(localeCode)
+                .value(update(currentCustomTranslation, updateValue))
                 .build();
         saveCustomTranslation(newCustomTranslation);
     }
 
     @Override
     public void deleteCustomTranslationKeyByPath(TenantId tenantId, CustomerId customerId, String localeCode, String keyPath) {
-        CustomTranslation currentCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode);
-        CustomTranslation newCustomTranslation = currentCustomTranslation.toBuilder()
-                .value(deleteByKeyPath(currentCustomTranslation.getValue().deepCopy(), keyPath))
+        JsonNode currentCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, localeCode);
+        CustomTranslation newCustomTranslation = CustomTranslation.builder()
+                .tenantId(tenantId)
+                .customerId(customerId)
+                .localeCode(localeCode)
+                .value(deleteByKeyPath(currentCustomTranslation, keyPath))
                 .build();
         saveCustomTranslation(newCustomTranslation);
     }
@@ -145,7 +151,7 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     }
 
     private JsonNode getMergedCustomerHierarchyCustomTranslation(TenantId tenantId, CustomerId customerId, String locale, JsonNode customTranslation) {
-        JsonNode parentCustomerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, locale).getValue().deepCopy();
+        JsonNode parentCustomerCustomTranslation = getCurrentCustomTranslation(tenantId, customerId, locale);
         JsonNode merged = merge(parentCustomerCustomTranslation, customTranslation);
         Customer customer = customerService.findCustomerById(tenantId, customerId);
         if (customer.isSubCustomer()) {

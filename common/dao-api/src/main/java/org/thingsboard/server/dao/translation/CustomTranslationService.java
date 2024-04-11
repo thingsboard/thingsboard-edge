@@ -39,7 +39,7 @@ import java.util.Set;
 
 public interface CustomTranslationService {
 
-    CustomTranslation getCurrentCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
+    JsonNode getCurrentCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
     JsonNode getMergedTenantCustomTranslation(TenantId tenantId, String localeCode);
 

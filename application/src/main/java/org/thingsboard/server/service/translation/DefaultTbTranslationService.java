@@ -152,21 +152,23 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     public JsonNode getFullTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
         JsonNode customTranslation = getMergedCustomTranslation(tenantId, customerId, localeCode);
         JsonNode defaultTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE)).deepCopy();
+        JsonNode merged = merge(defaultTranslation, customTranslation);
+
         // add new keys from default locale custom translation
-        JsonNode defaultCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, DEFAULT_LOCALE_CODE).getValue();
-        addNonExisting(customTranslation, defaultCustomTranslation);
-        return merge(defaultTranslation, customTranslation);
+        JsonNode defaultCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, DEFAULT_LOCALE_CODE);
+        addNonExisting(merged, defaultCustomTranslation);
+        return merged;
     }
 
     @Override
     public JsonNode getTranslationForBasicEdit(TenantId tenantId, CustomerId customerId, String localeCode) {
         JsonNode fullTranslation = getFullTranslation(tenantId, customerId, localeCode).deepCopy();
-        JsonNode currentCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, localeCode).getValue();
+        JsonNode currentCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, localeCode);
         JsonNode originalTranslation = TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE);
         JsonNode resourceTranslation = TRANSLATION_VALUE_MAP.containsKey(localeCode) ? readResourceLocaleTranslation(localeCode) : JacksonUtil.newObjectNode();
         JsonNode translated = getTranslated(tenantId, customerId, localeCode, resourceTranslation.deepCopy());
         JsonNode parentTranslated = getParentTranslatedOnly(tenantId, customerId, localeCode, resourceTranslation.deepCopy());
-        JsonNode defaultCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, DEFAULT_LOCALE_CODE).getValue();
+        JsonNode defaultCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, DEFAULT_LOCALE_CODE);
 
         buildTranslationInfoForEdit(fullTranslation, translated, parentTranslated, originalTranslation, currentCustomTranslation, defaultCustomTranslation);
         return fullTranslation;
@@ -233,7 +235,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     private JsonNode getMergedCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
         JsonNode customTranslation;
         if (tenantId.isSysTenantId()) {
-            customTranslation = customTranslationService.getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode).getValue().deepCopy();
+            customTranslation = customTranslationService.getCurrentCustomTranslation(TenantId.SYS_TENANT_ID, null, localeCode);
         } else if (customerId == null || customerId.isNullUid()) {
             customTranslation = customTranslationService.getMergedTenantCustomTranslation(tenantId, localeCode);
         } else {
@@ -304,6 +306,9 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
                     info.put("t", fullNode.asText()); // translated value
                     if (parentNode == null && originNode == null) {
                         state = "A";
+                        if (defaultCustomNode != null) {
+                            info.put("o", defaultCustomNode.asText()); // original translation
+                        }
                     } else {
                         state = "C";
                         info.put("p", Objects.requireNonNullElse(parentNode, original).asText()); // parent translation
@@ -351,23 +356,23 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         return parentTranslation;
     }
 
-    private void addNonExisting(JsonNode mainNode, JsonNode updateNode) {
-        Iterator<String> fieldNames = updateNode.fieldNames();
+    private void addNonExisting(JsonNode mainNode, JsonNode newNode) {
+        Iterator<String> fieldNames = newNode.fieldNames();
         while (fieldNames.hasNext()) {
             String fieldName = fieldNames.next();
             JsonNode jsonNode = mainNode.get(fieldName);
             if (jsonNode != null) {
                 if (jsonNode.isObject()) {
-                    merge(jsonNode, updateNode.get(fieldName));
+                    addNonExisting(jsonNode, newNode.get(fieldName));
                 } else if (jsonNode.isArray()) {
                     for (int i = 0; i < jsonNode.size(); i++) {
-                        merge(jsonNode.get(i), updateNode.get(fieldName).get(i));
+                        addNonExisting(jsonNode.get(i), newNode.get(fieldName).get(i));
                     }
                 }
             } else {
                 if (mainNode instanceof ObjectNode) {
                     // Overwrite field
-                    JsonNode value = updateNode.get(fieldName);
+                    JsonNode value = newNode.get(fieldName);
                     if (value.isNull()) {
                         continue;
                     }
