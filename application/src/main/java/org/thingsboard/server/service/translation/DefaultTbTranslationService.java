@@ -152,6 +152,9 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     public JsonNode getFullTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
         JsonNode customTranslation = getMergedCustomTranslation(tenantId, customerId, localeCode);
         JsonNode defaultTranslation = TRANSLATION_VALUE_MAP.getOrDefault(localeCode, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE)).deepCopy();
+        // add new keys from default locale custom translation
+        JsonNode defaultCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, DEFAULT_LOCALE_CODE).getValue();
+        addNonExisting(customTranslation, defaultCustomTranslation);
         return merge(defaultTranslation, customTranslation);
     }
 
@@ -163,8 +166,9 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         JsonNode resourceTranslation = TRANSLATION_VALUE_MAP.containsKey(localeCode) ? readResourceLocaleTranslation(localeCode) : JacksonUtil.newObjectNode();
         JsonNode translated = getTranslated(tenantId, customerId, localeCode, resourceTranslation.deepCopy());
         JsonNode parentTranslated = getParentTranslatedOnly(tenantId, customerId, localeCode, resourceTranslation.deepCopy());
+        JsonNode defaultCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, DEFAULT_LOCALE_CODE).getValue();
 
-        buildTranslationInfoForEdit(fullTranslation, translated, parentTranslated, originalTranslation, currentCustomTranslation);
+        buildTranslationInfoForEdit(fullTranslation, translated, parentTranslated, originalTranslation, currentCustomTranslation, defaultCustomTranslation);
         return fullTranslation;
     }
 
@@ -278,7 +282,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         return (int) (((translated) * 100) / DEFAULT_LOCALE_KEYS.size());
     }
 
-    private void buildTranslationInfoForEdit(JsonNode fullTranslation, JsonNode translated, JsonNode parentTranslated, JsonNode original, JsonNode custom) {
+    private void buildTranslationInfoForEdit(JsonNode fullTranslation, JsonNode translated, JsonNode parentTranslated, JsonNode original, JsonNode custom, JsonNode defaultCustomTranslationNode) {
         Iterator<String> fieldNamesIterator = fullTranslation.fieldNames();
         while (fieldNamesIterator.hasNext()) {
             String fieldName = fieldNamesIterator.next();
@@ -287,8 +291,9 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
             JsonNode parentNode = parentTranslated == null ? null : parentTranslated.get(fieldName);
             JsonNode originNode = original == null ? null : original.get(fieldName);
             JsonNode translatedNode = translated == null ? null : translated.get(fieldName);
+            JsonNode defaultCustomNode = defaultCustomTranslationNode == null ? null : defaultCustomTranslationNode.get(fieldName);
             if (fullNode.isObject()) {
-                buildTranslationInfoForEdit(fullNode, translatedNode, parentNode, originNode, customNode);
+                buildTranslationInfoForEdit(fullNode, translatedNode, parentNode, originNode, customNode, defaultCustomNode);
             } else {
                 ObjectNode info = newObjectNode();
                 if (originNode != null) {
@@ -306,6 +311,9 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
                 } else if (translatedNode != null) {
                     state = "T";
                     info.put("t", fullNode.asText()); // translated value
+                } else if (defaultCustomNode != null && originNode == null) {
+                    state = "A";
+                    info.put("o", fullNode.asText()); // original translation
                 } else {
                     state = "U";
                 }
@@ -341,6 +349,32 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
             }
         }
         return parentTranslation;
+    }
+
+    private void addNonExisting(JsonNode mainNode, JsonNode updateNode) {
+        Iterator<String> fieldNames = updateNode.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldName = fieldNames.next();
+            JsonNode jsonNode = mainNode.get(fieldName);
+            if (jsonNode != null) {
+                if (jsonNode.isObject()) {
+                    merge(jsonNode, updateNode.get(fieldName));
+                } else if (jsonNode.isArray()) {
+                    for (int i = 0; i < jsonNode.size(); i++) {
+                        merge(jsonNode.get(i), updateNode.get(fieldName).get(i));
+                    }
+                }
+            } else {
+                if (mainNode instanceof ObjectNode) {
+                    // Overwrite field
+                    JsonNode value = updateNode.get(fieldName);
+                    if (value.isNull()) {
+                        continue;
+                    }
+                    ((ObjectNode) mainNode).set(fieldName, value);
+                }
+            }
+        }
     }
 
     private void evictFromCache(TenantId tenantId) {
