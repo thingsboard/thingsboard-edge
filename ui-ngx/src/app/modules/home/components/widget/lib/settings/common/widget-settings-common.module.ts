@@ -64,7 +64,8 @@ import {
 import { ColorRangeListComponent } from '@home/components/widget/lib/settings/common/color-range-list.component';
 import { ColorRangePanelComponent } from '@home/components/widget/lib/settings/common/color-range-panel.component';
 import {
-  ColorRangeSettingsComponent, ColorRangeSettingsComponentService
+  ColorRangeSettingsComponent,
+  ColorRangeSettingsComponentService
 } from '@home/components/widget/lib/settings/common/color-range-settings.component';
 import {
   GetValueActionSettingsComponent
@@ -154,6 +155,8 @@ import {
 import {
   TimeSeriesChartStatesPanelComponent
 } from '@home/components/widget/lib/settings/common/chart/time-series-chart-states-panel.component';
+import { AdvancedRangeComponent } from '@home/components/widget/lib/settings/common/advanced-range.component';
+import { GradientComponent } from '@home/components/widget/lib/settings/common/gradient.component';
 
 @NgModule({
   declarations: [
@@ -206,7 +209,9 @@ import {
     TimeSeriesChartStatesPanelComponent,
     TimeSeriesChartStateRowComponent,
     DataKeyInputComponent,
-    EntityAliasInputComponent
+    EntityAliasInputComponent,
+    AdvancedRangeComponent,
+    GradientComponent
   ],
   imports: [
     CommonModule,
@@ -263,7 +268,9 @@ import {
     TimeSeriesChartStatesPanelComponent,
     TimeSeriesChartStateRowComponent,
     DataKeyInputComponent,
-    EntityAliasInputComponent
+    EntityAliasInputComponent,
+    AdvancedRangeComponent,
+    GradientComponent
   ],
   providers: [
     ColorSettingsComponentService,

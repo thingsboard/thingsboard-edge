@@ -39,6 +39,8 @@ import { AppState } from '@core/core.state';
 import { deepClone } from '@core/utils';
 import { WidgetService } from '@core/http/widget.service';
 import { ColorSettingsComponent } from '@home/components/widget/lib/settings/common/color-settings.component';
+import { IAliasController } from '@core/api/widget-api.models';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-color-settings-panel',
@@ -61,6 +63,23 @@ export class ColorSettingsPanelComponent extends PageComponent implements OnInit
   @Output()
   colorSettingsApplied = new EventEmitter<ColorSettings>();
 
+  @Input()
+  aliasController: IAliasController;
+
+  @Input()
+  @coerceBoolean()
+  rangeAdvancedMode = false;
+
+  @Input()
+  @coerceBoolean()
+  gradientAdvancedMode = false;
+
+  @Input()
+  minValue: string;
+
+  @Input()
+  maxValue: string;
+
   colorType = ColorType;
 
   colorTypes = Object.keys(ColorType) as ColorType[];
@@ -82,6 +101,7 @@ export class ColorSettingsPanelComponent extends PageComponent implements OnInit
       {
         type: [this.colorSettings?.type || ColorType.constant, []],
         color: [this.colorSettings?.color, []],
+        gradient: [this.colorSettings?.gradient, []],
         rangeList: [this.colorSettings?.rangeList, []],
         colorFunction: [this.colorSettings?.colorFunction, []]
       }
@@ -97,8 +117,9 @@ export class ColorSettingsPanelComponent extends PageComponent implements OnInit
     this.colorSettingsFormGroup.patchValue({
       type: this.colorSettings.type,
       color: this.colorSettings.color,
+      gradient: this.colorSettings.gradient || null,
       colorFunction: this.colorSettings.colorFunction,
-      rangeList: this.colorSettings.rangeList || []
+      rangeList: this.colorSettings.rangeList || null
     }, {emitEvent: false});
     this.colorSettingsFormGroup.markAsDirty();
   }

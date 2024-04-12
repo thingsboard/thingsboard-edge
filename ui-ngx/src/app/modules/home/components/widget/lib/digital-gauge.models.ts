@@ -29,10 +29,10 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { JsonSettingsSchema } from '@shared/models/widget.models';
 import { GaugeType } from '@home/components/widget/lib/canvas-digital-gauge';
 import { AnimationRule } from '@home/components/widget/lib/analogue-gauge.models';
 import { FontSettings } from '@home/components/widget/lib/settings.models';
+import { ColorSettings } from '@shared/models/widget-settings.models';
 
 export interface AttributeSourceProperty {
   valueSource: string;
@@ -42,8 +42,8 @@ export interface AttributeSourceProperty {
 }
 
 export interface FixedLevelColors {
-  from?: AttributeSourceProperty;
-  to?: AttributeSourceProperty;
+  from?: AttributeSourceProperty | number;
+  to?: AttributeSourceProperty | number;
   color: string;
 }
 
@@ -55,6 +55,33 @@ export interface ColorLevelSetting {
 export type colorLevel = Array<string | ColorLevelSetting>;
 
 export type attributesGaugeType = 'levelColors' | 'ticks';
+
+export enum DigitalGaugeType {
+  arc = 'arc',
+  donut = 'donut',
+  horizontalBar = 'horizontalBar',
+  verticalBar = 'verticalBar'
+}
+
+export const digitalGaugeLayouts = Object.keys(DigitalGaugeType) as DigitalGaugeType[];
+
+export const digitalGaugeLayoutTranslations = new Map<DigitalGaugeType, string>(
+  [
+    [DigitalGaugeType.arc, 'widgets.gauge.gauge-type-arc'],
+    [DigitalGaugeType.donut, 'widgets.gauge.gauge-type-donut'],
+    [DigitalGaugeType.horizontalBar, 'widgets.gauge.gauge-type-horizontal-bar'],
+    [DigitalGaugeType.verticalBar, 'widgets.gauge.gauge-type-vertical-bar']
+  ]
+);
+
+export const digitalGaugeLayoutImages = new Map<DigitalGaugeType, string>(
+  [
+    [DigitalGaugeType.arc, 'assets/widget/simple-gauge/arc-layout.svg'],
+    [DigitalGaugeType.donut, 'assets/widget/simple-gauge/donut-layout.svg'],
+    [DigitalGaugeType.horizontalBar, 'assets/widget/simple-gauge/horizontal-bar-layout.svg'],
+    [DigitalGaugeType.verticalBar, 'assets/widget/simple-gauge/vertical-bar-layout.svg']
+  ]
+);
 
 export interface DigitalGaugeSettings {
   minValue?: number;
@@ -75,6 +102,9 @@ export interface DigitalGaugeSettings {
   gaugeWidthScale?: number;
   defaultColor?: string;
   gaugeColor?: string;
+
+  barColor?: ColorSettings;
+
   useFixedLevelColor?: boolean;
   levelColors?: colorLevel;
   fixedLevelColors?: FixedLevelColors[];
@@ -95,3 +125,8 @@ export interface DigitalGaugeSettings {
   colorTicks?: string;
   tickWidth?: number;
 }
+
+export const defaultDigitalSimpleGaugeOptions: DigitalGaugeSettings = {
+  gaugeType: DigitalGaugeType.donut,
+  timestampFormat: 'yyyy-MM-dd HH:mm:ss',
+};

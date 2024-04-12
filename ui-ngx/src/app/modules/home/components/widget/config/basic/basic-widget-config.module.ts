@@ -125,6 +125,9 @@ import {
 import {
   TimeSeriesChartBasicConfigComponent
 } from '@home/components/widget/config/basic/chart/time-series-chart-basic-config.component';
+import {
+  DigitalSimpleGaugeBasicConfigComponent
+} from '@home/components/widget/config/basic/gauge/digital-simple-gauge-basic-config.component';
 
 @NgModule({
   declarations: [
@@ -160,7 +163,8 @@ import {
     PowerButtonBasicConfigComponent,
     SliderBasicConfigComponent,
     ToggleButtonBasicConfigComponent,
-    TimeSeriesChartBasicConfigComponent
+    TimeSeriesChartBasicConfigComponent,
+    DigitalSimpleGaugeBasicConfigComponent
   ],
   imports: [
     CommonModule,
@@ -200,7 +204,8 @@ import {
     PowerButtonBasicConfigComponent,
     SliderBasicConfigComponent,
     ToggleButtonBasicConfigComponent,
-    TimeSeriesChartBasicConfigComponent
+    TimeSeriesChartBasicConfigComponent,
+    DigitalSimpleGaugeBasicConfigComponent
   ]
 })
 export class BasicWidgetConfigModule {
@@ -234,5 +239,6 @@ export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetCo
   'tb-power-button-basic-config': PowerButtonBasicConfigComponent,
   'tb-slider-basic-config': SliderBasicConfigComponent,
   'tb-toggle-button-basic-config': ToggleButtonBasicConfigComponent,
-  'tb-time-series-chart-basic-config': TimeSeriesChartBasicConfigComponent
+  'tb-time-series-chart-basic-config': TimeSeriesChartBasicConfigComponent,
+  'tb-digital-simple-gauge-basic-config': DigitalSimpleGaugeBasicConfigComponent
 };
