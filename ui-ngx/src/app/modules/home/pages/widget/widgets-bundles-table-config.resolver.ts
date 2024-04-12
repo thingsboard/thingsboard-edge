@@ -139,7 +139,7 @@ export class WidgetsBundlesTableConfigResolver implements Resolve<EntityTableCon
     const authState = getCurrentAuthState(this.store);
     this.config.entitiesFetchFunction = pageLink => this.widgetsService.getWidgetBundles(pageLink);
 
-    // @voba - edge read-only
+    // edge-only: allow to read-only
     this.config.detailsReadonly = () => true;
     this.config.deleteEnabled = () => false;
     this.config.addEnabled = false;

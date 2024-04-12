@@ -449,10 +449,8 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindDeviceTypesByTenantId() throws Exception {
-        // TODO: @voba device profiles are not created on edge at the moment
-        doPost("/api/deviceProfile", this.createDeviceProfile("typeA"), DeviceProfile.class);
-        DeviceProfile deviceProfile = doPost("/api/deviceProfile", this.createDeviceProfile("typeB"), DeviceProfile.class);
-        doPost("/api/deviceProfile", this.createDeviceProfile("typeC"), DeviceProfile.class);
+        DeviceProfile deviceProfile = createDeviceProfile("typeB");
+        deviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
 
         List<Device> devices = new ArrayList<>();
 
@@ -999,11 +997,6 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindTenantDevicesByType() throws Exception {
-
-        // TODO: @voba device profiles are not created on edge at the moment
-        doPost("/api/deviceProfile", this.createDeviceProfile("typeA"), DeviceProfile.class);
-        doPost("/api/deviceProfile", this.createDeviceProfile("typeB"), DeviceProfile.class);
-
         String title1 = "Device title 1";
         String type1 = "typeA";
         futures = new ArrayList<>(143);
@@ -1219,11 +1212,6 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindCustomerDevicesByType() throws Exception {
-
-        // TODO: @voba device profiles are not created on edge at the moment
-        doPost("/api/deviceProfile", this.createDeviceProfile("typeC"), DeviceProfile.class);
-        doPost("/api/deviceProfile", this.createDeviceProfile("typeD"), DeviceProfile.class);
-
         Customer customer = new Customer();
         customer.setTitle("Test customer");
         customer = doPost("/api/customer", customer, Customer.class);
@@ -1399,8 +1387,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Ignore
     @Test
     public void testAssignDeviceToEdge() throws Exception {

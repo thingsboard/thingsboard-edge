@@ -236,7 +236,6 @@ public class AssetControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindAssetTypesByTenantId() throws Exception {
-        // TODO: @voba asset profiles are not created on edge at the moment
         doPost("/api/assetProfile", this.createAssetProfile("typeA"), AssetProfile.class);
         AssetProfile assetProfile = doPost("/api/assetProfile", this.createAssetProfile("typeB"), AssetProfile.class);
         doPost("/api/assetProfile", this.createAssetProfile("typeC"), AssetProfile.class);
@@ -714,8 +713,6 @@ public class AssetControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindTenantAssetsByType() throws Exception {
-
-        // TODO: @voba asset profiles are not created on edge at the moment
         doPost("/api/assetProfile", this.createAssetProfile("typeA"), AssetProfile.class);
         doPost("/api/assetProfile", this.createAssetProfile("typeB"), AssetProfile.class);
 
@@ -936,11 +933,6 @@ public class AssetControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindCustomerAssetsByType() throws Exception {
-
-        // TODO: @voba asset profiles are not created on edge at the moment
-        doPost("/api/assetProfile", this.createAssetProfile("typeC"), AssetProfile.class);
-        doPost("/api/assetProfile", this.createAssetProfile("typeD"), AssetProfile.class);
-
         Customer customer = new Customer();
         customer.setTitle("Test customer");
         customer = doPost("/api/customer", customer, Customer.class);
@@ -1035,8 +1027,7 @@ public class AssetControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Ignore
     @Test
     public void testAssignAssetToEdge() throws Exception {

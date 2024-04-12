@@ -23,7 +23,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 @SpringBootTest(classes = {AssetEdgeProcessorV1.class})
 class AssetEdgeProcessorTest extends AbstractAssetProcessorTest {
 
-    // @voba: disable test
+    // edge-only: disable test
     // @ParameterizedTest
     @MethodSource("provideParameters")
     public void testAssetProfileDefaultFields_notSendToEdgeOlder3_6_0IfNotAssigned(EdgeVersion edgeVersion, long expectedDashboardIdMSB, long expectedDashboardIdLSB,

@@ -75,7 +75,7 @@ export class AssetProfilesTableConfigResolver implements Resolve<EntityTableConf
         isEnabled: () => true,
         onAction: ($event, entity) => this.exportAssetProfile($event, entity)
       },
-      /* @voba: not visible on edge
+      /* edge-only: not visible on edge
       {
         name: this.translate.instant('asset-profile.set-default'),
         icon: 'flag',
@@ -100,7 +100,7 @@ export class AssetProfilesTableConfigResolver implements Resolve<EntityTableConf
     this.config.entitySelectionEnabled = (assetProfile) => assetProfile && !assetProfile.default;
     this.config.addActionDescriptors = this.configureAddActions();
 
-    // @voba: asset profile can't be deleted from edge
+    // edge-only: asset profile can't be deleted from edge
     this.config.deleteEnabled = () => false;
     this.config.entitiesDeleteEnabled = false;
 

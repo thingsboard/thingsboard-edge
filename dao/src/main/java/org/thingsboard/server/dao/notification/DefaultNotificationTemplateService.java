@@ -52,7 +52,7 @@ public class DefaultNotificationTemplateService extends AbstractEntityService im
     public NotificationTemplate saveNotificationTemplate(TenantId tenantId, NotificationTemplate notificationTemplate) {
         if (notificationTemplate.getId() != null) {
             NotificationTemplate oldNotificationTemplate = findNotificationTemplateById(tenantId, notificationTemplate.getId());
-            if (notificationTemplate.getNotificationType() != oldNotificationTemplate.getNotificationType()) {
+            if (oldNotificationTemplate != null && notificationTemplate.getNotificationType() != oldNotificationTemplate.getNotificationType()) {
                 throw new IllegalArgumentException("Notification type cannot be updated");
             }
         }

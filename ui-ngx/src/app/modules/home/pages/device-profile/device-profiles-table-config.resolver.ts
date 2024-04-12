@@ -117,7 +117,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
     this.config.entitySelectionEnabled = (deviceProfile) => deviceProfile && !deviceProfile.default;
     this.config.addActionDescriptors = this.configureAddActions();
 
-    // @voba: device profile can't be deleted from edge
+    // edge-only: device profile can't be deleted from edge
     this.config.deleteEnabled = () => false;
     this.config.entitiesDeleteEnabled = false;
 

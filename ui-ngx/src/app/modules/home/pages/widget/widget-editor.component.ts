@@ -218,7 +218,7 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
       this.isDirty = true;
     }
 
-    // @voba - edge read-only
+    // edge-only: allow to read-only
     this.isReadOnly = true;
   }
 

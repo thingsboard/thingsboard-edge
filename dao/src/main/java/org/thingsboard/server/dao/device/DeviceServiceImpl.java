@@ -690,12 +690,4 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
         return EntityType.DEVICE;
     }
 
-    @Override
-    public DeviceProfile findDeviceProfileByNameOrDefault(TenantId tenantId, String deviceType) {
-        DeviceProfile deviceProfile = this.deviceProfileService.findDeviceProfileByName(tenantId, deviceType);
-        if (deviceProfile == null) {
-            deviceProfile = this.deviceProfileService.findDefaultDeviceProfile(tenantId);
-        }
-        return deviceProfile;
-    }
 }

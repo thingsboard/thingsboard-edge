@@ -475,7 +475,7 @@ export class MenuService {
         icon: 'settings_ethernet'
       }
     );
-    /* @voba - merge comment - these sections should not be visible on edge
+    /* edge-only: merge comment - these sections should not be visible on edge
     if (authState.edgesSupportEnabled) {
       sections.push(
         {
@@ -521,7 +521,7 @@ export class MenuService {
             path: '/features/otaUpdates',
             icon: 'memory'
           },
-          /* @voba - merge comment - these sections should not be visible on edge
+          /* edge-only: merge comment - these sections should not be visible on edge
           {
             id: 'version_control',
             name: 'version-control.version-control',
@@ -578,7 +578,6 @@ export class MenuService {
           }
         ]
       },
-      /* @voba - merge comment - these sections should not be visible on edge
       {
         id: 'notifications_center',
         name: 'notification.notification-center',
@@ -628,7 +627,6 @@ export class MenuService {
           }
         ]
       },
-       */
       {
         id: 'api_usage',
         name: 'api-usage.api-usage',
@@ -651,7 +649,6 @@ export class MenuService {
             path: '/settings/home',
             icon: 'settings_applications'
           },
-          /* @voba - merge comment - these sections should not be visible on edge
           {
             id: 'notification_settings',
             name: 'admin.notifications',
@@ -660,6 +657,7 @@ export class MenuService {
             path: '/settings/notifications',
             icon: 'mdi:message-badge'
           },
+          /* edge-only: merge comment - these sections should not be visible on edge
           {
             id: 'repository_settings',
             name: 'admin.repository',
@@ -785,7 +783,7 @@ export class MenuService {
         ]
       }
     );
-    /* @voba - merge comment - hide this on edge
+    /* edge-only: merge comment - hide this on edge
     if (authState.edgesSupportEnabled) {
       homeSections.push(
         {
@@ -822,7 +820,7 @@ export class MenuService {
           }
         ]
       },
-      /* @voba - merge comment - these sections should not be visible on edge
+      /* edge-only: merge comment - these sections should not be visible on edge
       {
         name: 'version-control.management',
         places: [
@@ -862,7 +860,7 @@ export class MenuService {
             icon: 'folder',
             path: '/settings/resources-library'
           },
-          /* @voba - merge comment - these sections should not be visible on edge
+          /* edge-only: merge comment - these sections should not be visible on edge
           {
             name: 'admin.repository-settings',
             icon: 'manage_history',
@@ -935,7 +933,7 @@ export class MenuService {
         ]
       }
     );
-    /* @voba - merge comment - hide this on edge
+    /* edge-only: merge comment - hide this on edge
     if (authState.edgesSupportEnabled) {
       sections.push(
         {
@@ -1005,7 +1003,7 @@ export class MenuService {
         ]
       }
     );
-    /* @voba - merge comment - hide this on edge
+    /* edge-only: merge comment - hide this on edge
     if (authState.edgesSupportEnabled) {
       homeSections.push(
         {
