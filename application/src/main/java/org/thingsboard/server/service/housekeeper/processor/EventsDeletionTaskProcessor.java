@@ -38,7 +38,7 @@ import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
 
 @Component
 @RequiredArgsConstructor
-public class EventsDeletionTaskProcessor implements HousekeeperTaskProcessor<HousekeeperTask> {
+public class EventsDeletionTaskProcessor extends HousekeeperTaskProcessor<HousekeeperTask> {
 
     private final EventService eventService;
 

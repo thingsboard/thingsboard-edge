@@ -44,7 +44,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class AlarmsUnassignTaskProcessor implements HousekeeperTaskProcessor<AlarmsUnassignHousekeeperTask> {
+public class AlarmsUnassignTaskProcessor extends HousekeeperTaskProcessor<AlarmsUnassignHousekeeperTask> {
 
     private final TbAlarmService alarmService;
 

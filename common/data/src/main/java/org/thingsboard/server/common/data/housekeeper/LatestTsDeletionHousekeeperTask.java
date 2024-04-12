@@ -28,23 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.queue;
+package org.thingsboard.server.common.data.housekeeper;
 
-import org.thingsboard.server.common.data.id.QueueStatsId;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.queue.QueueStats;
-import org.thingsboard.server.dao.entity.EntityDaoService;
 
-import java.util.List;
+@Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class LatestTsDeletionHousekeeperTask extends HousekeeperTask {
 
-public interface QueueStatsService extends EntityDaoService {
+    private String key;
 
-    QueueStats save(TenantId tenantId, QueueStats queueStats);
-
-    QueueStats findQueueStatsById(TenantId tenantId, QueueStatsId queueStatsId);
-
-    QueueStats findByTenantIdAndNameAndServiceId(TenantId tenantId, String queueName, String serviceId);
-
-    List<QueueStats> findByTenantId(TenantId tenantId);
+    public LatestTsDeletionHousekeeperTask(TenantId tenantId, EntityId entityId, String key) {
+        super(tenantId, entityId, HousekeeperTaskType.DELETE_LATEST_TS);
+        this.key = key;
+    }
 
 }

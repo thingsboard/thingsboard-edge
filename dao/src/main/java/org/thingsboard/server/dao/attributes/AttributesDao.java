@@ -63,6 +63,6 @@ public interface AttributesDao {
 
     List<String> findAllKeysByEntityIdsAndAttributeType(TenantId tenantId, List<EntityId> entityIds, String attributeType);
 
-    List<Pair<String, String>> removeAllByEntityId(TenantId tenantId, EntityId entityId);
+    List<Pair<AttributeScope, String>> removeAllByEntityId(TenantId tenantId, EntityId entityId);
 
 }

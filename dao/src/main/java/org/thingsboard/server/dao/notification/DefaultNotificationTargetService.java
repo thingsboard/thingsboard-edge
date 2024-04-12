@@ -221,10 +221,16 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
 
     @Override
     public void deleteNotificationTargetById(TenantId tenantId, NotificationTargetId id) {
-        if (notificationRequestDao.existsByTenantIdAndStatusAndTargetId(tenantId, NotificationRequestStatus.SCHEDULED, id)) {
+        deleteEntity(tenantId, id, false);
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        NotificationTargetId targetId = (NotificationTargetId) id;
+        if (!force && notificationRequestDao.existsByTenantIdAndStatusAndTargetId(tenantId, NotificationRequestStatus.SCHEDULED, targetId)) {
             throw new IllegalArgumentException("Recipients group is referenced by scheduled notification request");
         }
-        if (notificationRuleDao.existsByTenantIdAndTargetId(tenantId, id)) {
+        if (!force && notificationRuleDao.existsByTenantIdAndTargetId(tenantId, targetId)) {
             throw new IllegalArgumentException("Recipients group is being used in notification rule");
         }
         notificationTargetDao.removeById(tenantId, id.getId());
@@ -248,11 +254,6 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findNotificationTargetById(tenantId, new NotificationTargetId(entityId.getId())));
-    }
-
-    @Override
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteNotificationTargetById(tenantId, (NotificationTargetId) id);
     }
 
     @Override

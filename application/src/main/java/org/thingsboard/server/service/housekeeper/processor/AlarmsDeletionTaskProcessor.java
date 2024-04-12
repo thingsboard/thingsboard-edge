@@ -34,27 +34,55 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.housekeeper.HousekeeperTask;
+import org.thingsboard.server.common.data.housekeeper.AlarmsDeletionHousekeeperTask;
 import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
+import org.thingsboard.server.common.data.id.AlarmId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.dao.alarm.AlarmService;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class AlarmsDeletionTaskProcessor implements HousekeeperTaskProcessor<HousekeeperTask> {
+public class AlarmsDeletionTaskProcessor extends HousekeeperTaskProcessor<AlarmsDeletionHousekeeperTask> {
 
     private final AlarmService alarmService;
 
     @Override
-    public void process(HousekeeperTask task) throws Exception {
-        EntityType entityType = task.getEntityId().getEntityType();
+    public void process(AlarmsDeletionHousekeeperTask task) throws Exception {
+        EntityId entityId = task.getEntityId();
+        EntityType entityType = entityId.getEntityType();
+        TenantId tenantId = task.getTenantId();
+
         if (entityType == EntityType.DEVICE || entityType == EntityType.ASSET) {
-            int count = alarmService.deleteAlarmsByEntityId(task.getTenantId(), task.getEntityId());
-            log.debug("[{}][{}][{}] Deleted {} alarms", task.getTenantId(), task.getEntityId().getEntityType(), task.getEntityId(), count);
-        } else {
-            int count = alarmService.deleteEntityAlarmRecords(task.getTenantId(), task.getEntityId());
-            log.debug("[{}][{}][{}] Deleted {} entity alarms", task.getTenantId(), task.getEntityId().getEntityType(), task.getEntityId(), count);
+            if (task.getAlarms() == null) {
+                AlarmId last = null;
+                while (true) {
+                    List<AlarmId> alarms = alarmService.findAlarmIdsByOriginatorIdAndIdOffset(tenantId, entityId, last, 128);
+                    if (alarms.isEmpty()) {
+                        break;
+                    }
+
+                    housekeeperClient.submitTask(new AlarmsDeletionHousekeeperTask(tenantId, entityId, alarms.stream()
+                            .map(UUIDBased::getId).collect(Collectors.toList())));
+                    last = alarms.get(alarms.size() - 1);
+                    log.debug("[{}][{}][{}] Submitted task for deleting {} alarms", tenantId, entityType, entityId, alarms.size());
+                }
+            } else {
+                for (UUID alarmId : task.getAlarms()) {
+                    alarmService.delAlarm(tenantId, new AlarmId(alarmId));
+                }
+                log.debug("[{}][{}][{}] Deleted {} alarms", tenantId, entityType, entityId, task.getAlarms().size());
+            }
         }
+
+        int count = alarmService.deleteEntityAlarmRecords(tenantId, entityId);
+        log.debug("[{}][{}][{}] Deleted {} entity alarms", tenantId, entityType, entityId, count);
     }
 
     @Override

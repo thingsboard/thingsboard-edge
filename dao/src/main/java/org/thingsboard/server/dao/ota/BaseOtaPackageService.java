@@ -241,6 +241,11 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
     }
 
     @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteOtaPackage(tenantId, (OtaPackageId) id);
+    }
+
+    @Override
     public OtaPackageInfo findOtaPackageInfoByDeviceIdAndType(DeviceId deviceId, OtaPackageType type) {
         log.trace("Executing findOtaPackageInfoByDeviceIdAndType [{}] [{}]", deviceId, type);
         validateId(deviceId, id -> "Incorrect deviceId " + id);

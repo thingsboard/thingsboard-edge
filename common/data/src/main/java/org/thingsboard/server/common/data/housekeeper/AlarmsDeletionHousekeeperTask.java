@@ -28,23 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.queue;
+package org.thingsboard.server.common.data.housekeeper;
 
-import org.thingsboard.server.common.data.id.QueueStatsId;
+import lombok.AccessLevel;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.queue.QueueStats;
-import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
+import java.util.UUID;
 
-public interface QueueStatsService extends EntityDaoService {
+@Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class AlarmsDeletionHousekeeperTask extends HousekeeperTask {
 
-    QueueStats save(TenantId tenantId, QueueStats queueStats);
+    private List<UUID> alarms;
 
-    QueueStats findQueueStatsById(TenantId tenantId, QueueStatsId queueStatsId);
+    public AlarmsDeletionHousekeeperTask(TenantId tenantId, EntityId entityId) {
+        this(tenantId, entityId, null);
+    }
 
-    QueueStats findByTenantIdAndNameAndServiceId(TenantId tenantId, String queueName, String serviceId);
-
-    List<QueueStats> findByTenantId(TenantId tenantId);
+    public AlarmsDeletionHousekeeperTask(TenantId tenantId, EntityId entityId, List<UUID> alarms) {
+        super(tenantId, entityId, HousekeeperTaskType.DELETE_ALARMS);
+        this.alarms = alarms;
+    }
 
 }

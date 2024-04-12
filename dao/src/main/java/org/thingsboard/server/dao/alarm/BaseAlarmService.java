@@ -235,24 +235,6 @@ public class BaseAlarmService extends AbstractCachedEntityService<TenantId, Page
         }
     }
 
-    @Override
-    public int deleteAlarmsByEntityId(TenantId tenantId, EntityId entityId) {
-        PageLink pageLink = new PageLink(256);
-        PageData<AlarmInfo> alarms;
-        int count = 0;
-        do {
-            alarms = findAlarms(tenantId, AlarmQuery.builder()
-                    .affectedEntityId(entityId)
-                    .pageLink(new TimePageLink(pageLink, null, null))
-                    .build());
-            for (AlarmInfo alarm : alarms.getData()) {
-                deleteAlarm(tenantId, alarm, true);
-                count++;
-            }
-        } while (alarms.hasNext());
-        return count;
-    }
-
     private List<EntityId> createEntityAlarmRecords(Alarm alarm) throws ExecutionException, InterruptedException {
         Set<EntityId> propagatedEntitiesSet = new LinkedHashSet<>();
         propagatedEntitiesSet.add(alarm.getOriginator());
@@ -369,9 +351,9 @@ public class BaseAlarmService extends AbstractCachedEntityService<TenantId, Page
     }
 
     @Override
-    public PageData<AlarmId> findAlarmIdsByOriginatorId(TenantId tenantId, EntityId originatorId, PageLink pageLink) {
-        log.trace("[{}] Executing findAlarmsByOriginatorId [{}]", tenantId, originatorId);
-        return alarmDao.findAlarmIdsByOriginatorId(tenantId, originatorId, pageLink);
+    public List<AlarmId> findAlarmIdsByOriginatorIdAndIdOffset(TenantId tenantId, EntityId originatorId, AlarmId idOffset, int limit) {
+        log.trace("[{}] Executing findAlarmIdsByOriginatorIdAndIdOffset [{}][{}]", tenantId, originatorId, idOffset);
+        return alarmDao.findAlarmIdsByOriginatorId(tenantId, originatorId, idOffset, new PageLink(limit)).getData();
     }
 
     @Override

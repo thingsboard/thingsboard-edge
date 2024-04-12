@@ -28,23 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.queue;
+package org.thingsboard.server.dao.entity;
 
-import org.thingsboard.server.common.data.id.QueueStatsId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.queue.QueueStats;
-import org.thingsboard.server.dao.entity.EntityDaoService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.dao.Dao;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-public interface QueueStatsService extends EntityDaoService {
+@Service
+@Slf4j
+public class EntityDaoRegistry {
 
-    QueueStats save(TenantId tenantId, QueueStats queueStats);
+    private final Map<EntityType, Dao<?>> daos;
 
-    QueueStats findQueueStatsById(TenantId tenantId, QueueStatsId queueStatsId);
+    private EntityDaoRegistry(List<Dao<?>> daos) {
+        this.daos = daos.stream().filter(dao -> dao.getEntityType() != null)
+                .collect(Collectors.toMap(Dao::getEntityType, dao -> dao));
+    }
 
-    QueueStats findByTenantIdAndNameAndServiceId(TenantId tenantId, String queueName, String serviceId);
-
-    List<QueueStats> findByTenantId(TenantId tenantId);
+    @SuppressWarnings("unchecked")
+    public <T> Dao<T> getDao(EntityType entityType) {
+        Dao<T> dao = (Dao<T>) daos.get(entityType);
+        if (dao == null) {
+            throw new IllegalArgumentException("Missing dao for entity type " + entityType);
+        }
+        return dao;
+    }
 
 }

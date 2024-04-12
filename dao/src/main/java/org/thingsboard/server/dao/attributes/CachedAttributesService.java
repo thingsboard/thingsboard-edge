@@ -323,11 +323,13 @@ public class CachedAttributesService implements AttributesService {
 
     @Override
     public int removeAllByEntityId(TenantId tenantId, EntityId entityId) {
-        List<Pair<String, String>> result = attributesDao.removeAllByEntityId(tenantId, entityId);
+        List<Pair<AttributeScope, String>> result = attributesDao.removeAllByEntityId(tenantId, entityId);
         result.forEach(deleted -> {
-            String scope = deleted.getKey();
+            AttributeScope scope = deleted.getKey();
             String key = deleted.getValue();
-            cache.evict(new AttributeCacheKey(scope, entityId, key));
+            if (scope != null && key != null) {
+                cache.evict(new AttributeCacheKey(scope, entityId, key));
+            }
         });
         return result.size();
     }

@@ -28,23 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.queue;
+package org.thingsboard.server.dao.service;
 
-import org.thingsboard.server.common.data.id.QueueStatsId;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.queue.QueueStats;
-import org.thingsboard.server.dao.entity.EntityDaoService;
+import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.entity.EntityDaoRegistry;
 
-import java.util.List;
+import java.util.UUID;
 
-public interface QueueStatsService extends EntityDaoService {
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-    QueueStats save(TenantId tenantId, QueueStats queueStats);
+@Slf4j
+@DaoSqlTest
+public class EntityDaoRegistryTest extends AbstractServiceTest {
 
-    QueueStats findQueueStatsById(TenantId tenantId, QueueStatsId queueStatsId);
+    @Autowired
+    EntityDaoRegistry entityDaoRegistry;
 
-    QueueStats findByTenantIdAndNameAndServiceId(TenantId tenantId, String queueName, String serviceId);
+    @Test
+    public void givenAllEntityTypes_whenGetDao_thenAllPresent() {
+        for (EntityType entityType : EntityType.values()) {
+            Dao<?> dao = assertDoesNotThrow(() -> entityDaoRegistry.getDao(entityType));
+            assertThat(dao).isNotNull();
+        }
+    }
 
-    List<QueueStats> findByTenantId(TenantId tenantId);
+    @Test
+    public void givenAllDaos_whenFindById_thenOk() {
+        for (EntityType entityType : EntityType.values()) {
+            assertDoesNotThrow(() -> {
+                entityDaoRegistry.getDao(entityType).findById(TenantId.SYS_TENANT_ID, UUID.randomUUID());
+            });
+        }
+    }
 
 }

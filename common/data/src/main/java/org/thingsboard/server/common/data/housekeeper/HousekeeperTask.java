@@ -49,7 +49,10 @@ import java.io.Serializable;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "taskType", visible = true, include = JsonTypeInfo.As.EXISTING_PROPERTY, defaultImpl = HousekeeperTask.class)
 @JsonSubTypes({
+        @Type(name = "DELETE_TS_HISTORY", value = TsHistoryDeletionHousekeeperTask.class),
+        @Type(name = "DELETE_LATEST_TS", value = LatestTsDeletionHousekeeperTask.class),
         @Type(name = "DELETE_ENTITIES", value = EntitiesDeletionHousekeeperTask.class),
+        @Type(name = "DELETE_ALARMS", value = AlarmsDeletionHousekeeperTask.class),
         @Type(name = "UNASSIGN_ALARMS", value = AlarmsUnassignHousekeeperTask.class)
 })
 @Data
@@ -72,10 +75,19 @@ public class HousekeeperTask implements Serializable {
         return new HousekeeperTask(tenantId, entityId, HousekeeperTaskType.DELETE_ATTRIBUTES);
     }
 
+    /**
+     * Task for telemetry deletion, processed by TelemetryDeletionTaskProcessor.
+     * The processor will submit separate tasks for each key for latest and ts history deletion,
+     * processed by LatestTsDeletionTaskProcessor and TsHistoryDeletionTaskProcessor accordingly.
+     * */
     public static HousekeeperTask deleteTelemetry(TenantId tenantId, EntityId entityId) {
         return new HousekeeperTask(tenantId, entityId, HousekeeperTaskType.DELETE_TELEMETRY);
     }
 
+    /**
+     * Task for events deletion, processed by EventsDeletionTaskProcessor.
+     * All types of events will be dropped for this entity.
+     * */
     public static HousekeeperTask deleteEvents(TenantId tenantId, EntityId entityId) {
         return new HousekeeperTask(tenantId, entityId, HousekeeperTaskType.DELETE_EVENTS);
     }
@@ -85,7 +97,7 @@ public class HousekeeperTask implements Serializable {
     }
 
     public static HousekeeperTask deleteAlarms(TenantId tenantId, EntityId entityId) {
-        return new HousekeeperTask(tenantId, entityId, HousekeeperTaskType.DELETE_ALARMS);
+        return new AlarmsDeletionHousekeeperTask(tenantId, entityId);
     }
 
     public static HousekeeperTask deleteEntities(TenantId tenantId, EntityType entityType) {

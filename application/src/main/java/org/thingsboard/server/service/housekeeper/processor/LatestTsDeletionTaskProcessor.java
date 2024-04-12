@@ -28,23 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.queue;
+package org.thingsboard.server.service.housekeeper.processor;
 
-import org.thingsboard.server.common.data.id.QueueStatsId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.queue.QueueStats;
-import org.thingsboard.server.dao.entity.EntityDaoService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
+import org.thingsboard.server.common.data.housekeeper.LatestTsDeletionHousekeeperTask;
+import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import java.util.List;
 
-public interface QueueStatsService extends EntityDaoService {
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class LatestTsDeletionTaskProcessor extends HousekeeperTaskProcessor<LatestTsDeletionHousekeeperTask> {
 
-    QueueStats save(TenantId tenantId, QueueStats queueStats);
+    private final TimeseriesService timeseriesService;
 
-    QueueStats findQueueStatsById(TenantId tenantId, QueueStatsId queueStatsId);
+    @Override
+    public void process(LatestTsDeletionHousekeeperTask task) throws Exception {
+        timeseriesService.removeLatest(task.getTenantId(), task.getEntityId(), List.of(task.getKey())).get();
+        log.debug("[{}][{}][{}] Deleted latest telemetry for key '{}'", task.getTenantId(), task.getEntityId().getEntityType(), task.getEntityId(), task.getKey());
+    }
 
-    QueueStats findByTenantIdAndNameAndServiceId(TenantId tenantId, String queueName, String serviceId);
-
-    List<QueueStats> findByTenantId(TenantId tenantId);
+    @Override
+    public HousekeeperTaskType getTaskType() {
+        return HousekeeperTaskType.DELETE_LATEST_TS;
+    }
 
 }

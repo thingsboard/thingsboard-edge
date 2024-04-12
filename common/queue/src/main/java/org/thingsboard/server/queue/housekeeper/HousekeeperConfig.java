@@ -28,23 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.queue;
+package org.thingsboard.server.queue.housekeeper;
 
-import org.thingsboard.server.common.data.id.QueueStatsId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.queue.QueueStats;
-import org.thingsboard.server.dao.entity.EntityDaoService;
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
 
-import java.util.List;
+import java.util.Set;
 
-public interface QueueStatsService extends EntityDaoService {
+@Component
+@Getter
+public class HousekeeperConfig {
 
-    QueueStats save(TenantId tenantId, QueueStats queueStats);
-
-    QueueStats findQueueStatsById(TenantId tenantId, QueueStatsId queueStatsId);
-
-    QueueStats findByTenantIdAndNameAndServiceId(TenantId tenantId, String queueName, String serviceId);
-
-    List<QueueStats> findByTenantId(TenantId tenantId);
+    @Value("${queue.core.housekeeper.disabled-task-types:}")
+    private Set<HousekeeperTaskType> disabledTaskTypes;
+    @Value("${queue.core.housekeeper.task-processing-timeout-ms:120000}")
+    private int taskProcessingTimeout;
+    @Value("${queue.core.housekeeper.poll-interval-ms:500}")
+    private int pollInterval;
+    @Value("${queue.core.housekeeper.task-reprocessing-delay-ms:5000}")
+    private int taskReprocessingDelay;
+    @Value("${queue.core.housekeeper.max-reprocessing-attempts:10}")
+    private int maxReprocessingAttempts;
 
 }

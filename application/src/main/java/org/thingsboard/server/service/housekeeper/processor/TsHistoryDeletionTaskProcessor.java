@@ -28,23 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.queue;
+package org.thingsboard.server.service.housekeeper.processor;
 
-import org.thingsboard.server.common.data.id.QueueStatsId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.queue.QueueStats;
-import org.thingsboard.server.dao.entity.EntityDaoService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
+import org.thingsboard.server.common.data.housekeeper.TsHistoryDeletionHousekeeperTask;
+import org.thingsboard.server.common.data.kv.BaseDeleteTsKvQuery;
+import org.thingsboard.server.common.data.kv.DeleteTsKvQuery;
+import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import java.util.List;
 
-public interface QueueStatsService extends EntityDaoService {
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class TsHistoryDeletionTaskProcessor extends HousekeeperTaskProcessor<TsHistoryDeletionHousekeeperTask> {
 
-    QueueStats save(TenantId tenantId, QueueStats queueStats);
+    private final TimeseriesService timeseriesService;
 
-    QueueStats findQueueStatsById(TenantId tenantId, QueueStatsId queueStatsId);
+    @Override
+    public void process(TsHistoryDeletionHousekeeperTask task) throws Exception {
+        DeleteTsKvQuery deleteQuery = new BaseDeleteTsKvQuery(task.getKey(), 0, System.currentTimeMillis(), false, false);
+        timeseriesService.remove(task.getTenantId(), task.getEntityId(), List.of(deleteQuery)).get();
+        log.debug("[{}][{}][{}] Deleted timeseries history for key '{}'", task.getTenantId(), task.getEntityId().getEntityType(), task.getEntityId(), task.getKey());
+    }
 
-    QueueStats findByTenantIdAndNameAndServiceId(TenantId tenantId, String queueName, String serviceId);
-
-    List<QueueStats> findByTenantId(TenantId tenantId);
+    @Override
+    public HousekeeperTaskType getTaskType() {
+        return HousekeeperTaskType.DELETE_TS_HISTORY;
+    }
 
 }
