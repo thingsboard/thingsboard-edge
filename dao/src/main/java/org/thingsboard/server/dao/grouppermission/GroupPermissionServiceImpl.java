@@ -237,11 +237,21 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
     public void deleteGroupPermission(TenantId tenantId, GroupPermissionId groupPermissionId) {
         log.trace("Executing deleteGroupPermission [{}]", groupPermissionId);
         validateId(groupPermissionId, id -> INCORRECT_GROUP_PERMISSION_ID + id);
+        deleteEntity(tenantId, groupPermissionId, false);
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        GroupPermissionId groupPermissionId = (GroupPermissionId) id;
         GroupPermission groupPermission = groupPermissionDao.findById(tenantId, groupPermissionId.getId());
         if (groupPermission == null) {
-            throw new IncorrectParameterException("Unable to delete non-existent group permission.");
+            if (force) {
+                return;
+            } else {
+                throw new IncorrectParameterException("Unable to delete non-existent group permission.");
+            }
         }
-        if (groupPermission.isPublic() && groupPermission.getEntityGroupId() != null) {
+        if (!force && groupPermission.isPublic() && groupPermission.getEntityGroupId() != null) {
             EntityGroup entityGroup = entityGroupDao.findById(tenantId, groupPermission.getEntityGroupId().getId());
             if (entityGroup != null) {
                 JsonNode additionalInfo = entityGroup.getAdditionalInfo();

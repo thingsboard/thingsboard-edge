@@ -173,6 +173,11 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     }
 
     @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteRole(tenantId, (RoleId) id);
+    }
+
+    @Override
     public void deleteRolesByTenantId(TenantId tenantId) {
         log.trace("Executing deleteRolesByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
@@ -322,11 +327,6 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findRoleById(tenantId, new RoleId(entityId.getId())));
-    }
-
-    @Override
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteRole(tenantId, (RoleId) id);
     }
 
     @Override

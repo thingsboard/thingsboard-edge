@@ -499,6 +499,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteEntityGroup(tenantId, (EntityGroupId) id);
+    }
+
+    @Override
     public PageData<EntityGroup> findAllEntityGroupsByParentRelation(TenantId tenantId, EntityId parentEntityId, PageLink pageLink) {
         log.trace("Executing findAllEntityGroupsByParentRelation, parentEntityId [{}], pageLink [{}]", parentEntityId, pageLink);
         validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
@@ -1098,11 +1103,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findEntityGroupById(tenantId, new EntityGroupId(entityId.getId())));
-    }
-
-    @Override
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteEntityGroup(tenantId, (EntityGroupId) id);
     }
 
     @Override

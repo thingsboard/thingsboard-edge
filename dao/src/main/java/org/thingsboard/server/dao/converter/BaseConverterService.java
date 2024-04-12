@@ -165,6 +165,12 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     }
 
     @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteConverter(tenantId, (ConverterId) id);
+    }
+
+    @Override
     public void deleteConvertersByTenantId(TenantId tenantId) {
         log.trace("Executing deleteConvertersByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
@@ -198,12 +204,6 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     @Override
     public long countByTenantId(TenantId tenantId) {
         return converterDao.countByTenantId(tenantId);
-    }
-
-    @Override
-    @Transactional
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteConverter(tenantId, (ConverterId) id);
     }
 
     @Override
