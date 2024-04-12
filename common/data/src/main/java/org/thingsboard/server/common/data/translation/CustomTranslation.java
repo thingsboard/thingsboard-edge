@@ -55,7 +55,7 @@ public class CustomTranslation {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    @Schema(description = "Map of locale IDs to stringified json object with custom translations", required = true)
+    @Schema(description = "Map of locale IDs to stringified json object with custom translations", requiredMode = Schema.RequiredMode.REQUIRED)
     private Map<String, String> translationMap = new HashMap<>();
 
     public CustomTranslation merge(CustomTranslation otherCL) {

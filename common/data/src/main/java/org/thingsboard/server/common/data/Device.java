@@ -195,7 +195,7 @@ public class Device extends BaseDataWithAdditionalInfo<DeviceId> implements Grou
         this.label = label;
     }
 
-    @Schema(required = true, description = "JSON object with Device Profile Id.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "JSON object with Device Profile Id.")
     public DeviceProfileId getDeviceProfileId() {
         return deviceProfileId;
     }

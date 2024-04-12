@@ -52,7 +52,6 @@ public class CoapClaimJsonDeviceTest extends CoapClaimDeviceTest {
                 .transportPayloadType(TransportPayloadType.JSON)
                 .build();
         processBeforeTest(configProperties);
-        createCustomerAndUser();
     }
 
     @After

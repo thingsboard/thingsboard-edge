@@ -48,7 +48,7 @@ public class Tenant extends ContactBased<TenantId> implements TenantEntity, HasT
 
     @Length(fieldName = "title")
     @NoXss
-    @Schema(required = true, description = "Title of the tenant", example = "Company A")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Title of the tenant", example = "Company A")
     private String title;
     @NoXss
     @Length(fieldName = "region")
@@ -172,7 +172,7 @@ public class Tenant extends ContactBased<TenantId> implements TenantEntity, HasT
         return super.getPhone();
     }
 
-    @Schema(required = true, description = "Email", example = "example@company.com")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Email", example = "example@company.com")
     @Override
     public String getEmail() {
         return super.getEmail();

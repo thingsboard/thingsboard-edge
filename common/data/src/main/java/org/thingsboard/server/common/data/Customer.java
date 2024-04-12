@@ -51,7 +51,7 @@ public class Customer extends ContactBased<CustomerId> implements HasTenantId, H
 
     @NoXss
     @Length(fieldName = "title")
-    @Schema(required = true, description = "Title of the customer", example = "Company A")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Title of the customer", example = "Company A")
     private String title;
     @Schema(description = "JSON object with Tenant Id")
     private TenantId tenantId;
@@ -186,7 +186,7 @@ public class Customer extends ContactBased<CustomerId> implements HasTenantId, H
         return super.getPhone();
     }
 
-    @Schema(required = true, description = "Email", example = "example@company.com")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Email", example = "example@company.com")
     @Override
     public String getEmail() {
         return super.getEmail();
