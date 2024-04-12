@@ -1608,7 +1608,7 @@ export class WidgetSubscription implements IWidgetSubscription {
             datasource.dataKeys.forEach((dataKey) => {
               const settings: DataKeySettingsWithComparison = dataKey.settings;
               if (settings.comparisonSettings.color) {
-                dataKey.color = dataKey.settings.comparisonSettings.color;
+                dataKey.color = plainColorFromVariable(dataKey.settings.comparisonSettings.color);
               }
               const origDataKey = origDatasource.dataKeys[dataKey.origDataKeyIndex];
               (origDataKey.settings as DataKeySettingsWithComparison).comparisonSettings.color = dataKey.color;
