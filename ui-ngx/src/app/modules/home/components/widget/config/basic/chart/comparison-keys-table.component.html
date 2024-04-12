@@ -30,29 +30,24 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-y-axis-settings-panel" [formGroup]="yAxisSettingsFormGroup">
-  <div class="tb-y-axis-settings-title">{{ 'widgets.time-series-chart.axis.y-axis-settings' | translate }}</div>
-  <div class="tb-y-axis-settings-panel-content">
-    <tb-time-series-chart-axis-settings
-      formControlName="yAxis"
-      alwaysExpanded
-      [advanced]="advanced"
-      axisType="yAxis">
-    </tb-time-series-chart-axis-settings>
+<div class="tb-comparison-keys-table tb-form-table">
+  <div class="tb-form-table-header">
+    <div class="tb-form-table-header-cell tb-show-header" translate>widgets.time-series-chart.comparison.show</div>
+    <div class="tb-form-table-header-cell tb-key-header" translate>datakey.key</div>
+    <div class="tb-form-table-header-cell tb-label-header" translate>datakey.label</div>
+    <div class="tb-form-table-header-cell tb-color-header" translate>datakey.color</div>
   </div>
-  <div class="tb-y-axis-settings-panel-buttons">
-    <button mat-button
-            color="primary"
-            type="button"
-            (click)="cancel()">
-      {{ 'action.cancel' | translate }}
-    </button>
-    <button mat-raised-button
-            color="primary"
-            type="button"
-            (click)="applyYAxisSettings()"
-            [disabled]="yAxisSettingsFormGroup.invalid || !yAxisSettingsFormGroup.dirty">
-      {{ 'action.apply' | translate }}
-    </button>
+  <div *ngIf="keysFormArray().controls.length; else noKeys" class="tb-form-table-body">
+    <div *ngFor="let keyControl of keysFormArray().controls; trackBy: trackByKey; let $index = index;">
+      <tb-comparison-key-row
+          fxFlex
+          [datasourceType]="datasourceType"
+          [formControl]="keyControl">
+      </tb-comparison-key-row>
+    </div>
   </div>
 </div>
+<ng-template #noKeys>
+  <span fxLayoutAlign="center center"
+        class="tb-prompt">{{ 'widgets.chart.no-series' | translate }}</span>
+</ng-template>

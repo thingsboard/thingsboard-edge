@@ -28,41 +28,42 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.tb-data-key-input {
-  .mat-mdc-form-field.tb-inline-field.tb-key-field {
-    width: 100%;
-    &.mat-form-field-appearance-fill {
-      .mdc-text-field--filled.mdc-text-field--disabled {
-        &:before {
-          opacity: 0;
-        }
-      }
+@import '../../../../../../../../scss/constants';
+
+.tb-comparison-key-row {
+  .tb-show-field {
+    width: 40px;
+    min-width: 40px;
+  }
+
+  .tb-data-key-input {
+    flex: 1;
+    @media #{$mat-gt-xs} {
+      min-width: 100px;
+      flex: 1 1 40%;
     }
-    .mat-mdc-text-field-wrapper:not(.mdc-text-field--outlined) {
-      padding-left: 8px;
-      padding-right: 0;
+  }
 
-      .mat-mdc-form-field-infix {
-        padding-top: 0;
-        padding-bottom: 6px;
-
-        .mdc-evolution-chip-set .mdc-evolution-chip {
-          margin: 0;
-        }
-
-        input.mat-mdc-chip-input {
-          height: 32px;
-          margin-left: 0;
-        }
-      }
+  .tb-label-field, .tb-color-field {
+    display: flex;
+    flex-direction: row;
+    place-content: center;
+    align-items: center;
+    .tb-inline-field {
+      flex: 1;
     }
+  }
 
-    .mat-mdc-chip.mat-mdc-standard-chip.tb-datakey-chip {
-      .tb-attribute-chip {
-        .tb-chip-labels {
-          background: transparent;
-        }
-      }
+  .tb-label-field {
+    flex: 1;
+    @media #{$mat-gt-xs} {
+      min-width: 150px;
+      flex: 1 1 60%;
     }
+  }
+
+  .tb-color-field {
+    width: 40px;
+    min-width: 40px;
   }
 }

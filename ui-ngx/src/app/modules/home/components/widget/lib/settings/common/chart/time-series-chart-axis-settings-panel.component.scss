@@ -28,41 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.tb-data-key-input {
-  .mat-mdc-form-field.tb-inline-field.tb-key-field {
-    width: 100%;
-    &.mat-form-field-appearance-fill {
-      .mdc-text-field--filled.mdc-text-field--disabled {
-        &:before {
-          opacity: 0;
-        }
-      }
-    }
-    .mat-mdc-text-field-wrapper:not(.mdc-text-field--outlined) {
-      padding-left: 8px;
-      padding-right: 0;
+@import '../../../../../../../../../scss/constants';
 
-      .mat-mdc-form-field-infix {
-        padding-top: 0;
-        padding-bottom: 6px;
-
-        .mdc-evolution-chip-set .mdc-evolution-chip {
-          margin: 0;
-        }
-
-        input.mat-mdc-chip-input {
-          height: 32px;
-          margin-left: 0;
-        }
-      }
-    }
-
-    .mat-mdc-chip.mat-mdc-standard-chip.tb-datakey-chip {
-      .tb-attribute-chip {
-        .tb-chip-labels {
-          background: transparent;
-        }
-      }
-    }
+.tb-axis-settings-panel {
+  width: 530px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  @media #{$mat-lt-md} {
+    width: 90vw;
+  }
+  .tb-axis-settings-panel-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow: auto;
+    margin: -10px;
+    padding: 10px;
+  }
+  .tb-axis-settings-title {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    letter-spacing: 0.25px;
+    color: rgba(0, 0, 0, 0.87);
+  }
+  .tb-axis-settings-panel-buttons {
+    height: 40px;
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    justify-content: flex-end;
+    align-items: flex-end;
   }
 }

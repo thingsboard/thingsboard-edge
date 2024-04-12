@@ -114,6 +114,10 @@ export class DataKeyInputComponent implements ControlValueAccessor, OnInit, OnCh
   editable = true;
 
   @Input()
+  @coerceBoolean()
+  removable = true;
+
+  @Input()
   datasourceType: DatasourceType;
 
   @Input()

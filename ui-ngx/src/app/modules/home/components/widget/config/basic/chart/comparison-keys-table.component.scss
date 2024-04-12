@@ -28,37 +28,41 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../../../../../../scss/constants';
+@import '../../../../../../../../scss/constants';
 
-.tb-y-axis-settings-panel {
-  width: 530px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  @media #{$mat-lt-md} {
-    width: 90vw;
+.tb-comparison-keys-table {
+  .tb-form-table-header-cell {
+
+    &.tb-show-header {
+      width: 40px;
+      min-width: 40px;
+    }
+
+    &.tb-key-header {
+      flex: 1;
+      @media #{$mat-gt-xs} {
+        min-width: 100px;
+        flex: 1 1 40%;
+      }
+    }
+
+    &.tb-label-header {
+      flex: 1;
+      @media #{$mat-gt-xs} {
+        min-width: 150px;
+        flex: 1 1 60%;
+      }
+    }
+
+    &.tb-color-header {
+      width: 40px;
+      min-width: 40px;
+    }
   }
-  .tb-y-axis-settings-panel-content {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    overflow: auto;
-    margin: -10px;
-    padding: 10px;
-  }
-  .tb-y-axis-settings-title {
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 24px;
-    letter-spacing: 0.25px;
-    color: rgba(0, 0, 0, 0.87);
-  }
-  .tb-y-axis-settings-panel-buttons {
-    height: 40px;
-    display: flex;
-    flex-direction: row;
-    gap: 16px;
-    justify-content: flex-end;
-    align-items: flex-end;
+
+  .tb-form-table-body {
+    tb-comparison-key-row {
+      overflow: hidden;
+    }
   }
 }
