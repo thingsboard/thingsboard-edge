@@ -107,4 +107,5 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
             getParentCustomerEvents(tenantId, edgeId, customer.getParentCustomerId(), eventType, events);
         }
     }
+
 }

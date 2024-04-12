@@ -73,4 +73,5 @@ public class EntityGroupEdgeEventFetcher implements EdgeEventFetcher {
         }
         return new PageData<>(result, pageData.getTotalPages(), pageData.getTotalElements(), pageData.hasNext());
     }
+
 }
