@@ -58,12 +58,10 @@ public class CoapAttributesUpdatesProtoIntegrationTest extends AbstractCoapAttri
     public void afterTest() throws Exception {
         processAfterTest();
     }
-
     @Test
     public void testSubscribeToAttributesUpdatesFromTheServer() throws Exception {
         processProtoTestSubscribeToAttributesUpdates(false);
     }
-
     @Test
     public void testSubscribeToAttributesUpdatesFromTheServerWithEmptyCurrentStateNotification() throws Exception {
         processProtoTestSubscribeToAttributesUpdates(true);

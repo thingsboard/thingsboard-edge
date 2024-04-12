@@ -38,9 +38,7 @@ import java.util.Map;
 
 public interface StatsFactory {
 
-    StatsCounter createStatsCounter(String key, String statsName);
-
-    StatsCounter createStatsCounter(String key, String statsName, Map<String, String> tags);
+    StatsCounter createStatsCounter(String key, String statsName, String... otherTags);
 
     DefaultCounter createDefaultCounter(String key, String... tags);
 

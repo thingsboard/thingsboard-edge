@@ -121,7 +121,7 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     @Query("SELECT u FROM UserEntity u WHERE u.id IN " +
             "(SELECT r.toId FROM RelationEntity r WHERE r.fromType = 'ENTITY_GROUP' AND r.toType = 'USER' AND r.fromId IN " +
-            "(SELECT p.userGroupId FROM GroupPermissionEntity p WHERE (p.tenantId = :tenantId OR :tenantId = '13814000-1dd2-11b2-8080-808080808080') " +
+            "(SELECT p.userGroupId FROM GroupPermissionEntity p WHERE (p.tenantId = :tenantId OR :tenantId = uuid('13814000-1dd2-11b2-8080-808080808080')) " +
             "AND p.roleId IN :rolesIds))")
     Page<UserEntity> findByTenantIdAndRolesIds(@Param("tenantId") UUID tenantId,
                                                @Param("rolesIds") List<UUID> rolesIds,

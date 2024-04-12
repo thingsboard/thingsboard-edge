@@ -43,7 +43,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import org.springframework.data.util.Pair;
 import org.springframework.test.context.TestPropertySource;
-import org.springframework.util.Base64Utils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.StringUtils;
@@ -66,6 +65,7 @@ import org.thingsboard.server.exception.DataValidationException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -140,9 +140,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         Assert.assertEquals(savedTenant.getId(), savedConverter.getTenantId());
         Assert.assertEquals(converter.getName(), savedConverter.getName());
 
-        testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(savedConverter, savedConverter.getId(), savedConverter.getId(),
+        testNotifyEntityBroadcastEntityStateChangeEventManyTimeMsgToEdgeServiceNever(savedConverter, savedConverter.getId(), savedConverter.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED);
+                ActionType.ADDED, 1);
 
         savedConverter.setName("My new converter");
         doPost("/api/converter", savedConverter, Converter.class);
@@ -150,9 +150,9 @@ public class ConverterControllerTest extends AbstractControllerTest {
         Converter foundConverter = doGet("/api/converter/" + savedConverter.getId().getId().toString(), Converter.class);
         Assert.assertEquals(foundConverter.getName(), savedConverter.getName());
 
-        testNotifyEntityBroadcastEntityStateChangeEventOneTimeMsgToEdgeServiceNever(savedConverter, savedConverter.getId(), savedConverter.getId(),
+        testNotifyEntityBroadcastEntityStateChangeEventManyTimeMsgToEdgeServiceNever(savedConverter, savedConverter.getId(), savedConverter.getId(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.UPDATED);
+                ActionType.UPDATED, 1);
     }
 
     @Test
@@ -453,7 +453,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
     @Test
     public void givenUplinkPayloadWithUtf8Chars_testConverting() {
         String textPayload = "Привіт,Genève Hôpital Etterbeek-Ixelles,我们一起去玩吧。,اللغة العربية";
-        String base64Payload = Base64Utils.encodeToString(textPayload.getBytes(StandardCharsets.UTF_8));
+        String base64Payload = Base64.getEncoder().encodeToString(textPayload.getBytes(StandardCharsets.UTF_8));
 
         String actualPayload = convertForPayload(base64Payload).getFirst();
         assertThat(actualPayload).isEqualTo(textPayload);
@@ -605,7 +605,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
 
     public void testDecoder(String decoderFileName, String payloadExample, String expectedResult) throws IOException {
         byte[] bytes = IOUtils.toByteArray(ConverterControllerTest.class.getClassLoader().getResourceAsStream("converters/" + decoderFileName));
-        String base64Payload = Base64Utils.encodeToString(payloadExample.getBytes(StandardCharsets.UTF_8));
+        String base64Payload = Base64.getEncoder().encodeToString(payloadExample.getBytes(StandardCharsets.UTF_8));
 
         ObjectNode inputParams = JacksonUtil.newObjectNode();
         inputParams.set("decoder", new TextNode(new String(bytes)));

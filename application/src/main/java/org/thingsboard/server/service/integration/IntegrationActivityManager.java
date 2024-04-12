@@ -68,7 +68,7 @@ public abstract class IntegrationActivityManager extends AbstractActivityManager
     @Value("${integrations.activity.reporting_period:3000}")
     private long reportingPeriodMillis;
 
-    @Value("${integrations.activity.reporting_strategy:ALL}")
+    @Value("${integrations.activity.reporting_strategy:LAST}")
     private ActivityStrategyType reportingStrategyType;
 
     @PostConstruct

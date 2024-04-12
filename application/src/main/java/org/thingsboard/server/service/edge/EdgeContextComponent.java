@@ -50,6 +50,8 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.oauth2.OAuth2Service;
+import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.resource.ResourceService;
@@ -87,6 +89,7 @@ import org.thingsboard.server.service.edge.rpc.processor.entityview.EntityViewPr
 import org.thingsboard.server.service.edge.rpc.processor.group.EntityGroupEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.group.GroupPermissionsEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.integration.IntegrationEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.oauth2.OAuth2EdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.ota.OtaPackageEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.queue.QueueEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.relation.RelationEdgeProcessor;
@@ -184,6 +187,9 @@ public class EdgeContextComponent {
     private ResourceService resourceService;
 
     @Autowired
+    private OAuth2Service oAuth2Service;
+
+    @Autowired
     private RateLimitService rateLimitService;
 
     @Autowired
@@ -253,6 +259,9 @@ public class EdgeContextComponent {
     private ResourceEdgeProcessor resourceEdgeProcessor;
 
     @Autowired
+    private OAuth2EdgeProcessor oAuth2EdgeProcessor;
+
+    @Autowired
     private EdgeMsgConstructor edgeMsgConstructor;
 
     @Autowired
@@ -310,6 +319,9 @@ public class EdgeContextComponent {
 
     @Autowired
     protected IntegrationService integrationService;
+
+    @Autowired
+    protected DeviceGroupOtaPackageService deviceGroupOtaPackageService;
 
     @Autowired
     private EntityGroupEdgeProcessor entityGroupProcessor;

@@ -110,39 +110,39 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     @Override
     public Role findRoleById(TenantId tenantId, RoleId roleId) {
         log.trace("Executing findRoleById [{}]", roleId);
-        validateId(roleId, INCORRECT_ROLE_ID + roleId);
+        validateId(roleId, id -> INCORRECT_ROLE_ID + id);
         return cache.getAndPutInTransaction(roleId, () -> roleDao.findById(tenantId, roleId.getId()), true);
     }
 
     @Override
     public ListenableFuture<List<Role>> findRolesByIdsAsync(TenantId tenantId, List<RoleId> roleIds) {
         log.trace("Executing findRolesByIdsAsync, tenantId [{}], roleIds [{}]", tenantId, roleIds);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateIds(roleIds, "Incorrect roleIds " + roleIds);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateIds(roleIds, ids -> "Incorrect roleIds " + ids);
         return roleDao.findRolesByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(roleIds));
     }
 
     @Override
     public Optional<Role> findRoleByTenantIdAndName(TenantId tenantId, String name) {
         log.trace("Executing findRoleByTenantIdAndName, tenantId [{}], name [{}]", tenantId, name);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateString(name, INCORRECT_ROLE_NAME + name);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateString(name, n -> INCORRECT_ROLE_NAME + n);
         return roleDao.findRoleByTenantIdAndName(tenantId.getId(), name);
     }
 
     @Override
     public Optional<Role> findRoleByByTenantIdAndCustomerIdAndName(TenantId tenantId, CustomerId customerId, String name) {
         log.trace("Executing findRoleByByTenantIdAndCustomerIdAndName, tenantId [{}], customerId [{}], name [{}]", tenantId, customerId, name);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
-        validateString(name, INCORRECT_ROLE_NAME + name);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
+        validateString(name, n -> INCORRECT_ROLE_NAME + n);
         return roleDao.findRoleByByTenantIdAndCustomerIdAndName(tenantId.getId(), customerId.getId(), name);
     }
 
     @Override
     public PageData<Role> findRolesByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findRolesByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return roleDao.findRolesByTenantId(tenantId.getId(), pageLink);
     }
@@ -150,7 +150,7 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     @Override
     public PageData<Role> findRolesByTenantIdAndType(TenantId tenantId, PageLink pageLink, RoleType type) {
         log.trace("Executing findRolesByTenantIdAndType, tenantId [{}], pageLink [{}], type [{}]", tenantId, pageLink, type);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return roleDao.findRolesByTenantIdAndType(tenantId.getId(), type, pageLink);
     }
@@ -158,14 +158,14 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     @Override
     public ListenableFuture<Role> findRoleByIdAsync(TenantId tenantId, RoleId roleId) {
         log.trace("Executing findRoleByIdAsync [{}]", roleId);
-        validateId(roleId, INCORRECT_ROLE_ID + roleId);
+        validateId(roleId, id -> INCORRECT_ROLE_ID + id);
         return roleDao.findByIdAsync(tenantId, roleId.getId());
     }
 
     @Override
     public void deleteRole(TenantId tenantId, RoleId roleId) {
         log.trace("Executing deleteRole [{}]", roleId);
-        validateId(roleId, INCORRECT_ROLE_ID + roleId);
+        validateId(roleId, id -> INCORRECT_ROLE_ID + id);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndRoleId(tenantId, roleId);
         roleDao.removeById(tenantId, roleId.getId());
         publishEvictEvent(new RoleEvictEvent(roleId));
@@ -175,7 +175,7 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     @Override
     public void deleteRolesByTenantId(TenantId tenantId) {
         log.trace("Executing deleteRolesByTenantId, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantRoleRemover.removeEntities(tenantId, tenantId);
     }
 
@@ -187,8 +187,8 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     @Override
     public void deleteRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing deleteRolesByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         customerRoleRemover.removeEntities(tenantId, customerId);
     }
 
@@ -276,8 +276,8 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     @Override
     public PageData<Role> findRolesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
         log.trace("Executing findRolesByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validatePageLink(pageLink);
         return roleDao.findRolesByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
     }
@@ -285,8 +285,8 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     @Override
     public PageData<Role> findRolesByTenantIdAndCustomerIdAndType(TenantId tenantId, CustomerId customerId, RoleType type, PageLink pageLink) {
         log.trace("Executing findRolesByTenantIdAndCustomerId, tenantId [{}], customerId [{}], type [{}], pageLink [{}]", tenantId, customerId, type, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validatePageLink(pageLink);
         return roleDao.findRolesByTenantIdAndCustomerIdAndType(tenantId.getId(), customerId.getId(), type, pageLink);
     }

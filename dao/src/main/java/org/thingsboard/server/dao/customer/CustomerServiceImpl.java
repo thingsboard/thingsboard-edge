@@ -136,36 +136,36 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public Customer findCustomerById(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing findCustomerById [{}]", customerId);
-        Validator.validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        Validator.validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         return customerDao.findById(tenantId, customerId.getId());
     }
 
     @Override
     public CustomerInfo findCustomerInfoById(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing findCustomerInfoById [{}]", customerId);
-        Validator.validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        Validator.validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         return customerInfoDao.findById(tenantId, customerId.getId());
     }
 
     @Override
     public Optional<Customer> findCustomerByTenantIdAndTitle(TenantId tenantId, String title) {
         log.trace("Executing findCustomerByTenantIdAndTitle [{}] [{}]", tenantId, title);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         return customerDao.findCustomersByTenantIdAndTitle(tenantId.getId(), title);
     }
 
     @Override
     public ListenableFuture<Customer> findCustomerByIdAsync(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing findCustomerByIdAsync [{}]", customerId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         return customerDao.findByIdAsync(tenantId, customerId.getId());
     }
 
     @Override
     public ListenableFuture<List<Customer>> findCustomersByTenantIdAndIdsAsync(TenantId tenantId, List<CustomerId> customerIds) {
         log.trace("Executing findCustomersByTenantIdAndIdsAsync, tenantId [{}], customerIds [{}]", tenantId, customerIds);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateIds(customerIds, "Incorrect customerIds " + customerIds);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateIds(customerIds, ids -> "Incorrect customerIds " + ids);
         return customerDao.findCustomersByTenantIdAndIdsAsync(tenantId.getId(), customerIds.stream().map(CustomerId::getId).collect(Collectors.toList()));
     }
 
@@ -224,7 +224,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Transactional
     public void deleteCustomer(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing deleteCustomer [{}]", customerId);
-        Validator.validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        Validator.validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         deleteCustomer(tenantId, customerId, true);
     }
 
@@ -274,8 +274,8 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public Customer findOrCreatePublicCustomer(TenantId tenantId, EntityId ownerId) {
         log.trace("Executing findOrCreatePublicCustomer, tenantId [{}], ownerId [{}]", tenantId, ownerId);
-        Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        Validator.validateEntityId(ownerId, INCORRECT_OWNER_ID + ownerId);
+        Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        Validator.validateEntityId(ownerId, id -> INCORRECT_OWNER_ID + id);
         try {
             Optional<EntityGroup> entityGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, ownerId,
                     EntityType.CUSTOMER, EntityGroup.GROUP_ALL_NAME);
@@ -319,8 +319,8 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public EntityGroup findOrCreatePublicUserGroup(TenantId tenantId, EntityId ownerId) {
         log.trace("Executing findOrCreatePublicUserGroup, tenantId [{}], ownerId [{}]", tenantId, ownerId);
-        Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        Validator.validateEntityId(ownerId, INCORRECT_OWNER_ID + ownerId);
+        Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        Validator.validateEntityId(ownerId, id -> INCORRECT_OWNER_ID + id);
         Customer publicCustomer = findOrCreatePublicCustomer(tenantId, ownerId);
         return entityGroupService.findOrCreatePublicUsersGroup(publicCustomer.getTenantId(), publicCustomer.getId());
     }
@@ -328,8 +328,8 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public Role findOrCreatePublicUserEntityGroupRole(TenantId tenantId, EntityId ownerId) {
         log.trace("Executing findOrCreatePublicUserRole, tenantId [{}], ownerId [{}]", tenantId, ownerId);
-        Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        Validator.validateEntityId(ownerId, INCORRECT_OWNER_ID + ownerId);
+        Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        Validator.validateEntityId(ownerId, id -> INCORRECT_OWNER_ID + id);
         Customer publicCustomer = findOrCreatePublicCustomer(tenantId, ownerId);
         Role publicUserRole = roleService.findOrCreatePublicUsersEntityGroupRole(publicCustomer.getTenantId(), publicCustomer.getId());
         return publicUserRole;
@@ -338,7 +338,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public PageData<Customer> findCustomersByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findCustomersByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
         Validator.validatePageLink(pageLink);
         return customerDao.findCustomersByTenantId(tenantId.getId(), pageLink);
     }
@@ -346,7 +346,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public void deleteCustomersByTenantId(TenantId tenantId) {
         log.trace("Executing deleteCustomersByTenantId, tenantId [{}]", tenantId);
-        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
         customersByTenantRemover.removeEntities(tenantId, tenantId);
     }
 
@@ -358,7 +358,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public PageData<Customer> findCustomersByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
         log.trace("Executing findCustomersByEntityGroupId, groupId [{}], pageLink [{}]", groupId, pageLink);
-        validateId(groupId, "Incorrect entityGroupId " + groupId);
+        validateId(groupId, id -> "Incorrect entityGroupId " + id);
         validatePageLink(pageLink);
         return customerDao.findCustomersByEntityGroupId(groupId.getId(), pageLink);
     }
@@ -366,7 +366,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public PageData<Customer> findCustomersByEntityGroupIds(List<EntityGroupId> groupIds, List<CustomerId> additionalCustomerIds, PageLink pageLink) {
         log.trace("Executing findCustomersByEntityGroupId, groupIds [{}], additionalCustomerIds [{}], pageLink [{}]", groupIds, additionalCustomerIds, pageLink);
-        validateIds(groupIds, "Incorrect groupIds " + groupIds);
+        validateIds(groupIds, ids -> "Incorrect groupIds " + ids);
         validatePageLink(pageLink);
         return customerDao.findCustomersByEntityGroupIds(toUUIDs(groupIds), toUUIDs(additionalCustomerIds), pageLink);
     }
@@ -374,7 +374,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public PageData<CustomerInfo> findCustomerInfosByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findCustomerInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return customerInfoDao.findCustomersByTenantId(tenantId.getId(), pageLink);
     }
@@ -382,7 +382,7 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public PageData<CustomerInfo> findTenantCustomerInfosByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findTenantCustomerInfosByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return customerInfoDao.findTenantCustomersByTenantId(tenantId.getId(), pageLink);
     }
@@ -390,8 +390,8 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public PageData<CustomerInfo> findCustomerInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
         log.trace("Executing findCustomerInfosByTenantIdAndCustomerId, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validatePageLink(pageLink);
         return customerInfoDao.findCustomersByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
     }
@@ -399,8 +399,8 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
     @Override
     public PageData<CustomerInfo> findCustomerInfosByTenantIdAndCustomerIdIncludingSubCustomers(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
         log.trace("Executing findCustomerInfosByTenantIdAndCustomerIdIncludingSubCustomers, tenantId [{}], customerId [{}], pageLink [{}]", tenantId, customerId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateId(customerId, INCORRECT_CUSTOMER_ID + customerId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validatePageLink(pageLink);
         return customerInfoDao.findCustomersByTenantIdAndCustomerIdIncludingSubCustomers(tenantId.getId(), customerId.getId(), pageLink);
     }

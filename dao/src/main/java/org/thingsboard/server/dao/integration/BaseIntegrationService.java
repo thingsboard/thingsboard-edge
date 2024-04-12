@@ -119,22 +119,22 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     @Override
     public Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing findIntegrationById [{}]", integrationId);
-        validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
+        validateId(integrationId, id -> INCORRECT_INTEGRATION_ID + id);
         return cache.getAndPutInTransaction(integrationId, () -> integrationDao.findById(tenantId, integrationId.getId()), true);
     }
 
     @Override
     public ListenableFuture<Integration> findIntegrationByIdAsync(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing findIntegrationByIdAsync [{}]", integrationId);
-        validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
+        validateId(integrationId, id -> INCORRECT_INTEGRATION_ID + id);
         return integrationDao.findByIdAsync(tenantId, integrationId.getId());
     }
 
     @Override
     public ListenableFuture<List<Integration>> findIntegrationsByIdsAsync(TenantId tenantId, List<IntegrationId> integrationIds) {
         log.trace("Executing findIntegrationsByIdsAsync, tenantId [{}], integrationIds [{}]", tenantId, integrationIds);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        validateIds(integrationIds, "Incorrect integrationIds " + integrationIds);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateIds(integrationIds, ids -> "Incorrect integrationIds " + ids);
         return integrationDao.findIntegrationsByTenantIdAndIdsAsync(tenantId.getId(), toUUIDs(integrationIds));
     }
 
@@ -154,14 +154,14 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     @Override
     public List<Integration> findIntegrationsByConverterId(TenantId tenantId, ConverterId converterId) {
         log.trace("Executing findIntegrationsByConverterId [{}]", converterId);
-        validateId(converterId, INCORRECT_CONVERTER_ID + converterId);
+        validateId(converterId, id -> INCORRECT_CONVERTER_ID + id);
         return integrationDao.findByConverterId(tenantId.getId(), converterId.getId());
     }
 
     @Override
     public PageData<Integration> findTenantIntegrations(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findTenantIntegrations, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return integrationDao.findCoreIntegrationsByTenantId(tenantId.getId(), pageLink);
     }
@@ -169,7 +169,7 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     @Override
     public PageData<IntegrationInfo> findTenantIntegrationInfos(TenantId tenantId, PageLink pageLink, boolean isEdgeTemplate) {
         log.trace("Executing findTenantIntegrationInfos, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return integrationInfoDao.findByTenantIdAndIsEdgeTemplate(tenantId.getId(), pageLink, isEdgeTemplate);
     }
@@ -177,7 +177,7 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     @Override
     public PageData<IntegrationInfo> findTenantIntegrationInfosWithStats(TenantId tenantId, boolean isEdgeTemplate, PageLink pageLink) {
         log.trace("Executing findTenantIntegrationInfosWithStats, tenantId [{}], isEdgeTemplate [{}], pageLink [{}]", tenantId, isEdgeTemplate, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return integrationInfoDao.findAllIntegrationInfosWithStats(tenantId.getId(), isEdgeTemplate, pageLink);
     }
@@ -185,7 +185,7 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     @Override
     public PageData<Integration> findTenantEdgeTemplateIntegrations(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findTenantEdgeTemplateIntegrations, tenantId [{}], pageLink [{}]", tenantId, pageLink);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validatePageLink(pageLink);
         return integrationDao.findEdgeTemplateIntegrationsByTenantId(tenantId.getId(), pageLink);
     }
@@ -199,18 +199,19 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     @Transactional
     public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing deleteIntegration [{}]", integrationId);
-        validateId(integrationId, INCORRECT_INTEGRATION_ID + integrationId);
+        Integration integration = findIntegrationById(tenantId, integrationId);
+        validateId(integrationId, id -> INCORRECT_INTEGRATION_ID + id);
         integrationDao.removeById(tenantId, integrationId.getId());
         publishEvictEvent(new IntegrationCacheEvictEvent(integrationId));
         entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.INTEGRATION);
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(integrationId).build());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entity(integration).entityId(integrationId).build());
     }
 
     @Override
     @Transactional
     public void deleteIntegrationsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteIntegrationsByTenantId, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantIntegrationsRemover.removeEntities(tenantId, tenantId);
     }
 
@@ -276,8 +277,8 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     @Override
     public PageData<Integration> findIntegrationsByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink) {
         log.trace("Executing findIntegrationsByTenantIdAndEdgeId, tenantId [{}], edgeId [{}], pageLink [{}]", tenantId, edgeId, pageLink);
-        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
-        Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
+        Validator.validateId(edgeId, id -> "Incorrect edgeId " + id);
         Validator.validatePageLink(pageLink);
         return integrationDao.findIntegrationsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
     }
@@ -285,8 +286,8 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     @Override
     public PageData<IntegrationInfo> findIntegrationInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink) {
         log.trace("Executing findIntegrationInfosByTenantIdAndEdgeId, tenantId [{}], edgeId [{}], pageLink [{}]", tenantId, edgeId, pageLink);
-        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
-        Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
+        Validator.validateId(edgeId, id -> "Incorrect edgeId " + id);
         Validator.validatePageLink(pageLink);
         return integrationInfoDao.findIntegrationsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
     }

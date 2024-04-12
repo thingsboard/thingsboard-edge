@@ -29,8 +29,14 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
--- GROUP PERMISSION INDEX CREATE START
+-- NOTIFICATIONS UPDATE START
 
-CREATE INDEX IF NOT EXISTS idx_group_permission_tenant_id ON group_permission(tenant_id);
+ALTER TABLE notification ADD COLUMN IF NOT EXISTS delivery_method VARCHAR(50) NOT NULL default 'WEB';
 
--- GROUP PERMISSION INDEX CREATE END
+DROP INDEX IF EXISTS idx_notification_recipient_id_created_time;
+DROP INDEX IF EXISTS idx_notification_recipient_id_unread;
+
+CREATE INDEX IF NOT EXISTS idx_notification_delivery_method_recipient_id_created_time ON notification(delivery_method, recipient_id, created_time DESC);
+CREATE INDEX IF NOT EXISTS idx_notification_delivery_method_recipient_id_unread ON notification(delivery_method, recipient_id) WHERE status <> 'READ';
+
+-- NOTIFICATIONS UPDATE END

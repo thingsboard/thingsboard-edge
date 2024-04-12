@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -185,7 +186,7 @@ public class DefaultTwoFaConfigManager implements TwoFaConfigManager {
                     .map(adminSettings -> JacksonUtil.treeToValue(adminSettings.getJsonValue(), PlatformTwoFaSettings.class));
         } else {
             Optional<PlatformTwoFaSettings> tenantTwoFaSettings = attributesService.find(TenantId.SYS_TENANT_ID, tenantId,
-                            DataConstants.SERVER_SCOPE, TWO_FACTOR_AUTH_SETTINGS_KEY).get()
+                            AttributeScope.SERVER_SCOPE, TWO_FACTOR_AUTH_SETTINGS_KEY).get()
                     .map(adminSettingsAttribute -> JacksonUtil.fromString(adminSettingsAttribute.getJsonValue().get(), PlatformTwoFaSettings.class));
             if (sysadminSettingsAsDefault) {
                 if (tenantTwoFaSettings.isEmpty() || tenantTwoFaSettings.get().isUseSystemTwoFactorAuthSettings()) {
@@ -215,7 +216,7 @@ public class DefaultTwoFaConfigManager implements TwoFaConfigManager {
             settings.setJsonValue(JacksonUtil.valueToTree(twoFactorAuthSettings));
             adminSettingsService.saveAdminSettings(tenantId, settings);
         } else {
-            attributesService.save(TenantId.SYS_TENANT_ID, tenantId, DataConstants.SERVER_SCOPE, Collections.singletonList(
+            attributesService.save(TenantId.SYS_TENANT_ID, tenantId, AttributeScope.SERVER_SCOPE, Collections.singletonList(
                     new BaseAttributeKvEntry(new JsonDataEntry(TWO_FACTOR_AUTH_SETTINGS_KEY, JacksonUtil.toString(twoFactorAuthSettings)), System.currentTimeMillis())
             )).get();
         }
@@ -229,7 +230,7 @@ public class DefaultTwoFaConfigManager implements TwoFaConfigManager {
             Optional.ofNullable(adminSettingsService.findAdminSettingsByKey(tenantId, TWO_FACTOR_AUTH_SETTINGS_KEY))
                     .ifPresent(adminSettings -> adminSettingsDao.removeById(tenantId, adminSettings.getId().getId()));
         } else {
-            attributesService.removeAll(TenantId.SYS_TENANT_ID, tenantId, DataConstants.SERVER_SCOPE,
+            attributesService.removeAll(TenantId.SYS_TENANT_ID, tenantId, AttributeScope.SERVER_SCOPE,
                     Collections.singletonList(TWO_FACTOR_AUTH_SETTINGS_KEY)).get();
         }
     }

@@ -31,6 +31,8 @@
 package org.thingsboard.server.service.edge;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,6 +63,7 @@ import org.thingsboard.server.service.edge.rpc.processor.entityview.EntityViewEd
 import org.thingsboard.server.service.edge.rpc.processor.group.EntityGroupEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.group.GroupPermissionsEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.integration.IntegrationEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.oauth2.OAuth2EdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.ota.OtaPackageEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.queue.QueueEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.relation.RelationEdgeProcessor;
@@ -75,8 +78,6 @@ import org.thingsboard.server.service.edge.rpc.processor.widget.WidgetBundleEdge
 import org.thingsboard.server.service.edge.rpc.processor.widget.WidgetTypeEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.wl.WhiteLabelingEdgeProcessor;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -147,6 +148,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
 
     @Autowired
     private ResourceEdgeProcessor resourceEdgeProcessor;
+
+    @Autowired
+    private OAuth2EdgeProcessor oAuth2EdgeProcessor;
 
     @Autowired
     protected ApplicationEventPublisher eventPublisher;
@@ -300,6 +304,11 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                             break;
                         case TB_RESOURCE:
                             resourceEdgeProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
+                            break;
+                        case DEVICE_GROUP_OTA:
+                            deviceProcessor.processDeviceOtaNotification(tenantId, edgeNotificationMsg);
+                        case OAUTH2:
+                            oAuth2EdgeProcessor.processOAuth2Notification(tenantId, edgeNotificationMsg);
                             break;
                         default:
                             log.warn("[{}] Edge event type [{}] is not designed to be pushed to edge", tenantId, type);

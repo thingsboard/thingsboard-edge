@@ -52,6 +52,8 @@ enum EdgeVersion {
   V_3_6_0 = 3;
   V_3_6_1 = 4;
   V_3_6_2 = 5;
+  V_3_6_4 = 6;
+  V_3_7_0 = 7;
 }
 
 /**
@@ -242,6 +244,11 @@ message DeviceUpdateMsg {
   optional int64 softwareIdMSB = 18 [deprecated = true];
   optional int64 softwareIdLSB = 19 [deprecated = true];
   string entity = 20;
+}
+
+message DeviceGroupOtaPackageUpdateMsg {
+  UpdateMsgType msgType = 1;
+  string entity = 2;
 }
 
 message DeviceProfileUpdateMsg {
@@ -497,6 +504,10 @@ message ResourceUpdateMsg {
   optional string etag = 9 [deprecated = true];
   bool isSystem = 10 [deprecated = true];
   string entity = 11;
+}
+
+message OAuth2UpdateMsg {
+  string entity = 1;
 }
 
 message RuleChainMetadataRequestMsg {
@@ -886,4 +897,6 @@ message DownlinkMsg {
   WhiteLabelingProto whiteLabelingProto = 44;
   CustomMenuProto customMenuProto = 45;
   repeated AlarmCommentUpdateMsg alarmCommentUpdateMsg = 46;
+  repeated DeviceGroupOtaPackageUpdateMsg deviceGroupOtaPackageUpdateMsg = 47;
+  repeated OAuth2UpdateMsg oAuth2UpdateMsg = 48;
 }

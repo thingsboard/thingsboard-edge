@@ -40,12 +40,12 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -66,6 +66,7 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.oauth2.OAuth2User;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -87,7 +88,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public abstract class AbstractOAuth2ClientMapper {
-    private static final int DASHBOARDS_REQUEST_LIMIT = 10;
 
     @Autowired
     private UserService userService;
@@ -126,7 +126,7 @@ public abstract class AbstractOAuth2ClientMapper {
     protected TbTenantProfileCache tenantProfileCache;
 
     @Autowired
-    protected TbClusterService tbClusterService;
+    private ApplicationEventPublisher eventPublisher;
 
     @Value("${edges.enabled}")
     @Getter

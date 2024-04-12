@@ -56,6 +56,8 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -133,6 +135,7 @@ import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
 import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.device.ClaimDevicesService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
@@ -141,6 +144,8 @@ import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
 
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.VarHandle;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.sql.SQLException;
@@ -169,6 +174,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static org.thingsboard.server.common.data.CacheConstants.CLAIM_DEVICES_CACHE;
 
 @Slf4j
 public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
@@ -259,6 +265,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     @Autowired
     protected DefaultActorService actorService;
+
+    @Autowired
+    protected ClaimDevicesService claimDevicesService;
 
     @SpyBean
     protected MailService mailService;
@@ -1128,9 +1137,15 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected static void setStaticFinalFieldValue(Class<?> targetCls, String fieldName, Object value) throws Exception {
         Field field = targetCls.getDeclaredField(fieldName);
         field.setAccessible(true);
-        Field modifiers = Field.class.getDeclaredField("modifiers");
-        modifiers.setAccessible(true);
-        modifiers.setInt(field, field.getModifiers() & ~Modifier.FINAL);
+        // Get the VarHandle for the 'modifiers' field in the Field class
+        MethodHandles.Lookup lookup = MethodHandles.privateLookupIn(Field.class, MethodHandles.lookup());
+        VarHandle modifiersHandle = lookup.findVarHandle(Field.class, "modifiers", int.class);
+
+        // Remove the final modifier from the field
+        int currentModifiers = field.getModifiers();
+        modifiersHandle.set(field, currentModifiers & ~Modifier.FINAL);
+
+        // Set the new value
         field.set(null, value);
     }
 
@@ -1155,6 +1170,16 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         Awaitility.await("Device actor pending map is empty").atMost(5, TimeUnit.SECONDS).until(() -> {
             log.warn("device {}, toDeviceRpcPendingMap.size() == {}", deviceId, toDeviceRpcPendingMap.size());
             return toDeviceRpcPendingMap.isEmpty();
+        });
+    }
+
+    protected void awaitForClaimingInfoToBeRegistered(DeviceId deviceId) {
+        CacheManager cacheManager = (CacheManager) ReflectionTestUtils.getField(claimDevicesService, "cacheManager");
+        Cache cache = cacheManager.getCache(CLAIM_DEVICES_CACHE);
+        Awaitility.await("Claiming request from the transport was registered").atMost(5, TimeUnit.SECONDS).until(() -> {
+            Cache.ValueWrapper value = cache.get(List.of(deviceId));
+            log.warn("device {}, claimingRequest registered: {}", deviceId, value);
+            return value != null;
         });
     }
 

@@ -43,6 +43,7 @@ import { Component, ElementRef, forwardRef, Input, OnInit, ViewChild } from '@an
 import {
   WidgetAction,
   WidgetActionType,
+  widgetActionTypes,
   widgetActionTypeTranslationMap,
   widgetType
 } from '@shared/models/widget.models';
@@ -110,7 +111,7 @@ export class WidgetActionComponent implements ControlValueAccessor, OnInit, Vali
   customFunctionHelpId = 'widget/action/custom_action_fn';
 
   @Input()
-  widgetActionTypes = Object.keys(WidgetActionType);
+  widgetActionTypes = widgetActionTypes;
 
   widgetActionTypeTranslations = widgetActionTypeTranslationMap;
   widgetActionType = WidgetActionType;

@@ -31,6 +31,7 @@
 
 import { Component, Injector } from '@angular/core';
 import {
+  Datasource,
   legendPositions,
   legendPositionTranslationMap,
   WidgetSettings,
@@ -48,9 +49,18 @@ import {
 @Component({
   selector: 'tb-bar-chart-with-labels-widget-settings',
   templateUrl: './bar-chart-with-labels-widget-settings.component.html',
-  styleUrls: []
+  styleUrls: ['./../widget-settings.scss']
 })
 export class BarChartWithLabelsWidgetSettingsComponent extends WidgetSettingsComponent {
+
+  public get datasource(): Datasource {
+    const datasources: Datasource[] = this.widgetConfig.config.datasources;
+    if (datasources && datasources.length) {
+      return datasources[0];
+    } else {
+      return null;
+    }
+  }
 
   legendPositions = legendPositions;
 
@@ -79,12 +89,26 @@ export class BarChartWithLabelsWidgetSettingsComponent extends WidgetSettingsCom
   protected onSettingsSet(settings: WidgetSettings) {
     this.barChartWidgetSettingsForm = this.fb.group({
 
+      dataZoom: [settings.dataZoom, []],
+
       showBarLabel: [settings.showBarLabel, []],
       barLabelFont: [settings.barLabelFont, []],
       barLabelColor: [settings.barLabelColor, []],
       showBarValue: [settings.showBarValue, []],
       barValueFont: [settings.barValueFont, []],
       barValueColor: [settings.barValueColor, []],
+      showBarBorder: [settings.showBarBorder, []],
+      barBorderWidth: [settings.barBorderWidth, []],
+      barBorderRadius: [settings.barBorderRadius, []],
+      barBackgroundSettings: [settings.barBackgroundSettings, []],
+      noAggregationBarWidthSettings: [settings.noAggregationBarWidthSettings, []],
+
+      yAxis: [settings.yAxis, []],
+      xAxis: [settings.xAxis, []],
+
+      thresholds: [settings.thresholds, []],
+
+      animation: [settings.animation, []],
 
       showLegend: [settings.showLegend, []],
       legendPosition: [settings.legendPosition, []],
@@ -98,20 +122,24 @@ export class BarChartWithLabelsWidgetSettingsComponent extends WidgetSettingsCom
       tooltipDateFormat: [settings.tooltipDateFormat, []],
       tooltipDateFont: [settings.tooltipDateFont, []],
       tooltipDateColor: [settings.tooltipDateColor, []],
+      tooltipDateInterval: [settings.tooltipDateInterval, []],
+
       tooltipBackgroundColor: [settings.tooltipBackgroundColor, []],
       tooltipBackgroundBlur: [settings.tooltipBackgroundBlur, []],
 
-      background: [settings.background, []]
+      background: [settings.background, []],
+      padding: [settings.padding, []]
     });
   }
 
   protected validatorTriggers(): string[] {
-    return ['showBarLabel', 'showBarValue', 'showLegend', 'showTooltip', 'tooltipShowDate'];
+    return ['showBarLabel', 'showBarValue', 'showBarBorder', 'showLegend', 'showTooltip', 'tooltipShowDate'];
   }
 
   protected updateValidators(emitEvent: boolean) {
     const showBarLabel: boolean = this.barChartWidgetSettingsForm.get('showBarLabel').value;
     const showBarValue: boolean = this.barChartWidgetSettingsForm.get('showBarValue').value;
+    const showBarBorder: boolean = this.barChartWidgetSettingsForm.get('showBarBorder').value;
     const showLegend: boolean = this.barChartWidgetSettingsForm.get('showLegend').value;
     const showTooltip: boolean = this.barChartWidgetSettingsForm.get('showTooltip').value;
     const tooltipShowDate: boolean = this.barChartWidgetSettingsForm.get('tooltipShowDate').value;
@@ -130,6 +158,12 @@ export class BarChartWithLabelsWidgetSettingsComponent extends WidgetSettingsCom
     } else {
       this.barChartWidgetSettingsForm.get('barValueFont').disable();
       this.barChartWidgetSettingsForm.get('barValueColor').disable();
+    }
+
+    if (showBarBorder) {
+      this.barChartWidgetSettingsForm.get('barBorderWidth').enable();
+    } else {
+      this.barChartWidgetSettingsForm.get('barBorderWidth').disable();
     }
 
     if (showLegend) {
@@ -152,10 +186,12 @@ export class BarChartWithLabelsWidgetSettingsComponent extends WidgetSettingsCom
         this.barChartWidgetSettingsForm.get('tooltipDateFormat').enable();
         this.barChartWidgetSettingsForm.get('tooltipDateFont').enable();
         this.barChartWidgetSettingsForm.get('tooltipDateColor').enable();
+        this.barChartWidgetSettingsForm.get('tooltipDateInterval').enable();
       } else {
         this.barChartWidgetSettingsForm.get('tooltipDateFormat').disable();
         this.barChartWidgetSettingsForm.get('tooltipDateFont').disable();
         this.barChartWidgetSettingsForm.get('tooltipDateColor').disable();
+        this.barChartWidgetSettingsForm.get('tooltipDateInterval').disable();
       }
     } else {
       this.barChartWidgetSettingsForm.get('tooltipValueFont').disable();
@@ -164,6 +200,7 @@ export class BarChartWithLabelsWidgetSettingsComponent extends WidgetSettingsCom
       this.barChartWidgetSettingsForm.get('tooltipDateFormat').disable();
       this.barChartWidgetSettingsForm.get('tooltipDateFont').disable();
       this.barChartWidgetSettingsForm.get('tooltipDateColor').disable();
+      this.barChartWidgetSettingsForm.get('tooltipDateInterval').disable();
       this.barChartWidgetSettingsForm.get('tooltipBackgroundColor').disable();
       this.barChartWidgetSettingsForm.get('tooltipBackgroundBlur').disable();
     }

@@ -49,7 +49,6 @@ public class MqttClaimJsonDeviceTest extends MqttClaimDeviceTest {
                 .transportPayloadType(TransportPayloadType.JSON)
                 .build();
         processBeforeTest(configProperties);
-        createCustomerAndUser();
     }
 
     @Test

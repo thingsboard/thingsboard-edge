@@ -30,27 +30,26 @@
  */
 package org.thingsboard.server.service.solutions.data.solution;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@ApiModel
+@Schema
 @Data
 @NoArgsConstructor
 public class SolutionTemplateInfo extends SolutionTemplate {
-    @ApiModelProperty(position = 7, value = "URL of the preview image")
+    @Schema(description = "URL of the preview image")
     private String previewImageUrl;
-    @ApiModelProperty(position = 8, value = "Short description to display on template card")
+    @Schema(description = "Short description to display on template card")
     private String shortDescription;
 
-    @ApiModelProperty(position = 9, value = "Video preview image URL")
+    @Schema(description = "Video preview image URL")
     private String videoPreviewImageUrl;
 
-    @ApiModelProperty(position = 10, value = "Video MP4 URL")
+    @Schema(description = "Video MP4 URL")
     private String previewMp4Url;
 
-    @ApiModelProperty(position = 11, value = "Video WEBM URL")
+    @Schema(description = "Video WEBM URL")
     private String previewWebmUrl;
 
     public SolutionTemplateInfo(SolutionTemplateInfo solution) {

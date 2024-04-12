@@ -67,7 +67,9 @@ public enum EdgeEventType {
     GROUP_PERMISSION(true, EntityType.GROUP_PERMISSION),
     CONVERTER(false, EntityType.CONVERTER),
     INTEGRATION(false, EntityType.INTEGRATION),
-    TB_RESOURCE(true, EntityType.TB_RESOURCE);
+    TB_RESOURCE(true, EntityType.TB_RESOURCE),
+    DEVICE_GROUP_OTA(false, null),
+    OAUTH2(true, null);
 
     private final boolean allEdgesRelated;
 
