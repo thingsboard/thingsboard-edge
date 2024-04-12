@@ -36,7 +36,6 @@ import { AggregationType, ComparisonDuration, Timewindow } from '@shared/models/
 import { EntityType } from '@shared/models/entity-type.models';
 import { DataKeyType } from './telemetry/telemetry.models';
 import { EntityId } from '@shared/models/id/entity-id';
-import * as moment_ from 'moment';
 import {
   AlarmFilter,
   AlarmFilterConfig,
@@ -739,9 +738,22 @@ export const defaultWidgetAction = (isEntityGroup = false, setEntityId = true): 
 
 export interface WidgetComparisonSettings {
   comparisonEnabled?: boolean;
-  timeForComparison?: moment_.unitOfTime.DurationConstructor;
+  timeForComparison?: ComparisonDuration;
   comparisonCustomIntervalValue?: number;
 }
+
+export interface DataKeyComparisonSettings {
+  showValuesForComparison: boolean;
+  comparisonValuesLabel: string;
+  color: string;
+}
+
+export interface DataKeySettingsWithComparison {
+  comparisonSettings?: DataKeyComparisonSettings;
+}
+
+export const isDataKeySettingsWithComparison = (settings: any): settings is DataKeySettingsWithComparison =>
+  'comparisonSettings' in settings;
 
 export interface WidgetSettings {
   [key: string]: any;
