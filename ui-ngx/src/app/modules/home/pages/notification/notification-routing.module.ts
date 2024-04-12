@@ -17,26 +17,24 @@
 import { RouterModule, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
 import { NgModule } from '@angular/core';
-import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { InboxTableConfigResolver } from '@home/pages/notification/inbox/inbox-table-config.resolver';
-import { SentTableConfigResolver } from '@home/pages/notification/sent/sent-table-config.resolver';
-import { RecipientTableConfigResolver } from '@home/pages/notification/recipient/recipient-table-config.resolver';
-import { TemplateTableConfigResolver } from '@home/pages/notification/template/template-table-config.resolver';
-import { RuleTableConfigResolver } from '@home/pages/notification/rule/rule-table-config.resolver';
-import { SendNotificationButtonComponent } from '@home/components/notification/send-notification-button.component';
 
 const routes: Routes = [
   {
     path: 'notification',
+    /** edge-only: Edge's notification center contains only Inbox
     component: RouterTabsComponent,
+     */
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER, Authority.SYS_ADMIN],
       breadcrumb: {
         label: 'notification.notification-center',
         icon: 'mdi:message-badge'
-      },
+      }
+      /** edge-only: Edge's notification center contains only Inbox
       routerTabsHeaderComponent: SendNotificationButtonComponent
+       */
     },
     children: [
       {
@@ -61,7 +59,8 @@ const routes: Routes = [
         resolve: {
           entitiesTableConfig: InboxTableConfigResolver
         }
-      },
+      }
+      /** edge-only: Edge's notification center contains only Inbox
       {
         path: 'sent',
         component: EntitiesTableComponent,
@@ -122,17 +121,20 @@ const routes: Routes = [
           entitiesTableConfig: RuleTableConfigResolver
         }
       }
+       */
     ]
   }
 ];
 
 @NgModule({
   providers: [
-    InboxTableConfigResolver,
+    InboxTableConfigResolver
+    /** edge-only: Edge's notification center contains only Inbox
     SentTableConfigResolver,
     RecipientTableConfigResolver,
     TemplateTableConfigResolver,
     RuleTableConfigResolver
+     */
   ],
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
