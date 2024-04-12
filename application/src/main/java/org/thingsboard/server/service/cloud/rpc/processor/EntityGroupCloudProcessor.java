@@ -149,36 +149,36 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
 
     private void deleteEntityById(TenantId tenantId, EntityId entityId) {
         switch (entityId.getEntityType()) {
-            case DEVICE:
+            case DEVICE -> {
                 Device deviceToDelete = deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId()));
                 if (deviceToDelete != null) {
                     deviceService.deleteDevice(tenantId, deviceToDelete.getId());
                 }
-                break;
-            case ASSET:
+            }
+            case ASSET -> {
                 Asset assetToDelete = assetService.findAssetById(tenantId, new AssetId(entityId.getId()));
                 if (assetToDelete != null) {
                     assetService.deleteAsset(tenantId, assetToDelete.getId());
                 }
-                break;
-            case ENTITY_VIEW:
+            }
+            case ENTITY_VIEW -> {
                 EntityView entityViewToDelete = entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
                 if (entityViewToDelete != null) {
                     entityViewService.deleteEntityView(tenantId, entityViewToDelete.getId());
                 }
-                break;
-            case USER:
+            }
+            case USER -> {
                 User userToDelete = userService.findUserById(tenantId, new UserId(entityId.getId()));
                 if (userToDelete != null) {
                     userService.deleteUser(tenantId, userToDelete.getId());
                 }
-                break;
-            case DASHBOARD:
+            }
+            case DASHBOARD -> {
                 Dashboard dashboardToDelete = dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId()));
                 if (dashboardToDelete != null) {
                     dashboardService.deleteDashboard(tenantId, dashboardToDelete.getId());
                 }
-                break;
+            }
         }
     }
 
@@ -195,4 +195,5 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
                 .addEntityGroupEntitiesRequestMsg(entityGroupEntitiesRequestMsg);
         return builder.build();
     }
+
 }

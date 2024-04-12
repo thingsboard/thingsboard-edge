@@ -47,12 +47,12 @@ public class LoginRequest {
         this.password = password;
     }
 
-    @Schema(required = true, description = "User email", example = "tenant@thingsboard.org")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "User email", example = "tenant@thingsboard.org")
     public String getUsername() {
         return username;
     }
 
-    @Schema(required = true, description = "User password", example = "tenant")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "User password", example = "tenant")
     public String getPassword() {
         return password;
     }

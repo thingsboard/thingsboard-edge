@@ -35,13 +35,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.Disabled;
 import org.thingsboard.server.common.data.ClaimRequest;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.group.EntityGroupInfo;
-import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.device.claim.ClaimResponse;
 import org.thingsboard.server.dao.device.claim.ClaimResult;
 import org.thingsboard.server.dao.service.DaoSqlTest;
@@ -60,11 +54,6 @@ import static org.thingsboard.server.common.data.device.profile.MqttTopics.GATEW
 @DaoSqlTest
 public class MqttClaimDeviceTest extends AbstractMqttIntegrationTest {
 
-    protected static final String CUSTOMER_USER_PASSWORD = "customerUser123!";
-
-    protected User customerAdmin;
-    protected Customer savedCustomer;
-
     @Before
     public void beforeTest() throws Exception {
         MqttTestConfigProperties configProperties = MqttTestConfigProperties.builder()
@@ -72,30 +61,6 @@ public class MqttClaimDeviceTest extends AbstractMqttIntegrationTest {
                 .gatewayName("Test Claim gateway")
                 .build();
         processBeforeTest(configProperties);
-        createCustomerAndUser();
-    }
-
-    protected void createCustomerAndUser() throws Exception {
-        Customer customer = new Customer();
-        customer.setTenantId(tenantId);
-        customer.setTitle("Test Claiming Customer");
-        savedCustomer = doPost("/api/customer", customer, Customer.class);
-        assertNotNull(savedCustomer);
-        assertEquals(tenantId, savedCustomer.getTenantId());
-
-        User user = new User();
-        user.setAuthority(Authority.CUSTOMER_USER);
-        user.setTenantId(tenantId);
-        user.setCustomerId(savedCustomer.getId());
-        user.setEmail("customer@thingsboard.org");
-
-        EntityGroupInfo customerAdmins = doGet("/api/entityGroup/"+ EntityType.CUSTOMER +"/"+savedCustomer.getId().toString()+"/"+EntityType.USER+"/"+EntityGroup.GROUP_CUSTOMER_ADMINS_NAME,
-                EntityGroupInfo.class);
-
-        customerAdmin = createUser(user, CUSTOMER_USER_PASSWORD, customerAdmins.getId());
-
-        assertNotNull(customerAdmin);
-        assertEquals(customerAdmin.getCustomerId(), savedCustomer.getId());
     }
 
     @Test
@@ -144,8 +109,9 @@ public class MqttClaimDeviceTest extends AbstractMqttIntegrationTest {
 
     protected void validateClaimResponse(boolean emptyPayload, MqttTestClient client, byte[] payloadBytes, byte[] failurePayloadBytes) throws Exception {
         client.publishAndWait(DEVICE_CLAIM_TOPIC, failurePayloadBytes);
+        awaitForClaimingInfoToBeRegistered(savedDevice.getId());
 
-        loginUser(customerAdmin.getName(), CUSTOMER_USER_PASSWORD);
+        loginCustomerAdminUser();
         ClaimRequest claimRequest;
         if (!emptyPayload) {
             claimRequest = new ClaimRequest("value");
@@ -163,6 +129,7 @@ public class MqttClaimDeviceTest extends AbstractMqttIntegrationTest {
 
         client.publishAndWait(DEVICE_CLAIM_TOPIC, payloadBytes);
         client.disconnect();
+        awaitForClaimingInfoToBeRegistered(savedDevice.getId());
 
         ClaimResult claimResult = doExecuteWithRetriesAndInterval(
                 () -> doPostClaimAsync("/api/customer/device/" + savedDevice.getName() + "/claim", claimRequest, ClaimResult.class, status().isOk()),
@@ -173,7 +140,7 @@ public class MqttClaimDeviceTest extends AbstractMqttIntegrationTest {
         Device claimedDevice = claimResult.getDevice();
         assertNotNull(claimedDevice);
         assertNotNull(claimedDevice.getCustomerId());
-        assertEquals(customerAdmin.getCustomerId(), claimedDevice.getCustomerId());
+        assertEquals(customerId, claimedDevice.getCustomerId());
 
         claimResponse = doPostClaimAsync("/api/customer/device/" + savedDevice.getName() + "/claim", claimRequest, ClaimResponse.class, status().isBadRequest());
         assertEquals(claimResponse, ClaimResponse.CLAIMED);
@@ -189,11 +156,12 @@ public class MqttClaimDeviceTest extends AbstractMqttIntegrationTest {
         );
 
         assertNotNull(savedDevice);
+        awaitForClaimingInfoToBeRegistered(savedDevice.getId());
 
         // sleep 1 second to make sure that device actor and subscriptions are created
         Thread.sleep(1000);
 
-        loginUser(customerAdmin.getName(), CUSTOMER_USER_PASSWORD);
+        loginCustomerAdminUser();
         ClaimRequest claimRequest;
         if (!emptyPayload) {
             claimRequest = new ClaimRequest("value");
@@ -206,6 +174,7 @@ public class MqttClaimDeviceTest extends AbstractMqttIntegrationTest {
 
         client.publishAndWait(GATEWAY_CLAIM_TOPIC, payloadBytes);
         client.disconnect();
+        awaitForClaimingInfoToBeRegistered(savedDevice.getId());
 
         ClaimResult claimResult = doExecuteWithRetriesAndInterval(
                 () -> doPostClaimAsync("/api/customer/device/" + deviceName + "/claim", claimRequest, ClaimResult.class, status().isOk()),
@@ -217,7 +186,7 @@ public class MqttClaimDeviceTest extends AbstractMqttIntegrationTest {
         Device claimedDevice = claimResult.getDevice();
         assertNotNull(claimedDevice);
         assertNotNull(claimedDevice.getCustomerId());
-        assertEquals(customerAdmin.getCustomerId(), claimedDevice.getCustomerId());
+        assertEquals(customerId, claimedDevice.getCustomerId());
 
         claimResponse = doPostClaimAsync("/api/customer/device/" + deviceName + "/claim", claimRequest, ClaimResponse.class, status().isBadRequest());
         assertEquals(claimResponse, ClaimResponse.CLAIMED);

@@ -50,7 +50,7 @@ public class IntegrationId extends UUIDBased implements EntityId {
         return new IntegrationId(UUID.fromString(integrationId));
     }
 
-    @Schema(required = true, description = "string", example = "INTEGRATION", allowableValues = "INTEGRATION")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "INTEGRATION", allowableValues = "INTEGRATION")
     @Override
     public EntityType getEntityType() {
         return EntityType.INTEGRATION;

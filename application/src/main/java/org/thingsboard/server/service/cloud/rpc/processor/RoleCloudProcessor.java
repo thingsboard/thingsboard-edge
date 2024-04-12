@@ -133,7 +133,10 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
     Role replaceWriteOperationsToReadIfRequired(Role role) {
         if (RoleType.GROUP.equals(role.getType())) {
             CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
-            List<Operation> originOperations = JacksonUtil.fromString(role.getPermissions().toString(), collectionType);
+            List<Operation> originOperations = JacksonUtil.fromString(JacksonUtil.toString(role.getPermissions()), collectionType);
+            if (originOperations == null) {
+                return role;
+            }
             List<Operation> operations;
             if (originOperations.contains(Operation.ALL)) {
                 operations = new ArrayList<>(allowedEntityGroupOperations);
@@ -147,7 +150,10 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
             CollectionType operationType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
             JavaType resourceType = JacksonUtil.OBJECT_MAPPER.getTypeFactory().constructType(Resource.class);
             MapType mapType = TypeFactory.defaultInstance().constructMapType(HashMap.class, resourceType, operationType);
-            Map<Resource, List<Operation>> originPermissions = JacksonUtil.fromString(role.getPermissions().toString(), mapType);
+            Map<Resource, List<Operation>> originPermissions = JacksonUtil.fromString(JacksonUtil.toString(role.getPermissions()), mapType);
+            if (originPermissions == null) {
+                return role;
+            }
             Map<Resource, List<Operation>> newPermissions = new HashMap<>();
             for (Map.Entry<Resource, List<Operation>> entry : originPermissions.entrySet()) {
                 List<Operation> originOperations = entry.getValue();

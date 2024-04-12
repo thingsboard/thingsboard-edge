@@ -52,7 +52,6 @@ public class MqttClaimProtoDeviceTest extends MqttClaimDeviceTest {
                 .transportPayloadType(TransportPayloadType.PROTOBUF)
                 .build();
         processBeforeTest(configProperties);
-        createCustomerAndUser();
     }
 
     @Test

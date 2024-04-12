@@ -143,8 +143,11 @@ public class ThingsboardInstallService {
                             databaseEntitiesUpgradeService.upgradeDatabase("3.6.2");
                             systemDataLoaderService.updateDefaultNotificationConfigs();
                         case "3.6.3":
-                            log.info("Upgrading ThingsBoard from version 3.6.3 to 3.7.0 ...");
+                            log.info("Upgrading ThingsBoard from version 3.6.3 to 3.6.4 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.6.3");
+                        case "3.6.4":
+                            log.info("Upgrading ThingsBoard from version 3.6.4 to 3.7.0 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.6.4");
                             //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
                         case "edge": // leave this after latest case version
                             // reset full sync required - to upload the latest widgets from cloud
