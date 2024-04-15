@@ -40,12 +40,12 @@ import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
 import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 
 @DisableUIListeners
-public class Lwm2mClientNoSecTest extends AbstractLwm2mClientTest {
+public class Lwm2mClientPskTest extends AbstractLwm2mClientTest {
 
     @BeforeMethod
     public void setUp() throws Exception {
         testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
-        initTest("lwm2m-NoSec");
+        initTest("lwm2m-Psk");
     }
 
     @AfterMethod
@@ -54,7 +54,7 @@ public class Lwm2mClientNoSecTest extends AbstractLwm2mClientTest {
     }
 
     @Test
-    public void connectLwm2mClientNoSecWithLwm2mServer() throws Exception {
-        connectLwm2mClientNoSec();
+    public void connectLwm2mClientPskWithLwm2mServer() throws Exception {
+        connectLwm2mClientPsk();
     }
 }

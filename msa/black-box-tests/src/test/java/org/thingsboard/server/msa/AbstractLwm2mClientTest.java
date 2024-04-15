@@ -32,10 +32,10 @@ package org.thingsboard.server.msa;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.eclipse.leshan.client.object.Security;
 import org.eclipse.leshan.core.util.Hex;
 import org.junit.Assert;
 import org.thingsboard.common.util.JacksonUtil;
-import org.eclipse.leshan.client.object.Security;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -95,8 +95,7 @@ import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.reso
 import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.shortServerId;
 
 @Slf4j
-public abstract class AbstractLwm2mClientTest extends AbstractContainerTest{
-
+public class AbstractLwm2mClientTest extends AbstractContainerTest{
     protected ScheduledExecutorService executor;
 
     protected Security security;
@@ -161,7 +160,7 @@ public abstract class AbstractLwm2mClientTest extends AbstractContainerTest{
     }
 
     public LwM2MTestClient createNewClient(Security security,
-                                String endpoint, ScheduledExecutorService executor) throws Exception {
+                                           String endpoint, ScheduledExecutorService executor) throws Exception {
         this.executor = executor;
         LwM2MTestClient lwM2MTestClient = new LwM2MTestClient(endpoint);
         try (ServerSocket socket = new ServerSocket(0)) {
@@ -214,7 +213,7 @@ public abstract class AbstractLwm2mClientTest extends AbstractContainerTest{
             lwModel.setTitle(resourceName);
             lwModel.setFileName(resourceName);
             lwModel.setTenantId(tenantId);
-            byte[] bytes = IOUtils.toByteArray(AbstractLwm2mClientTest.class.getClassLoader().getResourceAsStream("lwm2m/" + resourceName));
+            byte[] bytes = IOUtils.toByteArray(AbstractLwm2mClientTest.class.getClassLoader().getResourceAsStream("lwm2m-registry/" + resourceName));
             lwModel.setData(bytes);
             testRestClient.postTbResourceIfNotExists(lwModel);
         }
