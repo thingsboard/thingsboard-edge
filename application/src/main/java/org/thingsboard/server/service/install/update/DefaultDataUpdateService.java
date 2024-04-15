@@ -50,7 +50,6 @@ import org.thingsboard.server.dao.sql.device.DeviceProfileRepository;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
-import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.component.RuleNodeClassInfo;
@@ -85,9 +84,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private WidgetsBundleService widgetsBundleService;
-
-    @Autowired
-    private WidgetTypeService widgetTypeService;
 
     @Autowired
     private CloudEventService cloudEventService;
@@ -130,6 +126,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
                 // reset full sync required - to upload latest widgets from cloud
                 tenantsFullSyncRequiredUpdater.updateEntities(null);
+
                 break;
             default:
                 throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
