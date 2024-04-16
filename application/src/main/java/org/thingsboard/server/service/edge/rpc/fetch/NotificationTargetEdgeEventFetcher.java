@@ -28,32 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.asset;
+package org.thingsboard.server.service.edge.rpc.fetch;
 
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.CustomerId;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
 
-@Primary
-@Component
-@TbCoreComponent
-public class AssetEdgeProcessorV2 extends AssetEdgeProcessor {
+@AllArgsConstructor
+@Slf4j
+public class NotificationTargetEdgeEventFetcher extends BasePageableEdgeEventFetcher<NotificationTarget> {
+
+    private NotificationTargetService notificationTargetService;
 
     @Override
-    protected Asset constructAssetFromUpdateMsg(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) {
-        return JacksonUtil.fromString(assetUpdateMsg.getEntity(), Asset.class, true);
+    PageData<NotificationTarget> fetchEntities(TenantId tenantId, Edge edge, PageLink pageLink) {
+        return notificationTargetService.findNotificationTargetsByTenantId(tenantId, pageLink);
     }
 
     @Override
-    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg) {
-        CustomerId customerUUID = asset.getCustomerId() != null ? asset.getCustomerId() : customerId;
-        asset.setCustomerId(customerUUID);
+    EdgeEvent constructEdgeEvent(TenantId tenantId, Edge edge, NotificationTarget notificationTarget) {
+        return EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.NOTIFICATION_TARGET,
+                EdgeEventActionType.ADDED, notificationTarget.getId(), null);
     }
 
 }

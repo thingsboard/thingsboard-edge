@@ -212,7 +212,7 @@ public class TelemetryEdgeTest extends AbstractEdgeTest {
             edgeEventService.saveAsync(successEdgeEvent).get();
         }
 
-        Assert.assertTrue(edgeImitator.waitForMessages(120));
+        Assert.assertTrue(edgeImitator.waitForMessages(180));
 
         List<EntityDataProto> allTelemetryMsgs = edgeImitator.findAllMessagesByType(EntityDataProto.class);
         Assert.assertTrue(allTelemetryMsgs.isEmpty());

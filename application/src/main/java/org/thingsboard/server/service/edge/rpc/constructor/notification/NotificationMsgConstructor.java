@@ -28,32 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.asset;
+package org.thingsboard.server.service.edge.rpc.constructor.notification;
 
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.asset.Asset;
-import org.thingsboard.server.common.data.id.AssetId;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.common.data.id.NotificationRuleId;
+import org.thingsboard.server.common.data.id.NotificationTargetId;
+import org.thingsboard.server.common.data.id.NotificationTemplateId;
+import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
+import org.thingsboard.server.gen.edge.v1.NotificationRuleUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.NotificationTargetUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.NotificationTemplateUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
-@Primary
-@Component
-@TbCoreComponent
-public class AssetEdgeProcessorV2 extends AssetEdgeProcessor {
+public interface NotificationMsgConstructor {
 
-    @Override
-    protected Asset constructAssetFromUpdateMsg(TenantId tenantId, AssetId assetId, AssetUpdateMsg assetUpdateMsg) {
-        return JacksonUtil.fromString(assetUpdateMsg.getEntity(), Asset.class, true);
-    }
+    NotificationRuleUpdateMsg constructNotificationRuleUpdateMsg(UpdateMsgType msgType, NotificationRule notificationRule);
 
-    @Override
-    protected void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg) {
-        CustomerId customerUUID = asset.getCustomerId() != null ? asset.getCustomerId() : customerId;
-        asset.setCustomerId(customerUUID);
-    }
+    NotificationRuleUpdateMsg constructNotificationRuleDeleteMsg(NotificationRuleId notificationRuleId);
+
+    NotificationTargetUpdateMsg constructNotificationTargetUpdateMsg(UpdateMsgType msgType, NotificationTarget notificationTarget);
+
+    NotificationTargetUpdateMsg constructNotificationTargetDeleteMsg(NotificationTargetId notificationTargetId);
+
+    NotificationTemplateUpdateMsg constructNotificationTemplateUpdateMsg(UpdateMsgType msgType, NotificationTemplate notificationTemplate);
+
+    NotificationTemplateUpdateMsg constructNotificationTemplateDeleteMsg(NotificationTemplateId notificationTemplateId);
 
 }

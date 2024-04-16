@@ -66,8 +66,7 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
         CustomerId customerId = new CustomerId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         switch (edgeEvent.getAction()) {
-            case ADDED:
-            case UPDATED:
+            case ADDED, UPDATED -> {
                 Customer customer = customerService.findCustomerById(edgeEvent.getTenantId(), customerId);
                 if (customer != null) {
                     EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
@@ -79,16 +78,16 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
                             .addCustomerUpdateMsg(customerUpdateMsg)
                             .build();
                 }
-                break;
-            case DELETED:
-//            case CHANGE_OWNER: TODO: @voba implement
+            }
+            case DELETED -> {
+                // case CHANGE_OWNER: TODO: @voba implement
                 CustomerUpdateMsg customerUpdateMsg = ((CustomerMsgConstructor)
                         customerMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructCustomerDeleteMsg(customerId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addCustomerUpdateMsg(customerUpdateMsg)
                         .build();
-                break;
+            }
         }
         return downlinkMsg;
     }

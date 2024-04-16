@@ -50,7 +50,7 @@ public class SchedulerEventsEdgeEventFetcher extends BasePageableEdgeEventFetche
     private final SchedulerEventService schedulerEventService;
 
     @Override
-    PageData<SchedulerEvent> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
+    PageData<SchedulerEvent> fetchEntities(TenantId tenantId, Edge edge, PageLink pageLink) {
         return schedulerEventService.findSchedulerEventsByTenantIdAndEdgeId(tenantId, edge.getId(), pageLink);
     }
 

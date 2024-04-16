@@ -74,19 +74,16 @@ public class EdgeProcessor extends BaseEdgeProcessor {
     public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
         EdgeId edgeId = new EdgeId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        switch (edgeEvent.getAction()) {
-            // TODO: @voba - check this
-            case CHANGE_OWNER:
-                Edge edge = edgeService.findEdgeById(edgeEvent.getTenantId(), edgeId);
-                if (edge != null) {
-                    EdgeConfiguration edgeConfigMsg =
-                            edgeMsgConstructor.constructEdgeConfiguration(edge);
-                    downlinkMsg = DownlinkMsg.newBuilder()
-                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .setEdgeConfiguration(edgeConfigMsg)
-                            .build();
-                }
-                break;
+        // TODO: @voba - check this
+        if (EdgeEventActionType.CHANGE_OWNER.equals(edgeEvent.getAction())) {
+            Edge edge = edgeService.findEdgeById(edgeEvent.getTenantId(), edgeId);
+            if (edge != null) {
+                EdgeConfiguration edgeConfigMsg = edgeMsgConstructor.constructEdgeConfiguration(edge);
+                downlinkMsg = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                        .setEdgeConfiguration(edgeConfigMsg)
+                        .build();
+            }
         }
         return downlinkMsg;
     }
@@ -223,4 +220,5 @@ public class EdgeProcessor extends BaseEdgeProcessor {
         EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(tenantId, customerId, parentCustomerId);
         entityGroupService.assignEntityGroupToEdge(tenantId, customerUsers.getId(), edgeId, customerUsers.getType());
     }
+
 }
