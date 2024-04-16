@@ -48,7 +48,7 @@ import {
   SeriesFillType,
   SeriesLabelPosition, ThresholdLabelPosition, timeSeriesChartAnimationDefaultSettings,
   TimeSeriesChartAnimationSettings,
-  timeSeriesChartColorScheme,
+  timeSeriesChartColorScheme, timeSeriesChartGridDefaultSettings, TimeSeriesChartGridSettings,
   TimeSeriesChartKeySettings,
   TimeSeriesChartLineType,
   TimeSeriesChartSeriesType,
@@ -96,6 +96,7 @@ export interface RangeChartWidgetSettings extends EChartsTooltipWidgetSettings {
   pointLabelBackground: string;
   pointShape: EChartsShape;
   pointSize: number;
+  grid: TimeSeriesChartGridSettings;
   yAxis: TimeSeriesChartYAxisSettings;
   xAxis: TimeSeriesChartXAxisSettings;
   animation: TimeSeriesChartAnimationSettings;
@@ -156,6 +157,8 @@ export const rangeChartDefaultSettings: RangeChartWidgetSettings = {
   pointLabelBackground: 'rgba(255,255,255,0.56)',
   pointShape: EChartsShape.emptyCircle,
   pointSize: 4,
+  grid: mergeDeep({} as TimeSeriesChartGridSettings,
+    timeSeriesChartGridDefaultSettings),
   yAxis: mergeDeep({} as TimeSeriesChartYAxisSettings,
     defaultTimeSeriesChartYAxisSettings,
     { id: 'default', order: 0, showLine: false, showTicks: false } as TimeSeriesChartYAxisSettings),
@@ -228,6 +231,7 @@ export const rangeChartTimeSeriesSettings = (settings: RangeChartWidgetSettings,
   return {
     dataZoom: settings.dataZoom,
     thresholds,
+    grid: settings.grid,
     yAxes: {
       default: {
         ...settings.yAxis,

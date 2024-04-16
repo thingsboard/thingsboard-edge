@@ -48,7 +48,7 @@ import {
   getTimewindowConfig,
   setTimewindowConfig
 } from '@home/components/widget/config/timewindow-config-panel.component';
-import { formatValue, isUndefined } from '@core/utils';
+import { formatValue, isUndefined, mergeDeep } from '@core/utils';
 import {
   cssSizeToStrSize,
   DateFormatProcessor,
@@ -129,7 +129,8 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
   }
 
   protected onConfigSet(configData: WidgetConfigComponentData) {
-    const settings: RangeChartWidgetSettings = {...rangeChartDefaultSettings, ...(configData.config.settings || {})};
+    const settings: RangeChartWidgetSettings = mergeDeep<RangeChartWidgetSettings>({} as RangeChartWidgetSettings,
+      rangeChartDefaultSettings, configData.config.settings as RangeChartWidgetSettings);
     const iconSize = resolveCssSize(configData.config.iconSize);
     this.rangeChartWidgetConfigForm = this.fb.group({
       timewindowConfig: [getTimewindowConfig(configData.config), []],
@@ -173,6 +174,8 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
       pointLabelBackground: [settings.pointLabelBackground, []],
       pointShape: [settings.pointShape, []],
       pointSize: [settings.pointSize, [Validators.min(0)]],
+
+      grid: [settings.grid, []],
 
       yAxis: [settings.yAxis, []],
       xAxis: [settings.xAxis, []],
@@ -253,6 +256,8 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
     this.widgetConfig.config.settings.pointLabelBackground = config.pointLabelBackground;
     this.widgetConfig.config.settings.pointShape = config.pointShape;
     this.widgetConfig.config.settings.pointSize = config.pointSize;
+
+    this.widgetConfig.config.settings.grid = config.grid;
 
     this.widgetConfig.config.settings.yAxis = config.yAxis;
     this.widgetConfig.config.settings.xAxis = config.xAxis;

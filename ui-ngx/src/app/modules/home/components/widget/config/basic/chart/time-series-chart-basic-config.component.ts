@@ -176,6 +176,8 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
       dataZoom: [settings.dataZoom, []],
       stack: [settings.stack, []],
 
+      grid: [settings.grid, []],
+
       xAxis: [settings.xAxis, []],
 
       noAggregationBarWidthSettings: [settings.noAggregationBarWidthSettings, []],
@@ -240,6 +242,8 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
 
     this.widgetConfig.config.settings.dataZoom = config.dataZoom;
     this.widgetConfig.config.settings.stack = config.stack;
+
+    this.widgetConfig.config.settings.grid = config.grid;
 
     this.widgetConfig.config.settings.yAxes = config.yAxes;
     this.widgetConfig.config.settings.xAxis = config.xAxis;
