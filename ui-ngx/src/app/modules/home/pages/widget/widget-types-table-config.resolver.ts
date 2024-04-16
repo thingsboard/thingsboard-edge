@@ -153,7 +153,7 @@ export class WidgetTypesTableConfigResolver implements Resolve<EntityTableConfig
     this.config.detailsReadonly = (widgetType) => !this.isWidgetTypeEditable(widgetType, authUser.authority);
     this.config.entitiesFetchFunction = pageLink => this.widgetsService.getWidgetTypes(pageLink);
 
-    // @voba - edge read-only
+    // edge-only: allow to read-only
     this.config.detailsReadonly = () => true;
     this.config.deleteEnabled = () => false;
     this.config.addEnabled = false;

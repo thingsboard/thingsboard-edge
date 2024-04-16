@@ -30,4 +30,5 @@ public interface DownlinkMessageService {
                                                     DownlinkMsg downlinkMsg,
                                                     EdgeSettings currentEdgeSettings,
                                                     Long queueStartTs);
+
 }

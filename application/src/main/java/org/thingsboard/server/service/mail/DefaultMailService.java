@@ -99,7 +99,7 @@ public class DefaultMailService implements MailService {
 
     @PostConstruct
     private void init() {
-        // @voba - merge comment
+        // edge-only: merge comment
         // updateMailConfiguration();
     }
 
