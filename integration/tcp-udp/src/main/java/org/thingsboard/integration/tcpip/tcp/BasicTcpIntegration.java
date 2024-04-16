@@ -68,8 +68,6 @@ public class BasicTcpIntegration extends AbstractIpIntegration {
 
     private TcpConfigurationParameters tcpConfigurationParameters;
 
-    private static final String SYSTEM_LINE_SEPARATOR = "SYSTEM_LINE_SEPARATOR";
-    private static final String CUSTOM_SEPARATOR = "CUSTOM_SEPARATOR";
     private static final String LITTLE_ENDIAN_BYTE_ORDER = "LITTLE_ENDIAN";
 
     @Override
