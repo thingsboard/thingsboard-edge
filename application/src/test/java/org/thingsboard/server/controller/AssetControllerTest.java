@@ -115,9 +115,6 @@ public class AssetControllerTest extends AbstractControllerTest {
         tenantAdmin.setLastName("Downs");
 
         tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
-
-        // edge only - temporary method, to fix public customer tests
-        doPost("/api/customer/public");
     }
 
     @After
@@ -645,9 +642,6 @@ public class AssetControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindTenantAssetsByType() throws Exception {
-        doPost("/api/assetProfile", this.createAssetProfile("typeA"), AssetProfile.class);
-        doPost("/api/assetProfile", this.createAssetProfile("typeB"), AssetProfile.class);
-
         String title1 = "Asset title 1";
         String type1 = "typeA";
         List<Asset> assetsType1 = new ArrayList<>();

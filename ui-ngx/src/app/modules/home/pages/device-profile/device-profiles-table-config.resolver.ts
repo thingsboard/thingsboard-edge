@@ -114,7 +114,7 @@ export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableCon
         isEnabled: () => true,
         onAction: ($event, entity) => this.exportDeviceProfile($event, entity)
       },
-      /* @voba: not visible on edge
+      /* edge-only: not visible on edge
       {
         name: this.translate.instant('device-profile.set-default'),
         icon: 'flag',

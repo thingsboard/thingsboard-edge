@@ -184,6 +184,7 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                             newPermissions.put(Resource.DEVICE_PROFILE, new ArrayList<>(allowedAllOperationsExceptDelete));
                             newPermissions.put(Resource.ASSET_PROFILE, new ArrayList<>(allowedAllOperationsExceptDelete));
                             newPermissions.put(Resource.TB_RESOURCE, new ArrayList<>(allowedAllOperationsExceptDelete));
+                            newPermissions.put(Resource.NOTIFICATION, Collections.singletonList(Operation.ALL));
                             newOperations = new ArrayList<>(allowedGenericOperations);
                         } else {
                             newOperations = originOperations.stream()

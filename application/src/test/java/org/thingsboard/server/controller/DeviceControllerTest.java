@@ -157,9 +157,6 @@ public class DeviceControllerTest extends AbstractControllerTest {
         tenantAdmin.setLastName("Downs");
 
         tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
-
-        // edge only - temporary method, to fix public customer tests
-        doPost("/api/customer/public");
     }
 
     @After
@@ -519,6 +516,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
             Device device = new Device();
             device.setName("My device B" + i);
             device.setType("typeB");
+            device.setDeviceProfileId(deviceProfile.getId());
             devices.add(doPost("/api/device", device, Device.class));
         }
 
@@ -1107,10 +1105,6 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void testBulkImportDeviceWithoutCredentials() throws Exception {
-        // edge only - device profile are not created - uploaded from cloud
-        DeviceProfile deviceProfile = this.createDeviceProfile("some_type");
-        doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
-
         String deviceName = "some_device";
         String deviceType = "some_type";
         BulkImportRequest request = new BulkImportRequest();

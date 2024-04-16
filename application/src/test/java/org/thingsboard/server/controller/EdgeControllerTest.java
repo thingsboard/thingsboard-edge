@@ -347,7 +347,6 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 tenantAdminUser.getId(), tenantAdminUser.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }
 
-    // edge-only: @Ignore - edge entities support available for CE/PE
     // keeping CE test for merge compatibility
     @Test
     @Ignore
