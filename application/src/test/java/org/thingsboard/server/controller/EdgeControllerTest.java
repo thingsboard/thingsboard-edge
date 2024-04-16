@@ -1243,7 +1243,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         doPostAsync("/api/plugins/telemetry/EDGE/" + savedEdge.getId().getId() + "/attributes/SERVER_SCOPE", body, String.class, status().isOk());
         String upgradeInstructions = doGet("/api/edge/instructions/upgrade/" + EdgeVersion.V_3_6_0.name() + "/docker", String.class);
         Assert.assertTrue(upgradeInstructions.contains("Upgrading to 3.6.1EDGE"));
-        Assert.assertTrue(upgradeInstructions.contains("Upgrading to 3.6.2EDGE"));
+        Assert.assertTrue(upgradeInstructions.contains("Upgrading to 3.6.3EDGE"));
     }
 
     @Test
