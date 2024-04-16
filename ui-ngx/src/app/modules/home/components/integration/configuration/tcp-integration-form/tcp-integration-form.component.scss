@@ -47,6 +47,22 @@
 
   .fields-group {
     margin-top: 8px;
+
+    .text-section {
+      flex-direction: column;
+      display: flex;
+
+      .same-width-component-row {
+        display: flex;
+        flex-wrap: nowrap;
+        gap: 16px;
+
+        & > * {
+          flex: 1;
+        }
+      }
+    }
+
     legend + * {
       margin-top: 0;
     }

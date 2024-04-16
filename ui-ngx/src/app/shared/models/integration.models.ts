@@ -495,8 +495,16 @@ export enum TcpBinaryByteOrder {
 
 export enum TcpTextMessageSeparator {
   SYSTEM_LINE_SEPARATOR = 'SYSTEM_LINE_SEPARATOR',
-  NUL_DELIMITER = 'NUL_DELIMITER'
+  NUL_DELIMITER = 'NUL_DELIMITER',
+  CUSTOM_SEPARATOR = 'CUSTOM_SEPARATOR'
 }
+
+export const TcpTextMessageSeparatorTranslation = new Map<TcpTextMessageSeparator, string>([
+  [TcpTextMessageSeparator.SYSTEM_LINE_SEPARATOR, 'integration.tcp.system-line-separator'],
+  [TcpTextMessageSeparator.NUL_DELIMITER, 'integration.tcp.nul-delimiter'],
+  [TcpTextMessageSeparator.CUSTOM_SEPARATOR, 'integration.tcp.custom-separator'],
+]);
+
 
 export enum IntegrationCredentialType {
   Anonymous = 'anonymous',
