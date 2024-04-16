@@ -242,7 +242,7 @@ public class DeviceCloudProcessor extends BaseDeviceProcessor {
 
     public UplinkMsg convertRpcCallEventToUplink(CloudEvent cloudEvent) {
         log.trace("Executing convertRpcCallEventToUplink, cloudEvent [{}]", cloudEvent);
-        DeviceRpcCallMsg rpcResponseMsg = ((DeviceMsgConstructor) deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(EdgeVersion.V_3_6_2)).constructDeviceRpcCallMsg(cloudEvent.getEntityId(), cloudEvent.getEntityBody());
+        DeviceRpcCallMsg rpcResponseMsg = ((DeviceMsgConstructor) deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(EdgeVersion.V_LATEST)).constructDeviceRpcCallMsg(cloudEvent.getEntityId(), cloudEvent.getEntityBody());
         return UplinkMsg.newBuilder()
                 .setUplinkMsgId(EdgeUtils.nextPositiveInt())
                 .addDeviceRpcCallMsg(rpcResponseMsg).build();

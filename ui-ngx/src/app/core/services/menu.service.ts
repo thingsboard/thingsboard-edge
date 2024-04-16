@@ -1363,7 +1363,7 @@ export class MenuService {
           path: '/settings/outgoing-mail',
           icon: 'mail'
         },
-        /* @voba - merge comment - these sections should not be visible on edge
+        /* edge-only: merge comment - these sections should not be visible on edge
         {
           id: 'notification_settings',
           name: 'admin.notifications',
@@ -1401,6 +1401,7 @@ export class MenuService {
         type: 'link',
         path: '/settings',
         icon: 'settings',
+<<<<<<< HEAD
         pages: settingPages
       });
     }
@@ -1685,7 +1686,7 @@ export class MenuService {
         }
       );
     }
-    /* @voba - merge comment - hide this on edge
+    /* edge-only: merge comment - hide this on edge
     if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
       homeSections.push(
         {
@@ -1891,7 +1892,7 @@ export class MenuService {
             icon: 'mail',
             disabled: disabledItems.indexOf('mail_server') > -1
           },
-          /* @voba - merge comment - these sections should not be visible on edge
+          /* edge-only: merge comment - these sections should not be visible on edge
           {
             name: 'admin.sms-provider',
             path: '/settings/sms-provider',
@@ -2591,7 +2592,7 @@ export class MenuService {
         }
       );
     }
-    /* @voba - merge comment - hide this on edge
+    /* edge-only: merge comment - hide this on edge
     if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
       homeSections.push(
         {

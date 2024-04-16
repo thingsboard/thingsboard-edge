@@ -38,7 +38,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 @SpringBootTest(classes = {DeviceEdgeProcessorV1.class})
 class DeviceEdgeProcessorTest extends AbstractDeviceProcessorTest {
 
-    // @voba: disable test
+    // edge-only: disable test
     // @ParameterizedTest
     @MethodSource("provideParameters")
     public void testDeviceProfileDefaultFields_notSendToEdgeOlder3_6_0IfNotAssigned(EdgeVersion edgeVersion, long expectedDashboardIdMSB, long expectedDashboardIdLSB,

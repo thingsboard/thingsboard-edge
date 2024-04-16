@@ -141,7 +141,6 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
     return this.config;
   }
 
-
   private openResource($event: Event, resourceInfo: ResourceInfo) {
     if ($event) {
       $event.stopPropagation();

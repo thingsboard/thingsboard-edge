@@ -220,7 +220,7 @@ public class BaseRuleChainService extends AbstractEntityService implements RuleC
             Integer index = ruleNodeIndexMap.get(existingNode.getId());
             RuleNode newRuleNode = null;
             if (index != null) {
-                // @voba - merge comment
+                // edge-only: merge comment
                 // newRuleNode = ruleChainMetaData.getNodes().get(index);
                 // toAddOrUpdate.add(newRuleNode);
             } else {

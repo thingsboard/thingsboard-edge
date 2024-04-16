@@ -464,7 +464,7 @@ public class CloudManagerService {
 
     private UplinkMsg convertEntityEventToUplink(TenantId tenantId, CloudEvent cloudEvent) {
         log.trace("Executing convertEntityEventToUplink, cloudEvent [{}], edgeEventAction [{}]", cloudEvent, cloudEvent.getAction());
-        EdgeVersion edgeVersion = EdgeVersion.V_3_6_2;
+        EdgeVersion edgeVersion = EdgeVersion.V_LATEST;
         switch (cloudEvent.getType()) {
             case DEVICE:
                 return deviceProcessor.convertDeviceEventToUplink(tenantId, cloudEvent, edgeVersion);

@@ -171,8 +171,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         executor.shutdownNow();
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Test
     @Ignore
     public void testSaveEdge() throws Exception {
@@ -207,8 +206,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 ActionType.UPDATED, 1);
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Test
     @Ignore
     public void testSaveEdgeWithViolationOfLengthValidation() throws Exception {
@@ -247,8 +245,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 tenantAdminUser.getId(), tenantAdminUser.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Test
     @Ignore
     public void testFindEdgeById() throws Exception {
@@ -259,8 +256,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(savedEdge, foundEdge);
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Test
     @Ignore
     public void testFindEdgeTypesByTenantId() throws Exception {
@@ -296,8 +292,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals("typeC", edgeTypes.get(2).getType());
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Test
     @Ignore
     public void testDeleteEdge() throws Exception {
@@ -318,8 +313,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString(msgErrorNoFound("Edge", savedEdge.getId().getId().toString()))));
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Test
     @Ignore
     public void testSaveEdgeWithEmptyType() throws Exception {
@@ -336,8 +330,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 tenantAdminUser.getId(), tenantAdminUser.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Test
     @Ignore
     public void testSaveEdgeWithEmptyName() throws Exception {
@@ -354,8 +347,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 tenantAdminUser.getId(), tenantAdminUser.getEmail(), ActionType.ADDED, new DataValidationException(msgError));
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     // keeping CE test for merge compatibility
     @Test
     @Ignore
@@ -392,8 +384,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(ModelConstants.NULL_UUID, foundEdge.getCustomerId().getId());
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Test
     @Ignore
     public void testAssignEdgeToNonExistentCustomer() throws Exception {
@@ -414,8 +405,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         testNotifyEntityNever(customerId, new Customer());
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     // keeping CE test for merge compatibility
     @Test
     @Ignore
@@ -461,8 +451,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Test
     @Ignore
     public void testFindTenantEdges() throws Exception {
@@ -493,8 +482,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(edges, loadedEdges);
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Test
     @Ignore
     public void testFindTenantEdgesByName() throws Exception {
@@ -584,8 +572,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Test
     @Ignore
     public void testFindTenantEdgesByType() throws Exception {
@@ -677,8 +664,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     // keeping CE test for merge compatibility
     @Test
     @Ignore
@@ -725,8 +711,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(edges, loadedEdges);
     }
 
-    // @voba - merge comment
-    // keeping CE test for merge compatibility
+    // edge-only: @Ignore - edge entities support available for CE/PE
     // keeping CE test for merge compatibility
     @Test
     @Ignore
@@ -835,8 +820,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     // keeping CE test for merge compatibility
     @Test
     @Ignore
@@ -940,8 +924,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     // keeping CE test for merge compatibility
     @Test
     @Ignore
@@ -1612,7 +1595,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         doPostAsync("/api/plugins/telemetry/EDGE/" + savedEdge.getId().getId() + "/attributes/SERVER_SCOPE", body, String.class, status().isOk());
         String upgradeInstructions = doGet("/api/edge/instructions/upgrade/" + EdgeVersion.V_3_6_0.name() + "/docker", String.class);
         Assert.assertTrue(upgradeInstructions.contains("Upgrading to 3.6.1EDGE"));
-        Assert.assertTrue(upgradeInstructions.contains("Upgrading to 3.6.2EDGE"));
+        Assert.assertTrue(upgradeInstructions.contains("Upgrading to 3.6.3EDGE"));
     }
 
     @Test

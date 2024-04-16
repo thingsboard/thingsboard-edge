@@ -141,7 +141,7 @@ public class CloudEventSourcingListener {
     }
 
     @TransactionalEventListener(fallbackExecution = true)
-    public void handleEvent(ActionEntityEvent event) {
+    public void handleEvent(ActionEntityEvent<?> event) {
         if (cloudSynchronizationManager.isSync()) {
             return;
         }
@@ -216,4 +216,5 @@ public class CloudEventSourcingListener {
         }
         return isCreated ? EdgeEventActionType.ADDED : EdgeEventActionType.UPDATED;
     }
+
 }

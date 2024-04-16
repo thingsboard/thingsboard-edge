@@ -67,6 +67,9 @@ import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.GroupPermissionProto;
 import org.thingsboard.server.gen.edge.v1.IntegrationUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.NotificationRuleUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.NotificationTargetUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.NotificationTemplateUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.OAuth2UpdateMsg;
 import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
@@ -97,6 +100,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.EntityGroupCloudProces
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.GroupPermissionCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.IntegrationCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.NotificationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.OAuth2CloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.OtaPackageCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.QueueCloudProcessor;
@@ -215,6 +219,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
 
     @Autowired
     private ResourceCloudProcessor tbResourceCloudProcessor;
+
+    @Autowired
+    private NotificationCloudProcessor notificationCloudProcessor;
 
     @Autowired
     private OAuth2CloudProcessor oAuth2CloudProcessor;
@@ -422,6 +429,21 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     result.add(tenantProfileCloudProcessor.processTenantProfileMsgFromCloud(tenantId, tenantProfileUpdateMsg));
                 }
             }
+            if (downlinkMsg.getNotificationTemplateUpdateMsgCount() > 0) {
+                for (NotificationTemplateUpdateMsg notificationTemplateUpdateMsg : downlinkMsg.getNotificationTemplateUpdateMsgList()) {
+                    result.add(notificationCloudProcessor.processNotificationTemplateMsgFromCloud(tenantId, notificationTemplateUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getNotificationTargetUpdateMsgCount() > 0) {
+                for (NotificationTargetUpdateMsg notificationTargetUpdateMsg : downlinkMsg.getNotificationTargetUpdateMsgList()) {
+                    result.add(notificationCloudProcessor.processNotificationTargetMsgFromCloud(tenantId, notificationTargetUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getNotificationRuleUpdateMsgCount() > 0) {
+                for (NotificationRuleUpdateMsg notificationRuleUpdateMsg : downlinkMsg.getNotificationRuleUpdateMsgList()) {
+                    result.add(notificationCloudProcessor.processNotificationRuleMsgFromCloud(tenantId, notificationRuleUpdateMsg));
+                }
+            }
             if (downlinkMsg.getOAuth2UpdateMsgCount() > 0) {
                 for (OAuth2UpdateMsg oAuth2UpdateMsg : downlinkMsg.getOAuth2UpdateMsgList()) {
                     result.add(oAuth2CloudProcessor.processOAuth2MsgFromCloud(oAuth2UpdateMsg));
@@ -494,4 +516,5 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             return Futures.immediateFuture(null);
         }
     }
+
 }
