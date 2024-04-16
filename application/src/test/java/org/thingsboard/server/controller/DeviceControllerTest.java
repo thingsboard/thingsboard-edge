@@ -157,9 +157,6 @@ public class DeviceControllerTest extends AbstractControllerTest {
         tenantAdmin.setLastName("Downs");
 
         tenantAdmin = createUserAndLogin(tenantAdmin, "testPassword1");
-
-        // edge only - temporary method, to fix public customer tests
-        doPost("/api/customer/public");
     }
 
     @After
@@ -506,10 +503,8 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindDeviceTypesByTenantId() throws Exception {
-        // TODO: @voba device profiles are not created on edge at the moment
-        doPost("/api/deviceProfile", this.createDeviceProfile("typeA"), DeviceProfile.class);
-        DeviceProfile deviceProfile = doPost("/api/deviceProfile", this.createDeviceProfile("typeB"), DeviceProfile.class);
-        doPost("/api/deviceProfile", this.createDeviceProfile("typeC"), DeviceProfile.class);
+        DeviceProfile deviceProfile = createDeviceProfile("typeB");
+        deviceProfile = doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
 
         List<Device> devices = new ArrayList<>();
 
@@ -521,6 +516,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
             Device device = new Device();
             device.setName("My device B" + i);
             device.setType("typeB");
+            device.setDeviceProfileId(deviceProfile.getId());
             devices.add(doPost("/api/device", device, Device.class));
         }
 
@@ -911,11 +907,6 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void testFindTenantDevicesByType() throws Exception {
-
-        // TODO: @voba device profiles are not created on edge at the moment
-        doPost("/api/deviceProfile", this.createDeviceProfile("typeA"), DeviceProfile.class);
-        doPost("/api/deviceProfile", this.createDeviceProfile("typeB"), DeviceProfile.class);
-
         String title1 = "Device title 1";
         String type1 = "typeA";
         futures = new ArrayList<>(143);
@@ -1114,10 +1105,6 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
     @Test
     public void testBulkImportDeviceWithoutCredentials() throws Exception {
-        // edge only - device profile are not created - uploaded from cloud
-        DeviceProfile deviceProfile = this.createDeviceProfile("some_type");
-        doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
-
         String deviceName = "some_device";
         String deviceType = "some_type";
         BulkImportRequest request = new BulkImportRequest();

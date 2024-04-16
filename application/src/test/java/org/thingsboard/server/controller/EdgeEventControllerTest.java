@@ -102,8 +102,7 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
     public void afterTest() throws Exception {
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Ignore
     @Test
     public void testGetEdgeEvents() throws Exception {

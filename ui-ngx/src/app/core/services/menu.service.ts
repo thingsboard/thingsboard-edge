@@ -1083,7 +1083,7 @@ export class MenuService {
         );
       }
     }
-    /* @voba - merge comment - these sections should not be visible on edge
+    /* edge-only: merge comment - these sections should not be visible on edge
     if (edgeManagementPages.length) {
       sections.push(
         {
@@ -1109,7 +1109,7 @@ export class MenuService {
         }
       );
     }
-    /* @voba - merge comment - these sections should not be visible on edge
+    /* edge-only: merge comment - these sections should not be visible on edge
     if (this.userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)) {
       advancedFeaturesPages.push(
         {
@@ -1268,7 +1268,6 @@ export class MenuService {
         }
       );
     }
-    /* @voba - merge comment - these sections should not be visible on edge
     if (notificationPages.length) {
       sections.push(
         {
@@ -1281,7 +1280,6 @@ export class MenuService {
         }
       );
     }
-     */
     if (this.userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
       this.userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)) {
       sections.push(
@@ -1489,7 +1487,7 @@ export class MenuService {
         ]
       }
     );
-    /* @voba - merge comment - hide this on edge
+    /* edge-only: merge comment - hide this on edge
     if (this.userPermissionsService.hasGenericPermission(Resource.ALL, Operation.ALL)) {
       homeSections.push(
         {
@@ -1685,7 +1683,7 @@ export class MenuService {
         }
       );
     }
-    /* @voba - merge comment - hide this on edge
+    /* edge-only: merge comment - hide this on edge
     if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
       homeSections.push(
         {
@@ -1818,7 +1816,7 @@ export class MenuService {
         }
       );
     }
-    /* @voba - merge comment - hide this on edge
+    /* edge-only: merge comment - hide this on edge
     if (this.userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)) {
       homeSections.push(
         {
@@ -1891,7 +1889,7 @@ export class MenuService {
             icon: 'mail',
             disabled: disabledItems.indexOf('mail_server') > -1
           },
-          /* @voba - merge comment - these sections should not be visible on edge
+          /* edge-only: merge comment - these sections should not be visible on edge
           {
             name: 'admin.sms-provider',
             path: '/settings/sms-provider',
@@ -2591,7 +2589,7 @@ export class MenuService {
         }
       );
     }
-    /* @voba - merge comment - hide this on edge
+    /* edge-only: merge comment - hide this on edge
     if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
       homeSections.push(
         {

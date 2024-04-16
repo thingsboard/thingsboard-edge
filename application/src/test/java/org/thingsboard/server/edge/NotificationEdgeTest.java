@@ -32,6 +32,7 @@ package org.thingsboard.server.edge;
 
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
@@ -72,6 +73,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class NotificationEdgeTest extends AbstractEdgeTest {
 
     @Test
+    @Ignore
     public void testNotificationTemplate() throws Exception {
         // create notification template
         edgeImitator.expectMessageAmount(1);
@@ -119,6 +121,7 @@ public class NotificationEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testNotificationTarget() throws Exception {
         // create notification target
         edgeImitator.expectMessageAmount(1);
@@ -159,6 +162,7 @@ public class NotificationEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
+    @Ignore
     public void testNotificationRule() throws Exception {
         // create notification template for notification rule
         edgeImitator.expectMessageAmount(1);

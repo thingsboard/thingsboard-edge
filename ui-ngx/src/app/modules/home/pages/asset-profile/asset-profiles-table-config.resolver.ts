@@ -93,7 +93,7 @@ export class AssetProfilesTableConfigResolver implements Resolve<EntityTableConf
         isEnabled: () => true,
         onAction: ($event, entity) => this.exportAssetProfile($event, entity)
       },
-      /* @voba: not visible on edge
+      /* edge-only: not visible on edge
       {
         name: this.translate.instant('asset-profile.set-default'),
         icon: 'flag',

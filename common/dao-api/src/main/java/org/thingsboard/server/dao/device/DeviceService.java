@@ -132,6 +132,4 @@ public interface DeviceService extends EntityDaoService {
 
     Long countByDeviceProfileAndEmptyOtaPackage(TenantId tenantId, DeviceProfileId deviceProfileId, OtaPackageType type);
 
-    // @voba - edge related
-    DeviceProfile findDeviceProfileByNameOrDefault(TenantId tenantId, String deviceType);
 }

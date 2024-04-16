@@ -59,4 +59,5 @@ public class OAuth2CloudProcessor extends BaseEdgeProcessor {
         oAuth2Service.saveOAuth2Info(oAuth2Info);
         return Futures.immediateFuture(null);
     }
+
 }

@@ -224,7 +224,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
         }
       );
     }
-    /* @voba - merge comment - hide this on edge
+    /* edge-only: merge comment - hide this on edge
     if (this.userPermissionsService.hasGenericPermission(Resource.EDGE, Operation.READ) && authState.edgesSupportEnabled) {
       actions.push(
         {

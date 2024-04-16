@@ -118,8 +118,7 @@ public class RuleChainControllerTest extends AbstractControllerTest {
                 .andExpect(status().isOk());
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Ignore
     @Test
     public void testSaveRuleChain() throws Exception {
@@ -269,8 +268,7 @@ public class RuleChainControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString(msgErrorNoFound("Rule chain", entityIdStr))));
     }
 
-    // @voba - merge comment
-    // edge entities support available in CE/PE
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Ignore
     @Test
     public void testFindEdgeRuleChainsByEdgeId() throws Exception {
