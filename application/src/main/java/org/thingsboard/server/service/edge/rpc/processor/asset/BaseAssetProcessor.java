@@ -105,4 +105,5 @@ public abstract class BaseAssetProcessor extends BaseEdgeProcessor {
 
 
     protected abstract void setCustomerId(TenantId tenantId, CustomerId customerId, Asset asset, AssetUpdateMsg assetUpdateMsg);
+
 }

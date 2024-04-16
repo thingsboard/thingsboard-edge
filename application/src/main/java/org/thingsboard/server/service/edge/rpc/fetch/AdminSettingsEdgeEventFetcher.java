@@ -94,4 +94,5 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
         }
         return result;
     }
+
 }

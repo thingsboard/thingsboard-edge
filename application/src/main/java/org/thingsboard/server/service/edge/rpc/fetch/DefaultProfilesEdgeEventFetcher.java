@@ -74,4 +74,5 @@ public class DefaultProfilesEdgeEventFetcher implements EdgeEventFetcher {
 
         return new PageData<>(result, 1, result.size(), false);
     }
+
 }

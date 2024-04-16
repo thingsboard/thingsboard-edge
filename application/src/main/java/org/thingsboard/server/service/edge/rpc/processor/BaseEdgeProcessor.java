@@ -114,6 +114,9 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.oauth2.OAuth2Service;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
@@ -151,6 +154,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.entityview.EntityView
 import org.thingsboard.server.service.edge.rpc.constructor.group.GroupMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.integration.IntegrationMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.menu.CustomMenuMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.notification.NotificationMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.oauth2.OAuth2MsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.ota.OtaPackageMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.queue.QueueMsgConstructorFactory;
@@ -309,6 +313,15 @@ public abstract class BaseEdgeProcessor {
     protected ResourceService resourceService;
 
     @Autowired
+    protected NotificationRuleService notificationRuleService;
+
+    @Autowired
+    protected NotificationTargetService notificationTargetService;
+
+    @Autowired
+    protected NotificationTemplateService notificationTemplateService;
+
+    @Autowired
     protected OAuth2Service oAuth2Service;
 
     @Autowired
@@ -359,6 +372,9 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected CustomMenuMsgConstructor customMenuMsgConstructor;
+
+    @Autowired
+    protected NotificationMsgConstructor notificationMsgConstructor;
 
     @Autowired
     protected OAuth2MsgConstructor oAuth2MsgConstructor;
@@ -525,7 +541,9 @@ public abstract class BaseEdgeProcessor {
             case TIMESERIES_UPDATED, ALARM_ACK, ALARM_CLEAR, ALARM_ASSIGNED, ALARM_UNASSIGNED, CREDENTIALS_REQUEST, ADDED_COMMENT, UPDATED_COMMENT ->
                     true;
             default -> switch (type) {
-                case ALARM, ALARM_COMMENT, RULE_CHAIN, RULE_CHAIN_METADATA, CUSTOMER, TENANT, TENANT_PROFILE, WIDGETS_BUNDLE, WIDGET_TYPE, ADMIN_SETTINGS, OTA_PACKAGE, QUEUE, RELATION, ROLE, INTEGRATION, CONVERTER, WHITE_LABELING, LOGIN_WHITE_LABELING, CUSTOM_TRANSLATION, CUSTOM_MENU, MAIL_TEMPLATES ->
+                case ALARM, ALARM_COMMENT, RULE_CHAIN, RULE_CHAIN_METADATA, CUSTOMER, TENANT, TENANT_PROFILE, WIDGETS_BUNDLE, WIDGET_TYPE,
+                        ADMIN_SETTINGS, OTA_PACKAGE, QUEUE, RELATION, NOTIFICATION_TEMPLATE, NOTIFICATION_TARGET, NOTIFICATION_RULE,
+                        ROLE, INTEGRATION, CONVERTER, WHITE_LABELING, LOGIN_WHITE_LABELING, CUSTOM_TRANSLATION, CUSTOM_MENU, MAIL_TEMPLATES ->
                         true;
                 default -> false;
             };
@@ -656,14 +674,10 @@ public abstract class BaseEdgeProcessor {
         EdgeEventActionType actionType = EdgeEventActionType.valueOf(edgeNotificationMsg.getAction());
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type, new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
         JsonNode body = JacksonUtil.toJsonNode(edgeNotificationMsg.getBody());
-        switch (actionType) {
-            case ADDED:
-            case UPDATED:
-            case DELETED:
-                return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, body, null, null);
-            default:
-                return Futures.immediateFuture(null);
-        }
+        return switch (actionType) {
+            case ADDED, UPDATED, DELETED -> pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, body, null, null);
+            default -> Futures.immediateFuture(null);
+        };
     }
 
     protected EdgeId safeGetEdgeId(long edgeIdMSB, long edgeIdLSB) {
@@ -737,40 +751,27 @@ public abstract class BaseEdgeProcessor {
 
     protected EntityId constructEntityId(String entityTypeStr, long entityIdMSB, long entityIdLSB) {
         EntityType entityType = EntityType.valueOf(entityTypeStr);
-        switch (entityType) {
-            case DEVICE:
-                return new DeviceId(new UUID(entityIdMSB, entityIdLSB));
-            case ASSET:
-                return new AssetId(new UUID(entityIdMSB, entityIdLSB));
-            case ENTITY_VIEW:
-                return new EntityViewId(new UUID(entityIdMSB, entityIdLSB));
-            case DASHBOARD:
-                return new DashboardId(new UUID(entityIdMSB, entityIdLSB));
-            case TENANT:
-                return TenantId.fromUUID(new UUID(entityIdMSB, entityIdLSB));
-            case CUSTOMER:
-                return new CustomerId(new UUID(entityIdMSB, entityIdLSB));
-            case USER:
-                return new UserId(new UUID(entityIdMSB, entityIdLSB));
-            case EDGE:
-                return new EdgeId(new UUID(entityIdMSB, entityIdLSB));
-            case ENTITY_GROUP:
-                return new EntityGroupId(new UUID(entityIdMSB, entityIdLSB));
-            case CONVERTER:
-                return new ConverterId(new UUID(entityIdMSB, entityIdLSB));
-            case INTEGRATION:
-                return new IntegrationId(new UUID(entityIdMSB, entityIdLSB));
-            case SCHEDULER_EVENT:
-                return new SchedulerEventId(new UUID(entityIdMSB, entityIdLSB));
-            case BLOB_ENTITY:
-                return new BlobEntityId(new UUID(entityIdMSB, entityIdLSB));
-            case ROLE:
-                return new RoleId(new UUID(entityIdMSB, entityIdLSB));
-            default:
+        return switch (entityType) {
+            case DEVICE -> new DeviceId(new UUID(entityIdMSB, entityIdLSB));
+            case ASSET -> new AssetId(new UUID(entityIdMSB, entityIdLSB));
+            case ENTITY_VIEW -> new EntityViewId(new UUID(entityIdMSB, entityIdLSB));
+            case DASHBOARD -> new DashboardId(new UUID(entityIdMSB, entityIdLSB));
+            case TENANT -> TenantId.fromUUID(new UUID(entityIdMSB, entityIdLSB));
+            case CUSTOMER -> new CustomerId(new UUID(entityIdMSB, entityIdLSB));
+            case USER -> new UserId(new UUID(entityIdMSB, entityIdLSB));
+            case EDGE -> new EdgeId(new UUID(entityIdMSB, entityIdLSB));
+            case ENTITY_GROUP -> new EntityGroupId(new UUID(entityIdMSB, entityIdLSB));
+            case CONVERTER -> new ConverterId(new UUID(entityIdMSB, entityIdLSB));
+            case INTEGRATION -> new IntegrationId(new UUID(entityIdMSB, entityIdLSB));
+            case SCHEDULER_EVENT -> new SchedulerEventId(new UUID(entityIdMSB, entityIdLSB));
+            case BLOB_ENTITY -> new BlobEntityId(new UUID(entityIdMSB, entityIdLSB));
+            case ROLE -> new RoleId(new UUID(entityIdMSB, entityIdLSB));
+            default -> {
                 log.warn("Unsupported entity type [{}] during construct of entity id. entityIdMSB [{}], entityIdLSB [{}]",
                         entityTypeStr, entityIdMSB, entityIdLSB);
-                return null;
-        }
+                yield null;
+            }
+        };
     }
 
     protected UUID safeGetUUID(long mSB, long lSB) {
@@ -791,8 +792,7 @@ public abstract class BaseEdgeProcessor {
             case TENANT -> tenantService.findTenantById(tenantId) != null;
             case DEVICE -> deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId())) != null;
             case ASSET -> assetService.findAssetById(tenantId, new AssetId(entityId.getId())) != null;
-            case ENTITY_VIEW ->
-                    entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId())) != null;
+            case ENTITY_VIEW -> entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId())) != null;
             case CUSTOMER -> customerService.findCustomerById(tenantId, new CustomerId(entityId.getId())) != null;
             case USER -> userService.findUserById(tenantId, new UserId(entityId.getId())) != null;
             case DASHBOARD -> dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId())) != null;
