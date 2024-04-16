@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.oauth2.OAuth2Info;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
@@ -64,6 +65,7 @@ import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.RelationActionEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserServiceImpl;
 
 import javax.annotation.PostConstruct;
@@ -89,6 +91,7 @@ public class EdgeEventSourcingListener {
 
     private final TbClusterService tbClusterService;
     private final EdgeSynchronizationManager edgeSynchronizationManager;
+    private final TenantService tenantService;
 
     @PostConstruct
     public void init() {
@@ -115,19 +118,24 @@ public class EdgeEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(DeleteEntityEvent<?> event) {
+        TenantId tenantId = event.getTenantId();
         EntityType entityType = event.getEntityId().getEntityType();
+        if (!tenantService.tenantExists(tenantId)) {
+            log.debug("[{}] Ignoring DeleteEntityEvent because tenant does not exist: {}", tenantId, event);
+            return;
+        }
         try {
             if (EntityType.EDGE.equals(entityType) || EntityType.TENANT.equals(entityType)) {
                 return;
             }
-            log.trace("[{}] DeleteEntityEvent called: {}", event.getTenantId(), event);
+            log.trace("[{}] DeleteEntityEvent called: {}", tenantId, event);
             EdgeEventType type = getEdgeEventTypeForEntityEvent(event.getEntity());
             EdgeEventActionType actionType = getEdgeEventActionTypeForEntityEvent(event.getEntity());
-            tbClusterService.sendNotificationMsgToEdge(event.getTenantId(), null, event.getEntityId(),
+            tbClusterService.sendNotificationMsgToEdge(tenantId, null, event.getEntityId(),
                     JacksonUtil.toString(event.getEntity()), type, actionType,
                     edgeSynchronizationManager.getEdgeId().get());
         } catch (Exception e) {
-            log.error("[{}] failed to process DeleteEntityEvent: {}", event.getTenantId(), event, e);
+            log.error("[{}] failed to process DeleteEntityEvent: {}", tenantId, event, e);
         }
     }
 

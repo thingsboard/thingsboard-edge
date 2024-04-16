@@ -58,4 +58,9 @@ public class AlarmsDeletionHousekeeperTask extends HousekeeperTask {
         this.alarms = alarms;
     }
 
+    @Override
+    public String getDescription() {
+        return super.getDescription() + (alarms != null ? " (" + alarms + ")" : "");
+    }
+
 }

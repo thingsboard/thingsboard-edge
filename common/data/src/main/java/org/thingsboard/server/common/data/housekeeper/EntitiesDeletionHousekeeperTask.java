@@ -64,7 +64,7 @@ public class EntitiesDeletionHousekeeperTask extends HousekeeperTask {
     @JsonIgnore
     @Override
     public String getDescription() {
-        return entityType.getNormalName().toLowerCase() + "s deletion";
+        return entityType.getNormalName().toLowerCase() + "s deletion" + (entities != null ? " (" + entities + ")" : "");
     }
 
 }

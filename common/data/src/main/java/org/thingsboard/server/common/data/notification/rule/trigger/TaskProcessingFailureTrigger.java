@@ -37,8 +37,6 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.notification.rule.trigger.config.NotificationRuleTriggerType;
 
-import java.util.concurrent.TimeUnit;
-
 @Data
 @Builder
 public class TaskProcessingFailureTrigger implements NotificationRuleTrigger {
@@ -64,17 +62,7 @@ public class TaskProcessingFailureTrigger implements NotificationRuleTrigger {
 
     @Override
     public boolean deduplicate() {
-        return true;
-    }
-
-    @Override
-    public String getDeduplicationKey() {
-        return String.join(":", NotificationRuleTrigger.super.getDeduplicationKey(), task.getTaskType().toString());
-    }
-
-    @Override
-    public long getDefaultDeduplicationDuration() {
-        return TimeUnit.MINUTES.toMillis(30);
+        return false;
     }
 
 }

@@ -55,7 +55,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @TbCoreComponent
 @Service
@@ -69,8 +68,6 @@ public class HousekeeperReprocessingService {
     private final TopicPartitionInfo submitTpi;
 
     private final ExecutorService consumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("housekeeper-reprocessing-consumer"));
-
-    protected AtomicInteger cycle = new AtomicInteger();
 
     public HousekeeperReprocessingService(HousekeeperConfig config,
                                           @Lazy HousekeeperService housekeeperService,

@@ -54,17 +54,6 @@ import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
-import org.thingsboard.server.dao.notification.NotificationTargetService;
-import org.thingsboard.server.dao.notification.NotificationTemplateService;
-import org.thingsboard.server.dao.ota.OtaPackageService;
-import org.thingsboard.server.dao.queue.QueueService;
-import org.thingsboard.server.dao.queue.QueueStatsService;
-import org.thingsboard.server.dao.resource.ResourceService;
-import org.thingsboard.server.dao.role.RoleService;
-import org.thingsboard.server.dao.rpc.RpcService;
-import org.thingsboard.server.dao.rule.RuleChainService;
-import org.thingsboard.server.dao.scheduler.SchedulerEventService;
-import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.service.validator.TenantDataValidator;
@@ -200,7 +189,6 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         return savedTenant;
     }
 
-    @Transactional
     @Override
     public void deleteTenant(TenantId tenantId) {
         log.trace("Executing deleteTenant [{}]", tenantId);
@@ -213,19 +201,19 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         notificationSettingsService.deleteNotificationSettings(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());
 
+        publishEvictEvent(new TenantEvictEvent(tenantId, true));
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(tenantId).entity(tenant).build());
+
         cleanUpService.removeTenantEntities(tenantId, // don't forget to implement deleteByTenantId from EntityDaoService when adding entity type to this list
                 EntityType.ENTITY_VIEW, EntityType.WIDGETS_BUNDLE, EntityType.WIDGET_TYPE,
                 EntityType.ASSET, EntityType.ASSET_PROFILE, EntityType.DEVICE, EntityType.DEVICE_PROFILE,
-                EntityType.DASHBOARD, EntityType.CUSTOMER, EntityType.EDGE, EntityType.RULE_CHAIN,
-                EntityType.INTEGRATION, EntityType.CONVERTER, EntityType.SCHEDULER_EVENT, EntityType.BLOB_ENTITY,
-                EntityType.ENTITY_GROUP, EntityType.GROUP_PERMISSION, EntityType.ROLE,
-                EntityType.API_USAGE_STATE, EntityType.TB_RESOURCE, EntityType.OTA_PACKAGE, EntityType.RPC,
-                EntityType.QUEUE, EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE,
-                EntityType.NOTIFICATION_TEMPLATE, EntityType.NOTIFICATION_TARGET, EntityType.QUEUE_STATS
+                EntityType.DASHBOARD, EntityType.EDGE, EntityType.RULE_CHAIN, EntityType.INTEGRATION,
+                EntityType.CONVERTER, EntityType.SCHEDULER_EVENT, EntityType.BLOB_ENTITY, EntityType.ENTITY_GROUP,
+                EntityType.GROUP_PERMISSION, EntityType.ROLE, EntityType.API_USAGE_STATE, EntityType.TB_RESOURCE,
+                EntityType.OTA_PACKAGE, EntityType.RPC, EntityType.QUEUE, EntityType.NOTIFICATION_REQUEST,
+                EntityType.NOTIFICATION_RULE, EntityType.NOTIFICATION_TEMPLATE, EntityType.NOTIFICATION_TARGET,
+                EntityType.QUEUE_STATS, EntityType.CUSTOMER
         );
-
-        publishEvictEvent(new TenantEvictEvent(tenantId, true));
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(tenantId).entity(tenant).build());
     }
 
     @Override
