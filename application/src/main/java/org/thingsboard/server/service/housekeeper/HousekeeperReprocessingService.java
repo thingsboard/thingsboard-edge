@@ -92,6 +92,8 @@ public class HousekeeperReprocessingService {
     }
 
     private void processMsgs(List<TbProtoQueueMsg<ToHousekeeperServiceMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> consumer) throws Exception {
+        Thread.sleep(config.getTaskReprocessingDelay());
+
         for (TbProtoQueueMsg<ToHousekeeperServiceMsg> msg : msgs) {
             log.trace("Reprocessing task: {}", msg);
             try {
@@ -104,8 +106,6 @@ public class HousekeeperReprocessingService {
             }
         }
         consumer.commit();
-
-        Thread.sleep(config.getTaskReprocessingDelay());
     }
 
     public void submitForReprocessing(ToHousekeeperServiceMsg msg, Throwable error) {
