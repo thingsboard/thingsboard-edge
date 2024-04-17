@@ -183,9 +183,6 @@ public class EdgeProcessor extends BaseEdgeProcessor {
         PageLink removalPageLink = new PageLink(DEFAULT_PAGE_SIZE, 0);
         while (true) {
             PageData<EntityGroup> toRemove = entityGroupService.findEdgeEntityGroupsByType(tenantId, edgeId, groupType, removalPageLink);
-            if (toRemove == null || toRemove.getData() == null) {
-                break;
-            }
             for (EntityGroup entityGroup : toRemove.getData()) {
                 if (entityGroup.getOwnerId().equals(customerId)) {
                     entityGroupService.unassignEntityGroupFromEdge(tenantId, entityGroup.getId(), edgeId, groupType);
@@ -201,9 +198,6 @@ public class EdgeProcessor extends BaseEdgeProcessor {
         PageLink removalPageLink = new PageLink(DEFAULT_PAGE_SIZE, 0);
         while (true) {
             PageData<SchedulerEventInfo> toRemove = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId, removalPageLink);
-            if (toRemove == null || toRemove.getData() == null) {
-                break;
-            }
             for (SchedulerEventInfo schedulerEventInfo : toRemove.getData()) {
                 if (schedulerEventInfo.getOwnerId().equals(previousOwnerId)) {
                     schedulerEventService.unassignSchedulerEventFromEdge(tenantId, schedulerEventInfo.getId(), edgeId);
