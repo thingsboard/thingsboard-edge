@@ -2671,15 +2671,15 @@
             "widgets": {
               "d70cc256-4c7b-ee06-9905-b8c5e546605f": {
                 "sizeX": 41,
-                "sizeY": 18,
-                "row": 24,
+                "sizeY": 16,
+                "row": 26,
                 "col": 44,
                 "mobileOrder": 7,
                 "mobileHeight": 8
               },
               "4b5e47ed-c197-a937-d727-041ba8decec2": {
                 "sizeX": 41,
-                "sizeY": 24,
+                "sizeY": 26,
                 "row": 0,
                 "col": 44,
                 "mobileOrder": 6,
