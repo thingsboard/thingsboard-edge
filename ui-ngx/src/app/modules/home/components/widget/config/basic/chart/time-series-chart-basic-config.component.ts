@@ -193,6 +193,8 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
 
       showTooltip: [settings.showTooltip, []],
       tooltipTrigger: [settings.tooltipTrigger, []],
+      tooltipLabelFont: [settings.tooltipLabelFont, []],
+      tooltipLabelColor: [settings.tooltipLabelColor, []],
       tooltipValueFont: [settings.tooltipValueFont, []],
       tooltipValueColor: [settings.tooltipValueColor, []],
       tooltipShowDate: [settings.tooltipShowDate, []],
@@ -265,6 +267,8 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
 
     this.widgetConfig.config.settings.showTooltip = config.showTooltip;
     this.widgetConfig.config.settings.tooltipTrigger = config.tooltipTrigger;
+    this.widgetConfig.config.settings.tooltipLabelFont = config.tooltipLabelFont;
+    this.widgetConfig.config.settings.tooltipLabelColor = config.tooltipLabelColor;
     this.widgetConfig.config.settings.tooltipValueFont = config.tooltipValueFont;
     this.widgetConfig.config.settings.tooltipValueColor = config.tooltipValueColor;
     this.widgetConfig.config.settings.tooltipShowDate = config.tooltipShowDate;
@@ -360,6 +364,8 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
 
     if (showTooltip) {
       this.timeSeriesChartWidgetConfigForm.get('tooltipTrigger').enable();
+      this.timeSeriesChartWidgetConfigForm.get('tooltipLabelFont').enable();
+      this.timeSeriesChartWidgetConfigForm.get('tooltipLabelColor').enable();
       this.timeSeriesChartWidgetConfigForm.get('tooltipValueFont').enable();
       this.timeSeriesChartWidgetConfigForm.get('tooltipValueColor').enable();
       this.timeSeriesChartWidgetConfigForm.get('tooltipShowDate').enable({emitEvent: false});
@@ -377,6 +383,9 @@ export class TimeSeriesChartBasicConfigComponent extends BasicWidgetConfigCompon
         this.timeSeriesChartWidgetConfigForm.get('tooltipDateInterval').disable();
       }
     } else {
+      this.timeSeriesChartWidgetConfigForm.get('tooltipTrigger').disable();
+      this.timeSeriesChartWidgetConfigForm.get('tooltipLabelFont').disable();
+      this.timeSeriesChartWidgetConfigForm.get('tooltipLabelColor').disable();
       this.timeSeriesChartWidgetConfigForm.get('tooltipValueFont').disable();
       this.timeSeriesChartWidgetConfigForm.get('tooltipValueColor').disable();
       this.timeSeriesChartWidgetConfigForm.get('tooltipShowDate').disable({emitEvent: false});

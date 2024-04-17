@@ -158,6 +158,8 @@ export class TimeSeriesChartWidgetSettingsComponent extends WidgetSettingsCompon
 
       showTooltip: [settings.showTooltip, []],
       tooltipTrigger: [settings.tooltipTrigger, []],
+      tooltipLabelFont: [settings.tooltipLabelFont, []],
+      tooltipLabelColor: [settings.tooltipLabelColor, []],
       tooltipValueFont: [settings.tooltipValueFont, []],
       tooltipValueColor: [settings.tooltipValueColor, []],
       tooltipValueFormatter: [settings.tooltipValueFormatter, []],
@@ -220,6 +222,8 @@ export class TimeSeriesChartWidgetSettingsComponent extends WidgetSettingsCompon
 
     if (showTooltip) {
       this.timeSeriesChartWidgetSettingsForm.get('tooltipTrigger').enable();
+      this.timeSeriesChartWidgetSettingsForm.get('tooltipLabelFont').enable();
+      this.timeSeriesChartWidgetSettingsForm.get('tooltipLabelColor').enable();
       this.timeSeriesChartWidgetSettingsForm.get('tooltipValueFont').enable();
       this.timeSeriesChartWidgetSettingsForm.get('tooltipValueColor').enable();
       this.timeSeriesChartWidgetSettingsForm.get('tooltipValueFormatter').enable();
@@ -238,6 +242,9 @@ export class TimeSeriesChartWidgetSettingsComponent extends WidgetSettingsCompon
         this.timeSeriesChartWidgetSettingsForm.get('tooltipDateInterval').disable();
       }
     } else {
+      this.timeSeriesChartWidgetSettingsForm.get('tooltipTrigger').disable();
+      this.timeSeriesChartWidgetSettingsForm.get('tooltipLabelFont').disable();
+      this.timeSeriesChartWidgetSettingsForm.get('tooltipLabelColor').disable();
       this.timeSeriesChartWidgetSettingsForm.get('tooltipValueFont').disable();
       this.timeSeriesChartWidgetSettingsForm.get('tooltipValueColor').disable();
       this.timeSeriesChartWidgetSettingsForm.get('tooltipValueFormatter').disable();

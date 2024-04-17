@@ -118,6 +118,8 @@ export class BarChartWithLabelsWidgetSettingsComponent extends WidgetSettingsCom
       legendLabelColor: [settings.legendLabelColor, []],
 
       showTooltip: [settings.showTooltip, []],
+      tooltipLabelFont: [settings.tooltipLabelFont, []],
+      tooltipLabelColor: [settings.tooltipLabelColor, []],
       tooltipValueFont: [settings.tooltipValueFont, []],
       tooltipValueColor: [settings.tooltipValueColor, []],
       tooltipShowDate: [settings.tooltipShowDate, []],
@@ -179,6 +181,8 @@ export class BarChartWithLabelsWidgetSettingsComponent extends WidgetSettingsCom
     }
 
     if (showTooltip) {
+      this.barChartWidgetSettingsForm.get('tooltipLabelFont').enable();
+      this.barChartWidgetSettingsForm.get('tooltipLabelColor').enable();
       this.barChartWidgetSettingsForm.get('tooltipValueFont').enable();
       this.barChartWidgetSettingsForm.get('tooltipValueColor').enable();
       this.barChartWidgetSettingsForm.get('tooltipShowDate').enable({emitEvent: false});
@@ -196,6 +200,8 @@ export class BarChartWithLabelsWidgetSettingsComponent extends WidgetSettingsCom
         this.barChartWidgetSettingsForm.get('tooltipDateInterval').disable();
       }
     } else {
+      this.barChartWidgetSettingsForm.get('tooltipLabelFont').disable();
+      this.barChartWidgetSettingsForm.get('tooltipLabelColor').disable();
       this.barChartWidgetSettingsForm.get('tooltipValueFont').disable();
       this.barChartWidgetSettingsForm.get('tooltipValueColor').disable();
       this.barChartWidgetSettingsForm.get('tooltipShowDate').disable({emitEvent: false});
