@@ -505,7 +505,6 @@ export const TcpTextMessageSeparatorTranslation = new Map<TcpTextMessageSeparato
   [TcpTextMessageSeparator.CUSTOM_SEPARATOR, 'integration.tcp.custom-separator'],
 ]);
 
-
 export enum IntegrationCredentialType {
   Anonymous = 'anonymous',
   Basic = 'basic',
