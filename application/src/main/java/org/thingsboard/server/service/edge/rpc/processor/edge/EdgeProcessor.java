@@ -182,11 +182,9 @@ public class EdgeProcessor extends BaseEdgeProcessor {
     private void unassignEntityGroupsOfRemovedCustomer(TenantId tenantId, EdgeId edgeId, EntityType groupType, EntityId customerId) {
         PageLink removalPageLink = new PageLink(DEFAULT_PAGE_SIZE, 0);
         while (true) {
-            PageData<EntityGroup> toRemove = entityGroupService.findEdgeEntityGroupsByType(tenantId, edgeId, groupType, removalPageLink);
+            PageData<EntityGroup> toRemove = entityGroupService.findEdgeEntityGroupsByOwnerIdAndType(tenantId, edgeId, customerId, groupType, removalPageLink);
             for (EntityGroup entityGroup : toRemove.getData()) {
-                if (entityGroup.getOwnerId().equals(customerId)) {
-                    entityGroupService.unassignEntityGroupFromEdge(tenantId, entityGroup.getId(), edgeId, groupType);
-                }
+                entityGroupService.unassignEntityGroupFromEdge(tenantId, entityGroup.getId(), edgeId, groupType);
             }
             if (!toRemove.hasNext()) {
                 break;
@@ -194,14 +192,12 @@ public class EdgeProcessor extends BaseEdgeProcessor {
         }
     }
 
-    private void unassignSchedulerEventsOfRemovedCustomer(TenantId tenantId, EdgeId edgeId, EntityId previousOwnerId) {
+    private void unassignSchedulerEventsOfRemovedCustomer(TenantId tenantId, EdgeId edgeId, CustomerId customerId) {
         PageLink removalPageLink = new PageLink(DEFAULT_PAGE_SIZE, 0);
         while (true) {
-            PageData<SchedulerEventInfo> toRemove = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId, removalPageLink);
+            PageData<SchedulerEventInfo> toRemove = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeIdAndCustomerId(tenantId, edgeId, customerId, removalPageLink);
             for (SchedulerEventInfo schedulerEventInfo : toRemove.getData()) {
-                if (schedulerEventInfo.getOwnerId().equals(previousOwnerId)) {
-                    schedulerEventService.unassignSchedulerEventFromEdge(tenantId, schedulerEventInfo.getId(), edgeId);
-                }
+                schedulerEventService.unassignSchedulerEventFromEdge(tenantId, schedulerEventInfo.getId(), edgeId);
             }
             if (!toRemove.hasNext()) {
                 break;
