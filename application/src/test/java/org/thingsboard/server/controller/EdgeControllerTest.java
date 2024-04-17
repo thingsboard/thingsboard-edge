@@ -1202,6 +1202,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         return doPost("/api/edge", edge, Edge.class);
     }
 
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Test
     @Ignore
     public void testGetEdgeInstallInstructions() throws Exception {
@@ -1212,7 +1213,9 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(installInstructions.contains("7390c3a6-69b0-9910-d155-b90aca4b772e"));
     }
 
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Test
+    @Ignore
     public void testGetEdgeUpgradeInstructions() throws Exception {
         // UpdateInfo config is updating from Thingsboard Update server
         HashMap<String, EdgeUpgradeInfo> upgradeInfoHashMap = new HashMap<>();
@@ -1229,7 +1232,9 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(upgradeInstructions.contains("Upgrading to 3.6.3EDGE"));
     }
 
+    // edge-only: @Ignore - edge entities support available for CE/PE
     @Test
+    @Ignore
     public void testIsEdgeUpgradeAvailable() throws Exception {
         Edge edge = constructEdge("Edge Upgrade Available", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
