@@ -148,8 +148,12 @@ export class TimeSeriesChartWidgetSettingsComponent extends WidgetSettingsCompon
       noAggregationBarWidthSettings: [settings.noAggregationBarWidthSettings, []],
 
       showLegend: [settings.showLegend, []],
+      legendColumnTitleFont: [settings.legendColumnTitleFont, []],
+      legendColumnTitleColor: [settings.legendColumnTitleColor, []],
       legendLabelFont: [settings.legendLabelFont, []],
       legendLabelColor: [settings.legendLabelColor, []],
+      legendValueFont: [settings.legendValueFont, []],
+      legendValueColor: [settings.legendValueColor, []],
       legendConfig: [settings.legendConfig, []],
 
       showTooltip: [settings.showTooltip, []],
@@ -197,12 +201,20 @@ export class TimeSeriesChartWidgetSettingsComponent extends WidgetSettingsCompon
     }
 
     if (showLegend) {
+      this.timeSeriesChartWidgetSettingsForm.get('legendColumnTitleFont').enable();
+      this.timeSeriesChartWidgetSettingsForm.get('legendColumnTitleColor').enable();
       this.timeSeriesChartWidgetSettingsForm.get('legendLabelFont').enable();
       this.timeSeriesChartWidgetSettingsForm.get('legendLabelColor').enable();
+      this.timeSeriesChartWidgetSettingsForm.get('legendValueFont').enable();
+      this.timeSeriesChartWidgetSettingsForm.get('legendValueColor').enable();
       this.timeSeriesChartWidgetSettingsForm.get('legendConfig').enable();
     } else {
+      this.timeSeriesChartWidgetSettingsForm.get('legendColumnTitleFont').disable();
+      this.timeSeriesChartWidgetSettingsForm.get('legendColumnTitleColor').disable();
       this.timeSeriesChartWidgetSettingsForm.get('legendLabelFont').disable();
       this.timeSeriesChartWidgetSettingsForm.get('legendLabelColor').disable();
+      this.timeSeriesChartWidgetSettingsForm.get('legendValueFont').disable();
+      this.timeSeriesChartWidgetSettingsForm.get('legendValueColor').disable();
       this.timeSeriesChartWidgetSettingsForm.get('legendConfig').disable();
     }
 
