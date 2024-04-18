@@ -59,6 +59,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -132,6 +133,14 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     }
 
     @Override
+    public List<String> getAvailableTranslations(TenantId tenantId, CustomerId customerId) {
+        Set<String> availableLocaleCodes = new HashSet<>(TRANSLATION_INFO_MAP.keySet());
+        Set<String> customizedLocales = customTranslationService.getCustomizedLocales(tenantId, customerId);
+        availableLocaleCodes.addAll(customizedLocales);
+        return new ArrayList<>(availableLocaleCodes);
+    }
+
+    @Override
     public JsonNode getLoginTranslation(String localeCode, String domainName) {
         WhiteLabeling whiteLabeling = whiteLabelingService.findByDomainName(domainName);
         JsonNode fullTranslation;
@@ -145,6 +154,9 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         ObjectNode loginPageTranslation = newObjectNode();
         loginPageTranslation.set("login", fullTranslation.get("login"));
         loginPageTranslation.set("signup", fullTranslation.get("signup"));
+        loginPageTranslation.set("common", fullTranslation.get("common"));
+        loginPageTranslation.set("action", fullTranslation.get("action"));
+        loginPageTranslation.set("security", newObjectNode().set("2fa", fullTranslation.get("security").get("2fa")));
         return loginPageTranslation;
     }
 
