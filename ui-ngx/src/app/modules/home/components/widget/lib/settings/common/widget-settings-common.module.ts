@@ -157,6 +157,9 @@ import {
 import {
   TimeSeriesChartAxisSettingsButtonComponent
 } from '@home/components/widget/lib/settings/common/chart/time-series-chart-axis-settings-button.component';
+import {
+  TimeSeriesChartGridSettingsComponent
+} from '@home/components/widget/lib/settings/common/chart/time-series-chart-grid-settings.component';
 
 @NgModule({
   declarations: [
@@ -209,6 +212,7 @@ import {
     TimeSeriesChartThresholdSettingsComponent,
     TimeSeriesChartStatesPanelComponent,
     TimeSeriesChartStateRowComponent,
+    TimeSeriesChartGridSettingsComponent,
     DataKeyInputComponent,
     EntityAliasInputComponent
   ],
@@ -267,6 +271,7 @@ import {
     TimeSeriesChartThresholdSettingsComponent,
     TimeSeriesChartStatesPanelComponent,
     TimeSeriesChartStateRowComponent,
+    TimeSeriesChartGridSettingsComponent,
     DataKeyInputComponent,
     EntityAliasInputComponent
   ],

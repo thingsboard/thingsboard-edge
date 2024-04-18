@@ -51,7 +51,9 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageDataIterable;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
@@ -178,21 +180,27 @@ public class EdgeProcessor extends BaseEdgeProcessor {
     }
 
     private void unassignEntityGroupsOfRemovedCustomer(TenantId tenantId, EdgeId edgeId, EntityType groupType, EntityId customerId) {
-        PageDataIterable<EntityGroup> entityGroups = new PageDataIterable<>(
-                link -> entityGroupService.findEdgeEntityGroupsByType(tenantId, edgeId, groupType, link), 1024);
-        for (EntityGroup entityGroup : entityGroups) {
-            if (entityGroup.getOwnerId().equals(customerId)) {
+        PageLink removalPageLink = new PageLink(DEFAULT_PAGE_SIZE, 0);
+        while (true) {
+            PageData<EntityGroup> toRemove = entityGroupService.findEdgeEntityGroupsByOwnerIdAndType(tenantId, edgeId, customerId, groupType, removalPageLink);
+            for (EntityGroup entityGroup : toRemove.getData()) {
                 entityGroupService.unassignEntityGroupFromEdge(tenantId, entityGroup.getId(), edgeId, groupType);
+            }
+            if (!toRemove.hasNext()) {
+                break;
             }
         }
     }
 
-    private void unassignSchedulerEventsOfRemovedCustomer(TenantId tenantId, EdgeId edgeId, EntityId previousOwnerId) {
-        PageDataIterable<SchedulerEventInfo> schedulerEventInfos = new PageDataIterable<>(
-                link -> schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId, link), 1024);
-        for (SchedulerEventInfo schedulerEventInfo : schedulerEventInfos) {
-            if (schedulerEventInfo.getOwnerId().equals(previousOwnerId)) {
+    private void unassignSchedulerEventsOfRemovedCustomer(TenantId tenantId, EdgeId edgeId, CustomerId customerId) {
+        PageLink removalPageLink = new PageLink(DEFAULT_PAGE_SIZE, 0);
+        while (true) {
+            PageData<SchedulerEventInfo> toRemove = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeIdAndCustomerId(tenantId, edgeId, customerId, removalPageLink);
+            for (SchedulerEventInfo schedulerEventInfo : toRemove.getData()) {
                 schedulerEventService.unassignSchedulerEventFromEdge(tenantId, schedulerEventInfo.getId(), edgeId);
+            }
+            if (!toRemove.hasNext()) {
+                break;
             }
         }
     }
