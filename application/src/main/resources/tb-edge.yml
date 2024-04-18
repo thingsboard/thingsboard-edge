@@ -114,8 +114,16 @@ cloud:
   rpc:
     host: "${CLOUD_RPC_HOST:localhost}"
     port: "${CLOUD_RPC_PORT:7070}"
-    timeout: "${CLOUD_RPC_TIMEOUT:5}" # Timeout in seconds for channel termination
+    # Timeout in seconds for channel termination
+    timeout: "${CLOUD_RPC_TIMEOUT:5}"
+    # Specifies the amount of time in seconds the client waits in idle (with no read operations on the connection) before sending a keepalive ping to the server.
+    # This setting is crucial for ensuring that the connection remains alive during periods of inactivity and helps prevent the server from closing the connection due to a timeout.
+    # It's used to probe the server periodically to check if it is still responsive and maintain the connection through potential network devices that might drop inactive connections (like NATs and load balancers).
     keep_alive_time_sec: "${CLOUD_RPC_KEEP_ALIVE_TIME_SEC:10}"
+    # Specifies how long the client will wait for a response to its keepalive ping.
+    # If the ping isn't acknowledged within this timeframe, the client assumes the connection is dead or unreachable.
+    # This timeout is essential for detecting when the server side might have issues or when there might be network failures preventing communication.
+    # If the server does not respond to a keepalive ping within this period, the client will consider the connection as lost and may attempt to reconnect or take other recovery actions.
     keep_alive_timeout_sec: "${CLOUD_RPC_KEEP_ALIVE_TIMEOUT_SEC:5}"
     ssl:
       enabled: "${CLOUD_RPC_SSL_ENABLED:false}"
