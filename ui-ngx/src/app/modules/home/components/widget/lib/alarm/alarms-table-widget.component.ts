@@ -236,6 +236,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   private columnDefaultVisibility: {[key: string]: boolean} = {};
   private columnSelectionAvailability: {[key: string]: boolean} = {};
   private columnExportParameters: {[key: string]: columnExportOptions} = {};
+  private columnsWithCellClick: Array<number> = [];
 
   private rowStylesInfo: RowStyleInfo;
 
@@ -387,6 +388,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     this.enableStickyAction = isDefined(this.settings.enableStickyAction) ? this.settings.enableStickyAction : false;
     this.showCellActionsMenu = isDefined(this.settings.showCellActionsMenu) ? this.settings.showCellActionsMenu : true;
     this.columnDisplayAction.show = isDefined(this.settings.enableSelectColumnDisplay) ? this.settings.enableSelectColumnDisplay : true;
+    this.columnsWithCellClick = this.ctx.actionsApi.getActionDescriptors('cellClick').map(action => action.columnIndex);
     let enableFilter;
     if (isDefined(this.settings.enableFilter)) {
       enableFilter = this.settings.enableFilter;
@@ -830,6 +832,33 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
       content = '' + value;
     }
     return content;
+  }
+
+  public onCellClick($event: Event, alarm: AlarmDataInfo, columnIndex: number) {
+    this.alarmsDatasource.toggleCurrentAlarm(alarm);
+    const descriptors = this.ctx.actionsApi.getActionDescriptors('cellClick');
+    let descriptor;
+    if (descriptors.length) {
+      descriptor = descriptors.find(desc => desc.columnIndex === columnIndex);
+    }
+    if ($event && descriptor) {
+      $event.stopPropagation();
+      let entityId;
+      let entityName;
+      let entityLabel;
+      if (alarm && alarm.originator) {
+        entityId = alarm.originator;
+        entityName = alarm.entityName;
+        entityLabel = alarm.entityLabel;
+      }
+      this.ctx.actionsApi.handleWidgetAction($event, descriptor, entityId, entityName, {alarm}, entityLabel);
+    }
+  }
+
+  public columnHasCellClick(columnIndex: number) {
+    if (this.columnsWithCellClick.length) {
+      return this.columnsWithCellClick.includes(columnIndex);
+    }
   }
 
   public onRowClick($event: Event, alarm: AlarmDataInfo) {
