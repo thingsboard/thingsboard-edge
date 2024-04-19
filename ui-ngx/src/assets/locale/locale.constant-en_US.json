@@ -3350,6 +3350,7 @@
             "months": "(month ago)",
             "years": "(year ago)"
         },
+        "column-title": "Column title",
         "label": "Label",
         "value": "Value"
     },
@@ -4510,6 +4511,7 @@
         "trigger": "Trigger",
         "trigger-point": "Point",
         "trigger-axis": "Axis",
+        "label": "Label",
         "value": "Value",
         "date": "Date",
         "show-date-time-interval": "Show date time interval",
@@ -6863,6 +6865,11 @@
               "from": "From",
               "to": "To",
               "remove-state": "Remove state"
+            },
+            "grid": {
+              "grid": "Grid",
+              "background-color": "Background color",
+              "border": "Border"
             },
             "axis": {
               "axes": "Axes",
