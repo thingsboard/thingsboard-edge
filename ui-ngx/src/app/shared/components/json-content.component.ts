@@ -33,15 +33,18 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  EventEmitter,
   forwardRef,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
+  Output,
   SimpleChanges,
-  ViewChild, ViewEncapsulation
+  ViewChild,
+  ViewEncapsulation
 } from '@angular/core';
-import { ControlValueAccessor, UntypedFormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, Validator } from '@angular/forms';
+import { ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, UntypedFormControl, Validator } from '@angular/forms';
 import { Ace } from 'ace-builds';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ActionNotificationHide, ActionNotificationShow } from '@core/notification/notification.actions';
@@ -53,6 +56,7 @@ import { guid } from '@core/utils';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { getAce } from '@shared/models/ace/ace.models';
 import { beautifyJs } from '@shared/models/beautify.models';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-json-content',
@@ -96,6 +100,10 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
 
   @Input() tbPlaceholder: string;
 
+  @Input()
+  @coerceBoolean()
+  hideToolbar = false;
+
   private readonlyValue: boolean;
   get readonly(): boolean {
     return this.readonlyValue;
@@ -132,6 +140,9 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
     this.requiredValue = coerceBooleanProperty(value);
   }
 
+  @Output()
+  blur: EventEmitter<void> = new EventEmitter<void>();
+
   fullscreen = false;
 
   contentBody: string;
@@ -141,6 +152,7 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
   errorShowed = false;
 
   private propagateChange = null;
+  private onTouched = () => {};
 
   constructor(public elementRef: ElementRef,
               protected store: Store<AppState>,
@@ -180,12 +192,15 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
             this.updateView();
           }
         });
-        if (this.validateContent) {
-          this.jsonEditor.on('blur', () => {
+        this.jsonEditor.on('blur', () => {
+          if (this.validateContent) {
             this.contentValid = this.doValidate(true);
             this.cd.markForCheck();
-          });
-        }
+          }
+          this.onTouched();
+          this.blur.next();
+        });
+
         if (this.tbPlaceholder && this.tbPlaceholder.length) {
             this.createPlaceholder();
         }
@@ -272,6 +287,7 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
   }
 
   registerOnTouched(fn: any): void {
+    this.onTouched = fn;
   }
 
   setDisabledState(isDisabled: boolean): void {

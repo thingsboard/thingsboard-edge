@@ -1,0 +1,186 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+:host {
+  background-color: var(--mdc-elevated-card-container-color, #fff);
+
+  .tb-entity-table.tb-form-panel {
+    position: absolute;
+  }
+  .tb-form-row.tb-legend {
+    height: auto;
+    border-radius: 4px;
+    font-size: 14px;
+    letter-spacing: 0.2px;
+    line-height: 20px;
+    justify-content: center;
+
+    .tb-legend-item-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      cursor: pointer;
+      .tb-legend-item-label-circle {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: #fff;
+        opacity: 0.5;
+
+        &.translated {
+          border: 2px solid rgba(0, 0, 0, 0.16);
+          opacity: 1;
+        }
+
+        &.untranslated {
+          background: #D12730;
+        }
+
+        &.customized {
+          background: #198038;
+        }
+
+        &.added {
+          background: #0066FF;
+        }
+      }
+      &.disabled {
+        color: #000;
+        opacity: 0.38;
+
+        .tb-legend-item-label-circle {
+          background-color: #000;
+          opacity: 0.4;
+        }
+      }
+    }
+  }
+  .mat-toolbar.mat-mdc-table-toolbar{
+    height: 48px;
+    padding: 8px 12px 0;
+
+    .mat-toolbar-tools {
+      height: 40px;
+
+      .tb-entity-table-title {
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 24px; /* 150% */
+        letter-spacing: 0.25px;
+      }
+
+      & > button.mat-mdc-icon-button:last-child {
+        margin: 0;
+      }
+    }
+  }
+
+  .copy-button {
+    visibility: hidden;
+    transition: visibility 0.1s;
+  }
+
+  .constant-value {
+    white-space: nowrap;
+
+    & > span {
+      filter: opacity(0.54);
+      white-space: normal;
+    }
+
+    &:hover {
+      .copy-button {
+        visibility: visible;
+      }
+    }
+  }
+
+  .mat-mdc-table {
+    .mat-mdc-header-row {
+      .mat-mdc-header-cell:first-child {
+        padding-right: 28px;
+      }
+      &.added {
+        background: #F5F9FF;
+      }
+    }
+
+    .mat-mdc-row {
+      height: 53px;
+
+      .mat-mdc-cell {
+        padding-top: 6px;
+        padding-bottom: 6px;
+
+        &:last-child {
+          padding-top: 0;
+          padding-bottom: 0;
+        }
+      }
+
+      &.untranslated {
+        background: rgba(209, 39, 48, 0.04);
+        &:hover {
+          background: rgba(209, 39, 48, 0.08);
+        }
+      }
+
+      &.customized {
+        background: rgba(25, 128, 56, 0.04);
+        &:hover {
+          background: rgba(25, 128, 56, 0.08);
+        }
+      }
+
+      &.added {
+        background: rgba(0, 102, 255, 0.04);
+        &:hover {
+          background: rgba(0, 102, 255, 0.08);
+        }
+      }
+    }
+
+    .tb-form-row {
+      background-color: #ffffff;
+      height: min-content;
+    }
+  }
+
+  ::ng-deep {
+    .mat-mdc-standard-chip.mdc-evolution-chip--with-primary-graphic .mdc-evolution-chip__graphic {
+      width: 0;
+
+      .mdc-evolution-chip__checkmark {
+        display: none;
+      }
+    }
+  }
+}

@@ -481,7 +481,7 @@ export class AuthService {
                     userLang = null;
                   }
                   loadUserSubject.next(authPayload);
-                  this.notifyUserLang(userLang);
+                  this.notifyUserLang(userLang, authPayload.translations);
                   loadUserSubject.complete();
                 },
                 (err) => {
@@ -509,7 +509,6 @@ export class AuthService {
     const sources = [this.http.get<SysParams>('/api/system/params', defaultHttpOptions()),
                      this.whiteLabelingService.loadUserWhiteLabelingParams(),
                      this.customMenuService.loadCustomMenu(),
-                     this.customTranslationService.updateCustomTranslations(true),
                      this.userPermissionsService.loadPermissionsInfo()];
     return forkJoin(sources)
       .pipe(map((data) => {
@@ -668,8 +667,8 @@ export class AuthService {
     this.store.dispatch(new ActionAuthAuthenticated(authPayload));
   }
 
-  private notifyUserLang(userLang: string) {
-    this.store.dispatch(new ActionSettingsChangeLanguage({userLang}));
+  private notifyUserLang(userLang: string, translations?: string[]) {
+    this.store.dispatch(new ActionSettingsChangeLanguage({userLang, translations, reload: true}));
   }
 
   private updateAndValidateToken(token, prefix, notify) {

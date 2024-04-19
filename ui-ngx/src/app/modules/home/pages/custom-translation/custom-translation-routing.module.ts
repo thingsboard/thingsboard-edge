@@ -29,24 +29,41 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Action } from '@ngrx/store';
+import { Routes } from '@angular/router';
+import { Authority } from '@shared/models/authority.enum';
+import { NgModule } from '@angular/core';
+import { TranslationTableComponent } from '@home/pages/custom-translation/translation-table.component';
+import { CustomTranslationComponent } from '@home/pages/custom-translation/custom-translation.component';
 
-export enum SettingsActionTypes {
-  CHANGE_LANGUAGE = '[Settings] Change Language',
-  CHANGE_WHITE_LABELING = '[Settings] Change White-labeling',
-}
+export const CustomTranslationRoutes: Routes = [
+  {
+    path: 'customTranslation',
+    data: {
+      breadcrumb: {
+        label: 'custom-translation.custom-translation',
+        icon: 'language'
+      }
+    },
+    children: [
+      {
+        path: '',
+        component: TranslationTableComponent,
+        data: {
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+          title: 'custom-translation.custom-translation',
+        }
+      },
+      {
+        path: ':localeCode',
+        component: CustomTranslationComponent,
+        data: {
+          auth: [Authority.TENANT_ADMIN],
+          title: 'custom-translation.custom-translation'
+        }
+      }
+    ]
+  }
+];
 
-export class ActionSettingsChangeLanguage implements Action {
-  readonly type = SettingsActionTypes.CHANGE_LANGUAGE;
-
-  constructor(readonly payload: { userLang: string; translations?: string[]; reload?: boolean}) {}
-}
-
-export class ActionSettingsChangeWhiteLabeling implements Action {
-  readonly type = SettingsActionTypes.CHANGE_WHITE_LABELING;
-
-  constructor(readonly payload: {}) {}
-}
-
-export type SettingsActions =
-  | ActionSettingsChangeLanguage | ActionSettingsChangeWhiteLabeling;
+@NgModule({})
+export class CustomTranslationRoutingModule { }

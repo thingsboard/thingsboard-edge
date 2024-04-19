@@ -32,4 +32,6 @@
 
 export interface SettingsState {
   userLang: string;
+  translations?: string[];
+  reload?: boolean;
 }

@@ -29,24 +29,52 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Action } from '@ngrx/store';
+import { Component } from '@angular/core';
+import { ContentType } from '@shared/models/constants';
+import { Operation, Resource } from '@shared/models/security.models';
+import { ActivatedRoute, Router } from '@angular/router';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { FormBuilder } from '@angular/forms';
 
-export enum SettingsActionTypes {
-  CHANGE_LANGUAGE = '[Settings] Change Language',
-  CHANGE_WHITE_LABELING = '[Settings] Change White-labeling',
+@Component({
+  selector: 'tb-custom-translation',
+  templateUrl: './custom-translation.component.html',
+  styleUrls: ['../admin/settings-card.scss', './custom-translation.component.scss']
+})
+export class CustomTranslationComponent {
+
+  isDirty = false;
+
+  readonly = !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
+
+  contentType = ContentType;
+  mode = this.fb.control('basic');
+
+  translation: object;
+
+  tableFullScreen = false;
+  editorFullScreen = false;
+
+  localeCode: string;
+  localeName: string;
+
+  constructor(private route: ActivatedRoute,
+              private router: Router,
+              private userPermissionsService: UserPermissionsService,
+              private fb: FormBuilder) {
+    this.localeCode = this.route.snapshot.paramMap.get('localeCode');
+    this.localeName = decodeURIComponent(this.route.snapshot.queryParamMap.get('name'));
+  }
+
+  goBack() {
+    this.router.navigate(['../'], { relativeTo: this.route });
+  }
+
+  changeTableFullScreen($event: boolean) {
+    this.tableFullScreen = $event;
+  }
+
+  changeditorFullScreen($event: boolean) {
+    this.editorFullScreen = $event;
+  }
 }
-
-export class ActionSettingsChangeLanguage implements Action {
-  readonly type = SettingsActionTypes.CHANGE_LANGUAGE;
-
-  constructor(readonly payload: { userLang: string; translations?: string[]; reload?: boolean}) {}
-}
-
-export class ActionSettingsChangeWhiteLabeling implements Action {
-  readonly type = SettingsActionTypes.CHANGE_WHITE_LABELING;
-
-  constructor(readonly payload: {}) {}
-}
-
-export type SettingsActions =
-  | ActionSettingsChangeLanguage | ActionSettingsChangeWhiteLabeling;
