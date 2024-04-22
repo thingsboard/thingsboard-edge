@@ -39,7 +39,7 @@ export enum SettingsActionTypes {
 export class ActionSettingsChangeLanguage implements Action {
   readonly type = SettingsActionTypes.CHANGE_LANGUAGE;
 
-  constructor(readonly payload: { userLang: string; translations?: string[]; reload?: boolean}) {}
+  constructor(readonly payload: { userLang: string; reload?: boolean}) {}
 }
 
 export class ActionSettingsChangeWhiteLabeling implements Action {

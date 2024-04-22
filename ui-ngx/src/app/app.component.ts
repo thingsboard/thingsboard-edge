@@ -143,7 +143,7 @@ export class AppComponent implements OnInit {
   }
 
   private notifyUserLang(userLang: string) {
-    this.store.dispatch(new ActionSettingsChangeLanguage({userLang}));
+    this.store.dispatch(new ActionSettingsChangeLanguage({userLang, reload: true}));
   }
 
 }

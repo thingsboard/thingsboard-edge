@@ -57,7 +57,6 @@ import { TimeService } from '@core/services/time.service';
 import { UtilsService } from '@core/services/utils.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { CustomMenuService } from '@core/http/custom-menu.service';
-import { CustomTranslationService } from '@core/http/custom-translation.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { AlertDialogComponent } from '@shared/components/dialog/alert-dialog.component';
@@ -77,7 +76,6 @@ export class AuthService {
     private userService: UserService,
     private whiteLabelingService: WhiteLabelingService,
     private customMenuService: CustomMenuService,
-    private customTranslationService: CustomTranslationService,
     private userPermissionsService: UserPermissionsService,
     private timeService: TimeService,
     private router: Router,
