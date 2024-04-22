@@ -37,7 +37,7 @@ import { forkJoin, Observable, of, ReplaySubject, throwError } from 'rxjs';
 import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 
 import { LoginRequest, LoginResponse, PublicLoginRequest } from '@shared/models/login.models';
-import { ActivatedRoute, Router, UrlTree } from '@angular/router';
+import { Router, UrlTree } from '@angular/router';
 import { defaultHttpOptions, defaultHttpOptionsFromConfig, RequestConfig } from '../http/http-utils';
 import { UserService } from '../http/user.service';
 import { Store } from '@ngrx/store';
@@ -50,7 +50,6 @@ import {
 } from './auth.actions';
 import { getCurrentAuthState, getCurrentAuthUser } from './auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import { ActionSettingsChangeLanguage } from '@app/core/settings/settings.actions';
 import { AuthPayload, AuthState, SysParams, SysParamsState } from '@core/auth/auth.models';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthUser } from '@shared/models/user.model';
@@ -82,7 +81,6 @@ export class AuthService {
     private userPermissionsService: UserPermissionsService,
     private timeService: TimeService,
     private router: Router,
-    private route: ActivatedRoute,
     private zone: NgZone,
     private utils: UtilsService,
     private translate: TranslateService,
@@ -474,14 +472,7 @@ export class AuthService {
               this.loadSystemParams().subscribe(
                 (sysParams) => {
                   authPayload = {...authPayload, ...sysParams};
-                  let userLang;
-                  if (authPayload.userDetails.additionalInfo && authPayload.userDetails.additionalInfo.lang) {
-                    userLang = authPayload.userDetails.additionalInfo.lang;
-                  } else {
-                    userLang = null;
-                  }
                   loadUserSubject.next(authPayload);
-                  this.notifyUserLang(userLang, authPayload.translations);
                   loadUserSubject.complete();
                 },
                 (err) => {
@@ -665,10 +656,6 @@ export class AuthService {
 
   private notifyAuthenticated(authPayload: AuthPayload) {
     this.store.dispatch(new ActionAuthAuthenticated(authPayload));
-  }
-
-  private notifyUserLang(userLang: string, translations?: string[]) {
-    this.store.dispatch(new ActionSettingsChangeLanguage({userLang, translations, reload: true}));
   }
 
   private updateAndValidateToken(token, prefix, notify) {

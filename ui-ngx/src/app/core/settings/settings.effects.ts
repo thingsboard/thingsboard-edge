@@ -35,7 +35,7 @@ import { select, Store } from '@ngrx/store';
 import { Actions, createEffect, ofType } from '@ngrx/effects';
 import { TranslateService } from '@ngx-translate/core';
 import { merge } from 'rxjs';
-import { filter, tap, withLatestFrom } from 'rxjs/operators';
+import { distinctUntilChanged, filter, map, tap, withLatestFrom } from 'rxjs/operators';
 
 import { SettingsActions, SettingsActionTypes, } from './settings.actions';
 import { selectSettingsState } from './settings.selectors';
@@ -66,20 +66,16 @@ export class SettingsEffects {
   ) {
   }
 
-  persistSettings = createEffect(() => this.actions$.pipe(
+  setTranslateServiceLanguage = createEffect(() => this.actions$.pipe(
     ofType(
       SettingsActionTypes.CHANGE_LANGUAGE,
     ),
     withLatestFrom(this.store.pipe(select(selectSettingsState))),
-    tap(([action, settings]) =>
-      this.localStorageService.setItem(SETTINGS_KEY, settings)
-    )
-  ), {dispatch: false});
-
-  setTranslateServiceLanguage = createEffect(() => this.store.pipe(
-    select(selectSettingsState),
-    tap(settings => {
-      updateUserLang(this.translate, settings.userLang, settings.translations, settings.reload);
+    map(settings => settings[1]),
+    distinctUntilChanged((a, b) => a?.userLang === b?.userLang),
+    tap(setting => {
+      this.localStorageService.setItem(SETTINGS_KEY, setting);
+      updateUserLang(this.translate, setting.userLang);
     })
   ), {dispatch: false});
 
