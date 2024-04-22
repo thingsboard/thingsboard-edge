@@ -40,13 +40,19 @@ import {
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { formatValue } from '@core/utils';
-import { rangeChartDefaultSettings } from '@home/components/widget/lib/chart/range-chart-widget.models';
+import { formatValue, mergeDeep } from '@core/utils';
+import {
+  rangeChartDefaultSettings,
+  RangeChartWidgetSettings
+} from '@home/components/widget/lib/chart/range-chart-widget.models';
 import { DateFormatProcessor, DateFormatSettings } from '@shared/models/widget-settings.models';
 import {
-  lineSeriesStepTypes, lineSeriesStepTypeTranslations,
-  seriesLabelPositions, seriesLabelPositionTranslations,
-  timeSeriesLineTypes, timeSeriesLineTypeTranslations
+  lineSeriesStepTypes,
+  lineSeriesStepTypeTranslations,
+  seriesLabelPositions,
+  seriesLabelPositionTranslations,
+  timeSeriesLineTypes,
+  timeSeriesLineTypeTranslations
 } from '@home/components/widget/lib/chart/time-series-chart.models';
 import { echartsShapes, echartsShapeTranslations } from '@home/components/widget/lib/chart/echarts-widget.models';
 
@@ -105,7 +111,7 @@ export class RangeChartWidgetSettingsComponent extends WidgetSettingsComponent {
   }
 
   protected defaultSettings(): WidgetSettings {
-    return {...rangeChartDefaultSettings};
+    return mergeDeep<RangeChartWidgetSettings>({} as RangeChartWidgetSettings, rangeChartDefaultSettings);
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
@@ -135,6 +141,8 @@ export class RangeChartWidgetSettingsComponent extends WidgetSettingsComponent {
       pointShape: [settings.pointShape, []],
       pointSize: [settings.pointSize, [Validators.min(0)]],
 
+      grid: [settings.grid, []],
+
       yAxis: [settings.yAxis, []],
       xAxis: [settings.xAxis, []],
 
@@ -148,6 +156,8 @@ export class RangeChartWidgetSettingsComponent extends WidgetSettingsComponent {
       legendLabelColor: [settings.legendLabelColor, []],
 
       showTooltip: [settings.showTooltip, []],
+      tooltipLabelFont: [settings.tooltipLabelFont, []],
+      tooltipLabelColor: [settings.tooltipLabelColor, []],
       tooltipValueFont: [settings.tooltipValueFont, []],
       tooltipValueColor: [settings.tooltipValueColor, []],
       tooltipShowDate: [settings.tooltipShowDate, []],
@@ -239,6 +249,8 @@ export class RangeChartWidgetSettingsComponent extends WidgetSettingsComponent {
     }
 
     if (showTooltip) {
+      this.rangeChartWidgetSettingsForm.get('tooltipLabelFont').enable();
+      this.rangeChartWidgetSettingsForm.get('tooltipLabelColor').enable();
       this.rangeChartWidgetSettingsForm.get('tooltipValueFont').enable();
       this.rangeChartWidgetSettingsForm.get('tooltipValueColor').enable();
       this.rangeChartWidgetSettingsForm.get('tooltipShowDate').enable({emitEvent: false});
@@ -256,6 +268,8 @@ export class RangeChartWidgetSettingsComponent extends WidgetSettingsComponent {
         this.rangeChartWidgetSettingsForm.get('tooltipDateInterval').disable();
       }
     } else {
+      this.rangeChartWidgetSettingsForm.get('tooltipLabelFont').disable();
+      this.rangeChartWidgetSettingsForm.get('tooltipLabelColor').disable();
       this.rangeChartWidgetSettingsForm.get('tooltipValueFont').disable();
       this.rangeChartWidgetSettingsForm.get('tooltipValueColor').disable();
       this.rangeChartWidgetSettingsForm.get('tooltipShowDate').disable({emitEvent: false});

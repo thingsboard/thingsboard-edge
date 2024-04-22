@@ -47,9 +47,9 @@ import java.util.Map;
 @NoArgsConstructor
 public class ShortEntityView implements HasId<EntityId>, HasName {
 
-    @Schema(description = "Entity Id object", required = true, accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Entity Id object", requiredMode = Schema.RequiredMode.REQUIRED, accessMode = Schema.AccessMode.READ_ONLY)
     private EntityId id;
-    @Schema(description = "Map of entity fields that is configurable in the Entity Group", required = true, accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Map of entity fields that is configurable in the Entity Group", requiredMode = Schema.RequiredMode.REQUIRED, accessMode = Schema.AccessMode.READ_ONLY)
     private Map<String, String> properties = new HashMap<>();
 
     @JsonIgnore
@@ -75,7 +75,7 @@ public class ShortEntityView implements HasId<EntityId>, HasName {
         this.properties.put(name, value);
     }
 
-    @Schema(description = "Name of the entity", required = true, accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Name of the entity", requiredMode = Schema.RequiredMode.REQUIRED, accessMode = Schema.AccessMode.READ_ONLY)
     @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {

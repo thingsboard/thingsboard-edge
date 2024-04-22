@@ -48,7 +48,7 @@ import {
   SeriesFillType,
   SeriesLabelPosition, ThresholdLabelPosition, timeSeriesChartAnimationDefaultSettings,
   TimeSeriesChartAnimationSettings,
-  timeSeriesChartColorScheme,
+  timeSeriesChartColorScheme, timeSeriesChartGridDefaultSettings, TimeSeriesChartGridSettings,
   TimeSeriesChartKeySettings,
   TimeSeriesChartLineType,
   TimeSeriesChartSeriesType,
@@ -96,6 +96,7 @@ export interface RangeChartWidgetSettings extends EChartsTooltipWidgetSettings {
   pointLabelBackground: string;
   pointShape: EChartsShape;
   pointSize: number;
+  grid: TimeSeriesChartGridSettings;
   yAxis: TimeSeriesChartYAxisSettings;
   xAxis: TimeSeriesChartXAxisSettings;
   animation: TimeSeriesChartAnimationSettings;
@@ -156,6 +157,8 @@ export const rangeChartDefaultSettings: RangeChartWidgetSettings = {
   pointLabelBackground: 'rgba(255,255,255,0.56)',
   pointShape: EChartsShape.emptyCircle,
   pointSize: 4,
+  grid: mergeDeep({} as TimeSeriesChartGridSettings,
+    timeSeriesChartGridDefaultSettings),
   yAxis: mergeDeep({} as TimeSeriesChartYAxisSettings,
     defaultTimeSeriesChartYAxisSettings,
     { id: 'default', order: 0, showLine: false, showTicks: false } as TimeSeriesChartYAxisSettings),
@@ -177,6 +180,15 @@ export const rangeChartDefaultSettings: RangeChartWidgetSettings = {
   },
   legendLabelColor: 'rgba(0, 0, 0, 0.76)',
   showTooltip: true,
+  tooltipLabelFont: {
+    family: 'Roboto',
+    size: 12,
+    sizeUnit: 'px',
+    style: 'normal',
+    weight: '400',
+    lineHeight: '16px'
+  },
+  tooltipLabelColor: 'rgba(0, 0, 0, 0.76)',
   tooltipValueFont: {
     family: 'Roboto',
     size: 12,
@@ -228,6 +240,7 @@ export const rangeChartTimeSeriesSettings = (settings: RangeChartWidgetSettings,
   return {
     dataZoom: settings.dataZoom,
     thresholds,
+    grid: settings.grid,
     yAxes: {
       default: {
         ...settings.yAxis,
@@ -244,6 +257,8 @@ export const rangeChartTimeSeriesSettings = (settings: RangeChartWidgetSettings,
       pieces: rangeItems.map(item => item.piece)
     },
     showTooltip: settings.showTooltip,
+    tooltipLabelFont: settings.tooltipLabelFont,
+    tooltipLabelColor: settings.tooltipLabelColor,
     tooltipValueFont: settings.tooltipValueFont,
     tooltipValueColor: settings.tooltipValueColor,
     tooltipShowDate: settings.tooltipShowDate,

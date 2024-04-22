@@ -116,6 +116,18 @@ public interface EntityGroupRepository extends JpaRepository<EntityGroupEntity, 
                                                        @Param("relationType") String relationType,
                                                        Pageable pageable);
 
+    @Query("SELECT e FROM EntityGroupEntity e, " +
+            "RelationEntity re " +
+            "WHERE e.id = re.toId AND re.toType = 'ENTITY_GROUP' " +
+            "AND e.ownerId = :ownerId " +
+            "AND re.relationTypeGroup = 'EDGE' " +
+            "AND re.relationType = :relationType " +
+            "AND re.fromId = :edgeId AND re.fromType = 'EDGE'")
+    Page<EntityGroupEntity> findEdgeEntityGroupsByOwnerIdAndType(@Param("edgeId") UUID edgeId,
+                                                                 @Param("ownerId") UUID ownerId,
+                                                                 @Param("relationType") String relationType,
+                                                                 Pageable pageable);
+
     @Query("SELECT e FROM EntityGroupEntity e WHERE " +
             "e.externalId = :externalId AND " + TENANT_ID_FILTER)
     EntityGroupEntity findByTenantIdAndExternalId(@Param("tenantId") UUID tenantId, @Param("externalId") UUID externalId);

@@ -66,4 +66,6 @@ public interface EntityGroupDao extends Dao<EntityGroup>, ExportableEntityDao<En
 
     PageData<EntityGroup> findEdgeEntityGroupsByType(UUID tenantId, UUID edgeId, String relationType, PageLink pageLink);
 
+    PageData<EntityGroup> findEdgeEntityGroupsByOwnerIdAndType(UUID tenantId, UUID edgeId, UUID ownerId, String relationType, PageLink pageLink);
+
 }

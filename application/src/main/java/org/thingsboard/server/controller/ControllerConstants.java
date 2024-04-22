@@ -2397,4 +2397,41 @@ public class ControllerConstants {
             "}\n";
 
     // Default converter uplinks messages
+
+    static final String REPORT_PARAMS_EXAMPLE = "{\n" +
+            "    \"type\": \"pdf\",\n" +
+            "    \"timezone\": \"Europe/Kiev\",\n" +
+            "    \"timewindow\": {\n" +
+            "        \"displayValue\": \"\",\n" +
+            "        \"hideInterval\": false,\n" +
+            "        \"hideLastInterval\": false,\n" +
+            "        \"hideQuickInterval\": false,\n" +
+            "        \"hideAggregation\": false,\n" +
+            "        \"hideAggInterval\": false,\n" +
+            "        \"hideTimezone\": false,\n" +
+            "        \"selectedTab\": 0,\n" +
+            "        \"realtime\": {\n" +
+            "            \"realtimeType\": 0,\n" +
+            "            \"interval\": 1000,\n" +
+            "            \"timewindowMs\": 60000,\n" +
+            "            \"quickInterval\": \"CURRENT_DAY\"\n" +
+            "        },\n" +
+            "        \"history\": {\n" +
+            "            \"historyType\": 0,\n" +
+            "            \"interval\": 1000,\n" +
+            "            \"timewindowMs\": 60000,\n" +
+            "            \"fixedTimewindow\": {\n" +
+            "                \"startTimeMs\": 1703687976592,\n" +
+            "                \"endTimeMs\": 1703774376592\n" +
+            "            },\n" +
+            "            \"quickInterval\": \"CURRENT_DAY\"\n" +
+            "        },\n" +
+            "        \"aggregation\": {\n" +
+            "            \"type\": \"AVG\",\n" +
+            "            \"limit\": 25000\n" +
+            "        }\n" +
+            "    },\n" +
+            "    \"state\": null\n" +
+            "}";
+
 }

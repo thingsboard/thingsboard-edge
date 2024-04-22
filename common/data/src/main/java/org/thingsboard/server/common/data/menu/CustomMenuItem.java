@@ -42,7 +42,7 @@ import java.util.List;
 @EqualsAndHashCode
 public class CustomMenuItem {
 
-    @Schema(description = "Name of the menu item", example = "My Custom Menu", required = true)
+    @Schema(description = "Name of the menu item", example = "My Custom Menu", requiredMode = Schema.RequiredMode.REQUIRED)
     private String name;
     @Schema(description = "URL of the menu item icon. Overrides 'materialIcon'", example = "My Custom Menu")
     private String iconUrl;

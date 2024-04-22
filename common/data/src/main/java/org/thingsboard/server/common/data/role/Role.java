@@ -66,15 +66,15 @@ public class Role extends BaseDataWithAdditionalInfo<RoleId> implements HasName,
     public static final String ROLE_READ_ONLY_ENTITY_GROUP_NAME = "Entity Group Read-only User";
     public static final String ROLE_WRITE_ENTITY_GROUP_NAME = "Entity Group Write User";
 
-    @Schema(required = true, description = "JSON object with Tenant Id.", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "JSON object with Tenant Id.", accessMode = Schema.AccessMode.READ_ONLY)
     private TenantId tenantId;
     @Schema(description = "JSON object with Customer Id. ", accessMode = Schema.AccessMode.READ_ONLY)
     private CustomerId customerId;
     @NoXss
     @Length(fieldName = "name")
-    @Schema(required = true, description = "Role Name", example = "Read-Only")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Role Name", example = "Read-Only")
     private String name;
-    @Schema(required = true, description = "Type of the role: generic or group", example = "GROUP")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Type of the role: generic or group", example = "GROUP")
     private RoleType type;
     @Schema(description = "JSON object with the set of permissions. Structure is specific for role type", accessMode = Schema.AccessMode.READ_ONLY)
     private transient JsonNode permissions;
