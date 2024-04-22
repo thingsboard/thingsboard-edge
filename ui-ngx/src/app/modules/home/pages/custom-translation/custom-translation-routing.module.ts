@@ -57,7 +57,7 @@ export const CustomTranslationRoutes: Routes = [
         path: ':localeCode',
         component: CustomTranslationComponent,
         data: {
-          auth: [Authority.TENANT_ADMIN],
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           title: 'custom-translation.custom-translation'
         }
       }
