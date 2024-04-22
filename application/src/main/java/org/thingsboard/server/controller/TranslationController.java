@@ -63,6 +63,7 @@ import org.thingsboard.server.dao.translation.TranslationCacheKey;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.translation.TbTranslationService;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.util.Arrays;
@@ -137,10 +138,23 @@ public class TranslationController extends BaseController {
             notes = "Fetch the end-user translation for specified locale.")
     @RequestMapping(value = "/noauth/translation/login/{localeCode}", method = RequestMethod.GET)
     @ResponseBody
-    public JsonNode getLoginPageTranslation(
+    public void getLoginPageTranslation(
             @Parameter(description = "Locale code (e.g. 'en_US').")
-            @PathVariable("localeCode") String localeCode, HttpServletRequest request) {
-        return tbTranslationService.getLoginTranslation(localeCode, request.getServerName());
+            @PathVariable("localeCode") String localeCode,
+            @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
+            @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader,
+            HttpServletRequest request, HttpServletResponse response) throws IOException {
+        TranslationCacheKey cacheKey = TranslationCacheKey.forLocale(localeCode, "login");
+        if (StringUtils.isNotEmpty(etag) && StringUtils.remove(etag, '\"').equals(tbTranslationService.getETag(cacheKey))) {
+            response.setStatus(HttpStatus.NOT_MODIFIED.value());
+        } else {
+            JsonNode loginTranslation = tbTranslationService.getLoginTranslation(localeCode, request.getServerName());
+            String calculatedEtag = calculateTranslationEtag(loginTranslation);
+            tbTranslationService.putETag(cacheKey, calculatedEtag);
+            response.setHeader("Etag", calculatedEtag);
+            response.setContentType(APPLICATION_JSON_VALUE);
+            compressResponseWithGzipIFAccepted(acceptEncodingHeader, response, JacksonUtil.writeValueAsBytes(loginTranslation));
+        }
     }
 
     @ApiOperation(value = "Get end-user all-to-one translation (getFullTranslation)",

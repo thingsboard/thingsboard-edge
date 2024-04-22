@@ -30,22 +30,28 @@
  */
 package org.thingsboard.server.dao.translation;
 
-import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @Data
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor
+@NoArgsConstructor
 public class TranslationCacheKey {
 
-    private final TenantId tenantId;
-    private final CustomerId customerId;
-    private final String  localeCode;
+    private TenantId tenantId;
+    private CustomerId customerId;
+    private String localeCode;
+    private String type;
 
     public static TranslationCacheKey forLocale(TenantId tenantId, CustomerId customerId, String locale) {
-        return new TranslationCacheKey(tenantId, customerId, locale);
+        return new TranslationCacheKey(tenantId, customerId, locale, null);
+    }
+
+    public static TranslationCacheKey forLocale(String locale, String type) {
+        return new TranslationCacheKey(null, null, locale, type);
     }
 
 }
