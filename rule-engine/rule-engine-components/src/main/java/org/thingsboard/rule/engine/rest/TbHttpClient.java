@@ -278,19 +278,7 @@ public class TbHttpClient {
         }
 
         if (!ignoreBody && parseToPlainText) {
-            return parseJsonStringToPlainText(data);
-        }
-
-        return data;
-    }
-
-    protected String parseJsonStringToPlainText(String data) {
-        if (data.startsWith("\"") && data.endsWith("\"") && data.length() >= 2) {
-            final String dataBefore = data;
-            try {
-                data = JacksonUtil.fromString(data, String.class);
-            } catch (Exception ignored) {}
-            log.trace("Trimming double quotes. Before trim: [{}], after trim: [{}]", dataBefore, data);
+            return JacksonUtil.toPlainText(data);
         }
 
         return data;

@@ -42,4 +42,5 @@ public interface EntityViewMsgConstructor extends MsgConstructor {
     EntityViewUpdateMsg constructEntityViewUpdatedMsg(UpdateMsgType msgType, EntityView entityView, EntityGroupId entityGroupId);
 
     EntityViewUpdateMsg constructEntityViewDeleteMsg(EntityViewId entityViewId, EntityGroupId entityGroupId);
+
 }

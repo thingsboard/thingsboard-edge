@@ -28,37 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../../../../../../scss/constants';
+package org.thingsboard.server.service.edge.rpc.fetch;
 
-.tb-y-axis-settings-panel {
-  width: 530px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  @media #{$mat-lt-md} {
-    width: 90vw;
-  }
-  .tb-y-axis-settings-panel-content {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    overflow: auto;
-    margin: -10px;
-    padding: 10px;
-  }
-  .tb-y-axis-settings-title {
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 24px;
-    letter-spacing: 0.25px;
-    color: rgba(0, 0, 0, 0.87);
-  }
-  .tb-y-axis-settings-panel-buttons {
-    height: 40px;
-    display: flex;
-    flex-direction: row;
-    gap: 16px;
-    justify-content: flex-end;
-    align-items: flex-end;
-  }
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.EdgeUtils;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
+import org.thingsboard.server.common.data.edge.EdgeEventType;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.rule.NotificationRule;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+
+@AllArgsConstructor
+@Slf4j
+public class NotificationRuleEdgeEventFetcher extends BasePageableEdgeEventFetcher<NotificationRule>{
+
+    private NotificationRuleService notificationRuleService;
+
+    @Override
+    PageData<NotificationRule> fetchEntities(TenantId tenantId, Edge edge, PageLink pageLink) {
+        return notificationRuleService.findNotificationRulesByTenantId(tenantId, pageLink);
+    }
+
+    @Override
+    EdgeEvent constructEdgeEvent(TenantId tenantId, Edge edge, NotificationRule notificationRule) {
+        return EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.NOTIFICATION_RULE,
+                EdgeEventActionType.ADDED, notificationRule.getId(), null);
+    }
+
 }

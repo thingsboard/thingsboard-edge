@@ -50,7 +50,7 @@ public class GroupPermissionId extends UUIDBased implements EntityId {
         return new GroupPermissionId(UUID.fromString(roleId));
     }
 
-    @Schema(required = true, description = "string", example = "GROUP_PERMISSION", allowableValues = "GROUP_PERMISSION")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "GROUP_PERMISSION", allowableValues = "GROUP_PERMISSION")
     @Override
     public EntityType getEntityType() {
         return EntityType.GROUP_PERMISSION;

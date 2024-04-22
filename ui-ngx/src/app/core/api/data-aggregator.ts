@@ -393,6 +393,7 @@ export class DataAggregator {
   private updateStateBounds(keyData: DataSet, lastPrevKvPair: DataEntry) {
     if (lastPrevKvPair) {
       lastPrevKvPair[0] = this.startTs;
+      lastPrevKvPair[2] = [this.startTs, this.startTs];
     }
     let firstKvPair: DataEntry;
     if (!keyData.length) {
@@ -413,6 +414,7 @@ export class DataAggregator {
       if (lastKvPair[0] < this.endTs) {
         lastKvPair = deepClone(lastKvPair);
         lastKvPair[0] = this.endTs;
+        lastKvPair[2] = [this.endTs, this.endTs];
         keyData.push(lastKvPair);
       }
     }

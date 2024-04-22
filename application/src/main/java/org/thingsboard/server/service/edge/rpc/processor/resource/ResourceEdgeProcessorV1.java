@@ -60,4 +60,5 @@ public class ResourceEdgeProcessorV1 extends ResourceEdgeProcessor {
         resource.setEtag(resourceUpdateMsg.hasEtag() ? resourceUpdateMsg.getEtag() : null);
         return resource;
     }
+
 }

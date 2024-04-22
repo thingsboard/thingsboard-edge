@@ -32,6 +32,7 @@ package org.thingsboard.server.msa.connectivity.lwm2m;
 
 import org.eclipse.californium.elements.config.Configuration;
 import org.eclipse.leshan.client.object.Security;
+
 import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_CONNECTION_ID_LENGTH;
 import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_CONNECTION_ID_NODE_ID;
 import static org.eclipse.leshan.client.object.Security.noSec;
@@ -39,14 +40,12 @@ import static org.eclipse.leshan.client.object.Security.noSec;
 public class Lwm2mTestHelper {
 
     // Models
-    public static final String[] resources = new String[]{ "0.xml", "1.xml", "2.xml", "3.xml", "5.xml",  "19.xml"};
+    public static final String[] resources = new String[]{ "0.xml", "1.xml", "2.xml", "3.xml", "5.xml"};
     public static final int serverId = 1;
-    public static final int serverIdBs = 0;
 
     public static final int port = 5685;
     public static final int securityPort = 5686;
     public static final Integer shortServerId = 123;
-    public static final Integer shortServerIdBs0 = 0;
 
     public static final String host = "localhost";
     public static final String COAP = "coap://";

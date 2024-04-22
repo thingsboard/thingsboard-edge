@@ -271,14 +271,12 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
     }
 
     private boolean isSendNewRpcAvailable() {
-        switch (rpcSubmitStrategy) {
-            case SEQUENTIAL_ON_ACK_FROM_DEVICE:
-                return toDeviceRpcPendingMap.values().stream().filter(md -> !md.isDelivered()).findAny().isEmpty();
-            case SEQUENTIAL_ON_RESPONSE_FROM_DEVICE:
-                return toDeviceRpcPendingMap.values().stream().filter(ToDeviceRpcRequestMetadata::isDelivered).findAny().isEmpty();
-            default:
-                return true;
-        }
+        return switch (rpcSubmitStrategy) {
+            case SEQUENTIAL_ON_ACK_FROM_DEVICE -> toDeviceRpcPendingMap.values().stream().filter(md -> !md.isDelivered()).findAny().isEmpty();
+            case SEQUENTIAL_ON_RESPONSE_FROM_DEVICE ->
+                    toDeviceRpcPendingMap.values().stream().filter(ToDeviceRpcRequestMetadata::isDelivered).findAny().isEmpty();
+            default -> true;
+        };
     }
 
     private void createRpc(ToDeviceRpcRequest request, RpcStatus status) {
@@ -482,7 +480,7 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
             handleSessionActivity(sessionInfo, msg.getSubscriptionInfo());
         }
         if (msg.hasClaimDevice()) {
-            handleClaimDeviceMsg(msg.getClaimDevice());
+            handleClaimDeviceMsg(sessionInfo, msg.getClaimDevice());
         }
         if (msg.hasRpcResponseStatusMsg()) {
             processRpcResponseStatus(sessionInfo, msg.getRpcResponseStatusMsg());
@@ -507,9 +505,22 @@ public class DeviceActorMessageProcessor extends AbstractContextAwareMsgProcesso
                 });
     }
 
-    private void handleClaimDeviceMsg(ClaimDeviceMsg msg) {
+    private void handleClaimDeviceMsg(SessionInfoProto sessionInfo, ClaimDeviceMsg msg) {
+        UUID sessionId = getSessionId(sessionInfo);
         DeviceId deviceId = new DeviceId(new UUID(msg.getDeviceIdMSB(), msg.getDeviceIdLSB()));
-        systemContext.getClaimDevicesService().registerClaimingInfo(tenantId, deviceId, msg.getSecretKey(), msg.getDurationMs());
+        ListenableFuture<Void> registrationFuture = systemContext.getClaimDevicesService()
+                        .registerClaimingInfo(tenantId, deviceId, msg.getSecretKey(), msg.getDurationMs());
+        Futures.addCallback(registrationFuture, new FutureCallback<>() {
+            @Override
+            public void onSuccess(Void result) {
+                log.debug("[{}][{}] Successfully processed register claiming info request!", sessionId, deviceId);
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                log.error("[{}][{}] Failed to process register claiming info request due to: ", sessionId, deviceId, t);
+            }
+        }, MoreExecutors.directExecutor());
     }
 
     private void reportSessionOpen() {

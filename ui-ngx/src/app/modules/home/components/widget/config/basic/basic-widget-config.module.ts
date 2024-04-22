@@ -125,6 +125,10 @@ import {
 import {
   TimeSeriesChartBasicConfigComponent
 } from '@home/components/widget/config/basic/chart/time-series-chart-basic-config.component';
+import { ComparisonKeyRowComponent } from '@home/components/widget/config/basic/chart/comparison-key-row.component';
+import {
+  ComparisonKeysTableComponent
+} from '@home/components/widget/config/basic/chart/comparison-keys-table.component';
 
 @NgModule({
   declarations: [
@@ -160,7 +164,9 @@ import {
     PowerButtonBasicConfigComponent,
     SliderBasicConfigComponent,
     ToggleButtonBasicConfigComponent,
-    TimeSeriesChartBasicConfigComponent
+    TimeSeriesChartBasicConfigComponent,
+    ComparisonKeyRowComponent,
+    ComparisonKeysTableComponent
   ],
   imports: [
     CommonModule,
