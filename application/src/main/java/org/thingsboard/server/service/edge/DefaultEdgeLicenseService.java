@@ -116,7 +116,7 @@ public class DefaultEdgeLicenseService implements EdgeLicenseService {
             HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
             factory.setHttpClient(httpClient);
             factory.setConnectTimeout(CONNECT_TIMEOUT);
-            factory.setReadTimeout(READ_TIMEOUT);
+            factory.setConnectionRequestTimeout(READ_TIMEOUT);
             return new RestTemplate(factory);
         } else if (proxyEnabled) {
             log.warn("Going to use Proxy Server: [{}:{}]", System.getProperty("tb.proxy.host"), System.getProperty("tb.proxy.port"));
@@ -126,14 +126,14 @@ public class DefaultEdgeLicenseService implements EdgeLicenseService {
             HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
             factory.setHttpClient(httpClient);
             factory.setConnectTimeout(CONNECT_TIMEOUT);
-            factory.setReadTimeout(READ_TIMEOUT);
+            factory.setConnectionRequestTimeout(READ_TIMEOUT);
             return new RestTemplate(factory);
         } else {
             httpClient = HttpClients.custom().setConnectionManager(createConnectionManager()).build();
             HttpComponentsClientHttpRequestFactory factory = new HttpComponentsClientHttpRequestFactory();
             factory.setHttpClient(httpClient);
             factory.setConnectTimeout(CONNECT_TIMEOUT);
-            factory.setReadTimeout(READ_TIMEOUT);
+            factory.setConnectionRequestTimeout(READ_TIMEOUT);
             return new RestTemplate(factory);
         }
     }
