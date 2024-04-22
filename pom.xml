@@ -84,7 +84,7 @@
         <apache-httpcore5.version>5.2.4</apache-httpcore5.version>
         <apache-httpclient.version>4.5.14</apache-httpclient.version>
         <apache-httpcore.version>4.4.16</apache-httpcore.version>
-        <apache-pulsar.version>2.10.1</apache-pulsar.version>
+        <apache-pulsar.version>3.2.2</apache-pulsar.version>
         <joda-time.version>2.12.7</joda-time.version>
         <jackson.version>2.17.0</jackson.version>
         <jackson-databind.version>2.17.0</jackson-databind.version>
@@ -1009,12 +1009,6 @@
                 <groupId>org.apache.pulsar</groupId>
                 <artifactId>pulsar-client</artifactId>
                 <version>${apache-pulsar.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.bouncycastle</groupId>
-                        <artifactId>bcprov-jdk15on</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.thingsboard.common.integration</groupId>
