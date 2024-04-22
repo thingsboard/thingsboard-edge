@@ -133,7 +133,7 @@
         <kafka.version>3.7.0</kafka.version>
         <bucket4j.version>8.10.1</bucket4j.version>
         <antlr.version>3.5.3</antlr.version>
-        <amazon-kinesis-producer>0.14.12</amazon-kinesis-producer>
+        <amazon-kinesis-producer>0.15.10</amazon-kinesis-producer>
         <amazon-kinesis-client>2.2.4-TB</amazon-kinesis-client>
         <snakeyaml.version>2.2</snakeyaml.version>
         <aws.sdk.version>1.12.701</aws.sdk.version>
@@ -2180,23 +2180,11 @@
                 <groupId>com.amazonaws</groupId>
                 <artifactId>amazon-kinesis-producer</artifactId>
                 <version>${amazon-kinesis-producer}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.dataformat</groupId>
-                        <artifactId>jackson-dataformat-cbor</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>software.amazon.kinesis</groupId>
                 <artifactId>amazon-kinesis-client</artifactId>
                 <version>${amazon-kinesis-client}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>com.fasterxml.jackson.dataformat</groupId>
-                        <artifactId>jackson-dataformat-cbor</artifactId>
-                    </exclusion>
-                </exclusions>
             </dependency>
             <dependency>
                 <groupId>commons-beanutils</groupId>
