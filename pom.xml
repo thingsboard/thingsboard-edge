@@ -175,8 +175,8 @@
         <webdrivermanager.version>5.8.0</webdrivermanager.version>
         <allure-testng.version>2.27.0</allure-testng.version>
         <allure-maven.version>2.12.0</allure-maven.version>
+        <dotenv-java.version>3.0.0</dotenv-java.version>
 
-        <dotenv-java.version>2.2.0</dotenv-java.version>
         <opensmpp.version>3.0.2</opensmpp.version>
         <jgit.version>6.9.0.202403050737-r</jgit.version>
         <exp4j.version>0.4.8</exp4j.version>
