@@ -160,6 +160,9 @@ import {
 import {
   TimeSeriesChartGridSettingsComponent
 } from '@home/components/widget/lib/settings/common/chart/time-series-chart-grid-settings.component';
+import {
+  StatusWidgetStateSettingsComponent
+} from '@home/components/widget/lib/settings/common/indicator/status-widget-state-settings.component';
 
 @NgModule({
   declarations: [
@@ -213,6 +216,7 @@ import {
     TimeSeriesChartStatesPanelComponent,
     TimeSeriesChartStateRowComponent,
     TimeSeriesChartGridSettingsComponent,
+    StatusWidgetStateSettingsComponent,
     DataKeyInputComponent,
     EntityAliasInputComponent
   ],
@@ -272,6 +276,7 @@ import {
     TimeSeriesChartStatesPanelComponent,
     TimeSeriesChartStateRowComponent,
     TimeSeriesChartGridSettingsComponent,
+    StatusWidgetStateSettingsComponent,
     DataKeyInputComponent,
     EntityAliasInputComponent
   ],
