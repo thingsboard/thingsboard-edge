@@ -52,12 +52,25 @@ export function updateUserLang(translate: TranslateService, userLang: string, tr
   if (reload) {
     translate.addLangs(translations)
     translate.reloadLang(detectedSupportedLang).subscribe(() => {
+      if (translate.currentLang !== detectedSupportedLang) {
+        translate.resetLang(translate.currentLang);
+      }
       translate.use(detectedSupportedLang);
-      translate.setDefaultLang(env.defaultLang);
+      // @ts-ignore
+      translate.changeDefaultLang(env.defaultLang);
     })
   } else {
-    translate.use(detectedSupportedLang);
-    translate.setDefaultLang(env.defaultLang);
+    if (detectedSupportedLang === env.defaultLang && translate.translations[detectedSupportedLang] === undefined) {
+      translate.use(detectedSupportedLang);
+      // @ts-ignore
+      translate.changeDefaultLang(env.defaultLang);
+    } else {
+      translate.reloadLang(detectedSupportedLang).subscribe(() => {
+        translate.use(detectedSupportedLang);
+        // @ts-ignore
+        translate.changeDefaultLang(env.defaultLang);
+      })
+    }
   }
 }
 
