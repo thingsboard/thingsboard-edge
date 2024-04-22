@@ -34,13 +34,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.housekeeper.AlarmsDeletionHousekeeperTask;
+import org.thingsboard.server.common.data.housekeeper.EntitiesDeletionHousekeeperTask;
 import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
-import org.thingsboard.server.common.data.id.AlarmId;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.housekeeper.TenantEntitiesDeletionHousekeeperTask;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.util.TbPair;
-import org.thingsboard.server.dao.alarm.AlarmService;
+import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.entity.EntityDaoRegistry;
 
 import java.util.List;
 import java.util.UUID;
@@ -48,48 +47,32 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class AlarmsDeletionTaskProcessor extends HousekeeperTaskProcessor<AlarmsDeletionHousekeeperTask> {
+public class TenantEntitiesDeletionTaskProcessor extends HousekeeperTaskProcessor<TenantEntitiesDeletionHousekeeperTask> {
 
-    private final AlarmService alarmService;
+    private final EntityDaoRegistry entityDaoRegistry;
 
     @Override
-    public void process(AlarmsDeletionHousekeeperTask task) throws Exception {
-        EntityId entityId = task.getEntityId();
-        EntityType entityType = entityId.getEntityType();
+    public void process(TenantEntitiesDeletionHousekeeperTask task) throws Exception {
+        EntityType entityType = task.getEntityType();
         TenantId tenantId = task.getTenantId();
+        Dao<?> entityDao = entityDaoRegistry.getDao(entityType);
 
-        if (entityType == EntityType.DEVICE || entityType == EntityType.ASSET) {
-            if (task.getAlarms() == null) {
-                AlarmId lastId = null;
-                long lastCreatedTime = 0;
-                while (true) {
-                    List<TbPair<UUID, Long>> alarms = alarmService.findAlarmIdsByOriginatorId(tenantId, entityId, lastCreatedTime, lastId, 128);
-                    if (alarms.isEmpty()) {
-                        break;
-                    }
-
-                    housekeeperClient.submitTask(new AlarmsDeletionHousekeeperTask(tenantId, entityId, alarms.stream().map(TbPair::getFirst).toList()));
-
-                    TbPair<UUID, Long> last = alarms.get(alarms.size() - 1);
-                    lastId = new AlarmId(last.getFirst());
-                    lastCreatedTime = last.getSecond();
-                    log.debug("[{}][{}][{}] Submitted task for deleting {} alarms", tenantId, entityType, entityId, alarms.size());
-                }
-            } else {
-                for (UUID alarmId : task.getAlarms()) {
-                    alarmService.delAlarm(tenantId, new AlarmId(alarmId));
-                }
-                log.debug("[{}][{}][{}] Deleted {} alarms", tenantId, entityType, entityId, task.getAlarms().size());
+        UUID last = null;
+        while (true) {
+            List<UUID> entities = entityDao.findIdsByTenantIdAndIdOffset(tenantId, last, 128);
+            if (entities.isEmpty()) {
+                break;
             }
-        }
 
-        int count = alarmService.deleteEntityAlarmRecords(tenantId, entityId);
-        log.debug("[{}][{}][{}] Deleted {} entity alarms", tenantId, entityType, entityId, count);
+            housekeeperClient.submitTask(new EntitiesDeletionHousekeeperTask(tenantId, entityType, entities));
+            last = entities.get(entities.size() - 1);
+            log.debug("[{}] Submitted task for deleting {} {}s", tenantId, entities.size(), entityType.getNormalName().toLowerCase());
+        }
     }
 
     @Override
     public HousekeeperTaskType getTaskType() {
-        return HousekeeperTaskType.DELETE_ALARMS;
+        return HousekeeperTaskType.DELETE_TENANT_ENTITIES;
     }
 
 }

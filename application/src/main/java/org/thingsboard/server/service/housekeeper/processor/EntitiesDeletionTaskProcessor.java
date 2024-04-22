@@ -39,12 +39,9 @@ import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.entity.EntityDaoRegistry;
 import org.thingsboard.server.dao.entity.EntityDaoService;
 import org.thingsboard.server.dao.entity.EntityServiceRegistry;
 
-import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -52,35 +49,19 @@ import java.util.UUID;
 @Slf4j
 public class EntitiesDeletionTaskProcessor extends HousekeeperTaskProcessor<EntitiesDeletionHousekeeperTask> {
 
-    private final EntityDaoRegistry entityDaoRegistry;
     private final EntityServiceRegistry entityServiceRegistry;
 
     @Override
     public void process(EntitiesDeletionHousekeeperTask task) throws Exception {
         EntityType entityType = task.getEntityType();
         TenantId tenantId = task.getTenantId();
-        Dao<?> entityDao = entityDaoRegistry.getDao(entityType);
         EntityDaoService entityService = entityServiceRegistry.getServiceByEntityType(entityType);
 
-        if (task.getEntities() == null) {
-            UUID last = null;
-            while (true) {
-                List<UUID> entities = entityDao.findIdsByTenantIdAndIdOffset(tenantId, last, 128);
-                if (entities.isEmpty()) {
-                    break;
-                }
-
-                housekeeperClient.submitTask(new EntitiesDeletionHousekeeperTask(tenantId, entityType, entities));
-                last = entities.get(entities.size() - 1);
-                log.debug("[{}] Submitted task for deleting {} {}s", tenantId, entities.size(), entityType.getNormalName().toLowerCase());
-            }
-        } else {
-            for (UUID entityUuid : task.getEntities()) {
-                EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, entityUuid);
-                entityService.deleteEntity(tenantId, entityId, true);
-            }
-            log.debug("[{}] Deleted {} {}s", tenantId, task.getEntities().size(), entityType.getNormalName().toLowerCase());
+        for (UUID entityUuid : task.getEntities()) {
+            EntityId entityId = EntityIdFactory.getByTypeAndUuid(entityType, entityUuid);
+            entityService.deleteEntity(tenantId, entityId, true);
         }
+        log.debug("[{}] Deleted {} {}s", tenantId, task.getEntities().size(), entityType.getNormalName().toLowerCase());
     }
 
     @Override
