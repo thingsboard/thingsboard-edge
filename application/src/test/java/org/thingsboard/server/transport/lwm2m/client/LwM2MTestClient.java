@@ -82,6 +82,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_CONNECTION_ID_LENGTH;
 import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_RECOMMENDED_CIPHER_SUITES_ONLY;
@@ -162,9 +163,9 @@ public class LwM2MTestClient {
             initializer.setClassForObject(SECURITY, Security.class);
             initializer.setInstancesForObject(SECURITY, instances);
             // SERVER
-           Server lwm2mServer = new Server(shortServerId, 300);
+           Server lwm2mServer = new Server(shortServerId, TimeUnit.MINUTES.toSeconds(60));
             lwm2mServer.setId(serverId);
-            Server  serverBs = new Server(shortServerIdBs0, 300);
+            Server  serverBs = new Server(shortServerIdBs0, TimeUnit.MINUTES.toSeconds(60));
             serverBs.setId(serverIdBs);
              instances = new LwM2mInstanceEnabler[]{serverBs, lwm2mServer};
             initializer.setClassForObject(SERVER, Server.class);
@@ -178,7 +179,7 @@ public class LwM2MTestClient {
             // SECURITY
             initializer.setInstancesForObject(SECURITY, security);
             // SERVER
-            Server lwm2mServer = new Server(shortServerId, 300);
+            Server lwm2mServer = new Server(shortServerId, TimeUnit.MINUTES.toSeconds(60));
             lwm2mServer.setId(serverId);
             initializer.setInstancesForObject(SERVER, lwm2mServer );
         }
