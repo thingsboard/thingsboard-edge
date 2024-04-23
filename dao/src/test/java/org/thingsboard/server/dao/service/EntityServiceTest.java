@@ -215,6 +215,9 @@ public class EntityServiceTest extends AbstractServiceTest {
         genericPermissions.put(Resource.resourceFromEntityType(EntityType.ASSET), Collections.singleton(Operation.ALL));
         genericPermissions.put(Resource.DEVICE_GROUP, Collections.singleton(Operation.ALL));
         genericPermissions.put(Resource.USER, Collections.singleton(Operation.ALL));
+        genericPermissions.put(Resource.EDGE, Collections.singleton(Operation.ALL));
+        genericPermissions.put(Resource.EDGE_GROUP, Collections.singleton(Operation.ALL));
+        genericPermissions.put(Resource.TENANT, Collections.singleton(Operation.ALL));
         mergedUserPermissionsPE = new MergedUserPermissions(genericPermissions, Collections.emptyMap());
 
         Customer customer = new Customer();
