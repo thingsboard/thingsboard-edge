@@ -46,11 +46,15 @@ public class TranslationCacheKey {
     private String localeCode;
     private String domain;
 
-    public static TranslationCacheKey forLocale(TenantId tenantId, CustomerId customerId, String locale) {
+    public static TranslationCacheKey forFullTranslation(TenantId tenantId, CustomerId customerId, String locale) {
         return new TranslationCacheKey(tenantId, customerId, locale, null);
     }
 
-    public static TranslationCacheKey forLocale(String locale, String type) {
+    public static TranslationCacheKey forLoginTranslation(TenantId tenantId, CustomerId customerId, String locale, String domain) {
+        return new TranslationCacheKey(tenantId, customerId, locale, domain);
+    }
+
+    public static TranslationCacheKey forLoginTranslation(String locale, String type) {
         return new TranslationCacheKey(null, null, locale, type);
     }
 
