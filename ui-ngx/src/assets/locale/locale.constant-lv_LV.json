@@ -524,15 +524,7 @@
   "custom-translation": {
     "custom-translation": "Pielāgots tulkojums",
     "translation-map": "Tulkojuma karte",
-    "key": "Tulkojuma atslēga",
-    "import": "Importēt tulkojumu",
-    "export": "Eksportēt tulkojumu",
-    "export-data": "Eksportēt tulkojuma datus",
-    "import-data": "Importēt tulkojuma datus",
-    "translation-file": "Tulkojuma fails",
-    "invalid-translation-file-error": "Nav iespējams importēt tulkojuma failu: invalīda tulkojumu datu struktūra.",
-    "custom-translation-hint": "Definēt pielāgotu izvēlni JSON formā. Šis JSON pārrakstīs pamata tulkojumu. Noklikšķiniet 'Lejupielādēt lokālo failu' lai iegūtu eksitējošo tulkojumu. Jūs arī varat lietot lejupielādēto failu kā referenci priekš iespējamiem tulkojuma parametrs-vērtība pāriem.",
-    "download-locale-file": "Lejupielādēt lokālo failu"
+    "translation-file": "Tulkojuma fails"
   },
   "datetime": {
     "date-from": "Datums no",
