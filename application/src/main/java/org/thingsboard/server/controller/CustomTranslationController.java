@@ -53,8 +53,8 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.config.annotations.ApiOperation;
+import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -80,6 +80,7 @@ public class CustomTranslationController extends BaseController {
 
     @Autowired
     private TbTranslationService tbTranslationService;
+
     @Autowired
     private CustomTranslationService customTranslationService;
 

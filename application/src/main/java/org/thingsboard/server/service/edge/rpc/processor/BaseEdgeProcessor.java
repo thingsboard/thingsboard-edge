@@ -154,7 +154,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.scheduler.SchedulerEv
 import org.thingsboard.server.service.edge.rpc.constructor.settings.AdminSettingsMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.telemetry.EntityDataMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.tenant.TenantMsgConstructorFactory;
-import org.thingsboard.server.service.edge.rpc.constructor.translation.CustomTranslationConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.translation.CustomTranslationMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.user.UserMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.widget.WidgetMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.wl.WhiteLabelingParamsProtoConstructor;
@@ -423,7 +423,7 @@ public abstract class BaseEdgeProcessor {
     protected WhiteLabelingParamsProtoConstructor whiteLabelingParamsProtoConstructor;
 
     @Autowired
-    protected CustomTranslationConstructorFactory customTranslationConstructorFactory;
+    protected CustomTranslationMsgConstructor customTranslationMsgConstructor;
 
     @Autowired
     protected RoleMsgConstructorFactory roleMsgConstructorFactory;

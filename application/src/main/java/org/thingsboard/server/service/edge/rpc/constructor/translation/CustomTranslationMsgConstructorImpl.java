@@ -31,11 +31,19 @@
 package org.thingsboard.server.service.edge.rpc.constructor.translation;
 
 import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.gen.edge.v1.CustomTranslationUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.constructor.BaseMsgConstructorFactory;
 
 @Component
 @TbCoreComponent
-public class CustomTranslationConstructorFactory extends BaseMsgConstructorFactory<CustomTranslationMsgConstructorV1, CustomTranslationMsgConstructorV2> {
+public class CustomTranslationMsgConstructorImpl implements CustomTranslationMsgConstructor {
+
+    @Override
+    public CustomTranslationUpdateMsg constructCustomTranslationMsg(UpdateMsgType msgType, CustomTranslation customTranslation) {
+        return CustomTranslationUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(customTranslation)).build();
+    }
 
 }

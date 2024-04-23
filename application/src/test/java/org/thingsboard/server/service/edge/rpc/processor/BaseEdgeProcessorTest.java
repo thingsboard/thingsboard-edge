@@ -140,7 +140,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.telemetry.EntityDataM
 import org.thingsboard.server.service.edge.rpc.constructor.tenant.TenantMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.tenant.TenantMsgConstructorV1;
 import org.thingsboard.server.service.edge.rpc.constructor.tenant.TenantMsgConstructorV2;
-import org.thingsboard.server.service.edge.rpc.constructor.translation.CustomTranslationConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.translation.CustomTranslationMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.user.UserMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.user.UserMsgConstructorV1;
 import org.thingsboard.server.service.edge.rpc.constructor.user.UserMsgConstructorV2;
@@ -548,7 +548,7 @@ public abstract class BaseEdgeProcessorTest {
     protected IntegrationMsgConstructorFactory integrationMsgConstructorFactory;
 
     @MockBean
-    protected CustomTranslationConstructorFactory whiteLabelingConstructorFactory;
+    protected CustomTranslationMsgConstructor customTranslationMsgConstructor;
 
     @MockBean
     protected AlarmEdgeProcessorFactory alarmEdgeProcessorFactory;
