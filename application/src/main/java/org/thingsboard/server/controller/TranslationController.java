@@ -58,8 +58,10 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.translation.TranslationCacheKey;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.translation.TbTranslationService;
 
@@ -101,6 +103,7 @@ public class TranslationController extends BaseController {
             MARKDOWN_CODE_BLOCK_END;
 
     private final TbTranslationService tbTranslationService;
+    private final WhiteLabelingService whiteLabelingService;
 
     @ApiOperation(value = "Get Translation info (getTranslationInfos)",
             notes = "Fetch the list of customized locales and corresponding details such as language display name," +
@@ -145,7 +148,13 @@ public class TranslationController extends BaseController {
             @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader,
             HttpServletRequest request, HttpServletResponse response) throws IOException {
         String domainName = request.getServerName();
-        TranslationCacheKey cacheKey = TranslationCacheKey.forLocale(localeCode, domainName);
+        WhiteLabeling loginWL = whiteLabelingService.findByDomainName(domainName);
+        TranslationCacheKey cacheKey;
+        if (loginWL != null) {
+            cacheKey = TranslationCacheKey.forLoginTranslation(loginWL.getTenantId(), loginWL.getCustomerId(), localeCode, domainName);
+        } else {
+            cacheKey = TranslationCacheKey.forLoginTranslation(localeCode, domainName);
+        }
         if (StringUtils.isNotEmpty(etag) && StringUtils.remove(etag, '\"').equals(tbTranslationService.getETag(cacheKey))) {
             response.setStatus(HttpStatus.NOT_MODIFIED.value());
         } else {
@@ -174,7 +183,7 @@ public class TranslationController extends BaseController {
         TenantId tenantId = getCurrentUser().getTenantId();
         CustomerId customerId = getCurrentUser().getCustomerId();
 
-        TranslationCacheKey cacheKey = TranslationCacheKey.forLocale(tenantId, customerId, localeCode);
+        TranslationCacheKey cacheKey = TranslationCacheKey.forFullTranslation(tenantId, customerId, localeCode);
         if (StringUtils.isNotEmpty(etag) && StringUtils.remove(etag, '\"').equals(tbTranslationService.getETag(cacheKey))) {
             response.setStatus(HttpStatus.NOT_MODIFIED.value());
         } else {

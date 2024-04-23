@@ -42,13 +42,17 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
+import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.translation.TranslationCacheKey;
+import org.thingsboard.server.dao.wl.WhiteLabelingEvictEvent;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -74,6 +78,8 @@ import java.util.stream.Collectors;
 import static org.thingsboard.common.util.JacksonUtil.extractKeys;
 import static org.thingsboard.common.util.JacksonUtil.merge;
 import static org.thingsboard.common.util.JacksonUtil.newObjectNode;
+import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forDomainName;
+import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forKey;
 
 @Service
 @Slf4j
@@ -227,7 +233,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         } else {
             Set<TranslationCacheKey> keysToInvalidate = etagCache
                     .asMap().keySet().stream()
-                    .filter(translationCacheKey -> translationCacheKey.getTenantId().equals(tenantId))
+                    .filter(translationCacheKey -> tenantId.equals(translationCacheKey.getTenantId()))
                     .collect(Collectors.toSet());
             etagCache.invalidateAll(keysToInvalidate);
         }
