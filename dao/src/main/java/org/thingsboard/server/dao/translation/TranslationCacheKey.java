@@ -44,7 +44,7 @@ public class TranslationCacheKey {
     private TenantId tenantId;
     private CustomerId customerId;
     private String localeCode;
-    private String type;
+    private String domain;
 
     public static TranslationCacheKey forLocale(TenantId tenantId, CustomerId customerId, String locale) {
         return new TranslationCacheKey(tenantId, customerId, locale, null);

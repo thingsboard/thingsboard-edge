@@ -144,11 +144,12 @@ public class TranslationController extends BaseController {
             @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
             @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader,
             HttpServletRequest request, HttpServletResponse response) throws IOException {
-        TranslationCacheKey cacheKey = TranslationCacheKey.forLocale(localeCode, "login");
+        String domainName = request.getServerName();
+        TranslationCacheKey cacheKey = TranslationCacheKey.forLocale(localeCode, domainName);
         if (StringUtils.isNotEmpty(etag) && StringUtils.remove(etag, '\"').equals(tbTranslationService.getETag(cacheKey))) {
             response.setStatus(HttpStatus.NOT_MODIFIED.value());
         } else {
-            JsonNode loginTranslation = tbTranslationService.getLoginTranslation(localeCode, request.getServerName());
+            JsonNode loginTranslation = tbTranslationService.getLoginTranslation(localeCode, domainName);
             String calculatedEtag = calculateTranslationEtag(loginTranslation);
             tbTranslationService.putETag(cacheKey, calculatedEtag);
             response.setHeader("Etag", calculatedEtag);
