@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import lombok.Getter;
@@ -41,6 +42,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -217,6 +219,8 @@ import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -232,6 +236,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPOutputStream;
 
 import static org.thingsboard.server.common.data.StringUtils.isNotEmpty;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
@@ -1286,6 +1291,22 @@ public abstract class BaseController {
             return entityDataSortOrder;
         } else {
             return null;
+        }
+    }
+
+    protected void compressResponseWithGzipIFAccepted(String acceptEncodingHeader, HttpServletResponse response, byte[] content) throws IOException {
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(acceptEncodingHeader) && acceptEncodingHeader.contains("gzip")) {
+            response.setHeader(HttpHeaders.CONTENT_ENCODING, "gzip");
+            response.setCharacterEncoding(StandardCharsets.UTF_8.displayName());
+            try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(response.getOutputStream())) {
+                gzipOutputStream.write(content);
+                gzipOutputStream.finish();
+            }
+        } else {
+            try (ServletOutputStream outputStream = response.getOutputStream()) {
+                outputStream.write(content);
+                outputStream.flush();
+            }
         }
     }
 

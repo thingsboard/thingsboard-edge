@@ -101,7 +101,7 @@ export class LoginComponent extends PageComponent implements OnInit {
   platformNameAndVersion$(): Observable<string> {
     return combineLatest([this.wl.platformName$, this.wl.platformVersion$]).pipe(
       mergeMap((res) => {
-        return this.translateService.get('white-labeling.version-mask', {name: res[0], version: res[1]});
+        return this.translateService.get('login.version-mask', {name: res[0], version: res[1]});
       }),
       share()
     );

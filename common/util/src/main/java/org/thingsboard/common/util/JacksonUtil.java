@@ -58,6 +58,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -421,6 +422,106 @@ public class JacksonUtil {
         } else {
             entityNode.put(key, kvEntry.getValueAsString());
         }
+    }
+
+    public static Set<String> extractKeys(JsonNode jsonNode) {
+        Set<String> keyPaths = new HashSet<>();
+        extractKeyPathsRecursively("", jsonNode, keyPaths);
+        return keyPaths;
+    }
+
+    private static void extractKeyPathsRecursively(String currentPath, JsonNode jsonNode, Set<String> keyPaths) {
+        if (jsonNode.isObject()) {
+            ObjectNode objectNode = (ObjectNode) jsonNode;
+            Iterator<String> fieldNames = objectNode.fieldNames();
+            while (fieldNames.hasNext()) {
+                String fieldName = fieldNames.next();
+                String newPath = currentPath.isEmpty() ? fieldName : currentPath + "." + fieldName;
+                extractKeyPathsRecursively(newPath, objectNode.get(fieldName), keyPaths);
+            }
+        } else if (jsonNode.isArray()) {
+            for (int i = 0; i < jsonNode.size(); i++) {
+                String newPath = currentPath.isEmpty() ? "[" + i + "]" : currentPath + "[" + i + "]";
+                extractKeyPathsRecursively(newPath, jsonNode.get(i), keyPaths);
+            }
+        } else {
+            keyPaths.add(currentPath);
+        }
+    }
+
+    public static JsonNode update(JsonNode mainNode, JsonNode updateNode) {
+        Iterator<String> fieldNames = updateNode.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldExpression = fieldNames.next();
+            String[] fieldPath = fieldExpression.trim().split("\\.");
+            var node = (ObjectNode) mainNode;
+            for (int i = 0; i < fieldPath.length; i++) {
+                var fieldName = fieldPath[i];
+                var last = i == (fieldPath.length - 1);
+                if (last) {
+                    node.set(fieldName, updateNode.get(fieldExpression));
+                } else {
+                    if (!node.has(fieldName)) {
+                        node.set(fieldName, JacksonUtil.newObjectNode());
+                    }
+                    node = (ObjectNode) node.get(fieldName);
+                }
+            }
+        }
+        return mainNode;
+    }
+
+    public static JsonNode merge(JsonNode mainNode, JsonNode updateNode) {
+        mergeNodes(mainNode, updateNode);
+        return mainNode;
+    }
+    public static void mergeNodes(JsonNode mainNode, JsonNode updateNode) {
+        Iterator<String> fieldNames = updateNode.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldName = fieldNames.next();
+            JsonNode jsonNode = mainNode.get(fieldName);
+            if (jsonNode != null) {
+                if (jsonNode.isObject()) {
+                    mergeNodes(jsonNode, updateNode.get(fieldName));
+                } else if (jsonNode.isArray()) {
+                    for (int i = 0; i < jsonNode.size(); i++) {
+                        mergeNodes(jsonNode.get(i), updateNode.get(fieldName).get(i));
+                    }
+                } else {
+                    ((ObjectNode) mainNode).set(fieldName, updateNode.get(fieldName));
+                }
+            } else {
+                if (mainNode instanceof ObjectNode) {
+                    // Overwrite field
+                    JsonNode value = updateNode.get(fieldName);
+                    if (value.isNull()) {
+                        continue;
+                    }
+                    ((ObjectNode) mainNode).set(fieldName, value);
+                }
+            }
+        }
+    }
+
+    public static JsonNode deleteByKeyPath(JsonNode mainNode, String keyPath) {
+        String[] fieldPath = keyPath.trim().split("\\.");
+        var node = (ObjectNode) mainNode;
+        for (int i = 0; i < fieldPath.length; i++) {
+            var fieldName = fieldPath[i];
+            var last = i == (fieldPath.length - 1);
+            if (last) {
+                node.remove(fieldName);
+            } else {
+                if (!node.has(fieldName)) {
+                    break;
+                }
+                node = (ObjectNode) node.get(fieldName);
+            }
+        }
+        if (node.isEmpty() && keyPath.contains(".")) {
+            deleteByKeyPath(mainNode, keyPath.substring(0, keyPath.lastIndexOf(".")));
+        }
+        return mainNode;
     }
 
 }

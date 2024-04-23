@@ -211,7 +211,7 @@ import org.thingsboard.server.common.data.sync.vc.VersionLoadResult;
 import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
 import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateRequest;
 import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadRequest;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.translation.CustomTranslationEdgeOutdated;
 import org.thingsboard.server.common.data.widget.DeprecatedFilter;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
@@ -3814,9 +3814,9 @@ public class RestClient implements Closeable {
         return restTemplate.postForEntity(baseURL + "/api/customMenu/customMenu", customMenu, CustomMenu.class).getBody();
     }
 
-    public Optional<CustomTranslation> getCustomTranslation() {
+    public Optional<CustomTranslationEdgeOutdated> getCustomTranslation() {
         try {
-            ResponseEntity<CustomTranslation> customTranslation = restTemplate.getForEntity(baseURL + "/api/customTranslation/customTranslation", CustomTranslation.class);
+            ResponseEntity<CustomTranslationEdgeOutdated> customTranslation = restTemplate.getForEntity(baseURL + "/api/customTranslation/customTranslation", CustomTranslationEdgeOutdated.class);
             return Optional.ofNullable(customTranslation.getBody());
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -3827,9 +3827,9 @@ public class RestClient implements Closeable {
         }
     }
 
-    public Optional<CustomTranslation> getCurrentCustomTranslation() {
+    public Optional<CustomTranslationEdgeOutdated> getCurrentCustomTranslation() {
         try {
-            ResponseEntity<CustomTranslation> customTranslation = restTemplate.getForEntity(baseURL + "/api/customTranslation/currentCustomTranslation", CustomTranslation.class);
+            ResponseEntity<CustomTranslationEdgeOutdated> customTranslation = restTemplate.getForEntity(baseURL + "/api/customTranslation/currentCustomTranslation", CustomTranslationEdgeOutdated.class);
             return Optional.ofNullable(customTranslation.getBody());
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
@@ -3840,8 +3840,8 @@ public class RestClient implements Closeable {
         }
     }
 
-    public CustomTranslation saveCustomTranslation(CustomTranslation customTranslation) {
-        return restTemplate.postForEntity(baseURL + "/api/customTranslation/customTranslation", customTranslation, CustomTranslation.class).getBody();
+    public CustomTranslationEdgeOutdated saveCustomTranslation(CustomTranslationEdgeOutdated customTranslation) {
+        return restTemplate.postForEntity(baseURL + "/api/customTranslation/customTranslation", customTranslation, CustomTranslationEdgeOutdated.class).getBody();
     }
 
     public PageData<DashboardInfo> getUserDashboards(PageLink pageLink, String operation, UserId userId) {
