@@ -60,6 +60,8 @@ public class TranslationControllerTest extends AbstractControllerTest {
     private static final String EN_AU = "en_AU";
     private static final String EN_US = "en_US";
     private static final String AR_QA = "ar_QA";
+    private static final String AR_EG = "ar_EG";
+
 
     @Autowired
     CustomTranslationService customTranslationService;
@@ -301,6 +303,29 @@ public class TranslationControllerTest extends AbstractControllerTest {
         verifyInfo(subCustomerTranslation.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
         verifyInfo(subCustomerTranslation.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
         verifyInfo(subCustomerTranslation.get("newSubCustomer"), "newSubCustomerES", "newSubCustomerEnglish", null, "A");
+    }
+
+    @Test
+    public void shouldGetCorrectTranslationForBasicEditForNewLang() throws Exception {
+        loginSysAdmin();
+        JsonNode arabicTranslation = JacksonUtil.toJsonNode("{\"my-new-key\": \"arabic-version\"}");
+        doPost("/api/translation/custom/" + AR_EG, arabicTranslation);
+        JsonNode englishTranslation = JacksonUtil.toJsonNode("{\"my-new-key\":\"english-version\"}");
+        doPost("/api/translation/custom/" + EN_US, englishTranslation);
+
+        loginTenantAdmin();
+        JsonNode tenantTranslationForEdit = doGet("/api/translation/edit/basic/" + AR_EG, JsonNode.class);
+        verifyInfo(tenantTranslationForEdit.get("my-new-key"), "arabic-version", "english-version", null, "T");
+
+        // get customer for edit
+        loginCustomerAdminUser();
+        JsonNode customerTranslationForEdit = doGet("/api/translation/edit/basic/" + AR_EG, JsonNode.class);
+        verifyInfo(customerTranslationForEdit.get("my-new-key"), "arabic-version", "english-version", null, "T");
+
+        // get subcustomer translation  for edit
+        loginSubCustomerAdminUser();
+        JsonNode subCustomerTranslation = doGet("/api/translation/edit/basic/" + AR_EG, JsonNode.class);
+        verifyInfo(subCustomerTranslation.get("my-new-key"), "arabic-version", "english-version", null, "T");
     }
 
     private static void verifyInfo(JsonNode keyInfo, String translated, String origin, String parent, String state) {

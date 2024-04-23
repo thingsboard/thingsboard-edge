@@ -138,8 +138,27 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     }
 
     @Override
-    public Set<String> getCustomizedLocales(TenantId tenantId, CustomerId customerId) {
+    public Set<String> getCurrentCustomizedLocales(TenantId tenantId, CustomerId customerId) {
         return customTranslationDao.findLocalesByTenantIdAndCustomerId(tenantId, customerId);
+    }
+
+    @Override
+    public Set<String> getMergedTenantCustomizedLocales(TenantId tenantId) {
+        Set<String> customizedLocales = customTranslationDao.findLocalesByTenantIdAndCustomerId(tenantId, null);
+        customizedLocales.addAll(customTranslationDao.findLocalesByTenantIdAndCustomerId(TenantId.SYS_TENANT_ID, null));
+        return customizedLocales;
+    }
+
+    @Override
+    public Set<String> getMergedCustomerCustomizedLocales(TenantId tenantId, CustomerId customerId) {
+        Set<String> customizedLocales = customTranslationDao.findLocalesByTenantIdAndCustomerId(tenantId, customerId);
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        if (customer.isSubCustomer()) {
+            customizedLocales.addAll(getMergedCustomerHierarchyLocales(tenantId, customer.getParentCustomerId()));
+        }
+        customizedLocales.addAll(customTranslationDao.findLocalesByTenantIdAndCustomerId(tenantId, null));
+        customizedLocales.addAll(customTranslationDao.findLocalesByTenantIdAndCustomerId(TenantId.SYS_TENANT_ID, null));
+        return customizedLocales;
     }
 
     @Override
@@ -159,6 +178,15 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
         } else {
             return merged;
         }
+    }
+
+    private Set<String> getMergedCustomerHierarchyLocales(TenantId tenantId, CustomerId customerId) {
+        Set<String> parentCustomizedLocales = customTranslationDao.findLocalesByTenantIdAndCustomerId(tenantId, customerId);
+        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        if (customer.isSubCustomer()) {
+            parentCustomizedLocales.addAll(getMergedCustomerHierarchyLocales(tenantId, customer.getParentCustomerId()));
+        }
+        return parentCustomizedLocales;
     }
 
     @TransactionalEventListener(classes = CustomTranslationEvictEvent.class)
