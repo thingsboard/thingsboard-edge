@@ -549,7 +549,7 @@ export class CustomTranslationMapDatasource implements DataSource<CustomTranslat
   private fetchTranslation(pageLink: PageLink, filterParams: Array<CustomTranslationState>): Observable<PageData<CustomTranslationEditInfo>> {
     return this.getAllTranslations().pipe(
       map((data) => {
-        let filterData;
+        let filterData: CustomTranslationEditInfo[];
         if (filterParams.length && filterParams.length < 4) {
           const filterParamsSet = new Set(filterParams);
           filterData = data.filter(t => filterParamsSet.has(t.s));
@@ -595,13 +595,17 @@ export class CustomTranslationMapDatasource implements DataSource<CustomTranslat
   }
 
   private updateKeyInTranslationService(key: string, translate?: string) {
-    if (this.translate.currentLang === this.localeCode) {
-      if (isDefinedAndNotNull(translate)) {
-        setByPath(this.translate.translations[this.localeCode], key, translate);
-      } else {
-        unset(this.translate.translations[this.localeCode], key);
-      }
+    if (!isDefinedAndNotNull(this.translate.translations[this.localeCode])) {
+      return;
+    }
 
+    if (isDefinedAndNotNull(translate)) {
+      setByPath(this.translate.translations[this.localeCode], key, translate);
+    } else {
+      unset(this.translate.translations[this.localeCode], key);
+    }
+
+    if (this.translate.currentLang === this.localeCode) {
       // @ts-ignore
       this.translate.updateLangs();
       this.translate.onTranslationChange.emit({

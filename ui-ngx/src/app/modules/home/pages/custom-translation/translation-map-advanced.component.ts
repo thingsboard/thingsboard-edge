@@ -31,7 +31,7 @@
 
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ContentType } from '@shared/models/constants';
-import { isEqual } from '@core/utils';
+import { isDefinedAndNotNull, isEqual } from '@core/utils';
 import { CustomTranslationService } from '@core/http/custom-translation.service';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup } from '@angular/forms';
@@ -107,8 +107,11 @@ export class TranslationMapAdvancedComponent {
       this.customTranslationService.saveCustomTranslation(this.localeCode, JSON.parse(this.translationForm.value.translation))
         .subscribe(() => {
           if (this.translate.currentLang === this.localeCode) {
-            this.translate.reloadLang(this.localeCode);
-            this.translate.use(this.localeCode);
+            this.translate.reloadLang(this.localeCode).subscribe(() => {
+              this.translate.use(this.localeCode);
+            });
+          } else if (isDefinedAndNotNull(this.translate.translations[this.localeCode])) {
+            this.translate.resetLang(this.localeCode);
           }
         });
     }
