@@ -29,6 +29,43 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+import { TenantId } from '@shared/models/id/tenant-id';
+import { CustomerId } from '@shared/models/id/customer-id';
+
 export interface CustomTranslation {
-  translationMap: {[key: string]: string};
+  localeCode: string;
+  value: object;
+  tenantId: TenantId;
+  customerId: CustomerId;
+}
+
+export interface TranslationInfo {
+  localeCode: string;
+  language: string;
+  country: string;
+  progress: number;
+}
+
+export enum CustomTranslationState {
+  Translated = 'T',
+  Untranslated = 'U',
+  Customized = 'C',
+  Added = 'A'
+}
+
+export interface CustomTranslationEditData {
+  [s: string]: CustomTranslationData;
+}
+
+export interface CustomTranslationData {
+  t?: string; //translated
+  o: string; //original
+  p?: string; //parent
+  s: CustomTranslationState; //state
+}
+
+export interface CustomTranslationEditInfo extends CustomTranslationData {
+  k: string; //key
+  edit?: boolean;
+  value?: string;
 }

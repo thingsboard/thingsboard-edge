@@ -587,15 +587,7 @@
   "custom-translation": {
     "custom-translation": "Tradução personalizada",
     "translation-map": "Mapa de tradução",
-    "key": "Chave de tradução",
-    "import": "Importar tradução",
-    "export": "Exportar tradução",
-    "export-data": "Exportar dados de tradução",
-    "import-data": "Importar dados de tradução",
-    "translation-file": "Arquivo de tradução",
-    "invalid-translation-file-error": "Impossível importar arquivo de tradução: Estrutura de dados de tradução inválida.",
-    "custom-translation-hint": "Definir JSON de tradução personalizada abaixo. Este JSON substituirá a tradução predefinida. Clique em 'Download de arquivo de localidade' para obter a tradução existente. Também é possível usar o arquivo baixado como referência para pares de valores-chave de tradução disponíveis.",
-    "download-locale-file": "Download de arquivo de localidade"
+    "translation-file": "Arquivo de tradução"
   },
   "datetime": {
     "date-from": "Data de",

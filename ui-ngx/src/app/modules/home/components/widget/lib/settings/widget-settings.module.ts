@@ -366,6 +366,9 @@ import {
 import {
   TimeSeriesChartWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/chart/time-series-chart-widget-settings.component';
+import {
+  StatusWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/indicator/status-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -489,6 +492,7 @@ import {
     TimeSeriesChartLineSettingsComponent,
     TimeSeriesChartBarSettingsComponent,
     TimeSeriesChartWidgetSettingsComponent,
+    StatusWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -620,6 +624,7 @@ import {
     TimeSeriesChartLineSettingsComponent,
     TimeSeriesChartBarSettingsComponent,
     TimeSeriesChartWidgetSettingsComponent,
+    StatusWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -716,6 +721,7 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-toggle-button-widget-settings': ToggleButtonWidgetSettingsComponent,
   'tb-time-series-chart-key-settings': TimeSeriesChartKeySettingsComponent,
   'tb-time-series-chart-widget-settings': TimeSeriesChartWidgetSettingsComponent,
+  'tb-status-widget-settings': StatusWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

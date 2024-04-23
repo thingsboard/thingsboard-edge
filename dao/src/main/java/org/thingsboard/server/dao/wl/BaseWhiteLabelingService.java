@@ -68,11 +68,13 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.thingsboard.server.dao.entity.AbstractEntityService.checkConstraintViolation;
+import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forDomainName;
+import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forKey;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelingCompositeKey, WhiteLabeling, WhiteLabelingEvictEvent> implements WhiteLabelingService {
+public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelingCacheKey, WhiteLabeling, WhiteLabelingEvictEvent> implements WhiteLabelingService {
 
     private static final String ALLOW_WHITE_LABELING = "allowWhiteLabeling";
     private static final String ALLOW_CUSTOMER_WHITE_LABELING = "allowCustomerWhiteLabeling";
@@ -328,10 +330,14 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     @Override
     public void deleteDomainWhiteLabelingByEntityId(TenantId tenantId, CustomerId customerId) {
         WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, customerId, WhiteLabelingType.LOGIN);
-        if (whiteLabelingDao.findById(tenantId, key) != null) {
+        WhiteLabeling whiteLabeling = whiteLabelingDao.findById(tenantId, key);
+        if (whiteLabeling != null) {
             whiteLabelingDao.removeById(tenantId, key);
+            publishEvictEvent(new WhiteLabelingEvictEvent(forKey(key)));
+            if (!StringUtils.isEmpty(whiteLabeling.getDomain())){
+                publishEvictEvent(new WhiteLabelingEvictEvent(forDomainName(whiteLabeling.getDomain())));
+            }
         }
-        publishEvictEvent(new WhiteLabelingEvictEvent(key));
     }
 
     private WhiteLabelingParams constructWlParams(JsonNode json, boolean isSystem) {
@@ -554,7 +560,10 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             imageService.replaceBase64WithImageUrl(whiteLabeling);
             WhiteLabeling saved = whiteLabelingDao.save(tenantId, whiteLabeling);
             WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(saved.getTenantId(), saved.getCustomerId(), saved.getType());
-            publishEvictEvent(new WhiteLabelingEvictEvent(key));
+            publishEvictEvent(new WhiteLabelingEvictEvent(forKey(key)));
+            if (!StringUtils.isEmpty(whiteLabeling.getDomain())){
+                publishEvictEvent(new WhiteLabelingEvictEvent(forDomainName(whiteLabeling.getDomain())));
+            }
         } catch (Exception t) {
             checkConstraintViolation(t,
                     "white_labeling_domain_name_key", "Such domain name already registered in the system!");
@@ -566,9 +575,16 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     public WhiteLabeling findByEntityId(TenantId tenantId, CustomerId customerId, WhiteLabelingType type) {
         WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, customerId, type);
         log.trace("Executing findById for key [{}] ", key);
-        return cache.getAndPutInTransaction(key,
+        return cache.getAndPutInTransaction(forKey(key),
                 () -> whiteLabelingDao.findById(tenantId,
                         key), true);
+    }
+
+    @Override
+    public WhiteLabeling findByDomainName(String domainName) {
+        log.trace("Executing findByDomainName for domain name [{}] ", domainName);
+        return cache.getAndPutInTransaction(forDomainName(domainName),
+                () -> whiteLabelingDao.findByDomain(TenantId.SYS_TENANT_ID, domainName), true);
     }
 
     @TransactionalEventListener(classes = WhiteLabelingEvictEvent.class)

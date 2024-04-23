@@ -33,7 +33,6 @@ package org.thingsboard.server.dao.wl;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
@@ -101,6 +100,9 @@ public interface WhiteLabelingService {
 
     WhiteLabeling findByEntityId(TenantId tenantId, CustomerId customerId, WhiteLabelingType type);
 
-    // TODO: @voba - methods added on edge for login whitelabeling
+    WhiteLabeling findByDomainName(String domainName);
+
+    // edge-only: methods added on edge for login whiteLabeling
     void saveOrUpdateEdgeLoginWhiteLabelSettings(TenantId tenantId, CustomerId customerId);
+
 }

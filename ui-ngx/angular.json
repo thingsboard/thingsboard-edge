@@ -78,6 +78,11 @@
                 "glob": "marker-shadow.png",
                 "input": "node_modules/leaflet/dist/images/",
                 "output": "/"
+              },
+              {
+                "glob": "*.svg",
+                "input": "./node_modules/flag-icons/flags/4x3/",
+                "output": "/assets/flags/"
               }
             ],
             "styles": [

@@ -120,6 +120,12 @@ public class ModelConstants {
     public static final String WHITE_LABELING_SETTINGS = "settings";
     public static final String WHITE_LABELING_DOMAIN = "domain_name";
 
+    /**
+     * Custom translation constants.
+     */
+    public static final String CUSTOM_TRANSLATION_TABLE_NAME = "custom_translation";
+    public static final String CUSTOM_TRANSLATION_LOCALE_CODE = "locale_code";
+    public static final String CUSTOM_TRANSLATION_VALUE = "value";
 
     /**
      * Admin_settings constants.

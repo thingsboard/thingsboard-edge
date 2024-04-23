@@ -1064,15 +1064,7 @@
     "custom-translation": {
         "custom-translation": "Aangepaste vertaling",
         "translation-map": "Vertaling kaart",
-        "key": "Vertaling sleutel",
-        "import": "Vertaling importeren",
-        "export": "Vertaling exporteren",
-        "export-data": "Vertaalgegevens exporteren",
-        "import-data": "Vertaalgegevens importeren",
-        "translation-file": "Vertaal bestand",
-        "invalid-translation-file-error": "Kan vertaalbestand niet importeren: Ongeldige gegevensstructuur voor vertalingen.",
-        "custom-translation-hint": "Definieer hieronder de JSON voor aangepaste vertalingen. Deze JSON overschrijft de standaardvertaling. Klik op 'Download locale file' om een bestaande vertaling te krijgen. U kunt het gedownloade bestand ook gebruiken als referentie voor beschikbare sleutel-waardeparen voor vertalingen.",
-        "download-locale-file": "Landinstellingsbestand downloaden"
+        "translation-file": "Vertaal bestand"
     },
     "datetime": {
         "date-from": "Datum van",

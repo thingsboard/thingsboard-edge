@@ -37,7 +37,7 @@ import { forkJoin, Observable, of, ReplaySubject, throwError } from 'rxjs';
 import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 
 import { LoginRequest, LoginResponse, PublicLoginRequest } from '@shared/models/login.models';
-import { ActivatedRoute, Router, UrlTree } from '@angular/router';
+import { Router, UrlTree } from '@angular/router';
 import { defaultHttpOptions, defaultHttpOptionsFromConfig, RequestConfig } from '../http/http-utils';
 import { UserService } from '../http/user.service';
 import { Store } from '@ngrx/store';
@@ -50,7 +50,6 @@ import {
 } from './auth.actions';
 import { getCurrentAuthState, getCurrentAuthUser } from './auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import { ActionSettingsChangeLanguage } from '@app/core/settings/settings.actions';
 import { AuthPayload, AuthState, SysParams, SysParamsState } from '@core/auth/auth.models';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthUser } from '@shared/models/user.model';
@@ -58,7 +57,6 @@ import { TimeService } from '@core/services/time.service';
 import { UtilsService } from '@core/services/utils.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { CustomMenuService } from '@core/http/custom-menu.service';
-import { CustomTranslationService } from '@core/http/custom-translation.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { AlertDialogComponent } from '@shared/components/dialog/alert-dialog.component';
@@ -78,11 +76,9 @@ export class AuthService {
     private userService: UserService,
     private whiteLabelingService: WhiteLabelingService,
     private customMenuService: CustomMenuService,
-    private customTranslationService: CustomTranslationService,
     private userPermissionsService: UserPermissionsService,
     private timeService: TimeService,
     private router: Router,
-    private route: ActivatedRoute,
     private zone: NgZone,
     private utils: UtilsService,
     private translate: TranslateService,
@@ -474,14 +470,7 @@ export class AuthService {
               this.loadSystemParams().subscribe(
                 (sysParams) => {
                   authPayload = {...authPayload, ...sysParams};
-                  let userLang;
-                  if (authPayload.userDetails.additionalInfo && authPayload.userDetails.additionalInfo.lang) {
-                    userLang = authPayload.userDetails.additionalInfo.lang;
-                  } else {
-                    userLang = null;
-                  }
                   loadUserSubject.next(authPayload);
-                  this.notifyUserLang(userLang);
                   loadUserSubject.complete();
                 },
                 (err) => {
@@ -509,7 +498,6 @@ export class AuthService {
     const sources = [this.http.get<SysParams>('/api/system/params', defaultHttpOptions()),
                      this.whiteLabelingService.loadUserWhiteLabelingParams(),
                      this.customMenuService.loadCustomMenu(),
-                     this.customTranslationService.updateCustomTranslations(true),
                      this.userPermissionsService.loadPermissionsInfo()];
     return forkJoin(sources)
       .pipe(map((data) => {
@@ -666,10 +654,6 @@ export class AuthService {
 
   private notifyAuthenticated(authPayload: AuthPayload) {
     this.store.dispatch(new ActionAuthAuthenticated(authPayload));
-  }
-
-  private notifyUserLang(userLang: string) {
-    this.store.dispatch(new ActionSettingsChangeLanguage({userLang}));
   }
 
   private updateAndValidateToken(token, prefix, notify) {

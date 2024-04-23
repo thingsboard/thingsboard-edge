@@ -32,7 +32,7 @@ package org.thingsboard.server.service.edge.rpc.constructor.translation;
 
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.translation.CustomTranslationEdgeOutdated;
 import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
@@ -41,7 +41,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 public class CustomTranslationMsgConstructorV1 implements CustomTranslationMsgConstructor {
 
     @Override
-    public CustomTranslationProto constructCustomTranslationProto(CustomTranslation customTranslation, EntityId entityId) {
+    public CustomTranslationProto constructCustomTranslationProto(CustomTranslationEdgeOutdated customTranslation, EntityId entityId) {
         CustomTranslationProto.Builder builder = CustomTranslationProto.newBuilder();
         builder.setEntityIdMSB(entityId.getId().getMostSignificantBits())
                 .setEntityIdLSB(entityId.getId().getLeastSignificantBits())

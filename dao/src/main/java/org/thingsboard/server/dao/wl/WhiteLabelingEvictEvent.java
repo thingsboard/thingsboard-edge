@@ -31,9 +31,8 @@
 package org.thingsboard.server.dao.wl;
 
 import lombok.Data;
-import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 
 @Data
 public class WhiteLabelingEvictEvent {
-    private final WhiteLabelingCompositeKey key;
+    private final WhiteLabelingCacheKey key;
 }

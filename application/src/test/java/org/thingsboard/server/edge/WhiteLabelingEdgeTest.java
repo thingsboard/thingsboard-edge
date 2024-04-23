@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.translation.CustomTranslationEdgeOutdated;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -245,15 +245,15 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     }
 
     private void updateAndVerifyCustomTranslationUpdate(String updatedHomeValue) throws Exception {
-        CustomTranslation customTranslation = doGet("/api/customTranslation/customTranslation", CustomTranslation.class);
+        CustomTranslationEdgeOutdated customTranslation = doGet("/api/customTranslation/customTranslation", CustomTranslationEdgeOutdated.class);
         edgeImitator.expectMessageAmount(1);
         customTranslation.getTranslationMap().put("en_US", JacksonUtil.toString(getCustomTranslationHomeObject(updatedHomeValue)));
-        doPost("/api/customTranslation/customTranslation", customTranslation, CustomTranslation.class);
+        doPost("/api/customTranslation/customTranslation", customTranslation, CustomTranslationEdgeOutdated.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof CustomTranslationProto);
         CustomTranslationProto customTranslationProto = (CustomTranslationProto) latestMessage;
-        CustomTranslation ct = JacksonUtil.fromString(customTranslationProto.getEntity(), CustomTranslation.class, true);
+        CustomTranslationEdgeOutdated ct = JacksonUtil.fromString(customTranslationProto.getEntity(), CustomTranslationEdgeOutdated.class, true);
         Assert.assertNotNull(ct);
         String enUsLangObject = ct.getTranslationMap().get("en_US");
         Assert.assertEquals(updatedHomeValue, JacksonUtil.toJsonNode(enUsLangObject).get("home").asText());

@@ -48,4 +48,5 @@ public class SystemParams {
     long maxResourceSize;
     boolean whiteLabelingAllowed;
     boolean customerWhiteLabelingAllowed;
+    List<String> translations;
 }

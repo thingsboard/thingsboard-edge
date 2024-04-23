@@ -32,6 +32,7 @@
 import { AuthPayload, AuthState } from './auth.models';
 import { AuthActions, AuthActionTypes } from './auth.actions';
 import { initialUserSettings, UserSettings } from '@shared/models/user-settings.models';
+import { environment as env } from '@env/environment';
 import { unset } from '@core/utils';
 
 const emptyUserAuthState: AuthPayload = {
@@ -47,7 +48,8 @@ const emptyUserAuthState: AuthPayload = {
   persistDeviceStateToTelemetry: false,
   maxResourceSize: 0,
   userSettings: initialUserSettings,
-  allowedDashboardIds: []
+  allowedDashboardIds: [],
+  translations: env.supportedLangs
 };
 
 export const initialState: AuthState = {

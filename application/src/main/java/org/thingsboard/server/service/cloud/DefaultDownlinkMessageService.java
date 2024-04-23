@@ -497,13 +497,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
 
     private void updateCustomerId(TenantId tenantId, CustomerUpdateMsg customerUpdateMsg) {
         switch (customerUpdateMsg.getMsgType()) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                this.customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
-                break;
-            case ENTITY_DELETED_RPC_MESSAGE:
-                this.customerId = null;
-                break;
+            case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE ->
+                    this.customerId = new CustomerId(new UUID(customerUpdateMsg.getIdMSB(), customerUpdateMsg.getIdLSB()));
+            case ENTITY_DELETED_RPC_MESSAGE -> this.customerId = null;
         }
         whiteLabelingService.saveOrUpdateEdgeLoginWhiteLabelSettings(tenantId, this.customerId);
     }
