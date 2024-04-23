@@ -700,7 +700,8 @@ message PaletteProto {
 }
 
 message CustomTranslationProto {
-  map<string, string> translationMap = 1 [deprecated = true];
+  option deprecated = true;
+  map<string, string> translationMap = 1;
   optional int64 entityIdMSB = 2;
   optional int64 entityIdLSB = 3;
   optional string entityType = 4;
@@ -715,7 +716,8 @@ message CustomMenuProto {
 }
 
 message CustomTranslationUpdateMsg {
-  string entity = 1;
+  optional UpdateMsgType msgType = 1;
+  optional string entity = 2;
 }
 
 message RoleProto {

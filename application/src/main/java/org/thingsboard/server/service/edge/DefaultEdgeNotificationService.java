@@ -74,6 +74,7 @@ import org.thingsboard.server.service.edge.rpc.processor.rule.RuleChainEdgeProce
 import org.thingsboard.server.service.edge.rpc.processor.scheduler.SchedulerEventEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.tenant.TenantEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.tenant.TenantProfileEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.translation.CustomTranslationEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.user.UserEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.widget.WidgetBundleEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.widget.WidgetTypeEdgeProcessor;
@@ -151,10 +152,10 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
     private ResourceEdgeProcessor resourceEdgeProcessor;
 
     @Autowired
-    private NotificationEdgeProcessor notificationEdgeProcessor;
+    private NotificationEdgeProcessor notificationProcessor;
 
     @Autowired
-    private OAuth2EdgeProcessor oAuth2EdgeProcessor;
+    private OAuth2EdgeProcessor oAuth2Processor;
 
     @Autowired
     protected ApplicationEventPublisher eventPublisher;
@@ -186,6 +187,9 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
 
     @Autowired
     private WhiteLabelingEdgeProcessor whiteLabelingProcessor;
+
+    @Autowired
+    private CustomTranslationEdgeProcessor customTranslationEdgeProcessor;
 
     @PostConstruct
     public void initExecutor() {
@@ -247,15 +251,16 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                         case ENTITY_GROUP -> entityGroupProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                         case INTEGRATION -> integrationProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                         case CONVERTER -> converterProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
-                        case WHITE_LABELING, LOGIN_WHITE_LABELING, MAIL_TEMPLATES, CUSTOM_MENU, CUSTOM_TRANSLATION ->
-                                whiteLabelingProcessor.processNotification(tenantId, edgeNotificationMsg);
+                        case WHITE_LABELING, LOGIN_WHITE_LABELING, MAIL_TEMPLATES, CUSTOM_MENU ->
+                                whiteLabelingProcessor.processWhiteLabelingNotification(tenantId, edgeNotificationMsg);
                         case TENANT -> tenantEdgeProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                         case TENANT_PROFILE -> tenantProfileEdgeProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                         case TB_RESOURCE -> resourceEdgeProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                         case NOTIFICATION_RULE, NOTIFICATION_TARGET, NOTIFICATION_TEMPLATE ->
-                                notificationEdgeProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
+                                notificationProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                         case DEVICE_GROUP_OTA -> deviceProcessor.processDeviceOtaNotification(tenantId, edgeNotificationMsg);
-                        case OAUTH2 -> oAuth2EdgeProcessor.processOAuth2Notification(tenantId, edgeNotificationMsg);
+                        case OAUTH2 -> oAuth2Processor.processOAuth2Notification(tenantId, edgeNotificationMsg);
+                        case CUSTOM_TRANSLATION -> customTranslationEdgeProcessor.processCustomTranslationNotification(tenantId, edgeNotificationMsg);
                         default -> log.warn("[{}] Edge event type [{}] is not designed to be pushed to edge", tenantId, type);
                     }
                 } catch (Exception e) {

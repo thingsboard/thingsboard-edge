@@ -91,6 +91,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.ConverterCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.CustomTranslationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
@@ -186,6 +187,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
 
     @Autowired
     private GroupPermissionCloudProcessor groupPermissionProcessor;
+
+    @Autowired
+    private CustomTranslationCloudProcessor customTranslationProcessor;
 
     @Autowired
     private WhiteLabelingCloudProcessor whiteLabelingProcessor;
@@ -369,14 +373,8 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     result.add(entityGroupProcessor.processEntityGroupMsgFromCloud(tenantId, entityGroupUpdateMsg, queueStartTs));
                 }
             }
-            if (downlinkMsg.hasSystemCustomTranslationMsg()) {
-                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getSystemCustomTranslationMsg()));
-            }
-            if (downlinkMsg.hasTenantCustomTranslationMsg()) {
-                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getTenantCustomTranslationMsg()));
-            }
-            if (downlinkMsg.hasCustomerCustomTranslationMsg()) {
-                result.add(whiteLabelingProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getCustomerCustomTranslationMsg()));
+            if (downlinkMsg.hasCustomTranslationUpdateMsg()) {
+                result.add(customTranslationProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getCustomTranslationUpdateMsg()));
             }
             if (downlinkMsg.hasCustomMenuProto()) {
                 result.add(whiteLabelingProcessor.processCustomMenuMsgFromCloud(tenantId, downlinkMsg.getCustomMenuProto()));

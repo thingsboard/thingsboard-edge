@@ -41,16 +41,13 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
-import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
@@ -59,37 +56,7 @@ import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
 
     @Autowired
-    private CustomTranslationService customTranslationService;
-
-    @Autowired
     private WhiteLabelingService whiteLabelingService;
-
-    public ListenableFuture<Void> processCustomTranslationMsgFromCloud(TenantId tenantId, CustomTranslationProto customTranslationProto) {
-        try {
-            EntityId entityId = constructEntityId(customTranslationProto.getEntityType(), customTranslationProto.getEntityIdMSB(), customTranslationProto.getEntityIdLSB());
-            CustomTranslation customTranslation = JacksonUtil.fromString(customTranslationProto.getEntity(), CustomTranslation.class, true);
-            if (customTranslation == null) {
-                throw new RuntimeException("[{" + tenantId + "}] customTranslationProto {" + customTranslationProto + "} cannot be converted to custom translation");
-            }
-            switch (entityId.getEntityType()) {
-                case TENANT:
-                    if (TenantId.SYS_TENANT_ID.equals(entityId)) {
-                        customTranslationService.saveSystemCustomTranslation(customTranslation);
-                    } else {
-                        customTranslationService.saveTenantCustomTranslation(tenantId, customTranslation);
-                    }
-                    break;
-                case CUSTOMER:
-                    customTranslationService.saveCustomerCustomTranslation(tenantId, new CustomerId(entityId.getId()), customTranslation);
-                    break;
-            }
-        } catch (Exception e) {
-            String errMsg = "Exception during updating custom translation";
-            log.error(errMsg, e);
-            return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
-        }
-        return Futures.immediateFuture(null);
-    }
 
     public ListenableFuture<Void> processCustomMenuMsgFromCloud(TenantId tenantId, CustomMenuProto customMenuProto) {
         try {
@@ -99,12 +66,8 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
                 throw new RuntimeException("[{" + tenantId + "}] customMenuProto {" + customMenuProto + "} cannot be converted to custom menu");
             }
             switch (entityId.getEntityType()) {
-                case TENANT:
-                    customMenuService.saveTenantCustomMenu(tenantId, customMenu);
-                    break;
-                case CUSTOMER:
-                    customMenuService.saveCustomerCustomMenu(tenantId, new CustomerId(entityId.getId()), customMenu);
-                    break;
+                case TENANT -> customMenuService.saveTenantCustomMenu(tenantId, customMenu);
+                case CUSTOMER -> customMenuService.saveCustomerCustomMenu(tenantId, new CustomerId(entityId.getId()), customMenu);
             }
         } catch (Exception e) {
             String errMsg = "Exception during updating custom menu";
@@ -203,4 +166,5 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
         }
         return result;
     }
+
 }

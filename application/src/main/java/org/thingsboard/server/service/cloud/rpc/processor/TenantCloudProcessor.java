@@ -44,7 +44,6 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.KvEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
@@ -132,7 +131,7 @@ public class TenantCloudProcessor extends BaseEdgeProcessor {
         roleService.deleteRolesByTenantId(TenantId.SYS_TENANT_ID);
         whiteLabelingService.saveSystemLoginWhiteLabelingParams(new LoginWhiteLabelingParams());
         whiteLabelingService.saveSystemWhiteLabelingParams(new WhiteLabelingParams());
-        customTranslationService.saveSystemCustomTranslation(new CustomTranslation());
+        customTranslationService.deleteCustomTranslationByTenantId(TenantId.SYS_TENANT_ID);
     }
 
     private void removeTenantAttributes(TenantId tenantId) {
