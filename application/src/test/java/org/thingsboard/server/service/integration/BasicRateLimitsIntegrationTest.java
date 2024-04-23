@@ -98,6 +98,14 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
 
     @Before
     public void beforeTest() throws Exception {
+        updateDefaultTenantProfileConfig(profileConfig -> {
+            profileConfig.setIntegrationMsgsPerTenantRateLimit("100:1,2000:60");
+            profileConfig.setIntegrationMsgsPerDeviceRateLimit("100:1,2000:60");
+        });
+
+        setFieldReflectively(limitService, "integrationEventsRateLimitsConf", "100:1,2000:60");
+        setFieldReflectively(limitService, "converterEventsRateLimitsConf", "100:1,2000:60");
+
         loginTenantAdmin();
 
         InputStream resourceAsStream = ObjectNode.class.getClassLoader().getResourceAsStream(HTTP_UPLINK_CONVERTER_FILEPATH);
@@ -141,7 +149,6 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
         long startTime = System.currentTimeMillis();
         updateDefaultTenantProfileConfig(profileConfig -> {
             profileConfig.setIntegrationMsgsPerTenantRateLimit("10:1,20:60");
-            profileConfig.setIntegrationMsgsPerDeviceRateLimit("100:1,2000:60");
         });
         await().atMost(10, TimeUnit.SECONDS)
                 .until(() -> tenantProfileCache.get(tenantId).getDefaultProfileConfiguration().getIntegrationMsgsPerTenantRateLimit() != null);
@@ -171,7 +178,6 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
     public void testIntegrationRateLimitPerDevice() throws Exception {
         long startTime = System.currentTimeMillis();
         updateDefaultTenantProfileConfig(profileConfig -> {
-            profileConfig.setIntegrationMsgsPerTenantRateLimit("100:1,2000:60");
             profileConfig.setIntegrationMsgsPerDeviceRateLimit("10:1,20:60");
         });
         await().atMost(10, TimeUnit.SECONDS)
@@ -196,6 +202,66 @@ public class BasicRateLimitsIntegrationTest extends AbstractIntegrationTest {
         Assert.assertNotNull(events);
         Assert.assertEquals(1, events.size());
         Assert.assertEquals("DEVICE rate limits reached!", events.get(0).getBody().get("error").asText());
+    }
+
+    @Test
+    public void testIntegrationDebugEventRateLimit() throws Exception {
+        long startTime = System.currentTimeMillis();
+        setFieldReflectively(limitService, "integrationEventsRateLimitsConf", "10:1,20:60");
+
+        await().atMost(10, TimeUnit.SECONDS)
+                .until(() -> tenantProfileCache.get(tenantId).getDefaultProfileConfiguration().getIntegrationMsgsPerTenantRateLimit() != null);
+
+        repeat(20, i -> {
+            try {
+                doPost("/api/v1/integrations/http/{routingKey}", TEST_DATA, integration.getRoutingKey()).andExpect(status().isOk());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        await().atMost(10, TimeUnit.SECONDS).until(() ->
+                getIntegrationDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
+        );
+
+        Mockito.verify(limitService, times(20)).checkLimit(eq(tenantId), any(Supplier.class));
+
+        List<EventInfo> events = getIntegrationDebugMessages(startTime, "Uplink", "ERROR", 10);
+
+        Assert.assertNotNull(events);
+        Assert.assertEquals(1, events.size());
+        Assert.assertEquals("Integration debug rate limits reached!", events.get(0).getBody().get("error").asText());
+    }
+
+    @Test
+    public void testConverterDebugEventRateLimit() throws Exception {
+        long startTime = System.currentTimeMillis();
+        setFieldReflectively(limitService, "converterEventsRateLimitsConf", "10:1,20:60");
+
+        await().atMost(10, TimeUnit.SECONDS)
+                .until(() -> tenantProfileCache.get(tenantId).getDefaultProfileConfiguration().getIntegrationMsgsPerTenantRateLimit() != null);
+
+        repeat(20, i -> {
+            try {
+                doPost("/api/v1/integrations/http/{routingKey}", TEST_DATA, integration.getRoutingKey()).andExpect(status().isOk());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        await().atMost(10, TimeUnit.SECONDS).until(() ->
+                getConverterDebugMessages(startTime, "Uplink", ANY, 10).size() >= 11
+        );
+
+        Mockito.verify(limitService, times(20)).checkLimit(eq(tenantId), any(Supplier.class));
+
+        List<EventInfo> events = getConverterDebugMessages(startTime, "Uplink", ANY, 10)
+                .stream()
+                .filter(event -> event.getBody().has("error")).toList();
+
+        Assert.assertNotNull(events);
+        Assert.assertEquals(1, events.size());
+        Assert.assertEquals("Converter debug rate limits reached!", events.get(0).getBody().get("error").asText());
     }
 
     private void repeat(int n, IntConsumer i) {
