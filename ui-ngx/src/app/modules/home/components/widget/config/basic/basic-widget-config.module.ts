@@ -132,6 +132,9 @@ import {
 import {
   StatusWidgetBasicConfigComponent
 } from '@home/components/widget/config/basic/indicator/status-widget-basic-config.component';
+import {
+  PieChartBasicConfigComponent
+} from '@home/components/widget/config/basic/chart/pie-chart-basic-config.component';
 
 @NgModule({
   declarations: [
@@ -170,7 +173,8 @@ import {
     TimeSeriesChartBasicConfigComponent,
     ComparisonKeyRowComponent,
     ComparisonKeysTableComponent,
-    StatusWidgetBasicConfigComponent
+    StatusWidgetBasicConfigComponent,
+    PieChartBasicConfigComponent
   ],
   imports: [
     CommonModule,
@@ -211,7 +215,8 @@ import {
     SliderBasicConfigComponent,
     ToggleButtonBasicConfigComponent,
     TimeSeriesChartBasicConfigComponent,
-    StatusWidgetBasicConfigComponent
+    StatusWidgetBasicConfigComponent,
+    PieChartBasicConfigComponent
   ]
 })
 export class BasicWidgetConfigModule {
@@ -246,5 +251,6 @@ export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetCo
   'tb-slider-basic-config': SliderBasicConfigComponent,
   'tb-toggle-button-basic-config': ToggleButtonBasicConfigComponent,
   'tb-time-series-chart-basic-config': TimeSeriesChartBasicConfigComponent,
-  'tb-status-widget-basic-config': StatusWidgetBasicConfigComponent
+  'tb-status-widget-basic-config': StatusWidgetBasicConfigComponent,
+  'tb-pie-chart-basic-config': PieChartBasicConfigComponent
 };
