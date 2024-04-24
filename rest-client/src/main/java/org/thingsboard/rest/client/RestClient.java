@@ -3813,6 +3813,40 @@ public class RestClient implements Closeable {
         return restTemplate.postForEntity(baseURL + "/api/customMenu/customMenu", customMenu, CustomMenu.class).getBody();
     }
 
+    public Optional<JsonNode> getCustomTranslation(String localeCode) {
+        try {
+            ResponseEntity<JsonNode> response = restTemplate.getForEntity(baseURL + "/api/translation/custom/{localeCode}", JsonNode.class, localeCode);
+            return Optional.ofNullable(response.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public Optional<JsonNode> getMergedCustomTranslation(String localeCode) {
+        try {
+            ResponseEntity<JsonNode> response = restTemplate.getForEntity(baseURL + "/api/translation/custom/merged/{localeCode}", JsonNode.class, localeCode);
+            return Optional.ofNullable(response.getBody());
+        } catch (HttpClientErrorException exception) {
+            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
+                return Optional.empty();
+            } else {
+                throw exception;
+            }
+        }
+    }
+
+    public void saveCustomTranslation(String localeCode, JsonNode customTranslationValue) {
+        restTemplate.postForEntity(baseURL + "/api/translation/custom/{localeCode}", customTranslationValue, Void.class, localeCode);
+    }
+
+    public void deleteCustomTranslation(String localeCode) {
+        restTemplate.delete(baseURL + "/api/translation/custom/{localeCode}", localeCode);
+    }
+
     public PageData<DashboardInfo> getUserDashboards(PageLink pageLink, String operation, UserId userId) {
         Map<String, String> params = new HashMap<>();
         params.put("operation", operation);
