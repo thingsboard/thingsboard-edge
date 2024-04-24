@@ -104,6 +104,8 @@ export class AppComponent implements OnInit {
     if (!env.production) {
       console.log(`Default Lang: ${env.defaultLang}`);
     }
+    // @ts-ignore
+    this.translate.changeDefaultLang(env.defaultLang);
   }
 
   setupAuth() {

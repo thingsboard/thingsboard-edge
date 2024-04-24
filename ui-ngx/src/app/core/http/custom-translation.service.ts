@@ -51,6 +51,10 @@ export class CustomTranslationService {
     return this.http.get<{[k: string]: string}>('/api/translation/availableLocales', defaultHttpOptionsFromConfig(config))
   }
 
+  public getAvailableJavaLocales(config?: RequestConfig): Observable<{[k: string]: string}> {
+    return this.http.get<{[k: string]: string}>('/api/translation/availableJavaLocales', defaultHttpOptionsFromConfig(config))
+  }
+
   public getTranslationInfos(config?: RequestConfig): Observable<Array<TranslationInfo>> {
     return this.http.get<Array<TranslationInfo>>('/api/translation/info', defaultHttpOptionsFromConfig(config))
   }

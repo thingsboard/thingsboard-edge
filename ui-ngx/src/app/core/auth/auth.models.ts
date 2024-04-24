@@ -43,7 +43,7 @@ export interface SysParamsState {
   persistDeviceStateToTelemetry: boolean;
   userSettings: UserSettings;
   maxResourceSize: number;
-  translations: string[];
+  availableLocales: string[];
 }
 
 export interface SysParams extends SysParamsState {

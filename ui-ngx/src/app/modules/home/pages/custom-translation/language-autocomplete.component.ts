@@ -184,7 +184,7 @@ export class LanguageAutocompleteComponent implements ControlValueAccessor, OnIn
 
   private getAllTranslations(): Observable<AvailableLocales> {
     if (!this.allLocales) {
-      this.allLocales = this.customTranslationService.getAvailableLocales().pipe(
+      this.allLocales = this.customTranslationService.getAvailableJavaLocales().pipe(
         map(translates => Object.entries(translates)
           .filter(([localeCode]) => !this.excludeLangs.includes(localeCode))
           .sort((a, b) => a[0] > b[0] ? 1 : -1)
