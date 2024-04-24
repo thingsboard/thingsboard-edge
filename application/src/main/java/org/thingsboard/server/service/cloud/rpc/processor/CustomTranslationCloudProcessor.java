@@ -50,7 +50,18 @@ public class CustomTranslationCloudProcessor extends BaseEdgeProcessor {
             if (customTranslation == null) {
                 throw new RuntimeException("[{" + tenantId + "}] customTranslationUpdateMsg {" + customTranslationUpdateMsg + "} cannot be converted to custom translation");
             }
-            customTranslationService.saveCustomTranslation(customTranslation);
+            switch (customTranslationUpdateMsg.getMsgType()) {
+                case ENTITY_CREATED_RPC_MESSAGE:
+                case ENTITY_UPDATED_RPC_MESSAGE:
+                    customTranslationService.saveCustomTranslation(customTranslation);
+                    break;
+                case ENTITY_DELETED_RPC_MESSAGE:
+                    customTranslationService.deleteCustomTranslation(customTranslation.getTenantId(), customTranslation.getCustomerId(), customTranslation.getLocaleCode());
+                    break;
+                case UNRECOGNIZED:
+                default:
+                    return handleUnsupportedMsgType(customTranslationUpdateMsg.getMsgType());
+            }
         } catch (Exception e) {
             String errMsg = "Exception during updating custom translation";
             log.error(errMsg, e);

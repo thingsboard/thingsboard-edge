@@ -30,15 +30,17 @@
  */
 package org.thingsboard.server.msa.edge;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.awaitility.Awaitility;
 import org.junit.Test;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class CustomTranslationClientTest extends AbstractContainerTest {
@@ -54,29 +56,22 @@ public class CustomTranslationClientTest extends AbstractContainerTest {
         cloudRestClient.login("sysadmin@thingsboard.org", "sysadmin");
         edgeRestClient.login("tenant@thingsboard.org", "tenant");
 
-//        Optional<CustomTranslation> currentCustomTranslationOpt = cloudRestClient.getCurrentCustomMenu();
-//        Assert.assertTrue(currentCustomTranslationOpt.isPresent());
-//        CustomTranslation currentCustomTranslation = currentCustomTranslationOpt.get();
-//        ObjectNode enUsSysAdmin = JacksonUtil.newObjectNode();
-//        enUsSysAdmin.put("home.home", "SYS_ADMIN_HOME_UPDATED");
-//        currentCustomTranslation.getTranslationMap().put("en_US", JacksonUtil.toString(enUsSysAdmin));
-//        cloudRestClient.saveCustomTranslation(currentCustomTranslation);
-//
-//        Awaitility.await()
-//                .pollInterval(500, TimeUnit.MILLISECONDS)
-//                .atMost(30, TimeUnit.SECONDS)
-//                .until(() -> {
-//                    Optional<CustomTranslation> edgeCustomTranslationOpt = edgeRestClient.getCustomTranslation();
-//                    if (edgeCustomTranslationOpt.isEmpty()) {
-//                        return false;
-//                    }
-//                    CustomTranslation edgeCustomTranslation = edgeCustomTranslationOpt.get();
-//                    if (edgeCustomTranslation.getTranslationMap().get("en_US") == null) {
-//                        return false;
-//                    }
-//                    JsonNode enUsNode = JacksonUtil.toJsonNode(edgeCustomTranslation.getTranslationMap().get("en_US"));
-//                    return "SYS_ADMIN_HOME_UPDATED".equals(enUsNode.get("home.home").asText());
-//                });
+        String locale = "en_US";
+        JsonNode enUsSysAdmin = JacksonUtil.newObjectNode().put("home", "home");
+        cloudRestClient.saveCustomTranslation(locale, enUsSysAdmin);
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<JsonNode> edgeCustomTranslationOpt = edgeRestClient.getMergedCustomTranslation(locale);
+                    Optional<JsonNode> cloudCustomTranslationOpt = cloudRestClient.getMergedCustomTranslation(locale);
+                    return edgeCustomTranslationOpt.isPresent() &&
+                            cloudCustomTranslationOpt.isPresent() &&
+                            edgeCustomTranslationOpt.get().equals(cloudCustomTranslationOpt.get());
+                });
+
+        cloudRestClient.deleteCustomTranslation(locale);
     }
 
     private void testCustomTranslation_tenant() {
@@ -86,22 +81,22 @@ public class CustomTranslationClientTest extends AbstractContainerTest {
     }
 
     private void updateAndVerifyCustomTranslationUpdate(String updateHomeTitle) {
-//        CustomTranslation customTranslation = new CustomTranslation();
-//        ObjectNode enUsSysAdmin = JacksonUtil.newObjectNode();
-//        enUsSysAdmin.put("home.home", updateHomeTitle);
-//        customTranslation.getTranslationMap().put("en_US", JacksonUtil.toString(enUsSysAdmin));
-//        cloudRestClient.saveCustomTranslation(customTranslation);
-//
-//        Awaitility.await()
-//                .pollInterval(500, TimeUnit.MILLISECONDS)
-//                .atMost(30, TimeUnit.SECONDS)
-//                .until(() -> {
-//                    Optional<CustomTranslation> edgeCustomTranslationOpt = edgeRestClient.getCurrentCustomTranslation();
-//                    Optional<CustomTranslation> cloudCustomTranslationOpt = cloudRestClient.getCurrentCustomTranslation();
-//                    return edgeCustomTranslationOpt.isPresent() &&
-//                            cloudCustomTranslationOpt.isPresent() &&
-//                            edgeCustomTranslationOpt.get().equals(cloudCustomTranslationOpt.get());
-//                });
+        String locale = "en_US";
+        JsonNode enUsSysAdmin = JacksonUtil.newObjectNode().put("home", updateHomeTitle);
+        cloudRestClient.saveCustomTranslation(locale, enUsSysAdmin);
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<JsonNode> edgeCustomTranslationOpt = edgeRestClient.getCustomTranslation(locale);
+                    Optional<JsonNode> cloudCustomTranslationOpt = cloudRestClient.getCustomTranslation(locale);
+                    return edgeCustomTranslationOpt.isPresent() &&
+                            cloudCustomTranslationOpt.isPresent() &&
+                            edgeCustomTranslationOpt.get().equals(cloudCustomTranslationOpt.get());
+                });
+
+        cloudRestClient.deleteCustomTranslation(locale);
     }
 
     private void testCustomTranslation_customer() {
