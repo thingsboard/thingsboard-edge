@@ -157,6 +157,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         loginPageTranslation.set("common", fullTranslation.get("common"));
         loginPageTranslation.set("action", fullTranslation.get("action"));
         loginPageTranslation.set("security", newObjectNode().set("2fa", fullTranslation.get("security").get("2fa")));
+        loginPageTranslation.set("access", fullTranslation.get("access"));
         return loginPageTranslation;
     }
 

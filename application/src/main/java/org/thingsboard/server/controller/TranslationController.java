@@ -143,9 +143,10 @@ public class TranslationController extends BaseController {
     @GetMapping(value = "/translation/availableJavaLocales")
     public JsonNode getAvailableJavaLocales() {
         ObjectNode result = JacksonUtil.newObjectNode();
+
         List<Locale> availableLocales = Arrays.stream(DateFormat.getAvailableLocales())
-                .filter(availableLocale -> !availableLocale.toString().isBlank() && availableLocale.toString().contains("_")
-                        && availableLocale.getScript().isBlank() && !LOCALE_CODES_TO_EXCLUDE.contains(availableLocale.toString()))
+                .filter(availableLocale -> StringUtils.countMatches(availableLocale.toString(), "_") == 1
+                        && !LOCALE_CODES_TO_EXCLUDE.contains(availableLocale.toString()))
                 .toList();
         for (Locale availableLocale : availableLocales) {
             String displayLanguage = availableLocale.getDisplayLanguage(availableLocale);
