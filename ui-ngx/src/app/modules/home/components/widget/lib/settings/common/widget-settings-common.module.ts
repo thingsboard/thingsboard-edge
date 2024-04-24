@@ -134,8 +134,8 @@ import {
   TimeSeriesChartAxisSettingsPanelComponent
 } from '@home/components/widget/lib/settings/common/chart/time-series-chart-axis-settings-panel.component';
 import {
-  TimeSeriesChartAnimationSettingsComponent
-} from '@home/components/widget/lib/settings/common/chart/time-series-chart-animation-settings.component';
+  EchartsAnimationSettingsComponent
+} from '@home/components/widget/lib/settings/common/chart/echarts-animation-settings.component';
 import {
   AutoDateFormatSettingsPanelComponent
 } from '@home/components/widget/lib/settings/common/auto-date-format-settings-panel.component';
@@ -210,7 +210,7 @@ import {
     TimeSeriesChartYAxisRowComponent,
     TimeSeriesChartAxisSettingsPanelComponent,
     TimeSeriesChartAxisSettingsButtonComponent,
-    TimeSeriesChartAnimationSettingsComponent,
+    EchartsAnimationSettingsComponent,
     TimeSeriesChartFillSettingsComponent,
     TimeSeriesChartThresholdSettingsComponent,
     TimeSeriesChartStatesPanelComponent,
@@ -270,7 +270,7 @@ import {
     TimeSeriesChartYAxisRowComponent,
     TimeSeriesChartAxisSettingsPanelComponent,
     TimeSeriesChartAxisSettingsButtonComponent,
-    TimeSeriesChartAnimationSettingsComponent,
+    EchartsAnimationSettingsComponent,
     TimeSeriesChartFillSettingsComponent,
     TimeSeriesChartThresholdSettingsComponent,
     TimeSeriesChartStatesPanelComponent,
