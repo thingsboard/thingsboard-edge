@@ -162,8 +162,7 @@ public class BaseTbResourceServiceTest extends AbstractControllerTest {
     public void afterTest() throws Exception {
         loginSysAdmin();
 
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(savedTenant.getId());
     }
 
     @Test
@@ -456,8 +455,7 @@ public class BaseTbResourceServiceTest extends AbstractControllerTest {
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
 
-        doDelete("/api/tenant/" + tenantId.getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(tenantId);
     }
 
     @Test
@@ -533,8 +531,7 @@ public class BaseTbResourceServiceTest extends AbstractControllerTest {
         Assert.assertFalse(pageData.hasNext());
         Assert.assertTrue(pageData.getData().isEmpty());
 
-        doDelete("/api/tenant/" + tenantId.getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(tenantId);
     }
 
 }

@@ -287,7 +287,6 @@ public class EntityViewControllerTest extends AbstractControllerTest {
 
     @Test
     public void testGetTenantEntityViews() throws Exception {
-
         List<ListenableFuture<EntityView>> entityViewInfoFutures = new ArrayList<>(178);
         for (int i = 0; i < 178; i++) {
             entityViewInfoFutures.add(getNewSavedEntityViewAsync("Test entity view" + i));

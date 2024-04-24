@@ -201,8 +201,7 @@ public class TenantProfileControllerTest extends AbstractControllerTest {
 
         testBroadcastEntityStateChangeEventNeverTenantProfile();
 
-        doDelete("/api/tenant/"+savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(savedTenant.getId());
     }
 
     @Test
