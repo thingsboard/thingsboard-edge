@@ -75,7 +75,7 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -148,10 +148,10 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
         widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
         WidgetTypeDetails savedWidgetType = doPost("/api/widgetType", widgetType, WidgetTypeDetails.class);
 
-        doDelete("/api/widgetType/"+savedWidgetType.getId().getId().toString())
+        doDelete("/api/widgetType/" + savedWidgetType.getId().getId().toString())
                 .andExpect(status().isOk());
 
-        doGet("/api/widgetType/"+savedWidgetType.getId().getId().toString())
+        doGet("/api/widgetType/" + savedWidgetType.getId().getId().toString())
                 .andExpect(status().isNotFound());
     }
 
@@ -194,7 +194,7 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
         widgetsBundle = doPost("/api/widgetsBundle", widgetsBundle, WidgetsBundle.class);
 
         List<WidgetType> widgetTypes = new ArrayList<>();
-        for (int i=0;i<89;i++) {
+        for (int i = 0; i < 89; i++) {
             WidgetTypeDetails widgetType = new WidgetTypeDetails();
             widgetType.setName("Widget Type " + i);
             widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
@@ -205,7 +205,7 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
         doPost("/api/widgetsBundle/" + widgetsBundle.getId().getId().toString() + "/widgetTypes", widgetTypeIds);
 
         List<WidgetType> loadedWidgetTypes = doGetTyped("/api/widgetTypes?widgetsBundleId={widgetsBundleId}",
-                new TypeReference<>(){}, widgetsBundle.getId().getId().toString());
+                new TypeReference<>() {}, widgetsBundle.getId().getId().toString());
 
         Collections.sort(widgetTypes, idComparator);
         Collections.sort(loadedWidgetTypes, idComparator);
@@ -215,12 +215,12 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
         loginCustomerUser();
 
         List<WidgetType> loadedWidgetTypesCustomer = doGetTyped("/api/widgetTypes?widgetsBundleId={widgetsBundleId}",
-                new TypeReference<>(){}, widgetsBundle.getId().getId().toString());
+                new TypeReference<>() {}, widgetsBundle.getId().getId().toString());
         Collections.sort(loadedWidgetTypesCustomer, idComparator);
         Assert.assertEquals(widgetTypes, loadedWidgetTypesCustomer);
 
         List<WidgetTypeDetails> customerLoadedWidgetTypesDetails = doGetTyped("/api/widgetTypesDetails?widgetsBundleId={widgetsBundleId}",
-                new TypeReference<>(){}, widgetsBundle.getId().getId().toString());
+                new TypeReference<>() {}, widgetsBundle.getId().getId().toString());
         List<WidgetType> widgetTypesFromDetailsListCustomer = customerLoadedWidgetTypesDetails.stream().map(WidgetType::new).collect(Collectors.toList());
         Collections.sort(widgetTypesFromDetailsListCustomer, idComparator);
         Assert.assertEquals(widgetTypesFromDetailsListCustomer, loadedWidgetTypes);
@@ -228,12 +228,12 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
         loginSysAdmin();
 
         List<WidgetType> sysAdminLoadedWidgetTypes = doGetTyped("/api/widgetTypes?widgetsBundleId={widgetsBundleId}",
-                new TypeReference<>(){}, widgetsBundle.getId().getId().toString());
+                new TypeReference<>() {}, widgetsBundle.getId().getId().toString());
         Collections.sort(sysAdminLoadedWidgetTypes, idComparator);
         Assert.assertEquals(widgetTypes, sysAdminLoadedWidgetTypes);
 
         List<WidgetTypeDetails> sysAdminLoadedWidgetTypesDetails = doGetTyped("/api/widgetTypesDetails?widgetsBundleId={widgetsBundleId}",
-                new TypeReference<>(){}, widgetsBundle.getId().getId().toString());
+                new TypeReference<>() {}, widgetsBundle.getId().getId().toString());
         List<WidgetType> widgetTypesFromDetailsListSysAdmin = sysAdminLoadedWidgetTypesDetails.stream().map(WidgetType::new).collect(Collectors.toList());
         Collections.sort(widgetTypesFromDetailsListSysAdmin, idComparator);
         Assert.assertEquals(widgetTypesFromDetailsListSysAdmin, loadedWidgetTypes);
@@ -246,7 +246,7 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
         widgetType.setDescriptor(JacksonUtil.fromString("{ \"someKey\": \"someValue\" }", JsonNode.class));
         WidgetTypeDetails savedWidgetType = doPost("/api/widgetType", widgetType, WidgetTypeDetails.class);
         WidgetType foundWidgetType = doGet("/api/widgetType?fqn={fqn}",
-                WidgetType.class, "tenant."+savedWidgetType.getFqn());
+                WidgetType.class, "tenant." + savedWidgetType.getFqn());
         Assert.assertNotNull(foundWidgetType);
         Assert.assertEquals(new WidgetType(savedWidgetType), foundWidgetType);
     }

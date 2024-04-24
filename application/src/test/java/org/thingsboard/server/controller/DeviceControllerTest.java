@@ -146,7 +146,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -208,7 +208,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(savedDevice, savedDevice,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.UPDATED, 1 , 1, 1);
+                ActionType.UPDATED, 1, 1, 1);
         testNotificationUpdateGatewayOneTime(savedDevice, oldDevice);
 
         Device foundDevice = doGet("/api/device/" + savedDevice.getId().getId(), Device.class);
@@ -264,7 +264,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(savedDevice, savedDevice,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.UPDATED, 1 , 1, 1);
+                ActionType.UPDATED, 1, 1, 1);
         testNotificationUpdateGatewayOneTime(savedDevice, oldDevice);
     }
 
@@ -826,7 +826,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAnyAdditionalInfoAny(new Device(), new Device(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.DELETED, ActionType.DELETED, cntEntity, cntEntity,1);
+                ActionType.DELETED, ActionType.DELETED, cntEntity, cntEntity, 1);
         testNotificationUpdateGatewayNever();
     }
 
@@ -1008,7 +1008,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         Tenant tenant = new Tenant();
         tenant.setTitle("Different tenant");
-        Tenant savedDifferentTenant = doPost("/api/tenant", tenant, Tenant.class);
+        Tenant savedDifferentTenant = saveTenant(tenant);
         Assert.assertNotNull(savedDifferentTenant);
 
         User user = new User();

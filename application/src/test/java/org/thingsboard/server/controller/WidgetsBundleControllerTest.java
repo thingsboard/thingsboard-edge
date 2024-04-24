@@ -44,8 +44,8 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -68,7 +68,7 @@ public class WidgetsBundleControllerTest extends AbstractControllerTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -148,7 +148,7 @@ public class WidgetsBundleControllerTest extends AbstractControllerTest {
 
         doPost("/api/widgetsBundle", savedWidgetsBundle)
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite + "WIDGETS_BUNDLE" + " '" + widgetsBundle.getTitle() +"'!")));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite + "WIDGETS_BUNDLE" + " '" + widgetsBundle.getTitle() + "'!")));
 
         testNotifyEntityNever(savedWidgetsBundle.getId(), savedWidgetsBundle);
 

@@ -153,7 +153,7 @@ public class TenantControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService);
 
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        Tenant savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
         Assert.assertNotNull(savedTenant.getId());
         Assert.assertTrue(savedTenant.getCreatedTime() > 0);
@@ -162,7 +162,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         testBroadcastEntityStateChangeEventTimeManyTimeTenant(savedTenant, ComponentLifecycleEvent.CREATED, 1);
 
         savedTenant.setTitle("My new tenant");
-        doPost("/api/tenant", savedTenant, Tenant.class);
+        saveTenant(savedTenant);
         Tenant foundTenant = doGet("/api/tenant/" + savedTenant.getId().getId().toString(), Tenant.class);
         Assert.assertEquals(foundTenant.getTitle(), savedTenant.getTitle());
 
@@ -193,7 +193,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        Tenant savedTenant = saveTenant(tenant);
         Tenant foundTenant = doGet("/api/tenant/" + savedTenant.getId().getId().toString(), Tenant.class);
         Assert.assertNotNull(foundTenant);
         Assert.assertEquals(savedTenant, foundTenant);
@@ -205,7 +205,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        Tenant savedTenant = saveTenant(tenant);
         TenantInfo foundTenant = doGet("/api/tenant/info/" + savedTenant.getId().getId().toString(), TenantInfo.class);
         Assert.assertNotNull(foundTenant);
         Assert.assertEquals(new TenantInfo(savedTenant, "Default"), foundTenant);
@@ -247,7 +247,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        Tenant savedTenant = saveTenant(tenant);
 
         String tenantIdStr = savedTenant.getId().getId().toString();
         deleteTenant(savedTenant.getId());
@@ -274,7 +274,7 @@ public class TenantControllerTest extends AbstractControllerTest {
             Tenant tenant = new Tenant();
             tenant.setTitle("Tenant" + i);
             createFutures.add(executor.submit(() ->
-                    doPost("/api/tenant", tenant, Tenant.class)));
+                    saveTenant(tenant)));
         }
         tenants.addAll(Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS));
 
@@ -316,7 +316,7 @@ public class TenantControllerTest extends AbstractControllerTest {
             title = i % 2 == 0 ? title.toLowerCase() : title.toUpperCase();
             tenant.setTitle(title);
             createFutures.add(executor.submit(() ->
-                    doPost("/api/tenant", tenant, Tenant.class)));
+                    saveTenant(tenant)));
         }
 
         List<Tenant> tenantsTitle1 = Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS);
@@ -330,7 +330,7 @@ public class TenantControllerTest extends AbstractControllerTest {
             title = i % 2 == 0 ? title.toLowerCase() : title.toUpperCase();
             tenant.setTitle(title);
             createFutures.add(executor.submit(() ->
-                    doPost("/api/tenant", tenant, Tenant.class)));
+                    saveTenant(tenant)));
         }
 
         List<Tenant> tenantsTitle2 = Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS);
@@ -390,7 +390,7 @@ public class TenantControllerTest extends AbstractControllerTest {
             Tenant tenant = new Tenant();
             tenant.setTitle("Tenant" + i);
             createFutures.add(executor.submit(() ->
-                    new TenantInfo(doPost("/api/tenant", tenant, Tenant.class), "Default")));
+                    new TenantInfo(saveTenant(tenant), "Default")));
         }
         tenants.addAll(Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS));
 
@@ -442,7 +442,7 @@ public class TenantControllerTest extends AbstractControllerTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle("Isolated tenant");
-        tenant = doPost("/api/tenant", tenant, Tenant.class);
+        tenant = saveTenant(tenant);
 
         User tenantUser = new User();
         tenantUser.setAuthority(Authority.TENANT_ADMIN);
@@ -471,7 +471,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         tenantProfile = doPost("/api/tenantProfile", tenantProfile, TenantProfile.class);
 
         tenant.setTenantProfileId(tenantProfile.getId());
-        doPost("/api/tenant", tenant, Tenant.class);
+        saveTenant(tenant);
 
         login(username, password);
 
@@ -501,7 +501,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         tenantProfile2 = doPost("/api/tenantProfile", tenantProfile2, TenantProfile.class);
 
         tenant.setTenantProfileId(tenantProfile2.getId());
-        doPost("/api/tenant", tenant, Tenant.class);
+        saveTenant(tenant);
 
         login(username, password);
 
@@ -543,7 +543,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         loginSysAdmin();
 
         tenant.setTenantProfileId(null);
-        doPost("/api/tenant", tenant, Tenant.class);
+        saveTenant(tenant);
 
         login(username, password);
         for (Queue queue : foundTenantQueues) {
@@ -570,7 +570,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         createDifferentTenant();
         loginSysAdmin();
         savedDifferentTenant.setTenantProfileId(tenantProfile.getId());
-        savedDifferentTenant = doPost("/api/tenant", savedDifferentTenant, Tenant.class);
+        savedDifferentTenant = saveTenant(savedDifferentTenant);
         TenantId tenantId = differentTenantId;
 
         loginDifferentTenant();
@@ -655,7 +655,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         createDifferentTenant();
         loginSysAdmin();
         savedDifferentTenant.setTenantProfileId(tenantProfile.getId());
-        savedDifferentTenant = doPost("/api/tenant", savedDifferentTenant, Tenant.class);
+        savedDifferentTenant = saveTenant(savedDifferentTenant);
         TenantId tenantId = differentTenantId;
         await().atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
@@ -710,7 +710,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         createDifferentTenant();
         loginSysAdmin();
         savedDifferentTenant.setTenantProfileId(tenantProfile.getId());
-        savedDifferentTenant = doPost("/api/tenant", savedDifferentTenant, Tenant.class);
+        savedDifferentTenant = saveTenant(savedDifferentTenant);
         TenantId tenantId = differentTenantId;
         await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> {
             assertThat(partitionService.getMyPartitions(new QueueKey(ServiceType.TB_RULE_ENGINE, tenantId))).isNotNull();

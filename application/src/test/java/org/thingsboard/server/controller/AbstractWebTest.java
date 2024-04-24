@@ -319,7 +319,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle(TEST_TENANT_NAME);
-        Tenant savedTenant = createTenant(tenant);
+        Tenant savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
         tenantId = savedTenant.getId();
         tenantProfileId = savedTenant.getTenantProfileId();
@@ -489,8 +489,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         loginSysAdmin();
         Tenant tenant = new Tenant();
         tenant.setTitle(TEST_DIFFERENT_TENANT_NAME);
-        savedDifferentTenant = createTenant(tenant);
-        Assert.assertNotNull(savedDifferentTenant);
+        savedDifferentTenant = saveTenant(tenant);
         differentTenantId = savedDifferentTenant.getId();
         User differentTenantAdmin = new User();
         differentTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
@@ -499,9 +498,11 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         savedDifferentTenantUser = createUserAndLogin(differentTenantAdmin, DIFFERENT_TENANT_ADMIN_PASSWORD);
     }
 
-    protected Tenant createTenant(Tenant tenant) throws Exception {
+    protected Tenant saveTenant(Tenant tenant) throws Exception {
         tenant = doPost("/api/tenant", tenant, Tenant.class);
-        attributesService.save(TenantId.SYS_TENANT_ID, tenant.getId(), AttributeScope.SERVER_SCOPE, new BaseAttributeKvEntry(System.currentTimeMillis(), new StringDataEntry("test", "test"))).get(); // creating marker attr to later know when Housekeeper finishes tenant cleanup
+        if (tenant.getId() == null) {
+            attributesService.save(TenantId.SYS_TENANT_ID, tenant.getId(), AttributeScope.SERVER_SCOPE, new BaseAttributeKvEntry(System.currentTimeMillis(), new StringDataEntry("test", "test"))).get(); // creating marker attr to later know when Housekeeper finishes tenant cleanup
+        }
         return tenant;
     }
 
