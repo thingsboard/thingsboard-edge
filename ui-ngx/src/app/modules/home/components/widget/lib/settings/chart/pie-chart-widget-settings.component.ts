@@ -36,45 +36,34 @@ import {
   WidgetSettings,
   WidgetSettingsComponent
 } from '@shared/models/widget.models';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { formatValue, isDefinedAndNotNull, mergeDeep } from '@core/utils';
-import {
-  doughnutDefaultSettings,
-  DoughnutLayout,
-  doughnutLayoutImages,
-  doughnutLayouts,
-  doughnutLayoutTranslations,
-  DoughnutWidgetSettings,
-  horizontalDoughnutLayoutImages
-} from '@home/components/widget/lib/chart/doughnut-widget.models';
-import { WidgetConfigComponentData } from '@home/models/widget-component.models';
+import { formatValue, mergeDeep } from '@core/utils';
 import {
   LatestChartTooltipValueType,
   latestChartTooltipValueTypes,
   latestChartTooltipValueTypeTranslations
 } from '@home/components/widget/lib/chart/latest-chart.models';
+import {
+  pieChartLabelPositions,
+  pieChartLabelPositionTranslations
+} from '@home/components/widget/lib/chart/pie-chart.models';
+import {
+  pieChartWidgetDefaultSettings,
+  PieChartWidgetSettings
+} from '@home/components/widget/lib/chart/pie-chart-widget.models';
 
 @Component({
-  selector: 'tb-doughnut-widget-settings',
-  templateUrl: './doughnut-widget-settings.component.html',
+  selector: 'tb-pie-chart-widget-settings',
+  templateUrl: './pie-chart-widget-settings.component.html',
   styleUrls: []
 })
-export class DoughnutWidgetSettingsComponent extends WidgetSettingsComponent {
+export class PieChartWidgetSettingsComponent extends WidgetSettingsComponent {
 
-  get totalEnabled(): boolean {
-    const layout: DoughnutLayout = this.doughnutWidgetSettingsForm.get('layout').value;
-    return layout === DoughnutLayout.with_total;
-  }
+  pieChartLabelPositions = pieChartLabelPositions;
 
-  doughnutLayouts = doughnutLayouts;
-
-  doughnutLayoutTranslationMap = doughnutLayoutTranslations;
-
-  horizontal = false;
-
-  doughnutLayoutImageMap: Map<DoughnutLayout, string>;
+  pieChartLabelPositionTranslationMap = pieChartLabelPositionTranslations;
 
   legendPositions = legendPositions;
 
@@ -84,7 +73,7 @@ export class DoughnutWidgetSettingsComponent extends WidgetSettingsComponent {
 
   latestChartTooltipValueTypeTranslationMap = latestChartTooltipValueTypeTranslations;
 
-  doughnutWidgetSettingsForm: UntypedFormGroup;
+  pieChartWidgetSettingsForm: UntypedFormGroup;
 
   valuePreviewFn = this._valuePreviewFn.bind(this);
 
@@ -96,28 +85,27 @@ export class DoughnutWidgetSettingsComponent extends WidgetSettingsComponent {
   }
 
   protected settingsForm(): UntypedFormGroup {
-    return this.doughnutWidgetSettingsForm;
-  }
-
-  protected onWidgetConfigSet(widgetConfig: WidgetConfigComponentData) {
-    const params = widgetConfig.typeParameters as any;
-    this.horizontal  = isDefinedAndNotNull(params.horizontal) ? params.horizontal : false;
-    this.doughnutLayoutImageMap = this.horizontal ? horizontalDoughnutLayoutImages : doughnutLayoutImages;
+    return this.pieChartWidgetSettingsForm;
   }
 
   protected defaultSettings(): WidgetSettings {
-    return mergeDeep<DoughnutWidgetSettings>({} as DoughnutWidgetSettings, doughnutDefaultSettings(this.horizontal));
+    return mergeDeep<PieChartWidgetSettings>({} as PieChartWidgetSettings, pieChartWidgetDefaultSettings);
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
-    this.doughnutWidgetSettingsForm = this.fb.group({
-      layout: [settings.layout, []],
-      autoScale: [settings.autoScale, []],
+    this.pieChartWidgetSettingsForm = this.fb.group({
+      showLabel: [settings.showLabel, []],
+      labelPosition: [settings.labelPosition, []],
+      labelFont: [settings.labelFont, []],
+      labelColor: [settings.labelColor, []],
+
+      borderWidth: [settings.borderWidth, [Validators.min(0)]],
+      borderColor: [settings.borderColor, []],
+
+      radius: [settings.radius, [Validators.min(0), Validators.max(100)]],
+
       clockwise: [settings.clockwise, []],
       sortSeries: [settings.sortSeries, []],
-
-      totalValueFont: [settings.totalValueFont, []],
-      totalValueColor: [settings.totalValueColor, []],
 
       animation: [settings.animation, []],
 
@@ -141,50 +129,51 @@ export class DoughnutWidgetSettingsComponent extends WidgetSettingsComponent {
   }
 
   protected validatorTriggers(): string[] {
-    return ['layout', 'showLegend', 'showTooltip'];
+    return ['showLabel', 'showLegend', 'showTooltip'];
   }
 
   protected updateValidators(emitEvent: boolean) {
-    const layout: DoughnutLayout = this.doughnutWidgetSettingsForm.get('layout').value;
-    const showLegend: boolean = this.doughnutWidgetSettingsForm.get('showLegend').value;
-    const showTooltip: boolean = this.doughnutWidgetSettingsForm.get('showTooltip').value;
+    const showLabel: boolean = this.pieChartWidgetSettingsForm.get('showLabel').value;
+    const showLegend: boolean = this.pieChartWidgetSettingsForm.get('showLegend').value;
+    const showTooltip: boolean = this.pieChartWidgetSettingsForm.get('showTooltip').value;
 
-    const totalEnabled = layout === DoughnutLayout.with_total;
+    if (showLabel) {
+      this.pieChartWidgetSettingsForm.get('labelPosition').enable();
+      this.pieChartWidgetSettingsForm.get('labelFont').enable();
+      this.pieChartWidgetSettingsForm.get('labelColor').enable();
+    } else {
+      this.pieChartWidgetSettingsForm.get('labelPosition').disable();
+      this.pieChartWidgetSettingsForm.get('labelFont').disable();
+      this.pieChartWidgetSettingsForm.get('labelColor').disable();
+    }
 
     if (showLegend) {
-      this.doughnutWidgetSettingsForm.get('legendPosition').enable();
-      this.doughnutWidgetSettingsForm.get('legendLabelFont').enable();
-      this.doughnutWidgetSettingsForm.get('legendLabelColor').enable();
-      this.doughnutWidgetSettingsForm.get('legendValueFont').enable();
-      this.doughnutWidgetSettingsForm.get('legendValueColor').enable();
+      this.pieChartWidgetSettingsForm.get('legendPosition').enable();
+      this.pieChartWidgetSettingsForm.get('legendLabelFont').enable();
+      this.pieChartWidgetSettingsForm.get('legendLabelColor').enable();
+      this.pieChartWidgetSettingsForm.get('legendValueFont').enable();
+      this.pieChartWidgetSettingsForm.get('legendValueColor').enable();
     } else {
-      this.doughnutWidgetSettingsForm.get('legendPosition').disable();
-      this.doughnutWidgetSettingsForm.get('legendLabelFont').disable();
-      this.doughnutWidgetSettingsForm.get('legendLabelColor').disable();
-      this.doughnutWidgetSettingsForm.get('legendValueFont').disable();
-      this.doughnutWidgetSettingsForm.get('legendValueColor').disable();
+      this.pieChartWidgetSettingsForm.get('legendPosition').disable();
+      this.pieChartWidgetSettingsForm.get('legendLabelFont').disable();
+      this.pieChartWidgetSettingsForm.get('legendLabelColor').disable();
+      this.pieChartWidgetSettingsForm.get('legendValueFont').disable();
+      this.pieChartWidgetSettingsForm.get('legendValueColor').disable();
     }
     if (showTooltip) {
-      this.doughnutWidgetSettingsForm.get('tooltipValueType').enable();
-      this.doughnutWidgetSettingsForm.get('tooltipValueDecimals').enable();
-      this.doughnutWidgetSettingsForm.get('tooltipValueFont').enable();
-      this.doughnutWidgetSettingsForm.get('tooltipValueColor').enable();
-      this.doughnutWidgetSettingsForm.get('tooltipBackgroundColor').enable();
-      this.doughnutWidgetSettingsForm.get('tooltipBackgroundBlur').enable();
+      this.pieChartWidgetSettingsForm.get('tooltipValueType').enable();
+      this.pieChartWidgetSettingsForm.get('tooltipValueDecimals').enable();
+      this.pieChartWidgetSettingsForm.get('tooltipValueFont').enable();
+      this.pieChartWidgetSettingsForm.get('tooltipValueColor').enable();
+      this.pieChartWidgetSettingsForm.get('tooltipBackgroundColor').enable();
+      this.pieChartWidgetSettingsForm.get('tooltipBackgroundBlur').enable();
     } else {
-      this.doughnutWidgetSettingsForm.get('tooltipValueType').disable();
-      this.doughnutWidgetSettingsForm.get('tooltipValueDecimals').disable();
-      this.doughnutWidgetSettingsForm.get('tooltipValueFont').disable();
-      this.doughnutWidgetSettingsForm.get('tooltipValueColor').disable();
-      this.doughnutWidgetSettingsForm.get('tooltipBackgroundColor').disable();
-      this.doughnutWidgetSettingsForm.get('tooltipBackgroundBlur').disable();
-    }
-    if (totalEnabled) {
-      this.doughnutWidgetSettingsForm.get('totalValueFont').enable();
-      this.doughnutWidgetSettingsForm.get('totalValueColor').enable();
-    } else {
-      this.doughnutWidgetSettingsForm.get('totalValueFont').disable();
-      this.doughnutWidgetSettingsForm.get('totalValueColor').disable();
+      this.pieChartWidgetSettingsForm.get('tooltipValueType').disable();
+      this.pieChartWidgetSettingsForm.get('tooltipValueDecimals').disable();
+      this.pieChartWidgetSettingsForm.get('tooltipValueFont').disable();
+      this.pieChartWidgetSettingsForm.get('tooltipValueColor').disable();
+      this.pieChartWidgetSettingsForm.get('tooltipBackgroundColor').disable();
+      this.pieChartWidgetSettingsForm.get('tooltipBackgroundBlur').disable();
     }
   }
 
@@ -195,8 +184,8 @@ export class DoughnutWidgetSettingsComponent extends WidgetSettingsComponent {
   }
 
   private _tooltipValuePreviewFn(): string {
-    const tooltipValueType: LatestChartTooltipValueType = this.doughnutWidgetSettingsForm.get('tooltipValueType').value;
-    const decimals: number = this.doughnutWidgetSettingsForm.get('tooltipValueDecimals').value;
+    const tooltipValueType: LatestChartTooltipValueType = this.pieChartWidgetSettingsForm.get('tooltipValueType').value;
+    const decimals: number = this.pieChartWidgetSettingsForm.get('tooltipValueDecimals').value;
     if (tooltipValueType === LatestChartTooltipValueType.percentage) {
       return formatValue(35, decimals, '%', false);
     } else {
