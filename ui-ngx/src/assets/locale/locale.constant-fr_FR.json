@@ -750,14 +750,6 @@
     },
     "custom-translation": {
         "custom-translation": "Traduction personnalisée",
-        "custom-translation-hint": "Définissez la traduction personnalisée JSON ci-dessous. Ce JSON écrasera la traduction par défaut. Cliquez sur 'Télécharger le fichier de paramètres régionaux' pour obtenir la traduction existante. Vous pouvez également utiliser le fichier téléchargé comme référence aux paires clé-valeur de traduction disponibles.",
-        "download-locale-file": "Télécharger le fichier local",
-        "export": "Exporter la traduction",
-        "export-data": "Exporter les données de traduction",
-        "import": "Importation de traduction",
-        "import-data": "Importer les données de traduction",
-        "invalid-translation-file-error": "Impossible d'importer le fichier de traduction: structure de données de traduction non valide.",
-        "key": "Clé de traduction",
         "translation-file": "Fichier de traduction",
         "translation-map": "Carte de traduction"
     },

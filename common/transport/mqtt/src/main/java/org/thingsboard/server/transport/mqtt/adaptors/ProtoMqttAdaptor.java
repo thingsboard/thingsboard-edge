@@ -65,7 +65,7 @@ public class ProtoMqttAdaptor implements MqttTransportAdaptor {
         byte[] bytes = toBytes(inbound.payload());
         Descriptors.Descriptor telemetryDynamicMsgDescriptor = ProtoConverter.validateDescriptor(deviceSessionCtx.getTelemetryDynamicMsgDescriptor());
         try {
-            return JsonConverter.convertToTelemetryProto(new JsonParser().parse(ProtoConverter.dynamicMsgToJson(bytes, telemetryDynamicMsgDescriptor)));
+            return JsonConverter.convertToTelemetryProto(JsonParser.parseString(ProtoConverter.dynamicMsgToJson(bytes, telemetryDynamicMsgDescriptor)));
         } catch (Exception e) {
             log.debug("Failed to decode post telemetry request", e);
             throw new AdaptorException(e);
@@ -78,7 +78,7 @@ public class ProtoMqttAdaptor implements MqttTransportAdaptor {
         byte[] bytes = toBytes(inbound.payload());
         Descriptors.Descriptor attributesDynamicMessageDescriptor = ProtoConverter.validateDescriptor(deviceSessionCtx.getAttributesDynamicMessageDescriptor());
         try {
-            return JsonConverter.convertToAttributesProto(new JsonParser().parse(ProtoConverter.dynamicMsgToJson(bytes, attributesDynamicMessageDescriptor)));
+            return JsonConverter.convertToAttributesProto(JsonParser.parseString(ProtoConverter.dynamicMsgToJson(bytes, attributesDynamicMessageDescriptor)));
         } catch (Exception e) {
             log.debug("Failed to decode post attributes request", e);
             throw new AdaptorException(e);
@@ -117,7 +117,7 @@ public class ProtoMqttAdaptor implements MqttTransportAdaptor {
         Descriptors.Descriptor rpcResponseDynamicMessageDescriptor = ProtoConverter.validateDescriptor(deviceSessionCtx.getRpcResponseDynamicMessageDescriptor());
         try {
             int requestId = getRequestId(topicName, topicBase);
-            JsonElement response = new JsonParser().parse(ProtoConverter.dynamicMsgToJson(bytes, rpcResponseDynamicMessageDescriptor));
+            JsonElement response = JsonParser.parseString(ProtoConverter.dynamicMsgToJson(bytes, rpcResponseDynamicMessageDescriptor));
             return TransportProtos.ToDeviceRpcResponseMsg.newBuilder().setRequestId(requestId).setPayload(response.toString()).build();
         } catch (Exception e) {
             log.debug("Failed to decode rpc response", e);

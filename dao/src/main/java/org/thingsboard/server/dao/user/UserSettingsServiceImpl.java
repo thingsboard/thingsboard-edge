@@ -79,7 +79,7 @@ public class UserSettingsServiceImpl extends AbstractCachedService<UserSettingsC
         UserSettings newUserSettings = new UserSettings();
         newUserSettings.setUserId(userId);
         newUserSettings.setType(type);
-        newUserSettings.setSettings(update(oldSettingsJson, settings));
+        newUserSettings.setSettings(JacksonUtil.update(oldSettingsJson, settings));
         doSaveUserSettings(tenantId, newUserSettings);
     }
 
@@ -142,28 +142,6 @@ public class UserSettingsServiceImpl extends AbstractCachedService<UserSettingsC
                 throw new DataValidationException("Json field name should not contain \".\" or \",\" symbols");
             }
         }
-    }
-
-    public JsonNode update(JsonNode mainNode, JsonNode updateNode) {
-        Iterator<String> fieldNames = updateNode.fieldNames();
-        while (fieldNames.hasNext()) {
-            String fieldExpression = fieldNames.next();
-            String[] fieldPath = fieldExpression.trim().split("\\.");
-            var node = (ObjectNode) mainNode;
-            for (int i = 0; i < fieldPath.length; i++) {
-                var fieldName = fieldPath[i];
-                var last = i == (fieldPath.length - 1);
-                if (last) {
-                    node.set(fieldName, updateNode.get(fieldExpression));
-                } else {
-                    if (!node.has(fieldName)) {
-                        node.set(fieldName, JacksonUtil.newObjectNode());
-                    }
-                    node = (ObjectNode) node.get(fieldName);
-                }
-            }
-        }
-        return mainNode;
     }
 
 }

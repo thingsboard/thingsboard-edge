@@ -477,6 +477,11 @@ message ImageCacheKeyProto {
   optional string publicResourceKey = 2;
 }
 
+message TranslationCacheInvalidateMsg {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+}
+
 message LwM2MRegistrationRequestMsg {
   string tenantId = 1;
   string endpoint = 2;
@@ -1575,6 +1580,7 @@ message ToCoreNotificationMsg {
   ToEdgeSyncRequestMsgProto toEdgeSyncRequest = 14;
   FromEdgeSyncResponseMsgProto fromEdgeSyncResponse = 15;
   ResourceCacheInvalidateMsg resourceCacheInvalidateMsg = 16;
+  TranslationCacheInvalidateMsg translationCacheInvalidateMsg = 100;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */

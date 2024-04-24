@@ -150,6 +150,15 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     }
 
     @Override
+    public PageData<EntityGroup> findEdgeEntityGroupsByOwnerIdAndType(UUID tenantId, UUID edgeId, UUID ownerId, String relationType, PageLink pageLink) {
+        return DaoUtil.toPageData(entityGroupRepository.findEdgeEntityGroupsByOwnerIdAndType(
+                edgeId,
+                ownerId,
+                relationType,
+                DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     public EntityGroup findByTenantIdAndExternalId(UUID tenantId, UUID externalId) {
         return DaoUtil.getData(entityGroupRepository.findByTenantIdAndExternalId(tenantId, externalId));
     }

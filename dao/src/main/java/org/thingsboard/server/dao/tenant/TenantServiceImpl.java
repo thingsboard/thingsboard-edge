@@ -58,6 +58,7 @@ import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.service.validator.TenantDataValidator;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
@@ -99,6 +100,8 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     private NotificationSettingsService notificationSettingsService;
     @Autowired
     private TenantDataValidator tenantValidator;
+    @Autowired
+    private CustomTranslationService customTranslationService;
     @Autowired
     protected TbTransactionalCache<TenantId, Boolean> existsTenantCache;
 
@@ -197,6 +200,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
 
         userService.deleteAllByTenantId(tenantId);
         whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, null);
+        customTranslationService.deleteCustomTranslationByTenantId(tenantId);
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         notificationSettingsService.deleteNotificationSettings(tenantId);
         tenantDao.removeById(tenantId, tenantId.getId());

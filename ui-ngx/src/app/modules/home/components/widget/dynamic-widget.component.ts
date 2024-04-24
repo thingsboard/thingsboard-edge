@@ -67,6 +67,7 @@ import { MillisecondsToTimeStringPipe } from '@shared/pipe/milliseconds-to-time-
 import { UserSettingsService } from '@core/http/user-settings.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { ImagePipe } from '@shared/pipe/image.pipe';
+import { UtilsService } from '@core/services/utils.service';
 
 @Directive()
 // eslint-disable-next-line @angular-eslint/directive-class-suffix
@@ -105,6 +106,7 @@ export class DynamicWidgetComponent extends PageComponent implements IDynamicWid
     this.ctx.customDialog = $injector.get(CustomDialogService);
     this.ctx.resourceService = $injector.get(ResourceService);
     this.ctx.userSettingsService = $injector.get(UserSettingsService);
+    this.ctx.utilsService = $injector.get(UtilsService);
     this.ctx.telemetryWsService = $injector.get(TelemetryWebsocketService);
     this.ctx.date = $injector.get(DatePipe);
     this.ctx.imagePipe = $injector.get(ImagePipe);

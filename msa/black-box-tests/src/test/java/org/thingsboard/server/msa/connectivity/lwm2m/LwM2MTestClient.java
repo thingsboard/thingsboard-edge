@@ -76,6 +76,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_CONNECTION_ID_LENGTH;
 import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_RECOMMENDED_CIPHER_SUITES_ONLY;
@@ -125,7 +126,7 @@ public class LwM2MTestClient {
 
         List<ObjectModel> models = new ArrayList<>();
         for (String resourceName : resources) {
-            models.addAll(ObjectLoader.loadDdfFile(LwM2MTestClient.class.getClassLoader().getResourceAsStream("lwm2m/" + resourceName), resourceName));
+            models.addAll(ObjectLoader.loadDdfFile(LwM2MTestClient.class.getClassLoader().getResourceAsStream("lwm2m-registry/" + resourceName), resourceName));
         }
         LwM2mModel model = new StaticModel(models);
         ObjectsInitializer initializer = new ObjectsInitializer(model);
@@ -133,7 +134,7 @@ public class LwM2MTestClient {
         // SECURITY
         initializer.setInstancesForObject(SECURITY, security);
         // SERVER
-        Server lwm2mServer = new Server(shortServerId, 300);
+        Server lwm2mServer = new Server(shortServerId, TimeUnit.MINUTES.toSeconds(60));
         lwm2mServer.setId(serverId);
         initializer.setInstancesForObject(SERVER, lwm2mServer);
 

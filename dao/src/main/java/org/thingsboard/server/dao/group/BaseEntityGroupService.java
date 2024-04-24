@@ -1008,6 +1008,20 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public PageData<EntityGroup> findEdgeEntityGroupsByOwnerIdAndType(TenantId tenantId, EdgeId edgeId, EntityId ownerId, EntityType groupType, PageLink pageLink) {
+        log.trace("[{}] Executing findEdgeEntityGroupsByOwnerIdAndType, edgeId [{}], ownerId [{}], groupType [{}], pageLink [{}]", tenantId, edgeId, ownerId, groupType, pageLink);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
+        Validator.validateId(edgeId, id -> "Incorrect edgeId " + id);
+        validateEntityId(ownerId, id -> INCORRECT_ENTITY_ID + id);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validatePageLink(pageLink);
+        String relationType = EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
+        return this.entityGroupDao.findEdgeEntityGroupsByOwnerIdAndType(tenantId.getId(), edgeId.getId(), ownerId.getId(), relationType, pageLink);
+    }
+
+    @Override
     public ListenableFuture<Boolean> checkEdgeEntityGroupByIdAsync(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType) {
         log.trace("Executing checkEdgeEntityGroupByIdAsync, tenantId [{}], edgeId [{}], entityGroupId [{}]", tenantId, edgeId, entityGroupId);
         validateEntityId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);

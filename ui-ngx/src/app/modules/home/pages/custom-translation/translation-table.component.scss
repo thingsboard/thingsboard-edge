@@ -28,37 +28,69 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../../../../../../scss/constants';
+@import "../../../../../scss/constants";
 
-.tb-y-axis-settings-panel {
-  width: 530px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  @media #{$mat-lt-md} {
-    width: 90vw;
+:host {
+  position: relative;
+  height: 100%;
+
+  @media #{$mat-gt-md} {
+    width: 60%;
   }
-  .tb-y-axis-settings-panel-content {
+
+  .tb-entity-table {
+    .tb-entity-table-content {
+      .tb-entity-table-title {
+        font-weight: 500;
+        font-size: 24px;
+        padding-right: 8px;
+      }
+    }
+
+    .mat-mdc-header-row .mat-mdc-header-cell:first-child,
+    .mat-mdc-row .mat-mdc-cell:first-child {
+      padding: 0 16px;
+    }
+
+    .mat-mdc-header-row .mat-mdc-header-cell:nth-child(n+2):nth-last-child(n+2),
+    .mat-mdc-row .mat-mdc-cell:nth-child(n+2):nth-last-child(n+2) {
+      padding: 0 16px 0 0;
+    }
+  }
+
+  .fi {
+    font-size: 20px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.16);
+    line-height: 0.95em;
+  }
+
+  .progress-bar-container {
     display: flex;
-    flex-direction: column;
-    gap: 16px;
-    overflow: auto;
-    margin: -10px;
-    padding: 10px;
-  }
-  .tb-y-axis-settings-title {
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 24px;
-    letter-spacing: 0.25px;
-    color: rgba(0, 0, 0, 0.87);
-  }
-  .tb-y-axis-settings-panel-buttons {
-    height: 40px;
-    display: flex;
-    flex-direction: row;
-    gap: 16px;
-    justify-content: flex-end;
-    align-items: flex-end;
+    align-items: center;
+    gap: 8px;
+    --mdc-linear-progress-track-height: 12px;
+
+    .mat-mdc-progress-bar {
+      border-radius: 6px;
+      filter: opacity(0.4);
+
+      &::ng-deep {
+        .mdc-linear-progress__buffer-bar {
+          filter: opacity(70%);
+        }
+        .mdc-linear-progress__bar-inner {
+          border-radius: 6px;
+        }
+      }
+    }
+
+    .value {
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 20px;
+      letter-spacing: 0.25px;
+      min-width: 40px;
+    }
   }
 }

@@ -49,4 +49,5 @@ public abstract class BaseDashboardMsgConstructor implements DashboardMsgConstru
         }
         return builder.build();
     }
+
 }

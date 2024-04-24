@@ -30,8 +30,10 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-form-panel tb-data-keys-panel">
-  <div class="tb-form-panel-title">{{ panelTitle }}</div>
+<div class="tb-form-panel tb-data-keys-panel"
+     [class.no-border]="hidePanel"
+     [class.no-padding]="hidePanel">
+  <div *ngIf="!hidePanel" class="tb-form-panel-title">{{ panelTitle }}</div>
   <div class="tb-form-table">
     <div class="tb-form-table-header no-padding-right">
       <div *ngIf="hasAdditionalLatestDataKeys" class="tb-form-table-header-cell tb-source-header" translate>datakey.source</div>

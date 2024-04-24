@@ -51,7 +51,6 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.dao.asset.BaseAssetService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
@@ -160,10 +159,7 @@ public abstract class AssetEdgeProcessor extends BaseAssetProcessor implements A
         DownlinkMsg downlinkMsg = null;
         EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
         switch (edgeEvent.getAction()) {
-            case ADDED:
-            case ADDED_TO_ENTITY_GROUP:
-            case UPDATED:
-            case ASSIGNED_TO_EDGE:
+            case ADDED, ADDED_TO_ENTITY_GROUP, UPDATED, ASSIGNED_TO_EDGE -> {
                 Asset asset = assetService.findAssetById(edgeEvent.getTenantId(), assetId);
                 if (asset != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
@@ -180,20 +176,18 @@ public abstract class AssetEdgeProcessor extends BaseAssetProcessor implements A
                     }
                     downlinkMsg = builder.build();
                 }
-                break;
-            case DELETED:
-            case REMOVED_FROM_ENTITY_GROUP:
-            case UNASSIGNED_FROM_EDGE:
-            case CHANGE_OWNER:
+            }
+            case DELETED, REMOVED_FROM_ENTITY_GROUP, UNASSIGNED_FROM_EDGE, CHANGE_OWNER -> {
                 AssetUpdateMsg assetUpdateMsg = ((AssetMsgConstructor)
                         assetMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructAssetDeleteMsg(assetId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addAssetUpdateMsg(assetUpdateMsg)
                         .build();
-                break;
+            }
         }
         return downlinkMsg;
     }
+
 }
 

@@ -51,8 +51,6 @@ import java.util.Map;
 import java.util.PrimitiveIterator;
 import java.util.Random;
 import java.util.TimeZone;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class SimpleLwM2MDevice extends BaseInstanceEnabler implements Destroyable {
