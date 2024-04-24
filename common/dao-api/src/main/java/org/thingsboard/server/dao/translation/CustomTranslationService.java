@@ -53,7 +53,11 @@ public interface CustomTranslationService {
 
     void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
-    Set<String> getCustomizedLocales(TenantId tenantId, CustomerId customerId);
+    Set<String> getCurrentCustomizedLocales(TenantId tenantId, CustomerId customerId);
+
+    Set<String> getMergedTenantCustomizedLocales(TenantId tenantId);
+
+    Set<String> getMergedCustomerCustomizedLocales(TenantId tenantId, CustomerId customerId);
 
     void deleteCustomTranslationByTenantId(TenantId tenantId);
 }

@@ -49,7 +49,7 @@ const emptyUserAuthState: AuthPayload = {
   maxResourceSize: 0,
   userSettings: initialUserSettings,
   allowedDashboardIds: [],
-  translations: env.supportedLangs
+  availableLocales: env.supportedLangs
 };
 
 export const initialState: AuthState = {

@@ -71,8 +71,10 @@ import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.thingsboard.common.util.JacksonUtil.writeValueAsStringWithDefaultPrettyPrinter;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
 
@@ -112,22 +114,39 @@ public class TranslationController extends BaseController {
                     ControllerConstants.WL_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/info")
-    @ResponseBody
     public List<TranslationInfo> getTranslationInfos() throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.READ);
         return tbTranslationService.getTranslationInfos(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
     }
 
-    @ApiOperation(value = "Get list of available system locales (getAvailableLocales)",
-            notes = "The result is map where key is locale code and value is locale language and country")
+    @ApiOperation(value = "Get list of available locales (getAvailableLocales)",
+            notes = "Fetch the list of customized locales from all levels" + ControllerConstants.WL_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/availableLocales")
-    @ResponseBody
-    public JsonNode getAvailableLocales() {
+    public JsonNode getAvailableLocales() throws ThingsboardException {
+        checkWhiteLabelingPermissions(Operation.READ);
         ObjectNode result = JacksonUtil.newObjectNode();
+        Set<String> availableLocaleCodes = tbTranslationService.getAvailableLocaleCodes(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
+        for (String localeCode : availableLocaleCodes) {
+            String[] locale_parts = localeCode.split("_");
+            Locale locale = new Locale(locale_parts[0], locale_parts[1]);
+            String displayLanguage = locale.getDisplayLanguage(locale);
+            String displayCountry = locale.getDisplayCountry(locale).isBlank() ? "" : " (" + locale.getDisplayCountry(locale) + ")";
+            result.put(localeCode, displayLanguage + displayCountry);
+        }
+        return result;
+    }
+
+    @ApiOperation(value = "Get list of available java locales (getAvailableJavaLocales)",
+            notes = "The result is map where key is locale code and value is locale language and country")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @GetMapping(value = "/translation/availableJavaLocales")
+    public JsonNode getAvailableJavaLocales() {
+        ObjectNode result = JacksonUtil.newObjectNode();
+
         List<Locale> availableLocales = Arrays.stream(DateFormat.getAvailableLocales())
-                .filter(availableLocale -> !availableLocale.toString().isBlank() && availableLocale.toString().contains("_")
-                        && availableLocale.getScript().isBlank() && !LOCALE_CODES_TO_EXCLUDE.contains(availableLocale.toString()))
+                .filter(availableLocale -> StringUtils.countMatches(availableLocale.toString(), "_") == 1
+                        && !LOCALE_CODES_TO_EXCLUDE.contains(availableLocale.toString()))
                 .toList();
         for (Locale availableLocale : availableLocales) {
             String displayLanguage = availableLocale.getDisplayLanguage(availableLocale);
@@ -172,7 +191,6 @@ public class TranslationController extends BaseController {
                     "system language translation and default locale translation.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/full/{localeCode}")
-    @ResponseBody
     public void getFullTranslation(
             @Parameter(description = "Locale code (e.g. 'en_US').")
             @PathVariable("localeCode") String localeCode,
@@ -201,7 +219,6 @@ public class TranslationController extends BaseController {
                     "translation of parent level, translation status.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/edit/basic/{localeCode}", produces = APPLICATION_JSON_VALUE)
-    @ResponseBody
     public JsonNode getTranslationForBasicEdit(@PathVariable("localeCode") String localeCode) throws Exception {
         checkWhiteLabelingPermissions(Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
@@ -215,7 +232,6 @@ public class TranslationController extends BaseController {
                     "system language translation and default locale translation.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/full/{localeCode}/download")
-    @ResponseBody
     public ResponseEntity<ByteArrayResource> downloadFullTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
                                                                      @PathVariable("localeCode") String localeCode) throws Exception {
         checkWhiteLabelingPermissions(Operation.READ);
@@ -225,7 +241,7 @@ public class TranslationController extends BaseController {
         JsonNode fullSystemTranslation = checkNotNull(tbTranslationService.getFullTranslation(tenantId, customerId, localeCode));
 
         String fileName = localeCode + "_custom_translation.json";
-        ByteArrayResource translation = new ByteArrayResource(fullSystemTranslation.toString().getBytes());
+        ByteArrayResource translation = new ByteArrayResource(writeValueAsStringWithDefaultPrettyPrinter(fullSystemTranslation).getBytes());
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)

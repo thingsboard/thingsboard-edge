@@ -35,17 +35,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
-import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.settings.AdminSettingsDao;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
@@ -60,6 +61,8 @@ public class TranslationControllerTest extends AbstractControllerTest {
     private static final String EN_AU = "en_AU";
     private static final String EN_US = "en_US";
     private static final String AR_QA = "ar_QA";
+    private static final String AR_EG = "ar_EG";
+
 
     @Autowired
     CustomTranslationService customTranslationService;
@@ -303,6 +306,29 @@ public class TranslationControllerTest extends AbstractControllerTest {
         verifyInfo(subCustomerTranslation.get("newSubCustomer"), "newSubCustomerES", "newSubCustomerEnglish", null, "A");
     }
 
+    @Test
+    public void shouldGetCorrectTranslationForBasicEditForNewLang() throws Exception {
+        loginSysAdmin();
+        JsonNode arabicTranslation = JacksonUtil.toJsonNode("{\"my-new-key\": \"arabic-version\"}");
+        doPost("/api/translation/custom/" + AR_EG, arabicTranslation);
+        JsonNode englishTranslation = JacksonUtil.toJsonNode("{\"my-new-key\":\"english-version\"}");
+        doPost("/api/translation/custom/" + EN_US, englishTranslation);
+
+        loginTenantAdmin();
+        JsonNode tenantTranslationForEdit = doGet("/api/translation/edit/basic/" + AR_EG, JsonNode.class);
+        verifyInfo(tenantTranslationForEdit.get("my-new-key"), "arabic-version", "english-version", null, "T");
+
+        // get customer for edit
+        loginCustomerAdminUser();
+        JsonNode customerTranslationForEdit = doGet("/api/translation/edit/basic/" + AR_EG, JsonNode.class);
+        verifyInfo(customerTranslationForEdit.get("my-new-key"), "arabic-version", "english-version", null, "T");
+
+        // get subcustomer translation  for edit
+        loginSubCustomerAdminUser();
+        JsonNode subCustomerTranslation = doGet("/api/translation/edit/basic/" + AR_EG, JsonNode.class);
+        verifyInfo(subCustomerTranslation.get("my-new-key"), "arabic-version", "english-version", null, "T");
+    }
+
     private static void verifyInfo(JsonNode keyInfo, String translated, String origin, String parent, String state) {
         if (translated != null) {
             assertThat(keyInfo.get("t").asText()).isEqualTo(translated);
@@ -420,6 +446,85 @@ public class TranslationControllerTest extends AbstractControllerTest {
         assertThat(enLoginSubCustomerTranslation.get("login").get("login").asText()).isEqualTo("Login");
     }
 
+    @Test
+    public void checkLoginTranslationEtag() throws Exception {
+        loginSysAdmin();
+        updateCustomTranslation(ES_ES);
+        String sysAdminEtag = getLoginTranslation(ES_ES);
+
+        loginTenantAdmin();
+        updateCustomTranslation(ES_ES);
+        String tenantEtag = getLoginTranslation(ES_ES);
+
+        loginCustomerAdminUser();
+        updateCustomTranslation(ES_ES);
+        String customerAdminEtag = getLoginTranslation(ES_ES);
+
+        loginSubCustomerAdminUser();
+        updateCustomTranslation(ES_ES);
+        String subCustomerEtag = getLoginTranslation(ES_ES);
+
+        //check if full translation modified
+        loginSysAdmin();
+        assertThat(geLoginTranslationResponse(ES_ES, sysAdminEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+
+        loginTenantAdmin();
+        tenantEtag = geLoginTranslationResponse(ES_ES, tenantEtag).getHeader("ETag");
+
+        loginCustomerAdminUser();
+        customerAdminEtag = geLoginTranslationResponse(ES_ES, customerAdminEtag).getHeader("ETag");
+
+        loginSubCustomerAdminUser();
+        assertThat(geLoginTranslationResponse(ES_ES, subCustomerEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+
+        // check not modified
+        loginSysAdmin();
+        assertThat(geLoginTranslationResponse(ES_ES, sysAdminEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+
+        loginTenantAdmin();
+        assertThat(geLoginTranslationResponse(ES_ES, tenantEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+
+        loginCustomerAdminUser();
+        assertThat(geLoginTranslationResponse(ES_ES, customerAdminEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+
+        loginSubCustomerAdminUser();
+        assertThat(geLoginTranslationResponse(ES_ES, subCustomerEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+
+        //update system custom translation and check full translation is being modified everywhere
+        loginSysAdmin();
+        JsonNode newCustomTranslation = JacksonUtil.toJsonNode("{\"update\" : \"system\"}");
+        doPost("/api/translation/custom/" + ES_ES, newCustomTranslation);
+
+        assertThat(geLoginTranslationResponse(ES_ES, sysAdminEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
+
+        loginTenantAdmin();
+        assertThat(geLoginTranslationResponse(ES_ES, tenantEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
+
+        loginCustomerAdminUser();
+        assertThat(geLoginTranslationResponse(ES_ES, customerAdminEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
+
+        loginSubCustomerAdminUser();
+        assertThat(geLoginTranslationResponse(ES_ES, subCustomerEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
+    }
+
+    private String getLoginTranslation(String localeCode) throws Exception {
+        return doGet("/api/translation/full/" + localeCode)
+                .andReturn().getResponse().getHeader("ETag");
+    }
+
+    private MockHttpServletResponse geLoginTranslationResponse(String localeCode, String etag) throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setIfNoneMatch(etag);
+        MockHttpServletResponse response = doGet("/api/translation/full/" + localeCode, headers)
+                .andReturn().getResponse();
+        return response;
+    }
+
+    private void updateCustomTranslation(String localeCode) throws Exception {
+        JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"login.login\":\"" + StringUtils.randomAlphabetic(10) + "\"}");
+        doPost("/api/translation/custom/" + localeCode, esCustomTranslation);
+    }
+
     private void checkTranslationInfo() throws Exception {
         JsonNode auCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"australian\"}");
         doPost("/api/translation/custom/" + EN_AU, auCustomTranslation);
@@ -451,9 +556,9 @@ public class TranslationControllerTest extends AbstractControllerTest {
     private TranslationInfo getTranslationInfo(String localeCode) throws Exception {
         List<TranslationInfo> translationInfos = doGetTyped("/api/translation/info", new TypeReference<>() {
         });
-        Optional<TranslationInfo> arabic = translationInfos.stream().filter(info -> info.getLocaleCode().equals(localeCode))
+        Optional<TranslationInfo> translationInfo = translationInfos.stream().filter(info -> info.getLocaleCode().equals(localeCode))
                 .findFirst();
-        assertThat(arabic).isPresent();
-        return arabic.get();
+        assertThat(translationInfo).isPresent();
+        return translationInfo.get();
     }
 }

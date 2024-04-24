@@ -179,6 +179,15 @@ public class JacksonUtil {
         }
     }
 
+    public static String writeValueAsStringWithDefaultPrettyPrinter(Object value) {
+        try {
+            return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("The given Json object value: "
+                    + value + " cannot be transformed to a String", e);
+        }
+    }
+
     public static String toPrettyString(Object o) {
         try {
             return PRETTY_SORTED_JSON_MAPPER.writeValueAsString(o);
