@@ -28,54 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.tools;
+package org.thingsboard.server.common.msg;
 
-import io.github.bucket4j.Bandwidth;
-import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
-import io.github.bucket4j.local.LocalBucket;
-import io.github.bucket4j.local.LocalBucketBuilder;
-import lombok.Getter;
+import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
+import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- * Created by ashvayka on 22.10.18.
- */
-public class TbRateLimits {
-    private final LocalBucket bucket;
+class EncryptionUtilTest {
 
-    @Getter
-    private final String configuration;
-
-    public TbRateLimits(String limitsConfiguration) {
-        this(limitsConfiguration, false);
-    }
-
-    public TbRateLimits(String limitsConfiguration, boolean refillIntervally) {
-        LocalBucketBuilder builder = Bucket.builder();
-        boolean initialized = false;
-        for (String limitSrc : limitsConfiguration.split(",")) {
-            long capacity = Long.parseLong(limitSrc.split(":")[0]);
-            long duration = Long.parseLong(limitSrc.split(":")[1]);
-            Refill refill = refillIntervally ? Refill.intervally(capacity, Duration.ofSeconds(duration)) : Refill.greedy(capacity, Duration.ofSeconds(duration));
-            builder.addLimit(Bandwidth.classic(capacity, refill));
-            initialized = true;
-        }
-        if (initialized) {
-            bucket = builder.build();
-        } else {
-            throw new IllegalArgumentException("Failed to parse rate limits configuration: " + limitsConfiguration);
-        }
-        this.configuration = limitsConfiguration;
-    }
-
-    public boolean tryConsume() {
-        return bucket.tryConsume(1);
-    }
-
-    public boolean tryConsume(long number) {
-        return bucket.tryConsume(number);
+    @Test
+    void getSha3Hash256Size() {
+        assertThat(EncryptionUtil.getSha3Hash("ThingsBoard"))
+                .isEqualTo("281c7ba06d0ac2ff651fa968572f26a38c96225ea54644522837b54b9c6144f7");
     }
 
 }

@@ -63,7 +63,7 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
                                              Pageable pageable);
 
     @Query("SELECT di FROM DashboardInfoEntity di " +
-            "WHERE di.tenantId = :tenantId AND (di.customerId IS NULL OR di.customerId = uuid('13814000-1dd2-11b2-8080-808080808080')) " +
+            "WHERE di.tenantId = :tenantId AND (di.customerId IS NULL OR di.customerId = org.thingsboard.server.common.data.id.EntityId.NULL_UUID) " +
             "AND (:searchText IS NULL OR ilike(di.title, CONCAT('%', :searchText, '%')) = true)")
     Page<DashboardInfoEntity> findTenantDashboardsByTenantId(@Param("tenantId") UUID tenantId,
                                                              @Param("searchText") String searchText,
