@@ -144,7 +144,12 @@ public class PostgresTenantDataExporter extends MigrationService {
         Writer writer = writers.computeIfAbsent(table, k -> storage.newWriter(table.getName()));
         Consumer<Map<String, Object>> processor = row -> {
             try {
-                storage.addToFile(writer, row);
+                try {
+                    storage.addToFile(writer, row);
+                } catch (Throwable e) {
+                    log.error("[{}] Failed to add row to file: {} (query {})", table.getName(), row, query, e);
+                    throw e;
+                }
                 reportProcessed(table.getName(), row);
                 for (Table relatedTable : relatedTables) {
                     if (skippedTables.contains(relatedTable)) {

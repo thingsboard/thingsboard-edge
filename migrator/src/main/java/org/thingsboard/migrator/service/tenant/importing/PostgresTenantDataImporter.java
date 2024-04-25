@@ -45,6 +45,7 @@ import org.thingsboard.migrator.Table;
 import org.thingsboard.migrator.utils.SqlPartitionService;
 import org.thingsboard.migrator.utils.Storage;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -126,6 +127,13 @@ public class PostgresTenantDataImporter extends MigrationService {
             valuesStatement += "?";
             if (value instanceof JsonNode) {
                 entry.setValue(value.toString());
+            } else if (value instanceof String[]) {
+                try {
+                    entry.setValue(jdbcTemplate.getDataSource().getConnection().createArrayOf("text", (String[]) value));
+                    continue;
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
             }
             String valueType = columns.get(table).get(column);
             valuesStatement += "::" + valueType;

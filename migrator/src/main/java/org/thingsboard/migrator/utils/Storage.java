@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.postgresql.jdbc.PgArray;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -53,6 +54,7 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -74,6 +76,7 @@ public class Storage {
     private final List<Path> createdFiles = new ArrayList<>();
 
     private static final String BYTEA_DATA_PREFIX = "BASE64_BYTES:";
+    private static final String ARRAY_DATA_PREFIX = "ARRAY:";
 
     @PostConstruct
     private void init() throws IOException {
@@ -100,6 +103,12 @@ public class Storage {
                 data = ((PGobject) data).getValue();
             } else if (data instanceof byte[]) {
                 data = BYTEA_DATA_PREFIX + Base64.getEncoder().encodeToString((byte[]) data);
+            } else if (data instanceof PgArray) {
+                try {
+                    return ARRAY_DATA_PREFIX + jsonMapper.writeValueAsString(((PgArray) data).getArray());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
             return data;
         });
@@ -125,8 +134,17 @@ public class Storage {
                             } catch (IllegalArgumentException ignored) {}
                         } else if (value instanceof Map) {
                             value = jsonMapper.valueToTree(value);
-                        } else if (value instanceof String && ((String) value).startsWith(BYTEA_DATA_PREFIX)) {
-                            value = Base64.getDecoder().decode(StringUtils.removeStart((String) value, BYTEA_DATA_PREFIX));
+                        } else if (value instanceof String) {
+                            String string = (String) value;
+                            if (string.startsWith(BYTEA_DATA_PREFIX)) {
+                                value = Base64.getDecoder().decode(StringUtils.removeStart(string, BYTEA_DATA_PREFIX));
+                            } else if (string.startsWith(ARRAY_DATA_PREFIX)) {
+                                try {
+                                    value = jsonMapper.readValue(StringUtils.removeStart(string, ARRAY_DATA_PREFIX), new TypeReference<String[]>() {});
+                                } catch (JsonProcessingException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
                         }
                         return value;
                     });
