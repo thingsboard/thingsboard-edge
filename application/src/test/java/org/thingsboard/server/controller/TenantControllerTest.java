@@ -273,8 +273,7 @@ public class TenantControllerTest extends AbstractControllerTest {
         for (int i = 0; i < cntEntity; i++) {
             Tenant tenant = new Tenant();
             tenant.setTitle("Tenant" + i);
-            createFutures.add(executor.submit(() ->
-                    saveTenant(tenant)));
+            createFutures.add(executor.submit(() -> saveTenant(tenant)));
         }
         tenants.addAll(Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS));
 
@@ -315,8 +314,7 @@ public class TenantControllerTest extends AbstractControllerTest {
             String title = title1 + suffix;
             title = i % 2 == 0 ? title.toLowerCase() : title.toUpperCase();
             tenant.setTitle(title);
-            createFutures.add(executor.submit(() ->
-                    saveTenant(tenant)));
+            createFutures.add(executor.submit(() -> saveTenant(tenant)));
         }
 
         List<Tenant> tenantsTitle1 = Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS);
@@ -329,8 +327,7 @@ public class TenantControllerTest extends AbstractControllerTest {
             String title = title2 + suffix;
             title = i % 2 == 0 ? title.toLowerCase() : title.toUpperCase();
             tenant.setTitle(title);
-            createFutures.add(executor.submit(() ->
-                    saveTenant(tenant)));
+            createFutures.add(executor.submit(() -> saveTenant(tenant)));
         }
 
         List<Tenant> tenantsTitle2 = Futures.allAsList(createFutures).get(TIMEOUT, TimeUnit.SECONDS);

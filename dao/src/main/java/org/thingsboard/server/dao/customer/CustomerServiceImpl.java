@@ -238,7 +238,6 @@ public class CustomerServiceImpl extends AbstractEntityService implements Custom
             }
         }
         if (deleteSubcustomers) {
-            // fixme: on tenant deletion no need to delete subcustomers
             try {
                 List<CustomerId> customerIds = fetchSubcustomers(tenantId, customerId);
                 for (CustomerId subCustomerId : customerIds) {
