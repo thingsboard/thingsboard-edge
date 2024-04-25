@@ -32,13 +32,13 @@ package org.thingsboard.rule.engine.transform;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.rule.engine.AbstractRuleNodeUpgradeTest;
@@ -66,7 +66,7 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -75,7 +75,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TbChangeOriginatorNodeTest extends AbstractRuleNodeUpgradeTest {
 
     private static final String CUSTOMER_SOURCE = "CUSTOMER";
@@ -90,14 +90,14 @@ public class TbChangeOriginatorNodeTest extends AbstractRuleNodeUpgradeTest {
     private CustomerService customerService;
     private ListeningExecutor dbExecutor;
 
-    @Before
-    public void before() {
+    @BeforeEach
+    public void before() throws TbNodeException {
         dbExecutor = new TestDbCallbackExecutor();
+        init();
     }
 
     @Test
-    public void originatorCanBeChangedToCustomerId() throws TbNodeException {
-        init();
+    public void originatorCanBeChangedToCustomerId() {
         AssetId assetId = new AssetId(Uuids.timeBased());
         CustomerId customerId = new CustomerId(Uuids.timeBased());
         Asset asset = new Asset();
@@ -121,8 +121,7 @@ public class TbChangeOriginatorNodeTest extends AbstractRuleNodeUpgradeTest {
     }
 
     @Test
-    public void newChainCanBeStarted() throws TbNodeException {
-        init();
+    public void newChainCanBeStarted() {
         AssetId assetId = new AssetId(Uuids.timeBased());
         CustomerId customerId = new CustomerId(Uuids.timeBased());
         Asset asset = new Asset();
@@ -145,8 +144,7 @@ public class TbChangeOriginatorNodeTest extends AbstractRuleNodeUpgradeTest {
     }
 
     @Test
-    public void exceptionThrownIfCannotFindNewOriginator() throws TbNodeException {
-        init();
+    public void exceptionThrownIfCannotFindNewOriginator() {
         AssetId assetId = new AssetId(Uuids.timeBased());
         CustomerId customerId = new CustomerId(Uuids.timeBased());
         Asset asset = new Asset();
