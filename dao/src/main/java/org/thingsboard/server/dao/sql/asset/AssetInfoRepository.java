@@ -78,7 +78,9 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
                                                                       Pageable pageable);
 
     @Query("SELECT ai FROM AssetInfoEntity ai WHERE ai.tenantId = :tenantId AND ai.customerId = :customerId " +
-            "AND (:searchText IS NULL OR ilike(ai.name, CONCAT('%', :searchText, '%')) = true) ")
+            "AND (:searchText IS NULL OR ilike(ai.name, CONCAT('%', :searchText, '%')) = true " +
+                        "  OR ilike(ai.label, CONCAT('%', :searchText, '%')) = true " +
+                        "  OR ilike(ai.type, CONCAT('%', :searchText, '%')) = true) ")
     Page<AssetInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                       @Param("customerId") UUID customerId,
                                                       @Param("searchText") String searchText,
