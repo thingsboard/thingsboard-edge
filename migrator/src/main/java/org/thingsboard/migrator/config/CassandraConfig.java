@@ -30,27 +30,20 @@
  */
 package org.thingsboard.migrator.config;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
+import org.thingsboard.migrator.service.latest_kv.exporting.CassandraLatestKvExporter;
+import org.thingsboard.migrator.service.tenant.exporting.CassandraTsKvExporter;
 
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-
+/**
+ * Disables Cassandra autoconfiguration if Cassandra export/import is disabled
+ * */
 @Configuration
-public class ExecutorConfig {
-
-    private static final int MAX_TASK_QUEUE_SIZE = 5000;
-
-    /*
-    * Executor with limited task queue size
-    * */
-    @Bean
-    public ThreadPoolExecutor executor(@Value("${parallelism_level}") int parallelismLevel) {
-        return new ThreadPoolExecutor(parallelismLevel, parallelismLevel,
-                0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(MAX_TASK_QUEUE_SIZE),
-                new ThreadPoolExecutor.CallerRunsPolicy());
-    }
-
+@EnableAutoConfiguration(exclude = {CassandraDataAutoConfiguration.class, CassandraAutoConfiguration.class})
+@ConditionalOnExpression("('${mode}' == 'TENANT_DATA_EXPORT' && ${export.cassandra.enabled} == false) || ('${mode}' == 'TENANT_DATA_IMPORT' and ${import.cassandra.enabled} == false) || ('${mode}' == 'CASSANDRA_LATEST_KV_EXPORT')")
+public class CassandraConfig {
 }

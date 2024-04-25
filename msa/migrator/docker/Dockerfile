@@ -1,4 +1,3 @@
-#!/bin/bash
 #
 # Copyright © 2016-2023 The Thingsboard Authors
 #
@@ -15,17 +14,18 @@
 # limitations under the License.
 #
 
-CONF_FOLDER=${pkg.installFolder}/conf
-jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
-configfile=${pkg.name}.conf
+FROM thingsboard/openjdk17:bookworm-slim
 
-source "${CONF_FOLDER}/${configfile}"
+COPY start-tb-migrator.sh ${pkg.name}.deb /tmp/
 
-echo "Starting '${project.name}' ..."
+RUN chmod a+x /tmp/*.sh \
+    && mkdir -p /tb-migrator/data && chown -R ${pkg.user}:${pkg.user} /tb-migrator/data \
+    && mv /tmp/start-tb-migrator.sh /usr/bin && \
+    (yes | dpkg -i /tmp/${pkg.name}.deb) && \
+    rm /tmp/${pkg.name}.deb && \
+    (systemctl --no-reload disable --now ${pkg.name}.service > /dev/null 2>&1 || :) && \
+    chmod 555 ${pkg.installFolder}/bin/${pkg.name}.jar
 
-cd ${pkg.installFolder}/bin
+USER ${pkg.user}
 
-exec java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.monitoring.ThingsboardMonitoringApplication \
-                    -Dspring.jpa.hibernate.ddl-auto=none \
-                    -Dlogging.config=$CONF_FOLDER/logback.xml \
-                    org.springframework.boot.loader.PropertiesLauncher
+CMD ["start-tb-migrator.sh"]

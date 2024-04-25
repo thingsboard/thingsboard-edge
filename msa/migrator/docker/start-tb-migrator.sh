@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 
-CONF_FOLDER=${pkg.installFolder}/conf
+CONF_FOLDER="${pkg.installFolder}/conf"
 jarfile=${pkg.installFolder}/bin/${pkg.name}.jar
 configfile=${pkg.name}.conf
 
@@ -25,7 +25,7 @@ echo "Starting '${project.name}' ..."
 
 cd ${pkg.installFolder}/bin
 
-exec java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.monitoring.ThingsboardMonitoringApplication \
+exec java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.migrator.MigratorApplication \
                     -Dspring.jpa.hibernate.ddl-auto=none \
-                    -Dlogging.config=$CONF_FOLDER/logback.xml \
+                    -Dlogging.config=${CONF_FOLDER}/logback.xml \
                     org.springframework.boot.loader.PropertiesLauncher
