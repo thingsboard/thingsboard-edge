@@ -204,6 +204,7 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
         textSearch: isNotEmptyStr(value) ? encodeURI(value) : null,
         page: null
       };
+      this.paginator.pageIndex = 0;
       this.updatedRouterParams(queryParams);
     });
 
@@ -378,10 +379,11 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
 
   addNewTranslated() {
     if (this.newKey.valid) {
-      const {key, translated, original} = this.newKey.value;
+      let {key, translated, original} = this.newKey.value;
       let observable: Observable<any>;
       if (this.localeCode === 'en_US') {
         observable = this.customTranslationService.patchCustomTranslation(this.localeCode, {[key]: translated});
+        original = translated;
       } else {
         observable = forkJoin([
           this.customTranslationService.patchCustomTranslation(this.localeCode, {[key]: translated}),

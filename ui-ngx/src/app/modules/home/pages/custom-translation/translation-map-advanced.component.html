@@ -30,25 +30,38 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-absolute-fill tb-form-panel stroked no-padding no-gap" [formGroup]="translationForm">
-  <section class="tb-form-row no-border">
-    <div class="tb-form-panel-title">Translation map</div>
-    <span fxFlex></span>
-    <button mat-icon-button
-            class="tb-mat-40"
-            (click)="toggleFullscreen()"
-            matTooltipPosition="above"
-            matTooltip="{{(fullscreen ? 'fullscreen.exit' : 'fullscreen.expand') | translate}}">
-      <mat-icon class="material-icons">{{ fullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+<div class="tb-absolute-fill tb-form-panel no-padding no-border" [formGroup]="translationForm">
+  <div class="tb-form-panel stroked no-padding no-gap tb-flex">
+    <section class="tb-form-row no-border">
+      <div class="tb-form-panel-title">Translation map</div>
+      <span fxFlex></span>
+      <button mat-icon-button
+              class="tb-mat-40"
+              (click)="toggleFullscreen()"
+              matTooltipPosition="above"
+              matTooltip="{{(fullscreen ? 'fullscreen.exit' : 'fullscreen.expand') | translate}}">
+        <mat-icon class="material-icons">{{ fullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+      </button>
+    </section>
+    <tb-json-content
+      validateOnChange
+      formControlName="translation"
+      [readonly]="readonly"
+      [contentType]="ContentType.JSON"
+      [tbPlaceholder]="translationPlaceholder"
+      [fillHeight]="true">
+    </tb-json-content>
+  </div>
+  <div class="tb-flex row flex-end align-center fill-width" style="flex: none">
+    <button *ngIf="!readonly" mat-button color="primary"
+            [disabled]="translationForm.pristine"
+            (click)="reset()">
+      {{'action.cancel' | translate}}
     </button>
-  </section>
-  <tb-json-content
-    validateContent
-    (blur)="changeContent()"
-    formControlName="translation"
-    [readonly]="readonly"
-    [contentType]="ContentType.JSON"
-    [tbPlaceholder]="translationPlaceholder"
-    [fillHeight]="true">
-  </tb-json-content>
+    <button *ngIf="!readonly" mat-button mat-raised-button color="primary"
+            [disabled]="translationForm.invalid || translationForm.pristine"
+            (click)="save()">
+      {{'action.save' | translate}}
+    </button>
+  </div>
 </div>

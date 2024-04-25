@@ -72,7 +72,7 @@ public class JpaDeviceInfoDao extends JpaAbstractDao<DeviceInfoEntity, DeviceInf
                 deviceInfoRepository.findDeviceInfosByFilterIncludingSubCustomers(
                         filter.getTenantId().getId(),
                         filter.getCustomerId().getId(),
-                        DaoUtil.getStringId(filter.getDeviceProfileId()),
+                        DaoUtil.getId(filter.getDeviceProfileId()),
                         filter.getActive() != null,
                         Boolean.TRUE.equals(filter.getActive()),
                         pageLink.getTextSearch(),
@@ -82,8 +82,8 @@ public class JpaDeviceInfoDao extends JpaAbstractDao<DeviceInfoEntity, DeviceInf
                     deviceInfoRepository.findDeviceInfosByFilter(
                             filter.getTenantId().getId(),
                             filter.isIncludeCustomers(),
-                            DaoUtil.getStringId(filter.getCustomerId()),
-                            DaoUtil.getStringId(filter.getDeviceProfileId()),
+                            DaoUtil.getId(filter.getCustomerId()),
+                            DaoUtil.getId(filter.getDeviceProfileId()),
                             filter.getActive() != null,
                             Boolean.TRUE.equals(filter.getActive()),
                             pageLink.getTextSearch(),

@@ -38,12 +38,13 @@ import org.thingsboard.server.common.data.translation.TranslationInfo;
 import org.thingsboard.server.dao.translation.TranslationCacheKey;
 
 import java.util.List;
+import java.util.Set;
 
 public interface TbTranslationService {
 
     List<TranslationInfo> getTranslationInfos(TenantId tenantId, CustomerId customerId);
 
-    List<String> getAvailableTranslations(TenantId tenantId, CustomerId customerId);
+    Set<String> getAvailableLocaleCodes(TenantId tenantId, CustomerId customerId);
 
     JsonNode getLoginTranslation(String localeCode, String domainName);
 

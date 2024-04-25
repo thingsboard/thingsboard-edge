@@ -44,6 +44,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
@@ -73,22 +74,30 @@ import java.util.regex.Pattern;
 @Slf4j
 public class JacksonUtil {
 
-    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
+            .addModule(new Jdk8Module())
+            .build();
     public static final ObjectMapper PRETTY_SORTED_JSON_MAPPER = JsonMapper.builder()
+            .addModule(new Jdk8Module())
             .enable(SerializationFeature.INDENT_OUTPUT)
             .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
             .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
             .build();
     public static ObjectMapper ALLOW_UNQUOTED_FIELD_NAMES_MAPPER = JsonMapper.builder()
+            .addModule(new Jdk8Module())
             .configure(JsonWriteFeature.QUOTE_FIELD_NAMES.mappedFeature(), false)
             .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
             .build();
     public static final ObjectMapper IGNORE_UNKNOWN_PROPERTIES_JSON_MAPPER = JsonMapper.builder()
+            .addModule(new Jdk8Module())
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .build();
 
     public static ObjectMapper getObjectMapperWithJavaTimeModule() {
-        return new ObjectMapper().registerModule(new JavaTimeModule());
+        return JsonMapper.builder()
+                .addModule(new Jdk8Module())
+                .addModule(new JavaTimeModule())
+                .build();
     }
 
     public static <T> T convertValue(Object fromValue, Class<T> toValueType) {
@@ -170,9 +179,19 @@ public class JacksonUtil {
             throw new IllegalArgumentException("The given Json object value cannot be transformed to a String: " + value, e);
         }
     }
+
     public static String writeValueAsString(Object value) {
         try {
             return OBJECT_MAPPER.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("The given Json object value: "
+                    + value + " cannot be transformed to a String", e);
+        }
+    }
+
+    public static String writeValueAsStringWithDefaultPrettyPrinter(Object value) {
+        try {
+            return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(value);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("The given Json object value: "
                     + value + " cannot be transformed to a String", e);
@@ -247,7 +266,6 @@ public class JacksonUtil {
             throw new IllegalArgumentException("Can't read file: " + file, e);
         }
     }
-
 
     public static JsonNode toJsonNode(Path file) {
         try {

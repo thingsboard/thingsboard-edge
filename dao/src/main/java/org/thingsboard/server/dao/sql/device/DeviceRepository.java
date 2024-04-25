@@ -139,7 +139,7 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID>, Exp
                                                           @Param("textSearch") String textSearch,
                                                           Pageable pageable);
 
-    @Query("SELECT d.id FROM DeviceEntity d WHERE d.tenantId = :tenantId AND (d.customerId is null OR d.customerId = uuid('13814000-1dd2-11b2-8080-808080808080'))")
+    @Query("SELECT d.id FROM DeviceEntity d WHERE d.tenantId = :tenantId AND (d.customerId is null OR d.customerId = org.thingsboard.server.common.data.id.EntityId.NULL_UUID)")
     Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId, Pageable pageable);
 
     @Query("SELECT d.id FROM DeviceEntity d WHERE d.tenantId = :tenantId AND d.customerId = :customerId")
