@@ -71,6 +71,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -227,7 +228,7 @@ public class TbChangeOriginatorNodeTest extends AbstractRuleNodeUpgradeTest {
         config.setPreserveOriginatorIfCustomer(false);
         TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
 
-        when(ctx.getDbCallbackExecutor()).thenReturn(dbExecutor);
+        lenient().when(ctx.getDbCallbackExecutor()).thenReturn(dbExecutor);
 
         node = new TbChangeOriginatorNode();
         node.init(null, nodeConfiguration);
@@ -250,6 +251,6 @@ public class TbChangeOriginatorNodeTest extends AbstractRuleNodeUpgradeTest {
 
     @Override
     protected TbNode getTestNode() {
-        return spy(TbChangeOriginatorNode.class);
+        return this.node;
     }
 }

@@ -72,6 +72,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -227,9 +228,9 @@ public class TbCreateRelationNodeTest {
 
         when(ctx.getDbCallbackExecutor()).thenReturn(dbExecutor);
         when(ctx.getRelationService()).thenReturn(relationService);
-        when(ctx.getAssetService()).thenReturn(assetService);
-        when(ctx.getPeContext()).thenReturn(peCtx);
-        when(peCtx.getConverterService()).thenReturn(converterService);
+        lenient().when(ctx.getAssetService()).thenReturn(assetService);
+        lenient().when(ctx.getPeContext()).thenReturn(peCtx);
+        lenient().when(peCtx.getConverterService()).thenReturn(converterService);
 
         node = new TbCreateRelationNode();
         node.init(ctx, nodeConfiguration);
