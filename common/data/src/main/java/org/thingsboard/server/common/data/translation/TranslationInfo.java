@@ -57,5 +57,7 @@ public class TranslationInfo implements Serializable {
     private String country;
     @Schema(description = "Number representing translation percentage progress. For example, 40 that means 40% of all keys are translated.")
     private int progress;
+    @Schema(description = "Boolean representing if current language has customization.")
+    private boolean customized;
 
 }

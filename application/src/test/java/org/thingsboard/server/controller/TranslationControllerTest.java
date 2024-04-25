@@ -153,15 +153,15 @@ public class TranslationControllerTest extends AbstractControllerTest {
         // get full tenant translation
         loginTenantAdmin();
         JsonNode plFullTenantTranslation = doGet("/api/translation/full/" + PL_PL, JsonNode.class);
-        assertThat(plFullTenantTranslation.get("save")).isNull();
+        assertThat(plFullTenantTranslation.get("save").asText()).isEqualTo("system");
         assertThat(plFullTenantTranslation.get("update").asText()).isEqualTo("tenant");
         assertThat(plFullTenantTranslation.get("action").get("activate").asText()).isEqualTo("Aktywuj");
 
         // get full customer custom translation
         loginCustomerAdminUser();
         JsonNode plFullCustomTranslation = doGet("/api/translation/full/" + PL_PL, JsonNode.class);
-        assertThat(plFullCustomTranslation.get("save")).isNull();
-        assertThat(plFullCustomTranslation.get("update")).isNull();
+        assertThat(plFullCustomTranslation.get("save").asText()).isEqualTo("system");
+        assertThat(plFullCustomTranslation.get("update").asText()).isEqualTo("tenant");
         assertThat(plFullCustomTranslation.get("remove").asText()).isEqualTo("customer");
         assertThat(plFullCustomTranslation.get("action").get("activate").asText()).isEqualTo("Aktywuj");
 
@@ -169,9 +169,9 @@ public class TranslationControllerTest extends AbstractControllerTest {
         loginSubCustomerAdminUser();
 
         JsonNode plFullSubCustomTranslation = doGet("/api/translation/full/" + PL_PL, JsonNode.class);
-        assertThat(plFullSubCustomTranslation.get("save")).isNull();
-        assertThat(plFullSubCustomTranslation.get("update")).isNull();
-        assertThat(plFullSubCustomTranslation.get("remove")).isNull();
+        assertThat(plFullSubCustomTranslation.get("save").asText()).isEqualTo("system");
+        assertThat(plFullSubCustomTranslation.get("update").asText()).isEqualTo("tenant");
+        assertThat(plFullSubCustomTranslation.get("remove").asText()).isEqualTo("customer");
         assertThat(plFullSubCustomTranslation.get("search").asText()).isEqualTo("subCustomer");
         assertThat(plFullSubCustomTranslation.get("action").get("activate").asText()).isEqualTo("Aktywuj");
     }
