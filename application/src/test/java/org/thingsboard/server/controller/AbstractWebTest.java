@@ -140,6 +140,7 @@ import org.thingsboard.server.dao.device.ClaimDevicesService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
+import org.thingsboard.server.queue.memory.InMemoryStorage;
 import org.thingsboard.server.service.entitiy.tenant.profile.TbTenantProfileService;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
@@ -276,6 +277,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     @SpyBean
     protected MailService mailService;
+
+    @Autowired
+    protected InMemoryStorage storage;
 
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -427,8 +431,8 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        Awaitility.await("tenant cleanup finish").atMost(30, TimeUnit.SECONDS)
-                .until(() -> attributesService.find(TenantId.SYS_TENANT_ID, tenantId, AttributeScope.SERVER_SCOPE, "test").get().isEmpty());
+        Awaitility.await("all tasks processed").atMost(TIMEOUT, TimeUnit.SECONDS).during(300, TimeUnit.MILLISECONDS)
+                .until(() -> storage.getLag("tb_housekeeper") == 0);
     }
 
     private List<Tenant> getAllTenants() throws Exception {
