@@ -136,6 +136,8 @@ public class EntityIdFactory {
                 return new NotificationTemplateId(uuid);
             case NOTIFICATION:
                 return new NotificationId(uuid);
+            case QUEUE_STATS:
+                return new QueueStatsId(uuid);
         }
         throw new IllegalArgumentException("EntityType " + type + " is not supported!");
     }
@@ -177,6 +179,7 @@ public class EntityIdFactory {
             case SCHEDULER_EVENT:
                 return new SchedulerEventId(uuid);
             case ENTITY_GROUP:
+            case DEVICE_GROUP_OTA:
                 return new EntityGroupId(uuid);
             case ROLE:
                 return new RoleId(uuid);
@@ -190,6 +193,12 @@ public class EntityIdFactory {
                 return new QueueId(uuid);
             case TB_RESOURCE:
                 return new TbResourceId(uuid);
+            case NOTIFICATION_RULE:
+                return new NotificationRuleId(uuid);
+            case NOTIFICATION_TARGET:
+                return new NotificationTargetId(uuid);
+            case NOTIFICATION_TEMPLATE:
+                return new NotificationTemplateId(uuid);
         }
         throw new IllegalArgumentException("EdgeEventType " + edgeEventType + " is not supported!");
     }

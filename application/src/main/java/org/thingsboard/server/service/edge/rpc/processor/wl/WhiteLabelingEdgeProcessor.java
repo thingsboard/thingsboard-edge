@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.edge.rpc.processor.wl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
@@ -48,6 +50,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.translation.CustomTranslationEdgeOutdated;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
@@ -254,25 +258,25 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             switch (entityId.getEntityType()) {
                 case TENANT:
                     if (TenantId.SYS_TENANT_ID.equals(entityId)) {
-                        CustomTranslation systemCustomTranslation =
-                                customTranslationService.getSystemCustomTranslation(edgeEvent.getTenantId());
+                        JsonNode systemCustomTranslation =
+                                customTranslationService.getCurrentCustomTranslation( (TenantId) entityId, null, "");
                         if (isDefaultCustomTranslation(systemCustomTranslation)) {
                             return null;
                         }
                         CustomTranslationProto customTranslationProto = ((CustomTranslationMsgConstructor)
-                                customTranslationConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructCustomTranslationProto(systemCustomTranslation, entityId);
+                                customTranslationConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructCustomTranslationProto(new CustomTranslationEdgeOutdated(), entityId);
                         result = DownlinkMsg.newBuilder()
                                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                                 .setSystemCustomTranslationMsg(customTranslationProto)
                                 .build();
                     } else {
-                        CustomTranslation tenantCustomTranslation =
-                                customTranslationService.getTenantCustomTranslation(edgeEvent.getTenantId());
+                        JsonNode tenantCustomTranslation =
+                                customTranslationService.getCurrentCustomTranslation(edgeEvent.getTenantId(), null, "");
                         if (isDefaultCustomTranslation(tenantCustomTranslation)) {
                             return null;
                         }
                         CustomTranslationProto customTranslationProto = ((CustomTranslationMsgConstructor)
-                                customTranslationConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructCustomTranslationProto(tenantCustomTranslation, entityId);
+                                customTranslationConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructCustomTranslationProto(new CustomTranslationEdgeOutdated(), entityId);
                         result = DownlinkMsg.newBuilder()
                                 .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                                 .setTenantCustomTranslationMsg(customTranslationProto)
@@ -281,13 +285,13 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
                     break;
                 case CUSTOMER:
                     CustomerId customerId = new CustomerId(entityId.getId());
-                    CustomTranslation customerCustomTranslation =
-                            customTranslationService.getCustomerCustomTranslation(edgeEvent.getTenantId(), customerId);
+                    JsonNode customerCustomTranslation =
+                            customTranslationService.getCurrentCustomTranslation(edgeEvent.getTenantId(), customerId, "");
                     if (isDefaultCustomTranslation(customerCustomTranslation)) {
                         return null;
                     }
                     CustomTranslationProto customTranslationProto = ((CustomTranslationMsgConstructor)
-                            customTranslationConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructCustomTranslationProto(customerCustomTranslation, customerId);
+                            customTranslationConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructCustomTranslationProto(new CustomTranslationEdgeOutdated(), entityId);
                     result = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .setCustomerCustomTranslationMsg(customTranslationProto)
@@ -299,8 +303,8 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
         return result;
     }
 
-    private boolean isDefaultCustomTranslation(CustomTranslation customTranslation) {
-        return new CustomTranslation().equals(customTranslation);
+    private boolean isDefaultCustomTranslation(JsonNode customTranslation) {
+        return customTranslation.isEmpty();
     }
 
     public DownlinkMsg convertCustomMenuEventToDownlink(EdgeEvent edgeEvent) {
@@ -348,15 +352,11 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             case TENANT:
                 List<ListenableFuture<Void>> futures = new ArrayList<>();
                 if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
-                    PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
-                    PageData<TenantId> tenantsIds;
-                    do {
-                        tenantsIds = tenantService.findTenantsIds(pageLink);
-                        for (TenantId tenantId1 : tenantsIds.getData()) {
-                            futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, null, JacksonUtil.valueToTree(entityId), sourceEdgeId, null));
-                        }
-                        pageLink = pageLink.nextPageLink();
-                    } while (tenantsIds.hasNext());
+                    PageDataIterable<TenantId> tenantIds = new PageDataIterable<>(
+                            link -> tenantService.findTenantsIds(link), 1024);
+                    for (TenantId tenantId1 : tenantIds) {
+                        futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, null, JacksonUtil.valueToTree(entityId), sourceEdgeId, null));
+                    }
                 } else {
                     futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, null, JacksonUtil.valueToTree(entityId), sourceEdgeId, null);
                 }

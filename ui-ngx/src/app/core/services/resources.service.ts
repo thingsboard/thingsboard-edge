@@ -49,6 +49,7 @@ import { select, Store } from '@ngrx/store';
 import { selectIsAuthenticated } from '@core/auth/auth.selectors';
 import { AppState } from '@core/core.state';
 import { map, tap } from 'rxjs/operators';
+import { RequestConfig } from '@core/http/http-utils';
 
 declare const System;
 
@@ -121,11 +122,11 @@ export class ResourcesService {
     return this.loadResourceByType(fileType, url);
   }
 
-  public downloadResource(downloadUrl: string): Observable<any> {
-    return this.http.get(downloadUrl, {
+  public downloadResource(downloadUrl: string, config?: RequestConfig): Observable<any> {
+    return this.http.get(downloadUrl, {...config, ...{
       responseType: 'arraybuffer',
       observe: 'response'
-    }).pipe(
+    }}).pipe(
       map((response) => {
         const headers = response.headers;
         const filename = headers.get('x-filename');

@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.controller;
 
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiParam;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -59,6 +61,7 @@ import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.scheduler.TbSchedulerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -79,7 +82,6 @@ import static org.thingsboard.server.controller.ControllerConstants.RBAC_DELETE_
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_READ_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.RBAC_WRITE_CHECK;
 import static org.thingsboard.server.controller.ControllerConstants.SCHEDULER_EVENT_ID_PARAM_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_ALLOWABLE_VALUES;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
@@ -111,13 +113,12 @@ public class SchedulerEventController extends BaseController {
     @ApiOperation(value = "Get Scheduler Event With Customer Info (getSchedulerEventInfoById)",
             notes = "Fetch the SchedulerEventWithCustomerInfo object based on the provided scheduler event Id. " +
                     SCHEDULER_EVENT_WITH_CUSTOMER_INFO_DESCRIPTION + INVALID_SCHEDULER_EVENT_ID +
-                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvent/info/{schedulerEventId}", method = RequestMethod.GET)
     @ResponseBody
     public SchedulerEventWithCustomerInfo getSchedulerEventInfoById(
-            @ApiParam(value = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
         SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
@@ -127,13 +128,12 @@ public class SchedulerEventController extends BaseController {
     @ApiOperation(value = "Get Scheduler Event (getSchedulerEventById)",
             notes = "Fetch the SchedulerEvent object based on the provided scheduler event Id. " +
                     SCHEDULER_EVENT_DESCRIPTION + INVALID_SCHEDULER_EVENT_ID +
-                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvent/{schedulerEventId}", method = RequestMethod.GET)
     @ResponseBody
     public SchedulerEvent getSchedulerEventById(
-            @ApiParam(value = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
         SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
@@ -146,13 +146,12 @@ public class SchedulerEventController extends BaseController {
                     "The newly created scheduler event id will be present in the response. Specify existing scheduler event id to update the scheduler event. " +
                     "Referencing non-existing scheduler event Id will cause 'Not Found' error. " +
                     "Remove 'id', 'tenantId' and optionally 'customerId' from the request body example (below) to create new Scheduler Event entity. " +
-                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvent", method = RequestMethod.POST)
     @ResponseBody
     public SchedulerEvent saveSchedulerEvent(
-            @ApiParam(value = "A JSON value representing the Scheduler Event.")
+            @Parameter(description = "A JSON value representing the Scheduler Event.")
             @RequestBody SchedulerEvent schedulerEvent) throws ThingsboardException {
         SecurityUser currentUser = getCurrentUser();
         schedulerEvent.setTenantId(currentUser.getTenantId());
@@ -165,15 +164,14 @@ public class SchedulerEventController extends BaseController {
 
     @ApiOperation(value = "Enable or disable Scheduler Event (enableSchedulerEvent)",
             notes = "Updates scheduler event with enabled = true/false. " + SCHEDULER_EVENT_DESCRIPTION +
-                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvent/{schedulerEventId}/enabled/{enabledValue}", method = RequestMethod.PUT)
     @ResponseBody
     public SchedulerEvent enableSchedulerEvent(
-            @ApiParam(value = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId,
-            @ApiParam(value = "Enabled or disabled scheduler", required = true)
+            @Parameter(description = "Enabled or disabled scheduler", required = true)
             @PathVariable(value = "enabledValue") Boolean enabledValue) throws ThingsboardException {
 
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
@@ -191,7 +189,7 @@ public class SchedulerEventController extends BaseController {
     @RequestMapping(value = "/schedulerEvent/{schedulerEventId}", method = RequestMethod.DELETE)
     @ResponseStatus(value = HttpStatus.OK)
     public void deleteSchedulerEvent(
-            @ApiParam(value = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
+            @Parameter(description = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
         SchedulerEventId schedulerEventId = new SchedulerEventId(toUUID(strSchedulerEventId));
@@ -203,13 +201,12 @@ public class SchedulerEventController extends BaseController {
 
     @ApiOperation(value = "Get Scheduler Events By Type (getSchedulerEvents)",
             notes = "Requested scheduler events must be owned by tenant or assigned to customer which user is performing the request. "
-                    + SCHEDULER_EVENT_WITH_CUSTOMER_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    + SCHEDULER_EVENT_WITH_CUSTOMER_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvents", method = RequestMethod.GET)
     @ResponseBody
     public List<SchedulerEventWithCustomerInfo> getSchedulerEvents(
-            @ApiParam(value = "A string value representing the scheduler type. For example, 'generateReport'")
+            @Parameter(description = "A string value representing the scheduler type. For example, 'generateReport'")
             @RequestParam(required = false) String type) throws ThingsboardException {
         accessControlService.checkPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
@@ -231,13 +228,12 @@ public class SchedulerEventController extends BaseController {
 
     @ApiOperation(value = "Get Scheduler Events By Ids (getSchedulerEventsByIds)",
             notes = "Requested scheduler events must be owned by tenant or assigned to customer which user is performing the request. "
-                    + SCHEDULER_EVENT_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    + SCHEDULER_EVENT_INFO_DESCRIPTION + TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + "\n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/schedulerEvents", params = {"schedulerEventIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<SchedulerEventInfo> getSchedulerEventsByIds(
-            @ApiParam(value = "A list of scheduler event ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of scheduler event ids, separated by comma ','", required = true)
             @RequestParam("schedulerEventIds") String[] strSchedulerEventIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("schedulerEventIds", strSchedulerEventIds);
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, Operation.READ)) {
@@ -269,14 +265,13 @@ public class SchedulerEventController extends BaseController {
                     "Second, remote edge service will receive a copy of assignment scheduler event " +
                     EDGE_ASSIGN_RECEIVE_STEP_DESCRIPTION +
                     "Third, once scheduler event will be delivered to edge service, it is going to be available for usage on remote edge instance. " +
-                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}/schedulerEvent/{schedulerEventId}", method = RequestMethod.POST)
     @ResponseBody
-    public SchedulerEventInfo assignSchedulerEventToEdge(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
+    public SchedulerEventInfo assignSchedulerEventToEdge(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION)
                                                          @PathVariable(EDGE_ID) String strEdgeId,
-                                                         @ApiParam(value = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION)
+                                                         @Parameter(description = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION)
                                                          @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
@@ -295,14 +290,13 @@ public class SchedulerEventController extends BaseController {
                     "Second, remote edge service will receive an 'unassign' command to remove entity group " +
                     EDGE_UNASSIGN_RECEIVE_STEP_DESCRIPTION +
                     "Third, once 'unassign' command will be delivered to edge service, it's going to remove entity group and entities inside this group locally." +
-                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK,
-            produces = MediaType.APPLICATION_JSON_VALUE)
+                    TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH + RBAC_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}/schedulerEvent/{schedulerEventId}", method = RequestMethod.DELETE)
     @ResponseBody
-    public SchedulerEventInfo unassignSchedulerEventFromEdge(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
+    public SchedulerEventInfo unassignSchedulerEventFromEdge(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION)
                                                              @PathVariable(EDGE_ID) String strEdgeId,
-                                                             @ApiParam(value = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION)
+                                                             @Parameter(description = SCHEDULER_EVENT_ID_PARAM_DESCRIPTION)
                                                              @PathVariable(SCHEDULER_EVENT_ID) String strSchedulerEventId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         checkParameter(SCHEDULER_EVENT_ID, strSchedulerEventId);
@@ -322,17 +316,17 @@ public class SchedulerEventController extends BaseController {
     @RequestMapping(value = "/edge/{edgeId}/schedulerEvents", params = {"pageSize", "page"}, method = RequestMethod.GET)
     @ResponseBody
     public PageData<SchedulerEventInfo> getEdgeSchedulerEvents(
-            @ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
+            @Parameter(description = EDGE_ID_PARAM_DESCRIPTION)
             @PathVariable(EDGE_ID) String strEdgeId,
-            @ApiParam(value = PAGE_SIZE_DESCRIPTION, required = true, allowableValues = "range[1, infinity]")
+            @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true, schema = @Schema(minimum = "1"))
             @RequestParam int pageSize,
-            @ApiParam(value = PAGE_NUMBER_DESCRIPTION, required = true, allowableValues = "range[0, infinity]")
+            @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @ApiParam(value = "The case insensitive 'startsWith' filter based on the scheduler event name.")
+            @Parameter(description = "The case insensitive 'startsWith' filter based on the scheduler event name.")
             @RequestParam(required = false) String textSearch,
-            @ApiParam(value = SORT_PROPERTY_DESCRIPTION)
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION)
             @RequestParam(required = false) String sortProperty,
-            @ApiParam(value = SORT_ORDER_DESCRIPTION, allowableValues = SORT_ORDER_ALLOWABLE_VALUES)
+            @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         TenantId tenantId = getCurrentUser().getTenantId();
@@ -349,7 +343,7 @@ public class SchedulerEventController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/edge/{edgeId}/allSchedulerEvents", method = RequestMethod.GET)
     @ResponseBody
-    public List<SchedulerEventInfo> getAllSchedulerEvents(@ApiParam(value = EDGE_ID_PARAM_DESCRIPTION)
+    public List<SchedulerEventInfo> getAllSchedulerEvents(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION)
                                                           @PathVariable(EDGE_ID) String strEdgeId) throws ThingsboardException {
         checkParameter("edgeId", strEdgeId);
         TenantId tenantId = getCurrentUser().getTenantId();

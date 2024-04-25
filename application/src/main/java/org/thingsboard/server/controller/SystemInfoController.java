@@ -32,6 +32,8 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,13 +62,13 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
-import springfox.documentation.annotations.ApiIgnore;
+import org.thingsboard.server.service.translation.TbTranslationService;
 
-import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
-@ApiIgnore
+@Hidden
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
@@ -93,6 +95,9 @@ public class SystemInfoController extends BaseController {
 
     @Autowired
     private WhiteLabelingService whiteLabelingService;
+
+    @Autowired
+    private TbTranslationService translationService;
 
     @PostConstruct
     public void init() {
@@ -158,6 +163,7 @@ public class SystemInfoController extends BaseController {
             DefaultTenantProfileConfiguration tenantProfileConfiguration = tenantProfileCache.get(tenantId).getDefaultProfileConfiguration();
             systemParams.setMaxResourceSize(tenantProfileConfiguration.getMaxResourceSize());
         }
+        systemParams.setAvailableLocales(translationService.getAvailableLocaleCodes(tenantId, customerId));
         return systemParams;
     }
 

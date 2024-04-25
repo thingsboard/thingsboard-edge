@@ -65,6 +65,9 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 
+import static org.thingsboard.server.common.util.KvProtoUtil.fromTsValueProtoList;
+import static org.thingsboard.server.common.util.KvProtoUtil.toTsKvProtoBuilder;
+
 public class TbSubscriptionUtils {
 
     public static ToCoreMsg toSubEventProto(String serviceId, TbEntitySubEvent event) {
@@ -109,7 +112,6 @@ public class TbSubscriptionUtils {
                                 .build())
                 .build();
     }
-
 
     public static TbEntitySubEvent fromProto(TbEntitySubEventProto proto) {
         ComponentLifecycleEvent event = ComponentLifecycleEvent.valueOf(proto.getType());
@@ -186,7 +188,7 @@ public class TbSubscriptionUtils {
         builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
-        ts.forEach(v -> builder.addData(KvProtoUtil.toKeyValueProto(v.getTs(), v).build()));
+        ts.forEach(v -> builder.addData(toTsKvProtoBuilder(v.getTs(), v).build()));
         SubscriptionMgrMsgProto.Builder msgBuilder = SubscriptionMgrMsgProto.newBuilder();
         msgBuilder.setTsUpdate(builder);
         return ToCoreMsg.newBuilder().setToSubscriptionMgrMsg(msgBuilder.build()).build();
@@ -213,7 +215,7 @@ public class TbSubscriptionUtils {
         builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
         builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
         builder.setScope(scope);
-        attributes.forEach(v -> builder.addData(KvProtoUtil.toKeyValueProto(v.getLastUpdateTs(), v).build()));
+        attributes.forEach(v -> builder.addData(toTsKvProtoBuilder(v.getLastUpdateTs(), v).build()));
 
         SubscriptionMgrMsgProto.Builder msgBuilder = SubscriptionMgrMsgProto.newBuilder();
         msgBuilder.setAttrUpdate(builder);
@@ -297,7 +299,7 @@ public class TbSubscriptionUtils {
     public static List<TsKvEntry> fromProto(TransportProtos.TbSubUpdateProto proto) {
         List<TsKvEntry> result = new ArrayList<>();
         for (var p : proto.getDataList()) {
-            result.addAll(KvProtoUtil.toTsKvEntityList(p.getKey(), p.getTsValueList()));
+            result.addAll(fromTsValueProtoList(p.getKey(), p.getTsValueList()));
         }
         return result;
     }

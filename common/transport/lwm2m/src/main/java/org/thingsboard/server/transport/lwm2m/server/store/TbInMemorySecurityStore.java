@@ -30,7 +30,9 @@
  */
 package org.thingsboard.server.transport.lwm2m.server.store;
 
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.core.SecurityMode;
+import org.eclipse.leshan.core.peer.OscoreIdentity;
 import org.eclipse.leshan.server.security.NonUniqueSecurityInfoException;
 import org.eclipse.leshan.server.security.SecurityInfo;
 import org.thingsboard.server.transport.lwm2m.secure.TbLwM2MSecurityInfo;
@@ -41,6 +43,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+@Slf4j
 public class TbInMemorySecurityStore implements TbEditableSecurityStore {
     // lock for the two maps
     protected final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
@@ -99,24 +102,29 @@ public class TbInMemorySecurityStore implements TbEditableSecurityStore {
     }
 
     @Override
+    public SecurityInfo getByOscoreIdentity(OscoreIdentity oscoreIdentity) {
+        return null;
+    }
+
+    @Override
     public void put(TbLwM2MSecurityInfo tbSecurityInfo) throws NonUniqueSecurityInfoException {
         writeLock.lock();
         try {
             String identity = null;
             if (tbSecurityInfo.getSecurityInfo() != null) {
-                identity = tbSecurityInfo.getSecurityInfo().getIdentity();
+                identity = tbSecurityInfo.getSecurityInfo().getPskIdentity();
                 if (identity != null) {
                     TbLwM2MSecurityInfo infoByIdentity = securityByIdentity.get(identity);
                     if (infoByIdentity != null && !tbSecurityInfo.getSecurityInfo().getEndpoint().equals(infoByIdentity.getEndpoint())) {
                         throw new NonUniqueSecurityInfoException("PSK Identity " + identity + " is already used");
                     }
-                    securityByIdentity.put(tbSecurityInfo.getSecurityInfo().getIdentity(), tbSecurityInfo);
+                    securityByIdentity.put(tbSecurityInfo.getSecurityInfo().getPskIdentity(), tbSecurityInfo);
                 }
             }
 
             TbLwM2MSecurityInfo previous = securityByEp.put(tbSecurityInfo.getEndpoint(), tbSecurityInfo);
             if (previous != null && previous.getSecurityInfo() != null) {
-                String previousIdentity = previous.getSecurityInfo().getIdentity();
+                String previousIdentity = previous.getSecurityInfo().getPskIdentity();
                 if (previousIdentity != null && !previousIdentity.equals(identity)) {
                     securityByIdentity.remove(previousIdentity);
                 }
@@ -131,8 +139,8 @@ public class TbInMemorySecurityStore implements TbEditableSecurityStore {
         writeLock.lock();
         try {
             TbLwM2MSecurityInfo securityInfo = securityByEp.remove(endpoint);
-            if (securityInfo != null && securityInfo.getSecurityInfo() != null && securityInfo.getSecurityInfo().getIdentity() != null) {
-                securityByIdentity.remove(securityInfo.getSecurityInfo().getIdentity());
+            if (securityInfo != null && securityInfo.getSecurityInfo() != null && securityInfo.getSecurityInfo().getPskIdentity() != null) {
+                securityByIdentity.remove(securityInfo.getSecurityInfo().getPskIdentity());
             }
         } finally {
             writeLock.unlock();

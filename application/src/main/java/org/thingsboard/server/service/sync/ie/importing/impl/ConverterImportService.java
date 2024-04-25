@@ -74,8 +74,6 @@ public class ConverterImportService extends BaseEntityImportService<ConverterId,
     @Override
     protected void onEntitySaved(User user, Converter savedConverter, Converter oldConverter) throws ThingsboardException {
         super.onEntitySaved(user, savedConverter, oldConverter);
-        clusterService.broadcastEntityStateChangeEvent(user.getTenantId(), savedConverter.getId(),
-                oldConverter == null ? ComponentLifecycleEvent.CREATED : ComponentLifecycleEvent.UPDATED);
     }
 
     @Override

@@ -30,26 +30,34 @@
  */
 package org.thingsboard.server.dao.translation;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
+
+import java.util.Set;
 
 public interface CustomTranslationService {
 
-    CustomTranslation getSystemCustomTranslation(TenantId tenantId);
+    JsonNode getCurrentCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
-    CustomTranslation getTenantCustomTranslation(TenantId tenantId);
+    JsonNode getMergedTenantCustomTranslation(TenantId tenantId, String localeCode);
 
-    CustomTranslation getCustomerCustomTranslation(TenantId tenantId, CustomerId customerId);
+    JsonNode getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
-    CustomTranslation getMergedTenantCustomTranslation(TenantId tenantId);
+    void saveCustomTranslation(CustomTranslation customTranslation);
 
-    CustomTranslation getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId);
+    void patchCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode customTranslation);
 
-    CustomTranslation saveSystemCustomTranslation(CustomTranslation customTranslation);
+    void deleteCustomTranslationKeyByPath(TenantId tenantId, CustomerId customerId, String localeCode, String key);
 
-    CustomTranslation saveTenantCustomTranslation(TenantId tenantId, CustomTranslation customTranslation);
+    void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
-    CustomTranslation saveCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, CustomTranslation customTranslation);
+    Set<String> getCurrentCustomizedLocales(TenantId tenantId, CustomerId customerId);
 
+    Set<String> getMergedTenantCustomizedLocales(TenantId tenantId);
+
+    Set<String> getMergedCustomerCustomizedLocales(TenantId tenantId, CustomerId customerId);
+
+    void deleteCustomTranslationByTenantId(TenantId tenantId);
 }

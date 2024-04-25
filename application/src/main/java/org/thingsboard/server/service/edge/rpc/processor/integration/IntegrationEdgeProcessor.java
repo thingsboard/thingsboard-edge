@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -102,7 +103,7 @@ public class IntegrationEdgeProcessor extends BaseEdgeProcessor {
             List<AttributeKvEntry> attributeKvEntries =
                     attributesService.find(edgeEvent.getTenantId(),
                             edgeEvent.getEdgeId(),
-                            DataConstants.SERVER_SCOPE,
+                            AttributeScope.SERVER_SCOPE,
                             attributeKeysFromConfiguration).get();
             String updatedConfiguration = originalConfiguration.toString();
             for (AttributeKvEntry attributeKvEntry : attributeKvEntries) {

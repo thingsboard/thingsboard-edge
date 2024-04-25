@@ -354,6 +354,24 @@ import {
 import {
   ToggleButtonWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/button/toggle-button-widget-settings.component';
+import {
+  TimeSeriesChartKeySettingsComponent
+} from '@home/components/widget/lib/settings/chart/time-series-chart-key-settings.component';
+import {
+  TimeSeriesChartLineSettingsComponent
+} from '@home/components/widget/lib/settings/chart/time-series-chart-line-settings.component';
+import {
+  TimeSeriesChartBarSettingsComponent
+} from '@home/components/widget/lib/settings/chart/time-series-chart-bar-settings.component';
+import {
+  TimeSeriesChartWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/chart/time-series-chart-widget-settings.component';
+import {
+  StatusWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/indicator/status-widget-settings.component';
+import {
+  PieChartWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/chart/pie-chart-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -473,6 +491,12 @@ import {
     PowerButtonWidgetSettingsComponent,
     SliderWidgetSettingsComponent,
     ToggleButtonWidgetSettingsComponent,
+    TimeSeriesChartKeySettingsComponent,
+    TimeSeriesChartLineSettingsComponent,
+    TimeSeriesChartBarSettingsComponent,
+    TimeSeriesChartWidgetSettingsComponent,
+    StatusWidgetSettingsComponent,
+    PieChartWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -600,6 +624,12 @@ import {
     PowerButtonWidgetSettingsComponent,
     SliderWidgetSettingsComponent,
     ToggleButtonWidgetSettingsComponent,
+    TimeSeriesChartKeySettingsComponent,
+    TimeSeriesChartLineSettingsComponent,
+    TimeSeriesChartBarSettingsComponent,
+    TimeSeriesChartWidgetSettingsComponent,
+    StatusWidgetSettingsComponent,
+    PieChartWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -694,6 +724,10 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-power-button-widget-settings': PowerButtonWidgetSettingsComponent,
   'tb-slider-widget-settings': SliderWidgetSettingsComponent,
   'tb-toggle-button-widget-settings': ToggleButtonWidgetSettingsComponent,
+  'tb-time-series-chart-key-settings': TimeSeriesChartKeySettingsComponent,
+  'tb-time-series-chart-widget-settings': TimeSeriesChartWidgetSettingsComponent,
+  'tb-status-widget-settings': StatusWidgetSettingsComponent,
+  'tb-pie-chart-widget-settings': PieChartWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

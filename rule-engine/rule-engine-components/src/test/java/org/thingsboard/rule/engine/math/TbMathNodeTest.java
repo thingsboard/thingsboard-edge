@@ -35,7 +35,6 @@ import com.google.common.util.concurrent.Futures;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Triple;
 import org.assertj.core.api.SoftAssertions;
-import org.junit.Assert;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,6 +53,7 @@ import org.thingsboard.rule.engine.api.RuleEngineTelemetryService;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -83,7 +83,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
@@ -92,9 +91,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willReturn;
-import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -380,7 +377,7 @@ public class TbMathNodeTest {
 
         TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, originator, TbMsgMetaData.EMPTY, JacksonUtil.newObjectNode().toString());
 
-        when(attributesService.find(tenantId, originator, DataConstants.SERVER_SCOPE, "a"))
+        when(attributesService.find(tenantId, originator, AttributeScope.SERVER_SCOPE, "a"))
                 .thenReturn(Futures.immediateFuture(Optional.of(new BaseAttributeKvEntry(System.currentTimeMillis(), new DoubleDataEntry("a", 2.0)))));
 
         when(tsService.findLatest(tenantId, originator, "b"))
@@ -452,14 +449,14 @@ public class TbMathNodeTest {
 
         TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, originator, TbMsgMetaData.EMPTY, JacksonUtil.newObjectNode().put("a", 5).toString());
 
-        when(telemetryService.saveAttrAndNotify(any(), any(), anyString(), anyString(), anyDouble()))
+        when(telemetryService.saveAttrAndNotify(any(), any(), any(AttributeScope.class), anyString(), anyDouble()))
                 .thenReturn(Futures.immediateFuture(null));
 
         node.onMsg(ctx, msg);
 
         ArgumentCaptor<TbMsg> msgCaptor = ArgumentCaptor.forClass(TbMsg.class);
         verify(ctx, timeout(TIMEOUT)).tellSuccess(msgCaptor.capture());
-        verify(telemetryService, times(1)).saveAttrAndNotify(any(), any(), anyString(), anyString(), anyDouble());
+        verify(telemetryService, times(1)).saveAttrAndNotify(any(), any(), any(AttributeScope.class), anyString(), anyDouble());
 
         TbMsg resultMsg = msgCaptor.getValue();
         assertNotNull(resultMsg);
@@ -557,7 +554,7 @@ public class TbMathNodeTest {
 
         ArgumentCaptor<Throwable> tCaptor = ArgumentCaptor.forClass(Throwable.class);
         Mockito.verify(ctx, Mockito.timeout(5000)).tellFailure(eq(msg), tCaptor.capture());
-        Assert.assertNotNull(tCaptor.getValue().getMessage());
+        assertNotNull(tCaptor.getValue().getMessage());
     }
 
     @Test
@@ -572,7 +569,7 @@ public class TbMathNodeTest {
 
         ArgumentCaptor<Throwable> tCaptor = ArgumentCaptor.forClass(Throwable.class);
         Mockito.verify(ctx, Mockito.timeout(5000)).tellFailure(eq(msg), tCaptor.capture());
-        Assert.assertNotNull(tCaptor.getValue().getMessage());
+        assertNotNull(tCaptor.getValue().getMessage());
     }
 
     @Test
@@ -588,10 +585,10 @@ public class TbMathNodeTest {
 
         List<TbMsg> slowMsgList = IntStream.range(0, 5)
                 .mapToObj(x -> TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, originatorSlow, TbMsgMetaData.EMPTY, JacksonUtil.newObjectNode().put("a", 2).put("b", 2).toString()))
-                .collect(Collectors.toList());
+                .toList();
         List<TbMsg> fastMsgList = IntStream.range(0, 2)
                 .mapToObj(x -> TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, originatorFast, TbMsgMetaData.EMPTY, JacksonUtil.newObjectNode().put("a", 2).put("b", 2).toString()))
-                .collect(Collectors.toList());
+                .toList();
 
         assertThat(slowMsgList.size()).as("slow msgs >= rule-dispatcher pool size").isGreaterThanOrEqualTo(RULE_DISPATCHER_POOL_SIZE);
 
@@ -728,7 +725,7 @@ public class TbMathNodeTest {
                     }).given(node).onMsg(any(), any());
                     return Triple.of(ctx, resultKey, node);
                 })
-                .collect(Collectors.toList());
+                .toList();
         ctxNodes.forEach(ctxNode -> ruleEngineDispatcherExecutor.executeAsync(() -> ctxNode.getRight()
                 .onMsg(ctxNode.getLeft(), TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, originator, TbMsgMetaData.EMPTY, "{\"a\":2,\"b\":2}"))));
         ctxNodes.forEach(ctxNode -> verify(ctxNode.getRight(), timeout(5000)).onMsg(eq(ctxNode.getLeft()), any()));

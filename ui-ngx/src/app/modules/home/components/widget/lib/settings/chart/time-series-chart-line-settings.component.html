@@ -1,0 +1,140 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<ng-container [formGroup]="lineSettingsFormGroup">
+  <div *ngIf="chartType !== TimeSeriesChartType.point" class="tb-form-panel stroked">
+    <div class="tb-form-panel-title" translate>widgets.time-series-chart.series.line.line</div>
+    <div *ngIf="chartType !== TimeSeriesChartType.state" class="tb-form-row">
+      <mat-slide-toggle class="mat-slide" formControlName="showLine">
+        {{ 'widgets.time-series-chart.series.line.show-line' | translate }}
+      </mat-slide-toggle>
+    </div>
+    <div class="tb-form-row space-between column-xs">
+      <mat-slide-toggle class="mat-slide" formControlName="step">
+        {{ 'widgets.time-series-chart.series.line.step-line' | translate }}
+      </mat-slide-toggle>
+      <mat-form-field class="medium-width" appearance="outline" subscriptSizing="dynamic">
+        <mat-select formControlName="stepType">
+          <mat-option *ngFor="let stepType of lineSeriesStepTypes" [value]="stepType">
+            {{ lineSeriesStepTypeTranslations.get(stepType) | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div *ngIf="chartType !== TimeSeriesChartType.state" class="tb-form-row">
+      <mat-slide-toggle class="mat-slide" formControlName="smooth">
+        {{ 'widgets.time-series-chart.series.line.smooth-line' | translate }}
+      </mat-slide-toggle>
+    </div>
+    <div class="tb-form-row space-between column-xs">
+      <div translate>widgets.time-series-chart.line-type</div>
+      <mat-form-field class="medium-width" appearance="outline" subscriptSizing="dynamic">
+        <mat-select formControlName="lineType">
+          <mat-option *ngFor="let lineType of timeSeriesLineTypes" [value]="lineType">
+            {{ timeSeriesLineTypeTranslations.get(lineType) | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    <div class="tb-form-row space-between column-xs">
+      <div translate>widgets.time-series-chart.line-width</div>
+      <mat-form-field class="medium-width number" appearance="outline" subscriptSizing="dynamic">
+        <input matInput type="number" formControlName="lineWidth" min="0" step="1" placeholder="{{ 'widget-config.set' | translate }}"/>
+      </mat-form-field>
+    </div>
+  </div>
+  <div *ngIf="chartType !== TimeSeriesChartType.point; else pointSettings" class="tb-form-panel stroked">
+    <div class="tb-form-panel-title" translate>widgets.time-series-chart.series.point.points</div>
+    <div class="tb-form-row">
+      <mat-slide-toggle class="mat-slide" formControlName="showPoints">
+        {{ 'widgets.time-series-chart.series.point.show-points' | translate }}
+      </mat-slide-toggle>
+    </div>
+    <ng-container *ngTemplateOutlet="pointSettings"></ng-container>
+  </div>
+  <tb-time-series-chart-fill-settings
+    formControlName="fillAreaSettings">
+  </tb-time-series-chart-fill-settings>
+</ng-container>
+<ng-template #pointSettings [formGroup]="lineSettingsFormGroup">
+  <div class="tb-form-row space-between column-lt-md">
+    <mat-slide-toggle class="mat-slide" formControlName="showPointLabel">
+      <div tb-hint-tooltip-icon="{{'widgets.time-series-chart.series.point.point-label-hint' | translate}}">
+        {{ 'widgets.time-series-chart.series.point.point-label' | translate }}
+      </div>
+    </mat-slide-toggle>
+    <div fxLayout="row" fxFlex.lt-md fxLayoutAlign="start center" fxLayoutGap="8px">
+      <mat-form-field class="medium-width" fxFlex.lt-md appearance="outline" subscriptSizing="dynamic">
+        <mat-select formControlName="pointLabelPosition">
+          <mat-option *ngFor="let position of seriesLabelPositions" [value]="position">
+            {{ seriesLabelPositionTranslations.get(position) | translate }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+      <tb-font-settings formControlName="pointLabelFont"
+                        clearButton
+                        disabledLineHeight
+                        forceSizeUnit="px"
+                        [previewText]="pointLabelPreviewFn">
+      </tb-font-settings>
+      <tb-color-input asBoxInput
+                      colorClearButton
+                      formControlName="pointLabelColor">
+      </tb-color-input>
+    </div>
+  </div>
+  <div class="tb-form-row space-between">
+    <mat-slide-toggle class="mat-slide" formControlName="enablePointLabelBackground">
+      {{ 'widgets.time-series-chart.series.point.point-label-background' | translate }}
+    </mat-slide-toggle>
+    <tb-color-input asBoxInput
+                    colorClearButton
+                    formControlName="pointLabelBackground">
+    </tb-color-input>
+  </div>
+  <div class="tb-form-row space-between column-xs">
+    <div translate>widgets.time-series-chart.series.point.point-shape</div>
+    <mat-form-field class="medium-width" appearance="outline" subscriptSizing="dynamic">
+      <mat-select formControlName="pointShape">
+        <mat-option *ngFor="let shape of echartsShapes" [value]="shape">
+          {{ echartsShapeTranslations.get(shape) | translate }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="tb-form-row space-between column-xs">
+    <div translate>widgets.time-series-chart.series.point.point-size</div>
+    <mat-form-field class="medium-width number" appearance="outline" subscriptSizing="dynamic">
+      <input matInput type="number" formControlName="pointSize" min="0" step="1" placeholder="{{ 'widget-config.set' | translate }}"/>
+    </mat-form-field>
+  </div>
+</ng-template>

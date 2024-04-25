@@ -39,19 +39,22 @@ import {
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { formatValue, isDefinedAndNotNull } from '@core/utils';
+import { formatValue, isDefinedAndNotNull, mergeDeep } from '@core/utils';
 import {
   doughnutDefaultSettings,
   DoughnutLayout,
   doughnutLayoutImages,
   doughnutLayouts,
   doughnutLayoutTranslations,
-  DoughnutTooltipValueType,
-  doughnutTooltipValueTypes,
-  doughnutTooltipValueTypeTranslations,
+  DoughnutWidgetSettings,
   horizontalDoughnutLayoutImages
 } from '@home/components/widget/lib/chart/doughnut-widget.models';
 import { WidgetConfigComponentData } from '@home/models/widget-component.models';
+import {
+  LatestChartTooltipValueType,
+  latestChartTooltipValueTypes,
+  latestChartTooltipValueTypeTranslations
+} from '@home/components/widget/lib/chart/latest-chart.models';
 
 @Component({
   selector: 'tb-doughnut-widget-settings',
@@ -77,9 +80,9 @@ export class DoughnutWidgetSettingsComponent extends WidgetSettingsComponent {
 
   legendPositionTranslationMap = legendPositionTranslationMap;
 
-  doughnutTooltipValueTypes = doughnutTooltipValueTypes;
+  latestChartTooltipValueTypes = latestChartTooltipValueTypes;
 
-  doughnutTooltipValueTypeTranslationMap = doughnutTooltipValueTypeTranslations;
+  latestChartTooltipValueTypeTranslationMap = latestChartTooltipValueTypeTranslations;
 
   doughnutWidgetSettingsForm: UntypedFormGroup;
 
@@ -103,7 +106,7 @@ export class DoughnutWidgetSettingsComponent extends WidgetSettingsComponent {
   }
 
   protected defaultSettings(): WidgetSettings {
-    return doughnutDefaultSettings(this.horizontal);
+    return mergeDeep<DoughnutWidgetSettings>({} as DoughnutWidgetSettings, doughnutDefaultSettings(this.horizontal));
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
@@ -115,6 +118,8 @@ export class DoughnutWidgetSettingsComponent extends WidgetSettingsComponent {
 
       totalValueFont: [settings.totalValueFont, []],
       totalValueColor: [settings.totalValueColor, []],
+
+      animation: [settings.animation, []],
 
       showLegend: [settings.showLegend, []],
       legendPosition: [settings.legendPosition, []],
@@ -190,9 +195,9 @@ export class DoughnutWidgetSettingsComponent extends WidgetSettingsComponent {
   }
 
   private _tooltipValuePreviewFn(): string {
-    const tooltipValueType: DoughnutTooltipValueType = this.doughnutWidgetSettingsForm.get('tooltipValueType').value;
+    const tooltipValueType: LatestChartTooltipValueType = this.doughnutWidgetSettingsForm.get('tooltipValueType').value;
     const decimals: number = this.doughnutWidgetSettingsForm.get('tooltipValueDecimals').value;
-    if (tooltipValueType === DoughnutTooltipValueType.percentage) {
+    if (tooltipValueType === LatestChartTooltipValueType.percentage) {
       return formatValue(35, decimals, '%', false);
     } else {
       const units: string = this.widgetConfig.config.units;

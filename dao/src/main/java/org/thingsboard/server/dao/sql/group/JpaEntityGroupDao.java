@@ -49,7 +49,6 @@ import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -145,6 +144,15 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     public PageData<EntityGroup> findEdgeEntityGroupsByType(UUID tenantId, UUID edgeId, String relationType, PageLink pageLink) {
         return DaoUtil.toPageData(entityGroupRepository.findEdgeEntityGroupsByType(
                 edgeId,
+                relationType,
+                DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public PageData<EntityGroup> findEdgeEntityGroupsByOwnerIdAndType(UUID tenantId, UUID edgeId, UUID ownerId, String relationType, PageLink pageLink) {
+        return DaoUtil.toPageData(entityGroupRepository.findEdgeEntityGroupsByOwnerIdAndType(
+                edgeId,
+                ownerId,
                 relationType,
                 DaoUtil.toPageable(pageLink)));
     }

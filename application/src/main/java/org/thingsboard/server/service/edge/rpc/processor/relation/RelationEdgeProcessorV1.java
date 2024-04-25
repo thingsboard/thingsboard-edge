@@ -64,4 +64,5 @@ public class RelationEdgeProcessorV1 extends RelationEdgeProcessor {
         entityRelation.setAdditionalInfo(JacksonUtil.toJsonNode(relationUpdateMsg.getAdditionalInfo()));
         return entityRelation;
     }
+
 }

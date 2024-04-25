@@ -172,7 +172,7 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
                             asf.hasClearFilter() && asf.getClearFilter(),
                             asf.hasAckFilter(),
                             asf.hasAckFilter() && asf.getAckFilter(),
-                            DaoUtil.getStringId(query.getAssigneeId()),
+                            DaoUtil.getId(query.getAssigneeId()),
                             query.getPageLink().getTextSearch(),
                             DaoUtil.toPageable(query.getPageLink())
                     )
@@ -187,7 +187,7 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
                             asf.hasClearFilter() && asf.getClearFilter(),
                             asf.hasAckFilter(),
                             asf.hasAckFilter() && asf.getAckFilter(),
-                            DaoUtil.getStringId(query.getAssigneeId()),
+                            DaoUtil.getId(query.getAssigneeId()),
                             query.getPageLink().getTextSearch(),
                             DaoUtil.toPageable(query.getPageLink())
                     )
@@ -209,7 +209,7 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
                         asf.hasClearFilter() && asf.getClearFilter(),
                         asf.hasAckFilter(),
                         asf.hasAckFilter() && asf.getAckFilter(),
-                        DaoUtil.getStringId(query.getAssigneeId()),
+                        DaoUtil.getId(query.getAssigneeId()),
                         query.getPageLink().getTextSearch(),
                         DaoUtil.toPageable(query.getPageLink())
                 )
@@ -238,7 +238,7 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
                             asf.hasClearFilter() && asf.getClearFilter(),
                             asf.hasAckFilter(),
                             asf.hasAckFilter() && asf.getAckFilter(),
-                            DaoUtil.getStringId(query.getAssigneeId()),
+                            DaoUtil.getId(query.getAssigneeId()),
                             query.getPageLink().getTextSearch(),
                             DaoUtil.toPageable(query.getPageLink())
                     )
@@ -255,7 +255,7 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
                             asf.hasClearFilter() && asf.getClearFilter(),
                             asf.hasAckFilter(),
                             asf.hasAckFilter() && asf.getAckFilter(),
-                            DaoUtil.getStringId(query.getAssigneeId()),
+                            DaoUtil.getId(query.getAssigneeId()),
                             query.getPageLink().getTextSearch(),
                             DaoUtil.toPageable(query.getPageLink())
                     )
@@ -281,7 +281,7 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
                         asf.hasClearFilter() && asf.getClearFilter(),
                         asf.hasAckFilter(),
                         asf.hasAckFilter() && asf.getAckFilter(),
-                        DaoUtil.getStringId(query.getAssigneeId()),
+                        DaoUtil.getId(query.getAssigneeId()),
                         query.getPageLink().getTextSearch(),
                         DaoUtil.toPageable(query.getPageLink())
                 )
@@ -326,7 +326,7 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
                 asf.hasClearFilter() && asf.getClearFilter(),
                 asf.hasAckFilter(),
                 asf.hasAckFilter() && asf.getAckFilter(),
-                assigneeId);
+                StringUtils.isNotBlank(assigneeId) ? UUID.fromString(assigneeId) : null);
     }
 
     @Override
@@ -338,6 +338,12 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
     @Override
     public PageData<AlarmId> findAlarmIdsByAssigneeId(TenantId tenantId, UUID userId, PageLink pageLink) {
         return DaoUtil.pageToPageData(alarmRepository.findAlarmIdsByAssigneeId(tenantId.getId(), userId, DaoUtil.toPageable(pageLink)))
+                .mapData(AlarmId::new);
+    }
+
+    @Override
+    public PageData<AlarmId> findAlarmIdsByOriginatorId(TenantId tenantId, EntityId originatorId, PageLink pageLink) {
+        return DaoUtil.pageToPageData(alarmRepository.findAlarmIdsByOriginatorId(tenantId.getId(), originatorId.getId(), DaoUtil.toPageable(pageLink)))
                 .mapData(AlarmId::new);
     }
 
@@ -437,7 +443,7 @@ public class JpaAlarmDao extends JpaAbstractDao<AlarmEntity, Alarm> implements A
 
     @Override
     public PageData<EntitySubtype> findTenantAlarmTypes(UUID tenantId, PageLink pageLink) {
-        Page<String> page = alarmRepository.findTenantAlarmTypes(tenantId, Objects.toString(pageLink.getTextSearch(), ""), toPageable(pageLink));
+        Page<String> page = alarmRepository.findTenantAlarmTypes(tenantId, Objects.toString(pageLink.getTextSearch(), ""), toPageable(pageLink, false));
         if (page.isEmpty()) {
             return PageData.emptyPageData();
         }

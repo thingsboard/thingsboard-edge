@@ -44,8 +44,10 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
+import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.kv.KvEntry;
 
@@ -57,6 +59,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -68,24 +71,33 @@ import java.util.regex.Pattern;
 /**
  * Created by Valerii Sosliuk on 5/12/2017.
  */
+@Slf4j
 public class JacksonUtil {
 
-    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    public static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder()
+            .addModule(new Jdk8Module())
+            .build();
     public static final ObjectMapper PRETTY_SORTED_JSON_MAPPER = JsonMapper.builder()
+            .addModule(new Jdk8Module())
             .enable(SerializationFeature.INDENT_OUTPUT)
             .configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true)
             .configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
             .build();
     public static ObjectMapper ALLOW_UNQUOTED_FIELD_NAMES_MAPPER = JsonMapper.builder()
+            .addModule(new Jdk8Module())
             .configure(JsonWriteFeature.QUOTE_FIELD_NAMES.mappedFeature(), false)
             .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true)
             .build();
     public static final ObjectMapper IGNORE_UNKNOWN_PROPERTIES_JSON_MAPPER = JsonMapper.builder()
+            .addModule(new Jdk8Module())
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .build();
 
     public static ObjectMapper getObjectMapperWithJavaTimeModule() {
-        return new ObjectMapper().registerModule(new JavaTimeModule());
+        return JsonMapper.builder()
+                .addModule(new Jdk8Module())
+                .addModule(new JavaTimeModule())
+                .build();
     }
 
     public static <T> T convertValue(Object fromValue, Class<T> toValueType) {
@@ -167,9 +179,19 @@ public class JacksonUtil {
             throw new IllegalArgumentException("The given Json object value cannot be transformed to a String: " + value, e);
         }
     }
+
     public static String writeValueAsString(Object value) {
         try {
             return OBJECT_MAPPER.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("The given Json object value: "
+                    + value + " cannot be transformed to a String", e);
+        }
+    }
+
+    public static String writeValueAsStringWithDefaultPrettyPrinter(Object value) {
+        try {
+            return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(value);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("The given Json object value: "
                     + value + " cannot be transformed to a String", e);
@@ -182,6 +204,20 @@ public class JacksonUtil {
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static String toPlainText(String data) {
+        if (data == null) {
+            return null;
+        }
+        if (data.startsWith("\"") && data.endsWith("\"") && data.length() >= 2) {
+            final String dataBefore = data;
+            try {
+                data = JacksonUtil.fromString(data, String.class);
+            } catch (Exception ignored) {}
+            log.trace("Trimming double quotes. Before trim: [{}], after trim: [{}]", dataBefore, data);
+        }
+        return data;
     }
 
     public static <T> T treeToValue(JsonNode node, Class<T> clazz) {
@@ -230,7 +266,6 @@ public class JacksonUtil {
             throw new IllegalArgumentException("Can't read file: " + file, e);
         }
     }
-
 
     public static JsonNode toJsonNode(Path file) {
         try {
@@ -295,6 +330,10 @@ public class JacksonUtil {
             }
         }
         return node;
+    }
+
+    public static ObjectNode asObject(JsonNode node) {
+        return node != null && node.isObject() ? ((ObjectNode) node) : newObjectNode();
     }
 
     public static void replaceUuidsRecursively(JsonNode node, Set<String> skippedRootFields, Pattern includedFieldsPattern, UnaryOperator<UUID> replacer, boolean root) {
@@ -401,6 +440,106 @@ public class JacksonUtil {
         } else {
             entityNode.put(key, kvEntry.getValueAsString());
         }
+    }
+
+    public static Set<String> extractKeys(JsonNode jsonNode) {
+        Set<String> keyPaths = new HashSet<>();
+        extractKeyPathsRecursively("", jsonNode, keyPaths);
+        return keyPaths;
+    }
+
+    private static void extractKeyPathsRecursively(String currentPath, JsonNode jsonNode, Set<String> keyPaths) {
+        if (jsonNode.isObject()) {
+            ObjectNode objectNode = (ObjectNode) jsonNode;
+            Iterator<String> fieldNames = objectNode.fieldNames();
+            while (fieldNames.hasNext()) {
+                String fieldName = fieldNames.next();
+                String newPath = currentPath.isEmpty() ? fieldName : currentPath + "." + fieldName;
+                extractKeyPathsRecursively(newPath, objectNode.get(fieldName), keyPaths);
+            }
+        } else if (jsonNode.isArray()) {
+            for (int i = 0; i < jsonNode.size(); i++) {
+                String newPath = currentPath.isEmpty() ? "[" + i + "]" : currentPath + "[" + i + "]";
+                extractKeyPathsRecursively(newPath, jsonNode.get(i), keyPaths);
+            }
+        } else {
+            keyPaths.add(currentPath);
+        }
+    }
+
+    public static JsonNode update(JsonNode mainNode, JsonNode updateNode) {
+        Iterator<String> fieldNames = updateNode.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldExpression = fieldNames.next();
+            String[] fieldPath = fieldExpression.trim().split("\\.");
+            var node = (ObjectNode) mainNode;
+            for (int i = 0; i < fieldPath.length; i++) {
+                var fieldName = fieldPath[i];
+                var last = i == (fieldPath.length - 1);
+                if (last) {
+                    node.set(fieldName, updateNode.get(fieldExpression));
+                } else {
+                    if (!node.has(fieldName)) {
+                        node.set(fieldName, JacksonUtil.newObjectNode());
+                    }
+                    node = (ObjectNode) node.get(fieldName);
+                }
+            }
+        }
+        return mainNode;
+    }
+
+    public static JsonNode merge(JsonNode mainNode, JsonNode updateNode) {
+        mergeNodes(mainNode, updateNode);
+        return mainNode;
+    }
+    public static void mergeNodes(JsonNode mainNode, JsonNode updateNode) {
+        Iterator<String> fieldNames = updateNode.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldName = fieldNames.next();
+            JsonNode jsonNode = mainNode.get(fieldName);
+            if (jsonNode != null) {
+                if (jsonNode.isObject()) {
+                    mergeNodes(jsonNode, updateNode.get(fieldName));
+                } else if (jsonNode.isArray()) {
+                    for (int i = 0; i < jsonNode.size(); i++) {
+                        mergeNodes(jsonNode.get(i), updateNode.get(fieldName).get(i));
+                    }
+                } else {
+                    ((ObjectNode) mainNode).set(fieldName, updateNode.get(fieldName));
+                }
+            } else {
+                if (mainNode instanceof ObjectNode) {
+                    // Overwrite field
+                    JsonNode value = updateNode.get(fieldName);
+                    if (value.isNull()) {
+                        continue;
+                    }
+                    ((ObjectNode) mainNode).set(fieldName, value);
+                }
+            }
+        }
+    }
+
+    public static JsonNode deleteByKeyPath(JsonNode mainNode, String keyPath) {
+        String[] fieldPath = keyPath.trim().split("\\.");
+        var node = (ObjectNode) mainNode;
+        for (int i = 0; i < fieldPath.length; i++) {
+            var fieldName = fieldPath[i];
+            var last = i == (fieldPath.length - 1);
+            if (last) {
+                node.remove(fieldName);
+            } else {
+                if (!node.has(fieldName)) {
+                    break;
+                }
+                node = (ObjectNode) node.get(fieldName);
+            }
+        }
+        if (node.isEmpty() && keyPath.contains(".")) {
+            deleteByKeyPath(mainNode, keyPath.substring(0, keyPath.lastIndexOf(".")));
+        }
+        return mainNode;
     }
 
 }

@@ -99,7 +99,6 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.security.model.JwtSettings;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
@@ -113,6 +112,7 @@ import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.OAuth2UpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataRequestMsg;
@@ -124,7 +124,6 @@ import org.thingsboard.server.gen.edge.v1.TenantUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
-import org.thingsboard.server.queue.util.DataDecodingEncodingService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -155,9 +154,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     protected EdgeEventService edgeEventService;
 
     @Autowired
-    protected DataDecodingEncodingService dataDecodingEncodingService;
-
-    @Autowired
     protected TbClusterService clusterService;
 
     @Before
@@ -166,7 +162,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         doPost("/api/whiteLabel/loginWhiteLabelParams", new LoginWhiteLabelingParams(), LoginWhiteLabelingParams.class);
         doPost("/api/whiteLabel/whiteLabelParams", new WhiteLabelingParams(), WhiteLabelingParams.class);
-        doPost("/api/customTranslation/customTranslation", new CustomTranslation(), CustomTranslation.class);
 
         // get jwt settings from yaml config
         JwtSettings settings = doGet("/api/admin/jwtSettings", JwtSettings.class);
@@ -187,7 +182,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.expectMessageAmount(28);
+        edgeImitator.ignoreType(OAuth2UpdateMsg.class);
+        edgeImitator.expectMessageAmount(27);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -208,7 +204,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     private RuleChainId getEdgeRootRuleChainId() throws Exception {
         List<RuleChain> edgeRuleChains = doGetTypedWithPageLink("/api/edge/" + edge.getUuidId() + "/ruleChains?",
-                new TypeReference<PageData<RuleChain>>() {}, new PageLink(100)).getData();
+                new TypeReference<PageData<RuleChain>>() {
+                }, new PageLink(100)).getData();
         for (RuleChain edgeRuleChain : edgeRuleChains) {
             if (edgeRuleChain.isRoot()) {
                 return edgeRuleChain.getId();
@@ -225,7 +222,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
             doDelete("/api/edge/" + edge.getId().toString())
                     .andExpect(status().isOk());
             edgeImitator.disconnect();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     private void installation() {
@@ -285,9 +283,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         validateMsgsCnt(RuleChainMetadataUpdateMsg.class, 1);
         validateRuleChainMetadataUpdates(ruleChainUUID);
 
-        // 6 messages ('general', 'mail', 'connectivity', 'jwt', 'customTranslation', 'customMenu')
-        validateMsgsCnt(AdminSettingsUpdateMsg.class, 6);
-        validateAdminSettings(6);
+        // 5 messages ('general', 'mail', 'connectivity', 'jwt', 'customMenu')
+        validateMsgsCnt(AdminSettingsUpdateMsg.class, 5);
+        validateAdminSettings(5);
 
         // 3 messages
         // - 1 from default profile fetcher
@@ -416,7 +414,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         RuleChain ruleChain = doGet("/api/ruleChain/" + ruleChainUUID, RuleChain.class);
         Assert.assertNotNull(ruleChain);
         List<RuleChain> edgeRuleChains = doGetTypedWithPageLink("/api/edge/" + edge.getUuidId() + "/ruleChains?",
-                new TypeReference<PageData<RuleChain>>() {}, new PageLink(100)).getData();
+                new TypeReference<PageData<RuleChain>>() {
+                }, new PageLink(100)).getData();
         Assert.assertTrue(edgeRuleChains.contains(ruleChain));
         testAutoGeneratedCodeByProtobuf(ruleChainUpdateMsg);
     }
@@ -449,9 +448,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
             }
             if (adminSettings.getKey().equals("jwt")) {
                 validateJwtAdminSettings(adminSettings);
-            }
-            if (adminSettings.getKey().equals("customTranslation")) {
-                validateCustomTranslationAdminSettings(adminSettings);
             }
             if (adminSettings.getKey().equals("customMenu")) {
                 validateCustomMenuAdminSettings(adminSettings);
@@ -488,10 +484,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertNotNull(jsonNode.get("refreshTokenExpTime"));
         Assert.assertNotNull(jsonNode.get("tokenIssuer"));
         Assert.assertNotNull(jsonNode.get("tokenSigningKey"));
-    }
-
-    private void validateCustomTranslationAdminSettings(AdminSettings adminSettings) {
-        Assert.assertNotNull(adminSettings.getJsonValue().get("value"));
     }
 
     private void validateCustomMenuAdminSettings(AdminSettings adminSettings) {
@@ -987,4 +979,11 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
                         .filter(groupTenantName::equals)
                         .count() == 1);
     }
+
+    protected List<EntityGroupId> getEntityGroupsIdsForEntity(EntityId entityId) throws Exception {
+        return JacksonUtil.convertValue(
+                doGet("/api/entityGroups/" + entityId.getEntityType() + "/" + entityId.getId(), JsonNode.class),
+                new TypeReference<>() {});
+    }
+
 }

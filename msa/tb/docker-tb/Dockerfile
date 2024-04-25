@@ -29,7 +29,7 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-FROM thingsboard/openjdk11:bullseye-slim
+FROM thingsboard/openjdk17:bookworm-slim
 
 ENV DATA_FOLDER=/data
 
@@ -78,6 +78,7 @@ EXPOSE 9090
 EXPOSE 1883
 EXPOSE 5683/udp
 EXPOSE 5685/udp
+EXPOSE 5686/udp
 
 VOLUME ["/data"]
 

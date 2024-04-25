@@ -39,8 +39,8 @@ import org.thingsboard.integration.api.ThingsboardPlatformIntegration;
 import org.thingsboard.integration.api.controller.AbstractIntegrationControllerApi;
 import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 

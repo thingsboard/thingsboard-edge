@@ -32,6 +32,8 @@ package org.thingsboard.server.dao.sql.event;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.ListenableFuture;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -62,8 +64,6 @@ import org.thingsboard.server.dao.sql.TbSqlBlockingQueueWrapper;
 import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
 import org.thingsboard.server.dao.util.SqlDao;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -299,9 +299,9 @@ public class JpaBaseEventDao implements EventDao {
                         pageLink.getEndTime(),
                         eventFilter.getServer(),
                         eventFilter.getMsgDirectionType(),
-                        eventFilter.getEntityId(),
+                        StringUtils.isBlank(eventFilter.getEntityId()) ? null : UUID.fromString(eventFilter.getEntityId()),
                         eventFilter.getEntityType(),
-                        eventFilter.getMsgId(),
+                        StringUtils.isBlank(eventFilter.getMsgId()) ? null : UUID.fromString(eventFilter.getMsgId()),
                         eventFilter.getMsgType(),
                         eventFilter.getRelationType(),
                         eventFilter.getDataSearch(),
@@ -526,6 +526,11 @@ public class JpaBaseEventDao implements EventDao {
     @Override
     public List<? extends Event> findLatestEvents(UUID tenantId, UUID entityId, EventType eventType, int limit) {
         return DaoUtil.convertDataList(getEventRepository(eventType).findLatestEvents(tenantId, entityId, limit));
+    }
+
+    @Override
+    public Event findLatestDebugRuleNodeInEvent(UUID tenantId, UUID entityId) {
+        return DaoUtil.getData(ruleNodeDebugEventRepository.findLatestDebugRuleNodeInEvent(tenantId, entityId));
     }
 
     @Override

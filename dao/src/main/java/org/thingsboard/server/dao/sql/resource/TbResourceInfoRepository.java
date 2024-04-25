@@ -45,7 +45,7 @@ public interface TbResourceInfoRepository extends JpaRepository<TbResourceInfoEn
 
     @Query("SELECT tr FROM TbResourceInfoEntity tr WHERE " +
             "(:searchText IS NULL OR ilike(tr.title, CONCAT('%', :searchText, '%')) = true) " +
-            "AND ((tr.tenantId = :tenantId AND (tr.customerId IS NULL OR tr.customerId = '13814000-1dd2-11b2-8080-808080808080'))" +
+            "AND ((tr.tenantId = :tenantId AND (tr.customerId IS NULL OR tr.customerId = org.thingsboard.server.common.data.id.EntityId.NULL_UUID))" +
             "OR (tr.tenantId = :systemTenantId " +
             "AND NOT EXISTS " +
             "(SELECT sr FROM TbResourceEntity sr " +
@@ -60,7 +60,7 @@ public interface TbResourceInfoRepository extends JpaRepository<TbResourceInfoEn
                                                                 Pageable pageable);
 
     @Query("SELECT ri FROM TbResourceInfoEntity ri WHERE " +
-            "ri.tenantId = :tenantId AND (ri.customerId IS NULL OR ri.customerId = '13814000-1dd2-11b2-8080-808080808080') " +
+            "ri.tenantId = :tenantId AND (ri.customerId IS NULL OR ri.customerId = org.thingsboard.server.common.data.id.EntityId.NULL_UUID) " +
             "AND ri.resourceType IN :resourceTypes " +
             "AND (:searchText IS NULL OR ilike(ri.title, CONCAT('%', :searchText, '%')) = true)")
     Page<TbResourceInfoEntity> findTenantResourcesByTenantId(@Param("tenantId") UUID tenantId,

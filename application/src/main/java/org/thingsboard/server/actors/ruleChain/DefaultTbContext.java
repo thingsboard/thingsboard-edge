@@ -76,7 +76,6 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -128,6 +127,7 @@ import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
+import org.thingsboard.server.dao.queue.QueueStatsService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -507,11 +507,6 @@ class DefaultTbContext implements TbContext, TbPeContext {
         return entityActionMsg(originator, tbMsgMetaData, msgData, actionMsgType, profile);
     }
 
-    @Override
-    public void onEdgeEventUpdate(TenantId tenantId, EdgeId edgeId) {
-        mainCtx.getClusterService().onEdgeEventUpdate(tenantId, edgeId);
-    }
-
     public <E, I extends EntityId> TbMsg entityActionMsg(E entity, I id, RuleNodeId ruleNodeId, TbMsgType actionMsgType) {
         return entityActionMsg(entity, id, ruleNodeId, actionMsgType, null);
     }
@@ -821,6 +816,11 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public QueueService getQueueService() {
         return mainCtx.getQueueService();
+    }
+
+    @Override
+    public QueueStatsService getQueueStatsService() {
+        return mainCtx.getQueueStatsService();
     }
 
     @Override

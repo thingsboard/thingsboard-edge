@@ -156,10 +156,7 @@ public abstract class EntityViewEdgeProcessor extends BaseEntityViewProcessor im
         DownlinkMsg downlinkMsg = null;
         EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
         switch (edgeEvent.getAction()) {
-            case ADDED:
-            case ADDED_TO_ENTITY_GROUP:
-            case UPDATED:
-            case ASSIGNED_TO_EDGE:
+            case ADDED, ADDED_TO_ENTITY_GROUP, UPDATED, ASSIGNED_TO_EDGE -> {
                 EntityView entityView = entityViewService.findEntityViewById(edgeEvent.getTenantId(), entityViewId);
                 if (entityView != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
@@ -170,19 +167,17 @@ public abstract class EntityViewEdgeProcessor extends BaseEntityViewProcessor im
                             .addEntityViewUpdateMsg(entityViewUpdateMsg)
                             .build();
                 }
-                break;
-            case DELETED:
-            case REMOVED_FROM_ENTITY_GROUP:
-            case UNASSIGNED_FROM_EDGE:
-            case CHANGE_OWNER:
+            }
+            case DELETED, REMOVED_FROM_ENTITY_GROUP, UNASSIGNED_FROM_EDGE, CHANGE_OWNER -> {
                 EntityViewUpdateMsg entityViewUpdateMsg = ((EntityViewMsgConstructor)
                         entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityViewDeleteMsg(entityViewId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addEntityViewUpdateMsg(entityViewUpdateMsg)
                         .build();
-                break;
+            }
         }
         return downlinkMsg;
     }
+
 }

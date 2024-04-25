@@ -41,10 +41,15 @@ import org.thingsboard.server.service.edge.rpc.fetch.AssetProfilesEdgeEventFetch
 import org.thingsboard.server.service.edge.rpc.fetch.CustomerEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.CustomerRolesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.DefaultProfilesEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.DeviceGroupOtaPackageEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.DeviceProfilesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.EntityGroupEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.IntegrationEventsEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.NotificationRuleEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.NotificationTargetEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.NotificationTemplateEdgeEventFetcher;
+import org.thingsboard.server.service.edge.rpc.fetch.OAuth2EdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.OtaPackagesEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.PublicCustomerUserGroupEdgeEventFetcher;
 import org.thingsboard.server.service.edge.rpc.fetch.QueuesEdgeEventFetcher;
@@ -103,9 +108,14 @@ public class EdgeSyncCursor {
         fetchers.add(new EntityGroupEdgeEventFetcher(ctx.getEntityGroupService(), EntityType.USER));
         fetchers.add(new SchedulerEventsEdgeEventFetcher(ctx.getSchedulerEventService()));
         if (fullSync) {
+            fetchers.add(new NotificationTemplateEdgeEventFetcher(ctx.getNotificationTemplateService()));
+            fetchers.add(new NotificationTargetEdgeEventFetcher(ctx.getNotificationTargetService()));
+            fetchers.add(new NotificationRuleEdgeEventFetcher(ctx.getNotificationRuleService()));
             fetchers.add(new IntegrationEventsEdgeEventFetcher(ctx.getIntegrationService()));
             fetchers.add(new OtaPackagesEdgeEventFetcher(ctx.getOtaPackageService()));
             fetchers.add(new TenantResourcesEdgeEventFetcher(ctx.getResourceService()));
+            fetchers.add(new DeviceGroupOtaPackageEdgeEventFetcher(ctx.getDeviceGroupOtaPackageService(), ctx.getEntityGroupService()));
+            fetchers.add(new OAuth2EdgeEventFetcher(ctx.getOAuth2Service()));
         }
     }
 
@@ -137,4 +147,5 @@ public class EdgeSyncCursor {
     public int getCurrentIdx() {
         return currentIdx;
     }
+
 }

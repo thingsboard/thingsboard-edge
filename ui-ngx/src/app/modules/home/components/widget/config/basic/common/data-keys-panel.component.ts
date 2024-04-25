@@ -57,8 +57,9 @@ import { dataKeyRowValidator, dataKeyValid } from '@home/components/widget/confi
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { UtilsService } from '@core/services/utils.service';
-import { DataKeysCallbacks } from '@home/components/widget/config/data-keys.component.models';
+import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { TimeSeriesChartYAxisId } from '@home/components/widget/lib/chart/time-series-chart.models';
 
 @Component({
   selector: 'tb-data-keys-panel',
@@ -112,6 +113,10 @@ export class DataKeysPanelComponent implements ControlValueAccessor, OnInit, OnC
 
   @Input()
   @coerceBoolean()
+  hidePanel = false;
+
+  @Input()
+  @coerceBoolean()
   hideDataKeyColor = false;
 
   @Input()
@@ -134,6 +139,17 @@ export class DataKeysPanelComponent implements ControlValueAccessor, OnInit, OnC
   @coerceBoolean()
   hideSourceSelection = false;
 
+  @Input()
+  @coerceBoolean()
+  timeSeriesChart = false;
+
+  @Input()
+  @coerceBoolean()
+  showTimeSeriesType = false;
+
+  @Input()
+  yAxisIds: TimeSeriesChartYAxisId[];
+
   dataKeyType: DataKeyType;
 
   keysListFormGroup: UntypedFormGroup;
@@ -155,6 +171,10 @@ export class DataKeysPanelComponent implements ControlValueAccessor, OnInit, OnC
 
   get datakeySettingsSchema(): JsonSettingsSchema {
     return this.widgetConfigComponent.modelValue?.dataKeySettingsSchema;
+  }
+
+  get dataKeySettingsFunction(): DataKeySettingsFunction {
+    return this.widgetConfigComponent.modelValue?.dataKeySettingsFunction;
   }
 
   get dragEnabled(): boolean {
@@ -271,7 +291,8 @@ export class DataKeysPanelComponent implements ControlValueAccessor, OnInit, OnC
   }
 
   addKey() {
-    const dataKey = this.callbacks.generateDataKey('', null, this.datakeySettingsSchema);
+    const dataKey = this.callbacks.generateDataKey('', null, this.datakeySettingsSchema,
+      false, this.dataKeySettingsFunction);
     dataKey.label = '';
     dataKey.decimals = 0;
     if (this.hasAdditionalLatestDataKeys) {

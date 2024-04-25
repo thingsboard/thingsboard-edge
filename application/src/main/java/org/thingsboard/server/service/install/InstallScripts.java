@@ -193,7 +193,7 @@ public class InstallScripts {
         }
     }
 
-    public void createDefaultRuleChains(TenantId tenantId) throws IOException {
+    public void createDefaultRuleChains(TenantId tenantId) {
         Map<String, RuleChainId> ruleChainIdMap = loadAdditionalTenantRuleChains(tenantId, getTenantRuleChainsDir());
         Path rootRuleChainFile = getRootTenantRuleChainFile();
         loadRootRuleChain(tenantId, ruleChainIdMap, rootRuleChainFile);
@@ -208,10 +208,10 @@ public class InstallScripts {
             if (!StringUtils.isEmpty(newRuleChainName)) {
                 ruleChain.setName(newRuleChainName);
             }
-            ruleChain = ruleChainService.saveRuleChain(ruleChain);
+            ruleChain = ruleChainService.saveRuleChain(ruleChain, false);
 
             ruleChainMetaData.setRuleChainId(ruleChain.getId());
-            ruleChainService.saveRuleChainMetaData(TenantId.SYS_TENANT_ID, ruleChainMetaData, Function.identity());
+            ruleChainService.saveRuleChainMetaData(TenantId.SYS_TENANT_ID, ruleChainMetaData, Function.identity(), false);
             return ruleChain;
         } catch (Exception e) {
             log.error("Unable to load rule chain from json: [{}]", path.toString());
@@ -227,16 +227,16 @@ public class InstallScripts {
         return paths;
     }
 
-    public RuleChain createDefaultRuleChain(TenantId tenantId, String ruleChainName) throws IOException {
+    public RuleChain createDefaultRuleChain(TenantId tenantId, String ruleChainName) {
         return createRuleChainFromFile(tenantId, getDeviceProfileDefaultRuleChainTemplateFilePath(), ruleChainName);
     }
 
-    public RuleChain createRuleChainFromFile(TenantId tenantId, Path templateFilePath, String newRuleChainName) throws IOException {
+    public RuleChain createRuleChainFromFile(TenantId tenantId, Path templateFilePath, String newRuleChainName) {
         JsonNode ruleChainJson = JacksonUtil.toJsonNode(templateFilePath.toFile());
         return this.loadRuleChain(templateFilePath, ruleChainJson, tenantId, newRuleChainName);
     }
 
-    public void createDefaultEdgeRuleChains(TenantId tenantId) throws IOException {
+    public void createDefaultEdgeRuleChains(TenantId tenantId) {
         Path edgeChainsDir = getEdgeRuleChainsDir();
         loadAdditionalTenantRuleChains(tenantId, edgeChainsDir);
     }
@@ -381,17 +381,18 @@ public class InstallScripts {
         }
     }
 
-    public void loadDashboards(TenantId tenantId, CustomerId customerId) throws Exception {
+    public void loadDashboards(TenantId tenantId, CustomerId customerId) {
         Path dashboardsDir = Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, DASHBOARDS_DIR);
         loadDashboardsFromDir(tenantId, customerId, dashboardsDir);
     }
 
-    public void createDefaultTenantDashboards(TenantId tenantId, CustomerId customerId) throws Exception {
+    public void createDefaultTenantDashboards(TenantId tenantId, CustomerId customerId) {
         Path dashboardsDir = Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DASHBOARDS_DIR);
         loadDashboardsFromDir(tenantId, customerId, dashboardsDir);
     }
 
-    private void loadDashboardsFromDir(TenantId tenantId, CustomerId customerId, Path dashboardsDir) throws IOException {
+    @SneakyThrows
+    private void loadDashboardsFromDir(TenantId tenantId, CustomerId customerId, Path dashboardsDir) {
         try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(dashboardsDir, path -> path.toString().endsWith(JSON_EXT))) {
             dirStream.forEach(
                     path -> {
@@ -465,7 +466,8 @@ public class InstallScripts {
         }
     }
 
-    private void loadRootRuleChain(TenantId tenantId, Map<String, RuleChainId> ruleChainIdMap, Path rootRuleChainFile) throws IOException {
+    @SneakyThrows
+    private void loadRootRuleChain(TenantId tenantId, Map<String, RuleChainId> ruleChainIdMap, Path rootRuleChainFile) {
         String rootRuleChainContent = FileUtils.readFileToString(rootRuleChainFile.toFile(), "UTF-8");
         for (Map.Entry<String, RuleChainId> entry : ruleChainIdMap.entrySet()) {
             String key = "${" + entry.getKey() + "}";
@@ -475,7 +477,8 @@ public class InstallScripts {
         loadRuleChain(rootRuleChainFile, rootRuleChainJson, tenantId, null);
     }
 
-    private Map<String, RuleChainId> loadAdditionalTenantRuleChains(TenantId tenantId, Path chainsDir) throws IOException {
+    @SneakyThrows
+    private Map<String, RuleChainId> loadAdditionalTenantRuleChains(TenantId tenantId, Path chainsDir) {
         Map<String, RuleChainId> ruleChainIdMap = new HashMap<>();
         try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(chainsDir, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
             dirStream.forEach(
@@ -539,7 +542,7 @@ public class InstallScripts {
                     }
             );
         } catch (Exception e) {
-            log.error("Unable to load resources lwm2m object model from file: [{}]", resourceLwm2mPath.toString());
+            log.error("Unable to load resources lwm2m object model from file: [{}]", resourceLwm2mPath);
             throw new RuntimeException("resource lwm2m object model from file", e);
         }
     }

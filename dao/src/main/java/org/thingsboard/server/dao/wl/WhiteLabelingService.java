@@ -98,4 +98,6 @@ public interface WhiteLabelingService {
     JsonNode getMergedTenantMailTemplates(TenantId tenantId) throws ThingsboardException;
 
     WhiteLabeling findByEntityId(TenantId tenantId, CustomerId customerId, WhiteLabelingType type);
+
+    WhiteLabeling findByDomainName(String domainName);
 }

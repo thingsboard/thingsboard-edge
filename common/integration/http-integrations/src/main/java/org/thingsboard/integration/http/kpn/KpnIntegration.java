@@ -225,7 +225,7 @@ public class KpnIntegration<T extends HttpIntegrationMsg<?>> extends BasicHttpIn
                 response = httpClient.exchange(requestEntity, ObjectNode.class);
             }
             if (!validateResponse(response)) {
-                HttpStatus responseStatusCode = response.getStatusCode();
+                HttpStatus responseStatusCode = (HttpStatus) response.getStatusCode();
                 throw new RuntimeException(String.format("Received response: %s, %s with body: %s",
                         responseStatusCode.name(), responseStatusCode.getReasonPhrase(), response.getBody()));
             }
@@ -268,7 +268,7 @@ public class KpnIntegration<T extends HttpIntegrationMsg<?>> extends BasicHttpIn
             tokenExpiresIn.set(System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(responseBody.get("expires_in").asLong() - 600));
         } else {
             throw new RuntimeException(String.format("Cannot retrieve access token from GRIP with status: %s and body: %s",
-                    response.getStatusCode().name(),
+                    ((HttpStatus) response.getStatusCode()).name(),
                     responseBody));
         }
     }
