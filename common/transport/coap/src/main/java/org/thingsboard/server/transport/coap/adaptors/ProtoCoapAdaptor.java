@@ -60,7 +60,7 @@ public class ProtoCoapAdaptor implements CoapTransportAdaptor {
     public TransportProtos.PostTelemetryMsg convertToPostTelemetry(UUID sessionId, Request inbound, Descriptors.Descriptor telemetryMsgDescriptor) throws AdaptorException {
         ProtoConverter.validateDescriptor(telemetryMsgDescriptor);
         try {
-            return JsonConverter.convertToTelemetryProto(new JsonParser().parse(ProtoConverter.dynamicMsgToJson(inbound.getPayload(), telemetryMsgDescriptor)));
+            return JsonConverter.convertToTelemetryProto(JsonParser.parseString(ProtoConverter.dynamicMsgToJson(inbound.getPayload(), telemetryMsgDescriptor)));
         } catch (Exception e) {
             throw new AdaptorException(e);
         }
@@ -70,7 +70,7 @@ public class ProtoCoapAdaptor implements CoapTransportAdaptor {
     public TransportProtos.PostAttributeMsg convertToPostAttributes(UUID sessionId, Request inbound, Descriptors.Descriptor attributesMsgDescriptor) throws AdaptorException {
         ProtoConverter.validateDescriptor(attributesMsgDescriptor);
         try {
-            return JsonConverter.convertToAttributesProto(new JsonParser().parse(ProtoConverter.dynamicMsgToJson(inbound.getPayload(), attributesMsgDescriptor)));
+            return JsonConverter.convertToAttributesProto(JsonParser.parseString(ProtoConverter.dynamicMsgToJson(inbound.getPayload(), attributesMsgDescriptor)));
         } catch (Exception e) {
             throw new AdaptorException(e);
         }
@@ -89,7 +89,7 @@ public class ProtoCoapAdaptor implements CoapTransportAdaptor {
         } else {
             ProtoConverter.validateDescriptor(rpcResponseMsgDescriptor);
             try {
-                JsonElement response = new JsonParser().parse(ProtoConverter.dynamicMsgToJson(inbound.getPayload(), rpcResponseMsgDescriptor));
+                JsonElement response = JsonParser.parseString(ProtoConverter.dynamicMsgToJson(inbound.getPayload(), rpcResponseMsgDescriptor));
                 return TransportProtos.ToDeviceRpcResponseMsg.newBuilder().setRequestId(requestId.orElseThrow(() -> new AdaptorException("Request id is missing!")))
                         .setPayload(response.toString()).build();
             } catch (Exception e) {

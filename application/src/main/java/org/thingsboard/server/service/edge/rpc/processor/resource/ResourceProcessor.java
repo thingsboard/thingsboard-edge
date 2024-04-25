@@ -44,4 +44,5 @@ public interface ResourceProcessor extends EdgeProcessor {
     ListenableFuture<Void> processResourceMsgFromEdge(TenantId tenantId, Edge edge, ResourceUpdateMsg resourceUpdateMsg);
 
     DownlinkMsg convertResourceEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion);
+
 }

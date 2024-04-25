@@ -29,15 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Inject, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin, Observable, of, ReplaySubject, Subject } from 'rxjs';
-import { CustomTranslation } from '@shared/models/custom-translation.model';
-import { TranslateService } from '@ngx-translate/core';
-import { map, mergeMap, tap } from 'rxjs/operators';
-import { isEqual, isObject, mergeDeep, removeEmptyObjects } from '@core/utils';
-import { WINDOW } from '@core/services/window.service';
-import { DOCUMENT } from '@angular/common';
+import { Observable } from 'rxjs';
+import { CustomTranslationEditData, TranslationInfo } from '@shared/models/custom-translation.model';
+import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
+import { ResourcesService } from '@core/services/resources.service';
 
 // @dynamic
 @Injectable({
@@ -45,165 +42,52 @@ import { DOCUMENT } from '@angular/common';
 })
 export class CustomTranslationService {
 
-  private updateTranslationSubjects: Subject<void>[] = [];
-  private translateLoadObservable: Observable<CustomTranslation> = null;
-
-  private translationMap: {[key: string]: string} = null;
-  private prevTranslationMap: {[key: string]: string} = null;
-  private modifyLang = new Set<string>();
-
   constructor(
-    @Inject(WINDOW) private window: Window,
-    @Inject(DOCUMENT) private document: Document,
     private http: HttpClient,
-    private translate: TranslateService
+    private resourcesService: ResourcesService
   ) {}
 
-  private loadCustomTranslation(): Observable<CustomTranslation> {
-    return this.http.get<CustomTranslation>('/api/customTranslation/customTranslation');
+  public getAvailableLocales(config?: RequestConfig): Observable<{[k: string]: string}> {
+    return this.http.get<{[k: string]: string}>('/api/translation/availableLocales', defaultHttpOptionsFromConfig(config))
   }
 
-  public updateCustomTranslations(forceUpdate?: boolean): Observable<any> {
-    const updateCustomTranslationSubject = new ReplaySubject<void>();
-    if (this.translateLoadObservable) {
-      this.updateTranslationSubjects.push(updateCustomTranslationSubject);
-      return updateCustomTranslationSubject.asObservable();
-    }
-    this.translateLoadObservable = this.translationMap && !forceUpdate
-      ? of(null)
-      : this.loadCustomTranslation();
-    this.translateLoadObservable.subscribe((customTranslation) => {
-      let changeCustomTranslation = false;
-      if (customTranslation) {
-        changeCustomTranslation = !isEqual(this.translationMap, customTranslation.translationMap);
-        this.prevTranslationMap = changeCustomTranslation ? this.translationMap : null;
-        this.translationMap = customTranslation.translationMap;
-      }
-      const langKey = this.translate.currentLang;
-      let translationMap: {[key: string]: string};
-      if (this.translationMap[langKey]) {
-        try {
-          translationMap = JSON.parse(this.translationMap[langKey]);
-        } catch (e) {}
-      }
-      const reloadObservable = forceUpdate && changeCustomTranslation ? this.resetTranslation() : of(null);
-      reloadObservable.subscribe(() => {
-        if (translationMap) {
-          this.translate.setTranslation(langKey, translationMap, true);
-          this.modifyLang.add(langKey);
-        } else {
-          this.translate.onTranslationChange.emit({ lang: langKey, translations: this.translate.translations[langKey] });
-        }
-        this.translateLoadObservable = null;
-        updateCustomTranslationSubject.next();
-        updateCustomTranslationSubject.complete();
-        this.updateTranslationSubjects.forEach(subject => {
-          subject.next();
-        });
-        this.updateTranslationSubjects = [];
-      });
-    },
-    (e) => {
-      this.translateLoadObservable = null;
-      updateCustomTranslationSubject.error(e);
-      this.updateTranslationSubjects.forEach(subject => {
-        subject.error(e);
-      });
-      this.updateTranslationSubjects = [];
-    });
-    return updateCustomTranslationSubject.asObservable();
+  public getAvailableJavaLocales(config?: RequestConfig): Observable<{[k: string]: string}> {
+    return this.http.get<{[k: string]: string}>('/api/translation/availableJavaLocales', defaultHttpOptionsFromConfig(config))
   }
 
-  private deletePropertyWithObject(source: object, removeObject: object) {
-    for (const key of Object.keys(removeObject)) {
-      if (isObject(removeObject[key]) && isObject(source[key])) {
-        this.deletePropertyWithObject(source[key], removeObject[key]);
-      }
-      delete source[key];
-    }
+  public getTranslationInfos(config?: RequestConfig): Observable<Array<TranslationInfo>> {
+    return this.http.get<Array<TranslationInfo>>('/api/translation/info', defaultHttpOptionsFromConfig(config))
   }
 
-  private resetTranslation(): Observable<any> {
-    if (!this.modifyLang.size) {
-      return of(null);
-    }
-    const tasks = [];
-    const originalLangTranslations = Array.from(this.modifyLang.values());
-    originalLangTranslations.forEach((lang) => {
-      tasks.push(this.http.get<any>(`./assets/locale/locale.constant-${lang}.json`));
-    });
-    return forkJoin(tasks).pipe(tap(translations => {
-      originalLangTranslations.forEach((lang, index) => {
-        this.deletePropertyWithObject(this.translate.translations[lang], JSON.parse(this.prevTranslationMap[lang]));
-        removeEmptyObjects(this.translate.translations[lang]);
-        this.translate.setTranslation(lang, translations[index], true);
-      });
-      this.modifyLang.clear();
-      this.prevTranslationMap = null;
-    }));
+  public getTranslationForBasicEdit(localeCode: string, config?: RequestConfig): Observable<CustomTranslationEditData> {
+    return this.http.get<CustomTranslationEditData>(`/api/translation/edit/basic/${localeCode}`, defaultHttpOptionsFromConfig(config))
   }
 
-  public getCurrentCustomTranslation(): Observable<CustomTranslation> {
-    return this.http.get<CustomTranslation>('/api/customTranslation/currentCustomTranslation');
+  public getFullTranslation(localeCode: string, config?: RequestConfig): Observable<object> {
+    return this.http.get<object>(`/api/translation/full/${localeCode}`, defaultHttpOptionsFromConfig(config));
   }
 
-  public saveCustomTranslation(customTranslation: CustomTranslation): Observable<any> {
-    return this.http.post<CustomTranslation>('/api/customTranslation/customTranslation', customTranslation).pipe(
-      mergeMap(() => this.updateCustomTranslations(true))
-    );
+  public downloadFullTranslation(localeCode: string, config?: RequestConfig): Observable<object> {
+    return this.resourcesService.downloadResource(`/api/translation/full/${localeCode}/download`, config);
   }
 
-  public downloadLocaleJson(langKey: string): Observable<any> {
-    const engLocale = './assets/locale/locale.constant-en_US.json';
-    return this.http.get<any>(engLocale).pipe(
-      mergeMap((engJson) => {
-        const targetLocale = `./assets/locale/locale.constant-${langKey}.json`;
-        const targetLocaleObservable = langKey === 'en_US' ? of(engJson) : this.http.get<any>(targetLocale);
-        return targetLocaleObservable.pipe(
-          map((targetJson) => {
-            try {
-              let localeJson = mergeDeep(engJson, targetJson);
-              if (this.translationMap && this.translationMap[langKey]) {
-                let translationMap: any;
-                try {
-                  translationMap = JSON.parse(this.translationMap[langKey]);
-                } catch (e) {
-                }
-                if (translationMap) {
-                  localeJson = mergeDeep(localeJson, translationMap);
-                }
-              }
-              const data = JSON.stringify(localeJson, null, 2);
-              const fileName = `locale-${langKey}`;
-              this.downloadJson(data, fileName);
-              return null;
-            } catch (e) {
-              throw e;
-            }
-          }
-        ));
-      }
-    ));
+  public deleteCustomTranslation(localeCode: string, config?: RequestConfig): Observable<void> {
+    return this.http.delete<void>(`/api/translation/custom/${localeCode}`, defaultHttpOptionsFromConfig(config))
   }
 
-  private downloadJson(data: any, filename: string) {
-    if (!filename) {
-      filename = 'download';
-    }
-    filename += '.' + 'json';
-    const blob = new Blob([data], {type: 'text/json'});
-    if (this.window.navigator && (this.window.navigator as any).msSaveOrOpenBlob) {
-      (this.window.navigator as any).msSaveOrOpenBlob(blob, filename);
-    } else {
-      const e = this.document.createEvent('MouseEvents');
-      const a = this.document.createElement('a');
-      a.download = filename;
-      a.href = URL.createObjectURL(blob);
-      a.dataset.downloadurl = ['text/json', a.download, a.href].join(':');
-      // @ts-ignore
-      e.initEvent('click', true, false, this.window,
-        0, 0, 0, 0, 0, false, false, false, false, 0, null);
-      a.dispatchEvent(e);
-    }
+  public deleteCustomTranslationKey(localesCode: string, key: string, config?: RequestConfig): Observable<void> {
+    return this.http.delete<void>(`/api/translation/custom/${localesCode}/${key}`, defaultHttpOptionsFromConfig(config))
+  }
+
+  public saveCustomTranslation(localeCode: string, customTranslationValue: object, config?: RequestConfig): Observable<void> {
+    return this.http.post<void>(`/api/translation/custom/${localeCode}`, customTranslationValue, defaultHttpOptionsFromConfig(config))
+  }
+
+  public getCustomTranslation(localeCode: string, config?: RequestConfig): Observable<object> {
+    return this.http.get<object>(`/api/translation/custom/${localeCode}`, defaultHttpOptionsFromConfig(config))
+  }
+
+  public patchCustomTranslation(localeCode: string, newCustomTranslation: object, config?: RequestConfig): Observable<void> {
+    return this.http.patch<void>(`/api/translation/custom/${localeCode}`, newCustomTranslation, defaultHttpOptionsFromConfig(config))
   }
 }

@@ -37,58 +37,49 @@ import {
   UntypedFormGroup,
   Validators
 } from '@angular/forms';
-import {
-  timeSeriesChartAnimationEasings,
-  TimeSeriesChartAnimationSettings
-} from '@home/components/widget/lib/chart/time-series-chart.models';
+import { TimeSeriesChartGridSettings } from '@home/components/widget/lib/chart/time-series-chart.models';
 import { WidgetService } from '@core/http/widget.service';
 
 @Component({
-  selector: 'tb-time-series-chart-animation-settings',
-  templateUrl: './time-series-chart-animation-settings.component.html',
+  selector: 'tb-time-series-chart-grid-settings',
+  templateUrl: './time-series-chart-grid-settings.component.html',
   styleUrls: ['./../../widget-settings.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => TimeSeriesChartAnimationSettingsComponent),
+      useExisting: forwardRef(() => TimeSeriesChartGridSettingsComponent),
       multi: true
     }
   ]
 })
-export class TimeSeriesChartAnimationSettingsComponent implements OnInit, ControlValueAccessor {
+export class TimeSeriesChartGridSettingsComponent implements OnInit, ControlValueAccessor {
 
   settingsExpanded = false;
-
-  timeSeriesChartAnimationEasings = timeSeriesChartAnimationEasings;
 
   @Input()
   disabled: boolean;
 
-  private modelValue: TimeSeriesChartAnimationSettings;
+  private modelValue: TimeSeriesChartGridSettings;
 
   private propagateChange = null;
 
-  public animationSettingsFormGroup: UntypedFormGroup;
+  public gridSettingsFormGroup: UntypedFormGroup;
 
   constructor(private fb: UntypedFormBuilder,
               private widgetService: WidgetService,) {
   }
 
   ngOnInit(): void {
-    this.animationSettingsFormGroup = this.fb.group({
-      animation: [null, []],
-      animationThreshold: [null, [Validators.min(0)]],
-      animationDuration: [null, [Validators.min(0)]],
-      animationEasing: [null, []],
-      animationDelay: [null, [Validators.min(0)]],
-      animationDurationUpdate: [null, [Validators.min(0)]],
-      animationEasingUpdate: [null, []],
-      animationDelayUpdate: [null, [Validators.min(0)]]
+    this.gridSettingsFormGroup = this.fb.group({
+      show: [null, []],
+      backgroundColor: [null, []],
+      borderWidth: [null, [Validators.min(0)]],
+      borderColor: [null, []],
     });
-    this.animationSettingsFormGroup.valueChanges.subscribe(() => {
+    this.gridSettingsFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
-    this.animationSettingsFormGroup.get('animation').valueChanges
+    this.gridSettingsFormGroup.get('show').valueChanges
     .subscribe(() => {
       this.updateValidators();
     });
@@ -104,36 +95,36 @@ export class TimeSeriesChartAnimationSettingsComponent implements OnInit, Contro
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
     if (isDisabled) {
-      this.animationSettingsFormGroup.disable({emitEvent: false});
+      this.gridSettingsFormGroup.disable({emitEvent: false});
     } else {
-      this.animationSettingsFormGroup.enable({emitEvent: false});
+      this.gridSettingsFormGroup.enable({emitEvent: false});
       this.updateValidators();
     }
   }
 
-  writeValue(value: TimeSeriesChartAnimationSettings): void {
+  writeValue(value: TimeSeriesChartGridSettings): void {
     this.modelValue = value;
-    this.animationSettingsFormGroup.patchValue(
+    this.gridSettingsFormGroup.patchValue(
       value, {emitEvent: false}
     );
     this.updateValidators();
-    this.animationSettingsFormGroup.get('animation').valueChanges.subscribe((animation) => {
-      this.settingsExpanded = animation;
+    this.gridSettingsFormGroup.get('show').valueChanges.subscribe((show) => {
+      this.settingsExpanded = show;
     });
   }
 
   private updateValidators() {
-    const animation: boolean = this.animationSettingsFormGroup.get('animation').value;
-    if (animation) {
-      this.animationSettingsFormGroup.enable({emitEvent: false});
+    const show: boolean = this.gridSettingsFormGroup.get('show').value;
+    if (show) {
+      this.gridSettingsFormGroup.enable({emitEvent: false});
     } else {
-      this.animationSettingsFormGroup.disable({emitEvent: false});
-      this.animationSettingsFormGroup.get('animation').enable({emitEvent: false});
+      this.gridSettingsFormGroup.disable({emitEvent: false});
+      this.gridSettingsFormGroup.get('show').enable({emitEvent: false});
     }
   }
 
   private updateModel() {
-    this.modelValue = this.animationSettingsFormGroup.getRawValue();
+    this.modelValue = this.gridSettingsFormGroup.getRawValue();
     this.propagateChange(this.modelValue);
   }
 }

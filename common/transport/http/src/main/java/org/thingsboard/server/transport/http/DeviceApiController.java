@@ -201,7 +201,7 @@ public class DeviceApiController implements TbTransportService {
         transportContext.getTransportService().process(DeviceTransportType.DEFAULT, ValidateDeviceTokenRequestMsg.newBuilder().setToken(deviceToken).build(),
                 new DeviceAuthCallback(transportContext, responseWriter, sessionInfo -> {
                     TransportService transportService = transportContext.getTransportService();
-                    transportService.process(sessionInfo, JsonConverter.convertToAttributesProto(new JsonParser().parse(json)),
+                    transportService.process(sessionInfo, JsonConverter.convertToAttributesProto(JsonParser.parseString(json)),
                             new HttpOkCallback(responseWriter));
                 }));
         return responseWriter;
@@ -221,7 +221,7 @@ public class DeviceApiController implements TbTransportService {
         transportContext.getTransportService().process(DeviceTransportType.DEFAULT, ValidateDeviceTokenRequestMsg.newBuilder().setToken(deviceToken).build(),
                 new DeviceAuthCallback(transportContext, responseWriter, sessionInfo -> {
                     TransportService transportService = transportContext.getTransportService();
-                    transportService.process(sessionInfo, JsonConverter.convertToTelemetryProto(new JsonParser().parse(json)),
+                    transportService.process(sessionInfo, JsonConverter.convertToTelemetryProto(JsonParser.parseString(json)),
                             new HttpOkCallback(responseWriter));
                 }));
         return responseWriter;
@@ -317,7 +317,7 @@ public class DeviceApiController implements TbTransportService {
         DeferredResult<ResponseEntity> responseWriter = new DeferredResult<ResponseEntity>();
         transportContext.getTransportService().process(DeviceTransportType.DEFAULT, ValidateDeviceTokenRequestMsg.newBuilder().setToken(deviceToken).build(),
                 new DeviceAuthCallback(transportContext, responseWriter, sessionInfo -> {
-                    JsonObject request = new JsonParser().parse(json).getAsJsonObject();
+                    JsonObject request = JsonParser.parseString(json).getAsJsonObject();
                     TransportService transportService = transportContext.getTransportService();
                     transportService.registerSyncSession(sessionInfo,
                             new HttpSessionListener(responseWriter, transportContext.getTransportService(), sessionInfo),

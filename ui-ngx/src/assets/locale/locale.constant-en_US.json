@@ -859,7 +859,6 @@
         "email-messages": "Email messages",
         "email-messages-daily-activity": "Email messages daily activity",
         "email-messages-monthly-activity": "Email messages monthly activity",
-        "exceptions": "Exceptions",
         "executions": "Executions",
         "scripts": "Scripts",
         "scripts-hourly-activity": "Scripts hourly activity",
@@ -877,9 +876,7 @@
         "permanent-failures": "${entityName} Permanent Failures",
         "permanent-timeouts": "${entityName} Permanent Timeouts",
         "processing-failures": "${entityName} Processing Failures",
-        "processing-failures-and-timeouts": "Processing Failures and Timeouts",
         "processing-timeouts": "${entityName} Processing Timeouts",
-        "queue-stats": "Queue Stats",
         "rule-chain": "Rule Chain",
         "rule-engine": "Rule Engine",
         "rule-engine-daily-activity": "Rule Engine daily activity",
@@ -1186,17 +1183,34 @@
         "custom-menu-hint": "Define custom menu JSON below. This JSON contains list of custom menu items."
     },
     "custom-translation": {
+        "add-new-key": "Add new key",
+        "add-new-language": "Add new language",
+        "added-key": "Added key",
+        "copy-original-text": "Copy original text",
+        "copy-term-key": "Copy term key",
+        "country": "Country",
         "custom-translation": "Custom translation",
-        "translation-map": "Translation map",
-        "key": "Translation Key",
-        "import": "Import translation",
-        "export": "Export translation",
-        "export-data": "Export translation data",
-        "import-data": "Import translation data",
+        "customized": "Customized",
+        "delete-language-text": "Be careful, after the confirmation the '{{language}}' translation and all related data will become unrecoverable.",
+        "delete-language-title": "Are you sure you want to delete the translation '{{language}}'?",
+        "delete-translation": "Delete translation",
+        "download-translation": "Download translation",
+        "drop-json-file": "Drag & Drop JSON file or",
+        "language": "Language",
+        "language-required": "Language is required",
+        "localization-code": "Localization code",
+        "no-translation-matching": "No language matching '{{search}}' were found.",
+        "return-default-translation": "Return to default translation",
+        "search": "Search translation",
+        "set": "Set",
+        "term-key": "Term key",
+        "translated": "Translated",
         "translation-file": "Translation file",
-        "invalid-translation-file-error": "Unable to import translation file: Invalid translation data structure.",
-        "custom-translation-hint": "Define custom translation JSON below. This JSON will overwrite default translation. Click 'Download locale file' to get existing translation. You may also use the downloaded file as a reference to available translation key-value pairs.",
-        "download-locale-file": "Download locale file"
+        "translation-map": "Translation map",
+        "translation-name": "{{ name }} translation",
+        "translation-progress": "Translation progress",
+        "untranslated": "Untranslated",
+        "upload-translation-file": "Upload translation file"
     },
     "css-size": {
         "size-value-required": "Size value is required",
@@ -3231,7 +3245,7 @@
         "rpc-command-result": "Response",
         "rpc-command-edit-params": "Edit parameters",
         "gateway-configuration": "General Configuration",
-        "docker-label": "Use the following instruction to run IoT Gateway in in Docker compose with credentials for selected device",
+        "docker-label": "Use the following instruction to run IoT Gateway in Docker compose with credentials for selected device",
         "install-docker-compose": "Use the instructions to download, install and setup docker compose",
         "download-configuration-file": "Download configuration file",
         "download-docker-compose": "Download docker-compose.yml for your gateway",
@@ -4259,6 +4273,7 @@
             "months": "(month ago)",
             "years": "(year ago)"
         },
+        "column-title": "Column title",
         "label": "Label",
         "value": "Value"
     },
@@ -4280,6 +4295,7 @@
         "new-password-again": "Confirm new password",
         "password-link-sent-message": "Reset link has been sent",
         "email": "Email",
+        "invalid-email-format": "Invalid email format.",
         "no-account": "Do not have an account?",
         "create-account": "Create an account",
         "login-with": "Login with {{name}}",
@@ -4297,7 +4313,8 @@
         "email-auth-description": "A security code has been sent to your email address at {{contact}}.",
         "email-auth-placeholder": "Email code",
         "backup-code-auth-description": "Please enter one of your backup codes.",
-        "backup-code-auth-placeholder": "Backup code"
+        "backup-code-auth-placeholder": "Backup code",
+        "version-mask": "{{name}} v.{{version}}"
     },
     "signup": {
         "firstname": "First name",
@@ -5819,6 +5836,7 @@
         "trigger": "Trigger",
         "trigger-point": "Point",
         "trigger-axis": "Axis",
+        "label": "Label",
         "value": "Value",
         "date": "Date",
         "show-date-time-interval": "Show date time interval",
@@ -6963,6 +6981,25 @@
             "signal-strength-card-style": "Signal strength card style",
             "no-signal-rssi-value": "\"No signal\" rssi value"
         },
+        "status-widget": {
+            "behavior": "Behavior",
+            "layout": "Layout",
+            "layout-default": "Default",
+            "layout-center": "Center",
+            "layout-icon": "Icon",
+            "on": "On",
+            "off": "Off",
+            "label": "Label",
+            "status": "Status",
+            "icon": "Icon",
+            "color-palette": "Color palette",
+            "disabled-color-palette": "Disabled color palette",
+            "primary": "Primary",
+            "primary-color-hint": "Color of icon and label",
+            "secondary": "Secondary",
+            "secondary-color-hint": "Color of status",
+            "background": "Background"
+        },
         "chart": {
             "common-settings": "Common settings",
             "enable-stacking-mode": "Enable stacking mode",
@@ -7211,16 +7248,10 @@
             }
         },
         "doughnut": {
-            "total": "Total",
             "layout": "Layout",
             "layout-default": "Default",
             "layout-with-total": "With total",
-            "auto-scale": "Auto scale",
-            "clockwise-layout": "Clockwise layout",
-            "sort-series": "Sort series by label",
             "central-total-value": "Central total value",
-            "tooltip-value-type-absolute": "Absolute",
-            "tooltip-value-type-percentage": "Percentage",
             "doughnut-card-style": "Doughnut card style"
         },
         "entities-hierarchy": {
@@ -8266,6 +8297,34 @@
             "table-tabs": "Table tabs",
             "show-cell-actions-menu-mobile": "Show cell actions dropdown menu in mobile mode"
         },
+        "echarts": {
+            "animation": {
+              "animation": "Animation",
+              "animation-threshold": "Animation threshold",
+              "animation-duration": "Animation duration",
+              "animation-easing": "Animation easing",
+              "animation-delay": "Animation delay",
+              "update-animation-duration": "Update animation duration",
+              "update-animation-easing": "Update animation easing",
+              "update-animation-delay": "Update animation delay"
+            }
+        },
+        "latest-chart": {
+            "total": "Total",
+            "auto-scale": "Auto scale",
+            "clockwise-layout": "Clockwise layout",
+            "sort-series": "Sort series by label",
+            "tooltip-value-type-absolute": "Absolute",
+            "tooltip-value-type-percentage": "Percentage"
+        },
+        "pie-chart": {
+            "label": "Label",
+            "label-position-outside": "Outside",
+            "label-position-inside": "Inside",
+            "border": "Border",
+            "radius": "Radius",
+            "pie-chart-card-style": "Pie chart card style"
+        },
         "time-series-chart": {
             "chart": "Chart",
             "chart-style": "Chart style",
@@ -8298,6 +8357,15 @@
             "bar-width": "Bar width",
             "bar-width-relative": "Percentage of time window",
             "bar-width-absolute": "Absolute (ms)",
+            "comparison": {
+              "comparison": "Comparison",
+              "show": "Show",
+              "settings": "Comparison settings",
+              "show-values-for-comparison": "Show historical data for comparison",
+              "comparison-values-label": "Comparison key label",
+              "comparison-values-label-auto": "Auto",
+              "comparison-data-color": "Comparison data color"
+            },
             "threshold": {
               "thresholds": "Thresholds",
               "source": "Source",
@@ -8346,11 +8414,17 @@
               "to": "To",
               "remove-state": "Remove state"
             },
+            "grid": {
+              "grid": "Grid",
+              "background-color": "Background color",
+              "border": "Border"
+            },
             "axis": {
               "axes": "Axes",
               "x-axis": "X axis",
               "y-axis": "Y axis",
               "y-axis-settings": "Y axis settings",
+              "comparison-x-axis-settings": "Comparison X axis settings",
               "remove-y-axis": "Remove Y axis",
               "id": "Id",
               "label": "Label",
@@ -8379,16 +8453,6 @@
               "max": "Max",
               "show": "Show",
               "add-y-axis": "Add Y axis"
-            },
-            "animation": {
-              "animation": "Animation",
-              "animation-threshold": "Animation threshold",
-              "animation-duration": "Animation duration",
-              "animation-easing": "Animation easing",
-              "animation-delay": "Animation delay",
-              "update-animation-duration": "Update animation duration",
-              "update-animation-easing": "Update animation easing",
-              "update-animation-delay": "Update animation delay"
             },
             "series": {
               "legend-settings": "Legend settings",
@@ -8830,6 +8894,7 @@
     "language": {
         "language": "Language",
         "locales": {
+            "ar_AR": "اَلْعَرَبِيَّةُ",
             "ca_ES": "Catalan",
             "cs_CZ": "Česky",
             "da_DK": "Dansk",

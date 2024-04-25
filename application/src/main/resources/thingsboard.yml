@@ -208,7 +208,7 @@ ui:
   # Help parameters
   help:
     # Base URL for UI help assets
-    base-url: "${UI_HELP_BASE_URL:https://raw.githubusercontent.com/thingsboard/thingsboard-pe-ui-help/release-3.6.3}"
+    base-url: "${UI_HELP_BASE_URL:https://raw.githubusercontent.com/thingsboard/thingsboard-pe-ui-help/release-3.7}"
 
 # Database telemetry parameters
 database:
@@ -685,6 +685,9 @@ cache:
     whiteLabeling:
       timeToLiveInMinutes: "${CACHE_SPECS_WHITE_LABELING_TTL:1440}" # White labeling cache TTL
       maxSize: "${CACHE_SPECS_WHITE_LABELING_MAX_SIZE:10000}" # 0 means the cache is disabled
+    customTranslation:
+      timeToLiveInMinutes: "${CACHE_SPECS_CUSTOM_TRANSLATION_TTL:1440}" # Custom translation cache TTL
+      maxSize: "${CACHE_SPECS_CUSTOM_TRANSLATION_MAX_SIZE:10000}" # 0 means the cache is disabled
 
   # deliberately placed outside the 'specs' group above
   notificationRules:
@@ -702,6 +705,10 @@ cache:
       maxSize: "${CACHE_SPECS_IMAGE_ETAGS_MAX_SIZE:10000}" # 0 means the cache is disabled
     systemImagesBrowserTtlInMinutes: "${CACHE_SPECS_IMAGE_SYSTEM_BROWSER_TTL:0}" # Browser cache TTL for system images in minutes. 0 means the cache is disabled
     tenantImagesBrowserTtlInMinutes: "${CACHE_SPECS_IMAGE_TENANT_BROWSER_TTL:0}" # Browser cache TTL for tenant images in minutes. 0 means the cache is disabled
+  translation:
+    etag:
+      timeToLiveInMinutes: "${CACHE_SPECS_TRANSLATION_ETAGS_TTL:44640}" # Translation ETags cache TTL in minutes (one month by default)
+      maxSize: "${CACHE_SPECS_TRANSLATION_ETAGS_MAX_SIZE:1000000}" # 0 means the cache is disabled
 
 # Spring data parameters
 spring.data.redis.repositories.enabled: false # Disable this because it is not required.
@@ -1412,11 +1419,17 @@ edges:
   rpc:
     # RPC port bind
     port: "${EDGES_RPC_PORT:7070}"
-    # Maximum time of keeping alive client RPC connection. Time in seconds
+    # Specifies the minimum amount of time that should elapse between keepalive pings sent by the client
+    # This prevents clients from sending pings too frequently, which can be a nuisance to the server (potentially even a denial-of-service attack vector if abused)
+    # If a client sends pings more frequently than this interval, the server may terminate the connection.
     client_max_keep_alive_time_sec: "${EDGES_RPC_CLIENT_MAX_KEEP_ALIVE_TIME_SEC:1}"
-    # Maximum time of keep-alive connection. Time in seconds
+    # Sets the time of inactivity (no read operations on the connection) after which the server will send a keepalive ping to the client.
+    # This is used to ensure that the connection is still alive and to prevent network intermediaries from dropping connections due to inactivity.
+    # It's a way for the server to proactively check if the client is still responsive.
     keep_alive_time_sec: "${EDGES_RPC_KEEP_ALIVE_TIME_SEC:10}"
-    # Timeout of keep alive RPC connection. Time in seconds
+    # Specifies the maximum amount of time the server waits for a response to its keepalive ping.
+    # If the ping is not acknowledged within this time frame, the server considers the connection dead and may close it.
+    # This timeout helps detect unresponsive clients.
     keep_alive_timeout_sec: "${EDGES_RPC_KEEP_ALIVE_TIMEOUT_SEC:5}"
     ssl:
       # Enable/disable SSL support

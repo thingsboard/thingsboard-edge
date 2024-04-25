@@ -50,7 +50,7 @@ public class IntegrationEventsEdgeEventFetcher extends BasePageableEdgeEventFetc
     private final IntegrationService integrationService;
 
     @Override
-    PageData<Integration> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
+    PageData<Integration> fetchEntities(TenantId tenantId, Edge edge, PageLink pageLink) {
         return integrationService.findIntegrationsByTenantIdAndEdgeId(tenantId, edge.getId(), pageLink);
     }
 

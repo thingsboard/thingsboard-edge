@@ -79,6 +79,7 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
@@ -206,6 +207,9 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
 
     @Autowired
     private EntityViewService entityViewService;
+
+    @Autowired
+    private CustomTranslationService customTranslationService;
 
     @TransactionalEventListener(classes = TenantEvictEvent.class)
     @Override
@@ -342,6 +346,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         relationService.deleteEntityRelations(tenantId, tenantId);
         alarmService.deleteEntityAlarmRecordsByTenantId(tenantId);
         queueStatsService.deleteByTenantId(tenantId);
+        customTranslationService.deleteCustomTranslationByTenantId(tenantId);
     }
 
     @Override
