@@ -59,4 +59,5 @@ public class SchedulerEventsEdgeEventFetcher extends BasePageableEdgeEventFetche
         return EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.SCHEDULER_EVENT,
                 EdgeEventActionType.ADDED, schedulerEvent.getId(), null);
     }
+
 }

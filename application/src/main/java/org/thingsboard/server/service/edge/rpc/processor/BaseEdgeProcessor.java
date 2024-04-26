@@ -154,7 +154,7 @@ import org.thingsboard.server.service.edge.rpc.constructor.scheduler.SchedulerEv
 import org.thingsboard.server.service.edge.rpc.constructor.settings.AdminSettingsMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.telemetry.EntityDataMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.tenant.TenantMsgConstructorFactory;
-import org.thingsboard.server.service.edge.rpc.constructor.translation.CustomTranslationConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.translation.CustomTranslationMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.constructor.user.UserMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.widget.WidgetMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.wl.WhiteLabelingParamsProtoConstructor;
@@ -423,7 +423,7 @@ public abstract class BaseEdgeProcessor {
     protected WhiteLabelingParamsProtoConstructor whiteLabelingParamsProtoConstructor;
 
     @Autowired
-    protected CustomTranslationConstructorFactory customTranslationConstructorFactory;
+    protected CustomTranslationMsgConstructor customTranslationMsgConstructor;
 
     @Autowired
     protected RoleMsgConstructorFactory roleMsgConstructorFactory;
@@ -489,17 +489,14 @@ public abstract class BaseEdgeProcessor {
     private boolean doSaveIfEdgeIsOffline(EdgeEventType type,
                                           EdgeEventActionType action) {
         return switch (action) {
-            case TIMESERIES_UPDATED, ALARM_ACK, ALARM_CLEAR, ALARM_ASSIGNED, ALARM_UNASSIGNED, CREDENTIALS_REQUEST, ADDED_COMMENT, UPDATED_COMMENT ->
-                    true;
+            case TIMESERIES_UPDATED, ALARM_ACK, ALARM_CLEAR, ALARM_ASSIGNED, ALARM_UNASSIGNED, CREDENTIALS_REQUEST, ADDED_COMMENT, UPDATED_COMMENT -> true;
             default -> switch (type) {
                 case ALARM, ALARM_COMMENT, RULE_CHAIN, RULE_CHAIN_METADATA, CUSTOMER, TENANT, TENANT_PROFILE, WIDGETS_BUNDLE, WIDGET_TYPE,
                         ADMIN_SETTINGS, OTA_PACKAGE, QUEUE, RELATION, NOTIFICATION_TEMPLATE, NOTIFICATION_TARGET, NOTIFICATION_RULE,
-                        ROLE, INTEGRATION, CONVERTER, WHITE_LABELING, LOGIN_WHITE_LABELING, CUSTOM_TRANSLATION, CUSTOM_MENU, MAIL_TEMPLATES ->
-                        true;
+                        ROLE, INTEGRATION, CONVERTER, WHITE_LABELING, LOGIN_WHITE_LABELING, CUSTOM_TRANSLATION, CUSTOM_MENU, MAIL_TEMPLATES -> true;
                 default -> false;
             };
         };
-
     }
 
     private ListenableFuture<Void> doSaveEdgeEvent(TenantId tenantId, EdgeId edgeId, EdgeEventType type, EdgeEventActionType action, EntityId entityId, JsonNode body,
