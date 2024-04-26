@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.TimePaginatedRemover;
 
@@ -140,8 +141,13 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
     public void deleteBlobEntity(TenantId tenantId, BlobEntityId blobEntityId) {
         log.trace("Executing deleteBlobEntity [{}]", blobEntityId);
         validateId(blobEntityId, id -> INCORRECT_BLOB_ENTITY_ID + id);
-        deleteEntityRelations(tenantId, blobEntityId);
         blobEntityDao.removeById(tenantId, blobEntityId.getId());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(blobEntityId).build());
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteBlobEntity(tenantId, (BlobEntityId) id);
     }
 
     @Override
@@ -152,8 +158,13 @@ public class BaseBlobEntityService extends AbstractEntityService implements Blob
     }
 
     @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteBlobEntitiesByTenantId(tenantId);
+    }
+
+    @Override
     public void deleteBlobEntitiesByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
-        log.trace("Executing deleteBlobEntitiesByTenantIdAndCustomerId, tenantId [{}], customerId", tenantId, customerId);
+        log.trace("Executing deleteBlobEntitiesByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         customerBlobEntitiesRemover.removeEntities(tenantId, customerId);

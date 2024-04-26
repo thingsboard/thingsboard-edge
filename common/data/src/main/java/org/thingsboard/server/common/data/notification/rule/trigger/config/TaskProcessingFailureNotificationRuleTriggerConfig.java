@@ -28,17 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.housekeeper;
+package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
-import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.AlarmId;
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.Builder;
+import lombok.Data;
 
-import java.util.List;
+@Data
+@Builder
+public class TaskProcessingFailureNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
 
-public interface HouseKeeperService {
-
-    ListenableFuture<List<AlarmId>> unassignDeletedUserAlarms(TenantId tenantId, User user, long unassignTs);
+    @Override
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.TASK_PROCESSING_FAILURE;
+    }
 
 }

@@ -40,7 +40,6 @@ import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpStatus;
 import org.awaitility.Awaitility;
 import org.hamcrest.Matcher;
 import org.hibernate.exception.ConstraintViolationException;
@@ -85,6 +84,7 @@ import org.thingsboard.server.actors.device.DeviceActorMessageProcessor;
 import org.thingsboard.server.actors.device.SessionInfo;
 import org.thingsboard.server.actors.device.ToDeviceRpcRequestMetadata;
 import org.thingsboard.server.actors.service.DefaultActorService;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -121,6 +121,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
+import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -133,10 +135,12 @@ import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
 import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.device.ClaimDevicesService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
+import org.thingsboard.server.queue.memory.InMemoryStorage;
 import org.thingsboard.server.service.entitiy.tenant.profile.TbTenantProfileService;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
@@ -256,10 +260,14 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     private TbTenantProfileService tbTenantProfileService;
 
     @Autowired
-    public TimeseriesService tsService;
+    protected TimeseriesService tsService;
 
     @Autowired
-    public EntityGroupService entityGroupService;;
+    protected AttributesService attributesService;
+
+    @Autowired
+    public EntityGroupService entityGroupService;
+    ;
 
     @Autowired
     protected DefaultActorService actorService;
@@ -269,6 +277,9 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     @SpyBean
     protected MailService mailService;
+
+    @Autowired
+    protected InMemoryStorage storage;
 
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -312,7 +323,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle(TEST_TENANT_NAME);
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        Tenant savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
         tenantId = savedTenant.getId();
         tenantProfileId = savedTenant.getTenantProfileId();
@@ -414,22 +425,14 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         assertThat(loadedTenants).as("All tenants expected to be deleted, but some tenants left in the database").isEmpty();
     }
 
-    private void deleteTenant(TenantId tenantId) {
-        int status = 0;
-        int retries = 0;
-        while (status != HttpStatus.SC_OK && retries < CLEANUP_TENANT_RETRIES_COUNT) {
-            retries++;
-            try {
-                status = doDelete("/api/tenant/" + tenantId.getId().toString())
-                        .andReturn().getResponse().getStatus();
-                if (status != HttpStatus.SC_OK) {
-                    log.warn("Tenant deletion failed, tenantId: {}", tenantId.getId().toString());
-                    Thread.sleep(1000L);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+    protected void deleteTenant(TenantId tenantId) {
+        try {
+            doDelete("/api/tenant/" + tenantId.getId()).andExpect(status().isOk());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+        Awaitility.await("all tasks processed").atMost(60, TimeUnit.SECONDS).during(300, TimeUnit.MILLISECONDS)
+                .until(() -> storage.getLag("tb_housekeeper") == 0);
     }
 
     private List<Tenant> getAllTenants() throws Exception {
@@ -490,14 +493,21 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         loginSysAdmin();
         Tenant tenant = new Tenant();
         tenant.setTitle(TEST_DIFFERENT_TENANT_NAME);
-        savedDifferentTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedDifferentTenant);
+        savedDifferentTenant = saveTenant(tenant);
         differentTenantId = savedDifferentTenant.getId();
         User differentTenantAdmin = new User();
         differentTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
         differentTenantAdmin.setTenantId(savedDifferentTenant.getId());
         differentTenantAdmin.setEmail(DIFFERENT_TENANT_ADMIN_EMAIL);
         savedDifferentTenantUser = createUserAndLogin(differentTenantAdmin, DIFFERENT_TENANT_ADMIN_PASSWORD);
+    }
+
+    protected Tenant saveTenant(Tenant tenant) throws Exception {
+        tenant = doPost("/api/tenant", tenant, Tenant.class);
+        if (tenant.getId() == null) {
+            attributesService.save(TenantId.SYS_TENANT_ID, tenant.getId(), AttributeScope.SERVER_SCOPE, new BaseAttributeKvEntry(System.currentTimeMillis(), new StringDataEntry("test", "test"))).get(); // creating marker attr to later know when Housekeeper finishes tenant cleanup
+        }
+        return tenant;
     }
 
     protected void loginDifferentCustomer() throws Exception {
@@ -585,7 +595,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected User createUser(User user, String password, EntityGroupId entityGroupId) throws Exception {
         String url = "/api/user";
         if (entityGroupId != null) {
-            url += "?entityGroupId="+entityGroupId.toString();
+            url += "?entityGroupId=" + entityGroupId.toString();
         }
         User savedUser = doPost(url, user, User.class);
         JsonNode activateRequest = getActivateRequest(password);
@@ -668,7 +678,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         this.username = null;
     }
 
-    protected void logout() throws Exception{
+    protected void logout() throws Exception {
         doPost("/api/auth/logout").andExpect(status().isOk());
     }
 
@@ -1083,6 +1093,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         field.setAccessible(true);
         field.set(target, value);
     }
+
     protected void testEntityDaoWithRelationsOk(EntityId entityIdFrom, EntityId entityTo, String urlDelete) throws Exception {
         createEntityRelation(entityIdFrom, entityTo, "TEST_TYPE");
         assertThat(findRelationsByTo(entityTo)).hasSize(1);

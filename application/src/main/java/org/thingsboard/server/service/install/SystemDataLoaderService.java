@@ -56,6 +56,6 @@ public interface SystemDataLoaderService {
 
     void createDefaultNotificationConfigs();
 
-    void updateDefaultNotificationConfigs();
+    void updateDefaultNotificationConfigs(boolean updateTenants);
 
 }

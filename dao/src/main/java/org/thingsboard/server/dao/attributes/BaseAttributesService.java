@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.attributes;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
@@ -175,4 +176,11 @@ public class BaseAttributesService implements AttributesService {
         validate(entityId, scope);
         return Futures.allAsList(attributesDao.removeAll(tenantId, entityId, scope, attributeKeys));
     }
+
+    @Override
+    public int removeAllByEntityId(TenantId tenantId, EntityId entityId) {
+        List<Pair<AttributeScope, String>> deleted = attributesDao.removeAllByEntityId(tenantId, entityId);
+        return deleted.size();
+    }
+
 }

@@ -167,10 +167,14 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         log.trace("Executing deleteRole [{}]", roleId);
         validateId(roleId, id -> INCORRECT_ROLE_ID + id);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndRoleId(tenantId, roleId);
-        deleteEntityRelations(tenantId, roleId);
         roleDao.removeById(tenantId, roleId.getId());
         publishEvictEvent(new RoleEvictEvent(roleId));
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(roleId).build());
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteRole(tenantId, (RoleId) id);
     }
 
     @Override
@@ -178,6 +182,11 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         log.trace("Executing deleteRolesByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantRoleRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteRolesByTenantId(tenantId);
     }
 
     @Override
@@ -318,11 +327,6 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findRoleById(tenantId, new RoleId(entityId.getId())));
-    }
-
-    @Override
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteRole(tenantId, (RoleId) id);
     }
 
     @Override
