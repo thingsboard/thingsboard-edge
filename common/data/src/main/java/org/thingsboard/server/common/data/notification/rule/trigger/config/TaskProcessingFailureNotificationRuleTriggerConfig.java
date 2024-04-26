@@ -28,14 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.constructor.translation;
+package org.thingsboard.server.common.data.notification.rule.trigger.config;
 
-import org.springframework.stereotype.Component;
-import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.edge.rpc.constructor.BaseMsgConstructorFactory;
+import lombok.Builder;
+import lombok.Data;
 
-@Component
-@TbCoreComponent
-public class CustomTranslationConstructorFactory extends BaseMsgConstructorFactory<CustomTranslationMsgConstructorV1, CustomTranslationMsgConstructorV2> {
+@Data
+@Builder
+public class TaskProcessingFailureNotificationRuleTriggerConfig implements NotificationRuleTriggerConfig {
+
+    @Override
+    public NotificationRuleTriggerType getTriggerType() {
+        return NotificationRuleTriggerType.TASK_PROCESSING_FAILURE;
+    }
 
 }

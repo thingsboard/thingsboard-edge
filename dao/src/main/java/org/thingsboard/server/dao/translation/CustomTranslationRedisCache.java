@@ -48,4 +48,5 @@ public class CustomTranslationRedisCache extends RedisTbTransactionalCache<Custo
     public CustomTranslationRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
         super(CacheConstants.CUSTOM_TRANSLATION_CACHE, cacheSpecsMap, connectionFactory, configuration,  new TbJsonRedisSerializer<>(CustomTranslation.class));
     }
+
 }

@@ -72,7 +72,7 @@ public class WhiteLabelingEdgeEventFetcher implements EdgeEventFetcher {
             List<EdgeEvent> wlEdgeEvents = getWhiteLabelingEdgeEvents(tenantId, edge, wlType);
             result.addAll(wlEdgeEvents);
         }
-        // @voba - returns PageData object to be in sync with other fetchers
+        // returns PageData object to be in sync with other fetchers
         return new PageData<>(result, 1, result.size(), false);
     }
 

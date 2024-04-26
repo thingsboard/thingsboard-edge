@@ -28,24 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.constructor.translation;
+package org.thingsboard.server.service.housekeeper.processor;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.translation.CustomTranslationEdgeOutdated;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
+import org.thingsboard.server.common.data.housekeeper.TsHistoryDeletionHousekeeperTask;
+import org.thingsboard.server.common.data.kv.BaseDeleteTsKvQuery;
+import org.thingsboard.server.common.data.kv.DeleteTsKvQuery;
+import org.thingsboard.server.dao.timeseries.TimeseriesService;
+
+import java.util.List;
 
 @Component
-@TbCoreComponent
-public class CustomTranslationMsgConstructorV2 implements CustomTranslationMsgConstructor {
+@RequiredArgsConstructor
+@Slf4j
+public class TsHistoryDeletionTaskProcessor extends HousekeeperTaskProcessor<TsHistoryDeletionHousekeeperTask> {
+
+    private final TimeseriesService timeseriesService;
 
     @Override
-    public CustomTranslationProto constructCustomTranslationProto(CustomTranslationEdgeOutdated customTranslation, EntityId entityId) {
-        return CustomTranslationProto.newBuilder().setEntity(JacksonUtil.toString(customTranslation))
-                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                .setEntityType(entityId.getEntityType().name()).build();
+    public void process(TsHistoryDeletionHousekeeperTask task) throws Exception {
+        DeleteTsKvQuery deleteQuery = new BaseDeleteTsKvQuery(task.getKey(), 0, System.currentTimeMillis(), false, false);
+        timeseriesService.remove(task.getTenantId(), task.getEntityId(), List.of(deleteQuery)).get();
+        log.debug("[{}][{}][{}] Deleted timeseries history for key '{}'", task.getTenantId(), task.getEntityId().getEntityType(), task.getEntityId(), task.getKey());
     }
+
+    @Override
+    public HousekeeperTaskType getTaskType() {
+        return HousekeeperTaskType.DELETE_TS_HISTORY;
+    }
+
 }

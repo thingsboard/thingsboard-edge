@@ -335,6 +335,9 @@ public class EdgeImitator {
         if (downlinkMsg.hasWhiteLabelingProto()) {
             result.add(saveDownlinkMsg(downlinkMsg.getWhiteLabelingProto()));
         }
+        if (downlinkMsg.hasCustomTranslationUpdateMsg()) {
+            result.add(saveDownlinkMsg(downlinkMsg.getCustomTranslationUpdateMsg()));
+        }
         if (downlinkMsg.getSchedulerEventUpdateMsgCount() > 0) {
             for (SchedulerEventUpdateMsg schedulerEventUpdateMsg : downlinkMsg.getSchedulerEventUpdateMsgList()) {
                 result.add(saveDownlinkMsg(schedulerEventUpdateMsg));

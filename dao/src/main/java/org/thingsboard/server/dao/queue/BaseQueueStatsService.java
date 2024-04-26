@@ -94,6 +94,11 @@ public class BaseQueueStatsService extends AbstractEntityService implements Queu
     }
 
     @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        queueStatsDao.removeById(tenantId, id.getId());
+    }
+
+    @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findQueueStatsById(tenantId, new QueueStatsId(entityId.getId())));
     }
@@ -102,4 +107,5 @@ public class BaseQueueStatsService extends AbstractEntityService implements Queu
     public EntityType getEntityType() {
         return EntityType.QUEUE_STATS;
     }
+
 }

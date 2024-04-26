@@ -34,13 +34,13 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,7 +49,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 class TbCountUniqueIntervalStateTest {
 
     private TbCountUniqueIntervalState state;
@@ -66,7 +66,7 @@ class TbCountUniqueIntervalStateTest {
         doUpdate_toStateJson(updates);
         doUpdate_toStateJson(updates);
 
-        Assert.assertEquals(3, state.getItems().size());
+        Assertions.assertEquals(3, state.getItems().size());
     }
 
     private void doUpdate_toStateJson(List<String> updates) {

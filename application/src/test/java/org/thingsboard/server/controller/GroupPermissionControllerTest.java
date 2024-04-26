@@ -69,7 +69,7 @@ public class GroupPermissionControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         idComparator = new IdComparator<>();
 
-        savedTenant = doPost("/api/tenant", getNewTenant(), Tenant.class);
+        savedTenant = saveTenant(getNewTenant());
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -95,8 +95,7 @@ public class GroupPermissionControllerTest extends AbstractControllerTest {
     @After
     public void afterTest() throws Exception {
         loginSysAdmin();
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(savedTenant.getId());
     }
 
     @Test
@@ -127,7 +126,7 @@ public class GroupPermissionControllerTest extends AbstractControllerTest {
 
         groupPermission = doPost("/api/groupPermission", groupPermission, GroupPermission.class);
         doPost("/api/groupPermission", groupPermission)
-                        .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
@@ -179,8 +178,8 @@ public class GroupPermissionControllerTest extends AbstractControllerTest {
             groupPermissions.add(getNewSavedGroupPermission("Test role " + i, savedUserGroup, null));
         }
 
-        List<GroupPermissionInfo> loadedGroupPermissionsInfo = doGetTyped("/api/userGroup/"+ savedUserGroup.getId()+"/groupPermissions",
-                new TypeReference<List<GroupPermissionInfo>>(){});
+        List<GroupPermissionInfo> loadedGroupPermissionsInfo = doGetTyped("/api/userGroup/" + savedUserGroup.getId() + "/groupPermissions",
+                new TypeReference<List<GroupPermissionInfo>>() {});
 
         List<GroupPermission> loadedGroupPermissions = loadedGroupPermissionsInfo.stream()
                 .map(groupPermissionInfo -> new GroupPermission(groupPermissionInfo)).collect(Collectors.toList());
@@ -198,8 +197,8 @@ public class GroupPermissionControllerTest extends AbstractControllerTest {
             groupPermissions.add(getNewSavedGroupPermission("Test role " + i, savedUserGroup, savedDeviceGroup));
         }
 
-        List<GroupPermissionInfo> loadedGroupPermissionsInfo = doGetTyped("/api/entityGroup/"+ savedDeviceGroup.getId()+"/groupPermissions",
-                new TypeReference<List<GroupPermissionInfo>>(){});
+        List<GroupPermissionInfo> loadedGroupPermissionsInfo = doGetTyped("/api/entityGroup/" + savedDeviceGroup.getId() + "/groupPermissions",
+                new TypeReference<List<GroupPermissionInfo>>() {});
 
         List<GroupPermission> loadedGroupPermissions = loadedGroupPermissionsInfo.stream()
                 .map(groupPermissionInfo -> new GroupPermission(groupPermissionInfo)).collect(Collectors.toList());

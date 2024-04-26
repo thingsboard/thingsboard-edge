@@ -59,4 +59,5 @@ public class IntegrationEventsEdgeEventFetcher extends BasePageableEdgeEventFetc
         return EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.INTEGRATION,
                 EdgeEventActionType.ADDED, integration.getId(), null);
     }
+
 }

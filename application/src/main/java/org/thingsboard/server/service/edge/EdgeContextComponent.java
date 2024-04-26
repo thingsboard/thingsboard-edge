@@ -107,6 +107,7 @@ import org.thingsboard.server.service.edge.rpc.processor.settings.AdminSettingsE
 import org.thingsboard.server.service.edge.rpc.processor.telemetry.TelemetryEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.tenant.TenantEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.tenant.TenantProfileEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.translation.CustomTranslationEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.user.UserEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.widget.WidgetBundleEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.widget.WidgetTypeEdgeProcessor;
@@ -341,6 +342,9 @@ public class EdgeContextComponent {
 
     @Autowired
     private EntityGroupEdgeProcessor entityGroupProcessor;
+
+    @Autowired
+    private CustomTranslationEdgeProcessor customTranslationEdgeProcessor;
 
     @Autowired
     private WhiteLabelingEdgeProcessor whiteLabelingProcessor;

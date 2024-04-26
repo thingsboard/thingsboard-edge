@@ -28,27 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.constructor.translation;
+package org.thingsboard.server.queue.housekeeper;
 
+import lombok.Getter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.translation.CustomTranslationEdgeOutdated;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
+
+import java.util.Set;
 
 @Component
-@TbCoreComponent
-public class CustomTranslationMsgConstructorV1 implements CustomTranslationMsgConstructor {
+@Getter
+public class HousekeeperConfig {
 
-    @Override
-    public CustomTranslationProto constructCustomTranslationProto(CustomTranslationEdgeOutdated customTranslation, EntityId entityId) {
-        CustomTranslationProto.Builder builder = CustomTranslationProto.newBuilder();
-        builder.setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                .setEntityType(entityId.getEntityType().name());
-        if (customTranslation.getTranslationMap() != null && !customTranslation.getTranslationMap().isEmpty()) {
-            builder.putAllTranslationMap(customTranslation.getTranslationMap());
-        }
-        return builder.build();
-    }
+    @Value("${queue.core.housekeeper.disabled-task-types:}")
+    private Set<HousekeeperTaskType> disabledTaskTypes;
+    @Value("${queue.core.housekeeper.task-processing-timeout-ms:120000}")
+    private int taskProcessingTimeout;
+    @Value("${queue.core.housekeeper.poll-interval-ms:500}")
+    private int pollInterval;
+    @Value("${queue.core.housekeeper.task-reprocessing-delay-ms:3000}")
+    private int taskReprocessingDelay;
+    @Value("${queue.core.housekeeper.max-reprocessing-attempts:10}")
+    private int maxReprocessingAttempts;
+
 }

@@ -35,8 +35,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Assert;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -149,7 +149,7 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
         initMock();
     }
 
-    @After
+    @AfterEach
     public void after() {
         executor.destroy();
         node.destroy();
@@ -203,16 +203,16 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
     }
 
     private void checkMsg(TbMsg Msg, boolean checkSum) {
-        Assert.assertNotNull(Msg);
-        Assert.assertNotNull(Msg.getData());
+        Assertions.assertNotNull(Msg);
+        Assertions.assertNotNull(Msg.getData());
         ObjectNode objectNode = (ObjectNode) JacksonUtil.toJsonNode(Msg.getData());
-        Assert.assertEquals(43.0, objectNode.get("latestAvgTemperature").asDouble(), 0.0);
-        Assert.assertEquals(2, objectNode.get("deviceCount").asInt());
+        Assertions.assertEquals(43.0, objectNode.get("latestAvgTemperature").asDouble(), 0.0);
+        Assertions.assertEquals(2, objectNode.get("deviceCount").asInt());
 
         if (checkSum) {
             //check filtered
-            Assert.assertTrue(objectNode.has("sumTemperature"));
-            Assert.assertEquals(44, objectNode.get("sumTemperature").asInt());
+            Assertions.assertTrue(objectNode.has("sumTemperature"));
+            Assertions.assertEquals(44, objectNode.get("sumTemperature").asInt());
         }
     }
 
@@ -323,18 +323,18 @@ public class TbAggLatestTelemetryNodeV2Test extends AbstractRuleNodeUpgradeTest 
                 .filter(tbMsg -> tbMsg.isTypeOf(TbMsgType.TB_AGG_LATEST_SELF_MSG))
                 .collect(Collectors.toList());
 
-        Assert.assertNotNull(resultMsg);
-        Assert.assertEquals(countMsg, resultMsg.size());
+        Assertions.assertNotNull(resultMsg);
+        Assertions.assertEquals(countMsg, resultMsg.size());
 
-        Assert.assertNotNull(delayedMsg);
-        Assert.assertEquals(countMsg - 1, delayedMsg.size());
+        Assertions.assertNotNull(delayedMsg);
+        Assertions.assertEquals(countMsg - 1, delayedMsg.size());
 
         resultMsg.forEach(tbMsg -> checkMsg(tbMsg, false));
 
         //check delayed Msg
         delayedMsg.forEach(tbMsg -> {
-            Assert.assertNotNull(tbMsg);
-            Assert.assertTrue(tbMsg.isTypeOf(TbMsgType.TB_AGG_LATEST_SELF_MSG));
+            Assertions.assertNotNull(tbMsg);
+            Assertions.assertTrue(tbMsg.isTypeOf(TbMsgType.TB_AGG_LATEST_SELF_MSG));
         });
     }
 
