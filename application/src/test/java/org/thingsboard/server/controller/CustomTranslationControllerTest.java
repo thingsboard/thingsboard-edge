@@ -32,8 +32,8 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.junit.After;
 import org.junit.Test;
-import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -66,12 +66,14 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
     @Autowired
     AdminSettingsDao  adminSettingsDao;
 
-    @AfterEach
-    void tearDownCustomTranslation() throws Exception {
+    @After
+    public void tearDownCustomTranslation() throws Exception {
         loginSysAdmin();
         List<TranslationInfo> translationInfos = doGetTyped("/api/translation/info", new TypeReference<>() {});
         for (var info : translationInfos) {
             doDelete("/api/translation/custom/" + info.getLocaleCode());
+            JsonNode retrieved = doGet("/api/translation/custom/" + info.getLocaleCode(), JsonNode.class);
+            assertThat(retrieved).isEmpty();
         }
     }
 
