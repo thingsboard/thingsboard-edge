@@ -33,11 +33,11 @@ package org.thingsboard.rule.engine.profile;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.RuleEngineDeviceProfileCache;
@@ -101,7 +101,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TbDeviceProfileNodeTest {
 
     private TbDeviceProfileNode node;
@@ -1715,10 +1715,10 @@ public class TbDeviceProfileNodeTest {
     private void init() throws TbNodeException {
         Mockito.when(ctx.getTenantId()).thenReturn(tenantId);
         Mockito.when(ctx.getDeviceProfileCache()).thenReturn(cache);
-        Mockito.when(ctx.getTimeseriesService()).thenReturn(timeseriesService);
-        Mockito.when(ctx.getAlarmService()).thenReturn(alarmService);
+        Mockito.lenient().when(ctx.getTimeseriesService()).thenReturn(timeseriesService);
+        Mockito.lenient().when(ctx.getAlarmService()).thenReturn(alarmService);
         Mockito.when(ctx.getDeviceService()).thenReturn(deviceService);
-        Mockito.when(ctx.getAttributesService()).thenReturn(attributesService);
+        Mockito.lenient().when(ctx.getAttributesService()).thenReturn(attributesService);
         TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.newObjectNode());
         node = new TbDeviceProfileNode();
         node.init(ctx, nodeConfiguration);
