@@ -623,6 +623,8 @@ coap:
     bind_address: "${COAP_DTLS_BIND_ADDRESS:0.0.0.0}"
     # CoAP DTLS bind port
     bind_port: "${COAP_DTLS_BIND_PORT:5684}"
+    # CoAP DTLS connection ID length. RFC 9146, Connection Identifier for DTLS 1.2
+    connection_id_length: "${COAP_DTLS_CONNECTION_ID_LENGTH:}"
     # Server DTLS credentials
     credentials:
       # Server credentials type (PEM - pem certificate file; KEYSTORE - java keystore)
