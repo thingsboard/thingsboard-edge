@@ -29,91 +29,60 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ColorSettings, constantColor, Font } from '@shared/models/widget-settings.models';
-import { LegendPosition } from '@shared/models/widget.models';
-import { pieChartAnimationDefaultSettings, PieChartSettings } from '@home/components/widget/lib/chart/pie-chart.models';
-import { DeepPartial } from '@shared/models/common';
 import {
   latestChartWidgetDefaultSettings,
   LatestChartWidgetSettings
 } from '@home/components/widget/lib/chart/latest-chart.models';
 import { mergeDeep } from '@core/utils';
-import { ChartAnimationSettings } from '@home/components/widget/lib/chart/chart.models';
+import {
+  barsChartAnimationDefaultSettings,
+  BarsChartSettings
+} from '@home/components/widget/lib/chart/bars-chart.models';
+import { Font } from '@shared/models/widget-settings.models';
+import { DeepPartial } from '@shared/models/common';
+import {
+  ChartAnimationSettings,
+  chartBarDefaultSettings,
+  ChartBarSettings,
+  chartColorScheme
+} from '@home/components/widget/lib/chart/chart.models';
 
-export enum DoughnutLayout {
-  default = 'default',
-  with_total = 'with_total'
+export interface BarChartWidgetSettings extends LatestChartWidgetSettings {
+  axisMin?: number;
+  axisMax?: number;
+  axisTickLabelFont: Font;
+  axisTickLabelColor: string;
+  barSettings: ChartBarSettings;
 }
 
-export const doughnutLayouts = Object.keys(DoughnutLayout) as DoughnutLayout[];
-
-export const doughnutLayoutTranslations = new Map<DoughnutLayout, string>(
-  [
-    [DoughnutLayout.default, 'widgets.doughnut.layout-default'],
-    [DoughnutLayout.with_total, 'widgets.doughnut.layout-with-total']
-  ]
-);
-
-export const doughnutLayoutImages = new Map<DoughnutLayout, string>(
-  [
-    [DoughnutLayout.default, 'assets/widget/doughnut/default-layout.svg'],
-    [DoughnutLayout.with_total, 'assets/widget/doughnut/with-total-layout.svg']
-  ]
-);
-
-export const horizontalDoughnutLayoutImages = new Map<DoughnutLayout, string>(
-  [
-    [DoughnutLayout.default, 'assets/widget/doughnut/horizontal-default-layout.svg'],
-    [DoughnutLayout.with_total, 'assets/widget/doughnut/horizontal-with-total-layout.svg']
-  ]
-);
-
-export interface DoughnutWidgetSettings extends LatestChartWidgetSettings {
-  layout: DoughnutLayout;
-  clockwise: boolean;
-  totalValueFont: Font;
-  totalValueColor: ColorSettings;
-}
-
-export const doughnutDefaultSettings = (horizontal: boolean): DoughnutWidgetSettings => ({
+export const barChartWidgetDefaultSettings: BarChartWidgetSettings = {
   ...latestChartWidgetDefaultSettings,
-  autoScale: true,
-  sortSeries: false,
   animation: mergeDeep({} as ChartAnimationSettings,
-    pieChartAnimationDefaultSettings),
-  legendPosition: horizontal ? LegendPosition.right : LegendPosition.bottom,
-  layout: DoughnutLayout.default,
-  clockwise: false,
-  totalValueFont: {
+    barsChartAnimationDefaultSettings),
+  axisTickLabelFont: {
     family: 'Roboto',
-    size: 24,
+    size: 12,
     sizeUnit: 'px',
     style: 'normal',
-    weight: '500',
+    weight: '400',
     lineHeight: '1'
   },
-  totalValueColor: constantColor('rgba(0, 0, 0, 0.87)')
-});
+  axisTickLabelColor: chartColorScheme['axis.tickLabel'].light,
+  barSettings: mergeDeep({} as ChartBarSettings, chartBarDefaultSettings,
+    {barWidth: 80, showLabel: true} as ChartBarSettings)
+};
 
-export const doughnutPieChartSettings = (settings: DoughnutWidgetSettings): DeepPartial<PieChartSettings> => ({
-  autoScale: settings.autoScale,
-  doughnut: true,
-  clockwise: settings.clockwise,
+export const barChartWidgetBarsChartSettings = (settings: BarChartWidgetSettings): DeepPartial<BarsChartSettings> => ({
+  polar: false,
+  axisMin: settings.axisMin,
+  axisMax: settings.axisMax,
+  axisTickLabelFont: settings.axisTickLabelFont,
+  axisTickLabelColor: settings.axisTickLabelColor,
+  barSettings: settings.barSettings,
   sortSeries: settings.sortSeries,
-  showTotal: settings.layout === DoughnutLayout.with_total,
+  showTotal: false,
   animation: settings.animation,
   showLegend: settings.showLegend,
-  totalValueFont: settings.totalValueFont,
-  totalValueColor: settings.totalValueColor,
-  showLabel: false,
-  borderWidth: 0,
-  borderColor: '#fff',
-  borderRadius: '50%',
-  emphasisScale: false,
-  emphasisBorderWidth: 2,
-  emphasisBorderColor: '#fff',
-  emphasisShadowColor: 'rgba(0, 0, 0, 0.24)',
-  emphasisShadowBlur: 8,
   showTooltip: settings.showTooltip,
   tooltipValueType: settings.tooltipValueType,
   tooltipValueDecimals: settings.tooltipValueDecimals,
