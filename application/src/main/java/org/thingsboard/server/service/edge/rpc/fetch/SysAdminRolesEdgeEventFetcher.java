@@ -44,7 +44,7 @@ public class SysAdminRolesEdgeEventFetcher extends BaseRolesEdgeEventFetcher {
     }
 
     @Override
-    PageData<Role> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
+    PageData<Role> fetchEntities(TenantId tenantId, Edge edge, PageLink pageLink) {
         return roleService.findRolesByTenantId(TenantId.SYS_TENANT_ID, pageLink);
     }
 }

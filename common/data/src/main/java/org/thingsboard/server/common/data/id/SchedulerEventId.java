@@ -50,7 +50,7 @@ public class SchedulerEventId extends UUIDBased implements EntityId {
         return new SchedulerEventId(UUID.fromString(schedulerEventId));
     }
 
-    @Schema(required = true, description = "string", example = "SCHEDULER_EVENT", allowableValues = "SCHEDULER_EVENT")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "SCHEDULER_EVENT", allowableValues = "SCHEDULER_EVENT")
     @Override
     public EntityType getEntityType() {
         return EntityType.SCHEDULER_EVENT;

@@ -41,18 +41,21 @@ import {
   LineSeriesSettings,
   lineSeriesStepTypes,
   lineSeriesStepTypeTranslations,
-  seriesLabelPositions,
-  seriesLabelPositionTranslations,
   TimeSeriesChartType,
   timeSeriesLineTypes,
   timeSeriesLineTypeTranslations
 } from '@home/components/widget/lib/chart/time-series-chart.models';
-import { echartsShapes, echartsShapeTranslations } from '@home/components/widget/lib/chart/echarts-widget.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { merge } from 'rxjs';
 import { formatValue, isDefinedAndNotNull } from '@core/utils';
 import { DataKeyConfigComponent } from '@home/components/widget/config/data-key-config.component';
+import {
+  chartLabelPositions,
+  chartLabelPositionTranslations,
+  chartShapes,
+  chartShapeTranslations
+} from '@home/components/widget/lib/chart/chart.models';
 
 @Component({
   selector: 'tb-time-series-chart-line-settings',
@@ -78,13 +81,13 @@ export class TimeSeriesChartLineSettingsComponent implements OnInit, ControlValu
 
   timeSeriesLineTypeTranslations = timeSeriesLineTypeTranslations;
 
-  seriesLabelPositions = seriesLabelPositions;
+  chartLabelPositions = chartLabelPositions;
 
-  seriesLabelPositionTranslations = seriesLabelPositionTranslations;
+  chartLabelPositionTranslations = chartLabelPositionTranslations;
 
-  echartsShapes = echartsShapes;
+  chartShapes = chartShapes;
 
-  echartsShapeTranslations = echartsShapeTranslations;
+  chartShapeTranslations = chartShapeTranslations;
 
   pointLabelPreviewFn = this._pointLabelPreviewFn.bind(this);
 
@@ -162,12 +165,22 @@ export class TimeSeriesChartLineSettingsComponent implements OnInit, ControlValu
   }
 
   private updateValidators() {
+    const state = this.chartType === TimeSeriesChartType.state;
     const showLine: boolean = this.lineSettingsFormGroup.get('showLine').value;
     const step: boolean = this.lineSettingsFormGroup.get('step').value;
     const showPointLabel: boolean = this.lineSettingsFormGroup.get('showPointLabel').value;
     const enablePointLabelBackground: boolean = this.lineSettingsFormGroup.get('enablePointLabelBackground').value;
+    if (state) {
+      this.lineSettingsFormGroup.get('showLine').disable({emitEvent: false});
+    } else {
+      this.lineSettingsFormGroup.get('showLine').enable({emitEvent: false});
+    }
     if (showLine) {
-      this.lineSettingsFormGroup.get('step').enable({emitEvent: false});
+      if (state) {
+        this.lineSettingsFormGroup.get('step').disable({emitEvent: false});
+      } else {
+        this.lineSettingsFormGroup.get('step').enable({emitEvent: false});
+      }
       if (step) {
         this.lineSettingsFormGroup.get('stepType').enable({emitEvent: false});
         this.lineSettingsFormGroup.get('smooth').disable({emitEvent: false});

@@ -44,12 +44,14 @@ public class TbChangeOriginatorNodeConfiguration extends TbAbstractTransformNode
 
     private String entityType;
     private String entityNamePattern;
+    private boolean preserveOriginatorIfCustomer;
 
     @Override
     public TbChangeOriginatorNodeConfiguration defaultConfiguration() {
         var configuration = new TbChangeOriginatorNodeConfiguration();
         configuration.setOriginatorSource(CUSTOMER_SOURCE);
         configuration.setRelationsQuery(getDefaultRelationQuery());
+        configuration.setPreserveOriginatorIfCustomer(false);
         return configuration;
     }
 }

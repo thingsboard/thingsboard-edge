@@ -47,6 +47,8 @@ public interface NotificationTemplateService {
 
     PageData<NotificationTemplate> findNotificationTemplatesByTenantIdAndNotificationTypes(TenantId tenantId, List<NotificationType> notificationTypes, PageLink pageLink);
 
+    int countNotificationTemplatesByTenantIdAndNotificationTypes(TenantId tenantId, List<NotificationType> notificationTypes);
+
     void deleteNotificationTemplateById(TenantId tenantId, NotificationTemplateId id);
 
     void deleteNotificationTemplatesByTenantId(TenantId tenantId);

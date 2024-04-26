@@ -32,7 +32,7 @@ package org.thingsboard.rule.engine.edge;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.AttributeScope;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -41,7 +41,8 @@ public class TbMsgPushToCloudNodeConfiguration extends BaseTbMsgPushNodeConfigur
     @Override
     public TbMsgPushToCloudNodeConfiguration defaultConfiguration() {
         TbMsgPushToCloudNodeConfiguration configuration = new TbMsgPushToCloudNodeConfiguration();
-        configuration.setScope(DataConstants.SERVER_SCOPE);
+        configuration.setScope(AttributeScope.SERVER_SCOPE.name());
         return configuration;
     }
+
 }

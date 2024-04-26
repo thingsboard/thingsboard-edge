@@ -751,15 +751,7 @@
   "custom-translation": {
     "custom-translation": "Brugerdefineret oversættelse",
     "translation-map": "Oversættelsestilknytning",
-    "key": "Oversættelsesnøgle",
-    "import": "Importér oversættelse",
-    "export": "Eksportér oversættelse",
-    "export-data": "Eksportér oversættelsesdata",
-    "import-data": "Importér oversættelsesdata",
-    "translation-file": "Oversættelsesfil",
-    "invalid-translation-file-error": "Kunne ikke importere oversættelsesfil: Ugyldig oversættelsesdatastruktur.",
-    "custom-translation-hint": "Definer brugerdefineret oversættelse JSON nedenfor. Denne JSON overskriver standardoversættelsen. Klik på 'Download lokalfil' for at hente eksisterende oversættelse. Du kan også bruge den downloadede fil som reference til tilgængelige nøgleværdipar for oversættelse.",
-    "download-locale-file": "Download lokalfil"
+    "translation-file": "Oversættelsesfil"
   },
   "datetime": {
     "date-from": "Dato fra",

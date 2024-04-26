@@ -147,13 +147,13 @@ public class Edge extends BaseDataWithAdditionalInfo<EdgeId>
         return this.rootRuleChainId;
     }
 
-    @Schema(required = true, description = "Unique Edge Name in scope of Tenant", example = "Silo_A_Edge")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Unique Edge Name in scope of Tenant", example = "Silo_A_Edge")
     @Override
     public String getName() {
         return this.name;
     }
 
-    @Schema(required = true, description = "Edge type", example = "Silos")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Edge type", example = "Silos")
     public String getType() {
         return this.type;
     }
@@ -163,22 +163,22 @@ public class Edge extends BaseDataWithAdditionalInfo<EdgeId>
         return this.label;
     }
 
-    @Schema(required = true, description = "Edge routing key ('username') to authorize on cloud")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Edge routing key ('username') to authorize on cloud")
     public String getRoutingKey() {
         return this.routingKey;
     }
 
-    @Schema(required = true, description = "Edge secret ('password') to authorize on cloud")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Edge secret ('password') to authorize on cloud")
     public String getSecret() {
         return this.secret;
     }
 
-    @Schema(required = true, description = "Edge license key obtained from license portal", example = "AgcnI24Z06XC&m6Sxsdgf")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Edge license key obtained from license portal", example = "AgcnI24Z06XC&m6Sxsdgf")
     public String getEdgeLicenseKey() {
         return this.edgeLicenseKey;
     }
 
-    @Schema(required = true, description = "Edge uses this cloud URL to activate and periodically check it's license", example = "https://thingsboard.cloud")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Edge uses this cloud URL to activate and periodically check it's license", example = "https://thingsboard.cloud")
     public String getCloudEndpoint() {
         return this.cloudEndpoint;
     }

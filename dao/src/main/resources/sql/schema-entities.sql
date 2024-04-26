@@ -40,7 +40,7 @@ CREATE OR REPLACE PROCEDURE insert_tb_schema_settings()
 $$
 BEGIN
     IF (SELECT COUNT(*) FROM tb_schema_settings) = 0 THEN
-        INSERT INTO tb_schema_settings (schema_version) VALUES (3006000);
+        INSERT INTO tb_schema_settings (schema_version) VALUES (3006004);
     END IF;
 END;
 $$;
@@ -1044,6 +1044,7 @@ CREATE TABLE IF NOT EXISTS notification (
     request_id UUID,
     recipient_id UUID NOT NULL,
     type VARCHAR(50) NOT NULL,
+    delivery_method VARCHAR(50) NOT NULL,
     subject VARCHAR(255),
     body VARCHAR(1000) NOT NULL,
     additional_config VARCHAR(1000),
@@ -1081,4 +1082,12 @@ CREATE TABLE IF NOT EXISTS queue_stats (
     queue_name varchar(255) NOT NULL,
     service_id varchar(255) NOT NULL,
     CONSTRAINT queue_stats_name_unq_key UNIQUE (tenant_id, queue_name, service_id)
+);
+
+CREATE TABLE IF NOT EXISTS custom_translation (
+    tenant_id UUID NOT NULL,
+    customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
+    locale_code VARCHAR(10),
+    value VARCHAR(1000000),
+    CONSTRAINT custom_translation_pkey PRIMARY KEY (tenant_id, customer_id, locale_code)
 );

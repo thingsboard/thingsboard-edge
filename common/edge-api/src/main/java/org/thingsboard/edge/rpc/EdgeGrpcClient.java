@@ -126,7 +126,7 @@ public class EdgeGrpcClient implements EdgeRpcClient {
                 .setConnectRequestMsg(ConnectRequestMsg.newBuilder()
                         .setEdgeRoutingKey(edgeKey)
                         .setEdgeSecret(edgeSecret)
-                        .setEdgeVersion(EdgeVersion.V_3_6_2)
+                        .setEdgeVersion(EdgeVersion.V_3_7_0)
                         .setMaxInboundMessageSize(maxInboundMessageSize)
                         .build())
                 .build());
@@ -263,4 +263,5 @@ public class EdgeGrpcClient implements EdgeRpcClient {
             uplinkMsgLock.unlock();
         }
     }
+
 }

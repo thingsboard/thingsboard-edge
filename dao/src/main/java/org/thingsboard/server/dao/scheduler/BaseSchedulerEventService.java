@@ -190,10 +190,14 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
     public void deleteSchedulerEvent(TenantId tenantId, SchedulerEventId schedulerEventId) {
         log.trace("Executing deleteSchedulerEvent [{}]", schedulerEventId);
         validateId(schedulerEventId, id -> INCORRECT_SCHEDULER_EVENT_ID + id);
-        deleteEntityRelations(tenantId, schedulerEventId);
         schedulerEventDao.removeById(tenantId, schedulerEventId.getId());
         entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.SCHEDULER_EVENT);
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(schedulerEventId).build());
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteSchedulerEvent(tenantId, (SchedulerEventId) id);
     }
 
     @Override
@@ -204,6 +208,11 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
         for (SchedulerEventInfo schedulerEvent : schedulerEvents) {
             deleteSchedulerEvent(tenantId, schedulerEvent.getId());
         }
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteSchedulerEventsByTenantId(tenantId);
     }
 
     @Override
@@ -259,6 +268,15 @@ public class BaseSchedulerEventService extends AbstractEntityService implements 
         Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
         Validator.validateId(edgeId, id -> "Incorrect edgeId " + id);
         return schedulerEventInfoDao.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
+    }
+
+    @Override
+    public PageData<SchedulerEventInfo> findSchedulerEventInfosByTenantIdAndEdgeIdAndCustomerId(TenantId tenantId, EdgeId edgeId, CustomerId customerId, PageLink pageLink) {
+        log.trace("Executing findSchedulerEventInfosByTenantIdAndEdgeId, tenantId [{}], edgeId [{}]", tenantId, edgeId);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
+        Validator.validateId(edgeId, id -> "Incorrect edgeId " + id);
+        Validator.validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
+        return schedulerEventInfoDao.findSchedulerEventInfosByTenantIdAndEdgeIdAndCustomerId(tenantId.getId(), edgeId.getId(),  customerId.getId(), pageLink);
     }
 
     @Override

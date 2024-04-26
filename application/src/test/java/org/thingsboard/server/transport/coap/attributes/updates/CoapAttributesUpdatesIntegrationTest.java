@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.californium.core.server.resources.Resource;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.coapserver.DefaultCoapServerService;
@@ -50,8 +49,6 @@ import static org.mockito.Mockito.spy;
 @DaoSqlTest
 public class CoapAttributesUpdatesIntegrationTest extends AbstractCoapAttributesIntegrationTest {
 
-    CoapTransportResource coapTransportResource;
-
     @Autowired
     DefaultCoapServerService defaultCoapServerService;
 
@@ -60,10 +57,6 @@ public class CoapAttributesUpdatesIntegrationTest extends AbstractCoapAttributes
 
     @Before
     public void beforeTest() throws Exception {
-        Resource api = defaultCoapServerService.getCoapServer().getRoot().getChild("api");
-        coapTransportResource = spy( (CoapTransportResource) api.getChild("v1") );
-        api.delete(api.getChild("v1") );
-        api.add(coapTransportResource);
         CoapTestConfigProperties configProperties = CoapTestConfigProperties.builder()
                 .deviceName("Test Subscribe to attribute updates")
                 .build();
@@ -75,15 +68,11 @@ public class CoapAttributesUpdatesIntegrationTest extends AbstractCoapAttributes
         processAfterTest();
     }
 
-
-
-    @Ignore // Uncomment when Californium 3.11 is released with https://github.com/eclipse-californium/californium/pull/2215
     @Test
     public void testSubscribeToAttributesUpdatesFromTheServer() throws Exception {
         processJsonTestSubscribeToAttributesUpdates(false);
     }
 
-    @Ignore // Uncomment when Californium 3.11 is released with https://github.com/eclipse-californium/californium/pull/2215
     @Test
     public void testSubscribeToAttributesUpdatesFromTheServerWithEmptyCurrentStateNotification() throws Exception {
         processJsonTestSubscribeToAttributesUpdates(true);

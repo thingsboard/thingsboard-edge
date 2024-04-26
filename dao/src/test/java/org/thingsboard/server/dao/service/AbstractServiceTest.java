@@ -66,16 +66,21 @@ import org.thingsboard.server.common.data.group.ColumnType;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
+import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
+import org.thingsboard.server.common.data.housekeeper.TenantEntitiesDeletionHousekeeperTask;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
+import org.thingsboard.server.common.msg.housekeeper.HousekeeperClient;
 import org.thingsboard.server.dao.audit.AuditLogLevelFilter;
 import org.thingsboard.server.dao.audit.AuditLogLevelMask;
 import org.thingsboard.server.dao.audit.AuditLogLevelProperties;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.entity.EntityDaoService;
+import org.thingsboard.server.dao.entity.EntityServiceRegistry;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.tenant.TenantService;
 
@@ -104,6 +109,9 @@ public abstract class AbstractServiceTest {
     @Autowired
     protected TenantService tenantService;
 
+    @Autowired
+    protected EntityServiceRegistry entityServiceRegistry;
+
     protected TenantId tenantId;
 
     @Before
@@ -124,6 +132,10 @@ public abstract class AbstractServiceTest {
     }
 
     protected RuleNodeDebugEvent generateEvent(TenantId tenantId, EntityId entityId) throws IOException {
+        return generateEvent(tenantId, entityId, null);
+    }
+
+    protected RuleNodeDebugEvent generateEvent(TenantId tenantId, EntityId entityId, String eventType) throws IOException {
         if (tenantId == null) {
             tenantId = TenantId.fromUUID(Uuids.timeBased());
         }
@@ -131,6 +143,7 @@ public abstract class AbstractServiceTest {
                 .tenantId(tenantId)
                 .entityId(entityId.getId())
                 .serviceId("server A")
+                .eventType(eventType)
                 .data(JacksonUtil.toString(readFromResource("TestJsonData.json")))
                 .build();
     }
@@ -150,6 +163,16 @@ public abstract class AbstractServiceTest {
         var props = new AuditLogLevelProperties();
         props.setMask(mask);
         return new AuditLogLevelFilter(props);
+    }
+
+    @Bean
+    public HousekeeperClient housekeeperClient() {
+        return task -> {
+            if (task.getTaskType() == HousekeeperTaskType.DELETE_TENANT_ENTITIES) {
+                EntityDaoService entityService = entityServiceRegistry.getServiceByEntityType(((TenantEntitiesDeletionHousekeeperTask) task).getEntityType());
+                entityService.deleteByTenantId(task.getTenantId());
+            }
+        };
     }
 
     protected DeviceProfile createDeviceProfile(TenantId tenantId, String name) {

@@ -60,4 +60,5 @@ public class AdminSettingsEdgeProcessor extends BaseEdgeProcessor {
                 .addAdminSettingsUpdateMsg(adminSettingsUpdateMsg)
                 .build();
     }
+
 }

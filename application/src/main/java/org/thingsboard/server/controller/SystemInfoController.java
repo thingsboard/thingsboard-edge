@@ -62,7 +62,9 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
+import org.thingsboard.server.service.translation.TbTranslationService;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
@@ -93,6 +95,9 @@ public class SystemInfoController extends BaseController {
 
     @Autowired
     private WhiteLabelingService whiteLabelingService;
+
+    @Autowired
+    private TbTranslationService translationService;
 
     @PostConstruct
     public void init() {
@@ -158,6 +163,7 @@ public class SystemInfoController extends BaseController {
             DefaultTenantProfileConfiguration tenantProfileConfiguration = tenantProfileCache.get(tenantId).getDefaultProfileConfiguration();
             systemParams.setMaxResourceSize(tenantProfileConfiguration.getMaxResourceSize());
         }
+        systemParams.setAvailableLocales(translationService.getAvailableLocaleCodes(tenantId, customerId));
         return systemParams;
     }
 

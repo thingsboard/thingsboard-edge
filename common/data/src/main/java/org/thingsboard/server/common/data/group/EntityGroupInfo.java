@@ -44,7 +44,7 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 public class EntityGroupInfo extends EntityGroup {
 
-    @Schema(required = true, description = "List of the entity group owners.")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "List of the entity group owners.")
     private Set<EntityId> ownerIds;
 
     public EntityGroupInfo() {

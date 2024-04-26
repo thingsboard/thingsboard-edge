@@ -53,8 +53,7 @@ public class QueueEdgeProcessor extends BaseEdgeProcessor {
         QueueId queueId = new QueueId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         switch (edgeEvent.getAction()) {
-            case ADDED:
-            case UPDATED:
+            case ADDED, UPDATED -> {
                 Queue queue = queueService.findQueueById(edgeEvent.getTenantId(), queueId);
                 if (queue != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
@@ -65,16 +64,17 @@ public class QueueEdgeProcessor extends BaseEdgeProcessor {
                             .addQueueUpdateMsg(queueUpdateMsg)
                             .build();
                 }
-                break;
-            case DELETED:
+            }
+            case DELETED -> {
                 QueueUpdateMsg queueDeleteMsg = ((QueueMsgConstructor)
                         queueMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructQueueDeleteMsg(queueId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addQueueUpdateMsg(queueDeleteMsg)
                         .build();
-                break;
+            }
         }
         return downlinkMsg;
     }
+
 }

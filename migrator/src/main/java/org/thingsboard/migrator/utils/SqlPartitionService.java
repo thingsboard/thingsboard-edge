@@ -32,6 +32,7 @@ package org.thingsboard.migrator.utils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -50,6 +51,7 @@ import static java.lang.String.format;
 @Service
 @RequiredArgsConstructor
 @ConfigurationProperties
+@Slf4j
 public class SqlPartitionService {
 
     private final JdbcTemplate jdbcTemplate;
@@ -68,7 +70,7 @@ public class SqlPartitionService {
         if (newPartition) {
             String query = format("CREATE TABLE IF NOT EXISTS %s_%s PARTITION OF %s FOR VALUES FROM (%s) TO (%s)",
                     table.getName(), partitionStart, table.getName(), partitionStart, partitionEnd);
-            System.out.println("Executing query: " + query);
+            log.info("Created partition for table {} ({}-{})", table.getName(), partitionStart, partitionEnd);
             jdbcTemplate.execute(query);
         }
     }

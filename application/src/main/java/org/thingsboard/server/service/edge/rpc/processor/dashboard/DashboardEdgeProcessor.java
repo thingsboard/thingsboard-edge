@@ -149,10 +149,7 @@ public abstract class DashboardEdgeProcessor extends BaseDashboardProcessor impl
         DownlinkMsg downlinkMsg = null;
         EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
         switch (edgeEvent.getAction()) {
-            case ADDED:
-            case ADDED_TO_ENTITY_GROUP:
-            case UPDATED:
-            case ASSIGNED_TO_EDGE:
+            case ADDED, ADDED_TO_ENTITY_GROUP, UPDATED, ASSIGNED_TO_EDGE -> {
                 Dashboard dashboard = dashboardService.findDashboardById(edgeEvent.getTenantId(), dashboardId);
                 if (dashboard != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
@@ -163,19 +160,17 @@ public abstract class DashboardEdgeProcessor extends BaseDashboardProcessor impl
                             .addDashboardUpdateMsg(dashboardUpdateMsg)
                             .build();
                 }
-                break;
-            case DELETED:
-            case REMOVED_FROM_ENTITY_GROUP:
-            case UNASSIGNED_FROM_EDGE:
-            case CHANGE_OWNER:
+            }
+            case DELETED, REMOVED_FROM_ENTITY_GROUP, UNASSIGNED_FROM_EDGE, CHANGE_OWNER -> {
                 DashboardUpdateMsg dashboardUpdateMsg = ((DashboardMsgConstructor)
                         dashboardMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDashboardDeleteMsg(dashboardId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addDashboardUpdateMsg(dashboardUpdateMsg)
                         .build();
-                break;
+            }
         }
         return downlinkMsg;
     }
+
 }

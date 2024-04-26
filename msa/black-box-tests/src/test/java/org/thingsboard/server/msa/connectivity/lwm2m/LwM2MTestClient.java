@@ -48,7 +48,6 @@ import org.eclipse.leshan.client.object.Security;
 import org.eclipse.leshan.client.object.Server;
 import org.eclipse.leshan.client.observer.LwM2mClientObserver;
 import org.eclipse.leshan.client.resource.DummyInstanceEnabler;
-import org.eclipse.leshan.client.resource.LwM2mInstanceEnabler;
 import org.eclipse.leshan.client.resource.LwM2mObjectEnabler;
 import org.eclipse.leshan.client.resource.ObjectsInitializer;
 import org.eclipse.leshan.client.resource.listener.ObjectsListenerAdapter;
@@ -77,15 +76,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_CONNECTION_ID_LENGTH;
 import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_RECOMMENDED_CIPHER_SUITES_ONLY;
 import static org.eclipse.leshan.core.LwM2mId.ACCESS_CONTROL;
 import static org.eclipse.leshan.core.LwM2mId.DEVICE;
+import static org.eclipse.leshan.core.LwM2mId.FIRMWARE;
 import static org.eclipse.leshan.core.LwM2mId.SECURITY;
 import static org.eclipse.leshan.core.LwM2mId.SERVER;
-import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.BINARY_APP_DATA_CONTAINER;
 import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_BOOTSTRAP_FAILURE;
 import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_BOOTSTRAP_STARTED;
 import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_BOOTSTRAP_SUCCESS;
@@ -104,11 +103,8 @@ import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.LwM2
 import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_UPDATE_STARTED;
 import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_UPDATE_SUCCESS;
 import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_UPDATE_TIMEOUT;
-import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.OBJECT_INSTANCE_ID_0;
-import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.OBJECT_INSTANCE_ID_1;
 import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.resources;
 import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.serverId;
-import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.setDtlsConnectorConfigCidLength;
 import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.shortServerId;
 
 
@@ -116,22 +112,21 @@ import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.shor
 @Data
 public class LwM2MTestClient {
 
-    private final ScheduledExecutorService executor;
     private final String endpoint;
     private LeshanClient leshanClient;
     private SimpleLwM2MDevice lwM2MDevice;
 
-    private LwM2mBinaryAppDataContainer lwM2MBinaryAppDataContainer;
     private Set<LwM2MClientState> clientStates;
+
+    private FwLwM2MDevice fwLwM2MDevice;
     private Map<LwM2MClientState, Integer> clientDtlsCid;
 
-    public void init(Security security, int clientPort,
-                     Integer cIdLength, boolean queueMode) throws InvalidDDFFileException, IOException {
+    public void init(Security security, int clientPort) throws InvalidDDFFileException, IOException {
         Assert.assertNull("client already initialized", leshanClient);
 
         List<ObjectModel> models = new ArrayList<>();
         for (String resourceName : resources) {
-            models.addAll(ObjectLoader.loadDdfFile(LwM2MTestClient.class.getClassLoader().getResourceAsStream("lwm2m/" + resourceName), resourceName));
+            models.addAll(ObjectLoader.loadDdfFile(LwM2MTestClient.class.getClassLoader().getResourceAsStream("lwm2m-registry/" + resourceName), resourceName));
         }
         LwM2mModel model = new StaticModel(models);
         ObjectsInitializer initializer = new ObjectsInitializer(model);
@@ -139,14 +134,13 @@ public class LwM2MTestClient {
         // SECURITY
         initializer.setInstancesForObject(SECURITY, security);
         // SERVER
-        Server lwm2mServer = new Server(shortServerId, 300);
+        Server lwm2mServer = new Server(shortServerId, TimeUnit.MINUTES.toSeconds(60));
         lwm2mServer.setId(serverId);
         initializer.setInstancesForObject(SERVER, lwm2mServer);
 
-        initializer.setInstancesForObject(DEVICE, lwM2MDevice = new SimpleLwM2MDevice(executor));
+        initializer.setInstancesForObject(DEVICE, lwM2MDevice = new SimpleLwM2MDevice());
         initializer.setClassForObject(ACCESS_CONTROL, DummyInstanceEnabler.class);
-        initializer.setInstancesForObject(BINARY_APP_DATA_CONTAINER, lwM2MBinaryAppDataContainer = new LwM2mBinaryAppDataContainer(executor, OBJECT_INSTANCE_ID_0),
-                new LwM2mBinaryAppDataContainer(executor, OBJECT_INSTANCE_ID_1));
+        initializer.setInstancesForObject(FIRMWARE, fwLwM2MDevice = new FwLwM2MDevice());
 
         List<LwM2mObjectEnabler> enablers = initializer.createAll();
 
@@ -190,14 +184,6 @@ public class LwM2MTestClient {
         boolean supportDeprecatedCiphers = false;
         clientCoapConfig.set(DTLS_RECOMMENDED_CIPHER_SUITES_ONLY, !supportDeprecatedCiphers);
 
-        if (cIdLength!= null) {
-            setDtlsConnectorConfigCidLength(clientCoapConfig, cIdLength);
-        }
-
-        if (cIdLength!= null) {
-            setDtlsConnectorConfigCidLength(clientCoapConfig, cIdLength);
-        }
-
         // Set Californium Configuration
 
         endpointsBuilder.setConfiguration(clientCoapConfig);
@@ -226,7 +212,7 @@ public class LwM2MTestClient {
         /**
          * Client use queue mode.
          */
-        engineFactory.setQueueMode(queueMode);
+        engineFactory.setQueueMode(false);
 
         // Create client
         LeshanClientBuilder builder = new LeshanClientBuilder(endpoint);
@@ -241,7 +227,7 @@ public class LwM2MTestClient {
         }
 
         builder.setRegistrationEngineFactory(engineFactory);
-        builder.setSharedExecutor(executor);
+//        builder.setSharedExecutor(executor);
 
         clientStates = new HashSet<>();
         clientDtlsCid = new HashMap<>();
@@ -360,8 +346,8 @@ public class LwM2MTestClient {
         if (lwM2MDevice != null) {
             lwM2MDevice.destroy();
         }
-        if (lwM2MBinaryAppDataContainer != null) {
-            lwM2MBinaryAppDataContainer.destroy();
+        if (fwLwM2MDevice != null) {
+            fwLwM2MDevice.destroy();
         }
     }
 }

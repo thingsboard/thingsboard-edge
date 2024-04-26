@@ -269,19 +269,23 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     public void deleteCustomer(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing deleteCustomer [{}]", customerId);
         Validator.validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
-        deleteCustomer(tenantId, customerId, true);
+        deleteCustomer(tenantId, customerId, true, false);
     }
 
-    private void deleteCustomer(TenantId tenantId, CustomerId customerId, boolean deleteSubcustomers) {
+    private void deleteCustomer(TenantId tenantId, CustomerId customerId, boolean deleteSubcustomers, boolean force) {
         Customer customer = findCustomerById(tenantId, customerId);
         if (customer == null) {
-            throw new IncorrectParameterException("Unable to delete non-existent customer.");
+            if (force) {
+                return;
+            } else {
+                throw new IncorrectParameterException("Unable to delete non-existent customer.");
+            }
         }
         if (deleteSubcustomers) {
             try {
                 List<CustomerId> customerIds = fetchSubcustomers(tenantId, customerId);
                 for (CustomerId subCustomerId : customerIds) {
-                    deleteCustomer(tenantId, subCustomerId, true);
+                    deleteCustomer(tenantId, subCustomerId, true, force);
                 }
             } catch (Exception e) {
                 log.error("Failed to delete subcustomers", e);
@@ -297,14 +301,19 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
         userService.deleteCustomerUsers(customer.getTenantId(), customerId);
         schedulerEventService.deleteSchedulerEventsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         blobEntityService.deleteBlobEntitiesByTenantIdAndCustomerId(customer.getTenantId(), customerId);
-        deleteEntityGroups(tenantId, customerId);
-        deleteEntityRelations(tenantId, customerId);
+        entityGroupService.deleteAllEntityGroups(tenantId, customerId);
         roleService.deleteRolesByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         apiUsageStateService.deleteApiUsageStateByEntityId(customerId);
         customerDao.removeById(tenantId, customerId.getId());
         countService.publishCountEntityEvictEvent(tenantId, EntityType.CUSTOMER);
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(customerId).build());
         publishEvictEvent(new CustomerCacheEvictEvent(customer.getTenantId(), customer.getTitle(), null));
+    }
+
+    @Transactional
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteCustomer(tenantId, (CustomerId) id, false, true);
     }
 
     private List<CustomerId> fetchSubcustomers(TenantId tenantId, CustomerId customerId) throws Exception {
@@ -391,6 +400,11 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     }
 
     @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteCustomersByTenantId(tenantId);
+    }
+
+    @Override
     public PageData<Customer> findCustomersByEntityGroupId(EntityGroupId groupId, PageLink pageLink) {
         log.trace("Executing findCustomersByEntityGroupId, groupId [{}], pageLink [{}]", groupId, pageLink);
         validateId(groupId, id -> "Incorrect entityGroupId " + id);
@@ -450,19 +464,13 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
 
                 @Override
                 protected void removeEntity(TenantId tenantId, Customer entity) {
-                    deleteCustomer(tenantId, new CustomerId(entity.getUuidId()), false);
+                    deleteCustomer(tenantId, new CustomerId(entity.getUuidId()), false, true);
                 }
             };
 
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findCustomerById(tenantId, new CustomerId(entityId.getId())));
-    }
-
-    @Transactional
-    @Override
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteCustomer(tenantId, (CustomerId) id);
     }
 
     @Override

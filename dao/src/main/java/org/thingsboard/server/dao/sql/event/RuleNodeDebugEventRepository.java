@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.event.RuleNodeDebugEvent;
 import org.thingsboard.server.dao.model.sql.RuleNodeDebugEventEntity;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 
@@ -49,6 +50,9 @@ public interface RuleNodeDebugEventRepository extends EventRepository<RuleNodeDe
     @Override
     @Query(nativeQuery = true,  value = "SELECT * FROM rule_node_debug_event e WHERE e.tenant_id = :tenantId AND e.entity_id = :entityId ORDER BY e.ts DESC LIMIT :limit")
     List<RuleNodeDebugEventEntity> findLatestEvents(@Param("tenantId") UUID tenantId, @Param("entityId") UUID entityId, @Param("limit") int limit);
+
+    @Query(nativeQuery = true,  value = "SELECT * FROM rule_node_debug_event e WHERE e.tenant_id = :tenantId AND e.entity_id = :entityId AND e.e_type = 'IN' ORDER BY e.ts DESC LIMIT 1")
+    Optional<RuleNodeDebugEventEntity> findLatestDebugRuleNodeInEvent(@Param("tenantId") UUID tenantId, @Param("entityId") UUID entityId);
 
     @Override
     @Query("SELECT e FROM RuleNodeDebugEventEntity e WHERE " +
@@ -71,9 +75,9 @@ public interface RuleNodeDebugEventRepository extends EventRepository<RuleNodeDe
                     "AND (:endTime IS NULL OR e.ts <= :endTime) " +
                     "AND (:serviceId IS NULL OR e.service_id ILIKE concat('%', :serviceId, '%')) " +
                     "AND (:eventType IS NULL OR e.e_type ILIKE concat('%', :eventType, '%')) " +
-                    "AND (:eventEntityId IS NULL OR e.e_entity_id = uuid(:eventEntityId)) " +
+                    "AND (:eventEntityId IS NULL OR e.e_entity_id = :eventEntityId) " +
                     "AND (:eventEntityType IS NULL OR e.e_entity_type ILIKE concat('%', :eventEntityType, '%')) " +
-                    "AND (:msgId IS NULL OR e.e_msg_id = uuid(:msgId)) " +
+                    "AND (:msgId IS NULL OR e.e_msg_id = :msgId) " +
                     "AND (:msgType IS NULL OR e.e_msg_type ILIKE concat('%', :msgType, '%')) " +
                     "AND (:relationType IS NULL OR e.e_relation_type ILIKE concat('%', :relationType, '%')) " +
                     "AND (:data IS NULL OR e.e_data ILIKE concat('%', :data, '%')) " +
@@ -88,9 +92,9 @@ public interface RuleNodeDebugEventRepository extends EventRepository<RuleNodeDe
                     "AND (:endTime IS NULL OR e.ts <= :endTime) " +
                     "AND (:serviceId IS NULL OR e.service_id ILIKE concat('%', :serviceId, '%')) " +
                     "AND (:eventType IS NULL OR e.e_type ILIKE concat('%', :eventType, '%')) " +
-                    "AND (:eventEntityId IS NULL OR e.e_entity_id = uuid(:eventEntityId)) " +
+                    "AND (:eventEntityId IS NULL OR e.e_entity_id = :eventEntityId) " +
                     "AND (:eventEntityType IS NULL OR e.e_entity_type ILIKE concat('%', :eventEntityType, '%')) " +
-                    "AND (:msgId IS NULL OR e.e_msg_id = uuid(:msgId)) " +
+                    "AND (:msgId IS NULL OR e.e_msg_id = :msgId) " +
                     "AND (:msgType IS NULL OR e.e_msg_type ILIKE concat('%', :msgType, '%')) " +
                     "AND (:relationType IS NULL OR e.e_relation_type ILIKE concat('%', :relationType, '%')) " +
                     "AND (:data IS NULL OR e.e_data ILIKE concat('%', :data, '%')) " +
@@ -104,9 +108,9 @@ public interface RuleNodeDebugEventRepository extends EventRepository<RuleNodeDe
                                               @Param("endTime") Long endTime,
                                               @Param("serviceId") String server,
                                               @Param("eventType") String type,
-                                              @Param("eventEntityId") String eventEntityId,
+                                              @Param("eventEntityId") UUID eventEntityId,
                                               @Param("eventEntityType") String eventEntityType,
-                                              @Param("msgId") String eventMsgId,
+                                              @Param("msgId") UUID eventMsgId,
                                               @Param("msgType") String eventMsgType,
                                               @Param("relationType") String relationType,
                                               @Param("data") String data,

@@ -48,7 +48,7 @@ import {
   getTimewindowConfig,
   setTimewindowConfig
 } from '@home/components/widget/config/timewindow-config-panel.component';
-import { formatValue, isUndefined } from '@core/utils';
+import { formatValue, isUndefined, mergeDeep } from '@core/utils';
 import {
   cssSizeToStrSize,
   DateFormatProcessor,
@@ -62,12 +62,10 @@ import {
 import {
   lineSeriesStepTypes,
   lineSeriesStepTypeTranslations,
-  seriesLabelPositions,
-  seriesLabelPositionTranslations,
   timeSeriesLineTypes,
   timeSeriesLineTypeTranslations
 } from '@home/components/widget/lib/chart/time-series-chart.models';
-import { echartsShapes, echartsShapeTranslations } from '@home/components/widget/lib/chart/echarts-widget.models';
+import { chartLabelPositions, chartLabelPositionTranslations, chartShapes, chartShapeTranslations } from '@home/components/widget/lib/chart/chart.models';
 
 @Component({
   selector: 'tb-range-chart-basic-config',
@@ -93,13 +91,13 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
 
   timeSeriesLineTypeTranslations = timeSeriesLineTypeTranslations;
 
-  seriesLabelPositions = seriesLabelPositions;
+  chartLabelPositions = chartLabelPositions;
 
-  seriesLabelPositionTranslations = seriesLabelPositionTranslations;
+  chartLabelPositionTranslations = chartLabelPositionTranslations;
 
-  echartsShapes = echartsShapes;
+  chartShapes = chartShapes;
 
-  echartsShapeTranslations = echartsShapeTranslations;
+  chartShapeTranslations = chartShapeTranslations;
 
   legendPositions = legendPositions;
 
@@ -129,7 +127,8 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
   }
 
   protected onConfigSet(configData: WidgetConfigComponentData) {
-    const settings: RangeChartWidgetSettings = {...rangeChartDefaultSettings, ...(configData.config.settings || {})};
+    const settings: RangeChartWidgetSettings = mergeDeep<RangeChartWidgetSettings>({} as RangeChartWidgetSettings,
+      rangeChartDefaultSettings, configData.config.settings as RangeChartWidgetSettings);
     const iconSize = resolveCssSize(configData.config.iconSize);
     this.rangeChartWidgetConfigForm = this.fb.group({
       timewindowConfig: [getTimewindowConfig(configData.config), []],
@@ -174,6 +173,8 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
       pointShape: [settings.pointShape, []],
       pointSize: [settings.pointSize, [Validators.min(0)]],
 
+      grid: [settings.grid, []],
+
       yAxis: [settings.yAxis, []],
       xAxis: [settings.xAxis, []],
 
@@ -187,6 +188,8 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
       legendLabelColor: [settings.legendLabelColor, []],
 
       showTooltip: [settings.showTooltip, []],
+      tooltipLabelFont: [settings.tooltipLabelFont, []],
+      tooltipLabelColor: [settings.tooltipLabelColor, []],
       tooltipValueFont: [settings.tooltipValueFont, []],
       tooltipValueColor: [settings.tooltipValueColor, []],
       tooltipShowDate: [settings.tooltipShowDate, []],
@@ -254,6 +257,8 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
     this.widgetConfig.config.settings.pointShape = config.pointShape;
     this.widgetConfig.config.settings.pointSize = config.pointSize;
 
+    this.widgetConfig.config.settings.grid = config.grid;
+
     this.widgetConfig.config.settings.yAxis = config.yAxis;
     this.widgetConfig.config.settings.xAxis = config.xAxis;
 
@@ -267,6 +272,8 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
     this.widgetConfig.config.settings.legendLabelColor = config.legendLabelColor;
 
     this.widgetConfig.config.settings.showTooltip = config.showTooltip;
+    this.widgetConfig.config.settings.tooltipLabelFont = config.tooltipLabelFont;
+    this.widgetConfig.config.settings.tooltipLabelColor = config.tooltipLabelColor;
     this.widgetConfig.config.settings.tooltipValueFont = config.tooltipValueFont;
     this.widgetConfig.config.settings.tooltipValueColor = config.tooltipValueColor;
     this.widgetConfig.config.settings.tooltipShowDate = config.tooltipShowDate;
@@ -391,6 +398,8 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
     }
 
     if (showTooltip) {
+      this.rangeChartWidgetConfigForm.get('tooltipLabelFont').enable();
+      this.rangeChartWidgetConfigForm.get('tooltipLabelColor').enable();
       this.rangeChartWidgetConfigForm.get('tooltipValueFont').enable();
       this.rangeChartWidgetConfigForm.get('tooltipValueColor').enable();
       this.rangeChartWidgetConfigForm.get('tooltipShowDate').enable({emitEvent: false});
@@ -408,6 +417,8 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
         this.rangeChartWidgetConfigForm.get('tooltipDateInterval').disable();
       }
     } else {
+      this.rangeChartWidgetConfigForm.get('tooltipLabelFont').disable();
+      this.rangeChartWidgetConfigForm.get('tooltipLabelColor').disable();
       this.rangeChartWidgetConfigForm.get('tooltipValueFont').disable();
       this.rangeChartWidgetConfigForm.get('tooltipValueColor').disable();
       this.rangeChartWidgetConfigForm.get('tooltipShowDate').disable({emitEvent: false});
