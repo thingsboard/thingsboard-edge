@@ -215,6 +215,9 @@ public class EntityServiceTest extends AbstractServiceTest {
         genericPermissions.put(Resource.resourceFromEntityType(EntityType.ASSET), Collections.singleton(Operation.ALL));
         genericPermissions.put(Resource.DEVICE_GROUP, Collections.singleton(Operation.ALL));
         genericPermissions.put(Resource.USER, Collections.singleton(Operation.ALL));
+        genericPermissions.put(Resource.EDGE, Collections.singleton(Operation.ALL));
+        genericPermissions.put(Resource.EDGE_GROUP, Collections.singleton(Operation.ALL));
+        genericPermissions.put(Resource.TENANT, Collections.singleton(Operation.ALL));
         mergedUserPermissionsPE = new MergedUserPermissions(genericPermissions, Collections.emptyMap());
 
         Customer customer = new Customer();
@@ -3019,6 +3022,47 @@ public class EntityServiceTest extends AbstractServiceTest {
                 Map.of(Resource.ALL, Set.of(Operation.ALL)), Map.of()
         ), EntityType.USER, Operation.READ, null, new PageLink(100));
         assertThat(users.getData()).contains(mappedUser);
+    }
+
+    @Test
+    public void testCountEntitiesByQuery_group_permission() {
+        EntityGroup deviceGroup = new EntityGroup();
+        deviceGroup.setName("Device Tenant Level Group");
+        deviceGroup.setOwnerId(tenantId);
+        deviceGroup.setTenantId(tenantId);
+        deviceGroup.setType(EntityType.DEVICE);
+        deviceGroup = entityGroupService.saveEntityGroup(tenantId, tenantId, deviceGroup);
+
+        List<Device> devices = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            Device device = new Device();
+            device.setTenantId(tenantId);
+            device.setName("Device" + i);
+            device.setType("default");
+            device.setLabel("testLabel" + (int) (Math.random() * 1000));
+            Device savedDevice = deviceService.saveDevice(device);
+            devices.add(savedDevice);
+            if (i % 2 == 0) {
+                entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), savedDevice.getId());
+            }
+       }
+
+        DeviceTypeFilter filter = new DeviceTypeFilter();
+        filter.setDeviceTypes(List.of("default"));
+        filter.setDeviceNameFilter("");
+
+        EntityCountQuery countQuery = new EntityCountQuery(filter);
+
+        MergedUserPermissions mergedUserPermissionsRelationQuery = new MergedUserPermissions(Collections.emptyMap(), Collections.emptyMap());
+        mergedUserPermissionsRelationQuery.getReadEntityPermissions().forEach((key, value) -> {
+            MergedGroupTypePermissionInfo mergedGroupTypePermissionInfo =
+                    new MergedGroupTypePermissionInfo(mergedUserPermissionsRelationQuery.getReadEntityPermissions().get(key).getEntityGroupIds(), true);
+            mergedUserPermissionsRelationQuery.getReadEntityPermissions().put(key, mergedGroupTypePermissionInfo);
+        });
+        mergedUserPermissionsRelationQuery.getReadEntityPermissions().put(Resource.DEVICE, new MergedGroupTypePermissionInfo(List.of(deviceGroup.getId()), false));
+
+        long count = entityService.countEntitiesByQuery(tenantId, new CustomerId(CustomerId.NULL_UUID), mergedUserPermissionsRelationQuery, countQuery);
+        Assert.assertEquals(10, count);
     }
 
     private EntityDataQuery createDataQueryFilterByEntityName(String deviceNamePrefix) {
