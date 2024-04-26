@@ -132,7 +132,6 @@ public class HousekeeperService {
             throw new IllegalArgumentException("Unsupported task type " + taskType);
         }
 
-
         try {
             long startTs = System.currentTimeMillis();
             Future<Object> future = taskExecutor.submit(() -> {
