@@ -36,7 +36,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -364,8 +364,8 @@ public class TbAlarmsCountNodeTest extends AbstractRuleNodeUpgradeTest {
             for (int i = 0; i < failedMessages.size(); i++) {
                 TbMsg failedMsg = failedMessages.get(i);
                 String t = throwables.get(i);
-                Assert.assertTrue(t.startsWith("Failed to fetch child entities for parent entity"));
-                Assert.assertTrue(t.contains(failedMsg.getOriginator().toString()));
+                Assertions.assertTrue(t.startsWith("Failed to fetch child entities for parent entity"));
+                Assertions.assertTrue(t.contains(failedMsg.getOriginator().toString()));
             }
         }
     }
@@ -418,34 +418,34 @@ public class TbAlarmsCountNodeTest extends AbstractRuleNodeUpgradeTest {
     }
 
     private void verifyMessage(TbMsg msg) {
-        Assert.assertTrue(msg.isTypeOf(TbMsgType.POST_TELEMETRY_REQUEST));
+        Assertions.assertTrue(msg.isTypeOf(TbMsgType.POST_TELEMETRY_REQUEST));
         EntityId entityId = msg.getOriginator();
-        Assert.assertNotNull(entityId);
+        Assertions.assertNotNull(entityId);
         String data = msg.getData();
-        Assert.assertNotNull(data);
+        Assertions.assertNotNull(data);
         JsonObject dataJson = gson.fromJson(data, JsonObject.class);
 
-        Assert.assertTrue(dataJson.has("allAlarmsCount") ||
+        Assertions.assertTrue(dataJson.has("allAlarmsCount") ||
                 dataJson.has("lastDayAlarmsCount") ||
                 dataJson.has("activeAlarmsCount")
         );
         if (dataJson.has("allAlarmsCount")) {
             JsonElement elem = dataJson.get("allAlarmsCount");
-            Assert.assertTrue(elem.isJsonPrimitive());
+            Assertions.assertTrue(elem.isJsonPrimitive());
             int intVal = elem.getAsInt();
-            Assert.assertEquals(expectedAllAlarmsCountMap.get(entityId).intValue(), intVal);
+            Assertions.assertEquals(expectedAllAlarmsCountMap.get(entityId).intValue(), intVal);
         }
         if (dataJson.has("lastDayAlarmsCount")) {
             JsonElement elem = dataJson.get("lastDayAlarmsCount");
-            Assert.assertTrue(elem.isJsonPrimitive());
+            Assertions.assertTrue(elem.isJsonPrimitive());
             int intVal = elem.getAsInt();
-            Assert.assertEquals(expectedLastDayAlarmsCountMap.get(entityId).intValue(), intVal);
+            Assertions.assertEquals(expectedLastDayAlarmsCountMap.get(entityId).intValue(), intVal);
         }
         if (dataJson.has("activeAlarmsCount")) {
             JsonElement elem = dataJson.get("activeAlarmsCount");
-            Assert.assertTrue(elem.isJsonPrimitive());
+            Assertions.assertTrue(elem.isJsonPrimitive());
             int intVal = elem.getAsInt();
-            Assert.assertEquals(expectedActiveAlarmsCountMap.get(entityId).intValue(), intVal);
+            Assertions.assertEquals(expectedActiveAlarmsCountMap.get(entityId).intValue(), intVal);
         }
     }
 

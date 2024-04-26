@@ -30,8 +30,8 @@
  */
 package org.thingsboard.rule.engine.metadata;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -52,7 +52,7 @@ public class TbGetTelemetryNodeTest {
     TbNodeConfiguration nodeConfiguration;
     TbContext ctx;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         ctx = mock(TbContext.class);
         node = spy(new TbGetTelemetryNode());
