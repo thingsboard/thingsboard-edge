@@ -101,8 +101,10 @@ $$
                 FETCH insert_cursor INTO insert_record;
                 EXIT WHEN NOT FOUND;
                 SELECT tenant_id INTO tenantId FROM customer where id = insert_record.customer_id;
-                INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
-                VALUES (tenantId, insert_record.customer_id, insert_record.locale, insert_record.value);
+                IF tenantId IS NOT NULL THEN
+                    INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
+                        VALUES (tenantId, insert_record.customer_id, insert_record.locale, insert_record.value);
+                END IF;
             END LOOP;
             CLOSE insert_cursor;
         END IF;
