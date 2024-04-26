@@ -137,7 +137,7 @@
             </button>
             <button mat-icon-button
                     *ngIf="!readonly"
-                    [disabled]="(isLoading$ | async) || allowDeleteLocale(translate.localeCode)"
+                    [disabled]="(isLoading$ | async) || !translate.customized"
                     matTooltip="{{ 'action.delete' | translate }}"
                     matTooltipPosition="above"
                     (click)="deleteLocale($event, translate)">

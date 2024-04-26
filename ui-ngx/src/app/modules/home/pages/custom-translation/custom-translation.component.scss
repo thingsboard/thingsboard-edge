@@ -29,12 +29,29 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 :host {
+  .mat-mdc-card-header {
+    overflow: hidden;
+
+    &::ng-deep {
+      .mat-mdc-card-header-text {
+        overflow: hidden;
+      }
+
+      .tb-toggle-header-select {
+        width: min-content;
+      }
+    }
+  }
   .page-title {
     display: flex;
     align-items: center;
     .mat-headline-5 {
       margin: 0;
       font-weight: 500;
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     .back-button {
       filter: opacity(0.34);

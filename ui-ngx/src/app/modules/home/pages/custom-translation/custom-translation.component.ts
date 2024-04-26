@@ -57,6 +57,7 @@ export class CustomTranslationComponent {
 
   localeCode: string;
   localeName: string;
+  countryName: string;
 
   constructor(private route: ActivatedRoute,
               private router: Router,
@@ -64,6 +65,7 @@ export class CustomTranslationComponent {
               private fb: FormBuilder) {
     this.localeCode = this.route.snapshot.paramMap.get('localeCode');
     this.localeName = decodeURIComponent(this.route.snapshot.queryParamMap.get('name'));
+    this.countryName = decodeURIComponent(this.route.snapshot.queryParamMap.get('country'));
   }
 
   goBack() {

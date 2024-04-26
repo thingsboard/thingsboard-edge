@@ -44,7 +44,7 @@
       </button>
     </section>
     <tb-json-content
-      validateOnChange
+      tb-toast toastTarget="tb-custom-translation-panel"
       formControlName="translation"
       [readonly]="readonly"
       [contentType]="ContentType.JSON"
@@ -59,7 +59,7 @@
       {{'action.cancel' | translate}}
     </button>
     <button *ngIf="!readonly" mat-button mat-raised-button color="primary"
-            [disabled]="translationForm.invalid || translationForm.pristine"
+            [disabled]="translationForm.pristine"
             (click)="save()">
       {{'action.save' | translate}}
     </button>
