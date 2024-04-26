@@ -208,7 +208,6 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         log.trace("Executing deleteIntegration [{}]", integrationId);
         Integration integration = findIntegrationById(tenantId, integrationId);
         validateId(integrationId, id -> INCORRECT_INTEGRATION_ID + id);
-        deleteEntityRelations(tenantId, integrationId);
         integrationDao.removeById(tenantId, integrationId.getId());
         publishEvictEvent(new IntegrationCacheEvictEvent(integrationId));
         entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.INTEGRATION);
@@ -217,10 +216,22 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
 
     @Override
     @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteIntegration(tenantId, (IntegrationId) id);
+    }
+
+    @Override
+    @Transactional
     public void deleteIntegrationsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteIntegrationsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantIntegrationsRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Transactional
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteIntegrationsByTenantId(tenantId);
     }
 
     @Override
@@ -316,12 +327,6 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     @Override
     public long countByTenantId(TenantId tenantId) {
         return integrationDao.countByTenantId(tenantId);
-    }
-
-    @Override
-    @Transactional
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteIntegration(tenantId, (IntegrationId) id);
     }
 
     @Override

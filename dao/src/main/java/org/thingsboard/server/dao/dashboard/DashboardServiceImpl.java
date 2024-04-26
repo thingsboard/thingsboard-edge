@@ -253,7 +253,6 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     public void deleteDashboard(TenantId tenantId, DashboardId dashboardId) {
         log.trace("Executing deleteDashboard [{}]", dashboardId);
         Validator.validateId(dashboardId, id -> INCORRECT_DASHBOARD_ID + id);
-        deleteEntityRelations(tenantId, dashboardId);
         try {
             dashboardDao.removeById(tenantId, dashboardId.getId());
             publishEvictEvent(new DashboardTitleEvictEvent(dashboardId));
@@ -267,6 +266,12 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
                 throw t;
             }
         }
+    }
+
+    @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteDashboard(tenantId, (DashboardId) id);
     }
 
     @Override
@@ -297,6 +302,11 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         Validator.validatePageLink(pageLink);
         return dashboardInfoDao.findMobileDashboardsByTenantId(tenantId.getId(), pageLink);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteDashboardsByTenantId(tenantId);
     }
 
     @Override
@@ -410,12 +420,6 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     @Override
     public long countByTenantId(TenantId tenantId) {
         return dashboardDao.countByTenantId(tenantId);
-    }
-
-    @Override
-    @Transactional
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteDashboard(tenantId, (DashboardId) id);
     }
 
     @Override

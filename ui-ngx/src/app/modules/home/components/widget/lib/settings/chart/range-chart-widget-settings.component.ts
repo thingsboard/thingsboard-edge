@@ -49,12 +49,10 @@ import { DateFormatProcessor, DateFormatSettings } from '@shared/models/widget-s
 import {
   lineSeriesStepTypes,
   lineSeriesStepTypeTranslations,
-  seriesLabelPositions,
-  seriesLabelPositionTranslations,
   timeSeriesLineTypes,
   timeSeriesLineTypeTranslations
 } from '@home/components/widget/lib/chart/time-series-chart.models';
-import { echartsShapes, echartsShapeTranslations } from '@home/components/widget/lib/chart/echarts-widget.models';
+import { chartLabelPositions, chartLabelPositionTranslations, chartShapes, chartShapeTranslations } from '@home/components/widget/lib/chart/chart.models';
 
 @Component({
   selector: 'tb-range-chart-widget-settings',
@@ -80,13 +78,13 @@ export class RangeChartWidgetSettingsComponent extends WidgetSettingsComponent {
 
   timeSeriesLineTypeTranslations = timeSeriesLineTypeTranslations;
 
-  seriesLabelPositions = seriesLabelPositions;
+  chartLabelPositions = chartLabelPositions;
 
-  seriesLabelPositionTranslations = seriesLabelPositionTranslations;
+  chartLabelPositionTranslations = chartLabelPositionTranslations;
 
-  echartsShapes = echartsShapes;
+  chartShapes = chartShapes;
 
-  echartsShapeTranslations = echartsShapeTranslations;
+  chartShapeTranslations = chartShapeTranslations;
 
   legendPositions = legendPositions;
 
@@ -179,7 +177,7 @@ export class RangeChartWidgetSettingsComponent extends WidgetSettingsComponent {
       'showLegend', 'showTooltip', 'tooltipShowDate'];
   }
 
-  protected updateValidators(emitEvent: boolean) {
+  protected updateValidators() {
     const showRangeThresholds: boolean = this.rangeChartWidgetSettingsForm.get('showRangeThresholds').value;
     const fillArea: boolean = this.rangeChartWidgetSettingsForm.get('fillArea').value;
     const showLine: boolean = this.rangeChartWidgetSettingsForm.get('showLine').value;

@@ -97,7 +97,7 @@ public class RuleChainControllerTest extends AbstractControllerTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -114,8 +114,7 @@ public class RuleChainControllerTest extends AbstractControllerTest {
     public void afterTest() throws Exception {
         loginSysAdmin();
 
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(savedTenant.getId());
     }
 
     // edge-only: @Ignore - edge entities support available for CE/PE
@@ -164,9 +163,9 @@ public class RuleChainControllerTest extends AbstractControllerTest {
         int currentVersion = annotation.version();
 
         String oldConfig = "{\"attrMapping\":{\"serialNumber\":\"sn\"}," +
-                        "\"relationsQuery\":{\"direction\":\"FROM\",\"maxLevel\":1," +
-                        "\"filters\":[{\"relationType\":\"Contains\",\"entityTypes\":[]}]," +
-                        "\"fetchLastLevelOnly\":false},\"telemetry\":false}";
+                "\"relationsQuery\":{\"direction\":\"FROM\",\"maxLevel\":1," +
+                "\"filters\":[{\"relationType\":\"Contains\",\"entityTypes\":[]}]," +
+                "\"fetchLastLevelOnly\":false},\"telemetry\":false}";
 
         TbGetRelatedDataNodeConfiguration defaultConfiguration = new TbGetRelatedDataNodeConfiguration().defaultConfiguration();
         String newConfig = JacksonUtil.toString(defaultConfiguration);

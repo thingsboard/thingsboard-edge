@@ -37,6 +37,7 @@ import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationM
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
@@ -57,6 +58,7 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
     private TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> toTbCore;
     private TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> toTbCoreNf;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> toUsageStats;
+    private TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> toHousekeeper;
 
     public TbIntegrationQueueProducerProvider(TbIntegrationExecutorQueueFactory tbQueueProvider) {
         this.tbQueueProvider = tbQueueProvider;
@@ -67,6 +69,7 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
         this.toTbCore = tbQueueProvider.createTbCoreIntegrationMsgProducer();
         this.toTbCoreNf = tbQueueProvider.createTbCoreNotificationMsgProducer();
         this.toUsageStats = tbQueueProvider.createToUsageStatsServiceMsgProducer();
+        this.toHousekeeper = tbQueueProvider.createHousekeeperMsgProducer();
     }
 
     @Override
@@ -123,4 +126,10 @@ public class TbIntegrationQueueProducerProvider implements TbQueueProducerProvid
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> getTbIntegrationExecutorDownlinkMsgProducer() {
         throw new RuntimeException(NOT_IMPLEMENTED);
     }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> getHousekeeperMsgProducer() {
+        return toHousekeeper;
+    }
+
 }

@@ -138,7 +138,7 @@ public class UserControllerTest extends AbstractControllerTest {
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundUser, foundUser,
                 SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL, ActionType.ADDED_TO_ENTITY_GROUP, 1, 0, 2);
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(foundUser, foundUser,
-                SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL, ActionType.ADDED,1, 1, 2);
+                SYSTEM_TENANT, customerNUULId, null, SYS_ADMIN_EMAIL, ActionType.ADDED, 1, 1, 2);
         Mockito.reset(tbClusterService, auditLogService);
 
         resetTokens();
@@ -442,7 +442,7 @@ public class UserControllerTest extends AbstractControllerTest {
         //here created a new tenant despite already created on AbstractWebTest and then delete the tenant properly on the last line
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant with many admins");
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        Tenant savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
 
         TenantId tenantId = savedTenant.getId();
@@ -484,8 +484,7 @@ public class UserControllerTest extends AbstractControllerTest {
         assertThat(tenantAdmins).as("admins list size").hasSameSizeAs(loadedTenantAdmins);
         assertThat(tenantAdmins).as("admins list content").isEqualTo(loadedTenantAdmins);
 
-        doDelete("/api/tenant/" + tenantId.getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(tenantId);
 
         pageLink = new PageLink(33);
         pageData = doGetTypedWithPageLink("/api/tenant/" + tenantId.getId().toString() + "/users?",
@@ -735,7 +734,7 @@ public class UserControllerTest extends AbstractControllerTest {
         expectedCustomerUserIds.add(customerUserId);
         expectedCustomerUserIds.add(customerAdminUserId);
         for (int i = 0; i < 45; i++) {
-            User customerUser = createCustomerUser( customerId);
+            User customerUser = createCustomerUser(customerId);
             customerUser.setEmail(email + StringUtils.randomAlphanumeric((int) (5 + Math.random() * 10)) + "@thingsboard.org");
             User user = doPost("/api/user", customerUser, User.class);
             expectedCustomerUserIds.add(user.getId());
@@ -815,7 +814,7 @@ public class UserControllerTest extends AbstractControllerTest {
 
         String email = "testEmail1";
         for (int i = 0; i < 45; i++) {
-            User customerUser = createCustomerUser( customerId);
+            User customerUser = createCustomerUser(customerId);
             customerUser.setEmail(email + StringUtils.randomAlphanumeric((int) (5 + Math.random() * 10)) + "@thingsboard.org");
             doPost("/api/user", customerUser, User.class);
         }
@@ -1097,8 +1096,8 @@ public class UserControllerTest extends AbstractControllerTest {
         List<UserEmailInfo> usersInfo = getUsersInfo(pageLink);
 
         List<UserEmailInfo> expectedUserInfos = customerUsersContainingText.stream().map(customerUser -> new UserEmailInfo(customerUser.getId(),
-                customerUser.getEmail(), customerUser.getFirstName() == null ? "" : customerUser.getFirstName(),
-                customerUser.getLastName() == null ? "" : customerUser.getLastName()))
+                        customerUser.getEmail(), customerUser.getFirstName() == null ? "" : customerUser.getFirstName(),
+                        customerUser.getLastName() == null ? "" : customerUser.getLastName()))
                 .sorted(userDataIdComparator).collect(Collectors.toList());
         usersInfo.sort(userDataIdComparator);
 

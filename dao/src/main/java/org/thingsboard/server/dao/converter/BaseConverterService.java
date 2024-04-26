@@ -168,8 +168,13 @@ public class BaseConverterService extends AbstractEntityService implements Conve
             }
         }
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entity(converter).entityId(converterId).build());
-        deleteEntityRelations(tenantId, converterId);
         entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.CONVERTER);
+    }
+
+    @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteConverter(tenantId, (ConverterId) id);
     }
 
     @Override
@@ -177,6 +182,11 @@ public class BaseConverterService extends AbstractEntityService implements Conve
         log.trace("Executing deleteConvertersByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantConvertersRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteConvertersByTenantId(tenantId);
     }
 
     private PaginatedRemover<TenantId, Converter> tenantConvertersRemover =
@@ -201,12 +211,6 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     @Override
     public long countByTenantId(TenantId tenantId) {
         return converterDao.countByTenantId(tenantId);
-    }
-
-    @Override
-    @Transactional
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteConverter(tenantId, (ConverterId) id);
     }
 
     @Override

@@ -66,6 +66,12 @@ public class ThingsBoardThreadFactory implements ThreadFactory {
         Thread.currentThread().setName(name);
     }
 
+    public static void addThreadNamePrefix(String prefix) {
+        String name = Thread.currentThread().getName();
+        name = prefix + "-" + name;
+        Thread.currentThread().setName(name);
+    }
+
     @Override
     public Thread newThread(Runnable r) {
         Thread t = new Thread(group, r,

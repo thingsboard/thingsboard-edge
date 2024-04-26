@@ -97,7 +97,7 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -119,8 +119,7 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
     public void afterTest() throws Exception {
         loginSysAdmin();
 
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(savedTenant.getId());
     }
 
     @Test
@@ -265,7 +264,7 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
         doPost("/api/otaPackage",
                 new SaveOtaPackageInfoRequest(savedFirmwareInfo, false))
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite + "OTA_PACKAGE" + " '" + firmwareInfo.getTitle() +"'!")));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite + "OTA_PACKAGE" + " '" + firmwareInfo.getTitle() + "'!")));
 
         testNotifyEntityNever(savedFirmwareInfo.getId(), savedFirmwareInfo);
 
@@ -366,7 +365,7 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(new OtaPackageInfo(), new OtaPackageInfo(),
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
-                ActionType.ADDED, cntEntity, 0, (cntEntity*2 - startIndexSaveData));
+                ActionType.ADDED, cntEntity, 0, (cntEntity * 2 - startIndexSaveData));
 
         List<OtaPackageInfo> loadedFirmwares = new ArrayList<>();
         PageLink pageLink = new PageLink(24);
@@ -394,7 +393,7 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
 
         PageLink pageLink = new PageLink(24);
         String apiOtaPackages = "/api/otaPackages?";
-        PageData<OtaPackageInfo> pageData  = doGetTypedWithPageLink(apiOtaPackages,
+        PageData<OtaPackageInfo> pageData = doGetTypedWithPageLink(apiOtaPackages,
                 new TypeReference<>() {
                 }, pageLink);
         Assert.assertEquals(savedFirmwareInfo, pageData.getData().get(0));
@@ -417,7 +416,8 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
                 .andExpect(status().isForbidden())
                 .andExpect(statusReason(containsString("You don't have permission to perform 'READ' operation with 'OTA_PACKAGE' resource!")));
     }
-   @Test
+
+    @Test
     public void testFindFirmwareById_CustomerUserWithoutPermission() throws Exception {
         OtaPackageInfo savedFirmwareInfo = createOtaPackageInfo();
         String urlTemplateOtaPackageInfoById = "/api/otaPackage/info/" + savedFirmwareInfo.getId().toString();
@@ -431,46 +431,48 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
                 .andExpect(status().isForbidden())
                 .andExpect(statusReason(containsString("You don't have permission to perform 'READ' operation with OTA_PACKAGE 'My firmware'!")));
     }
+
     @Test
     public void testFindAllFirmwares_CustomerUserWithPermission() throws Exception {
         OtaPackageInfo savedFirmwareInfo = createOtaPackageInfo();
         String apiOtaPackagesByProfileId = "/api/otaPackages/" + savedFirmwareInfo.getDeviceProfileId().toString() + "/FIRMWARE?";
 
-         PageLink pageLink = new PageLink(24);
-         String apiOtaPackages = "/api/otaPackages?";
-         PageData<OtaPackageInfo> pageData  = doGetTypedWithPageLink(apiOtaPackages,
-                 new TypeReference<>() {
-                 }, pageLink);
-         Assert.assertEquals(savedFirmwareInfo, pageData.getData().get(0));
+        PageLink pageLink = new PageLink(24);
+        String apiOtaPackages = "/api/otaPackages?";
+        PageData<OtaPackageInfo> pageData = doGetTypedWithPageLink(apiOtaPackages,
+                new TypeReference<>() {
+                }, pageLink);
+        Assert.assertEquals(savedFirmwareInfo, pageData.getData().get(0));
 
-         pageData = doGetTypedWithPageLink(apiOtaPackagesByProfileId,
-                 new TypeReference<>() {
-                 }, pageLink);
-         Assert.assertEquals(savedFirmwareInfo, pageData.getData().get(0));
+        pageData = doGetTypedWithPageLink(apiOtaPackagesByProfileId,
+                new TypeReference<>() {
+                }, pageLink);
+        Assert.assertEquals(savedFirmwareInfo, pageData.getData().get(0));
 
-         loginNewCustomerUserWithPermissions();
+        loginNewCustomerUserWithPermissions();
 
-         Object[] vars = {pageLink.getPageSize(), pageLink.getPage()};
-         String urlTemplate = apiOtaPackages + "pageSize={pageSize}&page={page}";
-         doGet(urlTemplate, vars)
-                 .andExpect(status().isOk());
+        Object[] vars = {pageLink.getPageSize(), pageLink.getPage()};
+        String urlTemplate = apiOtaPackages + "pageSize={pageSize}&page={page}";
+        doGet(urlTemplate, vars)
+                .andExpect(status().isOk());
 
-         urlTemplate = apiOtaPackagesByProfileId + "pageSize={pageSize}&page={page}";
-         doGet(urlTemplate, vars)
-                 .andExpect(status().isOk());
+        urlTemplate = apiOtaPackagesByProfileId + "pageSize={pageSize}&page={page}";
+        doGet(urlTemplate, vars)
+                .andExpect(status().isOk());
     }
-   @Test
+
+    @Test
     public void testFindFirmwareById_CustomerUserWithPermission() throws Exception {
-         OtaPackageInfo savedFirmwareInfo = createOtaPackageInfo();
-         String urlTemplateOtaPackageInfoById = "/api/otaPackage/info/" + savedFirmwareInfo.getId().toString();
+        OtaPackageInfo savedFirmwareInfo = createOtaPackageInfo();
+        String urlTemplateOtaPackageInfoById = "/api/otaPackage/info/" + savedFirmwareInfo.getId().toString();
 
-         OtaPackageInfo actualFirmwareInfo = doGet(urlTemplateOtaPackageInfoById, OtaPackageInfo.class);
-         Assert.assertEquals(savedFirmwareInfo, actualFirmwareInfo);
+        OtaPackageInfo actualFirmwareInfo = doGet(urlTemplateOtaPackageInfoById, OtaPackageInfo.class);
+        Assert.assertEquals(savedFirmwareInfo, actualFirmwareInfo);
 
-         loginNewCustomerUserWithPermissions();
+        loginNewCustomerUserWithPermissions();
 
-         actualFirmwareInfo = doGet(urlTemplateOtaPackageInfoById, OtaPackageInfo.class);
-         Assert.assertEquals(savedFirmwareInfo, actualFirmwareInfo);
+        actualFirmwareInfo = doGet(urlTemplateOtaPackageInfoById, OtaPackageInfo.class);
+        Assert.assertEquals(savedFirmwareInfo, actualFirmwareInfo);
     }
 
     @Test
@@ -570,6 +572,7 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
         User savedCustomerUser = createCustomerUser(savedCustomer, savedUserGroupInfo, "customerUserWithoutRole@thingsboard.org", pwd);
         loginUser(savedCustomerUser.getName(), pwd);
     }
+
     private void loginNewCustomerUserWithPermissions() throws Exception {
         Customer savedCustomer = createCustomer();
         EntityGroup customerUserGroup = createCustomerUserGroup(savedCustomer);
@@ -609,15 +612,16 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
         customerUserGroup.setType(EntityType.USER);
         customerUserGroup.setName("Customer User Group");
         customerUserGroup.setOwnerId(savedCustomer.getOwnerId());
-       return doPost("/api/entityGroup", customerUserGroup, EntityGroup.class);
+        return doPost("/api/entityGroup", customerUserGroup, EntityGroup.class);
     }
+
     private User createCustomerUser(Customer savedCustomer, EntityGroupInfo savedUserGroupInfo, String email, String pwd) throws Exception {
         User user = new User();
         user.setAuthority(Authority.CUSTOMER_USER);
         user.setTenantId(tenantId);
         user.setCustomerId(savedCustomer.getId());
         user.setEmail(email);
-        return createUser(user, pwd,  savedUserGroupInfo.getId());
+        return createUser(user, pwd, savedUserGroupInfo.getId());
     }
 }
 

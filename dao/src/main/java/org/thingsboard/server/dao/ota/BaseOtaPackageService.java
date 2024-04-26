@@ -255,6 +255,11 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
     }
 
     @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteOtaPackage(tenantId, (OtaPackageId) id);
+    }
+
+    @Override
     public OtaPackageInfo findOtaPackageInfoByDeviceIdAndType(DeviceId deviceId, OtaPackageType type) {
         log.trace("Executing findOtaPackageInfoByDeviceIdAndType [{}] [{}]", deviceId, type);
         validateId(deviceId, id -> "Incorrect deviceId " + id);
@@ -279,6 +284,11 @@ public class BaseOtaPackageService extends AbstractCachedEntityService<OtaPackag
         log.trace("Executing deleteOtaPackagesByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantOtaPackageRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteOtaPackagesByTenantId(tenantId);
     }
 
     private PaginatedRemover<TenantId, OtaPackageInfo> tenantOtaPackageRemover =

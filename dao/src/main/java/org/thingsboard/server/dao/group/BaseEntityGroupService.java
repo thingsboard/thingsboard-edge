@@ -512,9 +512,13 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndUserGroupId(tenantId, entityGroupId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndEntityGroupId(tenantId, entityGroupId);
-        deleteEntityRelations(tenantId, entityGroupId);
         entityGroupDao.removeById(tenantId, entityGroupId.getId());
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityGroupId).build());
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteEntityGroup(tenantId, (EntityGroupId) id);
     }
 
     @Override
@@ -530,6 +534,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         log.trace("Executing deleteAllEntityGroups, parentEntityId [{}]", parentEntityId);
         validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         entityGroupsRemover.removeEntities(tenantId, parentEntityId);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteAllEntityGroups(tenantId, tenantId);
     }
 
     @Override
@@ -1126,11 +1135,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findEntityGroupById(tenantId, new EntityGroupId(entityId.getId())));
-    }
-
-    @Override
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteEntityGroup(tenantId, (EntityGroupId) id);
     }
 
     @Override
