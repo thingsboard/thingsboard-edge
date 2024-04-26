@@ -46,24 +46,16 @@ import {
   latestChartTooltipValueTypeTranslations
 } from '@home/components/widget/lib/chart/latest-chart.models';
 import {
-  pieChartLabelPositions,
-  pieChartLabelPositionTranslations
-} from '@home/components/widget/lib/chart/chart.models';
-import {
-  pieChartWidgetDefaultSettings,
-  PieChartWidgetSettings
-} from '@home/components/widget/lib/chart/pie-chart-widget.models';
+  polarAreaChartWidgetDefaultSettings,
+  PolarAreaChartWidgetSettings
+} from '@home/components/widget/lib/chart/polar-area-widget.models';
 
 @Component({
-  selector: 'tb-pie-chart-widget-settings',
-  templateUrl: './pie-chart-widget-settings.component.html',
+  selector: 'tb-polar-area-chart-widget-settings',
+  templateUrl: './polar-area-chart-widget-settings.component.html',
   styleUrls: []
 })
-export class PieChartWidgetSettingsComponent extends WidgetSettingsComponent {
-
-  pieChartLabelPositions = pieChartLabelPositions;
-
-  pieChartLabelPositionTranslationMap = pieChartLabelPositionTranslations;
+export class PolarAreaChartWidgetSettingsComponent extends WidgetSettingsComponent {
 
   legendPositions = legendPositions;
 
@@ -73,7 +65,7 @@ export class PieChartWidgetSettingsComponent extends WidgetSettingsComponent {
 
   latestChartTooltipValueTypeTranslationMap = latestChartTooltipValueTypeTranslations;
 
-  pieChartWidgetSettingsForm: UntypedFormGroup;
+  polarAreaChartWidgetSettingsForm: UntypedFormGroup;
 
   valuePreviewFn = this._valuePreviewFn.bind(this);
 
@@ -85,27 +77,25 @@ export class PieChartWidgetSettingsComponent extends WidgetSettingsComponent {
   }
 
   protected settingsForm(): UntypedFormGroup {
-    return this.pieChartWidgetSettingsForm;
+    return this.polarAreaChartWidgetSettingsForm;
   }
 
   protected defaultSettings(): WidgetSettings {
-    return mergeDeep<PieChartWidgetSettings>({} as PieChartWidgetSettings, pieChartWidgetDefaultSettings);
+    return mergeDeep<PolarAreaChartWidgetSettings>({} as PolarAreaChartWidgetSettings, polarAreaChartWidgetDefaultSettings);
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
-    this.pieChartWidgetSettingsForm = this.fb.group({
-      showLabel: [settings.showLabel, []],
-      labelPosition: [settings.labelPosition, []],
-      labelFont: [settings.labelFont, []],
-      labelColor: [settings.labelColor, []],
+    this.polarAreaChartWidgetSettingsForm = this.fb.group({
 
-      borderWidth: [settings.borderWidth, [Validators.min(0)]],
-      borderColor: [settings.borderColor, []],
-
-      radius: [settings.radius, [Validators.min(0), Validators.max(100)]],
-
-      clockwise: [settings.clockwise, []],
       sortSeries: [settings.sortSeries, []],
+
+      barSettings: [settings.barSettings, []],
+
+      axisMin: [settings.axisMin, []],
+      axisMax: [settings.axisMax, []],
+      axisTickLabelFont: [settings.axisTickLabelFont, []],
+      axisTickLabelColor: [settings.axisTickLabelColor, []],
+      angleAxisStartAngle: [settings.angleAxisStartAngle, [Validators.min(0), Validators.max(360)]],
 
       animation: [settings.animation, []],
 
@@ -129,51 +119,40 @@ export class PieChartWidgetSettingsComponent extends WidgetSettingsComponent {
   }
 
   protected validatorTriggers(): string[] {
-    return ['showLabel', 'showLegend', 'showTooltip'];
+    return ['showLegend', 'showTooltip'];
   }
 
   protected updateValidators(emitEvent: boolean) {
-    const showLabel: boolean = this.pieChartWidgetSettingsForm.get('showLabel').value;
-    const showLegend: boolean = this.pieChartWidgetSettingsForm.get('showLegend').value;
-    const showTooltip: boolean = this.pieChartWidgetSettingsForm.get('showTooltip').value;
-
-    if (showLabel) {
-      this.pieChartWidgetSettingsForm.get('labelPosition').enable();
-      this.pieChartWidgetSettingsForm.get('labelFont').enable();
-      this.pieChartWidgetSettingsForm.get('labelColor').enable();
-    } else {
-      this.pieChartWidgetSettingsForm.get('labelPosition').disable();
-      this.pieChartWidgetSettingsForm.get('labelFont').disable();
-      this.pieChartWidgetSettingsForm.get('labelColor').disable();
-    }
+    const showLegend: boolean = this.polarAreaChartWidgetSettingsForm.get('showLegend').value;
+    const showTooltip: boolean = this.polarAreaChartWidgetSettingsForm.get('showTooltip').value;
 
     if (showLegend) {
-      this.pieChartWidgetSettingsForm.get('legendPosition').enable();
-      this.pieChartWidgetSettingsForm.get('legendLabelFont').enable();
-      this.pieChartWidgetSettingsForm.get('legendLabelColor').enable();
-      this.pieChartWidgetSettingsForm.get('legendValueFont').enable();
-      this.pieChartWidgetSettingsForm.get('legendValueColor').enable();
+      this.polarAreaChartWidgetSettingsForm.get('legendPosition').enable();
+      this.polarAreaChartWidgetSettingsForm.get('legendLabelFont').enable();
+      this.polarAreaChartWidgetSettingsForm.get('legendLabelColor').enable();
+      this.polarAreaChartWidgetSettingsForm.get('legendValueFont').enable();
+      this.polarAreaChartWidgetSettingsForm.get('legendValueColor').enable();
     } else {
-      this.pieChartWidgetSettingsForm.get('legendPosition').disable();
-      this.pieChartWidgetSettingsForm.get('legendLabelFont').disable();
-      this.pieChartWidgetSettingsForm.get('legendLabelColor').disable();
-      this.pieChartWidgetSettingsForm.get('legendValueFont').disable();
-      this.pieChartWidgetSettingsForm.get('legendValueColor').disable();
+      this.polarAreaChartWidgetSettingsForm.get('legendPosition').disable();
+      this.polarAreaChartWidgetSettingsForm.get('legendLabelFont').disable();
+      this.polarAreaChartWidgetSettingsForm.get('legendLabelColor').disable();
+      this.polarAreaChartWidgetSettingsForm.get('legendValueFont').disable();
+      this.polarAreaChartWidgetSettingsForm.get('legendValueColor').disable();
     }
     if (showTooltip) {
-      this.pieChartWidgetSettingsForm.get('tooltipValueType').enable();
-      this.pieChartWidgetSettingsForm.get('tooltipValueDecimals').enable();
-      this.pieChartWidgetSettingsForm.get('tooltipValueFont').enable();
-      this.pieChartWidgetSettingsForm.get('tooltipValueColor').enable();
-      this.pieChartWidgetSettingsForm.get('tooltipBackgroundColor').enable();
-      this.pieChartWidgetSettingsForm.get('tooltipBackgroundBlur').enable();
+      this.polarAreaChartWidgetSettingsForm.get('tooltipValueType').enable();
+      this.polarAreaChartWidgetSettingsForm.get('tooltipValueDecimals').enable();
+      this.polarAreaChartWidgetSettingsForm.get('tooltipValueFont').enable();
+      this.polarAreaChartWidgetSettingsForm.get('tooltipValueColor').enable();
+      this.polarAreaChartWidgetSettingsForm.get('tooltipBackgroundColor').enable();
+      this.polarAreaChartWidgetSettingsForm.get('tooltipBackgroundBlur').enable();
     } else {
-      this.pieChartWidgetSettingsForm.get('tooltipValueType').disable();
-      this.pieChartWidgetSettingsForm.get('tooltipValueDecimals').disable();
-      this.pieChartWidgetSettingsForm.get('tooltipValueFont').disable();
-      this.pieChartWidgetSettingsForm.get('tooltipValueColor').disable();
-      this.pieChartWidgetSettingsForm.get('tooltipBackgroundColor').disable();
-      this.pieChartWidgetSettingsForm.get('tooltipBackgroundBlur').disable();
+      this.polarAreaChartWidgetSettingsForm.get('tooltipValueType').disable();
+      this.polarAreaChartWidgetSettingsForm.get('tooltipValueDecimals').disable();
+      this.polarAreaChartWidgetSettingsForm.get('tooltipValueFont').disable();
+      this.polarAreaChartWidgetSettingsForm.get('tooltipValueColor').disable();
+      this.polarAreaChartWidgetSettingsForm.get('tooltipBackgroundColor').disable();
+      this.polarAreaChartWidgetSettingsForm.get('tooltipBackgroundBlur').disable();
     }
   }
 
@@ -184,8 +163,8 @@ export class PieChartWidgetSettingsComponent extends WidgetSettingsComponent {
   }
 
   private _tooltipValuePreviewFn(): string {
-    const tooltipValueType: LatestChartTooltipValueType = this.pieChartWidgetSettingsForm.get('tooltipValueType').value;
-    const decimals: number = this.pieChartWidgetSettingsForm.get('tooltipValueDecimals').value;
+    const tooltipValueType: LatestChartTooltipValueType = this.polarAreaChartWidgetSettingsForm.get('tooltipValueType').value;
+    const decimals: number = this.polarAreaChartWidgetSettingsForm.get('tooltipValueDecimals').value;
     if (tooltipValueType === LatestChartTooltipValueType.percentage) {
       return formatValue(35, decimals, '%', false);
     } else {
