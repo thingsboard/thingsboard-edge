@@ -30,66 +30,51 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<ng-container [formGroup]="pieChartWidgetSettingsForm">
+<ng-container [formGroup]="barChartWidgetSettingsForm">
   <div class="tb-form-panel">
-    <div class="tb-form-panel-title" translate>widgets.pie-chart.pie-chart-card-style</div>
-    <div class="tb-form-row space-between column-xs">
-      <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="showLabel">
-        {{ 'widgets.pie-chart.label' | translate }}
-      </mat-slide-toggle>
-      <div fxFlex fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
-        <mat-form-field fxFlex appearance="outline" subscriptSizing="dynamic">
-          <mat-select formControlName="labelPosition">
-            <mat-option *ngFor="let position of pieChartLabelPositions" [value]="position">
-              {{ pieChartLabelPositionTranslationMap.get(position) | translate }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-        <tb-font-settings formControlName="labelFont"
-                          disabledLineHeight
-                          forceSizeUnit="px"
-                          [previewText]="'Wind<br/>55%'">
-        </tb-font-settings>
-        <tb-color-input asBoxInput
-                        colorClearButton
-                        formControlName="labelColor">
-        </tb-color-input>
-      </div>
-    </div>
-    <div class="tb-form-row space-between">
-      <div>{{ 'widgets.pie-chart.border' | translate }}</div>
-      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
-        <mat-form-field appearance="outline" class="number" subscriptSizing="dynamic">
-          <input matInput formControlName="borderWidth" type="number" min="0" step="1" placeholder="{{ 'widget-config.set' | translate }}">
-          <div matSuffix>px</div>
-        </mat-form-field>
-        <tb-color-input asBoxInput
-                        colorClearButton
-                        formControlName="borderColor">
-        </tb-color-input>
-      </div>
-    </div>
-    <div class="tb-form-row space-between">
-      <div>{{ 'widgets.pie-chart.radius' | translate }}</div>
-      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
-        <mat-form-field appearance="outline" class="number" subscriptSizing="dynamic">
-          <input matInput formControlName="radius" type="number" min="0" max="100" step="1" placeholder="{{ 'widget-config.set' | translate }}">
-          <div matSuffix>%</div>
-        </mat-form-field>
-      </div>
-    </div>
-    <div class="tb-form-row">
-      <mat-slide-toggle class="mat-slide" formControlName="clockwise">
-        {{ 'widgets.latest-chart.clockwise-layout' | translate }}
-      </mat-slide-toggle>
-    </div>
+    <div class="tb-form-panel-title" translate>widgets.bar-chart.bar-chart-style</div>
     <div class="tb-form-row">
       <mat-slide-toggle class="mat-slide" formControlName="sortSeries">
         {{ 'widgets.latest-chart.sort-series' | translate }}
       </mat-slide-toggle>
     </div>
+    <div class="tb-form-panel">
+      <div class="tb-form-panel-title" translate>widgets.bar-chart.bar-appearance</div>
+      <tb-chart-bar-settings
+          formControlName="barSettings"
+          [series]="false">
+      </tb-chart-bar-settings>
+    </div>
+    <div class="tb-form-panel">
+      <div class="tb-form-panel-title" translate>widgets.bar-chart.bar-axis</div>
+      <div class="tb-form-row space-between column-xs">
+        <div translate>widgets.chart.chart-axis.scale</div>
+        <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+          <div class="tb-small-label" translate>widgets.chart.chart-axis.scale-min</div>
+          <mat-form-field appearance="outline" class="number" subscriptSizing="dynamic">
+            <input matInput formControlName="axisMin"
+                   type="number" placeholder="{{ 'widgets.chart.chart-axis.scale-auto' | translate }}">
+          </mat-form-field>
+          <div class="tb-small-label" translate>widgets.chart.chart-axis.scale-max</div>
+          <mat-form-field appearance="outline" class="number" subscriptSizing="dynamic">
+            <input matInput formControlName="axisMax"
+                   type="number" placeholder="{{ 'widgets.chart.chart-axis.scale-auto' | translate }}">
+          </mat-form-field>
+          <tb-font-settings formControlName="axisTickLabelFont"
+                            clearButton
+                            disabledLineHeight
+                            forceSizeUnit="px"
+                            previewText="100">
+          </tb-font-settings>
+          <tb-color-input asBoxInput
+                          colorClearButton
+                          formControlName="axisTickLabelColor">
+          </tb-color-input>
+        </div>
+      </div>
+    </div>
     <div class="tb-form-panel tb-slide-toggle">
-      <mat-expansion-panel class="tb-settings" [expanded]="pieChartWidgetSettingsForm.get('showLegend').value" [disabled]="!pieChartWidgetSettingsForm.get('showLegend').value">
+      <mat-expansion-panel class="tb-settings" [expanded]="barChartWidgetSettingsForm.get('showLegend').value" [disabled]="!barChartWidgetSettingsForm.get('showLegend').value">
         <mat-expansion-panel-header fxLayout="row wrap">
           <mat-panel-title>
             <mat-slide-toggle class="mat-slide" formControlName="showLegend" (click)="$event.stopPropagation()"
@@ -137,7 +122,7 @@
       </mat-expansion-panel>
     </div>
     <div class="tb-form-panel tb-slide-toggle">
-      <mat-expansion-panel class="tb-settings" [expanded]="pieChartWidgetSettingsForm.get('showTooltip').value" [disabled]="!pieChartWidgetSettingsForm.get('showTooltip').value">
+      <mat-expansion-panel class="tb-settings" [expanded]="barChartWidgetSettingsForm.get('showTooltip').value" [disabled]="!barChartWidgetSettingsForm.get('showTooltip').value">
         <mat-expansion-panel-header fxLayout="row wrap">
           <mat-panel-title>
             <mat-slide-toggle class="mat-slide" formControlName="showTooltip" (click)="$event.stopPropagation()"
