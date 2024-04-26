@@ -1207,7 +1207,7 @@
         "translated": "Translated",
         "translation-file": "Translation file",
         "translation-map": "Translation map",
-        "translation-name": "{{ name }} translation",
+        "translation-name": "{{ name }} translation - {{ country }}",
         "translation-progress": "Translation progress",
         "untranslated": "Untranslated",
         "upload-translation-file": "Upload translation file"
@@ -8869,7 +8869,7 @@
     "language": {
         "language": "Language",
         "locales": {
-            "ar_AR": "اَلْعَرَبِيَّةُ",
+            "ar_AE": "اَلْعَرَبِيَّةُ",
             "ca_ES": "Catalan",
             "cs_CZ": "Česky",
             "da_DK": "Dansk",
