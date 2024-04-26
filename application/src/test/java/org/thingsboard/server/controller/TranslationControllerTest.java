@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -68,6 +69,15 @@ public class TranslationControllerTest extends AbstractControllerTest {
     CustomTranslationService customTranslationService;
     @Autowired
     AdminSettingsDao  adminSettingsDao;
+
+    @AfterEach
+    void tearDownCustomTranslation() throws Exception {
+        loginSysAdmin();
+        List<TranslationInfo> translationInfos = doGetTyped("/api/translation/info", new TypeReference<>() {});
+        for (var info : translationInfos) {
+            doDelete("/api/translation/custom/" + info.getLocaleCode());
+        }
+    }
 
     @Test
     public void shouldGetCorrectFullTranslation() throws Exception {
