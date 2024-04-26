@@ -56,7 +56,7 @@ if [ "$INSTALL_TB" == "true" ]; then
                         -Dspring.jpa.hibernate.ddl-auto=none \
                         -Dinstall.upgrade=false \
                         -Dlogging.config=/usr/share/thingsboard/bin/install/logback.xml \
-                        org.springframework.boot.loader.PropertiesLauncher
+                        org.springframework.boot.loader.launch.PropertiesLauncher
 
 elif [ "$UPGRADE_TB" == "true" ]; then
 
@@ -74,7 +74,7 @@ elif [ "$UPGRADE_TB" == "true" ]; then
                     -Dinstall.upgrade=true \
                     -Dinstall.upgrade.from_version=${fromVersion} \
                     -Dlogging.config=/usr/share/thingsboard/bin/install/logback.xml \
-                    org.springframework.boot.loader.PropertiesLauncher
+                    org.springframework.boot.loader.launch.PropertiesLauncher
 
 else
 
@@ -83,6 +83,6 @@ else
     exec java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.ThingsboardServerApplication \
                         -Dspring.jpa.hibernate.ddl-auto=none \
                         -Dlogging.config=/config/logback.xml \
-                        org.springframework.boot.loader.PropertiesLauncher
+                        org.springframework.boot.loader.launch.PropertiesLauncher
 
 fi

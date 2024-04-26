@@ -61,9 +61,8 @@ export const allowLocalesResolver: ResolveFn<Array<Array<string>>> = (
   route: ActivatedRouteSnapshot,
   state: RouterStateSnapshot,
   customTranslation = inject(CustomTranslationService)
-): Observable<Array<Array<string>>> => customTranslation.getTranslationInfos().pipe(
-      map(locales => locales
-        .map(locale => [locale.localeCode, locale.language])
+): Observable<Array<Array<string>>> => customTranslation.getAvailableLocales().pipe(
+      map(locales => Object.entries(locales)
         .sort((a, b) => a[0] > b[0] ? 1 : -1))
   );
 

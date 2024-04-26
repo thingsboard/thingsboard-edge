@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -86,6 +87,7 @@ import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.model.JwtSettings;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.edge.EdgeDao;
@@ -125,6 +127,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
@@ -1297,6 +1300,20 @@ public class EdgeControllerTest extends AbstractControllerTest {
         return false;
     }
 
+    private boolean popCustomTranslation(List<AbstractMessage> messages, String locale) {
+        for (AbstractMessage message : messages) {
+            if (message instanceof CustomTranslationUpdateMsg customTranslationUpdateMsg) {
+                CustomTranslation customTranslation = JacksonUtil.fromString(customTranslationUpdateMsg.getEntity(), CustomTranslation.class, true);
+                Assert.assertNotNull(customTranslation);
+                if (locale.equals(customTranslation.getLocaleCode())) {
+                    messages.remove(message);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     // @voba - merge comment
     // edge assign functionality only in CE/PE
     @Test
@@ -1341,9 +1358,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
         edgeImitator.ignoreType(OAuth2UpdateMsg.class);
-        edgeImitator.ignoreType(CustomTranslationUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(31);
+        edgeImitator.expectMessageAmount(33);
         edgeImitator.connect();
         waitForMessages(edgeImitator);
 
@@ -1354,7 +1370,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "AssetGroup", EntityType.ASSET, EntityType.TENANT));
         Assert.assertTrue("There are some messages: " + edgeImitator.getDownlinkMsgs(), edgeImitator.getDownlinkMsgs().isEmpty());
 
-        edgeImitator.expectMessageAmount(28);
+        edgeImitator.expectMessageAmount(30);
         doPost("/api/edge/sync/" + edge.getId());
         waitForMessages(edgeImitator);
 
@@ -1389,6 +1405,14 @@ public class EdgeControllerTest extends AbstractControllerTest {
         sysMenu.setMenuItems(new ArrayList<>(List.of(sysItem)));
 
         doPost("/api/customMenu/customMenu", sysMenu);
+
+        // create sysadmin custom translation
+        String localeCode = "en_US";
+        createCustomTranslation(localeCode);
+        // create tenant custom translation
+        loginTenantAdmin();
+        localeCode = "es_ES";
+        createCustomTranslation(localeCode);
     }
 
     private void verifyFetchersMsgs_tenantLevel(EdgeImitator edgeImitator) {
@@ -1424,6 +1448,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popTenantProfileMsg(edgeImitator.getDownlinkMsgs(), tenantProfileId));
         Assert.assertTrue(popWhiteLabeling(edgeImitator.getDownlinkMsgs(), WhiteLabelingType.LOGIN));
         Assert.assertTrue(popWhiteLabeling(edgeImitator.getDownlinkMsgs(), WhiteLabelingType.GENERAL));
+        Assert.assertTrue(popCustomTranslation(edgeImitator.getDownlinkMsgs(), "en_US")); // sysadmin custom translation
+        Assert.assertTrue(popCustomTranslation(edgeImitator.getDownlinkMsgs(), "es_ES")); // tenant custom translation
     }
 
     // @voba - merge comment
@@ -1483,9 +1509,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
         edgeImitator.ignoreType(OAuth2UpdateMsg.class);
-        edgeImitator.ignoreType(CustomTranslationUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(41);
+        edgeImitator.expectMessageAmount(43);
         edgeImitator.connect();
         waitForMessages(edgeImitator);
 
@@ -1500,7 +1525,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "test"));
         Assert.assertTrue("There are some messages: " + edgeImitator.getDownlinkMsgs(), edgeImitator.getDownlinkMsgs().isEmpty());
 
-        edgeImitator.expectMessageAmount(34);
+        edgeImitator.expectMessageAmount(36);
         doPost("/api/edge/sync/" + edge.getId());
         waitForMessages(edgeImitator);
 
@@ -1638,6 +1663,14 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(edgeUpgradeInstructionsService.isUpgradeAvailable(savedEdge.getTenantId(), savedEdge.getId()));
         edgeUpgradeInstructionsService.setAppVersion("3.6.2.6PE");
         Assert.assertTrue(edgeUpgradeInstructionsService.isUpgradeAvailable(savedEdge.getTenantId(), savedEdge.getId()));
+    }
+
+    private void createCustomTranslation(String localeCode) throws Exception {
+        JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"" + StringUtils.randomAlphabetic(10) + "\"}");
+        doPost("/api/translation/custom/" + localeCode, esCustomTranslation);
+
+        JsonNode savedCT =  doGet("/api/translation/custom/" + localeCode, JsonNode.class);
+        assertThat(savedCT).isEqualTo(esCustomTranslation);
     }
 
 }

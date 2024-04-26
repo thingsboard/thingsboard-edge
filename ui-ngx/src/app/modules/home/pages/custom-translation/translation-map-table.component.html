@@ -91,7 +91,7 @@
           <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%">{{ 'custom-translation.term-key' | translate }}</mat-header-cell>
           <mat-header-cell *matHeaderCellDef style="width: 33%">Gav gav</mat-header-cell>
           <mat-cell *matCellDef="let translate" style="width: 33%" class="constant-value">
-            <span>{{ translate.k }}</span>
+            <span>{{ translate.k }}</span>&nbsp;
             <tb-copy-button
               class="copy-button"
               [disabled]="isLoading$ | async"
@@ -107,7 +107,7 @@
         <ng-container matColumnDef="o">
           <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%">{{ 'language.locales.en_US' | translate }}</mat-header-cell>
           <mat-cell *matCellDef="let translate" style="width: 33%" class="constant-value">
-            <span>{{ translate.o }}</span>
+            <span>{{ translate.o }}</span>&nbsp;
             <tb-copy-button
               *ngIf="translate.o"
               class="copy-button"
@@ -161,7 +161,7 @@
               </tb-icon>
             </button>
             <button mat-icon-button
-                    *ngIf="translate.s == CustomTranslationState.Added && !readonly"
+                    *ngIf="translate.s == CustomTranslationState.Added && !readonly && translate.t"
                     class="tb-mat-40"
                     [disabled]="(isLoading$ | async)"
                     matTooltip="{{ 'custom-translation.delete-translation' | translate }}"

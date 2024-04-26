@@ -55,6 +55,7 @@ public class JpaUserSettingsDao extends JpaAbstractDaoListeningExecutorService i
 
     @Override
     public UserSettings save(TenantId tenantId, UserSettings userSettings) {
+        log.trace("save [{}][{}]", tenantId, userSettings);
         return DaoUtil.getData(userSettingsRepository.save(new UserSettingsEntity(userSettings)));
     }
 
@@ -70,6 +71,7 @@ public class JpaUserSettingsDao extends JpaAbstractDaoListeningExecutorService i
 
     @Override
     public List<UserSettings> findByTypeAndPath(TenantId tenantId, UserSettingsType type, String... path) {
+        log.trace("findByTypeAndPath [{}][{}][{}]", tenantId, type, path);
         return DaoUtil.convertDataList(userSettingsRepository.findByTypeAndPathExisting(type.name(), path));
     }
 

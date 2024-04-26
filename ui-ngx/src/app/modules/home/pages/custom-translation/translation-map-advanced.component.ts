@@ -80,6 +80,8 @@ export class TranslationMapAdvancedComponent {
 
   private readonly localeCode: string;
 
+  private loadTranslations = '';
+
 	constructor(private customTranslationService: CustomTranslationService,
               private route: ActivatedRoute,
               private fb: FormBuilder,
@@ -91,7 +93,8 @@ export class TranslationMapAdvancedComponent {
 
     this.customTranslationService.getCustomTranslation(this.localeCode).subscribe(data => {
       if (!isEqual(data, {})) {
-        this.translationForm.patchValue({translation: JSON.stringify(data, null, 2)});
+        this.loadTranslations = JSON.stringify(data, null, 2);
+        this.translationForm.patchValue({translation: this.loadTranslations});
       }
     });
 	}
@@ -101,11 +104,12 @@ export class TranslationMapAdvancedComponent {
     this.changeFullscreen.emit(this.fullscreen);
   }
 
-  changeContent() {
-    this.translationForm.get('translation').updateValueAndValidity();
+  save() {
     if (this.translationForm.valid) {
       this.customTranslationService.saveCustomTranslation(this.localeCode, JSON.parse(this.translationForm.value.translation))
         .subscribe(() => {
+          this.loadTranslations = this.translationForm.value.translation;
+          this.translationForm.markAsPristine();
           if (this.translate.currentLang === this.localeCode) {
             this.translate.reloadLang(this.localeCode).subscribe(() => {
               this.translate.use(this.localeCode);
@@ -115,5 +119,10 @@ export class TranslationMapAdvancedComponent {
           }
         });
     }
+  }
+
+  reset() {
+    this.translationForm.reset({translation: this.loadTranslations});
+    this.translationForm.markAsPristine();
   }
 }

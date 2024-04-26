@@ -73,8 +73,8 @@ export class SettingsEffects {
     withLatestFrom(this.store.pipe(select(selectSettingsState))),
     tap(([action, settings]) => {
       this.localStorageService.setItem(SETTINGS_KEY, settings);
-      const translations = getCurrentAuthState(this.store)?.translations;
-      updateUserLang(this.translate, settings.userLang, translations, settings.reload);
+      const availableLocales = getCurrentAuthState(this.store)?.availableLocales;
+      updateUserLang(this.translate, settings.userLang, availableLocales, settings.reload);
     })
   ), {dispatch: false});
 

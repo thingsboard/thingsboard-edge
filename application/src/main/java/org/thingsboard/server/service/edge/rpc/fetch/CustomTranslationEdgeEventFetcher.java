@@ -82,14 +82,14 @@ public class CustomTranslationEdgeEventFetcher implements EdgeEventFetcher {
     }
 
     private void processTenantLocales(TenantId tenantId, EdgeId edgeId, List<EdgeEvent> result) {
-        Set<String> locales = customTranslationService.getCustomizedLocales(tenantId, null);
+        Set<String> locales = customTranslationService.getCurrentCustomizedLocales(tenantId, null);
         for (String locale : locales) {
             addLocaleEvent(tenantId, null, locale, edgeId, result);
         }
     }
 
     private void processCustomerLocales(TenantId tenantId, CustomerId customerId, EdgeId edgeId, List<EdgeEvent> result) {
-        Set<String> customerLocales = customTranslationService.getCustomizedLocales(tenantId, customerId);
+        Set<String> customerLocales = customTranslationService.getCurrentCustomizedLocales(tenantId, customerId);
         for (String locale : customerLocales) {
             addLocaleEvent(tenantId, customerId, locale, edgeId, result);
 

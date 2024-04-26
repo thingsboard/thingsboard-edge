@@ -34,7 +34,7 @@ java -cp "%jarfile%" -Dloader.main=org.thingsboard.server.TbEdgeInstallApplicati
                     -Dspring.jpa.hibernate.ddl-auto=none^
                     -Dinstall.upgrade=false^
                     -Dlogging.config="%BASE%\install\logback.xml"^
-                    org.springframework.boot.loader.PropertiesLauncher
+                    org.springframework.boot.loader.launch.PropertiesLauncher
 
 if errorlevel 1 (
    @echo ThingsBoard Edge installation failed!

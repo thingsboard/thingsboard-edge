@@ -51,25 +51,28 @@ export function updateUserLang(translate: TranslateService, userLang: string, tr
   _moment.locale([detectedSupportedLang]);
   if (reload) {
     translate.addLangs(translations)
-    translate.reloadLang(detectedSupportedLang).subscribe(() => {
-      if (translate.currentLang !== detectedSupportedLang) {
-        translate.resetLang(translate.currentLang);
-      }
-      translate.use(detectedSupportedLang);
-      // @ts-ignore
-      translate.changeDefaultLang(env.defaultLang);
-    })
-  } else {
-    if (detectedSupportedLang === env.defaultLang && translate.translations[detectedSupportedLang] === undefined) {
-      translate.use(detectedSupportedLang);
-      // @ts-ignore
-      translate.changeDefaultLang(env.defaultLang);
-    } else {
-      translate.reloadLang(detectedSupportedLang).subscribe(() => {
+    if (translate.translations[detectedSupportedLang]) {
+      translate.currentLoader.getTranslation(detectedSupportedLang).subscribe(value => {
+        translate.setTranslation(detectedSupportedLang, value, true);
+        if (translate.currentLang !== detectedSupportedLang) {
+          const currentLanguage = translate.currentLang;
+          translate.currentLoader.getTranslation(currentLanguage).subscribe(value => {
+            translate.setTranslation(currentLanguage, value, true);
+          });
+        }
         translate.use(detectedSupportedLang);
-        // @ts-ignore
-        translate.changeDefaultLang(env.defaultLang);
       })
+    } else {
+      translate.use(detectedSupportedLang);
+    }
+  } else {
+    if (detectedSupportedLang === env.defaultLang && translate.translations[detectedSupportedLang]) {
+      translate.currentLoader.getTranslation(detectedSupportedLang).subscribe(value => {
+        translate.setTranslation(detectedSupportedLang, value, true);
+        translate.use(detectedSupportedLang);
+      })
+    } else {
+      translate.use(detectedSupportedLang);
     }
   }
 }

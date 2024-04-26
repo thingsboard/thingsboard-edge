@@ -62,14 +62,14 @@ public interface EdgeInfoRepository extends JpaRepository<EdgeInfoEntity, UUID> 
                                                Pageable pageable);
 
     @Query("SELECT ei FROM EdgeInfoEntity ei " +
-            "WHERE ei.tenantId = :tenantId AND (ei.customerId IS NULL OR ei.customerId = uuid('13814000-1dd2-11b2-8080-808080808080')) " +
+            "WHERE ei.tenantId = :tenantId AND (ei.customerId IS NULL OR ei.customerId = org.thingsboard.server.common.data.id.EntityId.NULL_UUID) " +
             "AND (:searchText IS NULL OR ilike(ei.name, CONCAT('%', :searchText, '%')) = true)")
     Page<EdgeInfoEntity> findTenantEdgesByTenantId(@Param("tenantId") UUID tenantId,
                                                    @Param("searchText") String searchText,
                                                    Pageable pageable);
 
     @Query("SELECT ei FROM EdgeInfoEntity ei " +
-            "WHERE ei.tenantId = :tenantId AND (ei.customerId IS NULL OR ei.customerId = uuid('13814000-1dd2-11b2-8080-808080808080')) " +
+            "WHERE ei.tenantId = :tenantId AND (ei.customerId IS NULL OR ei.customerId = org.thingsboard.server.common.data.id.EntityId.NULL_UUID) " +
             "AND ei.type = :type " +
             "AND (:searchText IS NULL OR ilike(ei.name, CONCAT('%', :searchText, '%')) = true)")
     Page<EdgeInfoEntity> findTenantEdgesByTenantIdAndType(@Param("tenantId") UUID tenantId,

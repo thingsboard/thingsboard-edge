@@ -33,6 +33,7 @@ package org.thingsboard.gcloud.pubsub;
 import com.google.api.gax.core.CredentialsProvider;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.oauth2.ServiceAccountCredentials;
+import com.google.cloud.pubsub.v1.MessageReceiver;
 import com.google.cloud.pubsub.v1.Subscriber;
 import com.google.pubsub.v1.ProjectSubscriptionName;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +68,7 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
         CredentialsProvider credProvider = FixedCredentialsProvider.create(credentials);
         ProjectSubscriptionName subscriptionName = ProjectSubscriptionName.of(
                 pubSubConfiguration.getProjectId(), pubSubConfiguration.getSubscriptionId());
-        subscriber = Subscriber.newBuilder(subscriptionName, (pubsubMessage, ackReplyConsumer) -> {
+        subscriber = Subscriber.newBuilder(subscriptionName, (MessageReceiver) (pubsubMessage, ackReplyConsumer) -> {
             Map<String, String> metadata = new HashMap<>(metadataTemplate.getKvMap());
             metadata.putAll(pubsubMessage.getAttributesMap());
             metadata.put("pubSubMsgId", pubsubMessage.getMessageId());

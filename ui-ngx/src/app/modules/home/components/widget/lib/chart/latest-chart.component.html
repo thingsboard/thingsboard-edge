@@ -30,22 +30,22 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-doughnut-panel" [style]="backgroundStyle$ | async">
-  <div class="tb-doughnut-overlay" [style]="overlayStyle"></div>
+<div class="tb-latest-chart-panel" [style]="backgroundStyle$ | async">
+  <div class="tb-latest-chart-overlay" [style]="overlayStyle"></div>
   <ng-container *ngTemplateOutlet="widgetTitlePanel"></ng-container>
-  <div #doughnutContent class="tb-doughnut-content" [class]="legendClass">
-    <div #doughnutShape class="tb-doughnut-shape">
+  <div #chartContent class="tb-latest-chart-content" [class]="legendClass">
+    <div #chartShape class="tb-latest-chart-shape">
     </div>
-    <div *ngIf="showLegend" #doughnutLegend class="tb-doughnut-legend">
-      <div class="tb-doughnut-legend-item" *ngFor="let legendItem of legendItems" [class]="{'pointer': !legendItem.total && legendItem.hasValue}"
+    <div *ngIf="showLegend" #chartLegend class="tb-latest-chart-legend">
+      <div class="tb-latest-chart-legend-item" *ngFor="let legendItem of legendItems" [class]="{'pointer': !legendItem.total && legendItem.hasValue}"
            (mouseenter)="onLegendItemEnter(legendItem)"
            (mouseleave)="onLegendItemLeave(legendItem)"
            (click)="toggleLegendItem(legendItem)">
-        <div class="tb-doughnut-legend-item-label">
-          <div class="tb-doughnut-legend-item-label-circle" [style]="{background: (legendItem.enabled && legendItem.hasValue) ? legendItem.color : null}"></div>
-          <div [style]="(legendItem.enabled && legendItem.hasValue) ? legendLabelStyle : disabledLegendLabelStyle">{{ legendItem.label }}</div>
+        <div class="tb-latest-chart-legend-item-label">
+          <div class="tb-latest-chart-legend-item-label-circle" [style]="{background: (!legendItem.dataKey?.hidden && legendItem.hasValue) ? legendItem.color : null}"></div>
+          <div [style]="(!legendItem.dataKey?.hidden && legendItem.hasValue) ? legendLabelStyle : disabledLegendLabelStyle">{{ legendItem.label }}</div>
         </div>
-        <div [style]="(legendItem.enabled && legendItem.hasValue) ? legendValueStyle : disabledLegendValueStyle" class="tb-doughnut-legend-item-value">{{ legendItem.value }}</div>
+        <div [style]="(!legendItem.dataKey?.hidden && legendItem.hasValue) ? legendValueStyle : disabledLegendValueStyle" class="tb-latest-chart-legend-item-value">{{ legendItem.value }}</div>
       </div>
     </div>
   </div>

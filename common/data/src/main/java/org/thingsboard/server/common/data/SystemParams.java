@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class SystemParams {
@@ -48,5 +49,5 @@ public class SystemParams {
     long maxResourceSize;
     boolean whiteLabelingAllowed;
     boolean customerWhiteLabelingAllowed;
-    List<String> translations;
+    Set<String> availableLocales;
 }

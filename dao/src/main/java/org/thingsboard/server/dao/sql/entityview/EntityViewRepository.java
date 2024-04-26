@@ -145,7 +145,7 @@ public interface EntityViewRepository extends JpaRepository<EntityViewEntity, UU
                                                    Pageable pageable);
 
     @Query("SELECT id FROM EntityViewEntity WHERE tenantId = :tenantId " +
-            "AND (customerId IS NULL OR customerId = uuid('13814000-1dd2-11b2-8080-808080808080'))")
+            "AND (customerId IS NULL OR customerId = org.thingsboard.server.common.data.id.EntityId.NULL_UUID)")
     Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId,
                                                   Pageable pageable);
 
