@@ -30,8 +30,10 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -42,13 +44,13 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.translation.TranslationInfo;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.settings.AdminSettingsDao;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 
-
 import java.util.Base64;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -63,6 +65,15 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
     CustomTranslationService customTranslationService;
     @Autowired
     AdminSettingsDao  adminSettingsDao;
+
+    @AfterEach
+    void tearDownCustomTranslation() throws Exception {
+        loginSysAdmin();
+        List<TranslationInfo> translationInfos = doGetTyped("/api/translation/info", new TypeReference<>() {});
+        for (var info : translationInfos) {
+            doDelete("/api/translation/custom/" + info.getLocaleCode());
+        }
+    }
 
     @Test
     public void shouldSaveCustomTranslation() throws Exception {
@@ -224,7 +235,7 @@ public class CustomTranslationControllerTest extends AbstractControllerTest {
         JsonNode esCustomTranslation = JacksonUtil.toJsonNode("{\"save\":\"" + StringUtils.randomAlphabetic(10) + "\"}");
         doPost("/api/translation/custom/" + localeCode, esCustomTranslation);
 
-        JsonNode savedCT =  doGet("/api/translation/custom/" + ES_ES, JsonNode.class);
+        JsonNode savedCT =  doGet("/api/translation/custom/" + localeCode, JsonNode.class);
         assertThat(savedCT).isEqualTo(esCustomTranslation);
     }
 
