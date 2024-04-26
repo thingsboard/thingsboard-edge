@@ -89,7 +89,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -106,8 +106,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
     public void afterTest() throws Exception {
         loginSysAdmin();
 
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(savedTenant.getId());
     }
 
     @Test
@@ -184,13 +183,13 @@ public class TbResourceControllerTest extends AbstractControllerTest {
 
         doPost("/api/resource", savedResource)
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionWrite + "TB_RESOURCE" + " '" + resource.getTitle() +"'!")));
+                .andExpect(statusReason(containsString(msgErrorPermissionWrite + "TB_RESOURCE" + " '" + resource.getTitle() + "'!")));
 
         testNotifyEntityNever(savedResource.getId(), savedResource);
 
         doDelete("/api/resource/" + savedResource.getId().getId().toString())
                 .andExpect(status().isForbidden())
-                .andExpect(statusReason(containsString(msgErrorPermissionDelete + "TB_RESOURCE" + " '" + resource.getTitle() +"'!")));
+                .andExpect(statusReason(containsString(msgErrorPermissionDelete + "TB_RESOURCE" + " '" + resource.getTitle() + "'!")));
 
         testNotifyEntityNever(savedResource.getId(), savedResource);
 

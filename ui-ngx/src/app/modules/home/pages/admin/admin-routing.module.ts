@@ -40,9 +40,6 @@ import { SecuritySettingsComponent } from '@modules/home/pages/admin/security-se
 import { MailTemplatesComponent } from '@home/pages/admin/mail-templates.component';
 import { Observable } from 'rxjs';
 import { MailTemplatesSettings } from '@shared/models/settings.models';
-import { CustomTranslation } from '@shared/models/custom-translation.model';
-import { CustomTranslationService } from '@core/http/custom-translation.service';
-import { CustomTranslationComponent } from '@home/pages/admin/custom-translation.component';
 import { CustomMenuComponent } from '@home/pages/admin/custom-menu.component';
 import { CustomMenu } from '@shared/models/custom-menu.models';
 import { CustomMenuService } from '@core/http/custom-menu.service';
@@ -66,23 +63,13 @@ import { auditLogsRoutes } from '@home/pages/audit-log/audit-log-routing.module'
 import { ImageGalleryComponent } from '@shared/components/image/image-gallery.component';
 import { rolesRoutes } from '@home/pages/role/role-routing.module';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { CustomTranslationRoutes } from '@home/pages/custom-translation/custom-translation-routing.module';
 
 export const mailTemplateSettingsResolver: ResolveFn<MailTemplatesSettings> = (
   route: ActivatedRouteSnapshot,
   state: RouterStateSnapshot,
   wl = inject(WhiteLabelingService)
 ): Observable<MailTemplatesSettings> => wl.getMailTemplates(true);
-
-@Injectable()
-export class CustomTranslationResolver implements Resolve<CustomTranslation> {
-
-  constructor(private customTranslationService: CustomTranslationService) {
-  }
-
-  resolve(route: ActivatedRouteSnapshot): Observable<CustomTranslation> {
-    return this.customTranslationService.getCurrentCustomTranslation();
-  }
-}
 
 @Injectable()
 export class CustomMenuResolver implements Resolve<CustomMenu> {
@@ -509,22 +496,7 @@ const routes: Routes = [
           mailTemplatesSettings: mailTemplateSettingsResolver
         }
       },
-      {
-        path: 'customTranslation',
-        component: CustomTranslationComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'custom-translation.custom-translation',
-          breadcrumb: {
-            label: 'custom-translation.custom-translation',
-            icon: 'language'
-          }
-        },
-        resolve: {
-          customTranslation: CustomTranslationResolver
-        }
-      },
+      ...CustomTranslationRoutes,
       {
         path: 'customMenu',
         component: CustomMenuComponent,
@@ -553,7 +525,6 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
   providers: [
-    CustomTranslationResolver,
     CustomMenuResolver,
     OAuth2LoginProcessingUrlResolver,
     ResourcesLibraryTableConfigResolver,

@@ -50,7 +50,7 @@ public class EntityGroupId extends UUIDBased implements EntityId {
         return new EntityGroupId(UUID.fromString(entityGroupId));
     }
 
-    @Schema(required = true, description = "string", example = "ENTITY_GROUP", allowableValues = "ENTITY_GROUP")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "ENTITY_GROUP", allowableValues = "ENTITY_GROUP")
     @Override
     public EntityType getEntityType() {
         return EntityType.ENTITY_GROUP;

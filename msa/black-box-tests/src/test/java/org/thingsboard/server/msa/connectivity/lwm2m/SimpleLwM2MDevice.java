@@ -51,8 +51,6 @@ import java.util.Map;
 import java.util.PrimitiveIterator;
 import java.util.Random;
 import java.util.TimeZone;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class SimpleLwM2MDevice extends BaseInstanceEnabler implements Destroyable {
@@ -68,16 +66,6 @@ public class SimpleLwM2MDevice extends BaseInstanceEnabler implements Destroyabl
     public SimpleLwM2MDevice() {
     }
 
-    public SimpleLwM2MDevice(ScheduledExecutorService executorService) {
-        try {
-            executorService.scheduleWithFixedDelay(() -> {
-                fireResourceChange(9);
-            }, 1, 1, TimeUnit.SECONDS); // 30 MIN
-        } catch (Throwable e) {
-            log.error("[{}]Throwable", e.toString());
-            e.printStackTrace();
-        }
-    }
 
 
     @Override

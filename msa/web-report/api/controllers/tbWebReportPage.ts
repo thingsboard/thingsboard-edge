@@ -88,6 +88,15 @@ export class TbWebReportPage {
                   msg.url(), JSON.stringify(msg.headers()), msg.postData(), msg.failure()?.errorText);
             });
         }
+        this.page.on('requestfailed', msg => {
+            this.logger.error('Request failed: URL: %s, Error %s, Headers: %s', msg.url(), msg.failure()?.errorText, JSON.stringify(msg.headers()));
+        });
+        this.page.once('crash', () => {
+            this.logger.error('Web page crashed!');
+        });
+        this.page.once('close', () => {
+            this.logger.debug('Web page closed!');
+        });
         this.session = await context.newCDPSession(this.page);
         this.page.setDefaultNavigationTimeout(defaultPageNavigationTimeout);
         await this.page.emulateMedia({media: 'screen'});

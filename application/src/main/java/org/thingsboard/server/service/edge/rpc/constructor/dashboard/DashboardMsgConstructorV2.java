@@ -53,4 +53,5 @@ public class DashboardMsgConstructorV2 extends BaseDashboardMsgConstructor {
         }
         return builder.build();
     }
+
 }

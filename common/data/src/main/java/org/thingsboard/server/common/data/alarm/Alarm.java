@@ -75,16 +75,16 @@ public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity, H
     private CustomerId customerId;
 
     @NoXss
-    @Schema(required = true, description = "representing type of the Alarm", example = "High Temperature Alarm")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "representing type of the Alarm", example = "High Temperature Alarm")
     @Length(fieldName = "type")
     private String type;
-    @Schema(required = true, description = "JSON object with alarm originator id")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "JSON object with alarm originator id")
     private EntityId originator;
-    @Schema(required = true, description = "Alarm severity", example = "CRITICAL")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Alarm severity", example = "CRITICAL")
     private AlarmSeverity severity;
-    @Schema(required = true, description = "Acknowledged", example = "true")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Acknowledged", example = "true")
     private boolean acknowledged;
-    @Schema(required = true, description = "Cleared", example = "false")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Cleared", example = "false")
     private boolean cleared;
     @Schema(description = "Alarm assignee user id")
     private UserId assigneeId;
@@ -147,7 +147,7 @@ public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity, H
 
     @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @Schema(required = true, description = "representing type of the Alarm", example = "High Temperature Alarm")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "representing type of the Alarm", example = "High Temperature Alarm")
     public String getName() {
         return type;
     }
@@ -175,7 +175,7 @@ public class Alarm extends BaseData<AlarmId> implements HasName, TenantEntity, H
     }
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    @Schema(required = true, description = "status of the Alarm", example = "ACTIVE_UNACK", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "status of the Alarm", example = "ACTIVE_UNACK", accessMode = Schema.AccessMode.READ_ONLY)
     public AlarmStatus getStatus() {
         return toStatus(cleared, acknowledged);
     }

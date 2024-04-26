@@ -40,7 +40,6 @@ import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.http.HttpStatus;
 import org.awaitility.Awaitility;
 import org.hamcrest.Matcher;
 import org.hibernate.exception.ConstraintViolationException;
@@ -56,6 +55,8 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -131,9 +132,12 @@ import org.thingsboard.server.common.data.tenant.profile.TenantProfileData;
 import org.thingsboard.server.common.msg.session.FeatureType;
 import org.thingsboard.server.config.ThingsboardSecurityConfiguration;
 import org.thingsboard.server.dao.Dao;
+import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.device.ClaimDevicesService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
+import org.thingsboard.server.queue.memory.InMemoryStorage;
 import org.thingsboard.server.service.entitiy.tenant.profile.TbTenantProfileService;
 import org.thingsboard.server.service.security.auth.jwt.RefreshTokenRequest;
 import org.thingsboard.server.service.security.auth.rest.LoginRequest;
@@ -162,6 +166,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -169,6 +174,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppContextSetup;
+import static org.thingsboard.server.common.data.CacheConstants.CLAIM_DEVICES_CACHE;
 
 @Slf4j
 public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
@@ -251,16 +257,26 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     private TbTenantProfileService tbTenantProfileService;
 
     @Autowired
-    public TimeseriesService tsService;
+    protected TimeseriesService tsService;
 
     @Autowired
-    public EntityGroupService entityGroupService;;
+    protected AttributesService attributesService;
+
+    @Autowired
+    public EntityGroupService entityGroupService;
+    ;
 
     @Autowired
     protected DefaultActorService actorService;
 
+    @Autowired
+    protected ClaimDevicesService claimDevicesService;
+
     @SpyBean
     protected MailService mailService;
+
+    @Autowired
+    protected InMemoryStorage storage;
 
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -304,7 +320,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle(TEST_TENANT_NAME);
-        Tenant savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        Tenant savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
         tenantId = savedTenant.getId();
         tenantProfileId = savedTenant.getTenantProfileId();
@@ -406,22 +422,14 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         assertThat(loadedTenants).as("All tenants expected to be deleted, but some tenants left in the database").isEmpty();
     }
 
-    private void deleteTenant(TenantId tenantId) {
-        int status = 0;
-        int retries = 0;
-        while (status != HttpStatus.SC_OK && retries < CLEANUP_TENANT_RETRIES_COUNT) {
-            retries++;
-            try {
-                status = doDelete("/api/tenant/" + tenantId.getId().toString())
-                        .andReturn().getResponse().getStatus();
-                if (status != HttpStatus.SC_OK) {
-                    log.warn("Tenant deletion failed, tenantId: {}", tenantId.getId().toString());
-                    Thread.sleep(1000L);
-                }
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
+    protected void deleteTenant(TenantId tenantId) {
+        try {
+            doDelete("/api/tenant/" + tenantId.getId()).andExpect(status().isOk());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
+        Awaitility.await("all tasks processed").atMost(60, TimeUnit.SECONDS).during(300, TimeUnit.MILLISECONDS)
+                .until(() -> storage.getLag("tb_housekeeper") == 0);
     }
 
     private List<Tenant> getAllTenants() throws Exception {
@@ -482,14 +490,17 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         loginSysAdmin();
         Tenant tenant = new Tenant();
         tenant.setTitle(TEST_DIFFERENT_TENANT_NAME);
-        savedDifferentTenant = doPost("/api/tenant", tenant, Tenant.class);
-        Assert.assertNotNull(savedDifferentTenant);
+        savedDifferentTenant = saveTenant(tenant);
         differentTenantId = savedDifferentTenant.getId();
         User differentTenantAdmin = new User();
         differentTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
         differentTenantAdmin.setTenantId(savedDifferentTenant.getId());
         differentTenantAdmin.setEmail(DIFFERENT_TENANT_ADMIN_EMAIL);
         savedDifferentTenantUser = createUserAndLogin(differentTenantAdmin, DIFFERENT_TENANT_ADMIN_PASSWORD);
+    }
+
+    protected Tenant saveTenant(Tenant tenant) throws Exception {
+        return doPost("/api/tenant", tenant, Tenant.class);
     }
 
     protected void loginDifferentCustomer() throws Exception {
@@ -577,7 +588,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected User createUser(User user, String password, EntityGroupId entityGroupId) throws Exception {
         String url = "/api/user";
         if (entityGroupId != null) {
-            url += "?entityGroupId="+entityGroupId.toString();
+            url += "?entityGroupId=" + entityGroupId.toString();
         }
         User savedUser = doPost(url, user, User.class);
         JsonNode activateRequest = getActivateRequest(password);
@@ -660,7 +671,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         this.username = null;
     }
 
-    protected void logout() throws Exception{
+    protected void logout() throws Exception {
         doPost("/api/auth/logout").andExpect(status().isOk());
     }
 
@@ -876,6 +887,14 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         }
     }
 
+    protected <T, R> R doPatch(String urlTemplate, T content, Class<R> responseClass, String... params) {
+        try {
+            return readResponse(doPatch(urlTemplate, content, params).andExpect(status().isOk()), responseClass);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     protected <T, R> R doPostWithResponse(String urlTemplate, T content, Class<R> responseClass, String... params) throws Exception {
         return readResponse(doPost(urlTemplate, content, params).andExpect(status().isOk()), responseClass);
     }
@@ -933,6 +952,14 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     protected <T> ResultActions doPost(String urlTemplate, T content, String... params) throws Exception {
         MockHttpServletRequestBuilder postRequest = post(urlTemplate, params);
+        setJwtToken(postRequest);
+        String json = json(content);
+        postRequest.contentType(contentType).content(json);
+        return mockMvc.perform(postRequest);
+    }
+
+    protected <T> ResultActions doPatch(String urlTemplate, T content, String... params) throws Exception {
+        MockHttpServletRequestBuilder postRequest = patch(urlTemplate, params);
         setJwtToken(postRequest);
         String json = json(content);
         postRequest.contentType(contentType).content(json);
@@ -1059,6 +1086,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         field.setAccessible(true);
         field.set(target, value);
     }
+
     protected void testEntityDaoWithRelationsOk(EntityId entityIdFrom, EntityId entityTo, String urlDelete) throws Exception {
         createEntityRelation(entityIdFrom, entityTo, "TEST_TYPE");
         assertThat(findRelationsByTo(entityTo)).hasSize(1);
@@ -1151,6 +1179,16 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         Awaitility.await("Device actor pending map is empty").atMost(5, TimeUnit.SECONDS).until(() -> {
             log.warn("device {}, toDeviceRpcPendingMap.size() == {}", deviceId, toDeviceRpcPendingMap.size());
             return toDeviceRpcPendingMap.isEmpty();
+        });
+    }
+
+    protected void awaitForClaimingInfoToBeRegistered(DeviceId deviceId) {
+        CacheManager cacheManager = (CacheManager) ReflectionTestUtils.getField(claimDevicesService, "cacheManager");
+        Cache cache = cacheManager.getCache(CLAIM_DEVICES_CACHE);
+        Awaitility.await("Claiming request from the transport was registered").atMost(5, TimeUnit.SECONDS).until(() -> {
+            Cache.ValueWrapper value = cache.get(List.of(deviceId));
+            log.warn("device {}, claimingRequest registered: {}", deviceId, value);
+            return value != null;
         });
     }
 

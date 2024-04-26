@@ -46,7 +46,7 @@ public class ShareGroupRequest {
             "this property specifies the owner of the user group 'All'. Either Tenant or Customer Id.")
     private final EntityId ownerId;
 
-    @Schema(required = true, description = "Indicate that the group should be shared with user group 'All' " +
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Indicate that the group should be shared with user group 'All' " +
             "that belongs to Tenant or Customer (see 'ownerId' property description).", name = "")
     private final boolean allUserGroup;
 

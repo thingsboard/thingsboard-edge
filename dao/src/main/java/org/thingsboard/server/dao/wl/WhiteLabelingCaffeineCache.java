@@ -36,11 +36,10 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
 import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
-import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
 
 @ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
 @Service("WhiteLabelingCache")
-public class WhiteLabelingCaffeineCache extends CaffeineTbTransactionalCache<WhiteLabelingCompositeKey, WhiteLabeling> {
+public class WhiteLabelingCaffeineCache extends CaffeineTbTransactionalCache<WhiteLabelingCacheKey, WhiteLabeling> {
 
     public WhiteLabelingCaffeineCache(CacheManager cacheManager) {
         super(cacheManager, CacheConstants.WHITE_LABELING_CACHE);

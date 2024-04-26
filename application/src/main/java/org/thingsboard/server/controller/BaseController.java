@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ConstraintViolation;
 import lombok.Getter;
@@ -41,6 +42,7 @@ import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
@@ -217,6 +219,8 @@ import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -232,6 +236,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPOutputStream;
 
 import static org.thingsboard.server.common.data.StringUtils.isNotEmpty;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
@@ -673,7 +678,7 @@ public abstract class BaseController {
 
     TenantProfile checkTenantProfileId(TenantProfileId tenantProfileId, Operation operation) throws ThingsboardException {
         try {
-            validateId(tenantProfileId, "Incorrect tenantProfileId " + tenantProfileId);
+            validateId(tenantProfileId, id -> "Incorrect tenantProfileId " + id);
             TenantProfile tenantProfile = tenantProfileService.findTenantProfileById(getTenantId(), tenantProfileId);
             checkNotNull(tenantProfile, "Tenant profile with id [" + tenantProfileId + "] is not found");
             accessControlService.checkPermission(getCurrentUser(), Resource.TENANT_PROFILE, operation);
@@ -697,7 +702,7 @@ public abstract class BaseController {
 
     User checkUserId(UserId userId, Operation operation) throws ThingsboardException {
         try {
-            validateId(userId, "Incorrect userId " + userId);
+            validateId(userId, id -> "Incorrect userId " + id);
             User user = userService.findUserById(getCurrentUser().getTenantId(), userId);
             checkNotNull(user, "User with id [" + userId + "] is not found");
             if (operation != Operation.READ || !getCurrentUser().getId().equals(userId)) {
@@ -711,7 +716,7 @@ public abstract class BaseController {
 
     UserInfo checkUserInfoId(UserId userId, Operation operation) throws ThingsboardException {
         try {
-            validateId(userId, "Incorrect userId " + userId);
+            validateId(userId, id -> "Incorrect userId " + id);
             UserInfo user = userService.findUserInfoById(getCurrentUser().getTenantId(), userId);
             checkNotNull(user, "User with id [" + userId + "] is not found");
             if (operation != Operation.READ || !getCurrentUser().getId().equals(userId)) {
@@ -817,7 +822,7 @@ public abstract class BaseController {
             if (entityId == null) {
                 throw new ThingsboardException("Parameter entityId can't be empty!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             }
-            validateId(entityId.getId(), "Incorrect entityId " + entityId);
+            validateId(entityId.getId(), id -> "Incorrect entityId " + id);
             switch (entityId.getEntityType()) {
                 case ALARM:
                     checkAlarmId(new AlarmId(entityId.getId()), operation);
@@ -983,7 +988,7 @@ public abstract class BaseController {
 
     AlarmComment checkAlarmCommentId(AlarmCommentId alarmCommentId, AlarmId alarmId) throws ThingsboardException {
         try {
-            validateId(alarmCommentId, "Incorrect alarmCommentId " + alarmCommentId);
+            validateId(alarmCommentId, id -> "Incorrect alarmCommentId " + id);
             AlarmComment alarmComment = alarmCommentService.findAlarmCommentByIdAsync(getCurrentUser().getTenantId(), alarmCommentId).get();
             checkNotNull(alarmComment, "Alarm comment with id [" + alarmCommentId + "] is not found");
             if (!alarmId.equals(alarmComment.getAlarmId())) {
@@ -1056,7 +1061,7 @@ public abstract class BaseController {
 
     protected EntityGroupInfo checkEntityGroupId(EntityGroupId entityGroupId, Operation operation) throws ThingsboardException {
         try {
-            validateId(entityGroupId, "Incorrect entityGroupId " + entityGroupId);
+            validateId(entityGroupId, id -> "Incorrect entityGroupId " + id);
             EntityGroupInfo entityGroup = entityGroupService.findEntityGroupInfoById(getTenantId(), entityGroupId);
             checkNotNull(entityGroup, "Entity group with id [" + entityGroupId + "] is not found");
             accessControlService.checkEntityGroupInfoPermission(getCurrentUser(), operation, entityGroup);
@@ -1083,7 +1088,7 @@ public abstract class BaseController {
     }
 
     protected RuleNode checkRuleNode(RuleNodeId ruleNodeId, Operation operation) throws ThingsboardException {
-        validateId(ruleNodeId, "Incorrect ruleNodeId " + ruleNodeId);
+        validateId(ruleNodeId, id -> "Incorrect ruleNodeId " + id);
         RuleNode ruleNode = ruleChainService.findRuleNodeById(getTenantId(), ruleNodeId);
         checkNotNull(ruleNode, "Rule node with id [" + ruleNodeId + "] is not found");
         checkRuleChain(ruleNode.getRuleChainId(), operation);
@@ -1113,7 +1118,7 @@ public abstract class BaseController {
 
     Rpc checkRpcId(RpcId rpcId) throws ThingsboardException {
         try {
-            validateId(rpcId, "Incorrect rpcId " + rpcId);
+            validateId(rpcId, id -> "Incorrect rpcId " + id);
             Rpc rpc = rpcService.findById(getCurrentUser().getTenantId(), rpcId);
             checkNotNull(rpc, "RPC with id [" + rpcId + "] is not found");
             checkDeviceId(rpc.getDeviceId(), Operation.RPC_CALL);
@@ -1286,6 +1291,22 @@ public abstract class BaseController {
             return entityDataSortOrder;
         } else {
             return null;
+        }
+    }
+
+    protected void compressResponseWithGzipIFAccepted(String acceptEncodingHeader, HttpServletResponse response, byte[] content) throws IOException {
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(acceptEncodingHeader) && acceptEncodingHeader.contains("gzip")) {
+            response.setHeader(HttpHeaders.CONTENT_ENCODING, "gzip");
+            response.setCharacterEncoding(StandardCharsets.UTF_8.displayName());
+            try (GZIPOutputStream gzipOutputStream = new GZIPOutputStream(response.getOutputStream())) {
+                gzipOutputStream.write(content);
+                gzipOutputStream.finish();
+            }
+        } else {
+            try (ServletOutputStream outputStream = response.getOutputStream()) {
+                outputStream.write(content);
+                outputStream.flush();
+            }
         }
     }
 

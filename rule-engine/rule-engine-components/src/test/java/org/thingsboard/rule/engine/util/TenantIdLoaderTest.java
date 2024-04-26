@@ -30,13 +30,13 @@
  */
 package org.thingsboard.rule.engine.util;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.thingsboard.common.util.AbstractListeningExecutor;
 import org.thingsboard.rule.engine.api.RuleEngineAlarmService;
 import org.thingsboard.rule.engine.api.RuleEngineApiUsageStateService;
@@ -78,6 +78,7 @@ import org.thingsboard.server.common.data.notification.template.NotificationTemp
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.queue.Queue;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.queue.QueueStats;
 import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
@@ -101,6 +102,7 @@ import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
+import org.thingsboard.server.dao.queue.QueueStatsService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -116,7 +118,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@ExtendWith(MockitoExtension.class)
 public class TenantIdLoaderTest {
 
     @Mock
@@ -181,13 +183,15 @@ public class TenantIdLoaderTest {
     private GroupPermissionService groupPermissionService;
     @Mock
     private TbPeContext tbPeContext;
+    @Mock
+    private QueueStatsService queueStatsService;
 
     private TenantId tenantId;
     private TenantProfileId tenantProfileId;
     private NotificationId notificationId;
     private AbstractListeningExecutor dbExecutor;
 
-    @Before
+    @BeforeEach
     public void before() {
         dbExecutor = new AbstractListeningExecutor() {
             @Override
@@ -208,7 +212,7 @@ public class TenantIdLoaderTest {
         }
     }
 
-    @After
+    @AfterEach
     public void after() {
         dbExecutor.destroy();
     }
@@ -457,6 +461,12 @@ public class TenantIdLoaderTest {
                 doReturn(groupPermission).when(groupPermissionService).findGroupPermissionById(eq(tenantId), any());
 
                 break;
+            case QUEUE_STATS:
+                QueueStats queueStats = new QueueStats();
+                queueStats.setTenantId(tenantId);
+                when(ctx.getQueueStatsService()).thenReturn(queueStatsService);
+                doReturn(queueStats).when(queueStatsService).findQueueStatsById(eq(tenantId), any());
+                break;
             default:
                 throw new RuntimeException("Unexpected originator EntityType " + entityType);
         }
@@ -479,9 +489,9 @@ public class TenantIdLoaderTest {
             TenantId targetTenantId = TenantIdLoader.findTenantId(ctx, entityId);
             String msg = "Check entity type <" + entityType.name() + ">:";
             if (equals) {
-                Assert.assertEquals(msg, targetTenantId, checkTenantId);
+                Assertions.assertEquals(targetTenantId, checkTenantId, msg);
             } else {
-                Assert.assertNotEquals(msg, targetTenantId, checkTenantId);
+                Assertions.assertNotEquals(targetTenantId, checkTenantId, msg);
             }
         }
     }

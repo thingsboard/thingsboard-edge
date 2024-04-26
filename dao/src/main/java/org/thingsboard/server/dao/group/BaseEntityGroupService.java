@@ -159,42 +159,42 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public EntityGroup findEntityGroupById(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing findEntityGroupById [{}]", entityGroupId);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         return entityGroupDao.findById(tenantId, entityGroupId.getId());
     }
 
     @Override
     public EntityGroupInfo findEntityGroupInfoById(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing findEntityGroupInfoById [{}]", entityGroupId);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         return entityGroupInfoDao.findById(tenantId, entityGroupId.getId());
     }
 
     @Override
     public EntityInfo findEntityGroupEntityInfoById(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing findEntityGroupEntityInfoById [{}]", entityGroupId);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         return entityGroupInfoDao.findEntityGroupEntityInfoById(tenantId, entityGroupId.getId());
     }
 
     @Override
     public ListenableFuture<EntityGroup> findEntityGroupByIdAsync(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing findEntityGroupByIdAsync [{}]", entityGroupId);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         return entityGroupDao.findByIdAsync(tenantId, entityGroupId.getId());
     }
 
     @Override
     public ListenableFuture<EntityGroupInfo> findEntityGroupInfoByIdAsync(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing findEntityGroupInfoByIdAsync [{}]", entityGroupId);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         return entityGroupInfoDao.findByIdAsync(tenantId, entityGroupId.getId());
     }
 
     @Override
     public EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
         log.trace("Executing saveEntityGroup [{}]", entityGroup);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         entityGroup = new EntityGroup(entityGroup);
         if (entityGroup.getId() == null) {
             entityGroup.setOwnerId(parentEntityId);
@@ -231,7 +231,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public EntityGroup createEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityType groupType) {
         log.trace("Executing createEntityGroupAll, parentEntityId [{}], groupType [{}]", parentEntityId, groupType);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
@@ -448,8 +448,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public ListenableFuture<Optional<EntityGroup>> findPublicUserGroupAsync(TenantId tenantId, CustomerId publicCustomerId) {
         log.trace("Executing findPublicUserGroupAsync, tenantId [{}], publicCustomerId [{}]", tenantId, publicCustomerId);
-        Validator.validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        Validator.validateId(publicCustomerId, INCORRECT_CUSTOMER_ID + publicCustomerId);
+        Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        Validator.validateId(publicCustomerId, id -> INCORRECT_CUSTOMER_ID + id);
         return findEntityGroupByTypeAndNameAsync(tenantId, publicCustomerId, EntityType.USER, EntityGroup.GROUP_PUBLIC_USERS_NAME);
     }
 
@@ -491,18 +491,22 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public void deleteEntityGroup(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing deleteEntityGroup [{}]", entityGroupId);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndUserGroupId(tenantId, entityGroupId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndEntityGroupId(tenantId, entityGroupId);
-        deleteEntityRelations(tenantId, entityGroupId);
         entityGroupDao.removeById(tenantId, entityGroupId.getId());
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityGroupId).build());
     }
 
     @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteEntityGroup(tenantId, (EntityGroupId) id);
+    }
+
+    @Override
     public PageData<EntityGroup> findAllEntityGroupsByParentRelation(TenantId tenantId, EntityId parentEntityId, PageLink pageLink) {
         log.trace("Executing findAllEntityGroupsByParentRelation, parentEntityId [{}], pageLink [{}]", parentEntityId, pageLink);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         validatePageLink(pageLink);
         return this.entityGroupDao.findAllEntityGroupsByParentRelation(tenantId.getId(), parentEntityId.getId(), parentEntityId.getEntityType(), pageLink);
     }
@@ -510,15 +514,20 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public void deleteAllEntityGroups(TenantId tenantId, EntityId parentEntityId) {
         log.trace("Executing deleteAllEntityGroups, parentEntityId [{}]", parentEntityId);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         entityGroupsRemover.removeEntities(tenantId, parentEntityId);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteAllEntityGroups(tenantId, tenantId);
     }
 
     @Override
     public PageData<EntityGroup> findEntityGroupsByType(TenantId tenantId, EntityId parentEntityId,
                                                         EntityType groupType, PageLink pageLink) {
         log.trace("Executing findEntityGroupsByType, parentEntityId [{}], groupType [{}], pageLink [{}]", parentEntityId, groupType, pageLink);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
@@ -530,7 +539,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public PageData<EntityGroupInfo> findEntityGroupInfosByType(TenantId tenantId, EntityId parentEntityId, EntityType groupType, PageLink pageLink) {
         log.trace("Executing findEntityGroupInfosByType, parentEntityId [{}], groupType [{}], pageLink [{}]", parentEntityId, groupType, pageLink);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
@@ -542,7 +551,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public PageData<EntityInfo> findEntityGroupEntityInfosByType(TenantId tenantId, EntityId parentEntityId, EntityType groupType, PageLink pageLink) {
         log.trace("Executing findEntityGroupEntityInfosByType, parentEntityId [{}], groupType [{}], pageLink [{}]", parentEntityId, groupType, pageLink);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
@@ -554,7 +563,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public PageData<EntityGroupInfo> findEntityGroupInfosByOwnersAndType(TenantId tenantId, List<EntityId> ownerIds, EntityType groupType, PageLink pageLink) {
         log.trace("Executing findEntityGroupInfosByOwnersAndType, ownerIds [{}], groupType [{}], pageLink [{}]", ownerIds, groupType, pageLink);
-        validateEntityIds(ownerIds, INCORRECT_OWNER_ENTITY_IDS + ownerIds);
+        validateEntityIds(ownerIds, ids -> INCORRECT_OWNER_ENTITY_IDS + ids);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
@@ -566,7 +575,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public PageData<EntityInfo> findEntityGroupEntityInfosByOwnersAndType(TenantId tenantId, List<EntityId> ownerIds, EntityType groupType, PageLink pageLink) {
         log.trace("Executing findEntityGroupEntityInfosByOwnersAndType, ownerIds [{}], groupType [{}], pageLink [{}]", ownerIds, groupType, pageLink);
-        validateEntityIds(ownerIds, INCORRECT_OWNER_ENTITY_IDS + ownerIds);
+        validateEntityIds(ownerIds, ids -> INCORRECT_OWNER_ENTITY_IDS + ids);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
@@ -578,7 +587,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public PageData<EntityGroupInfo> findEntityGroupInfosByIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, PageLink pageLink) {
         log.trace("Executing findEntityGroupInfosByIds, entityGroupIds [{}], pageLink [{}]", entityGroupIds, pageLink);
-        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validateIds(entityGroupIds, ids -> "Incorrect entityGroupIds " + ids);
         validatePageLink(pageLink);
         return entityGroupInfoDao.findEntityGroupsByIds(tenantId.getId(), toUUIDs(entityGroupIds), pageLink);
     }
@@ -586,7 +595,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public PageData<EntityInfo> findEntityGroupEntityInfosByIds(TenantId tenantId, List<EntityGroupId> entityGroupIds, PageLink pageLink) {
         log.trace("Executing findEntityGroupEntityInfosByIds, entityGroupIds [{}], pageLink [{}]", entityGroupIds, pageLink);
-        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validateIds(entityGroupIds, ids -> "Incorrect entityGroupIds " + ids);
         validatePageLink(pageLink);
         return entityGroupInfoDao.findEntityGroupEntityInfosByIds(tenantId.getId(), toUUIDs(entityGroupIds), pageLink);
     }
@@ -596,11 +605,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
                                                                      List<EntityGroupId> entityGroupIds, PageLink pageLink) {
         log.trace("Executing findEntityGroupInfosByTypeOrIds, parentEntityId [{}], groupType [{}], entityGroupIds [{}], pageLink [{}]",
                 parentEntityId, groupType, entityGroupIds, pageLink);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
-        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validateIds(entityGroupIds, ids -> "Incorrect entityGroupIds " + ids);
         validatePageLink(pageLink);
         return this.entityGroupInfoDao.findEntityGroupsByTypeOrIds(tenantId.getId(), parentEntityId.getId(),
                 parentEntityId.getEntityType(), groupType, toUUIDs(entityGroupIds), pageLink);
@@ -610,11 +619,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public PageData<EntityInfo> findEntityGroupEntityInfosByTypeOrIds(TenantId tenantId, EntityId parentEntityId, EntityType groupType, List<EntityGroupId> entityGroupIds, PageLink pageLink) {
         log.trace("Executing findEntityGroupEntityInfosByTypeOrIds, parentEntityId [{}], groupType [{}], entityGroupIds [{}], pageLink [{}]",
                 parentEntityId, groupType, entityGroupIds, pageLink);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
-        validateIds(entityGroupIds, "Incorrect entityGroupIds " + entityGroupIds);
+        validateIds(entityGroupIds, ids -> "Incorrect entityGroupIds " + ids);
         validatePageLink(pageLink);
         return this.entityGroupInfoDao.findEntityGroupEntityInfosByTypeOrIds(tenantId.getId(), parentEntityId.getId(),
                 parentEntityId.getEntityType(), groupType, toUUIDs(entityGroupIds), pageLink);
@@ -623,9 +632,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public PageData<EntityGroupInfo> findEdgeEntityGroupInfosByOwnerIdType(TenantId tenantId, EdgeId edgeId, EntityId ownerId, EntityType groupType, PageLink pageLink) {
         log.trace("[{}] Executing findEdgeEntityGroupInfosByOwnerIdType, edgeId [{}], ownerId [{}], groupType [{}], pageLink [{}]", tenantId, edgeId, ownerId, groupType, pageLink);
-        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
-        Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
-        Validator.validateEntityId(ownerId, "Incorrect ownerId " + ownerId);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
+        Validator.validateId(edgeId, id -> "Incorrect edgeId " + id);
+        Validator.validateEntityId(ownerId, id -> "Incorrect ownerId " + id);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
@@ -637,7 +646,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public PageData<EntityGroup> findEntityGroupsByType(TenantId tenantId, EntityType groupType, PageLink pageLink) {
         log.trace("Executing findEntityGroupsByType, tenantId [{}], groupType [{}], pageLink [{}]", tenantId, groupType, pageLink);
-        validateEntityId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateEntityId(tenantId, id -> INCORRECT_TENANT_ID + id);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
@@ -668,19 +677,19 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     private String validateAndComposeRelationType(EntityId parentEntityId, EntityType groupType, String name) {
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
+        validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
-        validateString(name, "Incorrect name " + name);
+        validateString(name, n -> "Incorrect name " + n);
         return ENTITY_GROUP_RELATION_PREFIX + groupType.name();
     }
 
     @Override
     public void addEntityToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing addEntityToEntityGroup, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
+        validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
+        validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
         EntityRelation entityRelation = new EntityRelation();
         entityRelation.setFrom(entityGroupId);
         entityRelation.setTo(entityId);
@@ -698,9 +707,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public void addEntitiesToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds) {
         log.trace("Executing addEntityToEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         for (EntityId entityId : entityIds) {
-            validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
+            validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
         }
         var relations = entityIds.stream().map(entityId -> {
             EntityRelation entityRelation = new EntityRelation();
@@ -724,8 +733,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public void addEntityToEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityId entityId) {
         log.trace("Executing addEntityToEntityGroupAll, parentEntityId [{}], entityId [{}]", parentEntityId, entityId);
-        validateEntityId(parentEntityId, INCORRECT_PARENT_ENTITY_ID + parentEntityId);
-        validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
+        validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
+        validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
         try {
             Optional<EntityGroup> entityGroup = findEntityGroupByTypeAndName(tenantId, parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME);
             if (entityGroup.isPresent()) {
@@ -741,8 +750,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public void removeEntityFromEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing removeEntityFromEntityGroup, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
+        validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
+        validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
         relationService.deleteRelation(tenantId, entityGroupId, entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
         EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
         eventPublisher.publishEvent(ActionEntityEvent.builder()
@@ -755,15 +764,15 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public void removeEntitiesFromEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds) {
         log.trace("Executing removeEntitiesFromEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         entityIds.forEach(entityId -> removeEntityFromEntityGroup(tenantId, entityGroupId, entityId));
     }
 
     @Override
     public ShortEntityView findGroupEntity(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityGroupId entityGroupId, EntityId entityId) {
         log.trace("Executing findGroupEntity, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
-        validateEntityId(entityId, INCORRECT_ENTITY_ID + entityId);
+        validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
+        validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
 
         if (!isEntityInGroup(tenantId, entityId, entityGroupId)) {
             throw new IncorrectParameterException(String.format("Entity %s not present in entity group %s.", entityId, entityGroupId));
@@ -801,7 +810,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public PageData<ShortEntityView> findGroupEntities(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityGroupId entityGroupId, PageLink pageLink) {
         log.trace("Executing findGroupEntities, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         validatePageLink(pageLink);
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         if (entityGroup == null) {
@@ -920,7 +929,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public ListenableFuture<List<EntityId>> findAllEntityIdsAsync(TenantId tenantId, EntityGroupId entityGroupId, PageLink pageLink) {
         log.trace("Executing findAllEntityIdsAsync, entityGroupId [{}], pageLink [{}]", entityGroupId, pageLink);
-        validateId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         if (entityGroup == null) {
             throw new IncorrectParameterException(UNABLE_TO_FIND_ENTITY_GROUP_BY_ID + entityGroupId);
@@ -988,8 +997,8 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public PageData<EntityGroup> findEdgeEntityGroupsByType(TenantId tenantId, EdgeId edgeId, EntityType groupType, PageLink pageLink) {
         log.trace("[{}] Executing findEdgeEntityGroupsByType, edgeId [{}], groupType [{}], pageLink [{}]", tenantId, edgeId, groupType, pageLink);
-        Validator.validateId(tenantId, "Incorrect tenantId " + tenantId);
-        Validator.validateId(edgeId, "Incorrect edgeId " + edgeId);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
+        Validator.validateId(edgeId, id -> "Incorrect edgeId " + id);
         if (groupType == null) {
             throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
         }
@@ -999,9 +1008,23 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public PageData<EntityGroup> findEdgeEntityGroupsByOwnerIdAndType(TenantId tenantId, EdgeId edgeId, EntityId ownerId, EntityType groupType, PageLink pageLink) {
+        log.trace("[{}] Executing findEdgeEntityGroupsByOwnerIdAndType, edgeId [{}], ownerId [{}], groupType [{}], pageLink [{}]", tenantId, edgeId, ownerId, groupType, pageLink);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
+        Validator.validateId(edgeId, id -> "Incorrect edgeId " + id);
+        validateEntityId(ownerId, id -> INCORRECT_ENTITY_ID + id);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validatePageLink(pageLink);
+        String relationType = EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
+        return this.entityGroupDao.findEdgeEntityGroupsByOwnerIdAndType(tenantId.getId(), edgeId.getId(), ownerId.getId(), relationType, pageLink);
+    }
+
+    @Override
     public ListenableFuture<Boolean> checkEdgeEntityGroupByIdAsync(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType) {
         log.trace("Executing checkEdgeEntityGroupByIdAsync, tenantId [{}], edgeId [{}], entityGroupId [{}]", tenantId, edgeId, entityGroupId);
-        validateEntityId(entityGroupId, INCORRECT_ENTITY_GROUP_ID + entityGroupId);
+        validateEntityId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         return relationService.checkRelationAsync(tenantId, edgeId, entityGroupId,
                 EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name()
                 , RelationTypeGroup.EDGE);
@@ -1094,11 +1117,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findEntityGroupById(tenantId, new EntityGroupId(entityId.getId())));
-    }
-
-    @Override
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteEntityGroup(tenantId, (EntityGroupId) id);
     }
 
     @Override

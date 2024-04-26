@@ -42,4 +42,5 @@ public interface DashboardMsgConstructor extends MsgConstructor {
     DashboardUpdateMsg constructDashboardUpdatedMsg(UpdateMsgType msgType, Dashboard dashboard, EntityGroupId entityGroupId);
 
     DashboardUpdateMsg constructDashboardDeleteMsg(DashboardId dashboardId, EntityGroupId entityGroupId);
+
 }

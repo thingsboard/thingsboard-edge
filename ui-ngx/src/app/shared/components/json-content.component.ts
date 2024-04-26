@@ -39,11 +39,11 @@ import {
   OnDestroy,
   OnInit,
   SimpleChanges,
-  ViewChild, ViewEncapsulation
+  ViewChild,
+  ViewEncapsulation
 } from '@angular/core';
-import { ControlValueAccessor, UntypedFormControl, NG_VALIDATORS, NG_VALUE_ACCESSOR, Validator } from '@angular/forms';
+import { ControlValueAccessor, NG_VALIDATORS, NG_VALUE_ACCESSOR, UntypedFormControl, Validator } from '@angular/forms';
 import { Ace } from 'ace-builds';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { ActionNotificationHide, ActionNotificationShow } from '@core/notification/notification.actions';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -53,6 +53,7 @@ import { guid } from '@core/utils';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { getAce } from '@shared/models/ace/ace.models';
 import { beautifyJs } from '@shared/models/beautify.models';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-json-content',
@@ -96,41 +97,25 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
 
   @Input() tbPlaceholder: string;
 
-  private readonlyValue: boolean;
-  get readonly(): boolean {
-    return this.readonlyValue;
-  }
   @Input()
-  set readonly(value: boolean) {
-    this.readonlyValue = coerceBooleanProperty(value);
-  }
+  @coerceBoolean()
+  hideToolbar = false;
 
-  private validateContentValue: boolean;
-  get validateContent(): boolean {
-    return this.validateContentValue;
-  }
   @Input()
-  set validateContent(value: boolean) {
-    this.validateContentValue = coerceBooleanProperty(value);
-  }
+  @coerceBoolean()
+  readonly: boolean;
 
-  private validateOnChangeValue: boolean;
-  get validateOnChange(): boolean {
-    return this.validateOnChangeValue;
-  }
   @Input()
-  set validateOnChange(value: boolean) {
-    this.validateOnChangeValue = coerceBooleanProperty(value);
-  }
+  @coerceBoolean()
+  validateContent: boolean;
 
-  private requiredValue: boolean;
-  get required(): boolean {
-    return this.requiredValue;
-  }
   @Input()
-  set required(value: boolean) {
-    this.requiredValue = coerceBooleanProperty(value);
-  }
+  @coerceBoolean()
+  validateOnChange: boolean;
+
+  @Input()
+  @coerceBoolean()
+  required: boolean;
 
   fullscreen = false;
 
@@ -186,8 +171,9 @@ export class JsonContentComponent implements OnInit, ControlValueAccessor, Valid
             this.cd.markForCheck();
           });
         }
+
         if (this.tbPlaceholder && this.tbPlaceholder.length) {
-            this.createPlaceholder();
+          this.createPlaceholder();
         }
         this.editorResize$ = new ResizeObserver(() => {
           this.onAceEditorResize();
