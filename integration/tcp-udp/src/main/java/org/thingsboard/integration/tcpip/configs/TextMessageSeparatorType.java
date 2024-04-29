@@ -30,28 +30,7 @@
  */
 package org.thingsboard.integration.tcpip.configs;
 
-import lombok.Data;
-import org.thingsboard.integration.api.data.UplinkContentType;
-import org.thingsboard.integration.tcpip.AbstractIpIntegration;
-import org.thingsboard.integration.tcpip.HandlerConfiguration;
+public enum TextMessageSeparatorType {
 
-@Data
-public class TextHandlerConfiguration implements HandlerConfiguration {
-
-    private int maxFrameLength;
-    private boolean stripDelimiter;
-    private TextMessageSeparatorType messageSeparator;
-    private String customSeparatorRawValue;
-    private String charsetName;
-
-    @Override
-    public String getHandlerType() {
-        return AbstractIpIntegration.TEXT_PAYLOAD;
-    }
-
-    @Override
-    public UplinkContentType getUplinkContentType() {
-        return UplinkContentType.TEXT;
-    }
-
+    SYSTEM_LINE_SEPARATOR, NUL_DELIMITER, CUSTOM_SEPARATOR;
 }

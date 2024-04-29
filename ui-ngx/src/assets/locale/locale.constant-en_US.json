@@ -4081,7 +4081,7 @@
         "so-reuse-addr": "Bind the process to a port",
         "tcp-no-delay": "Forces a socket to send the data without buffering (disable Nagle's buffering algorithm)",
         "fail-fast": "Thrown exception soon as the decoder notices the length of the frame will exceed max size",
-        "strip-delimiter": "Strip Delimiter",
+        "strip-delimiter": "Strip delimiter",
         "length-field-offset": "Length Field Offset",
         "length-field-offset-required": "Length Field Offset is required.",
         "length-field-offset-range": "Length Field Offset should be in a range from 0 to 8.",
@@ -4108,6 +4108,9 @@
         "charset-name-required": "Charset Name is required.",
         "message-separator": "Message Separator",
         "message-separator-required": "Message Separator is required.",
+        "message-separator-type": "Message separator type",
+        "separator": "Separator",
+        "separator-required": "Separator is required.",
         "character-sequence": "Character Sequence",
         "character-sequence-required": "Character Sequence is required.",
         "max-frame-length": "Max Frame Length (in bytes)",
@@ -4137,8 +4140,9 @@
         "service-account-key": "Service Account key file",
         "service-account-key-required": "Service Account key file is required.",
         "tcp": {
-            "system-line-separator": "System Line Separator",
-            "nul-delimiter": "Nul Delimiter",
+            "system-line-separator": "System line separator",
+            "nul-delimiter": "Nul delimiter",
+            "custom-separator": "Custom separator",
             "byte-order-little-endian": "Little Endian",
             "byte-order-big-endian": "Big Endian"
         },
@@ -8880,7 +8884,7 @@
     "language": {
         "language": "Language",
         "locales": {
-            "ar_AR": "اَلْعَرَبِيَّةُ",
+            "ar_AE": "اَلْعَرَبِيَّةُ",
             "ca_ES": "Catalan",
             "cs_CZ": "Česky",
             "da_DK": "Dansk",
