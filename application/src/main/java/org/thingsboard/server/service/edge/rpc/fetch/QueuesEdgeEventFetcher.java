@@ -50,7 +50,7 @@ public class QueuesEdgeEventFetcher extends BasePageableEdgeEventFetcher<Queue> 
     private final QueueService queueService;
 
     @Override
-    PageData<Queue> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
+    PageData<Queue> fetchEntities(TenantId tenantId, Edge edge, PageLink pageLink) {
         return queueService.findQueuesByTenantId(tenantId, pageLink);
     }
 
@@ -59,4 +59,5 @@ public class QueuesEdgeEventFetcher extends BasePageableEdgeEventFetcher<Queue> 
         return EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.QUEUE,
                 EdgeEventActionType.ADDED, queue.getId(), null);
     }
+
 }

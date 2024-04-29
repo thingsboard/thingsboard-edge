@@ -50,7 +50,7 @@ public class ConverterId extends UUIDBased implements EntityId {
         return new ConverterId(UUID.fromString(converterId));
     }
 
-    @Schema(required = true, description = "string", example = "CONVERTER", allowableValues = "CONVERTER")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "CONVERTER", allowableValues = "CONVERTER")
     @Override
     public EntityType getEntityType() {
         return EntityType.CONVERTER;

@@ -125,7 +125,7 @@ public class ThingsboardInstallService {
                             log.info("Upgrading ThingsBoard from version 3.5.1 to 3.6.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.5.1");
                             dataUpdateService.updateData("3.5.1");
-                            systemDataLoaderService.updateDefaultNotificationConfigs();
+                            systemDataLoaderService.updateDefaultNotificationConfigs(true);
                         case "3.6.0":
                             log.info("Upgrading ThingsBoard from version 3.6.0 to 3.6.1 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.6.0");
@@ -141,10 +141,14 @@ public class ThingsboardInstallService {
                         case "3.6.2":
                             log.info("Upgrading ThingsBoard from version 3.6.2 to 3.6.3 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.6.2");
-                            systemDataLoaderService.updateDefaultNotificationConfigs();
+                            systemDataLoaderService.updateDefaultNotificationConfigs(true);
                         case "3.6.3":
-                            log.info("Upgrading ThingsBoard from version 3.6.3 to 3.7.0 ...");
+                            log.info("Upgrading ThingsBoard from version 3.6.3 to 3.6.4 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.6.3");
+                        case "3.6.4":
+                            log.info("Upgrading ThingsBoard from version 3.6.4 to 3.7.0 ...");
+                            databaseEntitiesUpgradeService.upgradeDatabase("3.6.4");
+                            systemDataLoaderService.updateDefaultNotificationConfigs(false);
                             break;
                         case "CE":
                             log.info("Upgrading ThingsBoard from version CE to PE ...");

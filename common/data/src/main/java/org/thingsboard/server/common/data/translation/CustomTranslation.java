@@ -30,88 +30,54 @@
  */
 package org.thingsboard.server.common.data.translation;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.Length;
+import org.thingsboard.server.common.data.validation.NoXss;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.io.Serializable;
+
+import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.getJson;
+import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.setJson;
 
 @Schema
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder(toBuilder=true)
 @EqualsAndHashCode
 @Slf4j
-public class CustomTranslation {
+public class CustomTranslation implements Serializable {
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private TenantId tenantId;
+    private CustomerId customerId;
 
-    @Schema(description = "Map of locale IDs to stringified json object with custom translations", required = true)
-    private Map<String, String> translationMap = new HashMap<>();
+    @NoXss
+    @Length(fieldName = "localeCode", max = 5)
+    private String localeCode;
 
-    public CustomTranslation merge(CustomTranslation otherCL) {
-        List<String> languages = new ArrayList<>(translationMap.keySet());
-        if (otherCL != null && otherCL.getTranslationMap() != null) {
-            languages.addAll(otherCL.getTranslationMap().keySet());
-            for (String lang : languages) {
-                JsonNode node = safeParse(translationMap.get(lang));
-                JsonNode otherNode = safeParse(otherCL.getTranslationMap().get(lang));
-                merge(node, otherNode);
-                try {
-                    translationMap.put(lang, OBJECT_MAPPER.writeValueAsString(node));
-                } catch (JsonProcessingException e) {
-                    log.warn("Can't write object as json string", e);
-                }
-            }
-        }
-        return this;
+    @NoXss
+    @Length(fieldName = "value", max = 1000000)
+    private transient JsonNode value;
+
+    @JsonIgnore
+    private byte[] valueBytes;
+
+    public JsonNode getValue() {
+        return getJson(() -> value, () -> valueBytes);
     }
 
-    private JsonNode safeParse(String jsonStr) {
-        JsonNode node = OBJECT_MAPPER.createObjectNode();
-        try {
-            if (StringUtils.isNoneBlank(jsonStr)) {
-                node = OBJECT_MAPPER.readTree(jsonStr);
-            }
-        } catch (IOException e) {
-            log.warn("Can't read json string", e);
-        }
-        return node;
-    }
-
-    private void merge(JsonNode mainNode, JsonNode updateNode) {
-        Iterator<String> fieldNames = updateNode.fieldNames();
-        while (fieldNames.hasNext()) {
-            String fieldName = fieldNames.next();
-            JsonNode jsonNode = mainNode.get(fieldName);
-            if (jsonNode != null) {
-                if (jsonNode.isObject()) {
-                    merge(jsonNode, updateNode.get(fieldName));
-                } else if (jsonNode.isArray()) {
-                    for (int i = 0; i < jsonNode.size(); i++) {
-                        merge(jsonNode.get(i), updateNode.get(fieldName).get(i));
-                    }
-                }
-            } else {
-                if (mainNode instanceof ObjectNode) {
-                    // Overwrite field
-                    JsonNode value = updateNode.get(fieldName);
-                    if (value.isNull()) {
-                        continue;
-                    }
-                    ((ObjectNode) mainNode).set(fieldName, value);
-                }
-            }
-        }
+    public void setValue(JsonNode value) {
+        setJson(value, json -> this.value = json, bytes -> this.valueBytes = bytes);
     }
 
 }

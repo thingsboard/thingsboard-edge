@@ -204,16 +204,23 @@
       <mat-slide-toggle class="toggle block_last" [aria-label]="'integration.strip-delimiter' | translate" formControlName="stripDelimiter">
         {{ 'integration.strip-delimiter' | translate }}
       </mat-slide-toggle>
-      <p class="mat-subhead" translate>integration.message-separator</p>
-      <mat-radio-group formControlName="messageSeparator" fxFlex fxLayout="column" class="radio-box"
-                       fxLayoutGap="8px">
-        <mat-radio-button [value]="TcpTextMessageSeparator.SYSTEM_LINE_SEPARATOR">
-          {{ 'integration.tcp.system-line-separator' | translate }}
-        </mat-radio-button>
-        <mat-radio-button [value]="TcpTextMessageSeparator.NUL_DELIMITER">
-          {{ 'integration.tcp.nul-delimiter' | translate }}
-        </mat-radio-button>
-      </mat-radio-group>
+      <div class="same-width-component-row">
+        <mat-form-field>
+          <mat-label>{{ 'integration.message-separator-type' | translate }}</mat-label>
+          <mat-select formControlName="messageSeparator">
+            <mat-option *ngFor="let separatorType of tcpTextMessageSeparatorList" [value]="separatorType">
+              {{ TcpTextMessageSeparatorTranslation.get(separatorType) | translate }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field  *ngIf="tcpConfigForm.get('handlerConfiguration.messageSeparator').value === TcpTextMessageSeparator.CUSTOM_SEPARATOR">
+          <mat-label>{{ 'integration.separator' | translate }}</mat-label>
+          <input matInput formControlName="customSeparatorRawValue">
+          <mat-error *ngIf="tcpConfigForm.get('handlerConfiguration.customSeparatorRawValue').hasError('required')">
+            {{ 'integration.separator-required' | translate }}
+          </mat-error>
+        </mat-form-field>
+      </div>
     </section>
   </fieldset>
 

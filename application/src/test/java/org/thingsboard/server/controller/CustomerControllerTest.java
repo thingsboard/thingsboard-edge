@@ -104,7 +104,7 @@ public class CustomerControllerTest extends AbstractControllerTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -123,8 +123,7 @@ public class CustomerControllerTest extends AbstractControllerTest {
 
         loginSysAdmin();
 
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(savedTenant.getId());
     }
 
     @Test
@@ -244,7 +243,7 @@ public class CustomerControllerTest extends AbstractControllerTest {
                 ActionType.ADDED, new ThingsboardException(msgError, ThingsboardErrorCode.PERMISSION_DENIED));
         testNotifyEntityEqualsOneTimeServiceNeverError(customer, savedTenant.getId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
                 ActionType.ADDED, new DataValidationException(msgError));
-     }
+    }
 
     @Test
     public void testUpdateCustomerFromDifferentTenant() throws Exception {
@@ -259,7 +258,7 @@ public class CustomerControllerTest extends AbstractControllerTest {
 
         doPost("/api/customer", savedCustomer, Customer.class, status().isForbidden());
 
-        testNotifyEntityEqualsOneTimeServiceNeverError(savedCustomer,  savedDifferentTenant.getId(), savedDifferentTenantUser.getId(),
+        testNotifyEntityEqualsOneTimeServiceNeverError(savedCustomer, savedDifferentTenant.getId(), savedDifferentTenantUser.getId(),
                 DIFFERENT_TENANT_ADMIN_EMAIL, ActionType.UPDATED,
                 new ThingsboardException(msgErrorPermissionWrite + classNameCustomer.toUpperCase(Locale.ENGLISH) + " '" + savedCustomer.getName() + "'!",
                         ThingsboardErrorCode.PERMISSION_DENIED));
@@ -269,7 +268,7 @@ public class CustomerControllerTest extends AbstractControllerTest {
         doDelete("/api/customer/" + savedCustomer.getId().getId().toString())
                 .andExpect(status().isForbidden())
                 .andExpect(statusReason(containsString(
-                        msgErrorPermissionDelete  + classNameCustomer.toUpperCase(Locale.ENGLISH) + " '" + savedCustomer.getName() + "'!")));
+                        msgErrorPermissionDelete + classNameCustomer.toUpperCase(Locale.ENGLISH) + " '" + savedCustomer.getName() + "'!")));
 
         testNotifyEntityNever(savedCustomer.getId(), savedCustomer);
 

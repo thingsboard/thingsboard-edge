@@ -968,6 +968,7 @@ export class EntityService {
         entityTypes.push(EntityType.SCHEDULER_EVENT);
         entityTypes.push(EntityType.BLOB_ENTITY);
         entityTypes.push(EntityType.ROLE);
+        entityTypes.push(EntityType.QUEUE_STATS);
         if (authState.edgesSupportEnabled) {
           entityTypes.push(EntityType.EDGE);
         }
@@ -1085,6 +1086,10 @@ export class EntityService {
         entityFieldKeys.push(entityFields.schedule.keyName);
         entityFieldKeys.push(entityFields.originatorId.keyName);
         entityFieldKeys.push(entityFields.originatorType.keyName);
+        break;
+      case EntityType.QUEUE_STATS:
+        entityFieldKeys.push(entityFields.queueName.keyName);
+        entityFieldKeys.push(entityFields.serviceId.keyName);
         break;
     }
     return query ? entityFieldKeys.filter((entityField) => entityField.toLowerCase().indexOf(query) === 0) : entityFieldKeys;

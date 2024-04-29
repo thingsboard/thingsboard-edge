@@ -54,8 +54,7 @@ public class SchedulerEventEdgeProcessor extends BaseEdgeProcessor {
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         switch (msgType) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
+            case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
                 SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(edgeEvent.getTenantId(), schedulerEventId);
                 if (schedulerEvent != null) {
                     SchedulerEventUpdateMsg schedulerEventUpdateMsg = ((SchedulerEventMsgConstructor)
@@ -65,16 +64,17 @@ public class SchedulerEventEdgeProcessor extends BaseEdgeProcessor {
                             .addSchedulerEventUpdateMsg(schedulerEventUpdateMsg)
                             .build();
                 }
-                break;
-            case ENTITY_DELETED_RPC_MESSAGE:
+            }
+            case ENTITY_DELETED_RPC_MESSAGE -> {
                 SchedulerEventUpdateMsg schedulerEventUpdateMsg = ((SchedulerEventMsgConstructor)
                         schedulerEventMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEventDeleteMsg(schedulerEventId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addSchedulerEventUpdateMsg(schedulerEventUpdateMsg)
                         .build();
-                break;
+            }
         }
         return downlinkMsg;
     }
+
 }

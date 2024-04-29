@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventInfo;
@@ -75,19 +76,16 @@ public class EdgeProcessor extends BaseEdgeProcessor {
     public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
         EdgeId edgeId = new EdgeId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        switch (edgeEvent.getAction()) {
-            // TODO: @voba - check this
-            case CHANGE_OWNER:
-                Edge edge = edgeService.findEdgeById(edgeEvent.getTenantId(), edgeId);
-                if (edge != null) {
-                    EdgeConfiguration edgeConfigMsg =
-                            edgeMsgConstructor.constructEdgeConfiguration(edge);
-                    downlinkMsg = DownlinkMsg.newBuilder()
-                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .setEdgeConfiguration(edgeConfigMsg)
-                            .build();
-                }
-                break;
+        // TODO: @voba - check this
+        if (EdgeEventActionType.CHANGE_OWNER.equals(edgeEvent.getAction())) {
+            Edge edge = edgeService.findEdgeById(edgeEvent.getTenantId(), edgeId);
+            if (edge != null) {
+                EdgeConfiguration edgeConfigMsg = edgeMsgConstructor.constructEdgeConfiguration(edge);
+                downlinkMsg = DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                        .setEdgeConfiguration(edgeConfigMsg)
+                        .build();
+            }
         }
         return downlinkMsg;
     }
@@ -160,24 +158,16 @@ public class EdgeProcessor extends BaseEdgeProcessor {
             log.warn("[{}][{}] Can't process attributes updated event {}", tenantId, edgeId, edgeNotificationMsg, e);
             return Futures.immediateFailedFuture(e);
         }
-        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
-        PageData<Integration> pageData;
         Set<IntegrationId> integrationIds = new HashSet<>();
-        do {
-            pageData = integrationService.findIntegrationsByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
-            if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
-                for (Integration integration : pageData.getData()) {
-                    for (String attributeKey : attributeKeys) {
-                        if (integration.getConfiguration().toString().contains(EdgeUtils.formatAttributeKeyToPlaceholderFormat(attributeKey))) {
-                            integrationIds.add(integration.getId());
-                        }
-                    }
-                }
-                if (pageData.hasNext()) {
-                    pageLink = pageLink.nextPageLink();
+        PageDataIterable<Integration> integrationPageDataIterable = new PageDataIterable<>(
+                link -> integrationService.findIntegrationsByTenantIdAndEdgeId(tenantId, edgeId, link), 1024);
+        for (Integration integration : integrationPageDataIterable) {
+            for (String attributeKey : attributeKeys) {
+                if (integration.getConfiguration().toString().contains(EdgeUtils.formatAttributeKeyToPlaceholderFormat(attributeKey))) {
+                    integrationIds.add(integration.getId());
                 }
             }
-        } while (pageData != null && pageData.hasNext());
+        }
         if (integrationIds.isEmpty()) {
             return Futures.immediateFuture(null);
         } else {
@@ -190,54 +180,41 @@ public class EdgeProcessor extends BaseEdgeProcessor {
     }
 
     private void unassignEntityGroupsOfRemovedCustomer(TenantId tenantId, EdgeId edgeId, EntityType groupType, EntityId customerId) {
-        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
-        PageData<EntityGroup> pageData;
-        do {
-            pageData = entityGroupService.findEdgeEntityGroupsByType(tenantId, edgeId, groupType, pageLink);
-            if (!pageData.getData().isEmpty()) {
-                for (EntityGroup entityGroup : pageData.getData()) {
-                    if (entityGroup.getOwnerId().equals(customerId)) {
-                        entityGroupService.unassignEntityGroupFromEdge(tenantId, entityGroup.getId(), edgeId, groupType);
-                    }
-                }
+        PageLink removalPageLink = new PageLink(DEFAULT_PAGE_SIZE, 0);
+        while (true) {
+            PageData<EntityGroup> toRemove = entityGroupService.findEdgeEntityGroupsByOwnerIdAndType(tenantId, edgeId, customerId, groupType, removalPageLink);
+            for (EntityGroup entityGroup : toRemove.getData()) {
+                entityGroupService.unassignEntityGroupFromEdge(tenantId, entityGroup.getId(), edgeId, groupType);
             }
-        } while (pageData.hasNext());
+            if (!toRemove.hasNext()) {
+                break;
+            }
+        }
     }
 
-    private void unassignSchedulerEventsOfRemovedCustomer(TenantId tenantId, EdgeId edgeId, EntityId previousOwnerId) {
-        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
-        PageData<SchedulerEventInfo> pageData;
-        do {
-            pageData = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeId(tenantId, edgeId, pageLink);
-            if (!pageData.getData().isEmpty()) {
-                for (SchedulerEventInfo schedulerEventInfo : pageData.getData()) {
-                    if (schedulerEventInfo.getOwnerId().equals(previousOwnerId)) {
-                        schedulerEventService.unassignSchedulerEventFromEdge(tenantId, schedulerEventInfo.getId(), edgeId);
-                    }
-                }
+    private void unassignSchedulerEventsOfRemovedCustomer(TenantId tenantId, EdgeId edgeId, CustomerId customerId) {
+        PageLink removalPageLink = new PageLink(DEFAULT_PAGE_SIZE, 0);
+        while (true) {
+            PageData<SchedulerEventInfo> toRemove = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeIdAndCustomerId(tenantId, edgeId, customerId, removalPageLink);
+            for (SchedulerEventInfo schedulerEventInfo : toRemove.getData()) {
+                schedulerEventService.unassignSchedulerEventFromEdge(tenantId, schedulerEventInfo.getId(), edgeId);
             }
-        } while (pageData.hasNext());
+            if (!toRemove.hasNext()) {
+                break;
+            }
+        }
     }
 
     private ListenableFuture<Void> syncCustomer(TenantId tenantId, EdgeId edgeId, Customer customer) {
         List<ListenableFuture<Void>> futures = new ArrayList<>();
         futures.add(saveEdgeEvent(tenantId, edgeId,
                 EdgeEventType.CUSTOMER, EdgeEventActionType.ADDED, customer.getId(), null, null));
-        PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
-        PageData<Role> rolesData;
-        do {
-            rolesData = roleService.findRolesByTenantIdAndCustomerId(tenantId,
-                    customer.getId(), pageLink);
-            if (rolesData != null && rolesData.getData() != null && !rolesData.getData().isEmpty()) {
-                for (Role role : rolesData.getData()) {
-                    futures.add(saveEdgeEvent(tenantId, edgeId,
-                            EdgeEventType.ROLE, EdgeEventActionType.ADDED, role.getId(), null, null));
-                }
-                if (rolesData.hasNext()) {
-                    pageLink = pageLink.nextPageLink();
-                }
-            }
-        } while (rolesData != null && rolesData.hasNext());
+        PageDataIterable<Role> roles = new PageDataIterable<>(
+                link -> roleService.findRolesByTenantIdAndCustomerId(tenantId, customer.getId(), link), 1024);
+        for (Role role : roles) {
+            futures.add(saveEdgeEvent(tenantId, edgeId,
+                    EdgeEventType.ROLE, EdgeEventActionType.ADDED, role.getId(), null, null));
+        }
         assignCustomerAdministratorsAndUsersGroupToEdge(tenantId, edgeId, customer.getId(), customer.getParentCustomerId());
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
@@ -251,4 +228,5 @@ public class EdgeProcessor extends BaseEdgeProcessor {
         EntityGroup customerUsers = entityGroupService.findOrCreateCustomerUsersGroup(tenantId, customerId, parentCustomerId);
         entityGroupService.assignEntityGroupToEdge(tenantId, customerUsers.getId(), edgeId, customerUsers.getType());
     }
+
 }

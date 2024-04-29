@@ -35,7 +35,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.AttributeScope;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
@@ -67,7 +66,7 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
     }
 
     public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) throws Exception {
-        List<EdgeEvent> result = fetchAdminSettingsForKeys(tenantId, edge.getId(), List.of("general", "mail", "connectivity", "jwt", "customTranslation", "customMenu"));
+        List<EdgeEvent> result = fetchAdminSettingsForKeys(tenantId, edge.getId(), List.of("general", "mail", "connectivity", "jwt", "customMenu"));
 
         // return PageData object to be in sync with other fetchers
         return new PageData<>(result, 1, result.size(), false);
@@ -94,4 +93,5 @@ public class AdminSettingsEdgeEventFetcher implements EdgeEventFetcher {
         }
         return result;
     }
+
 }

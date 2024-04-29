@@ -112,7 +112,7 @@ public class DefaultTbResourceService extends AbstractTbEntityService implements
     @Override
     public List<LwM2mObject> findLwM2mObject(TenantId tenantId, String sortOrder, String sortProperty, String[] objectIds) {
         log.trace("Executing findByTenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         List<TbResource> resources = resourceService.findTenantResourcesByResourceTypeAndObjectIds(tenantId, ResourceType.LWM2M_MODEL,
                 objectIds);
         return resources.stream()
@@ -124,7 +124,7 @@ public class DefaultTbResourceService extends AbstractTbEntityService implements
     @Override
     public List<LwM2mObject> findLwM2mObjectPage(TenantId tenantId, String sortProperty, String sortOrder, PageLink pageLink) {
         log.trace("Executing findByTenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         PageData<TbResource> resourcePageData = resourceService.findTenantResourcesByResourceTypeAndPageLink(tenantId, ResourceType.LWM2M_MODEL, pageLink);
         return resourcePageData.getData().stream()
                 .flatMap(s -> Stream.ofNullable(toLwM2mObject(s, false)))

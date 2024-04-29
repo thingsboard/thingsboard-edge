@@ -30,12 +30,13 @@
  */
 package org.thingsboard.server.service.edge.rpc.constructor.translation;
 
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
+import org.thingsboard.server.gen.edge.v1.CustomTranslationUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.service.edge.rpc.constructor.MsgConstructor;
 
 public interface CustomTranslationMsgConstructor extends MsgConstructor {
 
-    CustomTranslationProto constructCustomTranslationProto(CustomTranslation customTranslation, EntityId entityId);
+    CustomTranslationUpdateMsg constructCustomTranslationMsg(UpdateMsgType msgType, CustomTranslation customTranslation);
+
 }

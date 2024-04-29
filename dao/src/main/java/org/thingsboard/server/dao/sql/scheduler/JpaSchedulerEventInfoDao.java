@@ -136,4 +136,17 @@ public class JpaSchedulerEventInfoDao extends JpaAbstractDao<SchedulerEventInfoE
                         Objects.toString(pageLink.getTextSearch(), ""),
                         DaoUtil.toPageable(pageLink)));
     }
+
+    @Override
+    public PageData<SchedulerEventInfo> findSchedulerEventInfosByTenantIdAndEdgeIdAndCustomerId(UUID tenantId, UUID edgeId, UUID customerId, PageLink pageLink) {
+        log.debug("Try to find scheduler event infos by tenantId [{}], edgeId [{}], customerId [{}] and pageLink [{}]", tenantId, edgeId, customerId, pageLink);
+        return DaoUtil.toPageData(schedulerEventInfoRepository
+                .findByTenantIdAndEdgeIdAndCustomerId(
+                        tenantId,
+                        edgeId,
+                        customerId,
+                        Objects.toString(pageLink.getTextSearch(), ""),
+                        DaoUtil.toPageable(pageLink)));
+    }
+
 }

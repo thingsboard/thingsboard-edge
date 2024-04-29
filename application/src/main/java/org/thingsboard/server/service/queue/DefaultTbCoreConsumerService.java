@@ -33,6 +33,8 @@ package org.thingsboard.server.service.queue;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -65,9 +67,9 @@ import org.thingsboard.server.common.msg.queue.TbCallback;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.common.stats.StatsFactory;
+import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.dao.resource.ImageCacheKey;
-import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -124,12 +126,11 @@ import org.thingsboard.server.service.subscription.SubscriptionManagerService;
 import org.thingsboard.server.service.subscription.TbLocalSubscriptionService;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 import org.thingsboard.server.service.sync.vc.GitVersionControlQueueService;
+import org.thingsboard.server.service.translation.TbTranslationService;
 import org.thingsboard.server.service.transport.msg.TransportToDeviceActorMsgWrapper;
 import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
 import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -180,6 +181,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final TbQueueConsumer<TbProtoQueueMsg<ToOtaPackageStateServiceMsg>> firmwareStatesConsumer;
     private final TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> integrationApiConsumer;
     private final TbImageService imageService;
+    private final TbTranslationService translationService;
 
     protected volatile ExecutorService consumersExecutor;
     protected volatile ExecutorService usageStatsExecutor;
@@ -203,7 +205,8 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         JwtSettingsService jwtSettingsService,
                                         NotificationSchedulerService notificationSchedulerService,
                                         NotificationRuleProcessor notificationRuleProcessor,
-                                        TbImageService imageService) {
+                                        TbImageService imageService,
+                                        TbTranslationService translationService) {
         super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, statsService, partitionService, eventPublisher, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer(), jwtSettingsService);
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.usageStatsConsumer = tbCoreQueueFactory.createToUsageStatsServiceMsgConsumer();
@@ -225,6 +228,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.notificationSchedulerService = notificationSchedulerService;
         this.notificationRuleProcessor = notificationRuleProcessor;
         this.imageService = imageService;
+        this.translationService = translationService;
     }
 
     @PostConstruct
@@ -462,6 +466,8 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             callback.onSuccess();
         } else if (toCoreNotification.hasResourceCacheInvalidateMsg()) {
             forwardToResourceService(toCoreNotification.getResourceCacheInvalidateMsg(), callback);
+        } else if (toCoreNotification.hasTranslationCacheInvalidateMsg()) {
+            forwardToTranslationService(toCoreNotification.getTranslationCacheInvalidateMsg(), callback);
         }
         if (statsEnabled) {
             stats.log(toCoreNotification);
@@ -649,6 +655,12 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         callback.onSuccess();
     }
 
+    private void forwardToTranslationService(TransportProtos.TranslationCacheInvalidateMsg msg, TbCallback callback) {
+        var tenantId = new TenantId(new UUID(msg.getTenantIdMSB(), msg.getTenantIdLSB()));
+        translationService.evictETags(tenantId);
+        callback.onSuccess();
+    }
+
     private void forwardToSubMgrService(SubscriptionMgrMsgProto msg, TbCallback callback) {
         if (msg.hasSubEvent()) {
             TbEntitySubEventProto subEvent = msg.getSubEvent();
@@ -675,7 +687,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             subscriptionManagerService.onTimeSeriesUpdate(
                     toTenantId(tenantIdMSB, tenantIdLSB),
                     TbSubscriptionUtils.toEntityId(proto.getEntityType(), proto.getEntityIdMSB(), proto.getEntityIdLSB()),
-                    KvProtoUtil.toTsKvEntityList(proto.getDataList()), callback);
+                    KvProtoUtil.fromTsKvProtoList(proto.getDataList()), callback);
         } else if (msg.hasAttrUpdate()) {
             TbAttributeUpdateProto proto = msg.getAttrUpdate();
             subscriptionManagerService.onAttributesUpdate(

@@ -47,7 +47,6 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @AllArgsConstructor
 @Slf4j
 public class EntityGroupEdgeEventFetcher implements EdgeEventFetcher {
@@ -73,4 +72,5 @@ public class EntityGroupEdgeEventFetcher implements EdgeEventFetcher {
         }
         return new PageData<>(result, pageData.getTotalPages(), pageData.getTotalElements(), pageData.hasNext());
     }
+
 }

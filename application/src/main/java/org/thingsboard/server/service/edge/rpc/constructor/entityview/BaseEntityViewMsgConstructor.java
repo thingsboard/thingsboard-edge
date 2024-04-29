@@ -49,4 +49,5 @@ public abstract class BaseEntityViewMsgConstructor implements EntityViewMsgConst
         }
         return builder.build();
     }
+
 }

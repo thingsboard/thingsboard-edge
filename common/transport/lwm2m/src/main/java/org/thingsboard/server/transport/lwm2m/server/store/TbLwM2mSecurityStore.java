@@ -78,6 +78,7 @@ public class TbLwM2mSecurityStore implements TbMainSecurityStore {
         } else if (securityInfo.usePSK() && securityInfo.getEndpoint().equals(SecurityMode.NO_SEC.toString())
                 && securityInfo.getPskIdentity().equals(SecurityMode.NO_SEC.toString())
                 && Arrays.equals(SecurityMode.NO_SEC.toString().getBytes(), securityInfo.getPreSharedKey())) {
+            log.info("securityInfo (null): [usePSK() & Endpoint == SecurityMode.NO_SEC]");
             return null;
         }
         return securityInfo;

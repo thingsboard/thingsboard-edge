@@ -309,6 +309,7 @@
           "domain-schema-https": "HTTPS",
           "domain-schema-mixed": "HTTP+HTTPS",
           "enable": "Enable OAuth2 settings",
+          "edge-enable": "Propagate to Edge",
           "domains": "Domains",
           "mobile-apps": "Mobile applications",
           "no-mobile-apps": "No applications configured",
@@ -858,7 +859,6 @@
         "email-messages": "Email messages",
         "email-messages-daily-activity": "Email messages daily activity",
         "email-messages-monthly-activity": "Email messages monthly activity",
-        "exceptions": "Exceptions",
         "executions": "Executions",
         "scripts": "Scripts",
         "scripts-hourly-activity": "Scripts hourly activity",
@@ -876,9 +876,7 @@
         "permanent-failures": "${entityName} Permanent Failures",
         "permanent-timeouts": "${entityName} Permanent Timeouts",
         "processing-failures": "${entityName} Processing Failures",
-        "processing-failures-and-timeouts": "Processing Failures and Timeouts",
         "processing-timeouts": "${entityName} Processing Timeouts",
-        "queue-stats": "Queue Stats",
         "rule-chain": "Rule Chain",
         "rule-engine": "Rule Engine",
         "rule-engine-daily-activity": "Rule Engine daily activity",
@@ -1185,17 +1183,34 @@
         "custom-menu-hint": "Define custom menu JSON below. This JSON contains list of custom menu items."
     },
     "custom-translation": {
+        "add-new-key": "Add new key",
+        "add-new-language": "Add new language",
+        "added-key": "Added key",
+        "copy-original-text": "Copy original text",
+        "copy-term-key": "Copy term key",
+        "country": "Country",
         "custom-translation": "Custom translation",
-        "translation-map": "Translation map",
-        "key": "Translation Key",
-        "import": "Import translation",
-        "export": "Export translation",
-        "export-data": "Export translation data",
-        "import-data": "Import translation data",
+        "customized": "Customized",
+        "delete-language-text": "Be careful, after the confirmation the '{{language}}' translation and all related data will become unrecoverable.",
+        "delete-language-title": "Are you sure you want to delete the translation '{{language}}'?",
+        "delete-translation": "Delete translation",
+        "download-translation": "Download translation",
+        "drop-json-file": "Drag & Drop JSON file or",
+        "language": "Language",
+        "language-required": "Language is required",
+        "localization-code": "Localization code",
+        "no-translation-matching": "No language matching '{{search}}' were found.",
+        "return-default-translation": "Return to default translation",
+        "search": "Search translation",
+        "set": "Set",
+        "term-key": "Term key",
+        "translated": "Translated",
         "translation-file": "Translation file",
-        "invalid-translation-file-error": "Unable to import translation file: Invalid translation data structure.",
-        "custom-translation-hint": "Define custom translation JSON below. This JSON will overwrite default translation. Click 'Download locale file' to get existing translation. You may also use the downloaded file as a reference to available translation key-value pairs.",
-        "download-locale-file": "Download locale file"
+        "translation-map": "Translation map",
+        "translation-name": "{{ name }} translation",
+        "translation-progress": "Translation progress",
+        "untranslated": "Untranslated",
+        "upload-translation-file": "Upload translation file"
     },
     "css-size": {
         "size-value-required": "Size value is required",
@@ -2548,6 +2563,8 @@
         "type-ota-package": "OTA package",
         "type-rpc": "RPC",
         "type-queue": "Queue",
+        "type-queue-stats": "Queue statistics",
+        "type-queues-stats": "Queues statistics",
         "type-notification": "Notification",
         "type-notification-rule": "Notification rule",
         "type-notification-rules": "Notification rules",
@@ -2745,6 +2762,10 @@
         "configuration": "Configuration",
         "schedule": "Schedule",
         "originatorId": "Originator Id",
+        "originatorType": "Originator Type",
+        "label": "Label",
+        "queue-name": "Queue name",
+        "service-id": "Service Id"
         "originatorType": "Originator Type",
         "owner-name": "Owner name",
         "owner-type": "Owner type"
@@ -3227,7 +3248,7 @@
         "rpc-command-result": "Response",
         "rpc-command-edit-params": "Edit parameters",
         "gateway-configuration": "General Configuration",
-        "docker-label": "Use the following instruction to run IoT Gateway in in Docker compose with credentials for selected device",
+        "docker-label": "Use the following instruction to run IoT Gateway in Docker compose with credentials for selected device",
         "install-docker-compose": "Use the instructions to download, install and setup docker compose",
         "download-configuration-file": "Download configuration file",
         "download-docker-compose": "Download docker-compose.yml for your gateway",
@@ -4063,7 +4084,7 @@
         "so-reuse-addr": "Bind the process to a port",
         "tcp-no-delay": "Forces a socket to send the data without buffering (disable Nagle's buffering algorithm)",
         "fail-fast": "Thrown exception soon as the decoder notices the length of the frame will exceed max size",
-        "strip-delimiter": "Strip Delimiter",
+        "strip-delimiter": "Strip delimiter",
         "length-field-offset": "Length Field Offset",
         "length-field-offset-required": "Length Field Offset is required.",
         "length-field-offset-range": "Length Field Offset should be in a range from 0 to 8.",
@@ -4090,6 +4111,9 @@
         "charset-name-required": "Charset Name is required.",
         "message-separator": "Message Separator",
         "message-separator-required": "Message Separator is required.",
+        "message-separator-type": "Message separator type",
+        "separator": "Separator",
+        "separator-required": "Separator is required.",
         "character-sequence": "Character Sequence",
         "character-sequence-required": "Character Sequence is required.",
         "max-frame-length": "Max Frame Length (in bytes)",
@@ -4119,8 +4143,9 @@
         "service-account-key": "Service Account key file",
         "service-account-key-required": "Service Account key file is required.",
         "tcp": {
-            "system-line-separator": "System Line Separator",
-            "nul-delimiter": "Nul Delimiter",
+            "system-line-separator": "System line separator",
+            "nul-delimiter": "Nul delimiter",
+            "custom-separator": "Custom separator",
             "byte-order-little-endian": "Little Endian",
             "byte-order-big-endian": "Big Endian"
         },
@@ -4255,6 +4280,7 @@
             "months": "(month ago)",
             "years": "(year ago)"
         },
+        "column-title": "Column title",
         "label": "Label",
         "value": "Value"
     },
@@ -4276,6 +4302,7 @@
         "new-password-again": "Confirm new password",
         "password-link-sent-message": "Reset link has been sent",
         "email": "Email",
+        "invalid-email-format": "Invalid email format.",
         "no-account": "Do not have an account?",
         "create-account": "Create an account",
         "login-with": "Login with {{name}}",
@@ -4293,7 +4320,8 @@
         "email-auth-description": "A security code has been sent to your email address at {{contact}}.",
         "email-auth-placeholder": "Email code",
         "backup-code-auth-description": "Please enter one of your backup codes.",
-        "backup-code-auth-placeholder": "Backup code"
+        "backup-code-auth-placeholder": "Backup code",
+        "version-mask": "{{name}} v.{{version}}"
     },
     "signup": {
         "firstname": "First name",
@@ -4344,6 +4372,7 @@
         "api-usage-trigger-settings": "API usage trigger settings",
         "new-platform-version-trigger-settings": "New platform version trigger settings",
         "rate-limits-trigger-settings": "Exceeded rate limits trigger settings",
+        "task-processing-failure-trigger-settings": "Task processing failure trigger settings",
         "at-least-one-should-be-selected": "At least one should be selected",
         "basic-settings": "Basic settings",
         "button-text": "Button text",
@@ -4560,7 +4589,8 @@
             "new-platform-version": "New platform version",
             "rate-limits": "Exceeded rate limits",
             "edge-communication-failure": "Edge communication failure",
-            "edge-connection": "Edge connection"
+            "edge-connection": "Edge connection",
+            "task-processing-failure": "Task processing failure"
         },
         "templates": "Templates",
         "notification-templates": "Notifications / Templates",
@@ -4584,6 +4614,7 @@
             "rate-limits": "Exceeded rate limits",
             "edge-connection": "Edge connection",
             "edge-communication-failure": "Edge communication failure",
+            "task-processing-failure": "Task processing failure",
             "trigger": "Trigger",
             "trigger-required": "Trigger is required"
         },
@@ -5135,6 +5166,7 @@
                 "EDGE_GROUP": "Edge Group",
                 "OTA_PACKAGE": "Ota package",
                 "QUEUE": "Queue",
+                "QUEUE_STATS": "Queue Stats",
                 "VERSION_CONTROL": "Version control",
                 "ASSET_PROFILE": "Asset Profile",
                 "NOTIFICATION": "Notification"
@@ -5814,6 +5846,7 @@
         "trigger": "Trigger",
         "trigger-point": "Point",
         "trigger-axis": "Axis",
+        "label": "Label",
         "value": "Value",
         "date": "Date",
         "show-date-time-interval": "Show date time interval",
@@ -6403,7 +6436,9 @@
         "integration-routing-key-conflict": "Failed to load the integration with external id <b>{{entityId}}</b><br/>due to the same integration key is already present in the database for another integration.<br/>Please consider enabling the <b>auto-generate integration key</b> setting in the restore form.",
         "auto-generate-integration-key": "Auto-generate integration key",
         "runtime-failed": "<b>Failed:</b> {{message}}",
-        "auto-commit-settings-read-only-hint": "Auto-commit feature doesn't work with enabled read-only option in Repository settings."
+        "auto-commit-settings-read-only-hint": "Auto-commit feature doesn't work with enabled read-only option in Repository settings.",
+        "rollback-on-error": "Rollback on error",
+        "rollback-on-error-hint": "If you have a large amount of entities to restore, consider disabling this option to increase performance.\n Note, if an error occurs over the course of version loading, already persisted entities (with relations, attributes, etc.) will stay as is"
     },
     "widget": {
         "widget-library": "Widgets library",
@@ -6926,7 +6961,13 @@
             "bar-appearance": "Bar appearance",
             "label-on-bar": "Label on bar",
             "value-on-bar": "Value on bar",
-            "bar-chart-card-style": "Bar chart card style"
+            "bar-chart-style": "Bar chart style",
+            "bar-axis": "Bar axis"
+        },
+        "polar-area-chart": {
+            "polar-axis": "Polar axis",
+            "start-angle": "Start angle",
+            "polar-area-chart-style": "Polar area chart style"
         },
         "battery-level": {
             "layout": "Layout",
@@ -6955,6 +6996,25 @@
             "inactive-bars-color": "Inactive signal bars color",
             "signal-strength-card-style": "Signal strength card style",
             "no-signal-rssi-value": "\"No signal\" rssi value"
+        },
+        "status-widget": {
+            "behavior": "Behavior",
+            "layout": "Layout",
+            "layout-default": "Default",
+            "layout-center": "Center",
+            "layout-icon": "Icon",
+            "on": "On",
+            "off": "Off",
+            "label": "Label",
+            "status": "Status",
+            "icon": "Icon",
+            "color-palette": "Color palette",
+            "disabled-color-palette": "Disabled color palette",
+            "primary": "Primary",
+            "primary-color-hint": "Color of icon and label",
+            "secondary": "Secondary",
+            "secondary-color-hint": "Color of status",
+            "background": "Background"
         },
         "chart": {
             "common-settings": "Common settings",
@@ -7087,7 +7147,56 @@
             "axis": "Axis",
             "vertical-axis": "Vertical axis",
             "ticks": "Ticks",
-            "horizontal-axis": "Horizontal axis"
+            "horizontal-axis": "Horizontal axis",
+            "shape-empty-circle": "Empty circle",
+            "shape-circle": "Circle",
+            "shape-rect": "Rectangle",
+            "shape-round-rect": "Rounded rectangle",
+            "shape-triangle": "Triangle",
+            "shape-diamond": "Diamond",
+            "shape-pin": "Pin",
+            "shape-arrow": "Arrow",
+            "shape-none": "None",
+            "label-position-top": "Top",
+            "label-position-bottom": "Bottom",
+            "label-position-outside": "Outside",
+            "label-position-inside": "Inside",
+            "fill": "Fill",
+            "fill-type-none": "None",
+            "fill-type-solid": "Solid",
+            "fill-type-opacity": "Opacity",
+            "fill-type-gradient": "Gradient",
+            "background": "Background",
+            "opacity": "Opacity",
+            "gradient-stops": "Gradient stops",
+            "gradient-start": "start",
+            "gradient-end": "end",
+            "animation": {
+              "animation": "Animation",
+              "animation-threshold": "Animation threshold",
+              "animation-duration": "Animation duration",
+              "animation-easing": "Animation easing",
+              "animation-delay": "Animation delay",
+              "update-animation-duration": "Update animation duration",
+              "update-animation-easing": "Update animation easing",
+              "update-animation-delay": "Update animation delay"
+            },
+            "chart-axis": {
+              "scale": "Scale",
+              "scale-min": "min",
+              "scale-max": "max",
+              "scale-auto": "Auto"
+            },
+            "bar": {
+              "show-border": "Show border",
+              "border-width": "Border width",
+              "border-radius": "Border radius",
+              "bar-width": "Bar width",
+              "label": "Label",
+              "label-hint": "Display label over the bar.",
+              "series-label-hint": "Display label with value over the bar.",
+              "label-background": "Label background"
+            }
         },
         "color": {
             "color-settings": "Color settings",
@@ -7188,16 +7297,10 @@
             }
         },
         "doughnut": {
-            "total": "Total",
             "layout": "Layout",
             "layout-default": "Default",
             "layout-with-total": "With total",
-            "auto-scale": "Auto scale",
-            "clockwise-layout": "Clockwise layout",
-            "sort-series": "Sort series by label",
             "central-total-value": "Central total value",
-            "tooltip-value-type-absolute": "Absolute",
-            "tooltip-value-type-percentage": "Percentage",
             "doughnut-card-style": "Doughnut card style"
         },
         "entities-hierarchy": {
@@ -7682,10 +7785,14 @@
         "range-chart": {
             "chart": "Chart",
             "data-zoom": "Data zoom",
+            "range-chart-appearance": "Range chart appearance",
             "range-colors": "Range colors",
             "out-of-range-color": "Out of range color",
+            "show-range-thresholds": "Show range thresholds",
+            "range-thresholds-settings": "Range thresholds settings",
             "fill-area": "Fill area",
-            "range-chart-card-style": "Range chart card style"
+            "fill-area-opacity": "Fill area opacity",
+            "range-chart-style": "Range chart style"
         },
         "rpc": {
             "value-settings": "Value settings",
@@ -8230,6 +8337,20 @@
             "table-tabs": "Table tabs",
             "show-cell-actions-menu-mobile": "Show cell actions dropdown menu in mobile mode"
         },
+        "latest-chart": {
+            "total": "Total",
+            "auto-scale": "Auto scale",
+            "clockwise-layout": "Clockwise layout",
+            "sort-series": "Sort series by label",
+            "tooltip-value-type-absolute": "Absolute",
+            "tooltip-value-type-percentage": "Percentage"
+        },
+        "pie-chart": {
+            "label": "Label",
+            "border": "Border",
+            "radius": "Radius",
+            "pie-chart-card-style": "Pie chart card style"
+        },
         "time-series-chart": {
             "chart": "Chart",
             "chart-style": "Chart style",
@@ -8243,15 +8364,6 @@
             "line-type-dashed": "Dashed",
             "line-type-dotted": "Dotted",
             "line-width": "Line width",
-            "shape-empty-circle": "Empty circle",
-            "shape-circle": "Circle",
-            "shape-rect": "Rectangle",
-            "shape-round-rect": "Rounded rectangle",
-            "shape-triangle": "Triangle",
-            "shape-diamond": "Diamond",
-            "shape-pin": "Pin",
-            "shape-arrow": "Arrow",
-            "shape-none": "None",
             "type-line": "Line",
             "type-bar": "Bar",
             "type-point": "Point",
@@ -8262,6 +8374,15 @@
             "bar-width": "Bar width",
             "bar-width-relative": "Percentage of time window",
             "bar-width-absolute": "Absolute (ms)",
+            "comparison": {
+              "comparison": "Comparison",
+              "show": "Show",
+              "settings": "Comparison settings",
+              "show-values-for-comparison": "Show historical data for comparison",
+              "comparison-values-label": "Comparison key label",
+              "comparison-values-label-auto": "Auto",
+              "comparison-data-color": "Comparison data color"
+            },
             "threshold": {
               "thresholds": "Thresholds",
               "source": "Source",
@@ -8293,13 +8414,34 @@
               "label-position-inside-middle-bottom": "Inside middle bottom",
               "label-position-inside-end": "Inside end",
               "label-position-inside-end-top": "Inside end top",
-              "label-position-inside-end-bottom": "Inside end bottom"
+              "label-position-inside-end-bottom": "Inside end bottom",
+              "label-background": "Label background"
+            },
+            "state": {
+              "states": "States",
+              "label": "Label",
+              "ticks-value": "Ticks value",
+              "source": "Source",
+              "value-range": "Value / Range",
+              "no-states": "No states configured",
+              "add-state": "Add state",
+              "type-constant": "Constant",
+              "type-range": "Range",
+              "from": "From",
+              "to": "To",
+              "remove-state": "Remove state"
+            },
+            "grid": {
+              "grid": "Grid",
+              "background-color": "Background color",
+              "border": "Border"
             },
             "axis": {
               "axes": "Axes",
               "x-axis": "X axis",
               "y-axis": "Y axis",
               "y-axis-settings": "Y axis settings",
+              "comparison-x-axis-settings": "Comparison X axis settings",
               "remove-y-axis": "Remove Y axis",
               "id": "Id",
               "label": "Label",
@@ -8310,6 +8452,7 @@
               "position-bottom": "Bottom",
               "tick-labels": "Tick labels",
               "ticks-formatter-function": "Ticks formatter function",
+              "ticks-generator-function": "Ticks generator function",
               "show-ticks": "Show ticks",
               "show-line": "Show line",
               "show-split-lines": "Show split lines",
@@ -8319,24 +8462,10 @@
               "ticks-interval-hint": "Compulsively set segmentation interval for axis.",
               "split-number": "Split number",
               "split-number-hint": "Number of segments that the axis is split into.",
-              "scale": "Scale",
-              "scale-min": "min",
-              "scale-max": "max",
-              "scale-auto": "Auto",
               "min": "Min",
               "max": "Max",
               "show": "Show",
               "add-y-axis": "Add Y axis"
-            },
-            "animation": {
-              "animation": "Animation",
-              "animation-threshold": "Animation threshold",
-              "animation-duration": "Animation duration",
-              "animation-easing": "Animation easing",
-              "animation-delay": "Animation delay",
-              "update-animation-duration": "Update animation duration",
-              "update-animation-easing": "Update animation easing",
-              "update-animation-delay": "Update animation delay"
             },
             "series": {
               "legend-settings": "Legend settings",
@@ -8348,18 +8477,6 @@
               "type": "Type",
               "type-line": "Line",
               "type-bar": "Bar",
-              "label-position-top": "Top",
-              "label-position-bottom": "Bottom",
-              "fill": "Fill",
-              "background": "Background",
-              "fill-type-none": "None",
-              "fill-type-solid": "Solid",
-              "fill-type-opacity": "Opacity",
-              "fill-type-gradient": "Gradient",
-              "opacity": "Opacity",
-              "gradient-stops": "Gradient stops",
-              "gradient-start": "start",
-              "gradient-end": "end",
               "line": {
                 "line": "Line",
                 "show-line": "Show line",
@@ -8374,15 +8491,9 @@
                 "show-points": "Show points",
                 "point-label": "Point label",
                 "point-label-hint": "Display label with value over the series point.",
+                "point-label-background": "Point label background",
                 "point-shape": "Point shape",
                 "point-size": "Point size"
-              },
-              "bar": {
-                "show-border": "Show border",
-                "border-width": "Border width",
-                "border-radius": "Border radius",
-                "label": "Label",
-                "label-hint": "Display label with value over the bar."
               }
             }
         },
@@ -8776,6 +8887,7 @@
     "language": {
         "language": "Language",
         "locales": {
+            "ar_AE": "اَلْعَرَبِيَّةُ",
             "ca_ES": "Catalan",
             "cs_CZ": "Česky",
             "da_DK": "Dansk",

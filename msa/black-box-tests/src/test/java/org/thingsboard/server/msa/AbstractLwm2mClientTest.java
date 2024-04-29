@@ -32,12 +32,10 @@ package org.thingsboard.server.msa;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.eclipse.leshan.client.object.Security;
 import org.eclipse.leshan.core.util.Hex;
 import org.junit.Assert;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.thingsboard.common.util.JacksonUtil;
-import org.eclipse.leshan.client.object.Security;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
@@ -97,47 +95,27 @@ import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.reso
 import static org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mTestHelper.shortServerId;
 
 @Slf4j
-public abstract class AbstractLwm2mClientTest extends AbstractContainerTest{
-
+public class AbstractLwm2mClientTest extends AbstractContainerTest{
     protected ScheduledExecutorService executor;
 
     protected Security security;
 
-    protected LwM2MTestClient lwM2MTestClient;
-    protected Device device;
     protected final PageLink pageLink = new PageLink(30);
     protected TenantId tenantId;
+    protected DeviceProfile lwm2mDeviceProfile;
+    protected Device lwM2MDeviceTest;
+    protected LwM2MTestClient lwM2MTestClient;
 
-    protected DeviceProfile deviceProfile;
-    protected String deviceProfileName = "Lwm2m_Profile";
     public final Set<LwM2MClientState> expectedStatusesRegistrationLwm2mSuccess = new HashSet<>(Arrays.asList(ON_INIT, ON_REGISTRATION_STARTED, ON_REGISTRATION_SUCCESS));
-
-    @BeforeMethod
-    public void setUp() throws Exception {
-        initTest();
-    }
-
-    @AfterMethod
-    public void tearDown() {
-        if (device != null) {
-            testRestClient.deleteDeviceIfExists(device.getId());
-        }
-        if (deviceProfile != null) {
-            testRestClient.deleteDeviceProfileIfExists(deviceProfile.getId());
-        }
-        clientDestroy();
-        if (executor != null) {
-            executor.shutdown();
-        }
-    }
 
     public void connectLwm2mClientNoSec() throws Exception {
         LwM2MDeviceCredentials deviceCredentials = getDeviceCredentialsNoSec(createNoSecClientCredentials(CLIENT_ENDPOINT_NO_SEC));
         basicTestConnection(SECURITY_NO_SEC,
                 deviceCredentials,
-                CLIENT_ENDPOINT_NO_SEC);
-
+                CLIENT_ENDPOINT_NO_SEC,
+                "TestConnection Lwm2m NoSec (msa)");
     }
+
     public void connectLwm2mClientPsk() throws Exception {
         String clientEndpoint = CLIENT_ENDPOINT_PSK;
         String identity = CLIENT_PSK_IDENTITY;
@@ -151,43 +129,55 @@ public abstract class AbstractLwm2mClientTest extends AbstractContainerTest{
                 identity.getBytes(StandardCharsets.UTF_8),
                 Hex.decodeHex(keyPsk.toCharArray()));
         LwM2MDeviceCredentials deviceCredentials = getDeviceCredentialsSecurePsk(clientCredentials);
+
         basicTestConnection(security,
                 deviceCredentials,
-                clientEndpoint);
+                clientEndpoint,
+                "TestConnection Lwm2m Rpc (msa)");
     }
+
     public void basicTestConnection(Security security,
                                     LwM2MDeviceCredentials deviceCredentials,
-                                    String clientEndpoint) throws Exception {
-        // create device
-        device =  createDeviceWithCredentials(deviceCredentials, clientEndpoint);
-        createNewClient(security, clientEndpoint, null, false);
+                                    String clientEndpoint, String alias) throws Exception {
+        // create lwm2mClient and lwM2MDevice
+        lwM2MDeviceTest = createDeviceWithCredentials(deviceCredentials, clientEndpoint);
+        lwM2MTestClient = createNewClient(security, clientEndpoint, executor);
+
         LwM2MClientState finishState =  ON_REGISTRATION_SUCCESS;
-        await("")
+        await(alias + " - " + ON_REGISTRATION_STARTED)
                 .atMost(40, TimeUnit.SECONDS)
                 .until(() -> {
-                    log.warn("basicTestConnection started -> finishState: [{}] states: {}", finishState, lwM2MTestClient.getClientStates());
+                    log.warn("msa basicTestConnection started -> finishState: [{}] states: {}", finishState, lwM2MTestClient.getClientStates());
                     return lwM2MTestClient.getClientStates().contains(finishState) || lwM2MTestClient.getClientStates().contains(ON_REGISTRATION_STARTED);
                 });
-        await("")
+        await(alias + " - " + ON_UPDATE_SUCCESS)
                 .atMost(40, TimeUnit.SECONDS)
                 .until(() -> {
-                    log.warn("basicTestConnection -> finishState: [{}] states: {}", finishState, lwM2MTestClient.getClientStates());
+                    log.warn("msa basicTestConnection update -> finishState: [{}] states: {}", finishState, lwM2MTestClient.getClientStates());
                     return lwM2MTestClient.getClientStates().contains(finishState) || lwM2MTestClient.getClientStates().contains(ON_UPDATE_SUCCESS);
                 });
         Assert.assertTrue(lwM2MTestClient.getClientStates().containsAll(expectedStatusesRegistrationLwm2mSuccess));
-
     }
 
-    public void createNewClient(Security security,
-                                String endpoint, Integer clientDtlsCidLength, boolean queueMode) throws Exception {
-        this.clientDestroy();
-        lwM2MTestClient = new LwM2MTestClient(this.executor, endpoint);
+    public LwM2MTestClient createNewClient(Security security,
+                                           String endpoint, ScheduledExecutorService executor) throws Exception {
+        this.executor = executor;
+        LwM2MTestClient lwM2MTestClient = new LwM2MTestClient(endpoint);
         try (ServerSocket socket = new ServerSocket(0)) {
             int clientPort = socket.getLocalPort();
-            lwM2MTestClient.init(security, clientPort, clientDtlsCidLength, queueMode);
+            lwM2MTestClient.init(security, clientPort);
         }
+        return lwM2MTestClient;
     }
 
+    protected void destroyAfter(){
+        clientDestroy();
+        deviceDestroy();
+        deviceProfileDestroy();
+        if (executor != null) {
+            executor.shutdown();
+        }
+    }
 
     protected void clientDestroy() {
         try {
@@ -198,33 +188,46 @@ public abstract class AbstractLwm2mClientTest extends AbstractContainerTest{
             log.error("Failed client Destroy", e);
         }
     }
+    protected void deviceDestroy() {
+        try {
+            if (lwM2MDeviceTest != null) {
+                testRestClient.deleteDeviceIfExists(lwM2MDeviceTest.getId());
+            }
+        } catch (Exception e) {
+            log.error("Failed device Delete", e);
+        }
+    }
 
-    protected void initTest() throws Exception {
-        executor = Executors.newScheduledThreadPool(10, ThingsBoardThreadFactory.forName("test-lwm2m-scheduled"));
-        testRestClient.login("tenant@thingsboard.org", "tenant");
-        deviceProfile = getDeviceProfile();
-        tenantId = deviceProfile.getTenantId();
+    protected void initTest(String deviceProfileName) throws Exception {
+        if (executor != null) {
+            executor.shutdown();
+        }
+        executor = Executors.newScheduledThreadPool(10, ThingsBoardThreadFactory.forName("test-scheduled-" + deviceProfileName));
+
+        lwm2mDeviceProfile = getDeviceProfile(deviceProfileName);
+        tenantId = lwm2mDeviceProfile.getTenantId();
+
         for (String resourceName : resources) {
             TbResource lwModel = new TbResource();
             lwModel.setResourceType(ResourceType.LWM2M_MODEL);
             lwModel.setTitle(resourceName);
             lwModel.setFileName(resourceName);
             lwModel.setTenantId(tenantId);
-            byte[] bytes = IOUtils.toByteArray(AbstractLwm2mClientTest.class.getClassLoader().getResourceAsStream("lwm2m/" + resourceName));
+            byte[] bytes = IOUtils.toByteArray(AbstractLwm2mClientTest.class.getClassLoader().getResourceAsStream("lwm2m-registry/" + resourceName));
             lwModel.setData(bytes);
             testRestClient.postTbResourceIfNotExists(lwModel);
         }
     }
 
-    protected DeviceProfile getDeviceProfile() throws Exception {
-        DeviceProfile deviceProfile = getDeviceProfileIfExists();
+    protected DeviceProfile getDeviceProfile(String deviceProfileName) throws Exception {
+        DeviceProfile deviceProfile = getDeviceProfileIfExists(deviceProfileName);
         if (deviceProfile == null) {
-            deviceProfile = testRestClient.postDeviceProfile(createDeviceProfile());
+            deviceProfile = testRestClient.postDeviceProfile(createDeviceProfile(deviceProfileName));
         }
         return deviceProfile;
     }
 
-    protected DeviceProfile getDeviceProfileIfExists() throws Exception {
+    protected DeviceProfile getDeviceProfileIfExists(String deviceProfileName) throws Exception {
         return testRestClient.getDeviceProfiles(pageLink).getData().stream()
                 .filter(x -> x.getName().equals(deviceProfileName))
                 .findFirst()
@@ -232,7 +235,7 @@ public abstract class AbstractLwm2mClientTest extends AbstractContainerTest{
     }
 
 
-    protected DeviceProfile createDeviceProfile() throws Exception {
+    protected DeviceProfile createDeviceProfile(String deviceProfileName) throws Exception {
         DeviceProfile deviceProfile = new DeviceProfile();
         deviceProfile.setName(deviceProfileName);
         deviceProfile.setType(DeviceProfileType.DEFAULT);
@@ -248,6 +251,16 @@ public abstract class AbstractLwm2mClientTest extends AbstractContainerTest{
         return deviceProfile;
     }
 
+    protected void deviceProfileDestroy(){
+        try {
+            if (lwm2mDeviceProfile != null) {
+                testRestClient.deleteDeviceProfileIfExists(lwm2mDeviceProfile);
+            }
+        } catch (Exception e) {
+            log.error("Failed deviceProfile Delete", e);
+        }
+    }
+
     protected Device createDeviceWithCredentials(LwM2MDeviceCredentials deviceCredentials, String clientEndpoint) throws Exception {
         Device device = createDevice(deviceCredentials, clientEndpoint);
         return device;
@@ -258,7 +271,7 @@ public abstract class AbstractLwm2mClientTest extends AbstractContainerTest{
         if (device == null) {
             device = new Device();
             device.setName(clientEndpoint);
-            device.setDeviceProfileId(deviceProfile.getId());
+            device.setDeviceProfileId(lwm2mDeviceProfile.getId());
             device.setTenantId(tenantId);
             device = testRestClient.postDevice("", device);
         }

@@ -38,11 +38,13 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.ResultActions;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.alarm.Alarm;
@@ -76,15 +78,18 @@ import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.query.SchedulerEventFilter;
 import org.thingsboard.server.common.data.query.StringFilterPredicate;
 import org.thingsboard.server.common.data.query.TsValue;
+import org.thingsboard.server.common.data.queue.QueueStats;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.scheduler.MonthlyRepeat;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerRepeat;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.queue.QueueStatsService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -110,13 +115,16 @@ public class EntityQueryControllerTest extends AbstractControllerTest {
     private GroupPermission groupPermission;
     private final String classNameAlarm = "ALARM";
 
+    @Autowired
+    private QueueStatsService queueStatsService;
+
     @Before
     public void beforeTest() throws Exception {
         loginSysAdmin();
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -132,9 +140,7 @@ public class EntityQueryControllerTest extends AbstractControllerTest {
     @After
     public void afterTest() throws Exception {
         loginSysAdmin();
-
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(savedTenant.getId());
     }
 
     @Before
@@ -1007,6 +1013,49 @@ public class EntityQueryControllerTest extends AbstractControllerTest {
 
         ResultActions result = doPost("/api/entitiesQuery/find", query).andExpect(status().isBadRequest());
         assertThat(getErrorMessage(result)).contains("Invalid").contains("sort property");
+    }
+
+    @Test
+    public void testFindQueueStatsEntitiesByQuery() throws Exception {
+        List<QueueStats> queueStatsList = new ArrayList<>();
+        for (int i = 0; i < 97; i++) {
+            QueueStats queueStats = new QueueStats();
+            queueStats.setQueueName(StringUtils.randomAlphabetic(5));
+            queueStats.setServiceId(StringUtils.randomAlphabetic(5));
+            queueStats.setTenantId(tenantId);
+            queueStatsList.add(queueStatsService.save(tenantId, queueStats));
+            Thread.sleep(1);
+        }
+
+        EntityTypeFilter entityTypeFilter = new EntityTypeFilter();
+        entityTypeFilter.setEntityType(EntityType.QUEUE_STATS);
+
+        EntityDataSortOrder sortOrder = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "queueName"), EntityDataSortOrder.Direction.ASC
+        );
+        EntityDataPageLink pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
+        List<EntityKey> entityFields = Arrays.asList(new EntityKey(EntityKeyType.ENTITY_FIELD, "queueName"),
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "serviceId"));
+
+        EntityDataQuery query = new EntityDataQuery(entityTypeFilter, pageLink, entityFields, null, null);
+
+        PageData<EntityData> data =
+                doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<PageData<EntityData>>() {
+                });
+
+        Assert.assertEquals(97, data.getTotalElements());
+        Assert.assertEquals(10, data.getTotalPages());
+        Assert.assertTrue(data.hasNext());
+        Assert.assertEquals(10, data.getData().size());
+        data.getData().forEach(entityData -> {
+            assertThat(entityData.getLatest().get(EntityKeyType.ENTITY_FIELD).get("queueName")).asString().isNotBlank();
+            assertThat(entityData.getLatest().get(EntityKeyType.ENTITY_FIELD).get("serviceId")).asString().isNotBlank();
+        });
+
+        EntityCountQuery countQuery = new EntityCountQuery(entityTypeFilter);
+
+        Long count = doPostWithResponse("/api/entitiesQuery/count", countQuery, Long.class);
+        Assert.assertEquals(97, count.longValue());
     }
 
     @Test

@@ -67,8 +67,12 @@ public enum EdgeEventType {
     GROUP_PERMISSION(true, EntityType.GROUP_PERMISSION),
     CONVERTER(false, EntityType.CONVERTER),
     INTEGRATION(false, EntityType.INTEGRATION),
+    NOTIFICATION_RULE (true, EntityType.NOTIFICATION_RULE),
+    NOTIFICATION_TARGET (true, EntityType.NOTIFICATION_TARGET),
+    NOTIFICATION_TEMPLATE (true, EntityType.NOTIFICATION_TEMPLATE),
     TB_RESOURCE(true, EntityType.TB_RESOURCE),
-    DEVICE_GROUP_OTA(false, null);
+    DEVICE_GROUP_OTA(false, null),
+    OAUTH2(true, null);
 
     private final boolean allEdgesRelated;
 

@@ -120,6 +120,12 @@ public class ModelConstants {
     public static final String WHITE_LABELING_SETTINGS = "settings";
     public static final String WHITE_LABELING_DOMAIN = "domain_name";
 
+    /**
+     * Custom translation constants.
+     */
+    public static final String CUSTOM_TRANSLATION_TABLE_NAME = "custom_translation";
+    public static final String CUSTOM_TRANSLATION_LOCALE_CODE = "locale_code";
+    public static final String CUSTOM_TRANSLATION_VALUE = "value";
 
     /**
      * Admin_settings constants.
@@ -581,6 +587,7 @@ public class ModelConstants {
      */
     public static final String OAUTH2_PARAMS_TABLE_NAME = "oauth2_params";
     public static final String OAUTH2_PARAMS_ENABLED_PROPERTY = "enabled";
+    public static final String OAUTH2_PARAMS_EDGE_ENABLED_PROPERTY = "edge_enabled";
     public static final String OAUTH2_PARAMS_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
 
     public static final String OAUTH2_REGISTRATION_TABLE_NAME = "oauth2_registration";
@@ -784,6 +791,14 @@ public class ModelConstants {
     public static final String QUEUE_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
 
     /**
+     * Tenant queue stats constants.
+     */
+    public static final String QUEUE_STATS_TABLE_NAME = "queue_stats";
+    public static final String QUEUE_STATS_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
+    public static final String QUEUE_STATS_QUEUE_NAME_PROPERTY = "queue_name";
+    public static final String QUEUE_STATS_SERVICE_ID_PROPERTY = "service_id";
+
+    /**
      * Notification constants
      */
     public static final String NOTIFICATION_TARGET_TABLE_NAME = "notification_target";
@@ -793,6 +808,7 @@ public class ModelConstants {
     public static final String NOTIFICATION_REQUEST_ID_PROPERTY = "request_id";
     public static final String NOTIFICATION_RECIPIENT_ID_PROPERTY = "recipient_id";
     public static final String NOTIFICATION_TYPE_PROPERTY = "type";
+    public static final String NOTIFICATION_DELIVERY_METHOD_PROPERTY = "delivery_method";
     public static final String NOTIFICATION_SUBJECT_PROPERTY = "subject";
     public static final String NOTIFICATION_TEXT_PROPERTY = "body";
     public static final String NOTIFICATION_ADDITIONAL_CONFIG_PROPERTY = "additional_config";
