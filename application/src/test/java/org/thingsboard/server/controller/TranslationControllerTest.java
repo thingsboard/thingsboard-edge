@@ -463,31 +463,22 @@ public class TranslationControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         updateCustomTranslation(ES_ES);
         String sysAdminEtag = getLoginTranslation(ES_ES);
+        assertThat(sysAdminEtag).isNotNull();
 
         loginTenantAdmin();
         updateCustomTranslation(ES_ES);
         String tenantEtag = getLoginTranslation(ES_ES);
+        assertThat(tenantEtag).isNotNull();
 
         loginCustomerAdminUser();
         updateCustomTranslation(ES_ES);
         String customerAdminEtag = getLoginTranslation(ES_ES);
+        assertThat(customerAdminEtag).isNotNull();
 
         loginSubCustomerAdminUser();
         updateCustomTranslation(ES_ES);
         String subCustomerEtag = getLoginTranslation(ES_ES);
-
-        //check if full translation modified
-        loginSysAdmin();
-        assertThat(geLoginTranslationResponse(ES_ES, sysAdminEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
-
-        loginTenantAdmin();
-        tenantEtag = geLoginTranslationResponse(ES_ES, tenantEtag).getHeader("ETag");
-
-        loginCustomerAdminUser();
-        customerAdminEtag = geLoginTranslationResponse(ES_ES, customerAdminEtag).getHeader("ETag");
-
-        loginSubCustomerAdminUser();
-        assertThat(geLoginTranslationResponse(ES_ES, subCustomerEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+        assertThat(subCustomerEtag).isNotNull();
 
         // check not modified
         loginSysAdmin();
@@ -501,35 +492,18 @@ public class TranslationControllerTest extends AbstractControllerTest {
 
         loginSubCustomerAdminUser();
         assertThat(geLoginTranslationResponse(ES_ES, subCustomerEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
-
-        //update system custom translation and check full translation is being modified everywhere
-        loginSysAdmin();
-        JsonNode newCustomTranslation = JacksonUtil.toJsonNode("{\"update\" : \"system\"}");
-        doPost("/api/translation/custom/" + ES_ES, newCustomTranslation);
-
-        assertThat(geLoginTranslationResponse(ES_ES, sysAdminEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
-
-        loginTenantAdmin();
-        assertThat(geLoginTranslationResponse(ES_ES, tenantEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
-
-        loginCustomerAdminUser();
-        assertThat(geLoginTranslationResponse(ES_ES, customerAdminEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
-
-        loginSubCustomerAdminUser();
-        assertThat(geLoginTranslationResponse(ES_ES, subCustomerEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
     private String getLoginTranslation(String localeCode) throws Exception {
-        return doGet("/api/translation/full/" + localeCode)
+        return doGet("/api/noauth/translation/login/" + localeCode)
                 .andReturn().getResponse().getHeader("ETag");
     }
 
     private MockHttpServletResponse geLoginTranslationResponse(String localeCode, String etag) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setIfNoneMatch(etag);
-        MockHttpServletResponse response = doGet("/api/translation/full/" + localeCode, headers)
+        return doGet("/api/noauth/translation/login/" + localeCode, headers)
                 .andReturn().getResponse();
-        return response;
     }
 
     private void updateCustomTranslation(String localeCode) throws Exception {
