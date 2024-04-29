@@ -57,8 +57,8 @@ import org.thingsboard.integration.tcpip.HandlerConfiguration;
 import org.thingsboard.integration.tcpip.configs.BinaryHandlerConfiguration;
 import org.thingsboard.integration.tcpip.configs.TextHandlerConfiguration;
 
-import java.io.IOException;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -68,7 +68,6 @@ public class BasicTcpIntegration extends AbstractIpIntegration {
 
     private TcpConfigurationParameters tcpConfigurationParameters;
 
-    private static final String SYSTEM_LINE_SEPARATOR = "SYSTEM_LINE_SEPARATOR";
     private static final String LITTLE_ENDIAN_BYTE_ORDER = "LITTLE_ENDIAN";
 
     @Override
@@ -130,7 +129,20 @@ public class BasicTcpIntegration extends AbstractIpIntegration {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) {
                         TextHandlerConfiguration textHandlerConfig = (TextHandlerConfiguration) handlerConfig;
-                        ByteBuf[] delimiters = SYSTEM_LINE_SEPARATOR.equals(textHandlerConfig.getMessageSeparator()) ? Delimiters.lineDelimiter() : Delimiters.nulDelimiter();
+                        ByteBuf[] delimiters;
+                        switch (textHandlerConfig.getMessageSeparator()) {
+                            case NUL_DELIMITER -> delimiters = Delimiters.nulDelimiter();
+                            case SYSTEM_LINE_SEPARATOR -> delimiters = Delimiters.lineDelimiter();
+                            case CUSTOM_SEPARATOR -> {
+                                String customSeparatorRawValue = textHandlerConfig.getCustomSeparatorRawValue();
+                                try {
+                                    delimiters = new ByteBuf[]{Unpooled.wrappedBuffer(customSeparatorRawValue.getBytes(StandardCharsets.UTF_8))};
+                                } catch (Exception e) {
+                                    throw new RuntimeException("Failed to convert custom message separator: [" + customSeparatorRawValue + "] to ByteBuf due to: ", e);
+                                }
+                            }
+                            default -> throw new RuntimeException("Invalid message separator type: " + textHandlerConfig.getMessageSeparator());
+                        }
                         DelimiterBasedFrameDecoder framer = new DelimiterBasedFrameDecoder(
                                 textHandlerConfig.getMaxFrameLength(),
                                 textHandlerConfig.isStripDelimiter(),
