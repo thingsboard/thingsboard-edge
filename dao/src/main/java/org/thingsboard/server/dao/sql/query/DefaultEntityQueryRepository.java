@@ -627,7 +627,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return transactionTemplate.execute(status -> {
             EntityDataPageLink pageLink = query.getPageLink();
 
-            List<EntityKeyMapping> mappings = EntityKeyMapping.prepareKeyMapping(query);
+            List<EntityKeyMapping> mappings = EntityKeyMapping.prepareKeyMapping(entityType, query);
 
             List<EntityKeyMapping> selectionMapping = mappings.stream().filter(EntityKeyMapping::isSelection)
                     .collect(Collectors.toList());
