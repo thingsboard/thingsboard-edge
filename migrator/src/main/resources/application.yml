@@ -29,25 +29,30 @@
 # OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 #
 
-mode: ${MIGRATOR_MODE}  # POSTGRES_TENANT_DATA_EXPORT, CASSANDRA_TENANT_DATA_EXPORT, POSTGRES_TENANT_DATA_IMPORT, CASSANDRA_TENANT_DATA_IMPORT,
-working_directory: ${WORKING_DIRECTORY:/tmp/migrated-tenant}  # where tenant data will be stored or read from
+mode: ${MIGRATOR_MODE}  # TENANT_DATA_EXPORT, TENANT_DATA_IMPORT, CASSANDRA_LATEST_KV_EXPORT, POSTGRES_LATEST_KV_IMPORT
+working_directory: ${WORKING_DIRECTORY:/tb-migrator/data}  # where tenant data will be stored or read from
 
 export:
   tenant_id: ${EXPORTED_TENANT_ID:}
-  sql:
-    batch_size: ${EXPORT_SQL_BATCH_SIZE:500}
-    delay_between_queries: ${EXPORT_SQL_DELAY_BETWEEN_QUERIES:0}  # in milliseconds
+  postgres:
+    enabled: ${POSTGRES_EXPORT_ENABLED:true}
+    batch_size: ${POSTGRES_EXPORT_BATCH_SIZE:500}
+    delay_between_queries: ${POSTGRES_EXPORT_DELAY_BETWEEN_QUERIES:0}  # in milliseconds
+  cassandra:
+    enabled: ${CASSANDRA_EXPORT_ENABLED:true}
 
 import:
-  sql:
-    delay_between_queries: ${IMPORT_SQL_DELAY_BETWEEN_QUERIES:0}  # in milliseconds
-    enable_partition_creation: ${IMPORT_SQL_ENABLE_PARTITION_CREATION:true}
-    update_tenant_profile: ${IMPORT_SQL_UPDATE_TENANT_PROFILE:true}
-    update_ts_kv_dictionary: ${IMPORT_SQL_UPDATE_TS_KV_DICTIONARY:true}
-    resolve_unknown_roles: ${IMPORT_SQL_RESOLVE_UNKNOWN_ROLES:true}
-    ignore_conflicts: ${IMPORT_SQL_IGNORE_CONFLICTS:false}
+  postgres:
+    enabled: ${POSTGRES_IMPORT_ENABLED:true}
+    delay_between_queries: ${POSTGRES_IMPORT_DELAY_BETWEEN_QUERIES:0}  # in milliseconds
+    enable_partition_creation: ${POSTGRES_IMPORT_ENABLE_PARTITION_CREATION:true}
+    update_tenant_profile: ${POSTGRES_IMPORT_UPDATE_TENANT_PROFILE:true}
+    update_ts_kv_dictionary: ${POSTGRES_IMPORT_UPDATE_TS_KV_DICTIONARY:true}
+    resolve_unknown_roles: ${POSTGRES_IMPORT_RESOLVE_UNKNOWN_ROLES:true}
+    ignore_conflicts: ${POSTGRES_IMPORT_IGNORE_CONFLICTS:false}
   cassandra:
-    ttl: ${CASSANDRA_TS_KV_TTL:730}  # days
+    enabled: ${CASSANDRA_IMPORT_ENABLED:true}
+    ttl: ${CASSANDRA_IMPORT_TS_KV_TTL:730}  # in days; 2 years by default
 
 skipped_tables: ${SKIPPED_TABLES:RULE_NODE_DEBUG_EVENT,STATS_EVENT,LC_EVENT}
 
@@ -76,6 +81,7 @@ spring:
       request:
         page-size: ${CASSANDRA_REQUEST_PAGE_SIZE:1000}
         timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
+        consistency: ${CASSANDRA_CONSISTENCY_LEVEL:local_quorum}
       connection:
         connect-timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
         init-query-timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}

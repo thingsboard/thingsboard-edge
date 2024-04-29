@@ -43,7 +43,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.asset.Asset;
@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.dao.edge.EdgeEventDao;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
@@ -106,12 +107,14 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
         Edge edge = constructEdge("TestEdge", "default");
         edge = doPost("/api/edge", edge, Edge.class);
 
+        final EdgeId edgeId = edge.getId();
+
+        awaitForEdgeTemplateRootRuleChainToAssignToEdge(edgeId);
+
         // simulate edge activation
         ObjectNode attributes = JacksonUtil.newObjectNode();
         attributes.put("active", true);
-        doPost("/api/plugins/telemetry/EDGE/" + edge.getId() + "/attributes/" + DataConstants.SERVER_SCOPE, attributes);
-
-        final EdgeId edgeId = edge.getId();
+        doPost("/api/plugins/telemetry/EDGE/" + edge.getId() + "/attributes/" + AttributeScope.SERVER_SCOPE, attributes);
 
         EntityGroup deviceEntityGroup = constructEntityGroup("TestDeviceGroup", EntityType.DEVICE);
         EntityGroup savedDeviceEntityGroup = doPost("/api/entityGroup", deviceEntityGroup, EntityGroup.class);
@@ -161,28 +164,6 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
         Assert.assertTrue(edgeEvents.isEmpty());
     }
 
-    private boolean popEdgeEvent(List<EdgeEvent> edgeEvents, EdgeEventType edgeEventType, EdgeEventActionType actionType) {
-        for (EdgeEvent edgeEvent : edgeEvents) {
-            if (edgeEventType.equals(edgeEvent.getType())) {
-                if (actionType != null && !actionType.equals(edgeEvent.getAction())) {
-                    continue;
-                }
-                edgeEvents.remove(edgeEvent);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void awaitForNumberOfEdgeEvents(EdgeId edgeId, int expectedNumber) {
-        Awaitility.await()
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    List<EdgeEvent> edgeEvents = findEdgeEvents(edgeId);
-                    return edgeEvents.size() == expectedNumber;
-                });
-    }
-
     @Test
     public void saveEdgeEvent_thenCreatePartitionIfNotExist() {
         reset(partitioningRepository);
@@ -211,8 +192,30 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
         });
     }
 
+    private boolean popEdgeEvent(List<EdgeEvent> edgeEvents, EdgeEventType edgeEventType, EdgeEventActionType actionType) {
+        for (EdgeEvent edgeEvent : edgeEvents) {
+            if (edgeEventType.equals(edgeEvent.getType())) {
+                if (actionType != null && !actionType.equals(edgeEvent.getAction())) {
+                    continue;
+                }
+                edgeEvents.remove(edgeEvent);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void awaitForNumberOfEdgeEvents(EdgeId edgeId, int expectedNumber) {
+        Awaitility.await()
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<EdgeEvent> edgeEvents = findEdgeEvents(edgeId);
+                    return edgeEvents.size() == expectedNumber;
+                });
+    }
+
     private List<EdgeEvent> findEdgeEvents(EdgeId edgeId) throws Exception {
-        return doGetTypedWithTimePageLink("/api/edge/" + edgeId.toString() + "/events?",
+        return doGetTypedWithTimePageLink("/api/edge/" + edgeId + "/events?",
                 new TypeReference<PageData<EdgeEvent>>() {
                 }, new TimePageLink(10)).getData();
     }
@@ -222,6 +225,21 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
         result.setName(name);
         result.setType(type);
         return result;
+    }
+
+    private void awaitForEdgeTemplateRootRuleChainToAssignToEdge(EdgeId edgeId) {
+        Awaitility.await()
+                .atMost(TIMEOUT, TimeUnit.SECONDS)
+                .until(() -> {
+                    List<RuleChain> ruleChains = getEdgeRuleChains(edgeId);
+                    return ruleChains.size() == 1;
+                });
+    }
+
+    private List<RuleChain> getEdgeRuleChains(EdgeId edgeId) throws Exception {
+        return doGetTypedWithTimePageLink("/api/edge/" + edgeId + "/ruleChains?",
+                new TypeReference<PageData<RuleChain>>() {
+                }, new TimePageLink(10)).getData();
     }
 
     private Device constructDevice(String name, String type) {

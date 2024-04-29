@@ -53,7 +53,7 @@ $$
             FETCH insert_cursor INTO insert_record;
             EXIT WHEN NOT FOUND;
             INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
-            VALUES ('13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080', insert_record.locale, insert_record.value);
+             VALUES ('13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080', insert_record.locale, insert_record.value) ON CONFLICT DO NOTHING;
         END LOOP;
         CLOSE insert_cursor;
     END;
@@ -76,7 +76,7 @@ $$
                 FETCH insert_cursor INTO insert_record;
                 EXIT WHEN NOT FOUND;
                 INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
-                VALUES (insert_record.tenant_id, '13814000-1dd2-11b2-8080-808080808080', insert_record.locale, insert_record.value);
+                 VALUES (insert_record.tenant_id, '13814000-1dd2-11b2-8080-808080808080', insert_record.locale, insert_record.value) ON CONFLICT DO NOTHING;
             END LOOP;
             CLOSE insert_cursor;
         END IF;
@@ -101,8 +101,10 @@ $$
                 FETCH insert_cursor INTO insert_record;
                 EXIT WHEN NOT FOUND;
                 SELECT tenant_id INTO tenantId FROM customer where id = insert_record.customer_id;
-                INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
-                VALUES (tenantId, insert_record.customer_id, insert_record.locale, insert_record.value);
+                IF tenantId IS NOT NULL THEN
+                    INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
+                        VALUES (tenantId, insert_record.customer_id, insert_record.locale, insert_record.value) ON CONFLICT DO NOTHING;
+                END IF;
             END LOOP;
             CLOSE insert_cursor;
         END IF;

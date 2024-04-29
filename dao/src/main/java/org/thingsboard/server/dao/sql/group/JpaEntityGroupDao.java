@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -171,6 +172,17 @@ public class JpaEntityGroupDao extends JpaAbstractDao<EntityGroupEntity, EntityG
     public EntityGroupId getExternalIdByInternal(EntityGroupId internalId) {
         return Optional.ofNullable(entityGroupRepository.getExternalIdById(internalId.getId()))
                 .map(EntityGroupId::new).orElse(null);
+    }
+
+    @Override
+    public List<UUID> findIdsByTenantIdAndIdOffset(TenantId tenantId, UUID idOffset, int limit) {
+        if (idOffset == null) {
+            return jdbcTemplate.queryForList("SELECT id FROM entity_group WHERE owner_id = ? ORDER BY id LIMIT ?",
+                    UUID.class, tenantId.getId(), limit);
+        } else {
+            return jdbcTemplate.queryForList("SELECT id FROM entity_group WHERE owner_id = ? AND id > ? ORDER BY id LIMIT ?",
+                    UUID.class, tenantId.getId(), idOffset, limit);
+        }
     }
 
     @Override

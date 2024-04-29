@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -102,7 +103,12 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     public void saveCustomTranslation(CustomTranslation customTranslation) {
         customTranslationDao.save(customTranslation.getTenantId(), customTranslation);
         publishEvictEvent(new CustomTranslationEvictEvent(new CustomTranslationCompositeKey(customTranslation.getTenantId(), customTranslation.getCustomerId(), customTranslation.getLocaleCode())));
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID).edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
+        eventPublisher.publishEvent(ActionEntityEvent.builder()
+                .tenantId(customTranslation.getTenantId())
+                .entityId(getEntityIdForEvent(customTranslation.getTenantId(), customTranslation.getCustomerId()))
+                .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION)
+                .actionType(ActionType.UPDATED)
+                .body(JacksonUtil.toString(customTranslation)).build());
     }
 
     @Override
@@ -131,10 +137,23 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
 
     @Override
     public void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
+        deleteCustomTranslation(tenantId, customerId, localeCode, true);
+    }
+
+    private void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, boolean publishEvent) {
+        JsonNode value = getCurrentCustomTranslation(tenantId, customerId, localeCode);
         CustomTranslationCompositeKey key = new CustomTranslationCompositeKey(tenantId, customerId, localeCode);
         customTranslationDao.removeById(tenantId, key);
         publishEvictEvent(new CustomTranslationEvictEvent(new CustomTranslationCompositeKey(tenantId, customerId, localeCode)));
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(TenantId.SYS_TENANT_ID).entityId(TenantId.SYS_TENANT_ID).edgeEventType(EdgeEventType.CUSTOM_TRANSLATION).actionType(ActionType.UPDATED).build());
+        if (publishEvent) {
+            CustomTranslation customTranslation = CustomTranslation.builder().tenantId(tenantId).customerId(customerId).localeCode(localeCode).value(value).build();
+            eventPublisher.publishEvent(ActionEntityEvent.builder()
+                    .tenantId(tenantId)
+                    .entityId(getEntityIdForEvent(tenantId, customerId))
+                    .edgeEventType(EdgeEventType.CUSTOM_TRANSLATION)
+                    .actionType(ActionType.DELETED)
+                    .body(JacksonUtil.toString(customTranslation)).build());
+        }
     }
 
     @Override
@@ -165,7 +184,7 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
     public void deleteCustomTranslationByTenantId(TenantId tenantId) {
         List<CustomTranslationCompositeKey> customTranslationIds = customTranslationDao.findCustomTranslationByTenantId(tenantId.getId());
         for (CustomTranslationCompositeKey customTranslationId : customTranslationIds) {
-            deleteCustomTranslation(new TenantId(customTranslationId.getTenantId()), new CustomerId(customTranslationId.getCustomerId()), customTranslationId.getLocaleCode());
+            deleteCustomTranslation(new TenantId(customTranslationId.getTenantId()), new CustomerId(customTranslationId.getCustomerId()), customTranslationId.getLocaleCode(), false);
         }
     }
 
@@ -187,6 +206,10 @@ public class BaseCustomTranslationService extends AbstractCachedService<CustomTr
             parentCustomizedLocales.addAll(getMergedCustomerHierarchyLocales(tenantId, customer.getParentCustomerId()));
         }
         return parentCustomizedLocales;
+    }
+
+    private static EntityId getEntityIdForEvent(TenantId tenantId, CustomerId customerId) {
+        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
     }
 
     @TransactionalEventListener(classes = CustomTranslationEvictEvent.class)
