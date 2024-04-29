@@ -1587,7 +1587,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntityDataByQuery_filter_entity_group_name() {
+    public void testFindEntitiesByEntityGroupNameFilter() {
         List<EntityGroup> groups = new ArrayList<>();
 
         for (int i = 0; i < 10; i++) {
@@ -1631,7 +1631,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntityDataByQuery_single_entity_filter() {
+    public void testFindEntitiesBySingleEntityFilter() {
         List<Device> devices = new ArrayList<>();
 
         for (int i = 0; i < 3; i++) {
@@ -1661,7 +1661,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntityDataByQuery_single_entity_filter_group_entity() {
+    public void testFindGroupEntityBySingleEntityFilter() {
         EntityGroup entityGroup = new EntityGroup();
         entityGroup.setName("single group entity");
         entityGroup.setType(EntityType.DEVICE);
@@ -1689,7 +1689,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntityDataByQuery_filter_entity_group_list() {
+    public void testFindEntitiesByEntityGroupListFilter() {
         List<EntityGroup> groups = new ArrayList<>();
 
         for (int i = 0; i < 10; i++) {
@@ -1726,7 +1726,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntityDataByQuery_filter_entity_group_list_user_with_group_permission() {
+    public void testFindEntitiesByEntityGroupListFilterUserGroupPermission() {
         List<EntityGroup> groups = new ArrayList<>();
 
         for (int i = 0; i < 10; i++) {
@@ -1759,7 +1759,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntityDataByQuery_filter_entities_by_group_name_and_tenant_owner_id() {
+    public void testFindEntitiesByGroupNameFilterWhenDeviceOwnerIsTenant() {
         List<Device> devices = new ArrayList<>();
 
         EntityGroup entityGroup = new EntityGroup();
@@ -1802,7 +1802,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntityDataByQuery_filter_entities_by_group_name_and_customer_owner_id() {
+    public void testFindEntitiesByGroupNameFilterWhenDeviceOwnerIsCustomer() {
         List<Device> devices = new ArrayList<>();
 
         EntityGroup entityGroup = new EntityGroup();
@@ -1838,7 +1838,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntityDataByQuery_filter_api_usage_state_filter() {
+    public void testFindEntitiesByApiUsageStateFilter() {
         apiUsageStateService.createDefaultApiUsageState(tenantId, customerId);
         ApiUsageStateFilter apiUsageStateFilter = new ApiUsageStateFilter();
         apiUsageStateFilter.setCustomerId(customerId);
@@ -1856,7 +1856,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntityDataByQuery_filter_state_entity_owner() {
+    public void testFindEntitiesByStateEntityOwnerFilter() {
         List<EntityId> customerEntityIds = new ArrayList<>();
         List<EntityId> tenantEntityIds = new ArrayList<>();
 
@@ -2166,7 +2166,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntityDataByRelationQuery_blobEntity_tenantLevel_group_permission() {
+    public void testFindEntitiesByRelationEntityTypeFilterWithTenantGroupPermission() {
         final int assetCount = 2;
         final int relationsCnt = 4;
         final int deviceEntitiesCnt = assetCount * relationsCnt;
@@ -2240,7 +2240,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntityDataByRelationQuery_blobEntity_customerLevel_group_permission() {
+    public void testFindEntitiesByRelationEntityTypeFilterWithCustomerGroupPermission() {
         Customer customer = new Customer();
         customer.setTenantId(tenantId);
         customer.setTitle("Customer Relation Query");
