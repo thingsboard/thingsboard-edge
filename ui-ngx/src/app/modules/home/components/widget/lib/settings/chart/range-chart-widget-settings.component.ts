@@ -48,11 +48,16 @@ import {
 import { DateFormatProcessor, DateFormatSettings } from '@shared/models/widget-settings.models';
 import {
   lineSeriesStepTypes,
-  lineSeriesStepTypeTranslations,
-  timeSeriesLineTypes,
-  timeSeriesLineTypeTranslations
+  lineSeriesStepTypeTranslations
 } from '@home/components/widget/lib/chart/time-series-chart.models';
-import { chartLabelPositions, chartLabelPositionTranslations, chartShapes, chartShapeTranslations } from '@home/components/widget/lib/chart/chart.models';
+import {
+  chartLabelPositions,
+  chartLabelPositionTranslations,
+  chartLineTypes,
+  chartLineTypeTranslations,
+  chartShapes,
+  chartShapeTranslations
+} from '@home/components/widget/lib/chart/chart.models';
 
 @Component({
   selector: 'tb-range-chart-widget-settings',
@@ -74,9 +79,9 @@ export class RangeChartWidgetSettingsComponent extends WidgetSettingsComponent {
 
   lineSeriesStepTypeTranslations = lineSeriesStepTypeTranslations;
 
-  timeSeriesLineTypes = timeSeriesLineTypes;
+  chartLineTypes = chartLineTypes;
 
-  timeSeriesLineTypeTranslations = timeSeriesLineTypeTranslations;
+  chartLineTypeTranslations = chartLineTypeTranslations;
 
   chartLabelPositions = chartLabelPositions;
 

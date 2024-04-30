@@ -61,11 +61,16 @@ import {
 } from '@home/components/widget/lib/chart/range-chart-widget.models';
 import {
   lineSeriesStepTypes,
-  lineSeriesStepTypeTranslations,
-  timeSeriesLineTypes,
-  timeSeriesLineTypeTranslations
+  lineSeriesStepTypeTranslations
 } from '@home/components/widget/lib/chart/time-series-chart.models';
-import { chartLabelPositions, chartLabelPositionTranslations, chartShapes, chartShapeTranslations } from '@home/components/widget/lib/chart/chart.models';
+import {
+  chartLabelPositions,
+  chartLabelPositionTranslations,
+  chartLineTypes,
+  chartLineTypeTranslations,
+  chartShapes,
+  chartShapeTranslations
+} from '@home/components/widget/lib/chart/chart.models';
 
 @Component({
   selector: 'tb-range-chart-basic-config',
@@ -87,9 +92,9 @@ export class RangeChartBasicConfigComponent extends BasicWidgetConfigComponent {
 
   lineSeriesStepTypeTranslations = lineSeriesStepTypeTranslations;
 
-  timeSeriesLineTypes = timeSeriesLineTypes;
+  chartLineTypes = chartLineTypes;
 
-  timeSeriesLineTypeTranslations = timeSeriesLineTypeTranslations;
+  chartLineTypeTranslations = chartLineTypeTranslations;
 
   chartLabelPositions = chartLabelPositions;
 

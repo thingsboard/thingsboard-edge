@@ -46,6 +46,7 @@ import { DataKey } from '@shared/models/widget.models';
 import * as echarts from 'echarts/core';
 import { CallbackDataParams } from 'echarts/types/dist/shared';
 import { SVG, Svg } from '@svgdotjs/svg.js';
+import { toAnimationOption } from '@home/components/widget/lib/chart/chart.models';
 
 export abstract class TbLatestChart<S extends LatestChartSettings> {
 
@@ -237,7 +238,7 @@ export abstract class TbLatestChart<S extends LatestChartSettings> {
     this.itemClick = itemClick;
   }
 
-  private updateSeriesData(initial = false) {
+  protected updateSeriesData(initial = false) {
     this.total = 0;
     this.totalText = 'N/A';
     let hasValue = false;
@@ -289,21 +290,14 @@ export abstract class TbLatestChart<S extends LatestChartSettings> {
         appendTo: 'body',
         formatter: (params: CallbackDataParams) =>
           this.settings.showTooltip
-            ? latestChartTooltipFormatter(this.renderer, this.settings, params, this.units, this.total)
+            ? latestChartTooltipFormatter(this.renderer, this.settings, params, this.units, this.total, this.dataItems)
             : undefined,
         padding: [4, 8],
         backgroundColor: this.settings.tooltipBackgroundColor,
         extraCssText: `line-height: 1; backdrop-filter: blur(${this.settings.tooltipBackgroundBlur}px);`,
         position: (pos) => [pos[0] + 10, pos[1] + 10]
       },
-      animation: this.ctx.reportService?.reportView ? false : this.settings.animation.animation,
-      animationThreshold: this.settings.animation.animationThreshold,
-      animationDuration: this.settings.animation.animationDuration,
-      animationEasing: this.settings.animation.animationEasing,
-      animationDelay: this.settings.animation.animationDelay,
-      animationDurationUpdate: this.settings.animation.animationDurationUpdate,
-      animationEasingUpdate: this.settings.animation.animationEasingUpdate,
-      animationDelayUpdate: this.settings.animation.animationDelayUpdate
+      ...toAnimationOption(this.ctx, this.settings.animation)
     };
     this.prepareLatestChartOption();
     this.updateSeriesData(true);
@@ -345,7 +339,12 @@ export abstract class TbLatestChart<S extends LatestChartSettings> {
         if (width !== shapeWidth || height !== shapeHeight) {
           this.beforeResize(shapeWidth, shapeHeight);
           if (!this.settings.autoScale) {
-            this.latestChart.resize();
+            if (this.forceRedrawOnResize()) {
+              this.latestChart.dispose();
+              this.drawChart();
+            } else {
+              this.latestChart.resize();
+            }
           } else {
             let scale: number;
             if (shapeWidth < shapeHeight) {
@@ -370,6 +369,10 @@ export abstract class TbLatestChart<S extends LatestChartSettings> {
 
   protected initialShapeHeight(): number {
     return 100;
+  }
+
+  protected forceRedrawOnResize(): boolean {
+    return false;
   }
 
   protected beforeResize(_shapeWidth: number, _shapeHeight: number) {};

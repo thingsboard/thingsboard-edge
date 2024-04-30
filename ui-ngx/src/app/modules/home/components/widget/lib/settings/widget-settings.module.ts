@@ -375,6 +375,9 @@ import {
 import {
   PolarAreaChartWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/chart/polar-area-chart-widget-settings.component';
+import {
+  RadarChartWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/chart/radar-chart-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -501,6 +504,7 @@ import {
     PieChartWidgetSettingsComponent,
     BarChartWidgetSettingsComponent,
     PolarAreaChartWidgetSettingsComponent,
+    RadarChartWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -635,6 +639,7 @@ import {
     PieChartWidgetSettingsComponent,
     BarChartWidgetSettingsComponent,
     PolarAreaChartWidgetSettingsComponent,
+    RadarChartWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -735,6 +740,7 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-pie-chart-widget-settings': PieChartWidgetSettingsComponent,
   'tb-bar-chart-widget-settings': BarChartWidgetSettingsComponent,
   'tb-polar-area-chart-widget-settings': PolarAreaChartWidgetSettingsComponent,
+  'tb-radar-chart-widget-settings': RadarChartWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };
