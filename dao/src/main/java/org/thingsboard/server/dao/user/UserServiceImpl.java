@@ -77,6 +77,7 @@ import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
+import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -125,14 +126,15 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
     private final DataValidator<UserCredentials> userCredentialsValidator;
     private final ApplicationEventPublisher eventPublisher;
     private final EntityCountService countService;
+    private final JpaExecutorService executor;
 
     @TransactionalEventListener(classes = UserCacheEvictEvent.class)
     @Override
     public void handleEvictEvent(UserCacheEvictEvent event) {
         List<UserCacheKey> keys = new ArrayList<>(2);
-        keys.add(new UserCacheKey(event.getTenantId(), event.getNewEmail()));
-        if (StringUtils.isNotEmpty(event.getOldEmail()) && !event.getOldEmail().equals(event.getNewEmail())) {
-            keys.add(new UserCacheKey(event.getTenantId(), event.getOldEmail()));
+        keys.add(new UserCacheKey(event.tenantId(), event.newEmail()));
+        if (StringUtils.isNotEmpty(event.oldEmail()) && !event.oldEmail().equals(event.newEmail())) {
+            keys.add(new UserCacheKey(event.tenantId(), event.oldEmail()));
         }
         cache.evict(keys);
     }
@@ -155,6 +157,14 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
         validateString(email, e -> "Incorrect email " + e);
         return cache.getAndPutInTransaction(new UserCacheKey(tenantId, email),
                 () -> userDao.findByTenantIdAndEmail(tenantId, email), true);
+    }
+
+    @Override
+    public ListenableFuture<User> findUserByTenantIdAndEmailAsync(TenantId tenantId, String email) {
+        log.trace("Executing findUserByTenantIdAndEmailAsync [{}][{}]", tenantId, email);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateString(email, e -> "Incorrect email " + e);
+        return executor.submit(() -> findUserByTenantIdAndEmail(tenantId, email));
     }
 
     @Override

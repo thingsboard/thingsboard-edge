@@ -62,7 +62,7 @@ public interface CustomerDao extends Dao<Customer>, TenantEntityDao, ExportableC
      *
      * @param tenantId the tenant id
      * @param pageLink the page link
-     * @return the list of customer objects
+     * @return the page of customer objects
      */
     PageData<Customer> findCustomersByTenantId(UUID tenantId, PageLink pageLink);
 
@@ -96,5 +96,17 @@ public interface CustomerDao extends Dao<Customer>, TenantEntityDao, ExportableC
     PageData<Customer> findCustomersByEntityGroupId(UUID groupId, PageLink pageLink);
 
     PageData<Customer> findCustomersByEntityGroupIds(List<UUID> groupIds, List<UUID> additionalCustomerIds, PageLink pageLink);
+
+
+    /**
+     * Find customers with the same title within the same tenant.
+     * This method was created to upgrade customers with the same title before creation of
+     * CONSTRAINT customer_title_unq_key UNIQUE (tenant_id, title).
+     * If constraint already exists this method will return nothing.
+     *
+     * @param pageLink the page link
+     * @return the page of customer objects
+     */
+    PageData<Customer> findCustomersWithTheSameTitle(PageLink pageLink);
 
 }

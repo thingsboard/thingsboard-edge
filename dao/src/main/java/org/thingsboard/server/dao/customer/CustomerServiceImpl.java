@@ -38,7 +38,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
-import org.springframework.util.ConcurrentReferenceHashMap;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cache.customer.CustomerCacheEvictEvent;
 import org.thingsboard.server.cache.customer.CustomerCacheKey;
@@ -57,7 +56,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -74,14 +72,16 @@ import org.thingsboard.server.dao.scheduler.SchedulerEventService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentMap;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
@@ -97,10 +97,8 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_OWNER_ID = "Incorrect ownerId ";
-    public static final String PUBLIC_CUSTOMER_ADDITIONAL_INFO_STR = "{ \"isPublic\": true }";
-    public static final JsonNode PUBLIC_CUSTOMER_ADDITIONAL_INFO_JSON = JacksonUtil.toJsonNode(PUBLIC_CUSTOMER_ADDITIONAL_INFO_STR);
-
-    private final ConcurrentMap<TbPair<TenantId, EntityId>, Object> publicCustomerCreationLocks = new ConcurrentReferenceHashMap<>();
+    public static final JsonNode PUBLIC_CUSTOMER_ADDITIONAL_INFO_JSON = JacksonUtil.toJsonNode("{\"isPublic\":true}");
+    public static final String CUSTOMER_UNIQUE_TITLE_EX_MSG = "Customer with such title already exists!";
 
     @Autowired
     private CustomerDao customerDao;
@@ -148,13 +146,16 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     @Autowired
     private EntityService entityService;
 
+    @Autowired
+    private JpaExecutorService executor;
+
     @TransactionalEventListener(classes = CustomerCacheEvictEvent.class)
     @Override
     public void handleEvictEvent(CustomerCacheEvictEvent event) {
         List<CustomerCacheKey> keys = new ArrayList<>(2);
-        keys.add(new CustomerCacheKey(event.getTenantId(), event.getNewTitle()));
-        if (StringUtils.isNotEmpty(event.getOldTitle()) && !event.getOldTitle().equals(event.getNewTitle())) {
-            keys.add(new CustomerCacheKey(event.getTenantId(), event.getOldTitle()));
+        keys.add(new CustomerCacheKey(event.tenantId(), event.newTitle()));
+        if (StringUtils.isNotEmpty(event.oldTitle()) && !event.oldTitle().equals(event.newTitle())) {
+            keys.add(new CustomerCacheKey(event.tenantId(), event.oldTitle()));
         }
         cache.evict(keys);
     }
@@ -180,6 +181,13 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
         return Optional.ofNullable(cache.getAndPutInTransaction(new CustomerCacheKey(tenantId, title),
                 () -> customerDao.findCustomerByTenantIdAndTitle(tenantId.getId(), title)
                         .orElse(null), true));
+    }
+
+    @Override
+    public ListenableFuture<Optional<Customer>> findCustomerByTenantIdAndTitleAsync(TenantId tenantId, String title) {
+        log.trace("Executing findCustomerByTenantIdAndTitleAsync [{}] [{}]", tenantId, title);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        return executor.submit(() -> findCustomerByTenantIdAndTitle(tenantId, title));
     }
 
     @Override
@@ -244,11 +252,10 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
                     }
                     Optional<Customer> publicCustomerOpt = customerDao
                             .findPublicCustomerByTenantIdAndOwnerId(savedCustomer.getTenantId().getId(), savedCustomer.getId().getId());
-                    if (publicCustomerOpt.isPresent()) {
-                        Customer publicCustomer = publicCustomerOpt.get();
-                        publicCustomer.setTitle(toPublicSubCustomerTitle(savedCustomer.getTitle()));
-                        saveCustomer(publicCustomer);
-                    }
+                    publicCustomerOpt.ifPresent(c -> {
+                        c.setTitle(getPublicCustomerTitle(savedCustomer.getTenantId(), savedCustomer.getId()));
+                        saveCustomer(c, true);
+                    });
                 }
             }
             publishEvictEvent(evictEvent);
@@ -258,7 +265,7 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
         } catch (Exception e) {
             handleEvictEvent(evictEvent);
             checkConstraintViolation(e,
-                    "customer_title_unq_key", "Customer with such title already exists!",
+                    "customer_title_unq_key", CUSTOMER_UNIQUE_TITLE_EX_MSG,
                     "customer_external_id_unq_key", "Customer with such external id already exists!");
             throw e;
         }
@@ -327,41 +334,58 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     }
 
     @Override
-    @Transactional
     public Customer findOrCreatePublicCustomer(TenantId tenantId, EntityId ownerId) {
         log.trace("Executing findOrCreatePublicCustomer, tenantId [{}], ownerId [{}]", tenantId, ownerId);
         Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         Validator.validateEntityId(ownerId, id -> INCORRECT_OWNER_ID + id);
         var publicCustomerOpt = customerDao.findPublicCustomerByTenantIdAndOwnerId(tenantId.getId(), ownerId.getId());
-        if (publicCustomerOpt.isPresent()) {
-            return publicCustomerOpt.get();
-        }
-        synchronized (publicCustomerCreationLocks.computeIfAbsent(new TbPair<>(tenantId, ownerId), k -> new Object())) {
-            publicCustomerOpt = customerDao.findPublicCustomerByTenantIdAndOwnerId(tenantId.getId(), ownerId.getId());
-            if (publicCustomerOpt.isPresent()) {
-                return publicCustomerOpt.get();
-            }
-            var publicCustomer = new Customer();
-            publicCustomer.setTenantId(tenantId);
+        return publicCustomerOpt.orElseGet(() -> createPublicCustomer(tenantId, ownerId, getPublicCustomerTitle(tenantId, ownerId)));
+    }
 
-            if (EntityType.TENANT.equals(ownerId.getEntityType())) {
-                publicCustomer.setTitle(PUBLIC_CUSTOMER_SUFFIX);
-            } else {
-                Optional<String> ownerNameOpt = entityService.fetchEntityName(tenantId, ownerId);
-                String ownerName = ownerNameOpt.orElseThrow(
-                        () -> new RuntimeException("Failed to fetch owner name for ownerId: " + ownerId.getId().toString()));
-                publicCustomer.setTitle(toPublicSubCustomerTitle(ownerName));
-            }
-            if (ownerId.getEntityType() == EntityType.CUSTOMER) {
-                publicCustomer.setParentCustomerId(new CustomerId(ownerId.getId()));
-            }
-            try {
-                publicCustomer.setAdditionalInfo(PUBLIC_CUSTOMER_ADDITIONAL_INFO_JSON);
-            } catch (IllegalArgumentException e) {
-                throw new IncorrectParameterException("Unable to create public customer", e);
-            }
-            return saveCustomer(publicCustomer, false);
+    private Customer createPublicCustomer(TenantId tenantId, EntityId ownerId, String title) {
+        var publicCustomer = new Customer();
+        publicCustomer.setTenantId(tenantId);
+        publicCustomer.setTitle(title);
+        boolean createSubCustomer = EntityType.CUSTOMER.equals(ownerId.getEntityType());
+        if (createSubCustomer) {
+            publicCustomer.setParentCustomerId(new CustomerId(ownerId.getId()));
         }
+        try {
+            publicCustomer.setAdditionalInfo(PUBLIC_CUSTOMER_ADDITIONAL_INFO_JSON);
+        } catch (IllegalArgumentException e) {
+            throw new IncorrectParameterException("Unable to create public customer", e);
+        }
+        try {
+            return saveCustomer(publicCustomer, false);
+        } catch (DataValidationException e) {
+            if (CUSTOMER_UNIQUE_TITLE_EX_MSG.equals(e.getMessage())) {
+                var publicCustomerOpt = customerDao.findPublicCustomerByTenantIdAndOwnerId(tenantId.getId(), ownerId.getId());
+                if (publicCustomerOpt.isPresent()) {
+                    return publicCustomerOpt.get();
+                }
+            }
+            throw new RuntimeException("Failed to create public customer.", e);
+        }
+    }
+
+    private String getPublicCustomerTitle(TenantId tenantId, EntityId ownerId) {
+        if (EntityType.TENANT.equals(ownerId.getEntityType())) {
+            return PUBLIC_CUSTOMER_SUFFIX;
+        }
+        Optional<String> ownerNameOpt = entityService.fetchEntityName(tenantId, ownerId);
+        String ownerTitle = ownerNameOpt.orElseThrow(
+                () -> new RuntimeException("Failed to fetch owner name for ownerId: " + ownerId.getId().toString()));
+        var title = "[" + ownerTitle + "] " + PUBLIC_CUSTOMER_SUFFIX;
+        var someCustomerOpt = findCustomerByTenantIdAndTitle(tenantId, title);
+        if (someCustomerOpt.isEmpty()) {
+            return title;
+        }
+        Customer someCustomer = someCustomerOpt.get();
+        if (someCustomer.isPublic() && ownerId.equals(someCustomer.getOwnerId())) {
+            // TODO: refactor logic to don't try to create customer in such case and return someCustomer.
+            return title;
+        }
+        return title + "_" + UUID.randomUUID();
     }
 
     @Override
@@ -481,10 +505,6 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     @Override
     public EntityType getEntityType() {
         return EntityType.CUSTOMER;
-    }
-
-    public static String toPublicSubCustomerTitle(String ownerTitle) {
-        return "[" + ownerTitle + "] " + PUBLIC_CUSTOMER_SUFFIX;
     }
 
 }

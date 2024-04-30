@@ -90,9 +90,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-import static org.thingsboard.server.dao.customer.CustomerServiceImpl.PUBLIC_CUSTOMER_SUFFIX;
-import static org.thingsboard.server.dao.customer.CustomerServiceImpl.toPublicSubCustomerTitle;
-
 @Slf4j
 @Service
 public class DefaultOwnersCacheService implements OwnersCacheService {
@@ -190,27 +187,13 @@ public class DefaultOwnersCacheService implements OwnersCacheService {
 
     @Override
     public void changeCustomerOwner(TenantId tenantId, EntityId targetOwnerId, Customer customer) throws ThingsboardException {
+        if (customer.isPublic()) {
+            throw new ThingsboardException("Public customer owner can't be changed!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
         var childOwnerIds = getChildOwners(tenantId, customer.getId());
         if (childOwnerIds.contains(targetOwnerId)) {
             // Making Sub-Customer as a Parent Customer - NOT OK.
             throw new ThingsboardException("Owner of the Customer can't be changed to its Sub-Customer!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-        }
-        if (customer.isPublic()) {
-            var publicCustomerForTargetOwnerOpt = customerDao
-                    .findPublicCustomerByTenantIdAndOwnerId(tenantId.getId(), targetOwnerId.getId());
-            boolean hasPublicCustomer = publicCustomerForTargetOwnerOpt.isPresent();
-            if (hasPublicCustomer) {
-                // Only 1 public customer allowed within one owner.
-                throw new ThingsboardException("Target owner already has a public customer!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-            }
-            if (EntityType.TENANT.equals(targetOwnerId.getEntityType())) {
-                customer.setTitle(PUBLIC_CUSTOMER_SUFFIX);
-            } else {
-                Optional<String> ownerNameOpt = entityService.fetchEntityName(tenantId, targetOwnerId);
-                String ownerName = ownerNameOpt.orElseThrow(
-                        () -> new RuntimeException("Failed to fetch owner name for ownerId: " + targetOwnerId.getId().toString()));
-                customer.setTitle(toPublicSubCustomerTitle(ownerName));
-            }
         }
         changeEntityOwner(tenantId, targetOwnerId, customer.getId(),
                 customer,

@@ -55,6 +55,7 @@ import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
+import org.thingsboard.server.dao.sql.JpaExecutorService;
 
 import java.util.List;
 import java.util.Optional;
@@ -83,6 +84,10 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
 
     @Autowired
     private DataValidator<Role> roleValidator;
+
+    @Autowired
+    private JpaExecutorService executor;
+
 
     @TransactionalEventListener(classes = RoleEvictEvent.class)
     @Override
@@ -128,6 +133,14 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validateString(name, n -> INCORRECT_ROLE_NAME + n);
         return roleDao.findRoleByTenantIdAndName(tenantId.getId(), name);
+    }
+
+    @Override
+    public ListenableFuture<Optional<Role>> findRoleByTenantIdAndNameAsync(TenantId tenantId, String name) {
+        log.trace("Executing findRoleByTenantIdAndNameAsync, tenantId [{}], name [{}]", tenantId, name);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateString(name, n -> INCORRECT_ROLE_NAME + n);
+        return executor.submit(() -> findRoleByTenantIdAndName(tenantId, name));
     }
 
     @Override

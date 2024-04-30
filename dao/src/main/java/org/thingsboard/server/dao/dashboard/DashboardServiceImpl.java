@@ -72,6 +72,7 @@ import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -119,6 +120,9 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private JpaExecutorService executor;
 
     protected void publishEvictEvent(DashboardTitleEvictEvent event) {
         if (TransactionSynchronizationManager.isActualTransactionActive()) {
@@ -377,7 +381,16 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
 
     @Override
     public DashboardInfo findFirstDashboardInfoByTenantIdAndName(TenantId tenantId, String name) {
+        log.trace("Executing findFirstDashboardInfoByTenantIdAndName [{}][{}]", tenantId, name);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         return dashboardInfoDao.findFirstByTenantIdAndName(tenantId.getId(), name);
+    }
+
+    @Override
+    public ListenableFuture<DashboardInfo> findFirstDashboardInfoByTenantIdAndNameAsync(TenantId tenantId, String name) {
+        log.trace("Executing findFirstDashboardInfoByTenantIdAndNameAsync [{}][{}]", tenantId, name);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        return executor.submit(() -> findFirstDashboardInfoByTenantIdAndName(tenantId, name));
     }
 
     @Override
