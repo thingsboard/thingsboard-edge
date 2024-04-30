@@ -77,7 +77,7 @@ export const radarChartWidgetDefaultSettings: RadarChartWidgetSettings = {
   animation: mergeDeep({} as ChartAnimationSettings,
     radarChartAnimationDefaultSettings),
   shape: RadarChartShape.polygon,
-  color: '#3F52DD',
+  color: 'var(--tb-primary-500)',
   showLine: true,
   lineType: ChartLineType.solid,
   lineWidth: 2,
