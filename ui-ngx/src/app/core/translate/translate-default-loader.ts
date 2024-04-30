@@ -32,8 +32,9 @@
 import { TranslateLoader } from '@ngx-translate/core';
 import { forkJoin, Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map } from 'rxjs/operators';
+import { Injectable } from '@angular/core';
 
+import { catchError, map } from 'rxjs/operators';
 import { environment as env } from '@env/environment';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AuthState } from '@core/auth/auth.models';
@@ -42,6 +43,7 @@ import { AppState } from '@core/core.state';
 import { Authority } from '@shared/models/authority.enum';
 import { mergeDeep } from '@core/utils';
 
+@Injectable({ providedIn: 'root' })
 export class TranslateDefaultLoader implements TranslateLoader {
 
   constructor(private http: HttpClient,
