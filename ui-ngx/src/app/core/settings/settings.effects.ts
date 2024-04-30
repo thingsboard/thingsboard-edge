@@ -72,9 +72,12 @@ export class SettingsEffects {
     ),
     withLatestFrom(this.store.pipe(select(selectSettingsState))),
     tap(([action, settings]) => {
-      this.localStorageService.setItem(SETTINGS_KEY, settings);
-      const availableLocales = getCurrentAuthState(this.store)?.availableLocales;
-      updateUserLang(this.translate, settings.userLang, availableLocales, settings.reload);
+      this.localStorageService.setItem(SETTINGS_KEY, {userLang: settings.userLang});
+      if (!settings.ignoredLoad) {
+        const availableLocales = getCurrentAuthState(this.store)?.availableLocales;
+        updateUserLang(this.translate, settings.userLang, availableLocales, settings.reload)
+          .subscribe(() => {});
+      }
     })
   ), {dispatch: false});
 

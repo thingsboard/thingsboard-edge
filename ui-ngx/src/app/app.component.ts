@@ -41,13 +41,14 @@ import { AppState } from '@core/core.state';
 import { LocalStorageService } from '@core/local-storage/local-storage.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconRegistry } from '@angular/material/icon';
-import { getCurrentAuthState, selectUserReady } from '@core/auth/auth.selectors';
+import { selectUserReady } from '@core/auth/auth.selectors';
 import { filter, skip, tap } from 'rxjs/operators';
 import { AuthService } from '@core/auth/auth.service';
 import { ReportService } from '@core/http/report.service';
 import { svgIcons, svgIconsUrl } from '@shared/models/icon.models';
 import { ActionSettingsChangeLanguage } from '@core/settings/settings.actions';
 import { SETTINGS_KEY } from '@core/settings/settings.effects';
+import { TranslateDefaultLoader } from '@core/translate/translate-default-loader';
 
 @Component({
   selector: 'tb-root',
@@ -111,12 +112,14 @@ export class AppComponent implements OnInit {
     this.store.select(selectUserReady).pipe(
       filter((data) => data.isUserLoaded),
       tap((data) => {
-        let userLang = getCurrentAuthState(this.store).userDetails?.additionalInfo?.lang ?? null;
-        if (!userLang && !data.isAuthenticated) {
+        if (!data.isAuthenticated) {
           const settings = this.storageService.getItem(SETTINGS_KEY);
-          userLang = settings?.userLang ?? null;
+          const userLang = settings?.userLang ?? null;
+          (this.translate.currentLoader as TranslateDefaultLoader).isAuthenticated = false;
+          this.notifyUserLang(userLang);
+        } else {
+          this.notifyUserLang(this.translate.currentLang, true);
         }
-        this.notifyUserLang(userLang);
       }),
       skip(1),
     ).subscribe((data) => {
@@ -137,8 +140,8 @@ export class AppComponent implements OnInit {
     }
   }
 
-  private notifyUserLang(userLang: string) {
-    this.store.dispatch(new ActionSettingsChangeLanguage({userLang, reload: true}));
+  private notifyUserLang(userLang: string, ignoredLoad = false) {
+    this.store.dispatch(new ActionSettingsChangeLanguage({userLang, reload: true, ignoredLoad}));
   }
 
 }
