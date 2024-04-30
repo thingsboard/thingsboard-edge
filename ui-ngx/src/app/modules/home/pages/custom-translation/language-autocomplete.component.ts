@@ -36,6 +36,7 @@ import { debounceTime, distinctUntilChanged, map, share, switchMap, tap } from '
 import { CustomTranslationService } from '@core/http/custom-translation.service';
 import { isNotEmptyStr, isObject } from '@core/utils';
 import { coerceArray } from '@shared/decorators/coercion';
+import { MatAutocomplete } from '@angular/material/autocomplete';
 
 type AvailableLocale = [locelCode: string, localeLanguage: string];
 type AvailableLocales = Array<AvailableLocale>;
@@ -62,9 +63,11 @@ export class LanguageAutocompleteComponent implements ControlValueAccessor, OnIn
 
   language = this.fb.group({
     language: this.fb.control<string|AvailableLocale>('', {nonNullable: true, validators: Validators.required})
-  })
+  });
 
   @ViewChild('languageInput', {static: true}) languageInput: ElementRef;
+
+  @ViewChild('languageAutocomplete', {static: true}) languageAutocomplete: MatAutocomplete;
 
   filteredTranslation: Observable<AvailableLocales>;
   searchText = '';
@@ -102,7 +105,8 @@ export class LanguageAutocompleteComponent implements ControlValueAccessor, OnIn
         }),
         map(value => value ? (typeof value === 'string' ? value : value[0]) : ''),
         distinctUntilChanged(),
-        switchMap(name => this.fetchLanguage(name) ),
+        switchMap(name => this.fetchLanguage(name)),
+        tap(() => this.languageAutocomplete.panel.nativeElement.scroll(0, 0)),
         share()
       );
   }
@@ -150,7 +154,7 @@ export class LanguageAutocompleteComponent implements ControlValueAccessor, OnIn
   }
 
   displayTranslateFn(translate?: AvailableLocale): string | undefined {
-    return translate ? translate[0] : undefined;
+    return translate ? translate[1] : undefined;
   }
 
   getLocaleCode(translate?: AvailableLocale | string): string | undefined {
@@ -175,7 +179,7 @@ export class LanguageAutocompleteComponent implements ControlValueAccessor, OnIn
               } else {
                 return a[0].localeCompare(b[0]);
               }
-            })
+            });
         }
         return data;
       })
@@ -190,7 +194,7 @@ export class LanguageAutocompleteComponent implements ControlValueAccessor, OnIn
           .sort((a, b) => a[0] > b[0] ? 1 : -1)
         ),
         shareReplay(1)
-      )
+      );
     }
     return this.allLocales;
   }

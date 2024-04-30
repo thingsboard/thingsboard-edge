@@ -49,9 +49,9 @@ export class TranslateDefaultLoader implements TranslateLoader {
 
   }
 
-  getTranslation(lang: string): Observable<Object> {
+  getTranslation(lang: string): Observable<object> {
     const authState: AuthState = getCurrentAuthState(this.store);
-    let observe: Observable<Object>;
+    let observe: Observable<object>;
     if (authState.isAuthenticated && authState.authUser.authority !== Authority.PRE_VERIFICATION_TOKEN) {
       const tasks = [this.http.get(`/api/translation/full/${lang}`)];
       if (!env.production && env.supportedLangs && env.supportedLangs.indexOf(lang) !== -1) {
@@ -64,16 +64,26 @@ export class TranslateDefaultLoader implements TranslateLoader {
           }
           return results[0];
         })
-      )
+      );
     } else {
-      observe = this.http.get<Object>(`/api/noauth/translation/login/${lang}`)
+      observe = this.http.get<object>(`/api/noauth/translation/login/${lang}`);
     }
     return observe.pipe(
       catchError(() => {
-        if (env.supportedLangs && env.supportedLangs.indexOf(lang) === -1) {
-          return this.http.get(`/assets/locale/locale.constant-${env.defaultLang}.json`);
+        const tasks = [
+          this.http.get(`/assets/locale/locale.constant-${env.defaultLang}.json`)
+        ];
+        if (env.supportedLangs && env.supportedLangs.indexOf(lang) !== -1) {
+          tasks.push(this.http.get(`/assets/locale/locale.constant-${lang}.json`));
         }
-        return this.http.get(`/assets/locale/locale.constant-${lang}.json`)
+        return forkJoin(tasks).pipe(
+          map((results) => {
+            if (results.length > 1) {
+              return mergeDeep({}, results[0], results[1]);
+            }
+            return results[0];
+          })
+        );
       })
     );
   }

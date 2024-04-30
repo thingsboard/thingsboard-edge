@@ -1207,7 +1207,7 @@
         "translated": "Translated",
         "translation-file": "Translation file",
         "translation-map": "Translation map",
-        "translation-name": "{{ name }} translation",
+        "translation-name": "{{ name }} translation - {{ country }}",
         "translation-progress": "Translation progress",
         "untranslated": "Untranslated",
         "upload-translation-file": "Upload translation file"

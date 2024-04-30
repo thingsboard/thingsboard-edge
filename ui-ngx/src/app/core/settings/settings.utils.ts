@@ -50,18 +50,18 @@ export function updateUserLang(translate: TranslateService, userLang: string, tr
   }
   _moment.locale([detectedSupportedLang]);
   if (reload) {
-    translate.addLangs(translations)
+    translate.addLangs(translations);
     if (translate.translations[detectedSupportedLang]) {
       translate.currentLoader.getTranslation(detectedSupportedLang).subscribe(value => {
         translate.setTranslation(detectedSupportedLang, value, true);
         if (translate.currentLang !== detectedSupportedLang) {
           const currentLanguage = translate.currentLang;
-          translate.currentLoader.getTranslation(currentLanguage).subscribe(value => {
-            translate.setTranslation(currentLanguage, value, true);
+          translate.currentLoader.getTranslation(currentLanguage).subscribe(currentLangValue => {
+            translate.setTranslation(currentLanguage, currentLangValue, true);
           });
         }
         translate.use(detectedSupportedLang);
-      })
+      });
     } else {
       translate.use(detectedSupportedLang);
     }
@@ -70,7 +70,7 @@ export function updateUserLang(translate: TranslateService, userLang: string, tr
       translate.currentLoader.getTranslation(detectedSupportedLang).subscribe(value => {
         translate.setTranslation(detectedSupportedLang, value, true);
         translate.use(detectedSupportedLang);
-      })
+      });
     } else {
       translate.use(detectedSupportedLang);
     }
@@ -84,7 +84,7 @@ function detectSupportedLang(targetLang: string, translations: string[]): string
       return langTag;
     } else {
       const parts = langTag.split('_');
-      let lang;
+      let lang: string;
       if (parts.length === 2) {
         lang = parts[0];
       } else {
