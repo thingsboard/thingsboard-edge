@@ -534,7 +534,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
         List<EntityKeyMapping> filterMapping = mappings.stream().filter(EntityKeyMapping::hasFilter)
                 .collect(Collectors.toList());
-        List<EntityKeyMapping> entityFieldsFiltersMapping = filterMapping.stream().filter(mapping -> !mapping.isLatest())
+        List<EntityKeyMapping> entityFieldsFiltersMapping = filterMapping.stream().filter(mapping -> !mapping.isLatest() && mapping.getEntityKeyColumn() != null)
                 .collect(Collectors.toList());
 
         List<EntityKeyMapping> allLatestMappings = mappings.stream().filter(EntityKeyMapping::isLatest)
@@ -542,6 +542,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
 
         String entityWhereClause = DefaultEntityQueryRepository.this.buildEntityWhere(ctx, query.getEntityFilter(), entityFieldsFiltersMapping);
+        String aliasWhereQuery = DefaultEntityQueryRepository.this.buildAliasWhereQuery(ctx, query.getEntityFilter(), selectionMapping, "");
         String latestJoinsCnt = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), allLatestMappings, true);
         String entityFieldsSelection = EntityKeyMapping.buildSelections(entityFieldsSelectionMapping, query.getEntityFilter().getType(), ctx.getEntityType());
         String entityTypeStr;
@@ -583,7 +584,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                 "entities.*",
                 entitiesQuery,
                 latestJoinsCnt,
-                "");
+                aliasWhereQuery);
 
         String countQuery = String.format("select count(*) %s", fromClauseCount);
 
@@ -626,7 +627,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return transactionTemplate.execute(status -> {
             EntityDataPageLink pageLink = query.getPageLink();
 
-            List<EntityKeyMapping> mappings = EntityKeyMapping.prepareKeyMapping(query);
+            List<EntityKeyMapping> mappings = EntityKeyMapping.prepareKeyMapping(ctx.getEntityType(), query);
 
             List<EntityKeyMapping> selectionMapping = mappings.stream().filter(EntityKeyMapping::isSelection)
                     .collect(Collectors.toList());
@@ -637,7 +638,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
             List<EntityKeyMapping> filterMapping = mappings.stream().filter(EntityKeyMapping::hasFilter)
                     .collect(Collectors.toList());
-            List<EntityKeyMapping> entityFieldsFiltersMapping = filterMapping.stream().filter(mapping -> !mapping.isLatest())
+            List<EntityKeyMapping> entityFieldsFiltersMapping = filterMapping.stream().filter(mapping -> !mapping.isLatest() && mapping.getEntityKeyColumn() != null)
                     .collect(Collectors.toList());
 
             List<EntityKeyMapping> allLatestMappings = mappings.stream().filter(EntityKeyMapping::isLatest)
@@ -647,7 +648,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             String entityWhereClause = DefaultEntityQueryRepository.this.buildEntityWhere(ctx, query.getEntityFilter(), entityFieldsFiltersMapping);
             String latestJoinsCnt = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), allLatestMappings, true);
             String latestJoinsData = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), allLatestMappings, false);
-            String textSearchQuery = DefaultEntityQueryRepository.this.buildTextSearchQuery(ctx, selectionMapping, pageLink.getTextSearch());
+            String aliasWhereQuery = DefaultEntityQueryRepository.this.buildAliasWhereQuery(ctx, query.getEntityFilter(), selectionMapping, pageLink.getTextSearch());
             String entityFieldsSelection = EntityKeyMapping.buildSelections(entityFieldsSelectionMapping, query.getEntityFilter().getType(), ctx.getEntityType());
             String entityTypeStr;
             if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {
@@ -694,13 +695,13 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                     "entities.*",
                     entitiesQuery,
                     latestJoinsCnt,
-                    textSearchQuery);
+                    aliasWhereQuery);
 
             String fromClauseData = String.format("from (select %s from (%s) entities %s) result %s",
                     topSelection,
                     entitiesQuery,
                     latestJoinsData,
-                    textSearchQuery);
+                    aliasWhereQuery);
 
             if (!StringUtils.isEmpty(pageLink.getTextSearch())) {
                 //Unfortunately, we need to sacrifice performance in case of full text search, because it is applied to all joined records.
@@ -1914,6 +1915,21 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return from;
     }
 
+    private String buildAliasWhereQuery(QueryContext ctx, EntityFilter entityFilter, List<EntityKeyMapping> selectionMapping, String searchText) {
+        List<EntityKeyMapping> aliasFiltersMapping = selectionMapping.stream().filter(mapping -> !mapping.isLatest() && mapping.getEntityKeyColumn() == null)
+                .collect(Collectors.toList());
+        String entityFieldsQuery = EntityKeyMapping.buildQuery(ctx, aliasFiltersMapping, entityFilter.getType());
+        String searchTextQuery = buildTextSearchQuery(ctx, selectionMapping, searchText);
+        String result = "";
+        if (!entityFieldsQuery.isEmpty()) {
+            result += " where (" + entityFieldsQuery + ")";
+        }
+        if (!searchTextQuery.isEmpty()) {
+            result += (result.isEmpty() ? " where ": " and ") + "(" + searchTextQuery + ") ";
+        }
+        return result;
+    }
+
     private String buildTextSearchQuery(QueryContext ctx, List<EntityKeyMapping> selectionMapping, String searchText) {
         if (!StringUtils.isEmpty(searchText) && !selectionMapping.isEmpty()) {
             String sqlSearchText = "%" + searchText + "%";
@@ -1925,7 +1941,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             } else {
                 searchAliasesExpression = searchAliases.get(0);
             }
-            return String.format(" WHERE %s ILIKE :%s", searchAliasesExpression, "lowerSearchTextParam");
+            return String.format(" %s ILIKE :%s", searchAliasesExpression, "lowerSearchTextParam");
         } else {
             return "";
         }

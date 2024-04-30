@@ -2763,9 +2763,10 @@
         "schedule": "Schedule",
         "originatorId": "Originator Id",
         "originatorType": "Originator Type",
-        "label": "Label",
         "queue-name": "Queue name",
-        "service-id": "Service Id"
+        "service-id": "Service Id",
+        "owner-name": "Owner name",
+        "owner-type": "Owner type"
     },
     "entity-view": {
         "all": "All",
