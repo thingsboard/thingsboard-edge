@@ -141,6 +141,9 @@ import {
 import {
   PolarAreaChartBasicConfigComponent
 } from '@home/components/widget/config/basic/chart/polar-area-chart-basic-config.component';
+import {
+  RadarChartBasicConfigComponent
+} from '@home/components/widget/config/basic/chart/radar-chart-basic-config.component';
 
 @NgModule({
   declarations: [
@@ -182,7 +185,8 @@ import {
     StatusWidgetBasicConfigComponent,
     PieChartBasicConfigComponent,
     BarChartBasicConfigComponent,
-    PolarAreaChartBasicConfigComponent
+    PolarAreaChartBasicConfigComponent,
+    RadarChartBasicConfigComponent
   ],
   imports: [
     CommonModule,
@@ -226,7 +230,8 @@ import {
     StatusWidgetBasicConfigComponent,
     PieChartBasicConfigComponent,
     BarChartBasicConfigComponent,
-    PolarAreaChartBasicConfigComponent
+    PolarAreaChartBasicConfigComponent,
+    RadarChartBasicConfigComponent
   ]
 })
 export class BasicWidgetConfigModule {
@@ -264,5 +269,6 @@ export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetCo
   'tb-status-widget-basic-config': StatusWidgetBasicConfigComponent,
   'tb-pie-chart-basic-config': PieChartBasicConfigComponent,
   'tb-bar-chart-basic-config': BarChartBasicConfigComponent,
-  'tb-polar-area-chart-basic-config': PolarAreaChartBasicConfigComponent
+  'tb-polar-area-chart-basic-config': PolarAreaChartBasicConfigComponent,
+  'tb-radar-chart-basic-config': RadarChartBasicConfigComponent
 };
