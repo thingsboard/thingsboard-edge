@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.coapserver;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.californium.elements.config.Configuration;
 import org.eclipse.californium.elements.util.SslContextUtil;
@@ -62,6 +63,7 @@ import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_RETRANSMIS
 import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_ROLE;
 import static org.eclipse.californium.scandium.config.DtlsConfig.DtlsRole.SERVER_ONLY;
 
+@Getter
 @Slf4j
 @ConditionalOnProperty(prefix = "coap.dtls", value = "enabled", havingValue = "true")
 @Component
