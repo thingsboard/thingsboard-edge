@@ -1,11 +1,15 @@
 [Unit]
 Description=${pkg.name}
-After=syslog.target
+After=syslog.target network.target
 
 [Service]
 User=${pkg.user}
 ExecStart=${pkg.installFolder}/bin/${pkg.name}.jar
 SuccessExitStatus=143
+
+# Restart service after 60 seconds
+Restart=always
+RestartSec=60 
 
 [Install]
 WantedBy=multi-user.target
