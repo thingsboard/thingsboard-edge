@@ -32,8 +32,11 @@
 import { environment as env } from '@env/environment';
 import { TranslateService } from '@ngx-translate/core';
 import * as _moment from 'moment';
+import { mergeMap } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 
-export function updateUserLang(translate: TranslateService, userLang: string, translations = env.supportedLangs, reload = false) {
+export function updateUserLang(translate: TranslateService, userLang: string,
+                               translations = env.supportedLangs, reload = false): Observable<any> {
   let targetLang = userLang;
   if (!env.production) {
     console.log(`User lang: ${targetLang}`);
@@ -52,27 +55,31 @@ export function updateUserLang(translate: TranslateService, userLang: string, tr
   if (reload) {
     translate.addLangs(translations);
     if (translate.translations[detectedSupportedLang]) {
-      translate.currentLoader.getTranslation(detectedSupportedLang).subscribe(value => {
-        translate.setTranslation(detectedSupportedLang, value, true);
-        if (translate.currentLang !== detectedSupportedLang) {
-          const currentLanguage = translate.currentLang;
-          translate.currentLoader.getTranslation(currentLanguage).subscribe(currentLangValue => {
-            translate.setTranslation(currentLanguage, currentLangValue, true);
-          });
-        }
-        translate.use(detectedSupportedLang);
-      });
+      return translate.currentLoader.getTranslation(detectedSupportedLang).pipe(
+        mergeMap((value) => {
+          translate.setTranslation(detectedSupportedLang, value, true);
+          if (translate.currentLang !== detectedSupportedLang) {
+            const currentLanguage = translate.currentLang;
+            translate.currentLoader.getTranslation(currentLanguage).subscribe(currentLangValue => {
+              translate.setTranslation(currentLanguage, currentLangValue, true);
+            });
+          }
+          return translate.use(detectedSupportedLang);
+        })
+      );
     } else {
-      translate.use(detectedSupportedLang);
+      return translate.use(detectedSupportedLang);
     }
   } else {
     if (detectedSupportedLang === env.defaultLang && translate.translations[detectedSupportedLang]) {
-      translate.currentLoader.getTranslation(detectedSupportedLang).subscribe(value => {
-        translate.setTranslation(detectedSupportedLang, value, true);
-        translate.use(detectedSupportedLang);
-      });
+      return translate.currentLoader.getTranslation(detectedSupportedLang).pipe(
+        mergeMap((value) => {
+          translate.setTranslation(detectedSupportedLang, value, true);
+          return translate.use(detectedSupportedLang);
+        })
+      );
     } else {
-      translate.use(detectedSupportedLang);
+      return translate.use(detectedSupportedLang);
     }
   }
 }
