@@ -72,7 +72,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.customer.CustomerService;
-import org.thingsboard.server.dao.customer.CustomerServiceImpl;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceConnectivityConfiguration;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -251,27 +250,18 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     newTitle = currentTitle + "_" + currentCustomer.getId();
                 }
                 currentCustomer.setTitle(newTitle);
-                if (currentCustomer.isPublic()) {
-                    try {
-                        Customer savedCustomer = customerDao.save(tenantIdToDeduplicate, currentCustomer);
-                        List<EdgeId> edgeIds = edgeService.findAllRelatedEdgeIds(savedCustomer.getTenantId(), savedCustomer.getId());
-                        if (edgeIds != null) {
-                            for (EdgeId edgeId : edgeIds) {
-                                Edge edge = edgeService.findEdgeById(savedCustomer.getTenantId(), edgeId);
-                                edgeService.renameEdgeAllGroups(savedCustomer.getTenantId(), edge, edge.getName(), currentTitle, savedCustomer.getName());
-                            }
+                try {
+                    Customer savedCustomer = customerDao.save(tenantIdToDeduplicate, currentCustomer);
+                    List<EdgeId> edgeIds = edgeService.findAllRelatedEdgeIds(savedCustomer.getTenantId(), savedCustomer.getId());
+                    if (edgeIds != null) {
+                        for (EdgeId edgeId : edgeIds) {
+                            Edge edge = edgeService.findEdgeById(savedCustomer.getTenantId(), edgeId);
+                            edgeService.renameEdgeAllGroups(savedCustomer.getTenantId(), edge, edge.getName(), currentTitle, savedCustomer.getTitle());
                         }
-                    } catch (Exception e) {
-                        log.error("[{}] Failed to update public customer with id and title: {}, oldTitle: {}, due to: ",
-                                currentCustomer.getTenantId(), newTitle, currentTitle, e);
                     }
-                } else {
-                    try {
-                        customerService.saveCustomer(currentCustomer);
-                    } catch (Exception e) {
-                        log.error("[{}] Failed to update customer with id and title: {}, oldTitle: {}, due to: ",
-                                currentCustomer.getTenantId(), newTitle, currentTitle, e);
-                    }
+                } catch (Exception e) {
+                    log.error("[{}] Failed to update public customer with id and title: {}, oldTitle: {}, due to: ",
+                            currentCustomer.getTenantId(), newTitle, currentTitle, e);
                 }
                 continue;
             }

@@ -213,10 +213,9 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
 
     private Customer saveCustomer(Customer customer, boolean doValidate) {
         log.trace("Executing saveCustomer [{}]", customer);
-        Customer oldCustomer = null;
         String oldCustomerTitle = null;
         if (doValidate) {
-            oldCustomer = customerValidator.validate(customer, Customer::getTenantId);
+            Customer oldCustomer = customerValidator.validate(customer, Customer::getTenantId);
             if (oldCustomer != null) {
                 oldCustomerTitle = oldCustomer.getTitle();
             }
@@ -242,18 +241,23 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
                 }
                 countService.publishCountEntityEvictEvent(savedCustomer.getTenantId(), EntityType.CUSTOMER);
             } else {
-                if (oldCustomer != null && !savedCustomer.getName().equals(oldCustomer.getName())) {
+                if (oldCustomerTitle != null && !savedCustomer.getTitle().equals(oldCustomerTitle)) {
                     List<EdgeId> edgeIds = edgeService.findAllRelatedEdgeIds(savedCustomer.getTenantId(), savedCustomer.getId());
                     if (edgeIds != null) {
                         for (EdgeId edgeId : edgeIds) {
                             Edge edge = edgeService.findEdgeById(savedCustomer.getTenantId(), edgeId);
-                            edgeService.renameEdgeAllGroups(savedCustomer.getTenantId(), edge, edge.getName(), oldCustomer.getName(), savedCustomer.getName());
+                            edgeService.renameEdgeAllGroups(savedCustomer.getTenantId(), edge, edge.getName(), oldCustomerTitle, savedCustomer.getTitle());
                         }
                     }
                     Optional<Customer> publicCustomerOpt = customerDao
                             .findPublicCustomerByTenantIdAndOwnerId(savedCustomer.getTenantId().getId(), savedCustomer.getId().getId());
                     publicCustomerOpt.ifPresent(c -> {
-                        c.setTitle(getPublicCustomerTitle(savedCustomer.getTenantId(), savedCustomer.getId()));
+                        String title = "[" + savedCustomer.getTitle() + "] " + PUBLIC_CUSTOMER_SUFFIX;
+                        var someCustomerOpt = findCustomerByTenantIdAndTitle(savedCustomer.getTenantId(), title);
+                        if (someCustomerOpt.isPresent()) {
+                            title = title + "_" + UUID.randomUUID();
+                        }
+                        c.setTitle(title);
                         saveCustomer(c, true);
                     });
                 }
@@ -339,14 +343,31 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
         Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         Validator.validateEntityId(ownerId, id -> INCORRECT_OWNER_ID + id);
         var publicCustomerOpt = customerDao.findPublicCustomerByTenantIdAndOwnerId(tenantId.getId(), ownerId.getId());
-        return publicCustomerOpt.orElseGet(() -> createPublicCustomer(tenantId, ownerId, getPublicCustomerTitle(tenantId, ownerId)));
+        return publicCustomerOpt.orElseGet(() -> createPublicCustomer(tenantId, ownerId));
     }
 
-    private Customer createPublicCustomer(TenantId tenantId, EntityId ownerId, String title) {
+    private Customer createPublicCustomer(TenantId tenantId, EntityId ownerId) {
+        String title;
+        boolean createSubCustomer = EntityType.CUSTOMER.equals(ownerId.getEntityType());
+        if (createSubCustomer) {
+            Optional<String> ownerNameOpt = entityService.fetchEntityName(tenantId, ownerId);
+            String ownerTitle = ownerNameOpt.orElseThrow(
+                    () -> new RuntimeException("Failed to fetch owner name for ownerId: " + ownerId.getId().toString()));
+            title = "[" + ownerTitle + "] " + PUBLIC_CUSTOMER_SUFFIX;
+            var someCustomerOpt = findCustomerByTenantIdAndTitle(tenantId, title);
+            if (someCustomerOpt.isPresent()) {
+                Customer someCustomer = someCustomerOpt.get();
+                if (someCustomer.isPublic() && ownerId.equals(someCustomer.getOwnerId())) {
+                    return someCustomer;
+                }
+                title = title + "_" + UUID.randomUUID();
+            }
+        } else {
+            title = PUBLIC_CUSTOMER_SUFFIX;
+        }
         var publicCustomer = new Customer();
         publicCustomer.setTenantId(tenantId);
         publicCustomer.setTitle(title);
-        boolean createSubCustomer = EntityType.CUSTOMER.equals(ownerId.getEntityType());
         if (createSubCustomer) {
             publicCustomer.setParentCustomerId(new CustomerId(ownerId.getId()));
         }
@@ -368,28 +389,7 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
         }
     }
 
-    private String getPublicCustomerTitle(TenantId tenantId, EntityId ownerId) {
-        if (EntityType.TENANT.equals(ownerId.getEntityType())) {
-            return PUBLIC_CUSTOMER_SUFFIX;
-        }
-        Optional<String> ownerNameOpt = entityService.fetchEntityName(tenantId, ownerId);
-        String ownerTitle = ownerNameOpt.orElseThrow(
-                () -> new RuntimeException("Failed to fetch owner name for ownerId: " + ownerId.getId().toString()));
-        var title = "[" + ownerTitle + "] " + PUBLIC_CUSTOMER_SUFFIX;
-        var someCustomerOpt = findCustomerByTenantIdAndTitle(tenantId, title);
-        if (someCustomerOpt.isEmpty()) {
-            return title;
-        }
-        Customer someCustomer = someCustomerOpt.get();
-        if (someCustomer.isPublic() && ownerId.equals(someCustomer.getOwnerId())) {
-            // TODO: refactor logic to don't try to create customer in such case and return someCustomer.
-            return title;
-        }
-        return title + "_" + UUID.randomUUID();
-    }
-
     @Override
-    @Transactional
     public EntityGroup findOrCreatePublicUserGroup(TenantId tenantId, EntityId ownerId) {
         log.trace("Executing findOrCreatePublicUserGroup, tenantId [{}], ownerId [{}]", tenantId, ownerId);
         Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
@@ -399,7 +399,6 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     }
 
     @Override
-    @Transactional
     public Role findOrCreatePublicUserEntityGroupRole(TenantId tenantId, EntityId ownerId) {
         log.trace("Executing findOrCreatePublicUserRole, tenantId [{}], ownerId [{}]", tenantId, ownerId);
         Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
