@@ -151,6 +151,7 @@ public class ThingsboardInstallService {
                             dataUpdateService.updateData("3.6.4");
                             entityDatabaseSchemaService.createCustomerTitleUniqueConstraintIfNotExists();
                             systemDataLoaderService.updateDefaultNotificationConfigs(false);
+                            systemDataLoaderService.updateJwtSettings();
                             break;
                         case "CE":
                             log.info("Upgrading ThingsBoard from version CE to PE ...");
