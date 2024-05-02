@@ -29,6 +29,23 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
+-- UPDATE PUBLIC CUSTOMERS START
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT FROM information_schema.columns
+            WHERE table_name = 'customer' AND column_name = 'is_public'
+        ) THEN
+            ALTER TABLE customer ADD COLUMN is_public boolean DEFAULT false;
+            UPDATE customer SET is_public = true WHERE title = 'Public';
+        END IF;
+    END;
+$$;
+
+-- UPDATE PUBLIC CUSTOMERS END
+
 -- CUSTOM TRANSLATION MIGRATION START
 
 CREATE TABLE IF NOT EXISTS custom_translation (

@@ -28,15 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.mqtt.integration;
+package org.thingsboard.server.cache.user;
 
-import org.junit.extensions.cpsuite.ClasspathSuite;
-import org.junit.runner.RunWith;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@RunWith(ClasspathSuite.class)
-@ClasspathSuite.ClassnameFilters({
-        "org.thingsboard.mqtt.integration.*Test",
-})
-public class IntegrationTestSuite {
-
+public record UserCacheEvictEvent(TenantId tenantId, String newEmail, String oldEmail) {
 }

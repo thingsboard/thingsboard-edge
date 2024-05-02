@@ -64,6 +64,8 @@ import { OAuth2ClientInfo, PlatformType } from '@shared/models/oauth2.models';
 import { isMobileApp } from '@core/utils';
 import { TwoFactorAuthProviderType, TwoFaProviderInfo } from '@shared/models/two-factor-auth.models';
 import { UserPasswordPolicy } from '@shared/models/settings.models';
+import { TranslateDefaultLoader } from '@core/translate/translate-default-loader';
+import { updateUserLang } from '@core/settings/settings.utils';
 
 @Injectable({
     providedIn: 'root'
@@ -446,7 +448,7 @@ export class AuthService {
           authPayload.forceFullscreen = true;
         }
         if (authPayload.authUser?.isPublic) {
-          this.loadSystemParams().subscribe(
+          this.loadSystemParams(authPayload).subscribe(
             (sysParams) => {
               authPayload = {...authPayload, ...sysParams};
               loadUserSubject.next(authPayload);
@@ -467,7 +469,7 @@ export class AuthService {
               if (this.userForceFullscreen(authPayload)) {
                 authPayload.forceFullscreen = true;
               }
-              this.loadSystemParams().subscribe(
+              this.loadSystemParams(authPayload).subscribe(
                 (sysParams) => {
                   authPayload = {...authPayload, ...sysParams};
                   loadUserSubject.next(authPayload);
@@ -494,19 +496,27 @@ export class AuthService {
     return loadUserSubject;
   }
 
-  private loadSystemParams(): Observable<SysParamsState> {
-    const sources = [this.http.get<SysParams>('/api/system/params', defaultHttpOptions()),
-                     this.whiteLabelingService.loadUserWhiteLabelingParams(),
-                     this.customMenuService.loadCustomMenu(),
-                     this.userPermissionsService.loadPermissionsInfo()];
-    return forkJoin(sources)
-      .pipe(map((data) => {
-        const sysParams: SysParams = data[0] as SysParams;
-        this.timeService.setMaxDatapointsLimit(sysParams.maxDatapointsLimit);
-        return sysParams;
-      }),
+  private loadSystemParams(authPayload: AuthPayload): Observable<SysParamsState> {
+    const userLang = authPayload.userDetails?.additionalInfo?.lang ?? null;
+
+    const sources = [
+      this.http.get<SysParams>('/api/system/params', defaultHttpOptions()).pipe(
+        mergeMap((sysParams: SysParams) => {
+          (this.translate.currentLoader as TranslateDefaultLoader).isAuthenticated = true;
+          this.timeService.setMaxDatapointsLimit(sysParams.maxDatapointsLimit);
+          return updateUserLang(this.translate, userLang, sysParams.availableLocales, true).pipe(
+            map(() => sysParams)
+          );
+        })
+      ),
+      this.whiteLabelingService.loadUserWhiteLabelingParams(),
+      this.customMenuService.loadCustomMenu(),
+      this.userPermissionsService.loadPermissionsInfo()
+    ];
+    return forkJoin(sources).pipe(
+      map((data) => data[0] as SysParams),
       catchError(() => of({} as SysParamsState))
-     );
+    );
   }
 
   public refreshJwtToken(loadUserElseStoreJwtToken = true): Observable<LoginResponse> {

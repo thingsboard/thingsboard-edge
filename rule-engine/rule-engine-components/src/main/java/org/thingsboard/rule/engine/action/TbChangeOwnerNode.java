@@ -116,7 +116,7 @@ public class TbChangeOwnerNode implements TbNode {
     private ListenableFuture<EntityId> getNewOwner(TbContext ctx, TbMsg msg) {
         String ownerName;
         EntityType entityType = EntityType.valueOf(this.config.getOwnerType());
-        if(entityType.equals(EntityType.CUSTOMER)) {
+        if (entityType.equals(EntityType.CUSTOMER)) {
             ownerName = TbNodeUtils.processPattern(config.getOwnerNamePattern(), msg);
         } else {
             //Maybe set tenant name?
@@ -160,7 +160,9 @@ public class TbChangeOwnerNode implements TbNode {
             if (ownerKey.getOwnerType().equals(EntityType.CUSTOMER)) {
                 Customer customer;
                 CustomerService customerService = ctx.getCustomerService();
-                Optional<Customer> customerOptional = customerService.findCustomerByTenantIdAndTitle(ctx.getTenantId(), ownerKey.getOwnerName());
+                // TODO: refactor this node to use only cacheable service API and replace guava cache.
+                Optional<Customer> customerOptional = customerService.
+                        findCustomerByTenantIdAndTitle(ctx.getTenantId(), ownerKey.getOwnerName());
                 if (customerOptional.isPresent()) {
                     customer = customerOptional.get();
                     return customer.getId();

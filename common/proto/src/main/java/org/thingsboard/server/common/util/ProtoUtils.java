@@ -1106,8 +1106,11 @@ public class ProtoUtils {
                 .setDefaultConverterIdMSB(getMsb(integration.getDefaultConverterId()))
                 .setDefaultConverterIdLSB(getLsb(integration.getDefaultConverterId()))
                 .setRoutingKey(integration.getRoutingKey())
-                .setSecret(integration.getSecret())
                 .setConfiguration(JacksonUtil.toString(integration.getConfiguration()));
+
+        if (isNotNull(integration.getSecret())) {
+            builder.setSecret(integration.getSecret());
+        }
 
         if (isNotNull(integration.getDownlinkConverterId())) {
             builder.setDownlinkConverterIdMSB(getMsb(integration.getDownlinkConverterId()))
@@ -1137,8 +1140,11 @@ public class ProtoUtils {
         integration.setEdgeTemplate(proto.getIsEdgeTemplate());
         integration.setDefaultConverterId(getEntityId(proto.getDefaultConverterIdMSB(), proto.getDefaultConverterIdLSB(), ConverterId::new));
         integration.setRoutingKey(proto.getRoutingKey());
-        integration.setSecret(proto.getSecret());
         integration.setConfiguration(JacksonUtil.toJsonNode(proto.getConfiguration()));
+
+        if (proto.hasSecret()) {
+            integration.setSecret(proto.getSecret());
+        }
 
         if (proto.hasDownlinkConverterIdMSB() && proto.hasDownlinkConverterIdLSB()) {
             integration.setDownlinkConverterId(getEntityId(proto.getDownlinkConverterIdMSB(), proto.getDownlinkConverterIdLSB(), ConverterId::new));
