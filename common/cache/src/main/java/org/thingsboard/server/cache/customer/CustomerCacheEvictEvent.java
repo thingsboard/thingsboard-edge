@@ -28,14 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.action;
+package org.thingsboard.server.cache.customer;
 
-import lombok.Data;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@Data
-public abstract class TbAbstractCustomerActionNodeConfiguration {
-
-    private String customerNamePattern;
-    private long customerCacheExpiration;
-
+public record CustomerCacheEvictEvent(TenantId tenantId, String newTitle, String oldTitle) {
 }

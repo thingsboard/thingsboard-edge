@@ -28,16 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.util;
+package org.thingsboard.server.cache.customer;
 
-import lombok.Data;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.Customer;
 
-@Data
-public class EntityContainer {
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("CustomerCache")
+public class CustomerCaffeineCache extends CaffeineTbTransactionalCache<CustomerCacheKey, Customer> {
 
-    private EntityId entityId;
-    private EntityType entityType;
+    public CustomerCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.CUSTOMER_CACHE);
+    }
 
 }
