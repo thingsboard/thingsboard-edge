@@ -108,7 +108,7 @@ public class MobileApplicationControllerTest extends AbstractControllerTest {
         assertThat(retrievedMobileAppSettingsByTenant.isUseSystemSettings()).isTrue();
 
         //check qr code config has system settings
-        QRCodeConfig qrCodeConfig = doGet("/api/mobile/qr/config", QRCodeConfig.class);
+        QRCodeConfig qrCodeConfig = doGet("/api/mobile/app/settings/merged", MobileAppSettings.class).getQrCodeConfig();
         assertThat(qrCodeConfig.getQrCodeLabel()).isEqualTo(TEST_LABEL);
 
         //check deep link configured based on system settings
@@ -121,7 +121,7 @@ public class MobileApplicationControllerTest extends AbstractControllerTest {
 
         loginCustomerUser();
         //check qr code config has system settings
-        QRCodeConfig customerUSerQrCodeConfig = doGet("/api/mobile/qr/config", QRCodeConfig.class);
+        QRCodeConfig customerUSerQrCodeConfig = doGet("/api/mobile/app/settings/merged", MobileAppSettings.class).getQrCodeConfig();
         assertThat(customerUSerQrCodeConfig.getQrCodeLabel()).isEqualTo(TEST_LABEL);
 
         //check deep link configured based on system settings
@@ -140,7 +140,7 @@ public class MobileApplicationControllerTest extends AbstractControllerTest {
         assertThat(tenantMobileAppSettingsAfterUpdate.isUseDefaultApp()).isTrue();
 
         //check qr code config has system settings
-        QRCodeConfig tenantQrCodeConfig = doGet("/api/mobile/qr/config", QRCodeConfig.class);
+        QRCodeConfig tenantQrCodeConfig = doGet("/api/mobile/app/settings/merged", MobileAppSettings.class).getQrCodeConfig();
         assertThat(tenantQrCodeConfig.getQrCodeLabel()).isEqualTo(TEST_LABEL);
 
         //check deep link configured based on system settings
@@ -153,7 +153,7 @@ public class MobileApplicationControllerTest extends AbstractControllerTest {
 
         loginCustomerUser();
         //check qr code config has system settings
-        QRCodeConfig customerQrCodeConfigDefaultApp = doGet("/api/mobile/qr/config", QRCodeConfig.class);
+        QRCodeConfig customerQrCodeConfigDefaultApp = doGet("/api/mobile/app/settings/merged", MobileAppSettings.class).getQrCodeConfig();
         assertThat(customerQrCodeConfigDefaultApp.getQrCodeLabel()).isEqualTo(TEST_LABEL);
 
         //check deep link configured based on system settings
@@ -239,6 +239,12 @@ public class MobileApplicationControllerTest extends AbstractControllerTest {
 
     @Test
     public void testGetApplicationAssociations() throws Exception {
+        loginSysAdmin();
+        MobileAppSettings mobileAppSettings = doGet("/api/mobile/app/settings", MobileAppSettings.class);
+        mobileAppSettings.setUseDefaultApp(false);
+        doPost("/api/mobile/app/settings", mobileAppSettings)
+                .andExpect(status().isOk());
+
         JsonNode assetLinks = doGet("/.well-known/assetlinks.json", JsonNode.class);
         assertThat(assetLinks.get(0).get("target").get("package_name").asText()).isEqualTo(ANDROID_PACKAGE_NAME);
         assertThat(assetLinks.get(0).get("target").get("sha256_cert_fingerprints").get(0).asText()).isEqualTo(ANDROID_APP_SHA256);

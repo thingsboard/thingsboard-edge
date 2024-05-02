@@ -37,9 +37,9 @@ public interface MobileAppSettingsService {
 
     MobileAppSettings saveMobileAppSettings(TenantId tenantId, MobileAppSettings settings);
 
-    MobileAppSettings getCurrentMobileAppSettings(TenantId tenantId);
-
     MobileAppSettings getMobileAppSettings(TenantId tenantId);
+
+    MobileAppSettings getMergedMobileAppSettings(TenantId tenantId);
 
     void deleteByTenantId(TenantId tenantId);
 

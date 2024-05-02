@@ -50,7 +50,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.mobile.AndroidConfig;
 import org.thingsboard.server.common.data.mobile.IosConfig;
 import org.thingsboard.server.common.data.mobile.MobileAppSettings;
-import org.thingsboard.server.common.data.mobile.QRCodeConfig;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.model.JwtPair;
@@ -118,9 +117,9 @@ public class MobileApplicationController extends BaseController {
         WhiteLabeling loginWL = whiteLabelingService.findByDomainName(domainName);
         MobileAppSettings mobileAppSettings;
         if (loginWL != null) {
-            mobileAppSettings = mobileAppSettingsService.getCurrentMobileAppSettings(loginWL.getTenantId());
+            mobileAppSettings = mobileAppSettingsService.getMergedMobileAppSettings(loginWL.getTenantId());
         } else {
-            mobileAppSettings = mobileAppSettingsService.getCurrentMobileAppSettings(TenantId.SYS_TENANT_ID);
+            mobileAppSettings = mobileAppSettingsService.getMobileAppSettings(TenantId.SYS_TENANT_ID);
         }
         AndroidConfig androidConfig = mobileAppSettings.getAndroidConfig();
         if (androidConfig != null && androidConfig.isEnabled() && !androidConfig.getAppPackage().isBlank() && !androidConfig.getSha256CertFingerprints().isBlank()) {
@@ -137,9 +136,9 @@ public class MobileApplicationController extends BaseController {
         WhiteLabeling loginWL = whiteLabelingService.findByDomainName(domainName);
         MobileAppSettings mobileAppSettings;
         if (loginWL != null) {
-            mobileAppSettings = mobileAppSettingsService.getCurrentMobileAppSettings(loginWL.getTenantId());
+            mobileAppSettings = mobileAppSettingsService.getMergedMobileAppSettings(loginWL.getTenantId());
         } else {
-            mobileAppSettings = mobileAppSettingsService.getCurrentMobileAppSettings(TenantId.SYS_TENANT_ID);
+            mobileAppSettings = mobileAppSettingsService.getMobileAppSettings(TenantId.SYS_TENANT_ID);
         }
         IosConfig iosConfig = mobileAppSettings.getIosConfig();
         if (iosConfig != null && iosConfig.isEnabled() && !iosConfig.getAppId().isBlank()) {
@@ -168,17 +167,17 @@ public class MobileApplicationController extends BaseController {
     public MobileAppSettings getMobileAppSettings() throws ThingsboardException {
         SecurityUser currentUser = getCurrentUser();
         accessControlService.checkPermission(getCurrentUser(), Resource.MOBILE_APP_SETTINGS, Operation.READ);
-        return mobileAppSettingsService.getCurrentMobileAppSettings(currentUser.getTenantId());
+        return mobileAppSettingsService.getMobileAppSettings(currentUser.getTenantId());
     }
 
     @ApiOperation(value = "Get QR code configuration for home page (getMobileAppQrCodeConfig)",
             notes = "The response payload contains ui configuration of qr code" + AVAILABLE_FOR_ANY_AUTHORIZED_USER)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @GetMapping(value = "/api/mobile/qr/config")
-    public QRCodeConfig getMobileAppQrCodeConfig() throws ThingsboardException {
+    @GetMapping(value = "/api/mobile/app/settings/merged")
+    public MobileAppSettings getMergedMobileAppSettings() throws ThingsboardException {
         SecurityUser currentUser = getCurrentUser();
         accessControlService.checkPermission(getCurrentUser(), Resource.MOBILE_APP_SETTINGS, Operation.READ);
-        return mobileAppSettingsService.getMobileAppSettings(currentUser.getTenantId()).getQrCodeConfig();
+        return mobileAppSettingsService.getMergedMobileAppSettings(currentUser.getTenantId());
     }
 
     @ApiOperation(value = "Get the deep link to the associated mobile application (getMobileAppDeepLink)",
@@ -190,7 +189,7 @@ public class MobileApplicationController extends BaseController {
         String secret = mobileAppSecretService.generateMobileAppSecret(getCurrentUser());
         String baseUrl = systemSecurityService.getBaseUrl(currentUser.getAuthority(), currentUser.getTenantId(), currentUser.getCustomerId(), request);
         String platformDomain = new URI(baseUrl).getHost();
-        MobileAppSettings mobileAppSettings = mobileAppSettingsService.getMobileAppSettings(currentUser.getTenantId());
+        MobileAppSettings mobileAppSettings = mobileAppSettingsService.getMergedMobileAppSettings(currentUser.getTenantId());
         String appDomain;
         if (!mobileAppSettings.isUseDefaultApp()) {
             appDomain = platformDomain;

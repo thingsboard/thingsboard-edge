@@ -81,7 +81,7 @@ public class BaseMobileAppSettingsService extends AbstractCachedEntityService<Te
     }
 
     @Override
-    public MobileAppSettings getCurrentMobileAppSettings(TenantId tenantId) {
+    public MobileAppSettings getMobileAppSettings(TenantId tenantId) {
         log.trace("Executing getMobileAppSettings for tenant [{}] ", tenantId);
         MobileAppSettings mobileAppSettings = cache.getAndPutInTransaction(tenantId,
                 () -> mobileAppSettingsDao.findByTenantId(tenantId), true);
@@ -89,11 +89,11 @@ public class BaseMobileAppSettingsService extends AbstractCachedEntityService<Te
     }
 
     @Override
-    public MobileAppSettings getMobileAppSettings(TenantId tenantId) {
+    public MobileAppSettings getMergedMobileAppSettings(TenantId tenantId) {
         log.trace("Executing getMobileQrCodeConfig for tenant [{}] ", tenantId);
-        MobileAppSettings mobileAppSettings = getCurrentMobileAppSettings(tenantId);
+        MobileAppSettings mobileAppSettings = getMobileAppSettings(tenantId);
         if (!tenantId.isSysTenantId() && mobileAppSettings.isUseSystemSettings()) {
-            mobileAppSettings = getCurrentMobileAppSettings(TenantId.SYS_TENANT_ID);
+            mobileAppSettings = getMobileAppSettings(TenantId.SYS_TENANT_ID);
         }
         return mobileAppSettings;
     }
