@@ -28,30 +28,49 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security.model;
+package org.thingsboard.server.dao.sql.mobile;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.security.Authority;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.mobile.MobileAppSettings;
+import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.mobile.MobileAppSettingsDao;
+import org.thingsboard.server.dao.model.sql.MobileAppSettingsEntity;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
-import java.io.Serializable;
+import java.util.UUID;
 
-@Schema(description = "JWT Pair")
-@Data
-@NoArgsConstructor
-public class JwtPair implements Serializable {
 
-    @Schema(description = "The JWT Access Token. Used to perform API calls.", example = "AAB254FF67D..")
-    private String token;
-    @Schema(description = "The JWT Refresh Token. Used to get new JWT Access Token if old one has expired.", example = "AAB254FF67D..")
-    private String refreshToken;
+@Component
+@Slf4j
+@SqlDao
+public class JpaMobileAppSettingsDao extends JpaAbstractDao<MobileAppSettingsEntity, MobileAppSettings> implements MobileAppSettingsDao {
 
-    private Authority scope;
+    @Autowired
+    private MobileAppSettingsRepository mobileAppSettingsRepository;
 
-    public JwtPair(String token, String refreshToken) {
-        this.token = token;
-        this.refreshToken = refreshToken;
+
+    @Override
+    public MobileAppSettings findByTenantId(TenantId tenantId) {
+        return DaoUtil.getData(mobileAppSettingsRepository.findByTenantId(tenantId.getId()));
     }
 
+    @Override
+    public void removeByTenantId(TenantId tenantId) {
+        mobileAppSettingsRepository.deleteByTenantId(tenantId.getId());
+    }
+
+    @Override
+    protected Class<MobileAppSettingsEntity> getEntityClass() {
+        return MobileAppSettingsEntity.class;
+    }
+
+    @Override
+    protected JpaRepository<MobileAppSettingsEntity, UUID> getRepository() {
+        return mobileAppSettingsRepository;
+    }
 }

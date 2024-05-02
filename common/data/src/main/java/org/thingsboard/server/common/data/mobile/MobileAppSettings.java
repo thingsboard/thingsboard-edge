@@ -28,30 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security.model;
+package org.thingsboard.server.common.data.mobile;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.id.MobileAppSettingsId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-import java.io.Serializable;
-
-@Schema(description = "JWT Pair")
 @Data
-@NoArgsConstructor
-public class JwtPair implements Serializable {
+public class MobileAppSettings extends BaseData<MobileAppSettingsId> implements HasTenantId {
 
-    @Schema(description = "The JWT Access Token. Used to perform API calls.", example = "AAB254FF67D..")
-    private String token;
-    @Schema(description = "The JWT Refresh Token. Used to get new JWT Access Token if old one has expired.", example = "AAB254FF67D..")
-    private String refreshToken;
+    private static final long serialVersionUID = 2628323657987010348L;
 
-    private Authority scope;
+    private TenantId tenantId;
+    private boolean useSystemSettings;
+    private boolean useDefaultApp;
+    @Valid
+    private AndroidConfig androidConfig;
+    @Valid
+    private IosConfig iosConfig;
+    @Valid
+    private QRCodeConfig qrCodeConfig;
 
-    public JwtPair(String token, String refreshToken) {
-        this.token = token;
-        this.refreshToken = refreshToken;
+    public MobileAppSettings() {
+    }
+    public MobileAppSettings(MobileAppSettingsId id) {
+        super(id);
     }
 
 }

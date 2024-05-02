@@ -28,30 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security.model;
+package org.thingsboard.server.common.data.mobile;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.security.Authority;
 
-import java.io.Serializable;
+public enum BadgeStyle {
 
-@Schema(description = "JWT Pair")
-@Data
-@NoArgsConstructor
-public class JwtPair implements Serializable {
-
-    @Schema(description = "The JWT Access Token. Used to perform API calls.", example = "AAB254FF67D..")
-    private String token;
-    @Schema(description = "The JWT Refresh Token. Used to get new JWT Access Token if old one has expired.", example = "AAB254FF67D..")
-    private String refreshToken;
-
-    private Authority scope;
-
-    public JwtPair(String token, String refreshToken) {
-        this.token = token;
-        this.refreshToken = refreshToken;
-    }
+    ORIGINAL,
+    WHITE;
 
 }

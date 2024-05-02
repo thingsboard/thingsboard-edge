@@ -28,30 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security.model;
+package org.thingsboard.server.dao.mobile;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.mobile.MobileAppSettings;
 
-import java.io.Serializable;
+public interface MobileAppSettingsService {
 
-@Schema(description = "JWT Pair")
-@Data
-@NoArgsConstructor
-public class JwtPair implements Serializable {
+    MobileAppSettings saveMobileAppSettings(TenantId tenantId, MobileAppSettings settings);
 
-    @Schema(description = "The JWT Access Token. Used to perform API calls.", example = "AAB254FF67D..")
-    private String token;
-    @Schema(description = "The JWT Refresh Token. Used to get new JWT Access Token if old one has expired.", example = "AAB254FF67D..")
-    private String refreshToken;
+    MobileAppSettings getCurrentMobileAppSettings(TenantId tenantId);
 
-    private Authority scope;
+    MobileAppSettings getMobileAppSettings(TenantId tenantId);
 
-    public JwtPair(String token, String refreshToken) {
-        this.token = token;
-        this.refreshToken = refreshToken;
-    }
+    void deleteByTenantId(TenantId tenantId);
 
 }

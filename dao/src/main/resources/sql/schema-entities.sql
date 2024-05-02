@@ -1089,3 +1089,14 @@ CREATE TABLE IF NOT EXISTS custom_translation (
     value VARCHAR(1000000),
     CONSTRAINT custom_translation_pkey PRIMARY KEY (tenant_id, customer_id, locale_code)
 );
+
+CREATE TABLE IF NOT EXISTS mobile_app_settings (
+    id uuid NOT NULL CONSTRAINT mobile_app_settings_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid UNIQUE NOT NULL,
+    use_system_settings boolean,
+    use_default_app boolean,
+    android_config VARCHAR(1000),
+    ios_config VARCHAR(1000),
+    qr_code_config VARCHAR(100000)
+);

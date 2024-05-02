@@ -28,30 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security.model;
+package org.thingsboard.server.dao.mobile;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.security.Authority;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.mobile.MobileAppSettings;
 
-import java.io.Serializable;
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("MobileAppCache")
+public class MobileAppSettingsCaffeineCache extends CaffeineTbTransactionalCache<TenantId, MobileAppSettings> {
 
-@Schema(description = "JWT Pair")
-@Data
-@NoArgsConstructor
-public class JwtPair implements Serializable {
-
-    @Schema(description = "The JWT Access Token. Used to perform API calls.", example = "AAB254FF67D..")
-    private String token;
-    @Schema(description = "The JWT Refresh Token. Used to get new JWT Access Token if old one has expired.", example = "AAB254FF67D..")
-    private String refreshToken;
-
-    private Authority scope;
-
-    public JwtPair(String token, String refreshToken) {
-        this.token = token;
-        this.refreshToken = refreshToken;
+    public MobileAppSettingsCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.MOBILE_APP_SETTINGS_CACHE);
     }
 
 }
