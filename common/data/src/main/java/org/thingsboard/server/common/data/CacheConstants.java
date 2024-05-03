@@ -36,6 +36,8 @@ public class CacheConstants {
     public static final String DEVICE_CACHE = "devices";
     public static final String SESSIONS_CACHE = "sessions";
     public static final String ASSET_CACHE = "assets";
+    public static final String CUSTOMER_CACHE = "customers";
+    public static final String USER_CACHE = "users";
     public static final String DOWNLINK_CACHE = "downlink";
     public static final String ENTITY_VIEW_CACHE = "entityViews";
     public static final String EDGE_CACHE = "edges";
@@ -67,5 +69,6 @@ public class CacheConstants {
     public static final String ENTITY_COUNT_CACHE = "entityCount";
     public static final String RESOURCE_INFO_CACHE = "resourceInfo";
     public static final String WHITE_LABELING_CACHE = "whiteLabeling";
+    public static final String CUSTOM_TRANSLATION_CACHE = "customTranslation";
     public static final String ALARM_TYPES_CACHE = "alarmTypes";
 }

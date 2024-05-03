@@ -510,110 +510,92 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     @Override
     public long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query) {
         QueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter(), TenantId.SYS_TENANT_ID.equals(tenantId));
-        if (query.getKeyFilters() == null || query.getKeyFilters().isEmpty()) {
-            ctx.append("select count(e.id) from ");
-            ctx.append(addEntityTableQuery(ctx, query.getEntityFilter()));
-            ctx.append(" e");
-            String entityWhereClause = buildEntityWhere(ctx, query.getEntityFilter(), Collections.emptyList());
-            if (!entityWhereClause.isEmpty()) {
-                ctx.append(" where ");
-                ctx.append(entityWhereClause);
-            }
-            return transactionTemplate.execute(status -> {
-                long startTs = System.currentTimeMillis();
-                try {
-                    return jdbcTemplate.queryForObject(ctx.getQuery(), ctx, Long.class);
-                } finally {
-                    queryLog.logQuery(ctx, ctx.getQuery(), System.currentTimeMillis() - startTs);
-                }
-            });
-        } else {
-            MergedGroupTypePermissionInfo readPermissions = ctx.getSecurityCtx().getMergedReadPermissionsByEntityType();
-            if (query.getEntityFilter().getType().equals(EntityFilterType.STATE_ENTITY_OWNER)) {
-                if (ctx.getEntityType() == EntityType.TENANT && !ctx.isTenantUser()) {
-                    return 0L;
-                }
-            } else if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {
-                if (hasNoPermissionsForAllRelationQueryResources(ctx.getSecurityCtx().getMergedReadEntityPermissionsMap())) {
-                    return 0L;
-                }
-            } else if (!readPermissions.isHasGenericRead() && readPermissions.getEntityGroupIds().isEmpty()) {
-                return 0L;
-            } else if (customerUserIsTryingToAccessTenantEntity(ctx, query.getEntityFilter())) {
+        MergedGroupTypePermissionInfo readPermissions = ctx.getSecurityCtx().getMergedReadPermissionsByEntityType();
+        if (query.getEntityFilter().getType().equals(EntityFilterType.STATE_ENTITY_OWNER)) {
+            if (ctx.getEntityType() == EntityType.TENANT && !ctx.isTenantUser()) {
                 return 0L;
             }
-
-            List<EntityKeyMapping> mappings = EntityKeyMapping.prepareEntityCountKeyMapping(query);
-
-            List<EntityKeyMapping> selectionMapping = mappings.stream().filter(EntityKeyMapping::isSelection)
-                    .collect(Collectors.toList());
-            List<EntityKeyMapping> entityFieldsSelectionMapping = selectionMapping.stream().filter(mapping -> !mapping.isLatest())
-                    .collect(Collectors.toList());
-
-            List<EntityKeyMapping> filterMapping = mappings.stream().filter(EntityKeyMapping::hasFilter)
-                    .collect(Collectors.toList());
-            List<EntityKeyMapping> entityFieldsFiltersMapping = filterMapping.stream().filter(mapping -> !mapping.isLatest())
-                    .collect(Collectors.toList());
-
-            List<EntityKeyMapping> allLatestMappings = mappings.stream().filter(EntityKeyMapping::isLatest)
-                    .collect(Collectors.toList());
-
-
-            String entityWhereClause = DefaultEntityQueryRepository.this.buildEntityWhere(ctx, query.getEntityFilter(), entityFieldsFiltersMapping);
-            String latestJoinsCnt = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), allLatestMappings, true);
-            String entityFieldsSelection = EntityKeyMapping.buildSelections(entityFieldsSelectionMapping, query.getEntityFilter().getType(), ctx.getEntityType());
-            String entityTypeStr;
-            if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {
-                entityTypeStr = "e.entity_type";
-            } else if (query.getEntityFilter().getType().equals(EntityFilterType.ENTITY_GROUP_NAME)) {
-                entityTypeStr = "'ENTITY_GROUP'";
-            } else {
-                entityTypeStr = "'" + ctx.getEntityType().name() + "'";
+        } else if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {
+            if (hasNoPermissionsForAllRelationQueryResources(ctx.getSecurityCtx().getMergedReadEntityPermissionsMap())) {
+                return 0L;
             }
-            if (!StringUtils.isEmpty(entityFieldsSelection)) {
-                entityFieldsSelection = String.format("e.id id, %s entity_type, %s", entityTypeStr, entityFieldsSelection);
-            } else {
-                entityFieldsSelection = String.format("e.id id, %s entity_type", entityTypeStr);
-            }
-
-            StringBuilder entitiesQuery;
-            switch (query.getEntityFilter().getType()) {
-                case RELATIONS_QUERY:
-                    entitiesQuery = buildRelationsEntitiesQuery(query, ctx, entityWhereClause, entityFieldsSelection);
-                    break;
-                case ENTITY_GROUP_NAME:
-                case ENTITY_GROUP_LIST:
-                    entitiesQuery = buildGroupEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
-                    break;
-                case SINGLE_ENTITY:
-                    if (ctx.getSecurityCtx().isEntityGroup()) {
-                        entitiesQuery = buildGroupEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
-                    } else {
-                        entitiesQuery = buildCommonEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
-                    }
-                    break;
-                default:
-                    entitiesQuery = buildCommonEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
-                    break;
-            }
-
-            String fromClauseCount = String.format("from (select %s from (%s) entities %s) result %s",
-                    "entities.*",
-                    entitiesQuery,
-                    latestJoinsCnt,
-                    "");
-
-            String countQuery = String.format("select count(*) %s", fromClauseCount);
-
-            return transactionTemplate.execute(status -> {
-                long startTs = System.currentTimeMillis();
-                try {
-                    return jdbcTemplate.queryForObject(countQuery, ctx, Long.class);
-                } finally {
-                    queryLog.logQuery(ctx, countQuery, System.currentTimeMillis() - startTs);
-                }
-            });
+        } else if (!readPermissions.isHasGenericRead() && readPermissions.getEntityGroupIds().isEmpty()) {
+            return 0L;
+        } else if (customerUserIsTryingToAccessTenantEntity(ctx, query.getEntityFilter())) {
+            return 0L;
         }
+
+        List<EntityKeyMapping> mappings = EntityKeyMapping.prepareEntityCountKeyMapping(query);
+
+        List<EntityKeyMapping> selectionMapping = mappings.stream().filter(EntityKeyMapping::isSelection)
+                .collect(Collectors.toList());
+        List<EntityKeyMapping> entityFieldsSelectionMapping = selectionMapping.stream().filter(mapping -> !mapping.isLatest())
+                .collect(Collectors.toList());
+
+        List<EntityKeyMapping> filterMapping = mappings.stream().filter(EntityKeyMapping::hasFilter)
+                .collect(Collectors.toList());
+        List<EntityKeyMapping> entityFieldsFiltersMapping = filterMapping.stream().filter(mapping -> !mapping.isLatest() && mapping.getEntityKeyColumn() != null)
+                .collect(Collectors.toList());
+
+        List<EntityKeyMapping> allLatestMappings = mappings.stream().filter(EntityKeyMapping::isLatest)
+                .collect(Collectors.toList());
+
+
+        String entityWhereClause = DefaultEntityQueryRepository.this.buildEntityWhere(ctx, query.getEntityFilter(), entityFieldsFiltersMapping);
+        String aliasWhereQuery = DefaultEntityQueryRepository.this.buildAliasWhereQuery(ctx, query.getEntityFilter(), selectionMapping, "");
+        String latestJoinsCnt = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), allLatestMappings, true);
+        String entityFieldsSelection = EntityKeyMapping.buildSelections(entityFieldsSelectionMapping, query.getEntityFilter().getType(), ctx.getEntityType());
+        String entityTypeStr;
+        if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {
+            entityTypeStr = "e.entity_type";
+        } else if (query.getEntityFilter().getType().equals(EntityFilterType.ENTITY_GROUP_NAME)) {
+            entityTypeStr = "'ENTITY_GROUP'";
+        } else {
+            entityTypeStr = "'" + ctx.getEntityType().name() + "'";
+        }
+        if (!StringUtils.isEmpty(entityFieldsSelection)) {
+            entityFieldsSelection = String.format("e.id id, %s entity_type, %s", entityTypeStr, entityFieldsSelection);
+        } else {
+            entityFieldsSelection = String.format("e.id id, %s entity_type", entityTypeStr);
+        }
+
+        StringBuilder entitiesQuery;
+        switch (query.getEntityFilter().getType()) {
+            case RELATIONS_QUERY:
+                entitiesQuery = buildRelationsEntitiesQuery(query, ctx, entityWhereClause, entityFieldsSelection);
+                break;
+            case ENTITY_GROUP_NAME:
+            case ENTITY_GROUP_LIST:
+                entitiesQuery = buildGroupEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
+                break;
+            case SINGLE_ENTITY:
+                if (ctx.getSecurityCtx().isEntityGroup()) {
+                    entitiesQuery = buildGroupEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
+                } else {
+                    entitiesQuery = buildCommonEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
+                }
+                break;
+            default:
+                entitiesQuery = buildCommonEntitiesQuery(query, ctx, readPermissions, entityWhereClause, entityFieldsSelection);
+                break;
+        }
+
+        String fromClauseCount = String.format("from (select %s from (%s) entities %s) result %s",
+                "entities.*",
+                entitiesQuery,
+                latestJoinsCnt,
+                aliasWhereQuery);
+
+        String countQuery = String.format("select count(*) %s", fromClauseCount);
+
+        return transactionTemplate.execute(status -> {
+            long startTs = System.currentTimeMillis();
+            try {
+                return jdbcTemplate.queryForObject(countQuery, ctx, Long.class);
+            } finally {
+                queryLog.logQuery(ctx, countQuery, System.currentTimeMillis() - startTs);
+            }
+        });
     }
 
     @Override
@@ -645,7 +627,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return transactionTemplate.execute(status -> {
             EntityDataPageLink pageLink = query.getPageLink();
 
-            List<EntityKeyMapping> mappings = EntityKeyMapping.prepareKeyMapping(query);
+            List<EntityKeyMapping> mappings = EntityKeyMapping.prepareKeyMapping(ctx.getEntityType(), query);
 
             List<EntityKeyMapping> selectionMapping = mappings.stream().filter(EntityKeyMapping::isSelection)
                     .collect(Collectors.toList());
@@ -656,7 +638,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
 
             List<EntityKeyMapping> filterMapping = mappings.stream().filter(EntityKeyMapping::hasFilter)
                     .collect(Collectors.toList());
-            List<EntityKeyMapping> entityFieldsFiltersMapping = filterMapping.stream().filter(mapping -> !mapping.isLatest())
+            List<EntityKeyMapping> entityFieldsFiltersMapping = filterMapping.stream().filter(mapping -> !mapping.isLatest() && mapping.getEntityKeyColumn() != null)
                     .collect(Collectors.toList());
 
             List<EntityKeyMapping> allLatestMappings = mappings.stream().filter(EntityKeyMapping::isLatest)
@@ -666,7 +648,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             String entityWhereClause = DefaultEntityQueryRepository.this.buildEntityWhere(ctx, query.getEntityFilter(), entityFieldsFiltersMapping);
             String latestJoinsCnt = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), allLatestMappings, true);
             String latestJoinsData = EntityKeyMapping.buildLatestJoins(ctx, query.getEntityFilter(), allLatestMappings, false);
-            String textSearchQuery = DefaultEntityQueryRepository.this.buildTextSearchQuery(ctx, selectionMapping, pageLink.getTextSearch());
+            String aliasWhereQuery = DefaultEntityQueryRepository.this.buildAliasWhereQuery(ctx, query.getEntityFilter(), selectionMapping, pageLink.getTextSearch());
             String entityFieldsSelection = EntityKeyMapping.buildSelections(entityFieldsSelectionMapping, query.getEntityFilter().getType(), ctx.getEntityType());
             String entityTypeStr;
             if (query.getEntityFilter().getType().equals(EntityFilterType.RELATIONS_QUERY)) {
@@ -713,13 +695,13 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
                     "entities.*",
                     entitiesQuery,
                     latestJoinsCnt,
-                    textSearchQuery);
+                    aliasWhereQuery);
 
             String fromClauseData = String.format("from (select %s from (%s) entities %s) result %s",
                     topSelection,
                     entitiesQuery,
                     latestJoinsData,
-                    textSearchQuery);
+                    aliasWhereQuery);
 
             if (!StringUtils.isEmpty(pageLink.getTextSearch())) {
                 //Unfortunately, we need to sacrifice performance in case of full text search, because it is applied to all joined records.
@@ -1933,6 +1915,21 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
         return from;
     }
 
+    private String buildAliasWhereQuery(QueryContext ctx, EntityFilter entityFilter, List<EntityKeyMapping> selectionMapping, String searchText) {
+        List<EntityKeyMapping> aliasFiltersMapping = selectionMapping.stream().filter(mapping -> !mapping.isLatest() && mapping.getEntityKeyColumn() == null)
+                .collect(Collectors.toList());
+        String entityFieldsQuery = EntityKeyMapping.buildQuery(ctx, aliasFiltersMapping, entityFilter.getType());
+        String searchTextQuery = buildTextSearchQuery(ctx, selectionMapping, searchText);
+        String result = "";
+        if (!entityFieldsQuery.isEmpty()) {
+            result += " where (" + entityFieldsQuery + ")";
+        }
+        if (!searchTextQuery.isEmpty()) {
+            result += (result.isEmpty() ? " where ": " and ") + "(" + searchTextQuery + ") ";
+        }
+        return result;
+    }
+
     private String buildTextSearchQuery(QueryContext ctx, List<EntityKeyMapping> selectionMapping, String searchText) {
         if (!StringUtils.isEmpty(searchText) && !selectionMapping.isEmpty()) {
             String sqlSearchText = "%" + searchText + "%";
@@ -1944,7 +1941,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             } else {
                 searchAliasesExpression = searchAliases.get(0);
             }
-            return String.format(" WHERE %s ILIKE :%s", searchAliasesExpression, "lowerSearchTextParam");
+            return String.format(" %s ILIKE :%s", searchAliasesExpression, "lowerSearchTextParam");
         } else {
             return "";
         }

@@ -66,7 +66,7 @@ public class RoleControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         idComparator = new IdComparator<>();
 
-        savedTenant = doPost("/api/tenant", getNewTenant("My tenant"), Tenant.class);
+        savedTenant = saveTenant(getNewTenant("My tenant"));
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -82,8 +82,7 @@ public class RoleControllerTest extends AbstractControllerTest {
     @After
     public void afterTest() throws Exception {
         loginSysAdmin();
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(savedTenant.getId());
     }
 
     @Test

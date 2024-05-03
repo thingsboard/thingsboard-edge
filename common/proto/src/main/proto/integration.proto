@@ -233,7 +233,7 @@ message IntegrationProto {
   optional int64 downlinkConverterIdMSB = 15;
   optional int64 downlinkConverterIdLSB = 16;
   string routingKey = 17;
-  string secret = 18;
+  optional string secret = 18;
   string configuration = 19;
   optional string additionalInfo = 20;
   optional int64 externalIdMSB = 21;

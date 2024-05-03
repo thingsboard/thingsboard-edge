@@ -38,15 +38,10 @@ import {
   textStyle
 } from '@shared/models/widget-settings.models';
 import { LegendPosition } from '@shared/models/widget.models';
-import { EChartsTooltipWidgetSettings } from '@home/components/widget/lib/chart/echarts-widget.models';
 import { DeepPartial } from '@shared/models/common';
 import {
   defaultTimeSeriesChartXAxisSettings,
   defaultTimeSeriesChartYAxisSettings,
-  SeriesFillSettings,
-  SeriesFillType,
-  timeSeriesChartAnimationDefaultSettings,
-  TimeSeriesChartAnimationSettings,
   timeSeriesChartGridDefaultSettings,
   TimeSeriesChartGridSettings,
   TimeSeriesChartKeySettings,
@@ -55,14 +50,21 @@ import {
   TimeSeriesChartSeriesType,
   TimeSeriesChartSettings,
   TimeSeriesChartThreshold,
+  TimeSeriesChartTooltipWidgetSettings,
   TimeSeriesChartXAxisSettings,
   TimeSeriesChartYAxisSettings
 } from '@home/components/widget/lib/chart/time-series-chart.models';
 import { CallbackDataParams, LabelLayoutOptionCallbackParams } from 'echarts/types/dist/shared';
 import { formatValue, mergeDeep } from '@core/utils';
 import { LabelLayoutOption } from 'echarts/types/src/util/types';
+import {
+  chartAnimationDefaultSettings,
+  ChartAnimationSettings,
+  ChartFillSettings,
+  ChartFillType
+} from '@home/components/widget/lib/chart/chart.models';
 
-export interface BarChartWithLabelsWidgetSettings extends EChartsTooltipWidgetSettings {
+export interface BarChartWithLabelsWidgetSettings extends TimeSeriesChartTooltipWidgetSettings {
   dataZoom: boolean;
   showBarLabel: boolean;
   barLabelFont: Font;
@@ -73,12 +75,12 @@ export interface BarChartWithLabelsWidgetSettings extends EChartsTooltipWidgetSe
   showBarBorder: boolean;
   barBorderWidth: number;
   barBorderRadius: number;
-  barBackgroundSettings: SeriesFillSettings;
+  barBackgroundSettings: ChartFillSettings;
   noAggregationBarWidthSettings: TimeSeriesChartNoAggregationBarWidthSettings;
   grid: TimeSeriesChartGridSettings;
   yAxis: TimeSeriesChartYAxisSettings;
   xAxis: TimeSeriesChartXAxisSettings;
-  animation: TimeSeriesChartAnimationSettings;
+  animation: ChartAnimationSettings;
   thresholds: TimeSeriesChartThreshold[];
   showLegend: boolean;
   legendPosition: LegendPosition;
@@ -114,7 +116,7 @@ export const barChartWithLabelsDefaultSettings: BarChartWithLabelsWidgetSettings
   barBorderWidth: 2,
   barBorderRadius: 0,
   barBackgroundSettings: {
-    type: SeriesFillType.none,
+    type: ChartFillType.none,
     opacity: 0.4,
     gradient: {
       start: 100,
@@ -131,8 +133,8 @@ export const barChartWithLabelsDefaultSettings: BarChartWithLabelsWidgetSettings
   xAxis: mergeDeep({} as TimeSeriesChartXAxisSettings,
     defaultTimeSeriesChartXAxisSettings,
     {showTicks: false, showSplitLines: false} as TimeSeriesChartXAxisSettings),
-  animation: mergeDeep({} as TimeSeriesChartAnimationSettings,
-    timeSeriesChartAnimationDefaultSettings),
+  animation: mergeDeep({} as ChartAnimationSettings,
+    chartAnimationDefaultSettings),
   thresholds: [],
   showLegend: true,
   legendPosition: LegendPosition.top,

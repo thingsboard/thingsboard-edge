@@ -52,7 +52,7 @@ public interface CustomerInfoRepository extends JpaRepository<CustomerInfoEntity
                                             Pageable pageable);
 
     @Query("SELECT ci FROM CustomerInfoEntity ci " +
-            "WHERE ci.tenantId = :tenantId AND (ci.parentCustomerId IS NULL OR ci.parentCustomerId = uuid('13814000-1dd2-11b2-8080-808080808080')) " +
+            "WHERE ci.tenantId = :tenantId AND (ci.parentCustomerId IS NULL OR ci.parentCustomerId = org.thingsboard.server.common.data.id.EntityId.NULL_UUID) " +
             "AND (:searchText IS NULL OR ilike(ci.title, CONCAT('%', :searchText, '%')) = true)")
     Page<CustomerInfoEntity> findTenantCustomersByTenantId(@Param("tenantId") UUID tenantId,
                                                            @Param("searchText") String searchText,
@@ -68,7 +68,7 @@ public interface CustomerInfoRepository extends JpaRepository<CustomerInfoEntity
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
             "FROM (select ce.id, ce.created_time, ce.additional_info, ce.address, ce.address2, ce.city, " +
             "ce.country, ce.email, ce.phone, ce.state, ce.tenant_id, " +
-            "ce.parent_customer_id, ce.title, ce.zip, ce.external_id, ce.groups, " +
+            "ce.parent_customer_id, ce.title, ce.zip, ce.external_id, ce.groups, ce.is_public, " +
             "c.title as owner_name from customer_info_view ce " +
             "LEFT JOIN customer c on c.id = ce.parent_customer_id AND c.id != :customerId) e " +
             "WHERE" + CUSTOMERS_SUB_CUSTOMERS_QUERY +

@@ -34,12 +34,15 @@ import com.datastax.oss.driver.api.core.uuid.Uuids;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.AbstractJpaDaoTest;
 import org.thingsboard.server.dao.customer.CustomerDao;
+import org.thingsboard.server.dao.customer.CustomerServiceImpl;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -82,9 +85,48 @@ public class JpaCustomerDaoTest extends AbstractJpaDaoTest {
             createCustomer(tenantId, i);
         }
 
-        Optional<Customer> customerOpt = customerDao.findCustomersByTenantIdAndTitle(tenantId, "CUSTOMER_5");
+        Optional<Customer> customerOpt = customerDao.findCustomerByTenantIdAndTitle(tenantId, "CUSTOMER_5");
         assertTrue(customerOpt.isPresent());
         assertEquals("CUSTOMER_5", customerOpt.get().getTitle());
+    }
+
+    @Test
+    public void testFindPublicCustomerByTenantId() {
+        UUID tenantUUID = Uuids.timeBased();
+
+        Optional<Customer> customerOpt = customerDao.findPublicCustomerByTenantIdAndOwnerId(tenantUUID, tenantUUID);
+        assertTrue(customerOpt.isEmpty());
+
+        String publicCustomerTitle = StringUtils.randomAlphanumeric(10);
+        createPublicCustomer(TenantId.fromUUID(tenantUUID), publicCustomerTitle);
+        customerOpt = customerDao.findPublicCustomerByTenantIdAndOwnerId(tenantUUID, tenantUUID);
+        assertTrue(customerOpt.isPresent());
+        Customer customer = customerOpt.get();
+        assertTrue(customer.isPublic());
+        assertEquals(publicCustomerTitle, customer.getTitle());
+    }
+
+    @Test
+    public void testFindPublicCustomerByTenantIdAndParentCustomerId() {
+        UUID tenantUUID = Uuids.timeBased();
+        String parentCustomerTitle = "CUSTOMER_0";
+
+        createCustomer(tenantUUID, 0);
+
+        Optional<Customer> customerOpt = customerDao.findCustomerByTenantIdAndTitle(tenantUUID, parentCustomerTitle);
+        assertTrue(customerOpt.isPresent());
+        Customer parentCustomer = customerOpt.get();
+        assertEquals(parentCustomerTitle, parentCustomer.getTitle());
+        CustomerId parentCustomerId = parentCustomer.getId();
+
+        String publicCustomerTitle = StringUtils.randomAlphanumeric(10);
+        createPublicCustomer(TenantId.fromUUID(tenantUUID), parentCustomerId, publicCustomerTitle);
+        customerOpt = customerDao.findPublicCustomerByTenantIdAndOwnerId(tenantUUID, parentCustomerId.getId());
+        assertTrue(customerOpt.isPresent());
+        Customer customer = customerOpt.get();
+        assertTrue(customer.isPublic());
+        assertEquals(publicCustomerTitle, customer.getTitle());
+        assertEquals(parentCustomerId, customer.getParentCustomerId());
     }
 
     private void createCustomer(UUID tenantId, int index) {
@@ -94,4 +136,21 @@ public class JpaCustomerDaoTest extends AbstractJpaDaoTest {
         customer.setTitle("CUSTOMER_" + index);
         customerDao.save(TenantId.fromUUID(tenantId), customer);
     }
+
+    private void createPublicCustomer(TenantId tenantId, String publicCustomerTitle) {
+        createPublicCustomer(tenantId, null, publicCustomerTitle);
+    }
+
+    private void createPublicCustomer(TenantId tenantId, EntityId ownerId, String publicCustomerTitle) {
+        Customer customer = new Customer();
+        customer.setId(new CustomerId(Uuids.timeBased()));
+        customer.setTenantId(tenantId);
+        if (ownerId != null) {
+            customer.setOwnerId(ownerId);
+        }
+        customer.setTitle(publicCustomerTitle);
+        customer.setAdditionalInfo(CustomerServiceImpl.PUBLIC_CUSTOMER_ADDITIONAL_INFO_JSON);
+        customerDao.save(tenantId, customer);
+    }
+
 }

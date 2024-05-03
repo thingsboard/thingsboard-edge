@@ -31,7 +31,7 @@
 
 import { LinearGradientObject } from 'zrender/lib/graphic/LinearGradient';
 import { Interval, IntervalMath } from '@shared/models/time/time.models';
-import { LabelFormatterCallback, SeriesLabelOption } from 'echarts/types/src/util/types';
+import { LabelFormatterCallback } from 'echarts/types/src/util/types';
 import {
   TimeSeriesChartDataItem,
   TimeSeriesChartNoAggregationBarWidthStrategy
@@ -40,6 +40,7 @@ import { CustomSeriesRenderItemParams } from 'echarts';
 import { CallbackDataParams, CustomSeriesRenderItemAPI, CustomSeriesRenderItemReturn } from 'echarts/types/dist/shared';
 import { isNumeric } from '@core/utils';
 import * as echarts from 'echarts/core';
+import { BarSeriesLabelOption } from 'echarts/types/src/chart/bar/BarSeries';
 
 export interface BarVisualSettings {
   color: string | LinearGradientObject;
@@ -63,7 +64,7 @@ export interface BarRenderContext {
   barIndex?: number;
   noAggregation?: boolean;
   visualSettings?: BarVisualSettings;
-  labelOption?: SeriesLabelOption;
+  labelOption?: BarSeriesLabelOption;
   additionalLabelOption?: {[key: string]: any};
   barStackIndex?: number;
   currentStackItems?: TimeSeriesChartDataItem[];

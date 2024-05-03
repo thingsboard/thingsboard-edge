@@ -198,6 +198,8 @@ CREATE TABLE IF NOT EXISTS customer (
     title varchar(255),
     zip varchar(255),
     external_id uuid,
+    is_public boolean,
+    CONSTRAINT customer_title_unq_key UNIQUE (tenant_id, title),
     CONSTRAINT customer_external_id_unq_key UNIQUE (tenant_id, external_id)
 );
 
@@ -1080,4 +1082,12 @@ CREATE TABLE IF NOT EXISTS queue_stats (
     queue_name varchar(255) NOT NULL,
     service_id varchar(255) NOT NULL,
     CONSTRAINT queue_stats_name_unq_key UNIQUE (tenant_id, queue_name, service_id)
+);
+
+CREATE TABLE IF NOT EXISTS custom_translation (
+    tenant_id UUID NOT NULL,
+    customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
+    locale_code VARCHAR(10),
+    value VARCHAR(1000000),
+    CONSTRAINT custom_translation_pkey PRIMARY KEY (tenant_id, customer_id, locale_code)
 );

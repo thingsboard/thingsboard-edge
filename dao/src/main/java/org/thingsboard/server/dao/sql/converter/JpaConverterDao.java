@@ -95,15 +95,6 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
     }
 
     @Override
-    public PageData<Converter> findConverterByTenantIdAndName(UUID tenantId, String name, PageLink pageLink){
-        return DaoUtil.toPageData(
-                converterRepository.findByTenantIdAndName(
-                        tenantId,
-                        name,
-                        DaoUtil.toPageable(pageLink)));
-    }
-
-    @Override
     public Optional<Converter> findConverterByTenantIdAndNameAndType(UUID tenantId, String name, ConverterType type) {
         Converter converter = DaoUtil.getData(converterRepository.findByTenantIdAndNameAndType(tenantId, name, type));
         return Optional.ofNullable(converter);

@@ -37,7 +37,7 @@ import { forkJoin, Observable, of, ReplaySubject, throwError } from 'rxjs';
 import { catchError, map, mergeMap, tap } from 'rxjs/operators';
 
 import { LoginRequest, LoginResponse, PublicLoginRequest } from '@shared/models/login.models';
-import { ActivatedRoute, Router, UrlTree } from '@angular/router';
+import { Router, UrlTree } from '@angular/router';
 import { defaultHttpOptions, defaultHttpOptionsFromConfig, RequestConfig } from '../http/http-utils';
 import { UserService } from '../http/user.service';
 import { Store } from '@ngrx/store';
@@ -50,7 +50,6 @@ import {
 } from './auth.actions';
 import { getCurrentAuthState, getCurrentAuthUser } from './auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import { ActionSettingsChangeLanguage } from '@app/core/settings/settings.actions';
 import { AuthPayload, AuthState, SysParams, SysParamsState } from '@core/auth/auth.models';
 import { TranslateService } from '@ngx-translate/core';
 import { AuthUser } from '@shared/models/user.model';
@@ -58,7 +57,6 @@ import { TimeService } from '@core/services/time.service';
 import { UtilsService } from '@core/services/utils.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { CustomMenuService } from '@core/http/custom-menu.service';
-import { CustomTranslationService } from '@core/http/custom-translation.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { AlertDialogComponent } from '@shared/components/dialog/alert-dialog.component';
@@ -66,6 +64,8 @@ import { OAuth2ClientInfo, PlatformType } from '@shared/models/oauth2.models';
 import { isMobileApp } from '@core/utils';
 import { TwoFactorAuthProviderType, TwoFaProviderInfo } from '@shared/models/two-factor-auth.models';
 import { UserPasswordPolicy } from '@shared/models/settings.models';
+import { TranslateDefaultLoader } from '@core/translate/translate-default-loader';
+import { updateUserLang } from '@core/settings/settings.utils';
 
 @Injectable({
     providedIn: 'root'
@@ -78,11 +78,9 @@ export class AuthService {
     private userService: UserService,
     private whiteLabelingService: WhiteLabelingService,
     private customMenuService: CustomMenuService,
-    private customTranslationService: CustomTranslationService,
     private userPermissionsService: UserPermissionsService,
     private timeService: TimeService,
     private router: Router,
-    private route: ActivatedRoute,
     private zone: NgZone,
     private utils: UtilsService,
     private translate: TranslateService,
@@ -450,7 +448,7 @@ export class AuthService {
           authPayload.forceFullscreen = true;
         }
         if (authPayload.authUser?.isPublic) {
-          this.loadSystemParams().subscribe(
+          this.loadSystemParams(authPayload).subscribe(
             (sysParams) => {
               authPayload = {...authPayload, ...sysParams};
               loadUserSubject.next(authPayload);
@@ -471,17 +469,10 @@ export class AuthService {
               if (this.userForceFullscreen(authPayload)) {
                 authPayload.forceFullscreen = true;
               }
-              this.loadSystemParams().subscribe(
+              this.loadSystemParams(authPayload).subscribe(
                 (sysParams) => {
                   authPayload = {...authPayload, ...sysParams};
-                  let userLang;
-                  if (authPayload.userDetails.additionalInfo && authPayload.userDetails.additionalInfo.lang) {
-                    userLang = authPayload.userDetails.additionalInfo.lang;
-                  } else {
-                    userLang = null;
-                  }
                   loadUserSubject.next(authPayload);
-                  this.notifyUserLang(userLang);
                   loadUserSubject.complete();
                 },
                 (err) => {
@@ -505,20 +496,27 @@ export class AuthService {
     return loadUserSubject;
   }
 
-  private loadSystemParams(): Observable<SysParamsState> {
-    const sources = [this.http.get<SysParams>('/api/system/params', defaultHttpOptions()),
-                     this.whiteLabelingService.loadUserWhiteLabelingParams(),
-                     this.customMenuService.loadCustomMenu(),
-                     this.customTranslationService.updateCustomTranslations(true),
-                     this.userPermissionsService.loadPermissionsInfo()];
-    return forkJoin(sources)
-      .pipe(map((data) => {
-        const sysParams: SysParams = data[0] as SysParams;
-        this.timeService.setMaxDatapointsLimit(sysParams.maxDatapointsLimit);
-        return sysParams;
-      }),
+  private loadSystemParams(authPayload: AuthPayload): Observable<SysParamsState> {
+    const userLang = authPayload.userDetails?.additionalInfo?.lang ?? null;
+
+    const sources = [
+      this.http.get<SysParams>('/api/system/params', defaultHttpOptions()).pipe(
+        mergeMap((sysParams: SysParams) => {
+          (this.translate.currentLoader as TranslateDefaultLoader).isAuthenticated = true;
+          this.timeService.setMaxDatapointsLimit(sysParams.maxDatapointsLimit);
+          return updateUserLang(this.translate, userLang, sysParams.availableLocales, true).pipe(
+            map(() => sysParams)
+          );
+        })
+      ),
+      this.whiteLabelingService.loadUserWhiteLabelingParams(),
+      this.customMenuService.loadCustomMenu(),
+      this.userPermissionsService.loadPermissionsInfo()
+    ];
+    return forkJoin(sources).pipe(
+      map((data) => data[0] as SysParams),
       catchError(() => of({} as SysParamsState))
-     );
+    );
   }
 
   public refreshJwtToken(loadUserElseStoreJwtToken = true): Observable<LoginResponse> {
@@ -616,14 +614,14 @@ export class AuthService {
         this.notifyUserLoaded(false);
         this.loadUser(false).subscribe(
           (authPayload) => {
-            this.notifyUserLoaded(true);
             this.notifyAuthenticated(authPayload);
+            this.notifyUserLoaded(true);
             authenticatedSubject.next(true);
             authenticatedSubject.complete();
           },
           () => {
-            this.notifyUserLoaded(true);
             this.notifyUnauthenticated();
+            this.notifyUserLoaded(true);
             authenticatedSubject.next(false);
             authenticatedSubject.complete();
           }
@@ -666,10 +664,6 @@ export class AuthService {
 
   private notifyAuthenticated(authPayload: AuthPayload) {
     this.store.dispatch(new ActionAuthAuthenticated(authPayload));
-  }
-
-  private notifyUserLang(userLang: string) {
-    this.store.dispatch(new ActionSettingsChangeLanguage({userLang}));
   }
 
   private updateAndValidateToken(token, prefix, notify) {

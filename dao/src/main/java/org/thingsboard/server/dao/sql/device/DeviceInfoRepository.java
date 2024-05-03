@@ -47,10 +47,10 @@ public interface DeviceInfoRepository extends JpaRepository<DeviceInfoEntity, UU
             "WHERE d.tenantId = :tenantId " +
             "AND (" +
             "((:customerId IS NULL AND (:includeCustomers) = TRUE)) " +
-            "OR ((:customerId IS NULL AND (:includeCustomers) = FALSE) AND (d.customerId IS NULL OR d.customerId = uuid('13814000-1dd2-11b2-8080-808080808080'))) " +
-            "OR (:customerId IS NOT NULL AND d.customerId = uuid(:customerId)) " +
+            "OR ((:customerId IS NULL AND (:includeCustomers) = FALSE) AND (d.customerId IS NULL OR d.customerId = org.thingsboard.server.common.data.id.EntityId.NULL_UUID)) " +
+            "OR (:customerId IS NOT NULL AND d.customerId = :customerId) " +
             ") " +
-            "AND (:deviceProfileId IS NULL OR d.deviceProfileId = uuid(:deviceProfileId)) " +
+            "AND (:deviceProfileId IS NULL OR d.deviceProfileId = :deviceProfileId) " +
             "AND ((:filterByActive) = FALSE OR d.active = :deviceActive) " +
             "AND (:textSearch IS NULL OR ilike(d.name, CONCAT('%', :textSearch, '%'))  = true " +
             "OR ilike(d.label, CONCAT('%', :textSearch, '%')) = true " +
@@ -58,8 +58,8 @@ public interface DeviceInfoRepository extends JpaRepository<DeviceInfoEntity, UU
             "OR ilike(d.ownerName, CONCAT('%', :textSearch, '%')) = true )")
     Page<DeviceInfoEntity> findDeviceInfosByFilter(@Param("tenantId") UUID tenantId,
                                                    @Param("includeCustomers") boolean includeCustomers,
-                                                   @Param("customerId") String customerId,
-                                                   @Param("deviceProfileId") String deviceProfileId,
+                                                   @Param("customerId") UUID customerId,
+                                                   @Param("deviceProfileId") UUID deviceProfileId,
                                                    @Param("filterByActive") boolean filterByActive,
                                                    @Param("deviceActive") boolean active,
                                                    @Param("textSearch") String textSearch,
@@ -71,7 +71,7 @@ public interface DeviceInfoRepository extends JpaRepository<DeviceInfoEntity, UU
             "c.title as owner_name, d.active as active from device_info_view d " +
             "LEFT JOIN customer c on c.id = d.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
-            "AND (:deviceProfileId IS NULL OR e.device_profile_id = uuid(:deviceProfileId)) " +
+            "AND (:deviceProfileId IS NULL OR e.device_profile_id = :deviceProfileId) " +
             "AND ((:filterByActive) IS FALSE OR e.active = :deviceActive) " +
             "AND (:textSearch IS NULL OR e.name ILIKE CONCAT('%', :textSearch, '%') " +
             "OR e.label ILIKE CONCAT('%', :textSearch, '%') " +
@@ -80,7 +80,7 @@ public interface DeviceInfoRepository extends JpaRepository<DeviceInfoEntity, UU
             countQuery = "SELECT count(e.id) FROM device_info_view e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
-                    "AND (:deviceProfileId IS NULL OR e.device_profile_id = uuid(:deviceProfileId)) " +
+                    "AND (:deviceProfileId IS NULL OR e.device_profile_id = :deviceProfileId) " +
                     "AND ((:filterByActive) IS FALSE OR e.active = :deviceActive) " +
                     "AND (:textSearch IS NULL OR e.name ILIKE CONCAT('%', :textSearch, '%') " +
                     "OR e.label ILIKE CONCAT('%', :textSearch, '%') " +
@@ -89,7 +89,7 @@ public interface DeviceInfoRepository extends JpaRepository<DeviceInfoEntity, UU
             nativeQuery = true)
     Page<DeviceInfoEntity> findDeviceInfosByFilterIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                         @Param("customerId") UUID customerId,
-                                                        @Param("deviceProfileId") String deviceProfileId,
+                                                        @Param("deviceProfileId") UUID deviceProfileId,
                                                         @Param("filterByActive") boolean filterByActive,
                                                         @Param("deviceActive") boolean active,
                                                         @Param("textSearch") String textSearch, Pageable pageable);

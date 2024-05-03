@@ -77,8 +77,8 @@ public class TbDuplicateMsgToRelatedNode extends TbAbstractDuplicateMsgNode<TbDu
     }
 
     @Override
-    protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
-        var newOriginatorsFuture = EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, original, config.getRelationsQuery());
+    protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, TbMsg msg) {
+        var newOriginatorsFuture = EntitiesRelatedEntityIdAsyncLoader.findEntitiesAsync(ctx, msg.getOriginator(), config.getRelationsQuery());
         return Futures.transform(newOriginatorsFuture, newOriginators -> {
             if (newOriginators == null || newOriginators.isEmpty()) {
                 throw new RuntimeException("No related entities were found!");

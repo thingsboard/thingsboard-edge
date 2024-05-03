@@ -243,9 +243,9 @@ public abstract class AbstractOAuth2ClientMapper {
     private Optional<DashboardId> findDefaultDashboard(OAuth2User oauth2User, SecurityUser securityUser, TenantId tenantId) throws Exception {
         PageLink pageLink = new PageLink(1, 0, oauth2User.getDefaultDashboardName());
         return ownersCacheService.getGroupEntities(tenantId, securityUser,
-                EntityType.DASHBOARD, Operation.READ,
-                pageLink,
-                (groupIds) -> dashboardService.findDashboardsByEntityGroupIds(groupIds, pageLink))
+                        EntityType.DASHBOARD, Operation.READ,
+                        pageLink,
+                        (groupIds) -> dashboardService.findDashboardsByEntityGroupIds(groupIds, pageLink))
                 .getData()
                 .stream()
                 .findAny()

@@ -1201,7 +1201,8 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void provisionEdges(User user, SolutionInstallContext ctx, HttpServletRequest request) throws Exception {
-        List<EdgeDefinition> edges = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "edges.json", new TypeReference<>() {});
+        List<EdgeDefinition> edges = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "edges.json", new TypeReference<>() {
+        });
         RuleChain edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(ctx.getTenantId());
         for (EdgeDefinition entityDef : edges) {
             Edge entity = new Edge();
@@ -1413,7 +1414,7 @@ public class DefaultSolutionService implements SolutionService {
                 attributes = JacksonUtil.toJsonNode(randomize(JacksonUtil.toString(attributes), randomNameData, null));
             }
             attributesService.save(tenantId, entityId, AttributeScope.SERVER_SCOPE,
-                    new ArrayList<>(JsonConverter.convertToAttributes(new JsonParser().parse(JacksonUtil.toString(attributes)))));
+                    new ArrayList<>(JsonConverter.convertToAttributes(JsonParser.parseString(JacksonUtil.toString(attributes)))));
         }
     }
 
