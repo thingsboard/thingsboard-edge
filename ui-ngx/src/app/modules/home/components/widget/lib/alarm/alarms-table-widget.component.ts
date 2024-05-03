@@ -841,7 +841,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
     return content;
   }
 
-  public onCellClick($event: Event, alarm: AlarmDataInfo, columnIndex: number) {
+  public onCellClick($event: Event, alarm: AlarmDataInfo, key: EntityColumn, columnIndex: number) {
     this.alarmsDatasource.toggleCurrentAlarm(alarm);
     const descriptors = this.ctx.actionsApi.getActionDescriptors('cellClick');
     let descriptor;
@@ -858,7 +858,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
         entityName = alarm.entityName;
         entityLabel = alarm.entityLabel;
       }
-      this.ctx.actionsApi.handleWidgetAction($event, descriptor, entityId, entityName, {alarm}, entityLabel);
+      this.ctx.actionsApi.handleWidgetAction($event, descriptor, entityId, entityName, {alarm, key}, entityLabel);
     }
   }
 
