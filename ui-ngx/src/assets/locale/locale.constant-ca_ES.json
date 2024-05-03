@@ -1702,8 +1702,7 @@
                 "step": "Pas",
                 "min-evaluation-period": "Període mínim d'avaluació",
                 "max-evaluation-period": "Període màxim d'avaluació"
-            },
-            "composite-operations-support": "Admet operacions compostes de lectura/escriptura/observació"
+            }
         },
         "snmp": {
             "add-communication-config": "Afegeix la configuració de comunicació",
