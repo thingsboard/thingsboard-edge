@@ -135,8 +135,8 @@ import {
   TimeSeriesChartAxisSettingsPanelComponent
 } from '@home/components/widget/lib/settings/common/chart/time-series-chart-axis-settings-panel.component';
 import {
-  EchartsAnimationSettingsComponent
-} from '@home/components/widget/lib/settings/common/chart/echarts-animation-settings.component';
+  ChartAnimationSettingsComponent
+} from '@home/components/widget/lib/settings/common/chart/chart-animation-settings.component';
 import {
   AutoDateFormatSettingsPanelComponent
 } from '@home/components/widget/lib/settings/common/auto-date-format-settings-panel.component';
@@ -144,8 +144,8 @@ import {
   AutoDateFormatSettingsComponent
 } from '@home/components/widget/lib/settings/common/auto-date-format-settings.component';
 import {
-  TimeSeriesChartFillSettingsComponent
-} from '@home/components/widget/lib/settings/common/chart/time-series-chart-fill-settings.component';
+  ChartFillSettingsComponent
+} from '@home/components/widget/lib/settings/common/chart/chart-fill-settings.component';
 import {
   TimeSeriesChartThresholdSettingsComponent
 } from '@home/components/widget/lib/settings/common/chart/time-series-chart-threshold-settings.component';
@@ -164,6 +164,7 @@ import {
 import {
   StatusWidgetStateSettingsComponent
 } from '@home/components/widget/lib/settings/common/indicator/status-widget-state-settings.component';
+import { ChartBarSettingsComponent } from '@home/components/widget/lib/settings/common/chart/chart-bar-settings.component';
 import { AdvancedRangeComponent } from '@home/components/widget/lib/settings/common/advanced-range.component';
 import { GradientComponent } from '@home/components/widget/lib/settings/common/gradient.component';
 
@@ -213,8 +214,9 @@ import { GradientComponent } from '@home/components/widget/lib/settings/common/g
     TimeSeriesChartYAxisRowComponent,
     TimeSeriesChartAxisSettingsPanelComponent,
     TimeSeriesChartAxisSettingsButtonComponent,
-    EchartsAnimationSettingsComponent,
-    TimeSeriesChartFillSettingsComponent,
+    ChartAnimationSettingsComponent,
+    ChartFillSettingsComponent,
+    ChartBarSettingsComponent,
     TimeSeriesChartThresholdSettingsComponent,
     TimeSeriesChartStatesPanelComponent,
     TimeSeriesChartStateRowComponent,
@@ -275,8 +277,9 @@ import { GradientComponent } from '@home/components/widget/lib/settings/common/g
     TimeSeriesChartYAxisRowComponent,
     TimeSeriesChartAxisSettingsPanelComponent,
     TimeSeriesChartAxisSettingsButtonComponent,
-    EchartsAnimationSettingsComponent,
-    TimeSeriesChartFillSettingsComponent,
+    ChartAnimationSettingsComponent,
+    ChartFillSettingsComponent,
+    ChartBarSettingsComponent,
     TimeSeriesChartThresholdSettingsComponent,
     TimeSeriesChartStatesPanelComponent,
     TimeSeriesChartStateRowComponent,

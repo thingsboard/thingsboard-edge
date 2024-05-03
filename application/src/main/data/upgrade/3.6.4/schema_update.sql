@@ -29,6 +29,23 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
+-- UPDATE PUBLIC CUSTOMERS START
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT FROM information_schema.columns
+            WHERE table_name = 'customer' AND column_name = 'is_public'
+        ) THEN
+            ALTER TABLE customer ADD COLUMN is_public boolean DEFAULT false;
+            UPDATE customer SET is_public = true WHERE title = 'Public';
+        END IF;
+    END;
+$$;
+
+-- UPDATE PUBLIC CUSTOMERS END
+
 -- CUSTOM TRANSLATION MIGRATION START
 
 CREATE TABLE IF NOT EXISTS custom_translation (
@@ -53,7 +70,7 @@ $$
             FETCH insert_cursor INTO insert_record;
             EXIT WHEN NOT FOUND;
             INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
-            VALUES ('13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080', insert_record.locale, insert_record.value);
+             VALUES ('13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080', insert_record.locale, insert_record.value) ON CONFLICT DO NOTHING;
         END LOOP;
         CLOSE insert_cursor;
     END;
@@ -76,7 +93,7 @@ $$
                 FETCH insert_cursor INTO insert_record;
                 EXIT WHEN NOT FOUND;
                 INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
-                VALUES (insert_record.tenant_id, '13814000-1dd2-11b2-8080-808080808080', insert_record.locale, insert_record.value);
+                 VALUES (insert_record.tenant_id, '13814000-1dd2-11b2-8080-808080808080', insert_record.locale, insert_record.value) ON CONFLICT DO NOTHING;
             END LOOP;
             CLOSE insert_cursor;
         END IF;
@@ -101,8 +118,10 @@ $$
                 FETCH insert_cursor INTO insert_record;
                 EXIT WHEN NOT FOUND;
                 SELECT tenant_id INTO tenantId FROM customer where id = insert_record.customer_id;
-                INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
-                VALUES (tenantId, insert_record.customer_id, insert_record.locale, insert_record.value);
+                IF tenantId IS NOT NULL THEN
+                    INSERT INTO custom_translation(tenant_id, customer_id, locale_code, value)
+                        VALUES (tenantId, insert_record.customer_id, insert_record.locale, insert_record.value) ON CONFLICT DO NOTHING;
+                END IF;
             END LOOP;
             CLOSE insert_cursor;
         END IF;

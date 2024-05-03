@@ -1201,7 +1201,8 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void provisionEdges(User user, SolutionInstallContext ctx, HttpServletRequest request) throws Exception {
-        List<EdgeDefinition> edges = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "edges.json", new TypeReference<>() {});
+        List<EdgeDefinition> edges = loadListOfEntitiesIfFileExists(ctx.getSolutionId(), "edges.json", new TypeReference<>() {
+        });
         RuleChain edgeTemplateRootRuleChain = ruleChainService.getEdgeTemplateRootRuleChain(ctx.getTenantId());
         for (EdgeDefinition entityDef : edges) {
             Edge entity = new Edge();

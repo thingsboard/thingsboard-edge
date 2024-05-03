@@ -45,7 +45,6 @@ import { catchError, debounceTime, distinctUntilChanged, map, share, takeUntil }
 import { TranslationInfo } from '@shared/models/custom-translation.model';
 import { Direction, SortOrder } from '@shared/models/page/sort-order';
 import { MatSort, SortDirection } from '@angular/material/sort';
-import { environment as env } from '@env/environment';
 import { DialogService } from '@core/services/dialog.service';
 import { isNotEmptyStr } from '@core/utils';
 import { AddNewLanguageDialogComponent, AddNewLanguageDialogData } from './add-new-language-dialog.component';
@@ -74,7 +73,6 @@ export class TranslationTableComponent extends PageComponent implements OnInit, 
 
   displayedColumns: string[];
 
-  private systemLangs = env.supportedLangs;
   private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
@@ -141,18 +139,14 @@ export class TranslationTableComponent extends PageComponent implements OnInit, 
   }
 
   flagIconClass(localeCode: string): string {
-    return `fi fi-${localeCode.split('_')[1].toLowerCase()}`
-  }
-
-  allowDeleteLocale(localeCode: string): boolean {
-    return this.systemLangs.includes(localeCode);
+    return `fi fi-${localeCode.split('_')[1].toLowerCase()}`;
   }
 
   downloadLocale($event: Event, localeCode: string) {
     if ($event) {
       $event.stopPropagation();
     }
-    this.customTranslationService.downloadFullTranslation(localeCode).subscribe(() => {})
+    this.customTranslationService.downloadFullTranslation(localeCode).subscribe(() => {});
   }
 
   deleteLocale($event: Event, translate: TranslationInfo) {
@@ -190,7 +184,7 @@ export class TranslationTableComponent extends PageComponent implements OnInit, 
       if (result) {
         this.updateData(true);
       }
-    })
+    });
   }
 
   editLanguage($event: Event, translate: TranslationInfo) {
@@ -199,7 +193,10 @@ export class TranslationTableComponent extends PageComponent implements OnInit, 
     }
     this.router.navigate([translate.localeCode], {
       relativeTo: this.route,
-      queryParams: {name: encodeURIComponent(translate.language)}
+      queryParams: {
+        name: encodeURIComponent(translate.language),
+        country: encodeURIComponent(translate.country)
+      }
     }).then(() => {
     });
   }
@@ -265,7 +262,7 @@ export class TranslationInfoDatasource implements DataSource<TranslationInfo> {
           resetOnComplete: false,
           resetOnRefCountZero: false
         })
-      )
+      );
     }
     return this.allTranslation;
   }

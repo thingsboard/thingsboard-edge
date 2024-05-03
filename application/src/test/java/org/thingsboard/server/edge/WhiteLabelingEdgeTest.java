@@ -30,9 +30,9 @@
  */
 package org.thingsboard.server.edge;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.protobuf.AbstractMessage;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
@@ -43,13 +43,14 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.common.data.translation.CustomTranslationEdgeOutdated;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
-import org.thingsboard.server.gen.edge.v1.CustomTranslationProto;
+import org.thingsboard.server.gen.edge.v1.CustomTranslationUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 
 import java.util.ArrayList;
@@ -125,7 +126,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
 
     private void testLoginWhiteLabeling_sysAdmin() throws Exception {
         loginSysAdmin();
-        updateAndVerifySystemLoginWhiteLabelingUpdate("pink");
+        updateAndVerifySystemLoginWhiteLabelingUpdate();
     }
 
     private void testLoginWhiteLabeling_tenant() throws Exception {
@@ -156,10 +157,10 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         updateAndVerifyLoginWhiteLabelingUpdate(savedSubCustomerA.getId() + "subCustomerA_updated.org");
     }
 
-    private void updateAndVerifySystemLoginWhiteLabelingUpdate(String color) throws Exception {
+    private void updateAndVerifySystemLoginWhiteLabelingUpdate() throws Exception {
         LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
         edgeImitator.expectMessageAmount(1);
-        loginWhiteLabelingParams.setPageBackgroundColor(color);
+        loginWhiteLabelingParams.setPageBackgroundColor("pink");
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
@@ -168,7 +169,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         WhiteLabeling whiteLabeling = JacksonUtil.fromString(login.getEntity(), WhiteLabeling.class, true);
         Assert.assertNotNull(whiteLabeling);
         LoginWhiteLabelingParams result = JacksonUtil.treeToValue(whiteLabeling.getSettings(), LoginWhiteLabelingParams.class);
-        Assert.assertEquals(color, result.getPageBackgroundColor());
+        Assert.assertEquals("pink", result.getPageBackgroundColor());
     }
 
     private void updateAndVerifyLoginWhiteLabelingUpdate(String updatedDomainName) throws Exception {
@@ -187,8 +188,6 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
-    @Ignore
-    // will be resolved in Edge customTranslation PR:
     public void testCustomTranslation() throws Exception {
         testCustomTranslation_sysAdmin();
         testCustomTranslation_tenant();
@@ -203,7 +202,6 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
 
     private void testCustomTranslation_tenant() throws Exception {
         loginTenantAdmin();
-
         updateAndVerifyCustomTranslationUpdate("tenant_value_updated");
     }
 
@@ -244,18 +242,45 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     }
 
     private void updateAndVerifyCustomTranslationUpdate(String updatedHomeValue) throws Exception {
-        CustomTranslationEdgeOutdated customTranslation = doGet("/api/customTranslation/customTranslation", CustomTranslationEdgeOutdated.class);
+        // create custom translation for en_US
         edgeImitator.expectMessageAmount(1);
-        customTranslation.getTranslationMap().put("en_US", JacksonUtil.toString(getCustomTranslationHomeObject(updatedHomeValue)));
-        doPost("/api/customTranslation/customTranslation", customTranslation, CustomTranslationEdgeOutdated.class);
+        JsonNode jsonNode = JacksonUtil.toJsonNode("{\"home\":\"myHome\", \"update\":\"system\" ," +
+                " \"remove\":\"system\", \"search\":\"system\"}");
+        doPost("/api/translation/custom/en_US", jsonNode);
         Assert.assertTrue(edgeImitator.waitForMessages());
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof CustomTranslationProto);
-        CustomTranslationProto customTranslationProto = (CustomTranslationProto) latestMessage;
-        CustomTranslationEdgeOutdated ct = JacksonUtil.fromString(customTranslationProto.getEntity(), CustomTranslationEdgeOutdated.class, true);
+        Assert.assertTrue(latestMessage instanceof CustomTranslationUpdateMsg);
+        CustomTranslationUpdateMsg customTranslationUpdateMsg = (CustomTranslationUpdateMsg) latestMessage;
+        Assert.assertEquals(customTranslationUpdateMsg.getMsgType(), UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE);
+        CustomTranslation ct = JacksonUtil.fromString(customTranslationUpdateMsg.getEntity(), CustomTranslation.class, true);
         Assert.assertNotNull(ct);
-        String enUsLangObject = ct.getTranslationMap().get("en_US");
-        Assert.assertEquals(updatedHomeValue, JacksonUtil.toJsonNode(enUsLangObject).get("home").asText());
+        Assert.assertEquals(jsonNode, ct.getValue());
+
+        // update custom translation for en_US
+        edgeImitator.expectMessageAmount(1);
+        JsonNode updatedJsonNode = JacksonUtil.toJsonNode("{\"home\":\"" + updatedHomeValue + "\", \"update\":\"system\" ," +
+                " \"remove\":\"system\", \"search\":\"system\"}");
+        doPost("/api/translation/custom/en_US", updatedJsonNode);
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof CustomTranslationUpdateMsg);
+        customTranslationUpdateMsg = (CustomTranslationUpdateMsg) latestMessage;
+        Assert.assertEquals(customTranslationUpdateMsg.getMsgType(), UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE);
+        ct = JacksonUtil.fromString(customTranslationUpdateMsg.getEntity(), CustomTranslation.class, true);
+        Assert.assertNotNull(ct);
+        Assert.assertEquals(updatedJsonNode, ct.getValue());
+
+        // delete custom translation for en_US
+        edgeImitator.expectMessageAmount(1);
+        doDelete("/api/translation/custom/en_US");
+        Assert.assertTrue(edgeImitator.waitForMessages());
+        latestMessage = edgeImitator.getLatestMessage();
+        Assert.assertTrue(latestMessage instanceof CustomTranslationUpdateMsg);
+        customTranslationUpdateMsg = (CustomTranslationUpdateMsg) latestMessage;
+        Assert.assertEquals(customTranslationUpdateMsg.getMsgType(), UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE);
+        ct = JacksonUtil.fromString(customTranslationUpdateMsg.getEntity(), CustomTranslation.class, true);
+        Assert.assertNotNull(ct);
+        Assert.assertEquals(updatedJsonNode, ct.getValue());
     }
 
     @Test
@@ -322,4 +347,5 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(menuItems, customMenu.getMenuItems());
         Assert.assertEquals(customMenuName, menuItems.get(0).getName());
     }
+
 }

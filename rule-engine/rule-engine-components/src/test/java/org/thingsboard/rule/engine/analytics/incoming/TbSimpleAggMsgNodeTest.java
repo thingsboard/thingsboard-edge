@@ -31,7 +31,7 @@
 package org.thingsboard.rule.engine.analytics.incoming;
 
 import com.google.gson.JsonObject;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.Arguments;
@@ -89,7 +89,7 @@ public class TbSimpleAggMsgNodeTest extends AbstractRuleNodeUpgradeTest {
 
         TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, deviceId, metaData, jsonObject.toString(), callback);
 
-        Assert.assertThrows(IllegalArgumentException.class, () -> node.onMsg(ctx, msg));
+        Assertions.assertThrows(IllegalArgumentException.class, () -> node.onMsg(ctx, msg));
     }
 
     // Rule nodes upgrade

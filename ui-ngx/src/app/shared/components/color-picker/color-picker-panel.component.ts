@@ -63,10 +63,17 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit, 
   useThemePalette: boolean;
 
   @Input()
+  @coerceBoolean()
+  colorCancelButton = false;
+
+  @Input()
   popover: TbPopoverComponent<ColorPickerPanelComponent>;
 
   @Output()
   colorSelected = new EventEmitter<string>();
+
+  @Output()
+  colorCancelDialog = new EventEmitter();
 
   colorMode: ColorMode = 'color';
   plainColorControl = new UntypedFormControl();
@@ -77,6 +84,7 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit, 
   valid = true;
 
   private destroy$ = new Subject<void>();
+
 
   constructor(protected store: Store<AppState>) {
     super(store);
@@ -175,4 +183,11 @@ export class ColorPickerPanelComponent extends PageComponent implements OnInit, 
   clearColor() {
     this.colorSelected.emit(null);
   }
-}
+
+  cancelColor() {
+    if (this.popover) {
+      this.popover.hide();
+    } else {
+      this.colorCancelDialog.emit();
+    }
+  }}

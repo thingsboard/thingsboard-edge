@@ -86,17 +86,19 @@ export class TbPopoverService {
                     componentType: Type<T>, preferredPlacement: PopoverPreferredPlacement = 'top',
                     hideOnClickOutside = true, injector?: Injector, context?: any, overlayStyle: any = {},
                     popoverStyle: any = {}, style?: any,
-                    showCloseButton = true, visibleFn: (visible: boolean) => void = () => {}): TbPopoverComponent<T> {
+                    showCloseButton = true, visibleFn: (visible: boolean) => void = () => {},
+                    popoverContentStyle: any = {}): TbPopoverComponent<T> {
     const componentRef = this.createPopoverRef(hostView);
     return this.displayPopoverWithComponentRef(componentRef, trigger, renderer, componentType, preferredPlacement, hideOnClickOutside,
-      injector, context, overlayStyle, popoverStyle, style, showCloseButton, visibleFn);
+      injector, context, overlayStyle, popoverStyle, style, showCloseButton, visibleFn, popoverContentStyle);
   }
 
   displayPopoverWithComponentRef<T>(componentRef: ComponentRef<TbPopoverComponent>, trigger: Element, renderer: Renderer2,
                                     componentType: Type<T>, preferredPlacement: PopoverPreferredPlacement = 'top',
                                     hideOnClickOutside = true, injector?: Injector, context?: any, overlayStyle: any = {},
                                     popoverStyle: any = {}, style?: any, showCloseButton = true,
-                                    visibleFn: (visible: boolean) => void = () => {}): TbPopoverComponent<T> {
+                                    visibleFn: (visible: boolean) => void = () => {},
+                                    popoverContentStyle: any = {}): TbPopoverComponent<T> {
     const component = componentRef.instance;
     this.popoverWithTriggers.push({
       trigger,
@@ -114,6 +116,7 @@ export class TbPopoverService {
     component.tbComponentContext = context;
     component.tbOverlayStyle = overlayStyle;
     component.tbPopoverInnerStyle = popoverStyle;
+    component.tbPopoverInnerContentStyle = popoverContentStyle;
     component.tbComponentStyle = style;
     component.tbHideOnClickOutside = hideOnClickOutside;
     component.tbShowCloseButton = showCloseButton;

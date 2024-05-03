@@ -55,6 +55,7 @@ import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
+import org.thingsboard.server.dao.sql.JpaExecutorService;
 
 import java.util.List;
 import java.util.Optional;
@@ -83,6 +84,10 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
 
     @Autowired
     private DataValidator<Role> roleValidator;
+
+    @Autowired
+    private JpaExecutorService executor;
+
 
     @TransactionalEventListener(classes = RoleEvictEvent.class)
     @Override
@@ -131,6 +136,14 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     }
 
     @Override
+    public ListenableFuture<Optional<Role>> findRoleByTenantIdAndNameAsync(TenantId tenantId, String name) {
+        log.trace("Executing findRoleByTenantIdAndNameAsync, tenantId [{}], name [{}]", tenantId, name);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateString(name, n -> INCORRECT_ROLE_NAME + n);
+        return executor.submit(() -> findRoleByTenantIdAndName(tenantId, name));
+    }
+
+    @Override
     public Optional<Role> findRoleByByTenantIdAndCustomerIdAndName(TenantId tenantId, CustomerId customerId, String name) {
         log.trace("Executing findRoleByByTenantIdAndCustomerIdAndName, tenantId [{}], customerId [{}], name [{}]", tenantId, customerId, name);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
@@ -167,10 +180,14 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         log.trace("Executing deleteRole [{}]", roleId);
         validateId(roleId, id -> INCORRECT_ROLE_ID + id);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndRoleId(tenantId, roleId);
-        deleteEntityRelations(tenantId, roleId);
         roleDao.removeById(tenantId, roleId.getId());
         publishEvictEvent(new RoleEvictEvent(roleId));
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(roleId).build());
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteRole(tenantId, (RoleId) id);
     }
 
     @Override
@@ -178,6 +195,11 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         log.trace("Executing deleteRolesByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantRoleRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteRolesByTenantId(tenantId);
     }
 
     @Override
@@ -318,11 +340,6 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findRoleById(tenantId, new RoleId(entityId.getId())));
-    }
-
-    @Override
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteRole(tenantId, (RoleId) id);
     }
 
     @Override

@@ -360,9 +360,6 @@ import {
   TimeSeriesChartLineSettingsComponent
 } from '@home/components/widget/lib/settings/chart/time-series-chart-line-settings.component';
 import {
-  TimeSeriesChartBarSettingsComponent
-} from '@home/components/widget/lib/settings/chart/time-series-chart-bar-settings.component';
-import {
   TimeSeriesChartWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/chart/time-series-chart-widget-settings.component';
 import {
@@ -371,6 +368,15 @@ import {
 import {
   PieChartWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/chart/pie-chart-widget-settings.component';
+import {
+  BarChartWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/chart/bar-chart-widget-settings.component';
+import {
+  PolarAreaChartWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/chart/polar-area-chart-widget-settings.component';
+import {
+  RadarChartWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/chart/radar-chart-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -491,10 +497,12 @@ import {
     ToggleButtonWidgetSettingsComponent,
     TimeSeriesChartKeySettingsComponent,
     TimeSeriesChartLineSettingsComponent,
-    TimeSeriesChartBarSettingsComponent,
     TimeSeriesChartWidgetSettingsComponent,
     StatusWidgetSettingsComponent,
     PieChartWidgetSettingsComponent,
+    BarChartWidgetSettingsComponent,
+    PolarAreaChartWidgetSettingsComponent,
+    RadarChartWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -623,10 +631,12 @@ import {
     ToggleButtonWidgetSettingsComponent,
     TimeSeriesChartKeySettingsComponent,
     TimeSeriesChartLineSettingsComponent,
-    TimeSeriesChartBarSettingsComponent,
     TimeSeriesChartWidgetSettingsComponent,
     StatusWidgetSettingsComponent,
     PieChartWidgetSettingsComponent,
+    BarChartWidgetSettingsComponent,
+    PolarAreaChartWidgetSettingsComponent,
+    RadarChartWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -725,6 +735,9 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-time-series-chart-widget-settings': TimeSeriesChartWidgetSettingsComponent,
   'tb-status-widget-settings': StatusWidgetSettingsComponent,
   'tb-pie-chart-widget-settings': PieChartWidgetSettingsComponent,
+  'tb-bar-chart-widget-settings': BarChartWidgetSettingsComponent,
+  'tb-polar-area-chart-widget-settings': PolarAreaChartWidgetSettingsComponent,
+  'tb-radar-chart-widget-settings': RadarChartWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

@@ -216,10 +216,11 @@ export class ColorInputComponent extends PageComponent implements OnInit, Contro
           {
             color: this.colorFormGroup.get('color').value,
             colorClearButton: this.colorClearButton,
-            useThemePalette: this.useThemePalette
+            useThemePalette: this.useThemePalette,
+            colorCancelButton: true
           },
           {},
-          {}, {}, true);
+          {}, {}, false, () => {}, {padding: '12px 4px 12px 12px'});
         colorPickerPopover.tbComponentRef.instance.popover = colorPickerPopover;
         colorPickerPopover.tbComponentRef.instance.colorSelected.subscribe((color) => {
           colorPickerPopover.hide();

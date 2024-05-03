@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.attributes;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.apache.commons.lang3.tuple.Pair;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -61,4 +62,7 @@ public interface AttributesDao {
     List<String> findAllKeysByEntityIds(TenantId tenantId, List<EntityId> entityIds);
 
     List<String> findAllKeysByEntityIdsAndAttributeType(TenantId tenantId, List<EntityId> entityIds, String attributeType);
+
+    List<Pair<AttributeScope, String>> removeAllByEntityId(TenantId tenantId, EntityId entityId);
+
 }

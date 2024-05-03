@@ -704,10 +704,10 @@ public final class EdgeGrpcSession implements Closeable {
                 return ctx.getWhiteLabelingProcessor().convertWhiteLabelingEventToDownlink(edgeEvent, this.edgeVersion);
             case LOGIN_WHITE_LABELING:
                 return ctx.getWhiteLabelingProcessor().convertLoginWhiteLabelingEventToDownlink(edgeEvent, this.edgeVersion);
-            case CUSTOM_TRANSLATION:
-                return ctx.getWhiteLabelingProcessor().convertCustomTranslationEventToDownlink(edgeEvent, this.edgeVersion);
             case CUSTOM_MENU:
                 return ctx.getWhiteLabelingProcessor().convertCustomMenuEventToDownlink(edgeEvent);
+            case CUSTOM_TRANSLATION:
+                return ctx.getCustomTranslationEdgeProcessor().convertCustomTranslationEventToDownlink(edgeEvent, this.edgeVersion);
             case ROLE:
                 return ctx.getRoleProcessor().convertRoleEventToDownlink(edgeEvent, this.edgeVersion);
             case GROUP_PERMISSION:

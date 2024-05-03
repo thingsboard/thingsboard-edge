@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.junit.After;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -68,6 +69,17 @@ public class TranslationControllerTest extends AbstractControllerTest {
     CustomTranslationService customTranslationService;
     @Autowired
     AdminSettingsDao  adminSettingsDao;
+
+    @After
+    public void tearDownCustomTranslation() throws Exception {
+        loginSysAdmin();
+        List<TranslationInfo> translationInfos = doGetTyped("/api/translation/info", new TypeReference<>() {});
+        for (var info : translationInfos) {
+            doDelete("/api/translation/custom/" + info.getLocaleCode());
+            JsonNode retrieved = doGet("/api/translation/custom/" + info.getLocaleCode(), JsonNode.class);
+            assertThat(retrieved).isEmpty();
+        }
+    }
 
     @Test
     public void shouldGetCorrectFullTranslation() throws Exception {
@@ -153,15 +165,15 @@ public class TranslationControllerTest extends AbstractControllerTest {
         // get full tenant translation
         loginTenantAdmin();
         JsonNode plFullTenantTranslation = doGet("/api/translation/full/" + PL_PL, JsonNode.class);
-        assertThat(plFullTenantTranslation.get("save")).isNull();
+        assertThat(plFullTenantTranslation.get("save").asText()).isEqualTo("system");
         assertThat(plFullTenantTranslation.get("update").asText()).isEqualTo("tenant");
         assertThat(plFullTenantTranslation.get("action").get("activate").asText()).isEqualTo("Aktywuj");
 
         // get full customer custom translation
         loginCustomerAdminUser();
         JsonNode plFullCustomTranslation = doGet("/api/translation/full/" + PL_PL, JsonNode.class);
-        assertThat(plFullCustomTranslation.get("save")).isNull();
-        assertThat(plFullCustomTranslation.get("update")).isNull();
+        assertThat(plFullCustomTranslation.get("save").asText()).isEqualTo("system");
+        assertThat(plFullCustomTranslation.get("update").asText()).isEqualTo("tenant");
         assertThat(plFullCustomTranslation.get("remove").asText()).isEqualTo("customer");
         assertThat(plFullCustomTranslation.get("action").get("activate").asText()).isEqualTo("Aktywuj");
 
@@ -169,9 +181,9 @@ public class TranslationControllerTest extends AbstractControllerTest {
         loginSubCustomerAdminUser();
 
         JsonNode plFullSubCustomTranslation = doGet("/api/translation/full/" + PL_PL, JsonNode.class);
-        assertThat(plFullSubCustomTranslation.get("save")).isNull();
-        assertThat(plFullSubCustomTranslation.get("update")).isNull();
-        assertThat(plFullSubCustomTranslation.get("remove")).isNull();
+        assertThat(plFullSubCustomTranslation.get("save").asText()).isEqualTo("system");
+        assertThat(plFullSubCustomTranslation.get("update").asText()).isEqualTo("tenant");
+        assertThat(plFullSubCustomTranslation.get("remove").asText()).isEqualTo("customer");
         assertThat(plFullSubCustomTranslation.get("search").asText()).isEqualTo("subCustomer");
         assertThat(plFullSubCustomTranslation.get("action").get("activate").asText()).isEqualTo("Aktywuj");
     }
@@ -451,31 +463,22 @@ public class TranslationControllerTest extends AbstractControllerTest {
         loginSysAdmin();
         updateCustomTranslation(ES_ES);
         String sysAdminEtag = getLoginTranslation(ES_ES);
+        assertThat(sysAdminEtag).isNotNull();
 
         loginTenantAdmin();
         updateCustomTranslation(ES_ES);
         String tenantEtag = getLoginTranslation(ES_ES);
+        assertThat(tenantEtag).isNotNull();
 
         loginCustomerAdminUser();
         updateCustomTranslation(ES_ES);
         String customerAdminEtag = getLoginTranslation(ES_ES);
+        assertThat(customerAdminEtag).isNotNull();
 
         loginSubCustomerAdminUser();
         updateCustomTranslation(ES_ES);
         String subCustomerEtag = getLoginTranslation(ES_ES);
-
-        //check if full translation modified
-        loginSysAdmin();
-        assertThat(geLoginTranslationResponse(ES_ES, sysAdminEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
-
-        loginTenantAdmin();
-        tenantEtag = geLoginTranslationResponse(ES_ES, tenantEtag).getHeader("ETag");
-
-        loginCustomerAdminUser();
-        customerAdminEtag = geLoginTranslationResponse(ES_ES, customerAdminEtag).getHeader("ETag");
-
-        loginSubCustomerAdminUser();
-        assertThat(geLoginTranslationResponse(ES_ES, subCustomerEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+        assertThat(subCustomerEtag).isNotNull();
 
         // check not modified
         loginSysAdmin();
@@ -489,35 +492,18 @@ public class TranslationControllerTest extends AbstractControllerTest {
 
         loginSubCustomerAdminUser();
         assertThat(geLoginTranslationResponse(ES_ES, subCustomerEtag).getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
-
-        //update system custom translation and check full translation is being modified everywhere
-        loginSysAdmin();
-        JsonNode newCustomTranslation = JacksonUtil.toJsonNode("{\"update\" : \"system\"}");
-        doPost("/api/translation/custom/" + ES_ES, newCustomTranslation);
-
-        assertThat(geLoginTranslationResponse(ES_ES, sysAdminEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
-
-        loginTenantAdmin();
-        assertThat(geLoginTranslationResponse(ES_ES, tenantEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
-
-        loginCustomerAdminUser();
-        assertThat(geLoginTranslationResponse(ES_ES, customerAdminEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
-
-        loginSubCustomerAdminUser();
-        assertThat(geLoginTranslationResponse(ES_ES, subCustomerEtag).getStatus()).isEqualTo(HttpStatus.OK.value());
     }
 
     private String getLoginTranslation(String localeCode) throws Exception {
-        return doGet("/api/translation/full/" + localeCode)
+        return doGet("/api/noauth/translation/login/" + localeCode)
                 .andReturn().getResponse().getHeader("ETag");
     }
 
     private MockHttpServletResponse geLoginTranslationResponse(String localeCode, String etag) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.setIfNoneMatch(etag);
-        MockHttpServletResponse response = doGet("/api/translation/full/" + localeCode, headers)
+        return doGet("/api/noauth/translation/login/" + localeCode, headers)
                 .andReturn().getResponse();
-        return response;
     }
 
     private void updateCustomTranslation(String localeCode) throws Exception {

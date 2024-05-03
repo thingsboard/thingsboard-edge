@@ -87,8 +87,8 @@ public class TbDuplicateMsgToGroupNode extends TbAbstractDuplicateMsgNode<TbDupl
     }
 
     @Override
-    protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original) {
-        return ctx.getPeContext().getEntityGroupService().findAllEntityIdsAsync(ctx.getTenantId(), detectTargetEntityGroupId(original), new PageLink(Integer.MAX_VALUE));
+    protected ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, TbMsg msg) {
+        return ctx.getPeContext().getEntityGroupService().findAllEntityIdsAsync(ctx.getTenantId(), detectTargetEntityGroupId(msg.getOriginator()), new PageLink(Integer.MAX_VALUE));
     }
 
     private EntityGroupId detectTargetEntityGroupId(EntityId original) {

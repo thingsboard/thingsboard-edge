@@ -40,7 +40,8 @@ public class TextHandlerConfiguration implements HandlerConfiguration {
 
     private int maxFrameLength;
     private boolean stripDelimiter;
-    private String messageSeparator;
+    private TextMessageSeparatorType messageSeparator;
+    private String customSeparatorRawValue;
     private String charsetName;
 
     @Override
@@ -49,6 +50,8 @@ public class TextHandlerConfiguration implements HandlerConfiguration {
     }
 
     @Override
-    public UplinkContentType getUplinkContentType() {return UplinkContentType.TEXT;}
+    public UplinkContentType getUplinkContentType() {
+        return UplinkContentType.TEXT;
+    }
 
 }

@@ -31,22 +31,22 @@
 package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import jakarta.persistence.Convert;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.ToData;
-import org.thingsboard.server.dao.util.mapping.JsonConverter;
-
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.model.ToData;
+import org.thingsboard.server.dao.util.mapping.JsonConverter;
+
 import java.io.Serializable;
 import java.util.UUID;
 

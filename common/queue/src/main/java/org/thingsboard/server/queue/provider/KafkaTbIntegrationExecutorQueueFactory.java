@@ -43,6 +43,7 @@ import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
 import org.thingsboard.server.queue.TbQueueAdmin;
 import org.thingsboard.server.queue.TbQueueConsumer;
@@ -88,6 +89,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
     private final TbQueueAdmin integrationApiRequestAdmin;
     private final TbQueueAdmin integrationApiResponseAdmin;
     private final TbQueueAdmin notificationAdmin;
+    private final TbQueueAdmin housekeeperAdmin;
 
     private final AtomicLong integrationConsumerCount = new AtomicLong();
 
@@ -116,6 +118,7 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         this.integrationApiRequestAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getIntegrationApiRequestConfigs());
         this.integrationApiResponseAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getIntegrationApiResponseConfigs());
         this.notificationAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getNotificationsConfigs());
+        this.housekeeperAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getHousekeeperConfigs());
     }
 
     @Override
@@ -262,4 +265,15 @@ public class KafkaTbIntegrationExecutorQueueFactory implements TbIntegrationExec
         requestBuilder.admin(coreAdmin);
         return requestBuilder.build();
     }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> createHousekeeperMsgProducer() {
+        return TbKafkaProducerTemplate.<TbProtoQueueMsg<ToHousekeeperServiceMsg>>builder()
+                .settings(kafkaSettings)
+                .clientId("tb-ie-housekeeper-producer-" + serviceInfoProvider.getServiceId())
+                .defaultTopic(topicService.buildTopicName(coreSettings.getHousekeeperTopic()))
+                .admin(housekeeperAdmin)
+                .build();
+    }
+
 }

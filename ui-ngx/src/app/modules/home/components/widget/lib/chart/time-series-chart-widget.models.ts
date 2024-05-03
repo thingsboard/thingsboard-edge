@@ -29,7 +29,10 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { timeSeriesChartDefaultSettings, TimeSeriesChartSettings } from '@home/components/widget/lib/chart/time-series-chart.models';
+import {
+  timeSeriesChartDefaultSettings,
+  TimeSeriesChartSettings
+} from '@home/components/widget/lib/chart/time-series-chart.models';
 import { BackgroundSettings, BackgroundType, Font } from '@shared/models/widget-settings.models';
 import { defaultLegendConfig, LegendConfig, LegendPosition, widgetType } from '@shared/models/widget.models';
 import { mergeDeep } from '@core/utils';

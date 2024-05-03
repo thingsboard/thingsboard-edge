@@ -87,7 +87,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
@@ -119,7 +118,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         for (int i = 0; i < 100; i++) {
             Tenant tenant = new Tenant();
             tenant.setTitle("tenant" + i);
-            tenants.add(doPost("/api/tenant", tenant, Tenant.class));
+            tenants.add(saveTenant(tenant));
         }
 
         EntityTypeFilter ef = new EntityTypeFilter();
@@ -131,7 +130,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         Assert.assertEquals(initialCount + 100, update.getCount());
 
         for (Tenant tenant : tenants) {
-            doDelete("/api/tenant/" + tenant.getId().toString());
+            deleteTenant(tenant.getId());
         }
     }
 

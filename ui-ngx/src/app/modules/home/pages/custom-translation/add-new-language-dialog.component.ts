@@ -56,7 +56,7 @@ export class AddNewLanguageDialogComponent extends
     language: ['', {nonNullable: true, validators: Validators.required}],
     upload: [false],
     translation: [{value: null, disabled: true}, {nonNullable: true, validators: Validators.required}]
-  })
+  });
 
   langs: string[];
 
@@ -82,7 +82,7 @@ export class AddNewLanguageDialogComponent extends
       } else {
         this.languageForm.get('translation').disable({emitEvent: false});
       }
-    })
+    });
   }
 
   ngOnDestroy() {
@@ -100,7 +100,7 @@ export class AddNewLanguageDialogComponent extends
       formValue.language, formValue.upload ? formValue.translation : {}
     ).subscribe(() => {
       this.dialogRef.close(true);
-    })
+    });
   }
 
 }

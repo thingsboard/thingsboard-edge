@@ -31,7 +31,8 @@
 package org.thingsboard.migrator.utils;
 
 import com.datastax.oss.driver.api.core.cql.ResultSet;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.cassandra.core.CassandraTemplate;
 import org.springframework.data.cassandra.core.cql.ArgumentPreparedStatementBinder;
 import org.springframework.data.cassandra.core.cql.CachedPreparedStatementCreator;
@@ -41,10 +42,12 @@ import org.springframework.data.cassandra.core.cql.RowMapperResultSetExtractor;
 import org.springframework.data.cassandra.core.cql.SingleColumnRowMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
-@ConditionalOnExpression("'${mode}'.startsWith('CASSANDRA')")
+@Lazy
+@Slf4j
 public class CassandraService {
 
     private final CqlOperations cqlOperations;
@@ -67,7 +70,11 @@ public class CassandraService {
 
     @SuppressWarnings("deprecation")
     private <T> T query(String query, ResultSetExtractor<T> resultSetExtractor, Object... args) {
-        return cqlOperations.query(new CachedPreparedStatementCreator(query), new ArgumentPreparedStatementBinder(args), resultSetExtractor);
+        try {
+            return cqlOperations.query(new CachedPreparedStatementCreator(query), new ArgumentPreparedStatementBinder(args), resultSetExtractor);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to execute Cassandra query: " + query + " with args " + Arrays.toString(args), e);
+        }
     }
 
 }
