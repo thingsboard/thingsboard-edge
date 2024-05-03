@@ -30,12 +30,22 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div mat-dialog-content>
-  <tb-color-picker-panel [color]="color"
-                         colorCancelButton
-                         [colorClearButton]="colorClearButton"
-                         [useThemePalette]="useThemePalette"
-                         (colorCancelDialog)="cancel()"
-                         (colorSelected)="selectColor($event)">
-  </tb-color-picker-panel>
+<div class="hex-input-container">
+  <mat-form-field class="hex-input" subscriptSizing="dynamic">
+    <span matPrefix>{{prefixValue}}</span>
+    <input matInput #elRef type="text" [value]="value" (keyup)="onInputChange($event, elRef.value)">
+    <tb-copy-button
+      class="copy-button"
+      matSuffix
+      miniButton="false"
+      [copyText]="copyColor"
+      tooltipText="{{ 'action.copy' | translate }}"
+      tooltipPosition="above"
+      icon="content_copy">
+    </tb-copy-button>
+  </mat-form-field>
+  <mat-form-field class="alpha-input" subscriptSizing="dynamic">
+    <input matInput #hue min="0" max="100" [value]="hueValue" (keyup)="onHueInputChange($event, hue.value)">
+    <span matSuffix>%</span>
+  </mat-form-field>
 </div>

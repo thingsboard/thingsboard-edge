@@ -210,15 +210,15 @@ import { TemplateAutocompleteComponent } from '@shared/components/notification/t
 import { SlackConversationAutocompleteComponent } from '@shared/components/slack-conversation-autocomplete.component';
 import { DateAgoPipe } from '@shared/pipe/date-ago.pipe';
 import {
-  TbBreakPointsProvider,
-  MdLgLayoutDirective,
+  GtMdLgLayoutAlignDirective,
+  GtMdLgLayoutDirective,
+  GtMdLgLayoutGapDirective,
+  GtMdLgShowHideDirective,
   MdLgLayoutAlignDirective,
+  MdLgLayoutDirective,
   MdLgLayoutGapDirective,
   MdLgShowHideDirective,
-  GtMdLgLayoutDirective,
-  GtMdLgLayoutAlignDirective,
-  GtMdLgLayoutGapDirective,
-  GtMdLgShowHideDirective
+  TbBreakPointsProvider
 } from '@shared/layout/layout.directives';
 import { ColorPickerComponent } from '@shared/components/color-picker/color-picker.component';
 import { ThemeColorSelectComponent } from '@shared/components/theme-color-select.component';
@@ -251,6 +251,7 @@ import { EmbedImageDialogComponent } from '@shared/components/image/embed-image-
 import { ImageGalleryDialogComponent } from '@shared/components/image/image-gallery-dialog.component';
 import { RuleChainSelectPanelComponent } from '@shared/components/rule-chain/rule-chain-select-panel.component';
 import { WidgetButtonComponent } from '@shared/components/button/widget-button.component';
+import { HexInputComponent } from '@shared/components/color-picker/hex-input.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -470,7 +471,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     MultipleGalleryImageInputComponent,
     EmbedImageDialogComponent,
     ImageGalleryDialogComponent,
-    WidgetButtonComponent
+    WidgetButtonComponent,
+    HexInputComponent
   ],
   imports: [
     CommonModule,
