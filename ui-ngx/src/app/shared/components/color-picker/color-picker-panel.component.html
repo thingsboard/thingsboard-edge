@@ -31,7 +31,6 @@
 
 -->
 <div class="tb-color-picker-panel" [ngClass]="{'singleTab': !useThemePalette}">
-  <div class="tb-color-picker-title" translate>color.color</div>
   <mat-tab-group *ngIf="useThemePalette; else colorPicker"
                  [selectedIndex]="colorMode === 'color' ? 0 : (colorMode === 'primary' ? 1 : 2)" (selectedIndexChange)="selectedIndexChange($event)">
     <mat-tab label="{{ 'color.color-picker' | translate }}">
@@ -57,7 +56,7 @@
     </mat-tab>
   </mat-tab-group>
   <ng-template #colorPicker>
-    <tb-color-picker [formControl]="plainColorControl"></tb-color-picker>
+    <tb-color-picker class="tb-color-picker" [formControl]="plainColorControl"></tb-color-picker>
   </ng-template>
   <div class="tb-color-picker-panel-buttons">
     <button *ngIf="colorClearButton"
@@ -68,12 +67,21 @@
             [disabled]="!getColor()">
       {{ 'action.clear' | translate }}
     </button>
-    <button mat-raised-button
-            color="primary"
-            type="button"
-            (click)="selectColor()"
-            [disabled]="!valid || !dirty">
-      {{ 'action.select' | translate }}
-    </button>
+    <span fxFlex></span>
+    <div fxLayoutGap="8px">
+      <button *ngIf="colorCancelButton"
+              mat-button
+              type="button"
+              (click)="cancelColor()">
+        {{ 'action.cancel' | translate }}
+      </button>
+      <button mat-raised-button
+              color="primary"
+              type="button"
+              (click)="selectColor()"
+              [disabled]="!valid || !dirty">
+        {{ 'action.select' | translate }}
+      </button>
+    </div>
   </div>
 </div>
