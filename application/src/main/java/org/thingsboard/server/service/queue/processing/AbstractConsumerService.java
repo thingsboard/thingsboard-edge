@@ -92,7 +92,6 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
 
     protected final TbQueueConsumer<TbProtoQueueMsg<N>> nfConsumer;
     protected final JwtSettingsService jwtSettingsService;
-    protected final JwtTokenFactory jwtTokenFactory;
 
     public void init(String nfConsumerThreadName) {
         this.notificationsConsumerExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName(nfConsumerThreadName));
@@ -181,7 +180,6 @@ public abstract class AbstractConsumerService<N extends com.google.protobuf.Gene
         } else if (EntityType.TENANT.equals(componentLifecycleMsg.getEntityId().getEntityType())) {
             if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
                 jwtSettingsService.reloadJwtSettings();
-                jwtTokenFactory.reload();
                 return;
             } else {
                 tenantProfileCache.evict(tenantId);
