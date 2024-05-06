@@ -281,6 +281,13 @@ export class BlobEntitiesComponent extends PageComponent implements OnInit, Afte
     }
   }
 
+  onEditModeChanged() {
+    if (this.textSearchMode) {
+      this.ctx.hideTitlePanel = !this.ctx.isEdit;
+      this.ctx.detectChanges(true);
+    }
+  }
+
   resize() {}
 
   updateData() {

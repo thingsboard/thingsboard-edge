@@ -11,7 +11,7 @@
     "resources": [],
     "templateHtml": "<tb-blob-entities \n    [ctx]=\"ctx\"\n    widgetMode=\"true\">\n</tb-blob-entities>",
     "templateCss": "",
-    "controllerScript": "self.onInit = function() {\n}\n\nself.onResize = function() {\n    self.ctx.$scope.blobEntitiesWidget.resize();\n}\n\nself.onDestroy = function() {\n}\n",
+    "controllerScript": "self.onInit = function() {\n}\n\nself.onResize = function() {\n    self.ctx.$scope.blobEntitiesWidget.resize();\n}\n\nself.onDestroy = function() {\n}\n\nself.onEditModeChanged = function() {\n    self.ctx.$scope.blobEntitiesWidget.onEditModeChanged();\n}\n",
     "settingsSchema": "",
     "dataKeySettingsSchema": "",
     "settingsDirective": "tb-blob-entities-widget-settings",

@@ -305,6 +305,13 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     }
   }
 
+  onEditModeChanged() {
+    if (this.textSearchMode) {
+      this.ctx.hideTitlePanel = !this.ctx.isEdit;
+      this.ctx.detectChanges(true);
+    }
+  }
+
   displayBackButton(): boolean {
     return isDefinedAndNotNull(this.backNavigationCommands);
   }
