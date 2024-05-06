@@ -28,54 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../scss/constants";
+:host {
+  .hex-input-container {
+    display: flex;
+    gap: 8px;
+  }
+  .hex-input {
+    max-width: 190px;
+  }
+  .alpha-input {
+    min-width: 60px;
+    max-width: 60px;
+  }
 
-.tb-color-picker-panel {
-  width: 342px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  max-height: calc(100vh - 24px);
-  min-height: 100%;
-  @media #{$mat-sm} {
-    width: 578px;
-  }
-  &.singleTab {
-    width: 342px;
-    @media #{$mat-sm} {
-      width: 578px;
+  ::ng-deep {
+    .mdc-text-field--filled, .mat-mdc-form-field-focus-overlay {
+      &:before {
+        background-color: transparent !important;
+      }
     }
-  }
-  .tb-color-picker-title {
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 24px;
-    letter-spacing: 0.25px;
-    color: rgba(0, 0, 0, 0.87);
-  }
-  .mat-mdc-tab-body-wrapper {
-    height: 100%;
-  }
-  .mat-mdc-tab-group {
-    width: 100%;
-    overflow: auto;
-  }
-  .tb-color-picker-tab {
-    height: 100%;
-    padding: 8px 0 0;
-    display: flex;
-  }
-  .tb-color-picker {
-    padding-right: 4px;
-    overflow-y: scroll;
-  }
-  .tb-color-picker-panel-buttons {
-    height: 60px;
-    padding: 8px 8px 0 0;
-    display: flex;
-    flex-direction: row;
-    gap: 16px;
-    justify-content: space-between;
-    align-items: flex-end;
+    .mat-mdc-form-field-icon-prefix, .mdc-line-ripple, .copy-button {
+      opacity: 0.4;
+    }
+    .alpha-input {
+      .mat-mdc-text-field-wrapper {
+        padding-left: 0;
+      }
+    }
+
   }
 }
+
+
