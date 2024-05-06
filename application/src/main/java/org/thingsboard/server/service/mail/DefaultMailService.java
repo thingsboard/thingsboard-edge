@@ -119,7 +119,7 @@ public class DefaultMailService implements MailService {
     private WhiteLabelingService whiteLabelingService;
 
     @Autowired
-    private TbMailContextComponent tbMailContextComponent;
+    private TbMailContextComponent ctx;
 
     @Autowired
     private RateLimitService rateLimitService;
