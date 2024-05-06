@@ -2204,6 +2204,12 @@
                 <groupId>com.amazonaws</groupId>
                 <artifactId>amazon-kinesis-producer</artifactId>
                 <version>${amazon-kinesis-producer}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>software.amazon.kinesis</groupId>
