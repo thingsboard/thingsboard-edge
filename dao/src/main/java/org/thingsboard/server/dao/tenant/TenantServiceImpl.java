@@ -166,8 +166,12 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         TenantId tenantId = savedTenant.getId();
         publishEvictEvent(new TenantEvictEvent(tenantId, create));
 
-        if (create && defaultEntitiesCreator != null) {
-            defaultEntitiesCreator.accept(tenantId);
+        if (create) {
+            if (defaultEntitiesCreator != null) {
+                defaultEntitiesCreator.accept(tenantId);
+            } else {
+                entityGroupService.createDefaultTenantEntityGroups(tenantId);
+            }
         }
 
         eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId)

@@ -95,6 +95,7 @@ import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -240,6 +241,34 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         entityGroup.setName(EntityGroup.GROUP_ALL_NAME);
         entityGroup.setType(groupType);
         return saveEntityGroup(tenantId, parentEntityId, entityGroup);
+    }
+
+    @Transactional
+    @Override
+    public void createDefaultTenantEntityGroups(TenantId tenantId) {
+        createEntityGroupsAll(tenantId, tenantId);
+        findOrCreateTenantUsersGroup(tenantId);
+        findOrCreateTenantAdminsGroup(tenantId);
+    }
+
+    @Transactional
+    @Override
+    public void createDefaultCustomerEntityGroups(TenantId tenantId, Customer customer) {
+        createEntityGroupsAll(tenantId, customer.getId());
+        if (!customer.isPublic()) {
+            findOrCreateCustomerUsersGroup(tenantId, customer.getId(), customer.getParentCustomerId());
+            findOrCreateCustomerAdminsGroup(tenantId, customer.getId(), customer.getParentCustomerId());
+        } else {
+            findOrCreatePublicUsersGroup(tenantId, customer.getId());
+        }
+    }
+
+    private void createEntityGroupsAll(TenantId tenantId, EntityId parentEntityId) {
+        Arrays.stream(EntityType.values())
+                .filter(EntityType::isGroupEntityType)
+                .forEach(entityGroupType -> {
+                    createEntityGroupAll(tenantId, parentEntityId, entityGroupType);
+                });
     }
 
     @Override
@@ -731,16 +760,21 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }
     }
 
-    @Transactional
     @Override
     public void addEntityToEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityId entityId) {
         log.trace("Executing addEntityToEntityGroupAll, parentEntityId [{}], entityId [{}]", parentEntityId, entityId);
         validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
-
-        EntityGroup entityGroup = findEntityGroupByTypeAndName(tenantId, parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME)
-                .orElseGet(() -> createEntityGroupAll(tenantId, parentEntityId, entityId.getEntityType()));
-        addEntityToEntityGroup(tenantId, entityGroup.getId(), entityId);
+        try {
+            Optional<EntityGroup> entityGroup = findEntityGroupByTypeAndName(tenantId, parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME);
+            if (entityGroup.isPresent()) {
+                addEntityToEntityGroup(tenantId, entityGroup.get().getId(), entityId);
+            } else {
+                throw new DataValidationException("Group All of type " + entityId.getEntityType() + " is absent for entityId " + parentEntityId);
+            }
+        } catch (Exception e) {
+            log.error("Unable to add entity to group All", e);
+        }
     }
 
     @Override

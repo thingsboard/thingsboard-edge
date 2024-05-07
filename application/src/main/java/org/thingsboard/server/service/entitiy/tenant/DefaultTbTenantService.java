@@ -32,7 +32,6 @@ package org.thingsboard.server.service.entitiy.tenant;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -70,18 +69,7 @@ public class DefaultTbTenantService extends AbstractTbEntityService implements T
         Tenant savedTenant = tenantService.saveTenant(tenant, tenantId -> {
             installScripts.createDefaultRuleChains(tenantId);
             installScripts.createDefaultEdgeRuleChains(tenantId);
-
-            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.CUSTOMER);
-            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.ASSET);
-            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.DEVICE);
-            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.ENTITY_VIEW);
-            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.EDGE);
-            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.DASHBOARD);
-            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.USER);
-
-            entityGroupService.findOrCreateTenantUsersGroup(tenantId);
-            entityGroupService.findOrCreateTenantAdminsGroup(tenantId);
-
+            entityGroupService.createDefaultTenantEntityGroups(tenantId);
             installScripts.createDefaultTenantDashboards(tenantId, null);
         });
         tenantProfileCache.evict(savedTenant.getId());
