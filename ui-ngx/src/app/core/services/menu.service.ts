@@ -484,6 +484,12 @@ export class MenuService {
             icon: 'swap_calls',
             path: '/settings/queues',
             disabled: disabledItems.indexOf('resources_library') > -1
+          },
+          {
+            name: 'admin.mobile-app.mobile-app',
+            icon: 'smartphone',
+            path: '/settings/mobile-app',
+            disabled: disabledItems.indexOf('mobile-app') > -1
           }
         ]
       },
