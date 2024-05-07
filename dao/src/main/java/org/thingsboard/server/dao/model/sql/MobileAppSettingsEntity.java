@@ -36,6 +36,7 @@ import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.id.MobileAppSettingsId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -50,6 +51,7 @@ import org.thingsboard.server.dao.util.mapping.JsonConverter;
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @Entity
 @Table(name = ModelConstants.MOBILE_APP_SETTINGS_TABLE_NAME)
@@ -77,9 +79,7 @@ public class MobileAppSettingsEntity extends BaseSqlEntity<MobileAppSettings> {
     private JsonNode qrCodeConfig;
 
     public MobileAppSettingsEntity(MobileAppSettings mobileAppSettings) {
-        if (mobileAppSettings.getId() != null) {
-            this.setId(mobileAppSettings.getId().getId());
-        }
+        this.setId(mobileAppSettings.getUuidId());
         this.setCreatedTime(mobileAppSettings.getCreatedTime());
         this.tenantId = mobileAppSettings.getTenantId().getId();
         this.useSystemSettings = mobileAppSettings.isUseSystemSettings();
@@ -87,7 +87,7 @@ public class MobileAppSettingsEntity extends BaseSqlEntity<MobileAppSettings> {
         this.androidConfig = toJson(mobileAppSettings.getAndroidConfig());
         this.iosConfig = toJson(mobileAppSettings.getIosConfig());
         this.qrCodeConfig = toJson(mobileAppSettings.getQrCodeConfig());
-   }
+    }
 
     @Override
     public MobileAppSettings toData() {
@@ -101,4 +101,5 @@ public class MobileAppSettingsEntity extends BaseSqlEntity<MobileAppSettings> {
         mobileAppSettings.setQrCodeConfig(fromJson(qrCodeConfig, QRCodeConfig.class));
         return mobileAppSettings;
     }
+
 }
