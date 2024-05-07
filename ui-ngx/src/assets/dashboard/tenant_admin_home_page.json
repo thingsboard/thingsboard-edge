@@ -1180,46 +1180,46 @@
         "id": "c7d37465-9a6a-ab96-4fc8-791fb86ec8ac"
       },
       "b9d704a2-f579-dbff-f123-f953d92081fd": {
-          "typeFullFqn": "system.home_page_widgets.home_mobile_app_qr_code",
-          "type": "static",
-          "sizeX": 6,
-          "sizeY": 3,
-          "config": {
-              "datasources": [
-                  {
-                      "type": "static",
-                      "name": "function",
-                      "dataKeys": [
-                          {
-                              "name": "f(x)",
-                              "type": "function",
-                              "label": "Random",
-                              "color": "#2196f3",
-                              "settings": {},
-                              "_hash": 0.15479322438769105,
-                              "funcBody": "var value = prevValue + Math.random() * 100 - 50;\nvar multiplier = Math.pow(10, 2 || 0);\nvar value = Math.round(value * multiplier) / multiplier;\nif (value < -1000) {\n\tvalue = -1000;\n} else if (value > 1000) {\n\tvalue = 1000;\n}\nreturn value;"
-                          }
-                      ]
-                  }
-              ],
-              "timewindow": {
-                  "realtime": {
-                      "timewindowMs": 60000
-                  }
-              },
-              "showTitle": false,
-              "backgroundColor": "rgb(255, 255, 255)",
-              "color": "rgba(0, 0, 0, 0.87)",
-              "padding": "8px",
-              "settings": {},
-              "title": "Mobile app QR code",
-              "dropShadow": false,
-              "enableFullscreen": false,
-              "enableDataExport": false
+        "typeFullFqn": "system.home_page_widgets.home_mobile_app_qr_code",
+        "type": "static",
+        "sizeX": 6,
+        "sizeY": 3,
+        "config": {
+          "datasources": [
+            {
+              "type": "static",
+              "name": "function",
+              "dataKeys": [
+                {
+                  "name": "f(x)",
+                  "type": "function",
+                  "label": "Random",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.15479322438769105,
+                  "funcBody": "var value = prevValue + Math.random() * 100 - 50;\nvar multiplier = Math.pow(10, 2 || 0);\nvar value = Math.round(value * multiplier) / multiplier;\nif (value < -1000) {\n\tvalue = -1000;\n} else if (value > 1000) {\n\tvalue = 1000;\n}\nreturn value;"
+                }
+              ]
+            }
+          ],
+          "timewindow": {
+            "realtime": {
+              "timewindowMs": 60000
+            }
           },
-          "row": 0,
-          "col": 0,
-          "id": "b9d704a2-f579-dbff-f123-f953d92081fd"
+          "showTitle": false,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {},
+          "title": "Mobile app QR code",
+          "dropShadow": false,
+          "enableFullscreen": false,
+          "enableDataExport": false
+        },
+        "row": 0,
+        "col": 0,
+        "id": "b9d704a2-f579-dbff-f123-f953d92081fd"
       }
     },
     "states": {
@@ -1246,7 +1246,7 @@
               },
               "a23185ad-dc46-806c-0e50-5b21fb080ace": {
                 "sizeX": 35,
-                "sizeY": 42,
+                "sizeY": 44,
                 "row": 0,
                 "col": 85,
                 "mobileHide": true
@@ -1300,8 +1300,8 @@
               },
               "b9d704a2-f579-dbff-f123-f953d92081fd": {
                 "sizeX": 35,
-                "sizeY": 16,
-                "row": 42,
+                "sizeY": 14,
+                "row": 44,
                 "col": 85
               }
             },

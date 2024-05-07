@@ -352,6 +352,13 @@ export class MenuService {
         type: 'link',
         path: '/settings/queues',
         icon: 'swap_calls'
+      },
+      {
+        id: 'mobile-app',
+        name: 'admin.mobile-app.mobile-app',
+        type: 'link',
+        path: '/settings/mobile-app',
+        icon: 'smartphone'
       }
     ];
 
