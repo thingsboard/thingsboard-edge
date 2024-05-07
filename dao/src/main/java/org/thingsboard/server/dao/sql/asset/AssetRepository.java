@@ -35,7 +35,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.AssetEntity;
@@ -50,8 +49,8 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, Expor
 
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
             "AND (:textSearch IS NULL OR ilike(a.name, CONCAT('%', :textSearch, '%')) = true " +
-            "OR ilike(a.label, CONCAT('%', :textSearch, '%')) = true " +
-            "OR ilike(a.type, CONCAT('%', :textSearch, '%')) = true) ")
+            "  OR ilike(a.label, CONCAT('%', :textSearch, '%')) = true " +
+            "  OR ilike(a.type, CONCAT('%', :textSearch, '%')) = true)")
     Page<AssetEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                      @Param("textSearch") String textSearch,
                                      Pageable pageable);
@@ -59,8 +58,8 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, Expor
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
             "AND a.customerId = :customerId " +
             "AND (:textSearch IS NULL OR ilike(a.name, CONCAT('%', :textSearch, '%')) = true " +
-            "OR ilike(a.label, CONCAT('%', :textSearch, '%')) = true " +
-            "OR ilike(a.type, CONCAT('%', :textSearch, '%')) = true) ")
+            "  OR ilike(a.label, CONCAT('%', :textSearch, '%')) = true " +
+            "  OR ilike(a.type, CONCAT('%', :textSearch, '%')) = true)")
     Page<AssetEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                   @Param("customerId") UUID customerId,
                                                   @Param("textSearch") String textSearch,
@@ -125,7 +124,7 @@ public interface AssetRepository extends JpaRepository<AssetEntity, UUID>, Expor
     @Query("SELECT a FROM AssetEntity a WHERE a.tenantId = :tenantId " +
             "AND a.type = :type " +
             "AND (:textSearch IS NULL OR ilike(a.name, CONCAT('%', :textSearch, '%')) = true " +
-            "OR ilike(a.label, CONCAT('%', :textSearch, '%')) = true) ")
+            "  OR ilike(a.label, CONCAT('%', :textSearch, '%')) = true)")
     Page<AssetEntity> findByTenantIdAndType(@Param("tenantId") UUID tenantId,
                                             @Param("type") String type,
                                             @Param("textSearch") String textSearch,
