@@ -138,7 +138,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
         edrxCycle: [{disabled: true, value: 0}, Validators.required],
         psmActivityTimer: [{disabled: true, value: 0}, Validators.required],
         pagingTransmissionWindow: [{disabled: true, value: 0}, Validators.required],
-        defaultObjectIDVer: [ObjectIDVer.V1_1, Validators.required]
+        defaultObjectIDVer: [ObjectIDVer.V1_0, Validators.required]
       })
     });
 
@@ -297,7 +297,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
           pagingTransmissionWindow:
             this.configurationValue.clientLwM2mSettings.pagingTransmissionWindow || DEFAULT_PAGING_TRANSMISSION_WINDOW,
           psmActivityTimer: this.configurationValue.clientLwM2mSettings.psmActivityTimer || DEFAULT_PSM_ACTIVITY_TIMER,
-          defaultObjectIDVer: this.configurationValue.clientLwM2mSettings.defaultObjectIDVer || ObjectIDVer.V1_1
+          defaultObjectIDVer: this.configurationValue.clientLwM2mSettings.defaultObjectIDVer || ObjectIDVer.V1_0
         }
       },
       {emitEvent: false});
