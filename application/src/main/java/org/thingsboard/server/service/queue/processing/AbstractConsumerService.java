@@ -63,6 +63,8 @@ import org.thingsboard.server.queue.util.TbPackProcessingContext;
 import org.thingsboard.server.service.security.auth.jwt.settings.JwtSettingsService;
 
 import jakarta.annotation.PreDestroy;
+import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
+
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;

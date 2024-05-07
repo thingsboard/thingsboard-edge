@@ -28,36 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
+package org.thingsboard.server.service.mail;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+import org.thingsboard.common.util.AbstractListeningExecutor;
 
-public interface SystemDataLoaderService {
+/**
+ * Executor have the sole purpose to send mails. It should be used only by Mail Service.
+ * For other purposes please use the MailExecutorService component
+ * */
+@Component
+public class MailSenderInternalExecutorService extends AbstractListeningExecutor {
 
-    void createSysAdmin() throws Exception;
+    @Value("${actors.rule.mail_thread_pool_size}")
+    private int mailExecutorThreadPoolSize;
 
-    void createDefaultTenantProfiles() throws Exception;
-
-    void createAdminSettings() throws Exception;
-
-    void createRandomJwtSettings() throws Exception;
-
-    void updateJwtSettings() throws Exception;
-
-    void loadMailTemplates() throws Exception;
-
-    void updateMailTemplates(JsonNode value) throws Exception;
-
-    void createOAuth2Templates() throws Exception;
-
-    void loadSystemWidgets() throws Exception;
-
-    void loadDemoData() throws Exception;
-
-    void createQueues();
-
-    void createDefaultNotificationConfigs();
-
-    void updateDefaultNotificationConfigs(boolean updateTenants);
+    @Override
+    protected int getThreadPollSize() {
+        return mailExecutorThreadPoolSize;
+    }
 
 }

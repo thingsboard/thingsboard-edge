@@ -207,7 +207,8 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         NotificationRuleProcessor notificationRuleProcessor,
                                         TbImageService imageService,
                                         TbTranslationService translationService) {
-        super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, statsService, partitionService, eventPublisher, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer(), jwtSettingsService);
+        super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, statsService, partitionService,
+                eventPublisher, tbCoreQueueFactory.createToCoreNotificationsMsgConsumer(), jwtSettingsService);
         this.mainConsumer = tbCoreQueueFactory.createToCoreMsgConsumer();
         this.usageStatsConsumer = tbCoreQueueFactory.createToUsageStatsServiceMsgConsumer();
         this.firmwareStatesConsumer = tbCoreQueueFactory.createToOtaPackageStateServiceMsgConsumer();

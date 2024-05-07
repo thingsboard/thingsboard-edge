@@ -28,36 +28,18 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
+package org.thingsboard.server.common.data.exception;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.limit.LimitedApi;
 
-public interface SystemDataLoaderService {
+public class RateLimitExceededException extends AbstractRateLimitException {
 
-    void createSysAdmin() throws Exception;
+    public RateLimitExceededException(String message) {
+        super(message);
+    }
 
-    void createDefaultTenantProfiles() throws Exception;
-
-    void createAdminSettings() throws Exception;
-
-    void createRandomJwtSettings() throws Exception;
-
-    void updateJwtSettings() throws Exception;
-
-    void loadMailTemplates() throws Exception;
-
-    void updateMailTemplates(JsonNode value) throws Exception;
-
-    void createOAuth2Templates() throws Exception;
-
-    void loadSystemWidgets() throws Exception;
-
-    void loadDemoData() throws Exception;
-
-    void createQueues();
-
-    void createDefaultNotificationConfigs();
-
-    void updateDefaultNotificationConfigs(boolean updateTenants);
+    public RateLimitExceededException(LimitedApi api) {
+        super("Rate limit for " + api.getLabel() + " is exceeded");
+    }
 
 }
