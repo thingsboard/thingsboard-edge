@@ -266,7 +266,7 @@ public class MqttClientTest extends AbstractContainerTest {
         sharedAttributes.addProperty(sharedAttributeName, sharedAttributeValue);
         JsonNode sharedAttribute = JacksonUtil.toJsonNode(sharedAttributes.toString());
 
-        testRestClient.postTelemetryAttribute(DEVICE, device.getId(), SHARED_SCOPE, sharedAttribute);
+        testRestClient.postTelemetryAttribute(DataConstants.DEVICE, device.getId(), SHARED_SCOPE, sharedAttribute);
 
         MqttEvent event = listener.getEvents().poll(10 * timeoutMultiplier, TimeUnit.SECONDS);
         assertThat(JacksonUtil.fromString(Objects.requireNonNull(event).getMessage(), JsonNode.class).get(sharedAttributeName).asText())
