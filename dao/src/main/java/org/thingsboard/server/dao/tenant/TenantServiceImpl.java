@@ -176,17 +176,6 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         if (create) {
             deviceProfileService.createDefaultDeviceProfile(tenantId);
             assetProfileService.createDefaultAssetProfile(tenantId);
-
-            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.CUSTOMER);
-            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.ASSET);
-            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.DEVICE);
-            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.ENTITY_VIEW);
-            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.EDGE);
-            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.DASHBOARD);
-            entityGroupService.createEntityGroupAll(tenantId, tenantId, EntityType.USER);
-
-            entityGroupService.findOrCreateTenantUsersGroup(tenantId);
-            entityGroupService.findOrCreateTenantAdminsGroup(tenantId);
             apiUsageStateService.createDefaultApiUsageState(tenantId, null);
             notificationSettingsService.createDefaultNotificationConfigs(tenantId);
         }

@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -730,21 +731,16 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }
     }
 
+    @Transactional
     @Override
     public void addEntityToEntityGroupAll(TenantId tenantId, EntityId parentEntityId, EntityId entityId) {
         log.trace("Executing addEntityToEntityGroupAll, parentEntityId [{}], entityId [{}]", parentEntityId, entityId);
         validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
-        try {
-            Optional<EntityGroup> entityGroup = findEntityGroupByTypeAndName(tenantId, parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME);
-            if (entityGroup.isPresent()) {
-                addEntityToEntityGroup(tenantId, entityGroup.get().getId(), entityId);
-            } else {
-                throw new DataValidationException("Group All of type " + entityId.getEntityType() + " is absent for entityId " + parentEntityId);
-            }
-        } catch (Exception e) {
-            log.error("Unable to add entity to group All", e);
-        }
+
+        EntityGroup entityGroup = findEntityGroupByTypeAndName(tenantId, parentEntityId, entityId.getEntityType(), EntityGroup.GROUP_ALL_NAME)
+                .orElseGet(() -> createEntityGroupAll(tenantId, parentEntityId, entityId.getEntityType()));
+        addEntityToEntityGroup(tenantId, entityGroup.getId(), entityId);
     }
 
     @Override
