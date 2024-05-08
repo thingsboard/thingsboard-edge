@@ -28,21 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host(.tb-hint-tooltip) {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 4px;
-}
-
 :host {
-  .tb-hint-tooltip-icon {
-    color: #E0E0E0;
-    overflow: visible;
-    order: 3;
-    margin-left: 4px;
-    &:hover {
-      color: #9E9E9E;
+  .tb-mapping-keys-panel {
+    width: 77vw;
+    max-width: 700px;
+
+    .title-container {
+      max-width: 11vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap
+    }
+
+    .key-panel {
+      height: 500px;
+      overflow: auto;
+    }
+
+    tb-value-input {
+      width: 100%;
+    }
+
+    .tb-form-panel {
+      .mat-mdc-icon-button {
+        width: 56px;
+        height: 56px;
+        padding: 16px;
+        color: rgba(0, 0, 0, 0.54);
+      }
+    }
+
+    .see-example {
+      width: 32px;
+      height: 32px;
+      margin: 4px;
     }
   }
 }
+
+:host ::ng-deep {
+  .mat-mdc-form-field-icon-suffix {
+    display: flex;
+  }
+}
+

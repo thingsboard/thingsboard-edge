@@ -28,21 +28,63 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host(.tb-hint-tooltip) {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 4px;
+:host {
+  display: grid;
+  height: 100%;
+
+  .key-mapping {
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+
+    .mat-toolbar {
+      min-height: 64px;
+    }
+
+    tb-toggle-select {
+      padding: 4px 0;
+    }
+  }
+
+  .mat-mdc-dialog-content {
+    max-height: 670px;
+    height: 670px;
+  }
+
+  .ellipsis-chips-container {
+    max-width: 70%;
+  }
 }
 
-:host {
-  .tb-hint-tooltip-icon {
-    color: #E0E0E0;
-    overflow: visible;
-    order: 3;
-    margin-left: 4px;
-    &:hover {
-      color: #9E9E9E;
+:host ::ng-deep {
+  .key-mapping {
+    .mat-mdc-chip-listbox {
+      .mdc-evolution-chip-set__chips {
+        justify-content: flex-end;
+        align-items: center;
+      }
     }
+  }
+  .tb-form-row {
+    .fixed-title-width {
+      min-width: 40px;
+      width: 35%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mat-mdc-form-field {
+      width: 0;
+    }
+  }
+
+  .see-example {
+    width: 32px;
+    height: 32px;
+    margin: 4px;
+  }
+
+  .mat-mdc-form-field-icon-suffix {
+    display: flex;
   }
 }
