@@ -102,6 +102,7 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.common.consumer.QueueConsumerManager;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.discovery.QueueKey;
+import org.thingsboard.server.queue.discovery.event.PartitionChangeEvent;
 import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.queue.util.TbPackCallback;
@@ -186,7 +187,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private MainQueueConsumerManager<TbProtoQueueMsg<ToCoreMsg>, CoreQueueConfig> mainConsumer;
     private QueueConsumerManager<TbProtoQueueMsg<ToUsageStatsServiceMsg>> usageStatsConsumer;
     private QueueConsumerManager<TbProtoQueueMsg<ToOtaPackageStateServiceMsg>> firmwareStatesConsumer;
-    private final TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> integrationApiConsumer;
+    private QueueConsumerManager<TbProtoQueueMsg<ToCoreIntegrationMsg>> integrationApiConsumer;
 
     private volatile ListeningExecutorService deviceActivityEventsExecutor;
 
@@ -196,7 +197,9 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbCoreDeviceRpcService tbCoreDeviceRpcService,
                                         TbIntegrationDownlinkService downlinkService, IntegrationManagerService integrationManagerService,
                                         RuleEngineCallService ruleEngineCallService, StatsFactory statsFactory, TbDeviceProfileCache deviceProfileCache,
-                                        TbAssetProfileCache assetProfileCache, TbTenantProfileCache tenantProfileCache, TbApiUsageStateService statsService,
+                                        TbAssetProfileCache assetProfileCache,
+                                        TbApiUsageStateService apiUsageStateService,
+                                        TbTenantProfileCache tenantProfileCache,
                                         EdgeNotificationService edgeNotificationService,
                                         OtaPackageStateService firmwareStateService,
                                         GitVersionControlQueueService vcQueueService,
@@ -260,7 +263,14 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                 .consumerExecutor(consumersExecutor)
                 .threadPrefix("firmware")
                 .build();
-        // todo: tb-core-integrations-consumer
+        this.integrationApiConsumer = QueueConsumerManager.<TbProtoQueueMsg<ToCoreIntegrationMsg>>builder()
+                .name("TB Integration Api")
+                .msgPackProcessor(this::processIntegrationMsgs)
+                .pollInterval(pollInterval)
+                .consumerCreator(queueFactory::createToCoreIntegrationMsgConsumer)
+                .consumerExecutor(consumersExecutor)
+                .threadPrefix("integration-api")
+                .build();
     }
 
     @PreDestroy
@@ -277,13 +287,19 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         firmwareStatesConsumer.subscribe();
         firmwareStatesConsumer.launch();
         usageStatsConsumer.launch();
-        launchIntegrationApiConsumer();
-        this.integrationApiConsumer.subscribe(
-                event
-                        .getPartitions()
-                        .stream()
-                        .map(tpi -> tpi.newByTopic(integrationApiConsumer.getTopic()))
-                        .collect(Collectors.toSet()));
+        integrationApiConsumer.launch();
+    }
+
+    @Override
+    protected void onTbApplicationEvent(PartitionChangeEvent event) {
+        log.info("Subscribing to partitions: {}", event.getPartitions());
+        mainConsumer.update(event.getPartitions());
+        usageStatsConsumer.subscribe(event.getPartitions().stream()
+                .map(tpi -> tpi.newByTopic(usageStatsConsumer.getConsumer().getTopic()))
+                .collect(Collectors.toSet()));
+        integrationApiConsumer.subscribe(event.getPartitions().stream()
+                .map(tpi -> tpi.newByTopic(integrationApiConsumer.getConsumer().getTopic()))
+                .collect(Collectors.toSet()));
     }
 
     private void processMsgs(List<TbProtoQueueMsg<ToCoreMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToCoreMsg>> consumer, CoreQueueConfig config) throws Exception {
@@ -514,36 +530,16 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         consumer.commit();
     }
 
-    private void launchIntegrationApiConsumer() {
-        integrationApiExecutor.submit(() -> {
-            while (!stopped) {
-                try {
-                    List<TbProtoQueueMsg<ToCoreIntegrationMsg>> msgs = integrationApiConsumer.poll(getNotificationPollDuration());
-                    if (msgs.isEmpty()) {
-                        continue;
-                    }
-                    for (TbProtoQueueMsg<ToCoreIntegrationMsg> msg : msgs) {
-                        try {
-                            // TODO: ashvayka: improve the retry strategy.
-                            tbCoreIntegrationApiService.handle(msg, TbCallback.EMPTY);
-                        } catch (Throwable e) {
-                            log.warn("Failed to process integration msg: {}", msg, e);
-                        }
-                    }
-                    integrationApiConsumer.commit();
-                } catch (Exception e) {
-                    if (!stopped) {
-                        log.warn("Failed to obtain usage stats from queue.", e);
-                        try {
-                            Thread.sleep(getNotificationPollDuration());
-                        } catch (InterruptedException e2) {
-                            log.trace("Failed to wait until the server has capacity to handle new usage stats", e2);
-                        }
-                    }
-                }
+    private void processIntegrationMsgs(List<TbProtoQueueMsg<ToCoreIntegrationMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToCoreIntegrationMsg>> consumer) {
+        for (TbProtoQueueMsg<ToCoreIntegrationMsg> msg : msgs) {
+            try {
+                // TODO: ashvayka: improve the retry strategy.
+                tbCoreIntegrationApiService.handle(msg, TbCallback.EMPTY);
+            } catch (Throwable e) {
+                log.warn("Failed to process integration msg: {}", msg, e);
             }
-            log.info("TB Usage Stats Consumer stopped.");
-        });
+        }
+        consumer.commit();
     }
 
     private void handleUsageStats(TbProtoQueueMsg<ToUsageStatsServiceMsg> msg, TbCallback callback) {
@@ -862,7 +858,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         mainConsumer.awaitStop();
         usageStatsConsumer.stop();
         firmwareStatesConsumer.stop();
-//        integrationApiConsumer.stop();
+        integrationApiConsumer.stop();
     }
 
     @Data(staticConstructor = "of")
