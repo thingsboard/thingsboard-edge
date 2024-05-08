@@ -372,7 +372,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                     log.warn("[{}] Failed to process message: {}", id, msg, e);
                     callback.onFailure(e);
                 }
-                callback.onSuccess();
             });
         });
         if (!processingTimeoutLatch.await(packProcessingTimeout, TimeUnit.MILLISECONDS)) {
