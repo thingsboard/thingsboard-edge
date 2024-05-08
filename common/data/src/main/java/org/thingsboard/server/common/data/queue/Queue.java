@@ -46,7 +46,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 import java.util.Optional;
 
 @Data
-public class Queue extends BaseDataWithAdditionalInfo<QueueId> implements HasName, TenantEntity {
+public class Queue extends BaseDataWithAdditionalInfo<QueueId> implements HasName, TenantEntity, QueueConfig {
     private TenantId tenantId;
     @NoXss
     @Length(fieldName = "name")

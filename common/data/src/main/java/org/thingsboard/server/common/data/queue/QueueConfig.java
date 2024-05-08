@@ -28,57 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.queue.ruleengine;
+package org.thingsboard.server.common.data.queue;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
-import org.thingsboard.server.queue.TbQueueConsumer;
-import org.thingsboard.server.queue.TbQueueMsg;
+public interface QueueConfig {
 
-import java.util.Set;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+    boolean isConsumerPerPartition();
 
-@RequiredArgsConstructor
-@Slf4j
-public class TbQueueConsumerTask<M extends TbQueueMsg> {
-
-    @Getter
-    private final Object key;
-    @Getter
-    private final TbQueueConsumer<M> consumer;
-
-    @Setter
-    private Future<?> task;
-
-    public void subscribe(Set<TopicPartitionInfo> partitions) {
-        log.trace("[{}] Subscribing to partitions: {}", key, partitions);
-        consumer.subscribe(partitions);
-    }
-
-    public void initiateStop() {
-        log.debug("[{}] Initiating stop", key);
-        consumer.stop();
-    }
-
-    public void awaitCompletion() {
-        log.trace("[{}] Awaiting finish", key);
-        if (isRunning()) {
-            try {
-                task.get(30, TimeUnit.SECONDS);
-                log.trace("[{}] Awaited finish", key);
-            } catch (Exception e) {
-                log.warn("[{}] Failed to await for consumer to stop", key, e);
-            }
-            task = null;
-        }
-    }
-
-    public boolean isRunning() {
-        return task != null;
-    }
+    int getPollInterval();
 
 }
