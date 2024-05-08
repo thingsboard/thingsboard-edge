@@ -170,7 +170,7 @@ public class SystemInfoController extends BaseController {
             systemParams.setMaxResourceSize(tenantProfileConfiguration.getMaxResourceSize());
         }
         systemParams.setAvailableLocales(translationService.getAvailableLocaleCodes(tenantId, customerId));
-        systemParams.setMobileQrEnabled(Optional.ofNullable(mobileAppSettingsService.getMobileAppSettings(TenantId.SYS_TENANT_ID))
+        systemParams.setMobileQrEnabled(Optional.ofNullable(mobileAppSettingsService.getMergedMobileAppSettings(tenantId))
                 .map(MobileAppSettings::getQrCodeConfig).map(QRCodeConfig::isShowOnHomePage)
                 .orElse(false));
         return systemParams;
