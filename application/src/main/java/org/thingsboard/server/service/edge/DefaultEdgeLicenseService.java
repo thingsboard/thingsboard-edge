@@ -81,18 +81,29 @@ public class DefaultEdgeLicenseService implements EdgeLicenseService {
 
     @Override
     public ResponseEntity<JsonNode> checkInstance(JsonNode request) {
+        log.trace("checkInstance [{}]", request);
         var headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        return this.restTemplate.postForEntity(EDGE_LICENSE_SERVER_ENDPOINT + "/api/license/checkInstance",
+        ResponseEntity<JsonNode> response =  this.restTemplate.postForEntity(
+                EDGE_LICENSE_SERVER_ENDPOINT + "/api/license/checkInstance",
                 new HttpEntity<>(request, headers), JsonNode.class);
+        log.trace("checkInstance response: {}", response);
+        // removing headers from response of the license server, because it might be a conflict with the proxy from we are accepting incoming connections
+        return new ResponseEntity<JsonNode>(response.getBody(), response.getStatusCode());
     }
 
     @Override
     public ResponseEntity<JsonNode> activateInstance(String edgeLicenseSecret, String releaseDate) {
+        log.trace("activateInstance [{}][{}]", edgeLicenseSecret, releaseDate);
         Map<String, String> params = new HashMap<>();
         params.put("licenseSecret", edgeLicenseSecret);
         params.put("releaseDate", releaseDate);
-        return this.restTemplate.postForEntity(EDGE_LICENSE_SERVER_ENDPOINT + "/api/license/activateInstance?licenseSecret={licenseSecret}&releaseDate={releaseDate}", null, JsonNode.class, params);
+        ResponseEntity<JsonNode> response = this.restTemplate.postForEntity(
+                EDGE_LICENSE_SERVER_ENDPOINT + "/api/license/activateInstance?licenseSecret={licenseSecret}&releaseDate={releaseDate}",
+                null, JsonNode.class, params);
+        log.trace("activateInstance response: {}", response);
+        // removing headers from response of the license server, because it might be a conflict with the proxy from we are accepting incoming connections
+        return new ResponseEntity<JsonNode>(response.getBody(), response.getStatusCode());
     }
 
     private RestTemplate initRestTemplate() {

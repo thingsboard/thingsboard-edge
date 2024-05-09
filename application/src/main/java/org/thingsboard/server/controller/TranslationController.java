@@ -84,7 +84,7 @@ import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_COD
 @RequiredArgsConstructor
 public class TranslationController extends BaseController {
 
-    public static final List<String> LOCALE_CODES_TO_EXCLUDE = Arrays.asList("ru_UA", "ccp_IN");
+    public static final List<String> LOCALE_CODES_TO_EXCLUDE = Arrays.asList("ru_UA", "ccp_IN", "ccp_BD", "ii_CH", "sat_IN");
 
     private static final String CUSTOM_TRANSLATION_INFO_EXAMPLE = "\n\n" +
             MARKDOWN_CODE_BLOCK_START +
@@ -197,7 +197,6 @@ public class TranslationController extends BaseController {
             @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
             @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader,
             HttpServletResponse response) throws Exception {
-        checkWhiteLabelingPermissions(Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
         CustomerId customerId = getCurrentUser().getCustomerId();
 
