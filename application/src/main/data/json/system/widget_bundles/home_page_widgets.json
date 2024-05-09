@@ -15,6 +15,6 @@
     "home_page_widgets.dashboards",
     "home_page_widgets.usage_info",
     "home_page_widgets.solution_templates",
-    "home_page_widgets.home_mobile_app_qr_code"
+    "home_page_widgets.home_page_mobile_app_qr_code"
   ]
 }
