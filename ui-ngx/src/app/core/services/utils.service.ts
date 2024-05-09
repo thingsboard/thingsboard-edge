@@ -45,7 +45,7 @@ import {
   guid,
   hashCode,
   isDefined,
-  isDefinedAndNotNull, isNotEmptyStr,
+  isDefinedAndNotNull,
   isString,
   isUndefined,
   objToBase64,

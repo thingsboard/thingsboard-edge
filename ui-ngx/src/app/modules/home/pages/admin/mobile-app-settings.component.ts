@@ -44,6 +44,7 @@ import {
   badgeStyleTranslationsMap,
   MobileAppQRCodeSettings
 } from '@shared/models/mobile-app.models';
+import { AuthService } from '@core/auth/auth.service';
 
 @Component({
   selector: 'tb-mobile-app-settings',
@@ -63,7 +64,7 @@ export class MobileAppSettingsComponent extends PageComponent implements HasConf
 
   constructor(protected store: Store<AppState>,
               private mobileAppService: MobileAppService,
-              public fb: FormBuilder) {
+              private fb: FormBuilder) {
     super(store);
     this.buildMobileAppSettingsForm();
     this.mobileAppService.getMobileAppSettings()
