@@ -41,7 +41,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.server.common.data.DataConstants;
@@ -96,7 +95,6 @@ public class HashPartitionServiceTest {
     private TenantRoutingInfoService routingInfoService;
     private ApplicationEventPublisher applicationEventPublisher;
     private QueueRoutingInfoService queueRoutingInfoService;
-    @SpyBean
     private TbQueueIntegrationExecutorSettings integrationExecutorSettings;
     private TopicService topicService;
 
