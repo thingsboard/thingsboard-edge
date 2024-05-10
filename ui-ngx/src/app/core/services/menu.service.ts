@@ -1370,6 +1370,14 @@ export class MenuService {
         icon: 'settings_backup_restore'
       });
     }
+    settingPages.push({
+      id: 'mobile-app',
+      name: 'admin.mobile-app.mobile-app',
+      fullName: 'admin.mobile-app.mobile-app',
+      type: 'link',
+      path: '/settings/mobile-app',
+      icon: 'smartphone'
+    });
     if (settingPages.length) {
       sections.push({
         id: 'settings',

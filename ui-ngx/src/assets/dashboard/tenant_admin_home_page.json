@@ -1194,7 +1194,7 @@
           "iconColor": "rgba(0, 0, 0, 0.87)",
           "iconSize": "24px",
           "titleTooltip": "",
-          "dropShadow": true,
+          "dropShadow": false,
           "enableFullscreen": false,
           "widgetStyle": {
             "border": "none",
@@ -1210,7 +1210,8 @@
           "displayTimewindow": true,
           "widgetCss": "",
           "pageSize": 1024,
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1241,7 +1242,8 @@
           "widgetCss": "",
           "pageSize": 1024,
           "noDataDisplayMessage": "",
-          "showLegend": false
+          "showLegend": false,
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -1313,13 +1315,6 @@
                 "col": 28,
                 "mobileHide": true
               },
-              "a23185ad-dc46-806c-0e50-5b21fb080ace": {
-                "sizeX": 35,
-                "sizeY": 44,
-                "row": 0,
-                "col": 85,
-                "mobileHide": true
-              },
               "ebbd0a6e-8a47-e770-5086-7f4974250f2d": {
                 "sizeX": 28,
                 "sizeY": 14,
@@ -1367,18 +1362,12 @@
                 "mobileOrder": 3,
                 "mobileHeight": 7
               },
-              "b9d704a2-f579-dbff-f123-f953d92081fd": {
-                "sizeX": 35,
-                "sizeY": 14,
-                "row": 44,
-                "col": 85
-              },
               "35bda856-2495-4f72-e35e-925bac8b8da7": {
                 "sizeX": 35,
                 "sizeY": 58,
                 "row": 0,
                 "col": 85,
-                "mobileHide": false,
+                "mobileHide": true,
                 "mobileHeight": 10
               }
             },
@@ -1458,15 +1447,15 @@
             "widgets": {
               "ed33e56f-293b-aaaa-ad19-0cf499dc926f": {
                 "sizeX": 120,
-                "sizeY": 45,
+                "sizeY": 47,
                 "row": 0,
                 "col": 0,
                 "mobileHide": true
               },
               "8c5207d8-7103-4dc2-db48-d61c0c8c61fd": {
                 "sizeX": 120,
-                "sizeY": 17,
-                "row": 45,
+                "sizeY": 15,
+                "row": 47,
                 "col": 0
               }
             },

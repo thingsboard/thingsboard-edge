@@ -33,6 +33,7 @@ import { TenantId } from '@shared/models/id/tenant-id';
 
 export interface MobileAppQRCodeSettings {
   tenantId: TenantId;
+  useSystemSettings: boolean;
   useDefaultApp: boolean;
   androidConfig: AndroidConfig;
   iosConfig: IosConfig;

@@ -44,7 +44,9 @@ import {
   badgeStyleTranslationsMap,
   MobileAppQRCodeSettings
 } from '@shared/models/mobile-app.models';
-import { AuthService } from '@core/auth/auth.service';
+import { AuthUser } from '@shared/models/user.model';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
 
 @Component({
   selector: 'tb-mobile-app-settings',
@@ -52,6 +54,8 @@ import { AuthService } from '@core/auth/auth.service';
   styleUrls: ['mobile-app-settings.component.scss', './settings-card.scss']
 })
 export class MobileAppSettingsComponent extends PageComponent implements HasConfirmForm, OnDestroy {
+
+  authUser: AuthUser = getCurrentAuthUser(this.store);
 
   mobileAppSettingsForm: FormGroup;
 
@@ -69,6 +73,24 @@ export class MobileAppSettingsComponent extends PageComponent implements HasConf
     this.buildMobileAppSettingsForm();
     this.mobileAppService.getMobileAppSettings()
       .subscribe(settings => this.processMobileAppSettings(settings));
+    if (this.isTenantAdmin()) {
+      this.mobileAppSettingsForm.get('useSystemSettings').valueChanges.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(value => {
+        if (value) {
+          this.mobileAppSettingsForm.get('androidConfig.appPackage').clearValidators();
+          this.mobileAppSettingsForm.get('androidConfig.sha256CertFingerprints').clearValidators();
+          this.mobileAppSettingsForm.get('iosConfig.appId').clearValidators();
+        } else {
+          this.mobileAppSettingsForm.get('androidConfig.appPackage').setValidators([Validators.required]);
+          this.mobileAppSettingsForm.get('androidConfig.sha256CertFingerprints').setValidators([Validators.required]);
+          this.mobileAppSettingsForm.get('iosConfig.appId').setValidators([Validators.required]);
+        }
+        this.mobileAppSettingsForm.get('androidConfig.appPackage').updateValueAndValidity();
+        this.mobileAppSettingsForm.get('androidConfig.sha256CertFingerprints').updateValueAndValidity();
+        this.mobileAppSettingsForm.get('iosConfig.appId').updateValueAndValidity();
+      });
+    }
     this.mobileAppSettingsForm.get('useDefaultApp').valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe(value => {
@@ -172,8 +194,13 @@ export class MobileAppSettingsComponent extends PageComponent implements HasConf
     this.destroy$.complete();
   }
 
+  public isTenantAdmin(): boolean {
+    return this.authUser.authority === Authority.TENANT_ADMIN;
+  }
+
   private buildMobileAppSettingsForm() {
     this.mobileAppSettingsForm = this.fb.group({
+      useSystemSettings: [false, []],
       useDefaultApp: [true, []],
       androidConfig: this.fb.group({
         enabled: [true, []],
@@ -197,6 +224,9 @@ export class MobileAppSettingsComponent extends PageComponent implements HasConf
 
   private processMobileAppSettings(mobileAppSettings: MobileAppQRCodeSettings): void {
     this.mobileAppSettings = {...mobileAppSettings};
+    if (!this.isTenantAdmin()) {
+      this.mobileAppSettings.useSystemSettings = false;
+    }
     this.mobileAppSettingsForm.reset(this.mobileAppSettings);
   }
 

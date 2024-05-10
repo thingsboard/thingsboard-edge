@@ -322,7 +322,7 @@ const routes: Routes = [
         component: MobileAppSettingsComponent,
         canDeactivate: [ConfirmOnExitGuard],
         data: {
-          auth: [Authority.SYS_ADMIN],
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
           title: 'admin.mobile-app.mobile-app',
           breadcrumb: {
             label: 'admin.mobile-app.mobile-app',
