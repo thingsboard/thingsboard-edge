@@ -223,7 +223,7 @@ public class JwtTokenFactory {
             throw new IllegalArgumentException("Cannot create JWT Token without username/email");
         }
 
-                claimsBuilder
+        claimsBuilder
                 .add(USER_ID, securityUser.getId().getId().toString())
                 .add(SCOPES, scopes);
         if (securityUser.getSessionId() != null) {
