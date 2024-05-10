@@ -90,7 +90,7 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
       if (this.ctx) {
         this.mobileAppSettings = this.ctx.settings;
       } else {
-        this.mobileAppService.getMobileAppSettings().subscribe((settings => {
+        this.mobileAppService.getMobileAppQrCodeConfig().subscribe((settings => {
           this.mobileAppSettings = settings;
           this.cd.detectChanges();
         }));

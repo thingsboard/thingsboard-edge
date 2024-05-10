@@ -78,17 +78,14 @@ export class MobileAppSettingsComponent extends PageComponent implements HasConf
         takeUntil(this.destroy$)
       ).subscribe(value => {
         if (value) {
-          this.mobileAppSettingsForm.get('androidConfig.appPackage').clearValidators();
-          this.mobileAppSettingsForm.get('androidConfig.sha256CertFingerprints').clearValidators();
-          this.mobileAppSettingsForm.get('iosConfig.appId').clearValidators();
+          this.mobileAppSettingsForm.get('androidConfig.enabled').disable();
+          this.mobileAppSettingsForm.get('iosConfig.enabled').disable();
+          this.mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabelEnabled').disable();
         } else {
-          this.mobileAppSettingsForm.get('androidConfig.appPackage').setValidators([Validators.required]);
-          this.mobileAppSettingsForm.get('androidConfig.sha256CertFingerprints').setValidators([Validators.required]);
-          this.mobileAppSettingsForm.get('iosConfig.appId').setValidators([Validators.required]);
+          this.mobileAppSettingsForm.get('androidConfig.enabled').enable();
+          this.mobileAppSettingsForm.get('iosConfig.enabled').enable();
+          this.mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabelEnabled').enable();
         }
-        this.mobileAppSettingsForm.get('androidConfig.appPackage').updateValueAndValidity();
-        this.mobileAppSettingsForm.get('androidConfig.sha256CertFingerprints').updateValueAndValidity();
-        this.mobileAppSettingsForm.get('iosConfig.appId').updateValueAndValidity();
       });
     }
     this.mobileAppSettingsForm.get('useDefaultApp').valueChanges.pipe(
