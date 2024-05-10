@@ -197,7 +197,6 @@ public class TranslationController extends BaseController {
             @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
             @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader,
             HttpServletResponse response) throws Exception {
-        checkWhiteLabelingPermissions(Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
         CustomerId customerId = getCurrentUser().getCustomerId();
 
