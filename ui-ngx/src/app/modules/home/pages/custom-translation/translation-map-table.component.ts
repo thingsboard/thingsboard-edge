@@ -252,7 +252,6 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
         this.textSearchMode = true;
         this.textSearch.setValue(decodeURI(textSearch), {emitEvent: false});
       } else {
-        this.textSearchMode = false;
         this.textSearch.reset('', {emitEvent: false});
       }
 
