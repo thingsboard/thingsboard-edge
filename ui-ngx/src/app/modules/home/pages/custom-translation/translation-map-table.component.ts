@@ -65,6 +65,7 @@ import { hidePageSizePixelValue } from '@shared/models/constants';
 import { MatPaginator } from '@angular/material/paginator';
 import { TranslateService } from '@ngx-translate/core';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { environment as env } from '@env/environment';
 
 interface CustomTranslationMap {
   key: string;
@@ -103,6 +104,8 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
 
   textSearch = this.fb.control('', {nonNullable: true});
   textSearchMode = false;
+
+  readonly defaultLang = env.defaultLang;
 
   private defaultPageSize = 50;
   pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
@@ -168,7 +171,7 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
 
     this.newKey = this.fb.group({
       key: ['', Validators.required],
-      original: ['', this.localeCode !== 'en_US' ? [Validators.required] : []],
+      original: ['', this.localeCode !== this.defaultLang ? [Validators.required] : []],
       translated: ['', Validators.required]
     });
 
@@ -252,7 +255,6 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
         this.textSearchMode = true;
         this.textSearch.setValue(decodeURI(textSearch), {emitEvent: false});
       } else {
-        this.textSearchMode = false;
         this.textSearch.reset('', {emitEvent: false});
       }
 
@@ -358,7 +360,7 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
     $event?.stopPropagation();
     if (translate) {
       this.customTranslationService.deleteCustomTranslationKey(this.localeCode, translate.k).subscribe(() => {
-        if (isNotEmptyStr(translate.o) && this.localeCode !== 'en_US') {
+        if (isNotEmptyStr(translate.o) && this.localeCode !== this.defaultLang) {
           this.dataSource.updateTranslation(translate.k, '', CustomTranslationState.Added);
         } else {
           this.dataSource.deleteTranslation(translate.k);
@@ -380,13 +382,13 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
       const {key, translated} = this.newKey.value;
       let original = this.newKey.value.original;
       let observable: Observable<any>;
-      if (this.localeCode === 'en_US') {
+      if (this.localeCode === this.defaultLang) {
         observable = this.customTranslationService.patchCustomTranslation(this.localeCode, {[key]: translated});
         original = translated;
       } else {
         observable = forkJoin([
           this.customTranslationService.patchCustomTranslation(this.localeCode, {[key]: translated}),
-          this.customTranslationService.patchCustomTranslation('en_US', {[key]: original})
+          this.customTranslationService.patchCustomTranslation(this.defaultLang, {[key]: original})
         ]);
       }
       observable.subscribe(() => {
@@ -469,6 +471,8 @@ export class CustomTranslationMapDatasource implements DataSource<CustomTranslat
 
   private allTranslation: BehaviorSubject<Array<CustomTranslationEditInfo>>;
 
+  private defaultLang = env.defaultLang;
+
   constructor(private customTranslationService: CustomTranslationService,
               private localeCode: string,
               private cd: ChangeDetectorRef,
@@ -508,6 +512,9 @@ export class CustomTranslationMapDatasource implements DataSource<CustomTranslat
     if (translation) {
       if (saveOrigin) {
         translation.p = translation.t;
+      }
+      if (this.localeCode === this.defaultLang) {
+        translation.o = translate;
       }
       translation.t = translate;
       translation.s = state;

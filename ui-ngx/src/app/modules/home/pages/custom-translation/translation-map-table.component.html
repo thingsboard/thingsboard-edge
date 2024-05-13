@@ -105,7 +105,7 @@
           </mat-cell>
         </ng-container>
         <ng-container matColumnDef="o">
-          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%">{{ 'language.locales.en_US' | translate }}</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%">{{ 'language.locales.' + defaultLang | translate }}</mat-header-cell>
           <mat-cell *matCellDef="let translate" style="width: 33%" class="constant-value">
             <span>{{ translate.o }}</span>&nbsp;
             <tb-copy-button
@@ -191,7 +191,7 @@
           </ng-container>
           <ng-container matColumnDef="original">
             <mat-header-cell *matHeaderCellDef style="width: 33%">
-              <div class="tb-form-row no-padding no-gap no-border" [formGroup]="newKey" *ngIf="localeCode !== 'en_US'">
+              <div class="tb-form-row no-padding no-gap no-border" [formGroup]="newKey" *ngIf="localeCode !== defaultLang">
                 <mat-form-field class="flex" appearance="outline" subscriptSizing="dynamic">
                   <textarea matInput
                             rows="1"
@@ -229,10 +229,10 @@
                       class="tb-mat-40"
                       [disabled]="(isLoading$ | async)"
                       (click)="deleteNewTranslated($event)"
-                      matTooltip="{{ 'custom-translation.delete-translation' | translate }}"
+                      matTooltip="{{ 'action.cancel' | translate }}"
                       matTooltipPosition="above">
                 <tb-icon>
-                  delete
+                  close
                 </tb-icon>
               </button>
             </mat-header-cell>

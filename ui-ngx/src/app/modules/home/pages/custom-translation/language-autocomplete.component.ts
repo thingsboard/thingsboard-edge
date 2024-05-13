@@ -106,7 +106,7 @@ export class LanguageAutocompleteComponent implements ControlValueAccessor, OnIn
         map(value => value ? (typeof value === 'string' ? value : value[0]) : ''),
         distinctUntilChanged(),
         switchMap(name => this.fetchLanguage(name)),
-        tap(() => this.languageAutocomplete.panel.nativeElement.scroll(0, 0)),
+        tap(() => this.languageAutocomplete.panel?.nativeElement.scroll(0, 0)),
         share()
       );
   }
