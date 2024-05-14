@@ -75,7 +75,8 @@ import { forkJoin, isObservable, Observable, of, ReplaySubject, Subscription, th
 import {
   deepClone,
   insertVariable,
-  isDefined, isDefinedAndNotNull,
+  isDefined,
+  isDefinedAndNotNull,
   isFunction,
   isNotEmptyStr,
   objToBase64,
