@@ -36,7 +36,6 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,23 +79,23 @@ public final class MergedUserPermissions {
         for (EntityType groupType : EntityGroup.groupTypes) {
             Resource resource = Resource.groupResourceFromGroupType(groupType);
             boolean hasGenericRead = hasGenericPermission(resource, Operation.READ);
-            this.readGroupPermissions.put(groupType, new MergedGroupTypePermissionInfo(Collections.emptyList(), hasGenericRead));
-            this.readEntityPermissions.put(resource, new MergedGroupTypePermissionInfo(Collections.emptyList(), hasGenericRead));
+            this.readGroupPermissions.put(groupType, MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericRead));
+            this.readEntityPermissions.put(resource, MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericRead));
             boolean hasGenericAttrRead = hasGenericPermission(resource, Operation.READ_ATTRIBUTES);
-            this.readAttrPermissions.put(resource, new MergedGroupTypePermissionInfo(Collections.emptyList(), hasGenericAttrRead));
+            this.readAttrPermissions.put(resource, MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericAttrRead));
             boolean hasGenericTsRead = hasGenericPermission(resource, Operation.READ_TELEMETRY);
-            this.readTsPermissions.put(resource, new MergedGroupTypePermissionInfo(Collections.emptyList(), hasGenericTsRead));
+            this.readTsPermissions.put(resource, MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericTsRead));
         }
 
         for (EntityType entityType : EntityType.values()) {
             Resource resource = Resource.resourceFromEntityType(entityType);
             if (resource != null) {
                 boolean hasGenericRead = hasGenericPermission(resource, Operation.READ);
-                this.readEntityPermissions.put(resource, new MergedGroupTypePermissionInfo(Collections.emptyList(), hasGenericRead));
+                this.readEntityPermissions.put(resource, MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericRead));
                 boolean hasGenericReadAttributes = hasGenericPermission(resource, Operation.READ_ATTRIBUTES);
-                this.readAttrPermissions.put(resource, new MergedGroupTypePermissionInfo(Collections.emptyList(), hasGenericReadAttributes));
+                this.readAttrPermissions.put(resource, MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericReadAttributes));
                 boolean hasGenericReadTelemetry = hasGenericPermission(resource, Operation.READ_TELEMETRY);
-                this.readTsPermissions.put(resource, new MergedGroupTypePermissionInfo(Collections.emptyList(), hasGenericReadTelemetry));
+                this.readTsPermissions.put(resource, MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericReadTelemetry));
             }
         }
 

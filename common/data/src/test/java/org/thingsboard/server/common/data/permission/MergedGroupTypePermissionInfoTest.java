@@ -30,31 +30,29 @@
  */
 package org.thingsboard.server.common.data.permission;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.Collections;
 import java.util.List;
 
-@Schema
-@Data
-@AllArgsConstructor
-public class MergedGroupTypePermissionInfo {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    public static final MergedGroupTypePermissionInfo MERGED_GROUP_TYPE_PERMISSION_INFO_EMPTY_GROUPS_HAS_GENERIC_READ_TRUE =
-            new MergedGroupTypePermissionInfo(Collections.emptyList(), true);
-    public static final MergedGroupTypePermissionInfo MERGED_GROUP_TYPE_PERMISSION_INFO_EMPTY_GROUPS_HAS_GENERIC_READ_FALSE =
-            new MergedGroupTypePermissionInfo(Collections.emptyList(), false);
+class MergedGroupTypePermissionInfoTest {
 
-    @Schema(description = "List of Entity Groups in case of group roles are assigned to the user (user group)")
-    private final List<EntityGroupId> entityGroupIds;
-    @Schema(description = "Indicates if generic permission assigned to the user group.")
-    private final boolean hasGenericRead;
+    @ParameterizedTest
+    @ValueSource(booleans = {true, false})
+    void ofEmptyGroups(final boolean hasGenericRead) {
+        assertThat(MergedGroupTypePermissionInfo.ofEmptyGroups(hasGenericRead))
+                .isEqualTo(new MergedGroupTypePermissionInfo(List.of(), hasGenericRead));
+    }
 
-    public static MergedGroupTypePermissionInfo ofEmptyGroups(boolean hasGenericRead) {
-        return hasGenericRead ? MERGED_GROUP_TYPE_PERMISSION_INFO_EMPTY_GROUPS_HAS_GENERIC_READ_TRUE : MERGED_GROUP_TYPE_PERMISSION_INFO_EMPTY_GROUPS_HAS_GENERIC_READ_FALSE;
+    @Test
+    void testConstants() {
+        assertThat(MergedGroupTypePermissionInfo.MERGED_GROUP_TYPE_PERMISSION_INFO_EMPTY_GROUPS_HAS_GENERIC_READ_TRUE)
+                .isEqualTo(new MergedGroupTypePermissionInfo(List.of(), true));
+        assertThat(MergedGroupTypePermissionInfo.MERGED_GROUP_TYPE_PERMISSION_INFO_EMPTY_GROUPS_HAS_GENERIC_READ_FALSE)
+                .isEqualTo(new MergedGroupTypePermissionInfo(List.of(), false));
     }
 
 }
