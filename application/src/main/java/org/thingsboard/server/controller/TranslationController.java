@@ -84,7 +84,7 @@ import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_COD
 @RequiredArgsConstructor
 public class TranslationController extends BaseController {
 
-    public static final List<String> LOCALE_CODES_TO_EXCLUDE = Arrays.asList("ru_UA", "ccp_IN", "ccp_BD", "ii_CH", "sat_IN", "en_001");
+    public static final List<String> LOCALE_CODES_TO_EXCLUDE = Arrays.asList("ru_UA", "ccp_IN", "ccp_BD", "ii_CH", "sat_IN");
 
     private static final String CUSTOM_TRANSLATION_INFO_EXAMPLE = "\n\n" +
             MARKDOWN_CODE_BLOCK_START +
@@ -146,7 +146,8 @@ public class TranslationController extends BaseController {
 
         List<Locale> availableLocales = Arrays.stream(DateFormat.getAvailableLocales())
                 .filter(availableLocale -> StringUtils.countMatches(availableLocale.toString(), "_") == 1
-                        && !LOCALE_CODES_TO_EXCLUDE.contains(availableLocale.toString()))
+                        && !LOCALE_CODES_TO_EXCLUDE.contains(availableLocale.toString())
+                        && !availableLocale.toString().matches(".*\\d+.*"))
                 .toList();
         for (Locale availableLocale : availableLocales) {
             String displayLanguage = availableLocale.getDisplayLanguage(availableLocale);
