@@ -75,7 +75,7 @@ import { forkJoin, isObservable, Observable, of, ReplaySubject, Subscription, th
 import {
   deepClone,
   insertVariable,
-  isDefined,
+  isDefined, isDefinedAndNotNull,
   isFunction,
   isNotEmptyStr,
   objToBase64,
@@ -1576,7 +1576,10 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     } else if (widgetExportType === WidgetExportType.xls) {
       this.importExport.exportXls(data, filename);
     } else if (widgetExportType === WidgetExportType.xlsx) {
-      const dateFormat = isDefined(this.widget?.config?.settings?.dateFormat?.format) ? this.widget.config.settings.dateFormat.format : 'yyyy-MM-dd HH:mm:ss';
+      const showDate = isDefinedAndNotNull(this.widget?.config?.settings?.showDate) ?
+        this.widget.config.settings.showDate : true;
+      const dateFormat = isDefinedAndNotNull(this.widget?.config?.settings?.dateFormat?.format) && showDate
+        ? this.widget.config.settings.dateFormat.format : 'yyyy-MM-dd HH:mm:ss';
       this.importExport.exportXlsx(data, filename, dateFormat);
     }
   }
