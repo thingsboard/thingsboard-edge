@@ -29,9 +29,10 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { HasTenantId } from '@shared/models/entity.models';
+import { TenantId } from '@shared/models/id/tenant-id';
 
-export interface MobileAppSettings extends HasTenantId {
+export interface MobileAppSettings {
+  tenantId: TenantId;
   useSystemSettings: boolean;
   useDefaultApp: boolean;
   androidConfig: AndroidConfig;

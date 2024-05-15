@@ -91,7 +91,7 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
       if (isDefinedAndNotNull(this.ctx.settings.useSystemSettings) && !this.ctx.settings.useSystemSettings) {
         this.mobileAppSettings = this.ctx.settings;
       } else {
-        this.mobileAppService.getMobileAppQrCodeConfig().subscribe((settings => {
+        this.mobileAppService.getMergedMobileAppSettings().subscribe((settings => {
           this.mobileAppSettings = settings;
           this.cd.markForCheck();
         }));
