@@ -132,7 +132,13 @@ public class GroupPermissionController extends BaseController {
         try {
             groupPermission.setTenantId(getCurrentUser().getTenantId());
 
-            checkEntity(groupPermission.getId(), groupPermission, Resource.GROUP_PERMISSION, null);
+            GroupPermission oldGroupPermission = null;
+            if (groupPermission.getId() == null) {
+                accessControlService
+                        .checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.CREATE, null, groupPermission);
+            } else {
+                oldGroupPermission = checkGroupPermissionId(groupPermission.getId(), Operation.WRITE);
+            }
 
             if (groupPermission.isPublic()) {
                 throw permissionDenied();
@@ -156,6 +162,9 @@ public class GroupPermissionController extends BaseController {
 
             GroupPermission savedGroupPermission = checkNotNull(groupPermissionService.saveGroupPermission(getTenantId(), groupPermission));
 
+            if (oldGroupPermission != null && oldGroupPermission.getUserGroupId() != savedGroupPermission.getUserGroupId()) {
+                userPermissionsService.onGroupPermissionUpdated(oldGroupPermission);
+            }
             userPermissionsService.onGroupPermissionUpdated(savedGroupPermission);
 
             logEntityActionService.logEntityAction(getTenantId(), savedGroupPermission.getId(), savedGroupPermission,
