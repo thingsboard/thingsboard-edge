@@ -459,6 +459,7 @@
             "ios": "iOS",
             "app-id": "App ID",
             "app-id-required": "App ID is required",
+            "appearance": "Appearance",
             "appearance-on-home-page": "Appearance on Home page",
             "enabled": "Enabled",
             "disabled": "Disabled",

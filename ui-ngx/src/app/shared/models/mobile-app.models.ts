@@ -29,10 +29,9 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { TenantId } from '@shared/models/id/tenant-id';
+import { HasTenantId } from '@shared/models/entity.models';
 
-export interface MobileAppQRCodeSettings {
-  tenantId: TenantId;
+export interface MobileAppSettings extends HasTenantId {
   useSystemSettings: boolean;
   useDefaultApp: boolean;
   androidConfig: AndroidConfig;

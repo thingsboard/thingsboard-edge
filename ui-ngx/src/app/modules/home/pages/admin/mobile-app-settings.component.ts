@@ -42,7 +42,7 @@ import {
   badgePositionTranslationsMap,
   BadgeStyle,
   badgeStyleTranslationsMap,
-  MobileAppQRCodeSettings
+  MobileAppSettings
 } from '@shared/models/mobile-app.models';
 import { AuthUser } from '@shared/models/user.model';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
@@ -59,7 +59,7 @@ export class MobileAppSettingsComponent extends PageComponent implements HasConf
 
   mobileAppSettingsForm: FormGroup;
 
-  mobileAppSettings: MobileAppQRCodeSettings;
+  mobileAppSettings: MobileAppSettings;
 
   private readonly destroy$ = new Subject<void>();
 
@@ -173,7 +173,7 @@ export class MobileAppSettingsComponent extends PageComponent implements HasConf
     });
   }
 
-  private processMobileAppSettings(mobileAppSettings: MobileAppQRCodeSettings): void {
+  private processMobileAppSettings(mobileAppSettings: MobileAppSettings): void {
     this.mobileAppSettings = {...mobileAppSettings};
     if (!this.isTenantAdmin()) {
       this.mobileAppSettings.useSystemSettings = false;
