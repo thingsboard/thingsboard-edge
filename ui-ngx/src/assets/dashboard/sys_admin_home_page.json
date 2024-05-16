@@ -2646,7 +2646,8 @@
           "enableFullscreen": false,
           "widgetStyle": {},
           "widgetCss": "",
-          "noDataDisplayMessage": ""
+          "noDataDisplayMessage": "",
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
@@ -2671,7 +2672,8 @@
           "widgetCss": ".tb-widget-container > .tb-widget > .tb-widget-header > .tb-widget-title {\n    padding: 0;\n}\n\n.tb-widget-container > .tb-widget > .tb-widget-header > .tb-widget-title > .title-row > .title {\n    padding-bottom: 12px;\n    font-weight: 600;\n    font-size: 20px;\n    line-height: 24px;\n    letter-spacing: 0.1px;\n    color: rgba(0, 0, 0, 0.76);\n}\n\n@media screen and (min-width: 960px) and (max-width: 1819px) {\n    .tb-widget-container > .tb-widget > .tb-widget-header > .tb-widget-title > .title-row > .title {\n        padding-bottom: 0;\n        font-weight: 500;\n        font-size: 14px;\n        line-height: 20px;\n        letter-spacing: 0.25px;\n  }\n}\n",
           "showTitleIcon": false,
           "titleTooltip": "",
-          "titleStyle": null
+          "titleStyle": null,
+          "enableDataExport": false
         },
         "row": 0,
         "col": 0,
