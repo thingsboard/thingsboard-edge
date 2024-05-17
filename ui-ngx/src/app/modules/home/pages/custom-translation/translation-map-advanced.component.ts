@@ -41,6 +41,8 @@ import { UtilsService } from '@core/services/utils.service';
 import { AppState } from '@core/core.state';
 import { Store } from '@ngrx/store';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { environment as env } from '@env/environment';
+import { Observable } from 'rxjs';
 
 @Component({
   selector : 'tb-translation-map-advanced',
@@ -140,7 +142,13 @@ export class TranslationMapAdvancedComponent {
   }
 
   private deleteTranslation() {
-    this.customTranslationService.deleteCustomTranslation(this.localeCode).subscribe(() => {
+    let removeRequest$: Observable<void>;
+    if (env.supportedLangs.includes(this.localeCode)) {
+      removeRequest$ = this.customTranslationService.deleteCustomTranslation(this.localeCode);
+    } else {
+      removeRequest$ = this.customTranslationService.saveCustomTranslation(this.localeCode, {});
+    }
+    removeRequest$.subscribe(() => {
       this.loadTranslations = '';
       this.translationForm.patchValue({translation: ''});
       this.translationForm.markAsPristine();
