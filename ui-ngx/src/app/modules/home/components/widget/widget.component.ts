@@ -105,7 +105,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { ActivatedRoute, Router } from '@angular/router';
 import cssjs from '@core/css/css';
 import { ModulesWithFactories, ResourcesService } from '@core/services/resources.service';
-import { catchError, map, switchMap, take } from 'rxjs/operators';
+import { catchError, map, switchMap, take, mergeMap } from 'rxjs/operators';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TimeService } from '@core/services/time.service';
 import { DeviceService } from '@app/core/http/device.service';
@@ -1555,30 +1555,33 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
 
   private exportWidgetData(widgetExportType: WidgetExportType) {
     const data = this.prepareWidgetExportData();
-    if (isObservable(data)) {
-      data.subscribe((d) => {
-        this.doExportWidgetData(d, widgetExportType);
-      });
-    } else {
-      this.doExportWidgetData(data, widgetExportType);
-    }
+    this.dashboardWidget.title$.pipe(
+      take(1),
+      mergeMap(widgetTitle => {
+        if (isObservable(data)) {
+          return data.pipe(
+            map(data => ({widgetTitle, data}))
+          );
+        } else {
+          return of({widgetTitle, data});
+        }
+      })
+    ).subscribe(result => {
+      let fileName = this.widgetInfo.widgetName + (isNotEmptyStr(result.widgetTitle) ? '_' +  result.widgetTitle : '');
+      fileName = fileName.toLowerCase().replace(/\W/g, '_');
+      this.doExportWidgetData(fileName, result.data, widgetExportType);
+    });
   }
 
-  private doExportWidgetData(data: {[key: string]: any}[], widgetExportType: WidgetExportType) {
-    this.dashboardWidget.title$.pipe(
-      take(1)
-    ).subscribe(widgetTitle => {
-      let fileName = this.widgetInfo.widgetName + (isNotEmptyStr(widgetTitle) ? '_' +  widgetTitle : '');
-      fileName = fileName.toLowerCase().replace(/\W/g, '_');
-      if (widgetExportType === WidgetExportType.csv) {
-        this.importExport.exportCsv(data, fileName);
-      } else if (widgetExportType === WidgetExportType.xls) {
-        this.importExport.exportXls(data, fileName);
-      } else if (widgetExportType === WidgetExportType.xlsx) {
-        const dateFormat = isDefined(this.widget?.config?.settings?.dateFormat?.format) ? this.widget.config.settings.dateFormat.format : 'yyyy-MM-dd HH:mm:ss';
-        this.importExport.exportXlsx(data, fileName, dateFormat);
-      }
-    })
+  private doExportWidgetData(filename: string, data: {[key: string]: any}[], widgetExportType: WidgetExportType) {
+    if (widgetExportType === WidgetExportType.csv) {
+      this.importExport.exportCsv(data, filename);
+    } else if (widgetExportType === WidgetExportType.xls) {
+      this.importExport.exportXls(data, filename);
+    } else if (widgetExportType === WidgetExportType.xlsx) {
+      const dateFormat = isDefined(this.widget?.config?.settings?.dateFormat?.format) ? this.widget.config.settings.dateFormat.format : 'yyyy-MM-dd HH:mm:ss';
+      this.importExport.exportXlsx(data, filename, dateFormat);
+    }
   }
 
   private prepareWidgetExportData(): {[key: string]: any}[] | Observable<{[key: string]: any}[]> {
