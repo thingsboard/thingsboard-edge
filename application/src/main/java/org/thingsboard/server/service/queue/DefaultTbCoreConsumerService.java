@@ -342,7 +342,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                     } else if (toCoreMsg.hasDeviceConnectMsg()) {
                         log.trace("[{}] Forwarding message to device state service {}", id, toCoreMsg.getDeviceConnectMsg());
                         forwardToStateService(toCoreMsg.getDeviceConnectMsg(), callback);
-                    } else if (toCoreMsg.hasDeviceActivityMsg()) {
+                    }  else if (toCoreMsg.hasDeviceActivityMsg()) {
                         log.trace("[{}] Forwarding message to device state service {}", id, toCoreMsg.getDeviceActivityMsg());
                         forwardToStateService(toCoreMsg.getDeviceActivityMsg(), callback);
                     } else if (toCoreMsg.hasDeviceDisconnectMsg()) {

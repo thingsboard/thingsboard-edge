@@ -204,6 +204,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     RelationService relationService;
     @Autowired
     TimeseriesService timeseriesService;
+    @Autowired
     JdbcTemplate jdbcTemplate;
     @Autowired
     DeviceDao deviceDao;
@@ -391,17 +392,6 @@ public class EntityServiceTest extends AbstractServiceTest {
 
     @Test
     public void testCountHierarchicalEntitiesByQuery() throws InterruptedException {
-
-        // TODO: @voba device profiles are not created on edge at the moment
-        for (int i = 0; i < ENTITY_COUNT; i++) {
-            deviceProfileService.findOrCreateDeviceProfile(tenantId, "default" + i);
-        }
-
-        // TODO: @voba asset profiles are not created on edge at the moment
-        for (int i = 0; i < ENTITY_COUNT; i++) {
-            assetProfileService.findOrCreateAssetProfile(tenantId, "type" + i);
-        }
-
         List<Asset> assets = new ArrayList<>();
         List<Device> devices = new ArrayList<>();
         createTestHierarchy(tenantId, assets, devices, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
@@ -3136,15 +3126,6 @@ public class EntityServiceTest extends AbstractServiceTest {
     private void createMultiRootHierarchy(List<Asset> buildings, List<Asset> apartments,
                                           Map<String, Map<UUID, String>> entityNameByTypeMap,
                                           Map<UUID, UUID> childParentRelationMap) throws InterruptedException {
-        // TODO: @voba device profiles are not created on edge at the moment
-        deviceProfileService.findOrCreateDeviceProfile(tenantId, "heatmeter");
-        deviceProfileService.findOrCreateDeviceProfile(tenantId, "energymeter");
-
-        // TODO: @voba asset profiles are not created on edge at the moment
-        assetProfileService.findOrCreateAssetProfile(tenantId, "building");
-        assetProfileService.findOrCreateAssetProfile(tenantId, "apartment");
-
-
         for (int k = 0; k < 3; k++) {
             Asset building = new Asset();
             building.setTenantId(tenantId);
@@ -3490,7 +3471,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         user.setAuthority(Authority.CUSTOMER_USER);
         user.setFirstName("firstName");
         user.setLastName("lastName");
-       user.setAdditionalInfo(JacksonUtil.newObjectNode().put("test", "test"));
+        user.setAdditionalInfo(JacksonUtil.newObjectNode().put("test", "test"));
         user = userDao.save(tenantId, user);
 
         Map<String, Object> row = jdbcTemplate.queryForMap("SELECT " + EntityMapping.userMapping.getMappings().keySet().stream()
@@ -3534,7 +3515,7 @@ public class EntityServiceTest extends AbstractServiceTest {
             if (i % 2 == 0) {
                 entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), savedDevice.getId());
             }
-       }
+        }
 
         DeviceTypeFilter filter = new DeviceTypeFilter();
         filter.setDeviceTypes(List.of("default"));

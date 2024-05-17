@@ -167,7 +167,7 @@ public abstract class TbAbstractRelationActionNode<C extends TbAbstractRelationA
                 var customerService = ctx.getCustomerService();
                 var customerByTitleOptFuture = customerService.findCustomerByTenantIdAndTitleAsync(tenantId, targetEntityName);
                 if (createEntityIfNotExists) {
-                     /* edge-only: customers are not created on the edge at the moment
+                    /* edge-only: customers are not created on the edge at the moment
                     return Futures.transform(customerByTitleOptFuture, customerOpt -> {
                         if (customerOpt.isPresent()) {
                             return customerOpt.get().getId();
