@@ -1567,7 +1567,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
         }
       })
     ).subscribe(result => {
-      let fileName = this.widgetInfo.widgetName + (isNotEmptyStr(result.widgetTitle) ? '_' +  result.widgetTitle : '');
+      let fileName = this.widgetInfo.widgetName + (isNotEmptyStr(result.widgetTitle) ? `_${result.widgetTitle}` : '');
       fileName = fileName.toLowerCase().replace(/\W/g, '_');
       this.doExportWidgetData(fileName, result.data, widgetExportType);
     });
