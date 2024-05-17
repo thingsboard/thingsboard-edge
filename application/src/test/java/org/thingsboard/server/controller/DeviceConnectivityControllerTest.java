@@ -144,7 +144,7 @@ public class DeviceConnectivityControllerTest extends AbstractControllerTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -189,8 +189,7 @@ public class DeviceConnectivityControllerTest extends AbstractControllerTest {
     public void afterTest() throws Exception {
         loginSysAdmin();
 
-        doDelete("/api/tenant/" + savedTenant.getId().getId())
-                .andExpect(status().isOk());
+        deleteTenant(savedTenant.getId());
     }
 
     @Test
