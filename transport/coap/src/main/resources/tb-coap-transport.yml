@@ -159,21 +159,6 @@ transport:
     psm_activity_timer: "${COAP_PSM_ACTIVITY_TIMER:10000}"
     # Default PSM Activity Timer if not specified in device profile
     paging_transmission_window: "${COAP_PAGING_TRANSMISSION_WINDOW:10000}"
-    dtls:
-      # RFC7925_RETRANSMISSION_TIMEOUT_IN_MILLISECONDS = 9000
-      retransmission_timeout: "${COAP_DTLS_RETRANSMISSION_TIMEOUT_MS:9000}"
-      # Server DTLS credentials
-      # Server DTLS credentials
-      # CoAP DTLS connection ID length. RFC 9146, Connection Identifier for DTLS 1.2
-      # Default: off
-      # Control usage of DTLS connection ID length (CID).
-      # - 'off' to deactivate it.
-      # - 'on' to activate Connection ID support (same as CID 0 or more 0).
-      # - A positive value defines generated CID size in bytes.
-      # - A value of 0 means we accept using CID but will not generate one for foreign peer (enables support but not for incoming traffic).
-      # - A value between 0 and <= 4: SingleNodeConnectionIdGenerator is used
-      # - A value that are > 4: MultiNodeConnectionIdGenerator is used
-      connection_id_length: "${COAP_DTLS_CONNECTION_ID_LENGTH:}"
   sessions:
     # Session inactivity timeout is a global configuration parameter that defines how long the device transport session will be opened after the last message arrives from the device.
     # The parameter value is in milliseconds.
@@ -213,10 +198,22 @@ coap:
   dtls:
     # Enable/disable DTLS 1.2 support
     enabled: "${COAP_DTLS_ENABLED:false}"
+    # RFC7925_RETRANSMISSION_TIMEOUT_IN_MILLISECONDS = 9000
+    retransmission_timeout: "${COAP_DTLS_RETRANSMISSION_TIMEOUT_MS:9000}"
     # CoAP DTLS bind address
     bind_address: "${COAP_DTLS_BIND_ADDRESS:0.0.0.0}"
     # CoAP DTLS bind port
     bind_port: "${COAP_DTLS_BIND_PORT:5684}"
+    # CoAP DTLS connection ID length. RFC 9146, Connection Identifier for DTLS 1.2
+    # Default: off
+    # Control usage of DTLS connection ID length (CID).
+    # - 'off' to deactivate it.
+    # - 'on' to activate Connection ID support (same as CID 0 or more 0).
+    # - A positive value defines generated CID size in bytes.
+    # - A value of 0 means we accept using CID but will not generate one for foreign peer (enables support but not for incoming traffic).
+    # - A value between 0 and <= 4: SingleNodeConnectionIdGenerator is used
+    # - A value that are > 4: MultiNodeConnectionIdGenerator is used
+    connection_id_length: "${COAP_DTLS_CONNECTION_ID_LENGTH:}"
     # Server DTLS credentials
     credentials:
       # Server credentials type (PEM - pem certificate file; KEYSTORE - java keystore)

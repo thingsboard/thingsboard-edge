@@ -51,4 +51,6 @@ public interface ExportableEntityDao<I extends EntityId, T extends ExportableEnt
 
     I getExternalIdByInternal(I internalId);
 
+    default T findDefaultEntityByTenantId(UUID tenantId) { throw new UnsupportedOperationException(); }
+
 }

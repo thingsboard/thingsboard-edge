@@ -48,7 +48,6 @@ import {
   timeSeriesChartGridDefaultSettings,
   TimeSeriesChartGridSettings,
   TimeSeriesChartKeySettings,
-  TimeSeriesChartLineType,
   TimeSeriesChartSeriesType,
   TimeSeriesChartSettings,
   TimeSeriesChartThreshold,
@@ -66,7 +65,7 @@ import {
   ChartAnimationSettings,
   chartColorScheme,
   ChartFillType,
-  ChartLabelPosition,
+  ChartLabelPosition, ChartLineType,
   ChartShape
 } from '@home/components/widget/lib/chart/chart.models';
 
@@ -93,7 +92,7 @@ export interface RangeChartWidgetSettings extends TimeSeriesChartTooltipWidgetSe
   step: boolean;
   stepType: LineSeriesStepType;
   smooth: boolean;
-  lineType: TimeSeriesChartLineType;
+  lineType: ChartLineType;
   lineWidth: number;
   showPoints: boolean;
   showPointLabel: boolean;
@@ -133,7 +132,7 @@ export const rangeChartDefaultSettings: RangeChartWidgetSettings = {
   rangeThreshold: mergeDeep({} as Partial<TimeSeriesChartThreshold>,
     timeSeriesChartThresholdDefaultSettings,
     { lineColor: '#37383b',
-      lineType: TimeSeriesChartLineType.dashed,
+      lineType: ChartLineType.dashed,
       startSymbol: ChartShape.circle,
       startSymbolSize: 5,
       endSymbol: ChartShape.arrow,
@@ -147,7 +146,7 @@ export const rangeChartDefaultSettings: RangeChartWidgetSettings = {
   step: false,
   stepType: LineSeriesStepType.start,
   smooth: false,
-  lineType: TimeSeriesChartLineType.solid,
+  lineType: ChartLineType.solid,
   lineWidth: 2,
   showPoints: false,
   showPointLabel: false,

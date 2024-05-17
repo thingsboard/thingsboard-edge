@@ -198,6 +198,8 @@ CREATE TABLE IF NOT EXISTS customer (
     title varchar(255),
     zip varchar(255),
     external_id uuid,
+    is_public boolean,
+    CONSTRAINT customer_title_unq_key UNIQUE (tenant_id, title),
     CONSTRAINT customer_external_id_unq_key UNIQUE (tenant_id, external_id)
 );
 
@@ -1128,4 +1130,16 @@ CREATE TABLE IF NOT EXISTS custom_translation (
     locale_code VARCHAR(10),
     value VARCHAR(1000000),
     CONSTRAINT custom_translation_pkey PRIMARY KEY (tenant_id, customer_id, locale_code)
+);
+
+CREATE TABLE IF NOT EXISTS mobile_app_settings (
+    id uuid NOT NULL CONSTRAINT mobile_app_settings_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid NOT NULL,
+    use_system_settings boolean,
+    use_default_app boolean,
+    android_config VARCHAR(1000),
+    ios_config VARCHAR(1000),
+    qr_code_config VARCHAR(100000),
+    CONSTRAINT mobile_app_settings_tenant_id_unq_key UNIQUE (tenant_id)
 );

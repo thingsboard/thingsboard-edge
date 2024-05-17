@@ -31,12 +31,18 @@
 
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ContentType } from '@shared/models/constants';
-import { isDefinedAndNotNull, isEqual } from '@core/utils';
+import { isEqual } from '@core/utils';
 import { CustomTranslationService } from '@core/http/custom-translation.service';
 import { ActivatedRoute } from '@angular/router';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { TranslateService } from '@ngx-translate/core';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { UtilsService } from '@core/services/utils.service';
+import { AppState } from '@core/core.state';
+import { Store } from '@ngrx/store';
+import { ActionNotificationShow } from '@core/notification/notification.actions';
+import { environment as env } from '@env/environment';
+import { Observable } from 'rxjs';
 
 @Component({
   selector : 'tb-translation-map-advanced',
@@ -48,6 +54,9 @@ export class TranslationMapAdvancedComponent {
   @Input()
   @coerceBoolean()
   readonly: boolean;
+
+  @Input()
+  localeName: string;
 
   @Output()
   changeFullscreen = new EventEmitter<boolean>();
@@ -82,7 +91,9 @@ export class TranslationMapAdvancedComponent {
 
   private loadTranslations = '';
 
-	constructor(private customTranslationService: CustomTranslationService,
+	constructor(private store: Store<AppState>,
+              private utils: UtilsService,
+              private customTranslationService: CustomTranslationService,
               private route: ActivatedRoute,
               private fb: FormBuilder,
               private translate: TranslateService) {
@@ -105,24 +116,78 @@ export class TranslationMapAdvancedComponent {
   }
 
   save() {
-    if (this.translationForm.valid) {
-      this.customTranslationService.saveCustomTranslation(this.localeCode, JSON.parse(this.translationForm.value.translation))
-        .subscribe(() => {
-          this.loadTranslations = this.translationForm.value.translation;
-          this.translationForm.markAsPristine();
-          if (this.translate.currentLang === this.localeCode) {
-            this.translate.reloadLang(this.localeCode).subscribe(() => {
-              this.translate.use(this.localeCode);
-            });
-          } else if (isDefinedAndNotNull(this.translate.translations[this.localeCode])) {
-            this.translate.resetLang(this.localeCode);
-          }
-        });
+    if (this.validate()) {
+      const formValue = this.translationForm.value.translation;
+      if (formValue) {
+        const parseValue =  JSON.parse(formValue);
+        if (isEqual(parseValue, {})) {
+          this.deleteTranslation();
+        } else {
+          this.saveTranslations(parseValue);
+        }
+      } else {
+        this.deleteTranslation();
+      }
     }
+  }
+
+  private saveTranslations(translations: object) {
+    this.customTranslationService.saveCustomTranslation(this.localeCode, translations).subscribe(() => {
+      this.loadTranslations = this.translationForm.value.translation;
+      this.translationForm.markAsPristine();
+      this.translate.currentLoader.getTranslation(this.localeCode).subscribe(value => {
+        this.translate.setTranslation(this.localeCode, value, true);
+      });
+    });
+  }
+
+  private deleteTranslation() {
+    let removeRequest$: Observable<void>;
+    if (env.supportedLangs.includes(this.localeCode)) {
+      removeRequest$ = this.customTranslationService.deleteCustomTranslation(this.localeCode);
+    } else {
+      removeRequest$ = this.customTranslationService.saveCustomTranslation(this.localeCode, {});
+    }
+    removeRequest$.subscribe(() => {
+      this.loadTranslations = '';
+      this.translationForm.patchValue({translation: ''});
+      this.translationForm.markAsPristine();
+      this.translate.currentLoader.getTranslation(this.localeCode).subscribe(value => {
+        this.translate.setTranslation(this.localeCode, value, true);
+      });
+    });
   }
 
   reset() {
     this.translationForm.reset({translation: this.loadTranslations});
     this.translationForm.markAsPristine();
+  }
+
+  private validate(): boolean {
+    const translation = this.translationForm.value.translation;
+    if (translation) {
+      try {
+        JSON.parse(translation);
+      } catch (e) {
+        const details = this.utils.parseException(e);
+        let errorInfo = `Error parsing JSON for ${this.localeName} language:`;
+        if (details.name) {
+          errorInfo += ` ${details.name}:`;
+        }
+        if (details.message) {
+          errorInfo += ` ${details.message}:`;
+        }
+        this.store.dispatch(new ActionNotificationShow(
+          {
+            message: errorInfo,
+            type: 'error',
+            verticalPosition: 'top',
+            horizontalPosition: 'left',
+            target: 'tb-custom-translation-panel'
+          }));
+        return false;
+      }
+    }
+    return true;
   }
 }

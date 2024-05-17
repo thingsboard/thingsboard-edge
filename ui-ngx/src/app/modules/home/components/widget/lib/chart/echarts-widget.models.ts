@@ -41,6 +41,8 @@ import {
   MarkLineComponentOption,
   PolarComponent,
   PolarComponentOption,
+  RadarComponent,
+  RadarComponentOption,
   TooltipComponent,
   TooltipComponentOption,
   VisualMapComponent,
@@ -54,7 +56,9 @@ import {
   LineChart,
   LineSeriesOption,
   PieChart,
-  PieSeriesOption
+  PieSeriesOption,
+  RadarChart,
+  RadarSeriesOption
 } from 'echarts/charts';
 import { LabelLayout } from 'echarts/features';
 import { CanvasRenderer, SVGRenderer } from 'echarts/renderers';
@@ -77,9 +81,11 @@ class EChartsModule {
         DataZoomComponent,
         MarkLineComponent,
         PolarComponent,
+        RadarComponent,
         LineChart,
         BarChart,
         PieChart,
+        RadarChart,
         CustomChart,
         LabelLayout,
         CanvasRenderer,
@@ -99,10 +105,12 @@ export type EChartsOption = echarts.ComposeOption<
   | DataZoomComponentOption
   | MarkLineComponentOption
   | PolarComponentOption
+  | RadarComponentOption
   | LineSeriesOption
   | CustomSeriesOption
   | BarSeriesOption
   | PieSeriesOption
+  | RadarSeriesOption
 >;
 
 export type ECharts = echarts.ECharts;

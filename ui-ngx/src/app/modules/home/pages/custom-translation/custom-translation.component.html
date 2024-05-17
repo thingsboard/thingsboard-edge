@@ -40,7 +40,7 @@
               (click)="goBack()">
         <mat-icon>arrow_back</mat-icon>
       </button>
-      <span class="mat-headline-5">{{ 'custom-translation.translation-name' | translate: {name: localeName} }}</span>
+      <span class="mat-headline-5">{{ 'custom-translation.translation-name' | translate: {name: localeName, country: countryName} }}</span>
     </mat-card-title>
     <span fxFlex></span>
     <tb-toggle-select appearance="fill" selectMediaBreakpoint="xs" [formControl]="mode" class="tb-center">
@@ -53,14 +53,15 @@
                               [localeName]="localeName"
                               [readonly]="readonly"
                               tb-fullscreen
-                              *ngIf="mode.value == 'basic'"
+                              *ngIf="mode.value === 'basic'"
                               [fullscreen]="tableFullScreen"
                               (changeFullscreen)="changeTableFullScreen($event)">
     </tb-translation-map-table>
     <tb-translation-map-advanced
       tb-fullscreen
-      *ngIf="mode.value == 'advanced'"
+      *ngIf="mode.value === 'advanced'"
       [readonly]="readonly"
+      [localeName]="localeName"
       [fullscreen]="editorFullScreen"
       (changeFullscreen)="changeditorFullScreen($event)">
     </tb-translation-map-advanced>

@@ -45,7 +45,6 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.cloud.CloudEventService;
-import org.thingsboard.server.dao.customer.CustomerServiceImpl;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AlarmCommentUpdateMsg;
@@ -325,12 +324,11 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     sequenceDependencyLock.lock();
                     try {
                         result.add(customerProcessor.processCustomerMsgFromCloud(tenantId, customerUpdateMsg, queueStartTs));
-                        String title = null;
+                        Customer customer = null;
                         if (!UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE.equals(customerUpdateMsg.getMsgType())) {
-                            Customer customer = JacksonUtil.fromString(customerUpdateMsg.getEntity(), Customer.class, true);
-                            title = customer != null ? customer.getTitle() : null;
+                            customer = JacksonUtil.fromString(customerUpdateMsg.getEntity(), Customer.class, true);
                         }
-                        if (!CustomerServiceImpl.PUBLIC_CUSTOMER_TITLE.equals(title)) {
+                        if (customer != null && !customer.isPublic()) {
                             updateCustomerId(tenantId, customerUpdateMsg);
                         }
                     } finally {

@@ -358,8 +358,9 @@ public class InstallScripts {
     @SneakyThrows
     public void loadSystemImages() {
         log.info("Loading system images...");
-        Stream<Path> dashboardsFiles = Stream.concat(
+        Stream<Path> dashboardsFiles = Stream.concat(Stream.concat(
                 Files.list(Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, DASHBOARDS_DIR)),
+                Files.list(Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DASHBOARDS_DIR))),
                 Files.list(Paths.get(getDataDir(), JSON_DIR, SOLUTIONS_DIR))
                         .filter(file -> file.toFile().isDirectory())
                         .flatMap(solutionDir -> {

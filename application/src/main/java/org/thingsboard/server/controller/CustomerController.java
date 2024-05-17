@@ -250,7 +250,7 @@ public class CustomerController extends BaseController {
             @RequestParam int page,
             @Parameter(description = CUSTOMER_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"createdTime", "title", "email", "country, city"}))
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"createdTime", "title", "email", "country", "city"}))
             @RequestParam(required = false) String sortProperty,
             @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
@@ -427,7 +427,7 @@ public class CustomerController extends BaseController {
         }).collect(Collectors.toList());
     }
 
-    // edge only - temporary method, to fix public customer tests
+    // edge-only: temporary method, to fix public customer tests
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/customer/public", method = RequestMethod.POST)
     @ResponseBody
@@ -441,7 +441,7 @@ public class CustomerController extends BaseController {
             publicCustomer = new Customer();
             publicCustomer.setTenantId(getTenantId());
             publicCustomer.setOwnerId(getCurrentUser().getOwnerId());
-            publicCustomer.setTitle(CustomerServiceImpl.PUBLIC_CUSTOMER_TITLE);
+            publicCustomer.setTitle(CustomerServiceImpl.PUBLIC_CUSTOMER_SUFFIX);
             publicCustomer.setAdditionalInfo(JacksonUtil.fromString("{ \"isPublic\": true }", JsonNode.class));
             return customerService.saveCustomer(publicCustomer, false);
         }

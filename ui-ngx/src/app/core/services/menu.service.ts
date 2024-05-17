@@ -352,6 +352,13 @@ export class MenuService {
         type: 'link',
         path: '/settings/queues',
         icon: 'swap_calls'
+      },
+      {
+        id: 'mobile-app',
+        name: 'admin.mobile-app.mobile-app',
+        type: 'link',
+        path: '/settings/mobile-app',
+        icon: 'smartphone'
       }
     ];
 
@@ -484,6 +491,12 @@ export class MenuService {
             icon: 'swap_calls',
             path: '/settings/queues',
             disabled: disabledItems.indexOf('resources_library') > -1
+          },
+          {
+            name: 'admin.mobile-app.mobile-app',
+            icon: 'smartphone',
+            path: '/settings/mobile-app',
+            disabled: disabledItems.indexOf('mobile-app') > -1
           }
         ]
       },
@@ -1391,7 +1404,15 @@ export class MenuService {
         icon: 'settings_backup_restore'
       });
     }
-    /* @voba - merge comment - these sections should not be visible on edge
+    /* edge-only: should not be visible on edge
+    settingPages.push({
+      id: 'mobile-app',
+      name: 'admin.mobile-app.mobile-app',
+      fullName: 'admin.mobile-app.mobile-app',
+      type: 'link',
+      path: '/settings/mobile-app',
+      icon: 'smartphone'
+    });
     if (settingPages.length) {
       sections.push({
         id: 'settings',
@@ -1399,14 +1420,13 @@ export class MenuService {
         type: 'link',
         path: '/settings',
         icon: 'settings',
-<<<<<<< HEAD
         pages: settingPages
       });
     }
      */
 
     const securitySettingPages: Array<MenuSection> = [];
-    /* @voba - merge comment - these sections should not be visible on edge
+    /* edge-only: these sections should not be visible on edge
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       securitySettingPages.push({
         id: '2fa',
@@ -1428,7 +1448,7 @@ export class MenuService {
         }
       );
     }
-    /* @voba - merge comment - these sections should not be visible on edge
+    /* edge-only: should not be visible on edge
     if (authState.whiteLabelingAllowed && this.userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)) {
       securitySettingPages.push(
         {
@@ -1488,7 +1508,7 @@ export class MenuService {
         ]
       }
     );
-    /* edge-only: merge comment - hide this on edge
+    /* edge-only: should not be visible on edge
     if (this.userPermissionsService.hasGenericPermission(Resource.ALL, Operation.ALL)) {
       homeSections.push(
         {
@@ -1684,7 +1704,7 @@ export class MenuService {
         }
       );
     }
-    /* edge-only: merge comment - hide this on edge
+    /* edge-only: should not be visible on edge
     if (authState.edgesSupportEnabled && this.userPermissionsService.hasReadGroupsPermission(EntityType.EDGE)) {
       homeSections.push(
         {
@@ -1817,7 +1837,7 @@ export class MenuService {
         }
       );
     }
-    /* edge-only: merge comment - hide this on edge
+    /* edge-only: should not be visible on edge
     if (this.userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)) {
       homeSections.push(
         {
@@ -1890,7 +1910,7 @@ export class MenuService {
             icon: 'mail',
             disabled: disabledItems.indexOf('mail_server') > -1
           },
-          /* edge-only: merge comment - these sections should not be visible on edge
+          /* edge-only: should not be visible on edge
           {
             name: 'admin.sms-provider',
             path: '/settings/sms-provider',
@@ -1912,7 +1932,7 @@ export class MenuService {
           */
         );
       }
-      /* @voba - merge comment - hide this on edge
+      /* edge-only: should not be visible on edge
       if (this.userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)) {
         settings.places.push({
           name: 'resource.resources-library',

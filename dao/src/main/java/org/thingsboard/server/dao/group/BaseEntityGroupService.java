@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -94,6 +95,7 @@ import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -250,6 +252,34 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         entityGroup.setName(EntityGroup.GROUP_ALL_NAME);
         entityGroup.setType(groupType);
         return saveEntityGroup(tenantId, parentEntityId, entityGroup);
+    }
+
+    @Transactional
+    @Override
+    public void createDefaultTenantEntityGroups(TenantId tenantId) {
+        createEntityGroupsAll(tenantId, tenantId);
+        findOrCreateTenantUsersGroup(tenantId);
+        findOrCreateTenantAdminsGroup(tenantId);
+    }
+
+    @Transactional
+    @Override
+    public void createDefaultCustomerEntityGroups(TenantId tenantId, Customer customer) {
+        createEntityGroupsAll(tenantId, customer.getId());
+        if (!customer.isPublic()) {
+            findOrCreateCustomerUsersGroup(tenantId, customer.getId(), customer.getParentCustomerId());
+            findOrCreateCustomerAdminsGroup(tenantId, customer.getId(), customer.getParentCustomerId());
+        } else {
+            findOrCreatePublicUsersGroup(tenantId, customer.getId());
+        }
+    }
+
+    private void createEntityGroupsAll(TenantId tenantId, EntityId parentEntityId) {
+        Arrays.stream(EntityType.values())
+                .filter(EntityType::isGroupEntityType)
+                .forEach(entityGroupType -> {
+                    createEntityGroupAll(tenantId, parentEntityId, entityGroupType);
+                });
     }
 
     @Override

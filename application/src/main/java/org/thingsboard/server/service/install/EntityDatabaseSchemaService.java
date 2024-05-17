@@ -36,4 +36,6 @@ public interface EntityDatabaseSchemaService extends DatabaseSchemaService {
 
     void createOrUpdateViewsAndFunctions() throws Exception;
 
+    void createCustomerTitleUniqueConstraintIfNotExists();
+
 }

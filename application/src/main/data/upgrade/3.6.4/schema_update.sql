@@ -29,6 +29,23 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
+-- UPDATE PUBLIC CUSTOMERS START
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT FROM information_schema.columns
+            WHERE table_name = 'customer' AND column_name = 'is_public'
+        ) THEN
+            ALTER TABLE customer ADD COLUMN is_public boolean DEFAULT false;
+            UPDATE customer SET is_public = true WHERE title = 'Public';
+        END IF;
+    END;
+$$;
+
+-- UPDATE PUBLIC CUSTOMERS END
+
 -- CUSTOM TRANSLATION MIGRATION START
 
 CREATE TABLE IF NOT EXISTS custom_translation (
@@ -206,13 +223,7 @@ BEGIN
         SELECT COUNT(*) INTO row_num_old FROM attribute_kv_old;
         SELECT COUNT(*) INTO row_num FROM attribute_kv;
         RAISE NOTICE 'Migrated % of % rows', row_num, row_num_old;
-
-        IF row_num != 0 THEN
-            DROP TABLE IF EXISTS attribute_kv_old;
-        ELSE
-           RAISE EXCEPTION 'Table attribute_kv is empty';
-        END IF;
-
+        DROP TABLE IF EXISTS attribute_kv_old;
         CREATE INDEX IF NOT EXISTS idx_attribute_kv_by_key_and_last_update_ts ON attribute_kv(entity_id, attribute_key, last_update_ts desc);
     END IF;
 EXCEPTION
@@ -256,3 +267,19 @@ DELETE FROM asset WHERE type='TbServiceQueue';
 DELETE FROM asset_profile WHERE name ='TbServiceQueue';
 
 -- QUEUE STATS UPDATE END
+
+-- MOBILE APP SETTINGS TABLE CREATE START
+
+CREATE TABLE IF NOT EXISTS mobile_app_settings (
+    id uuid NOT NULL CONSTRAINT mobile_app_settings_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id uuid NOT NULL,
+    use_system_settings boolean,
+    use_default_app boolean,
+    android_config VARCHAR(1000),
+    ios_config VARCHAR(1000),
+    qr_code_config VARCHAR(100000),
+    CONSTRAINT mobile_app_settings_tenant_id_unq_key UNIQUE (tenant_id)
+);
+
+-- MOBILE APP SETTINGS TABLE CREATE END

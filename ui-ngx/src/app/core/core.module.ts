@@ -31,12 +31,12 @@
 
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HTTP_INTERCEPTORS, HttpClient, HttpClientModule } from '@angular/common/http';
-import { Store, StoreModule } from '@ngrx/store';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
 import { GlobalHttpInterceptor } from './interceptors/global-http-interceptor';
-import { AppState, effects, metaReducers, reducers } from './core.state';
+import { effects, metaReducers, reducers } from './core.state';
 import { environment as env } from '@env/environment';
 
 import {
@@ -57,10 +57,6 @@ import { HotkeyModule } from 'angular2-hotkeys';
 import { TranslateDefaultParser } from '@core/translate/translate-default-parser';
 import { TranslateDefaultLoader } from '@core/translate/translate-default-loader';
 
-export function HttpLoaderFactory(http: HttpClient, store: Store<AppState>) {
-  return new TranslateDefaultLoader(http, store);
-}
-
 @NgModule({
   imports: [
     CommonModule,
@@ -74,8 +70,7 @@ export function HttpLoaderFactory(http: HttpClient, store: Store<AppState>) {
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,
-        useFactory: HttpLoaderFactory,
-        deps: [HttpClient, Store]
+        useClass: TranslateDefaultLoader
       },
       missingTranslationHandler: {
         provide: MissingTranslationHandler,

@@ -208,6 +208,8 @@ mail:
   oauth2:
     # Interval for checking refresh token expiration in seconds(by default, 1 day).
     refreshTokenCheckingInterval: "${REFRESH_TOKEN_EXPIRATION_CHECKING_INTERVAL:86400}"
+  # Rate limits for sending mails per tenant. As example for 1000 per minute and 10000 per hour is "1000:60,10000:3600"
+  per_tenant_rate_limits: "${MAIL_PER_TENANT_RATE_LIMITS:}"
 
 # Usage statistics parameters
 usage:
@@ -513,6 +515,12 @@ cache:
     assets:
       timeToLiveInMinutes: "${CACHE_SPECS_ASSETS_TTL:1440}" # Asset cache TTL
       maxSize: "${CACHE_SPECS_ASSETS_MAX_SIZE:10000}" # 0 means the cache is disabled
+    customers:
+      timeToLiveInMinutes: "${CACHE_SPECS_CUSTOMERS_TTL:1440}" # Customer cache TTL
+      maxSize: "${CACHE_SPECS_CUSTOMERS_MAX_SIZE:10000}" # 0 means the cache is disabled
+    users:
+      timeToLiveInMinutes: "${CACHE_SPECS_USERS_TTL:1440}" # User cache TTL
+      maxSize: "${CACHE_SPECS_USERS_MAX_SIZE:10000}" # 0 means the cache is disabled
     entityViews:
       timeToLiveInMinutes: "${CACHE_SPECS_ENTITY_VIEWS_TTL:1440}" # Entity view cache TTL
       maxSize: "${CACHE_SPECS_ENTITY_VIEWS_MAX_SIZE:10000}" # 0 means the cache is disabled
@@ -587,6 +595,12 @@ cache:
     alarmTypes:
       timeToLiveInMinutes: "${CACHE_SPECS_ALARM_TYPES_TTL:60}" # Alarm types cache TTL
       maxSize: "${CACHE_SPECS_ALARM_TYPES_MAX_SIZE:10000}" # 0 means the cache is disabled
+    mobileAppSettings:
+      timeToLiveInMinutes: "${CACHE_SPECS_MOBILE_APP_SETTINGS_TTL:1440}" # Mobile application cache TTL
+      maxSize: "${CACHE_SPECS_MOBILE_APP_SETTINGS_MAX_SIZE:10000}" # 0 means the cache is disabled
+    mobileSecretKey:
+      timeToLiveInMinutes: "${CACHE_MOBILE_SECRET_KEY_TTL:2}" # QR secret key cache TTL
+      maxSize: "${CACHE_MOBILE_SECRET_KEY_MAX_SIZE:10000}" # 0 means the cache is disabled
 
     # PE cache specs
     downlink:
@@ -1063,22 +1077,6 @@ transport:
     psm_activity_timer: "${COAP_PSM_ACTIVITY_TIMER:10000}"
     # Default PSM Activity Timer if not specified in device profile
     paging_transmission_window: "${COAP_PAGING_TRANSMISSION_WINDOW:10000}"
-    dtls:
-      # Enable/disable DTLS 1.2 support
-      enabled: "${COAP_DTLS_ENABLED:false}"
-      # RFC7925_RETRANSMISSION_TIMEOUT_IN_MILLISECONDS = 9000
-      retransmission_timeout: "${COAP_DTLS_RETRANSMISSION_TIMEOUT_MS:9000}"
-      # Server DTLS credentials
-      # CoAP DTLS connection ID length. RFC 9146, Connection Identifier for DTLS 1.2
-      # Default: off
-      # Control usage of DTLS connection ID length (CID).
-      # - 'off' to deactivate it.
-      # - 'on' to activate Connection ID support (same as CID 0 or more 0).
-      # - A positive value defines generated CID size in bytes.
-      # - A value of 0 means we accept using CID but will not generate one for foreign peer (enables support but not for incoming traffic).
-      # - A value between 0 and <= 4: SingleNodeConnectionIdGenerator is used
-      # - A value that are > 4: MultiNodeConnectionIdGenerator is used
-      connection_id_length: "${COAP_DTLS_CONNECTION_ID_LENGTH:}"
   # Local LwM2M transport parameters
   lwm2m:
     # Enable/disable LwM2M transport protocol.
@@ -1254,10 +1252,22 @@ coap:
   dtls:
     # Enable/disable DTLS 1.2 support
     enabled: "${COAP_DTLS_ENABLED:false}"
+    # RFC7925_RETRANSMISSION_TIMEOUT_IN_MILLISECONDS = 9000
+    retransmission_timeout: "${COAP_DTLS_RETRANSMISSION_TIMEOUT_MS:9000}"
     # CoAP DTLS bind address
     bind_address: "${COAP_DTLS_BIND_ADDRESS:0.0.0.0}"
     # CoAP DTLS bind port
     bind_port: "${COAP_DTLS_BIND_PORT:5684}"
+    # CoAP DTLS connection ID length. RFC 9146, Connection Identifier for DTLS 1.2
+    # Default: off
+    # Control usage of DTLS connection ID length (CID).
+    # - 'off' to deactivate it.
+    # - 'on' to activate Connection ID support (same as CID 0 or more 0).
+    # - A positive value defines generated CID size in bytes.
+    # - A value of 0 means we accept using CID but will not generate one for foreign peer (enables support but not for incoming traffic).
+    # - A value between 0 and <= 4: SingleNodeConnectionIdGenerator is used
+    # - A value that are > 4: MultiNodeConnectionIdGenerator is used
+    connection_id_length: "${COAP_DTLS_CONNECTION_ID_LENGTH:}"
     # Server DTLS credentials
     credentials:
       # Server credentials type (PEM - pem certificate file; KEYSTORE - java keystore)
@@ -1687,6 +1697,8 @@ queue:
     partitions: "${TB_QUEUE_CORE_PARTITIONS:10}"
     # Timeout for processing a message pack by Core microservices
     pack-processing-timeout: "${TB_QUEUE_CORE_PACK_PROCESSING_TIMEOUT_MS:2000}"
+    # Enable/disable a separate consumer per partition for Core queue
+    consumer-per-partition: "${TB_QUEUE_CORE_CONSUMER_PER_PARTITION:true}"
     ota:
       # Default topic name for OTA updates
       topic: "${TB_QUEUE_CORE_OTA_TOPIC:tb_ota_package}"
@@ -1873,3 +1885,7 @@ management:
       exposure:
         # Expose metrics endpoint (use value 'prometheus' to enable prometheus metrics).
         include: '${METRICS_ENDPOINTS_EXPOSE:info}'
+  health:
+    elasticsearch:
+      # Enable the org.springframework.boot.actuate.elasticsearch.ElasticsearchRestClientHealthIndicator.doHealthCheck
+      enabled: "false"

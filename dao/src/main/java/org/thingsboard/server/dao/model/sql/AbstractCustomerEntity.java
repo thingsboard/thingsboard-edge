@@ -92,6 +92,9 @@ public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSql
     @Column(name = ModelConstants.EMAIL_PROPERTY)
     private String email;
 
+    @Column(name = ModelConstants.CUSTOMER_IS_PUBLIC_PROPERTY)
+    private boolean isPublic;
+
     @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.CUSTOMER_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
@@ -122,6 +125,7 @@ public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSql
         this.phone = customer.getPhone();
         this.email = customer.getEmail();
         this.additionalInfo = customer.getAdditionalInfo();
+        this.isPublic = customer.isPublic();
         if (customer.getExternalId() != null) {
             this.externalId = customer.getExternalId().getId();
         }
@@ -142,6 +146,7 @@ public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSql
         this.phone = customerEntity.getPhone();
         this.email = customerEntity.getEmail();
         this.additionalInfo = customerEntity.getAdditionalInfo();
+        this.isPublic = customerEntity.isPublic();
         this.externalId = customerEntity.getExternalId();
     }
 

@@ -271,6 +271,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
         } else if (!context.getRateLimitService().map(s -> s.checkLimit(configuration.getTenantId(), integrationId, false)).orElse(true)) {
             if (context.getRateLimitService().get().alreadyProcessed(integrationId, EntityType.INTEGRATION)) {
                 log.trace("[{}] [{}] [{}] Rate limited debug event already sent.", configuration.getTenantId(), integrationId, EntityType.INTEGRATION);
+                return;
             } else {
                 exception = new TbRateLimitsException(EntityType.INTEGRATION, "Integration debug rate limits reached!");
                 status = "ERROR";

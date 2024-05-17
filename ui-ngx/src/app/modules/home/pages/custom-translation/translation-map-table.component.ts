@@ -65,6 +65,7 @@ import { hidePageSizePixelValue } from '@shared/models/constants';
 import { MatPaginator } from '@angular/material/paginator';
 import { TranslateService } from '@ngx-translate/core';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { environment as env } from '@env/environment';
 
 interface CustomTranslationMap {
   key: string;
@@ -104,7 +105,9 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
   textSearch = this.fb.control('', {nonNullable: true});
   textSearchMode = false;
 
-  private defaultPageSize = 50
+  readonly defaultLang = env.defaultLang;
+
+  private defaultPageSize = 50;
   pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
 
   dataSource: CustomTranslationMapDatasource;
@@ -121,9 +124,7 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
 
   newKey: FormGroup;
 
-  filterParams = this.fb.control<Array<CustomTranslationState>>([
-    CustomTranslationState.Translated, CustomTranslationState.Added, CustomTranslationState.Customized, CustomTranslationState.Untranslated
-  ])
+  filterParams = this.fb.control<Array<CustomTranslationState>>([]);
 
   private tableResize$: ResizeObserver;
   private destroy$ = new Subject<void>();
@@ -163,14 +164,14 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
     this.dataSource = new CustomTranslationMapDatasource(this.customTranslationService, this.localeCode, this.cd, this.translate);
     this.sort.active = this.pageLink.sortOrder.property;
     this.sort.direction = (this.pageLink.sortOrder.direction).toLowerCase() as SortDirection;
-    this.paginator.pageIndex = this.pageLink.page
+    this.paginator.pageIndex = this.pageLink.page;
     this.paginator.pageSize = this.pageLink.pageSize;
     this.dataSource.loadTranslateInfo(this.pageLink, this.filterParams.value);
     this.initSubscriptions();
 
     this.newKey = this.fb.group({
       key: ['', Validators.required],
-      original: ['', this.localeCode !== 'en_US' ? [Validators.required] : []],
+      original: ['', this.localeCode !== this.defaultLang ? [Validators.required] : []],
       translated: ['', Validators.required]
     });
 
@@ -179,7 +180,7 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
     ).subscribe(() => {
         this.paginator.pageIndex = 0;
         this.updateData();
-    })
+    });
   }
 
   ngOnDestroy() {
@@ -254,7 +255,6 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
         this.textSearchMode = true;
         this.textSearch.setValue(decodeURI(textSearch), {emitEvent: false});
       } else {
-        this.textSearchMode = false;
         this.textSearch.reset('', {emitEvent: false});
       }
 
@@ -328,7 +328,7 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
     const nextRow = ($event.target as HTMLElement).closest('mat-row').nextSibling;
     if (nextRow) {
       $event?.stopPropagation();
-      let index = this.dataSource.currentTranslations().findIndex(t => t === translate);
+      const index = this.dataSource.currentTranslations().findIndex(t => t === translate);
       if (index !== -1 && index !== (this.pageLink.pageSize - 1)) {
         this.toggleEditModeInElement(this.dataSource.currentTranslations()[index + 1], nextRow as HTMLElement);
       }
@@ -342,7 +342,7 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
         translation.value = translation.t;
         setTimeout(() => {
           element.closest('mat-row').querySelector('textarea').focus();
-        })
+        });
       } else {
         delete translation.value;
       }
@@ -360,7 +360,7 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
     $event?.stopPropagation();
     if (translate) {
       this.customTranslationService.deleteCustomTranslationKey(this.localeCode, translate.k).subscribe(() => {
-        if (isNotEmptyStr(translate.o) && this.localeCode !== 'en_US') {
+        if (isNotEmptyStr(translate.o) && this.localeCode !== this.defaultLang) {
           this.dataSource.updateTranslation(translate.k, '', CustomTranslationState.Added);
         } else {
           this.dataSource.deleteTranslation(translate.k);
@@ -379,16 +379,17 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
 
   addNewTranslated() {
     if (this.newKey.valid) {
-      let {key, translated, original} = this.newKey.value;
+      const {key, translated} = this.newKey.value;
+      let original = this.newKey.value.original;
       let observable: Observable<any>;
-      if (this.localeCode === 'en_US') {
+      if (this.localeCode === this.defaultLang) {
         observable = this.customTranslationService.patchCustomTranslation(this.localeCode, {[key]: translated});
         original = translated;
       } else {
         observable = forkJoin([
           this.customTranslationService.patchCustomTranslation(this.localeCode, {[key]: translated}),
-          this.customTranslationService.patchCustomTranslation('en_US', {[key]: original})
-        ])
+          this.customTranslationService.patchCustomTranslation(this.defaultLang, {[key]: original})
+        ]);
       }
       observable.subscribe(() => {
         this.dataSource.addedTranslation(key, translated, original);
@@ -409,13 +410,13 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
         this.customTranslationService.patchCustomTranslation(this.localeCode, {[translate.k]: newValue}).subscribe(() => {
           this.dataSource.updateTranslation(translate.k, newValue, CustomTranslationState.Customized);
           this.resetTranslationEdit(translate);
-        })
+        });
         break;
       case CustomTranslationState.Added:
         this.customTranslationService.patchCustomTranslation(this.localeCode, {[translate.k]: newValue}).subscribe(() => {
           this.dataSource.updateTranslation(translate.k, newValue, CustomTranslationState.Added);
           this.resetTranslationEdit(translate);
-        })
+        });
         break;
       case CustomTranslationState.Translated:
         if (translate.t.trim() !== newValue) {
@@ -430,9 +431,10 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
       case CustomTranslationState.Customized:
         if (translate.p === newValue) {
           this.customTranslationService.deleteCustomTranslationKey(this.localeCode, translate.k).subscribe(() => {
-            this.dataSource.updateTranslation(translate.k, newValue, isNotEmptyStr(newValue) ? CustomTranslationState.Translated : CustomTranslationState.Untranslated);
+            this.dataSource.updateTranslation(translate.k, newValue,
+              isNotEmptyStr(newValue) ? CustomTranslationState.Translated : CustomTranslationState.Untranslated);
             this.resetTranslationEdit(translate);
-          })
+          });
           break;
         } else if (translate.t.trim() !== newValue) {
           this.customTranslationService.patchCustomTranslation(this.localeCode, {[translate.k]: newValue}).subscribe(() => {
@@ -454,23 +456,9 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
   returnDefaultTranslation($event: Event, translation: CustomTranslationEditInfo) {
     $event?.stopPropagation();
     this.customTranslationService.deleteCustomTranslationKey(this.localeCode, translation.k).subscribe(() => {
-      this.dataSource.updateTranslation(translation.k, translation.p, isNotEmptyStr(translation.p) ? CustomTranslationState.Translated : CustomTranslationState.Untranslated);
+      this.dataSource.updateTranslation(translation.k, translation.p,
+        isNotEmptyStr(translation.p) ? CustomTranslationState.Translated : CustomTranslationState.Untranslated);
     });
-  }
-
-  toggleFilterParams($event: Event, state: CustomTranslationState) {
-    $event?.stopPropagation();
-    const index = this.filterParams.value.indexOf(state);
-    if (index > -1) {
-      this.filterParams.value.splice(index, 1);
-    } else {
-      this.filterParams.value.push(state);
-    }
-    this.updateData();
-  }
-
-  isDidabledFilterParams(state: CustomTranslationState) {
-    return !(this.filterParams.value.indexOf(state) > -1);
   }
 }
 
@@ -482,6 +470,8 @@ export class CustomTranslationMapDatasource implements DataSource<CustomTranslat
   dataLoading = false;
 
   private allTranslation: BehaviorSubject<Array<CustomTranslationEditInfo>>;
+
+  private defaultLang = env.defaultLang;
 
   constructor(private customTranslationService: CustomTranslationService,
               private localeCode: string,
@@ -523,22 +513,36 @@ export class CustomTranslationMapDatasource implements DataSource<CustomTranslat
       if (saveOrigin) {
         translation.p = translation.t;
       }
+      if (this.localeCode === this.defaultLang) {
+        translation.o = translate;
+      }
       translation.t = translate;
       translation.s = state;
     }
     this.updateKeyInTranslationService(key, isNotEmptyStr(translate) ? translate : translation.o);
   }
 
-  public addedTranslation(key: string, translate: string, original = '') {
+  public addedTranslation(key: string, translate: string, original: string) {
     const translations = this.allTranslation.value;
-    const newTranslation: CustomTranslationEditInfo = {
-      k: key,
-      t: translate,
-      o: original,
-      s: CustomTranslationState.Added
-    };
-    translations.push(newTranslation);
-    this.allTranslation.next(translations);
+    const translation = this.translationInfo.value.find(t => t.k === key);
+    if (translation) {
+      translation.t = translate;
+      if (translation.s === CustomTranslationState.Added) {
+        translation.o = original;
+        translation.s = CustomTranslationState.Added;
+      } else {
+        translation.s = CustomTranslationState.Customized;
+      }
+    } else {
+      const newTranslation: CustomTranslationEditInfo = {
+        k: key,
+        t: translate,
+        o: original,
+        s: CustomTranslationState.Added
+      };
+      translations.push(newTranslation);
+      this.allTranslation.next(translations);
+    }
     this.updateKeyInTranslationService(key, translate);
   }
 
@@ -548,7 +552,8 @@ export class CustomTranslationMapDatasource implements DataSource<CustomTranslat
     this.updateKeyInTranslationService(key);
   }
 
-  private fetchTranslation(pageLink: PageLink, filterParams: Array<CustomTranslationState>): Observable<PageData<CustomTranslationEditInfo>> {
+  private fetchTranslation(pageLink: PageLink,
+                           filterParams: Array<CustomTranslationState>): Observable<PageData<CustomTranslationEditInfo>> {
     return this.getAllTranslations().pipe(
       map((data) => {
         let filterData: CustomTranslationEditInfo[];
@@ -558,7 +563,7 @@ export class CustomTranslationMapDatasource implements DataSource<CustomTranslat
         } else {
           filterData = data;
         }
-        return pageLink.filterData(filterData)
+        return pageLink.filterData(filterData);
       })
     );
   }
@@ -587,7 +592,7 @@ export class CustomTranslationMapDatasource implements DataSource<CustomTranslat
   private flattenKeys(obj: CustomTranslationEditData, path: string = ''): Array<CustomTranslationEditInfo> {
     return Object.keys(obj).reduce((acc: Array<CustomTranslationEditInfo>, key: string) => {
       const fullPath = path ? `${path}.${key}` : key;
-      if (typeof obj[key] === 'object' && obj[key] !== null && !(obj[key]['s'])) {
+      if (typeof obj[key] === 'object' && obj[key] !== null && !(obj[key].s)) {
         acc.push(...this.flattenKeys(obj[key] as any, fullPath));
       } else {
         acc.push(Object.assign(obj[key],  {k: fullPath}));

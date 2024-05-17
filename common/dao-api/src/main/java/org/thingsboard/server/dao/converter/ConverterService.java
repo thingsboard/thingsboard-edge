@@ -51,6 +51,8 @@ public interface ConverterService extends EntityDaoService {
 
     Optional<Converter> findConverterByName(TenantId tenantId, String converterName);
 
+    ListenableFuture<Optional<Converter>> findConverterByNameAsync(TenantId tenantId, String converterName);
+
     ListenableFuture<Converter> findConverterByIdAsync(TenantId tenantId, ConverterId converterId);
 
     ListenableFuture<List<Converter>> findConvertersByIdsAsync(TenantId tenantId, List<ConverterId> converterIds);

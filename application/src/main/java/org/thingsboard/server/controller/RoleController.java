@@ -229,7 +229,7 @@ public class RoleController extends AutoCommitController {
             @RequestParam int pageSize,
             @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true, schema = @Schema(minimum = "0"))
             @RequestParam int page,
-            @Parameter(description = "Type of the role", schema = @Schema(allowableValues = "GENERIC, GROUP"))
+            @Parameter(description = "Type of the role", schema = @Schema(allowableValues = {"GENERIC", "GROUP"}))
             @RequestParam(required = false) String type,
             @Parameter(description = ROLE_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,

@@ -105,7 +105,7 @@
           </mat-cell>
         </ng-container>
         <ng-container matColumnDef="o">
-          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%">{{ 'language.locales.en_US' | translate }}</mat-header-cell>
+          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%">{{ 'language.locales.' + defaultLang | translate }}</mat-header-cell>
           <mat-cell *matCellDef="let translate" style="width: 33%" class="constant-value">
             <span>{{ translate.o }}</span>&nbsp;
             <tb-copy-button
@@ -150,7 +150,7 @@
           <mat-header-cell *matHeaderCellDef style="width: 40px; max-width: 40px; min-width: 40px"> </mat-header-cell>
           <mat-cell *matCellDef="let translate" style="width: 40px; max-width: 40px; min-width: 40px">
             <button mat-icon-button
-                    *ngIf="translate.s == CustomTranslationState.Customized && !readonly"
+                    *ngIf="translate.s === CustomTranslationState.Customized && !readonly"
                     class="tb-mat-40"
                     [disabled]="(isLoading$ | async)"
                     matTooltip="{{ 'custom-translation.return-default-translation' | translate }}"
@@ -161,7 +161,7 @@
               </tb-icon>
             </button>
             <button mat-icon-button
-                    *ngIf="translate.s == CustomTranslationState.Added && !readonly && translate.t"
+                    *ngIf="translate.s === CustomTranslationState.Added && !readonly && translate.t"
                     class="tb-mat-40"
                     [disabled]="(isLoading$ | async)"
                     matTooltip="{{ 'custom-translation.delete-translation' | translate }}"
@@ -191,13 +191,15 @@
           </ng-container>
           <ng-container matColumnDef="original">
             <mat-header-cell *matHeaderCellDef style="width: 33%">
-              <div class="tb-form-row no-padding no-gap no-border" [formGroup]="newKey" *ngIf="localeCode !== 'en_US'">
+              <div class="tb-form-row no-padding no-gap no-border" [formGroup]="newKey" *ngIf="localeCode !== defaultLang">
                 <mat-form-field class="flex" appearance="outline" subscriptSizing="dynamic">
                   <textarea matInput
                             rows="1"
                             placeholder="{{ 'custom-translation.set' | translate }}"
                             cdkTextareaAutosize
                             cdkAutosizeMinRows="1"
+                            (blur)="addNewTranslated()"
+                            (keydown.enter)="addNewTranslated()"
                             formControlName="original">
                   </textarea>
                 </mat-form-field>
@@ -227,10 +229,10 @@
                       class="tb-mat-40"
                       [disabled]="(isLoading$ | async)"
                       (click)="deleteNewTranslated($event)"
-                      matTooltip="{{ 'custom-translation.delete-translation' | translate }}"
+                      matTooltip="{{ 'action.cancel' | translate }}"
                       matTooltipPosition="above">
                 <tb-icon>
-                  delete
+                  close
                 </tb-icon>
               </button>
             </mat-header-cell>
@@ -263,29 +265,31 @@
   </div>
   <div class="tb-form-row tb-legend">
     <tb-icon color="primary">mdi:filter-variant</tb-icon>
-    <div class="tb-legend-item-label"
-         [class.disabled]="isDidabledFilterParams(CustomTranslationState.Translated)"
-         (click)="toggleFilterParams($event, CustomTranslationState.Translated)">
-      <div class="tb-legend-item-label-circle translated"></div>
-      <div translate>custom-translation.translated</div>
-    </div>
-    <div class="tb-legend-item-label"
-         [class.disabled]="isDidabledFilterParams(CustomTranslationState.Untranslated)"
-         (click)="toggleFilterParams($event, CustomTranslationState.Untranslated)">
-      <div class="tb-legend-item-label-circle untranslated"></div>
-      <div translate>custom-translation.untranslated</div>
-    </div>
-    <div class="tb-legend-item-label"
-         [class.disabled]="isDidabledFilterParams(CustomTranslationState.Customized)"
-         (click)="toggleFilterParams($event, CustomTranslationState.Customized)">
-      <div class="tb-legend-item-label-circle customized"></div>
-      <div translate>custom-translation.customized</div>
-    </div>
-    <div class="tb-legend-item-label"
-         [class.disabled]="isDidabledFilterParams(CustomTranslationState.Added)"
-         (click)="toggleFilterParams($event, CustomTranslationState.Added)">
-      <div class="tb-legend-item-label-circle added"></div>
-      <div translate>custom-translation.added-key</div>
-    </div>
+    <mat-chip-listbox [formControl]="filterParams" multiple>
+      <mat-chip-option [value]="CustomTranslationState.Translated">
+        <div class="tb-legend-item-label">
+          <div translate>custom-translation.translated</div>
+          <div class="tb-legend-item-label-color translated"></div>
+        </div>
+      </mat-chip-option>
+      <mat-chip-option [value]="CustomTranslationState.Untranslated">
+        <div class="tb-legend-item-label">
+          <div translate>custom-translation.untranslated</div>
+          <div class="tb-legend-item-label-color untranslated"></div>
+        </div>
+      </mat-chip-option>
+      <mat-chip-option [value]="CustomTranslationState.Customized">
+        <div class="tb-legend-item-label">
+          <div translate>custom-translation.customized</div>
+          <div class="tb-legend-item-label-color customized"></div>
+        </div>
+      </mat-chip-option>
+      <mat-chip-option [value]="CustomTranslationState.Added">
+        <div class="tb-legend-item-label">
+          <div translate>custom-translation.added-key</div>
+          <div class="tb-legend-item-label-color added"></div>
+        </div>
+      </mat-chip-option>
+    </mat-chip-listbox>
   </div>
 </div>

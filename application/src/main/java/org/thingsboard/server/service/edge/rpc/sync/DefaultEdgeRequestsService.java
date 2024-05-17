@@ -134,7 +134,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
 
     @Autowired
     private TimeseriesService timeseriesService;
-    
+
     @Autowired
     private DeviceService deviceService;
 
@@ -263,7 +263,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
     }
-    
+
     private ListenableFuture<Void> processLatestTimeseriesAndAddToEdgeQueue(TenantId tenantId, EntityId entityId, Edge edge,
                                                                             EdgeEventType entityType) {
         ListenableFuture<List<TsKvEntry>> getAllLatestFuture = timeseriesService.findAllLatest(tenantId, entityId);
@@ -697,15 +697,16 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
     }
 
     private ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
-                               EdgeId edgeId,
-                               EdgeEventType type,
-                               EdgeEventActionType action,
-                               EntityId entityId,
-                               JsonNode body,
-                               EntityId entityGroupId) {
+                                                 EdgeId edgeId,
+                                                 EdgeEventType type,
+                                                 EdgeEventActionType action,
+                                                 EntityId entityId,
+                                                 JsonNode body,
+                                                 EntityId entityGroupId) {
         log.trace("Pushing edge event to edge queue. tenantId [{}], edgeId [{}], type [{}], action[{}], entityId [{}], body [{}], entityGroupId [{}]",
                 tenantId, edgeId, type, action, entityId, body, entityGroupId);
-        EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, type, action, entityId, body);
+        EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
         return edgeEventService.saveAsync(edgeEvent);
     }
+
 }

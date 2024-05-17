@@ -29,21 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { TenantId } from '@shared/models/id/tenant-id';
-import { CustomerId } from '@shared/models/id/customer-id';
-
-export interface CustomTranslation {
-  localeCode: string;
-  value: object;
-  tenantId: TenantId;
-  customerId: CustomerId;
-}
-
 export interface TranslationInfo {
   localeCode: string;
   language: string;
   country: string;
   progress: number;
+  customized: boolean;
 }
 
 export enum CustomTranslationState {

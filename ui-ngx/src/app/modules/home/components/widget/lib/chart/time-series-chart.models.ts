@@ -104,7 +104,7 @@ import {
   chartColorScheme,
   ChartFillSettings,
   ChartFillType,
-  ChartLabelPosition,
+  ChartLabelPosition, ChartLineType,
   ChartShape,
   createChartTextStyle,
   createLinearOpacityGradient,
@@ -504,22 +504,6 @@ export const timeSeriesAxisPositionTranslations = new Map<AxisPosition, string>(
   ]
 );
 
-export enum TimeSeriesChartLineType {
-  solid = 'solid',
-  dashed = 'dashed',
-  dotted = 'dotted'
-}
-
-export const timeSeriesLineTypes = Object.keys(TimeSeriesChartLineType) as TimeSeriesChartLineType[];
-
-export const timeSeriesLineTypeTranslations = new Map<TimeSeriesChartLineType, string>(
-  [
-    [TimeSeriesChartLineType.solid, 'widgets.time-series-chart.line-type-solid'],
-    [TimeSeriesChartLineType.dashed, 'widgets.time-series-chart.line-type-dashed'],
-    [TimeSeriesChartLineType.dotted, 'widgets.time-series-chart.line-type-dotted']
-  ]
-);
-
 export enum ThresholdLabelPosition {
   start = 'start',
   middle = 'middle',
@@ -781,7 +765,7 @@ export interface TimeSeriesChartThreshold {
   units?: string;
   decimals?: number;
   lineColor: string;
-  lineType: TimeSeriesChartLineType | number | number[];
+  lineType: ChartLineType | number | number[];
   lineWidth: number;
   startSymbol: ChartShape;
   startSymbolSize: number;
@@ -836,7 +820,7 @@ export const timeSeriesChartThresholdDefaultSettings: TimeSeriesChartThreshold =
   units: null,
   decimals: 0,
   lineColor: chartColorScheme['threshold.line'].light,
-  lineType: TimeSeriesChartLineType.solid,
+  lineType: ChartLineType.solid,
   lineWidth: 1,
   startSymbol: ChartShape.none,
   startSymbolSize: 5,
@@ -1071,7 +1055,7 @@ export interface LineSeriesSettings {
   step: boolean;
   stepType: LineSeriesStepType;
   smooth: boolean;
-  lineType: TimeSeriesChartLineType;
+  lineType: ChartLineType;
   lineWidth: number;
   showPoints: boolean;
   showPointLabel: boolean;
@@ -1106,7 +1090,7 @@ export const timeSeriesChartKeyDefaultSettings: TimeSeriesChartKeySettings = {
     step: false,
     stepType: LineSeriesStepType.start,
     smooth: false,
-    lineType: TimeSeriesChartLineType.solid,
+    lineType: ChartLineType.solid,
     lineWidth: 2,
     showPoints: false,
     showPointLabel: false,

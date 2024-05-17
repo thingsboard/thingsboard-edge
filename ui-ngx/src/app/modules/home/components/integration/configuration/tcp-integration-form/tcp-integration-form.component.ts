@@ -32,10 +32,10 @@
 import { Component, forwardRef, Input } from '@angular/core';
 import {
   ControlValueAccessor,
-  UntypedFormBuilder,
-  UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
+  UntypedFormBuilder,
+  UntypedFormGroup,
   ValidationErrors,
   Validator,
   Validators
@@ -48,7 +48,8 @@ import {
   TcpBinaryByteOrder,
   TcpHandlerConfigurationType,
   TcpIntegration,
-  TcpTextMessageSeparator
+  TcpTextMessageSeparator,
+  TcpTextMessageSeparatorTranslation
 } from '@shared/models/integration.models';
 import { takeUntil } from 'rxjs/operators';
 
@@ -77,11 +78,12 @@ export class TcpIntegrationFormComponent extends IntegrationForm implements Cont
   HandlerConfigurationTypeTranslation = HandlerConfigurationTypeTranslation;
 
   TcpBinaryByteOrder = TcpBinaryByteOrder;
-  TcpTextMessageSeparator = TcpTextMessageSeparator;
+  tcpTextMessageSeparatorList: TcpTextMessageSeparator[] = Object.values(TcpTextMessageSeparator);
+  readonly TcpTextMessageSeparator = TcpTextMessageSeparator;
+  readonly TcpTextMessageSeparatorTranslation = TcpTextMessageSeparatorTranslation;
 
   private propagateChangePending = false;
   private propagateChange = (v: any) => { };
-
   constructor(private fb: UntypedFormBuilder) {
     super();
     this.tcpConfigForm = this.fb.group({
@@ -103,9 +105,22 @@ export class TcpIntegrationFormComponent extends IntegrationForm implements Cont
         initialBytesToStrip: [0, [Validators.required, Validators.min(0), Validators.max(8)]],
         failFast: [false],
         stripDelimiter: [{value: true, disabled: true}],
-        messageSeparator: [{value: TcpTextMessageSeparator.SYSTEM_LINE_SEPARATOR, disabled: true}]
+        messageSeparator: [{value: TcpTextMessageSeparator.SYSTEM_LINE_SEPARATOR, disabled: true}],
+        customSeparatorRawValue: [{value: null, disabled: true}, [Validators.required]]
       })
     });
+
+    this.tcpConfigForm.get('handlerConfiguration.messageSeparator').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((value: TcpTextMessageSeparator) => {
+      if (value === TcpTextMessageSeparator.CUSTOM_SEPARATOR) {
+        this.tcpConfigForm.get('handlerConfiguration.customSeparatorRawValue').enable({emitEvent: false});
+      } else {
+        this.tcpConfigForm.get('handlerConfiguration.customSeparatorRawValue').patchValue(null, {emitEvent: false});
+        this.tcpConfigForm.get('handlerConfiguration.customSeparatorRawValue').disable({emitEvent: false});
+      }
+    });
+
     this.tcpConfigForm.get('handlerConfiguration.handlerType').valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe((value: TcpHandlerConfigurationType) => {
@@ -176,7 +191,7 @@ export class TcpIntegrationFormComponent extends IntegrationForm implements Cont
       case HandlerConfigurationType.TEXT:
         this.tcpConfigForm.get('handlerConfiguration.maxFrameLength').enable({emitEvent: false});
         this.tcpConfigForm.get('handlerConfiguration.stripDelimiter').enable({emitEvent: false});
-        this.tcpConfigForm.get('handlerConfiguration.messageSeparator').enable({emitEvent: false});
+        this.tcpConfigForm.get('handlerConfiguration.messageSeparator').enable({emitEvent: true});
         break;
     }
     this.tcpConfigForm.get('handlerConfiguration.handlerType').enable({emitEvent: false});

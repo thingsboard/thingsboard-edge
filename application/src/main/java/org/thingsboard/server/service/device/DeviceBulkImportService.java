@@ -84,6 +84,8 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.eclipse.leshan.core.LwM2m.Version.V1_0;
+
 @Service
 @TbCoreComponent
 @RequiredArgsConstructor
@@ -272,7 +274,7 @@ public class DeviceBulkImportService extends AbstractBulkImportService<Device> {
 
                     Lwm2mDeviceProfileTransportConfiguration transportConfiguration = new Lwm2mDeviceProfileTransportConfiguration();
                     transportConfiguration.setBootstrap(Collections.emptyList());
-                    transportConfiguration.setClientLwM2mSettings(new OtherConfiguration(1, 1, 1, PowerMode.DRX, null, null, null, null, null));
+                    transportConfiguration.setClientLwM2mSettings(new OtherConfiguration(1, 1, 1, PowerMode.DRX, null, null, null, null, null, V1_0.toString()));
                     transportConfiguration.setObserveAttr(new TelemetryMappingConfiguration(Collections.emptyMap(), Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), Collections.emptyMap()));
 
                     DeviceProfileData deviceProfileData = new DeviceProfileData();
