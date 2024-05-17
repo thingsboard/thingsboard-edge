@@ -28,17 +28,60 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+/**
+<<<<<<< HEAD
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+=======
+ * Copyright © 2016-2024 The Thingsboard Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+>>>>>>> opensource-im/rule-engine-controller-ce
+ */
 package org.thingsboard.server.controller;
 
 import com.google.common.util.concurrent.FutureCallback;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,7 +105,6 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.exception.ToErrorResponseEntity;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.ruleengine.LocalRequestMetaData;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -193,7 +235,7 @@ public class RuleEngineController extends BaseController {
                     metaData.put("requestUUID", requestId.toString());
                     metaData.put("expirationTime", Long.toString(expTime));
                     TbMsg msg = TbMsg.newMsg(queueName, TbMsgType.REST_API_REQUEST, entityId, currentUser.getCustomerId(), new TbMsgMetaData(metaData), requestBody);
-                    ruleEngineCallService.processRestAPICallToRuleEngine(currentUser.getTenantId(), requestId, msg, queueName != null,
+                    ruleEngineCallService.processRestApiCallToRuleEngine(currentUser.getTenantId(), requestId, msg, queueName != null,
                             reply -> reply(new LocalRequestMetaData(msg, currentUser, result), reply));
                 }
 
@@ -216,7 +258,7 @@ public class RuleEngineController extends BaseController {
     }
 
     private void reply(LocalRequestMetaData rpcRequest, TbMsg response) {
-        DeferredResult<ResponseEntity> responseWriter = rpcRequest.getResponseWriter();
+        DeferredResult<ResponseEntity> responseWriter = rpcRequest.responseWriter;
         if (response == null) {
             logRuleEngineCall(rpcRequest, null, new TimeoutException("Processing timeout detected!"));
             responseWriter.setResult(new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT));
@@ -239,7 +281,7 @@ public class RuleEngineController extends BaseController {
     }
 
     private void logRuleEngineCall(LocalRequestMetaData rpcRequest, TbMsg response, Throwable e) {
-        logRuleEngineCall(rpcRequest.getUser(), rpcRequest.getRequest().getOriginator(), rpcRequest.getRequest().getData(), response, e);
+        logRuleEngineCall(rpcRequest.user, rpcRequest.request.getOriginator(), rpcRequest.request.getData(), response, e);
     }
 
     private void logRuleEngineCall(SecurityUser user, EntityId entityId, String request, TbMsg response, Throwable e) {
@@ -255,4 +297,6 @@ public class RuleEngineController extends BaseController {
                 request,
                 response != null ? response.getData() : "");
     }
+
+    private record LocalRequestMetaData(TbMsg request, SecurityUser user, DeferredResult<ResponseEntity> responseWriter) {}
 }

@@ -768,7 +768,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     }
 
 
-    private void forwardToRuleEngineCallService(RestApiCallResponseMsgProto restApiCallResponseMsg, TbCallback callback) {
+    void forwardToRuleEngineCallService(RestApiCallResponseMsgProto restApiCallResponseMsg, TbCallback callback) {
         ruleEngineCallService.onQueueMsg(restApiCallResponseMsg, callback);
     }
 

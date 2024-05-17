@@ -28,6 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+/**
+<<<<<<< HEAD
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
 package org.thingsboard.server.service.ruleengine;
 
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +90,7 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
 
     private final TbClusterService clusterService;
 
-    private ScheduledExecutorService rpcCallBackExecutor;
+    private ScheduledExecutorService executor;
 
     private final ConcurrentMap<UUID, Consumer<TbMsg>> requests = new ConcurrentHashMap<>();
 
@@ -69,20 +100,20 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
 
     @PostConstruct
     public void initExecutor() {
-        rpcCallBackExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("re-rpc-callback"));
+        executor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("re-rest-callback"));
     }
 
     @PreDestroy
     public void shutdownExecutor() {
-        if (rpcCallBackExecutor != null) {
-            rpcCallBackExecutor.shutdownNow();
+        if (executor != null) {
+            executor.shutdownNow();
         }
     }
 
     @Override
-    public void processRestAPICallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, boolean useQueueFromTbMsg, Consumer<TbMsg> consumer) {
+    public void processRestApiCallToRuleEngine(TenantId tenantId, UUID requestId, TbMsg request, boolean useQueueFromTbMsg, Consumer<TbMsg> responseConsumer) {
         log.trace("[{}] Processing REST API call to rule engine: [{}] for entity: [{}]", tenantId, requestId, request.getOriginator());
-        requests.put(requestId, consumer);
+        requests.put(requestId, responseConsumer);
         sendRequestToRuleEngine(tenantId, request, useQueueFromTbMsg);
         scheduleTimeout(request, requestId, requests);
     }
@@ -107,7 +138,7 @@ public class DefaultRuleEngineCallService implements RuleEngineCallService {
         long expirationTime = Long.parseLong(request.getMetaData().getValue("expirationTime"));
         long timeout = Math.max(0, expirationTime - System.currentTimeMillis());
         log.trace("[{}] processing the request: [{}]", this.hashCode(), requestId);
-        rpcCallBackExecutor.schedule(() -> {
+        executor.schedule(() -> {
             Consumer<TbMsg> consumer = requestsMap.remove(requestId);
             if (consumer != null) {
                 log.trace("[{}] request timeout detected: [{}]", this.hashCode(), requestId);

@@ -69,6 +69,8 @@ public class TbSendRestApiCallReplyNode implements TbNode {
         String requestIdStr = msg.getMetaData().getValue(config.getRequestIdMetaDataAttribute());
         if (StringUtils.isEmpty(requestIdStr)) {
             ctx.tellFailure(msg, new RuntimeException("Request id is not present in the metadata!"));
+        } else if (StringUtils.isEmpty(serviceIdStr)) {
+            ctx.tellFailure(msg, new RuntimeException("Service id is not present in the metadata!"));
         } else if (StringUtils.isEmpty(msg.getData())) {
             ctx.tellFailure(msg, new RuntimeException("Request body is empty!"));
         } else {
