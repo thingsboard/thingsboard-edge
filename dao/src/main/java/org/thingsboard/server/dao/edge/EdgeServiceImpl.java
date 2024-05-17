@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import jakarta.annotation.Nullable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
@@ -48,7 +49,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntitySubtype;
 import org.thingsboard.server.common.data.EntityType;
@@ -90,10 +90,10 @@ import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.exception.DataValidationException;
 
-import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -149,6 +149,9 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Autowired
     private DataValidator<Edge> edgeValidator;
 
+    @Autowired
+    private JpaExecutorService executor;
+
     @Value("${edges.enabled}")
     @Getter
     private boolean edgesEnabled;
@@ -182,7 +185,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
     @Override
     public ListenableFuture<Edge> findEdgeByIdAsync(TenantId tenantId, EdgeId edgeId) {
-        log.trace("Executing findEdgeById [{}]", edgeId);
+        log.trace("Executing findEdgeByIdAsync [{}]", edgeId);
         validateId(edgeId, id -> INCORRECT_EDGE_ID + id);
         return edgeDao.findByIdAsync(tenantId, edgeId.getId());
     }
@@ -194,6 +197,13 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         return cache.getAndPutInTransaction(new EdgeCacheKey(tenantId, name),
                 () -> edgeDao.findEdgeByTenantIdAndName(tenantId.getId(), name)
                         .orElse(null), true);
+    }
+
+    @Override
+    public ListenableFuture<Edge> findEdgeByTenantIdAndNameAsync(TenantId tenantId, String name) {
+        log.trace("Executing findEdgeByTenantIdAndNameAsync [{}][{}]", tenantId, name);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        return executor.submit(() -> findEdgeByTenantIdAndName(tenantId, name));
     }
 
     @Override
@@ -234,13 +244,19 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         validateId(edgeId, id -> INCORRECT_EDGE_ID + id);
 
         Edge edge = edgeDao.findById(tenantId, edgeId.getId());
-
-        deleteEntityRelations(tenantId, edgeId);
-
+        if (edge == null) {
+            return;
+        }
         edgeDao.removeById(tenantId, edgeId.getId());
 
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(edgeId).build());
         publishEvictEvent(new EdgeCacheEvictEvent(edge.getTenantId(), edge.getName(), null));
+    }
+
+    @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteEdge(tenantId, (EdgeId) id);
     }
 
     @Override
@@ -273,6 +289,11 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         log.trace("Executing deleteEdgesByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantEdgesRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteEdgesByTenantId(tenantId);
     }
 
     @Override
@@ -328,7 +349,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             return Futures.successfulAsList(futures);
         }, MoreExecutors.directExecutor());
 
-        edges = Futures.transform(edges, new Function<List<Edge>, List<Edge>>() {
+        edges = Futures.transform(edges, new Function<>() {
             @Nullable
             @Override
             public List<Edge> apply(@Nullable List<Edge> edgeList) {
@@ -473,7 +494,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     }
 
     private PaginatedRemover<TenantId, Edge> tenantEdgesRemover =
-            new PaginatedRemover<TenantId, Edge>() {
+            new PaginatedRemover<>() {
 
                 @Override
                 protected PageData<Edge> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
@@ -486,7 +507,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                 }
             };
 
-    private PaginatedRemover<CustomerId, Edge> customerEdgesRemover = new PaginatedRemover<CustomerId, Edge>() {
+    private PaginatedRemover<CustomerId, Edge> customerEdgesRemover = new PaginatedRemover<>() {
 
         @Override
         protected PageData<Edge> findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {
@@ -612,7 +633,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Override
     public String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId, String tbRuleChainInputNodeClassName) {
         List<RuleChain> edgeRuleChains = findEdgeRuleChains(tenantId, edgeId);
-        List<RuleChainId> edgeRuleChainIds = edgeRuleChains.stream().map(IdBased::getId).collect(Collectors.toList());
+        List<RuleChainId> edgeRuleChainIds = edgeRuleChains.stream().map(IdBased::getId).toList();
         ObjectNode result = JacksonUtil.newObjectNode();
         for (RuleChain edgeRuleChain : edgeRuleChains) {
             List<RuleNode> ruleNodes =
@@ -621,8 +642,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                 List<RuleChainId> connectedRuleChains =
                         ruleNodes.stream()
                                 .filter(rn -> rn.getType().equals(tbRuleChainInputNodeClassName))
-                                .map(rn -> new RuleChainId(UUID.fromString(rn.getConfiguration().get("ruleChainId").asText())))
-                                .collect(Collectors.toList());
+                                .map(rn -> new RuleChainId(UUID.fromString(rn.getConfiguration().get("ruleChainId").asText()))).toList();
                 List<String> missingRuleChains = new ArrayList<>();
                 for (RuleChainId connectedRuleChain : connectedRuleChains) {
                     if (!edgeRuleChainIds.contains(connectedRuleChain)) {
@@ -648,7 +668,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         if (persistToTelemetry) {
             futureKvEntry = timeseriesService.findLatest(tenantId, edgeId, key);
         } else {
-            futureKvEntry = attributesService.find(tenantId, edgeId, DataConstants.SERVER_SCOPE, key);
+            futureKvEntry = attributesService.find(tenantId, edgeId, AttributeScope.SERVER_SCOPE, key);
         }
         return Futures.transformAsync(futureKvEntry, kvEntryOpt ->
                 Futures.immediateFuture(kvEntryOpt.flatMap(KvEntry::getBooleanValue).orElse(false)), MoreExecutors.directExecutor());
@@ -789,10 +809,9 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         List<AttributeKvEntry> edgeAttributes =
                 attributesService.find(tenantId, edgeId, AttributeScope.SERVER_SCOPE, attributesKeys).get();
         List<String> edgeAttributeKeys =
-                edgeAttributes.stream().map(KvEntry::getKey).collect(Collectors.toList());
+                edgeAttributes.stream().map(KvEntry::getKey).toList();
         List<String> missingAttributeKeys = attributesKeys.stream()
-                .filter(element -> !edgeAttributeKeys.contains(element))
-                .collect(Collectors.toList());
+                .filter(element -> !edgeAttributeKeys.contains(element)).toList();
         if (missingAttributeKeys.isEmpty()) {
             return null;
         }

@@ -99,7 +99,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -116,8 +116,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
     public void afterTest() throws Exception {
         loginSysAdmin();
 
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(savedTenant.getId());
     }
 
     @Test
@@ -461,8 +460,8 @@ public class DashboardControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        // Tenant admin user must have access to both dashboards and default gateways dashboard
-        Assert.assertEquals(3, tenantAdminDashboards.size());
+        // Tenant admin user must have access to both dashboards
+        Assert.assertEquals(2, tenantAdminDashboards.size());
 
         User customerUser = new User();
         customerUser.setAuthority(Authority.CUSTOMER_USER);

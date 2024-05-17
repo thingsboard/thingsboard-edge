@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -94,6 +95,7 @@ import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -239,6 +241,34 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         entityGroup.setName(EntityGroup.GROUP_ALL_NAME);
         entityGroup.setType(groupType);
         return saveEntityGroup(tenantId, parentEntityId, entityGroup);
+    }
+
+    @Transactional
+    @Override
+    public void createDefaultTenantEntityGroups(TenantId tenantId) {
+        createEntityGroupsAll(tenantId, tenantId);
+        findOrCreateTenantUsersGroup(tenantId);
+        findOrCreateTenantAdminsGroup(tenantId);
+    }
+
+    @Transactional
+    @Override
+    public void createDefaultCustomerEntityGroups(TenantId tenantId, Customer customer) {
+        createEntityGroupsAll(tenantId, customer.getId());
+        if (!customer.isPublic()) {
+            findOrCreateCustomerUsersGroup(tenantId, customer.getId(), customer.getParentCustomerId());
+            findOrCreateCustomerAdminsGroup(tenantId, customer.getId(), customer.getParentCustomerId());
+        } else {
+            findOrCreatePublicUsersGroup(tenantId, customer.getId());
+        }
+    }
+
+    private void createEntityGroupsAll(TenantId tenantId, EntityId parentEntityId) {
+        Arrays.stream(EntityType.values())
+                .filter(EntityType::isGroupEntityType)
+                .forEach(entityGroupType -> {
+                    createEntityGroupAll(tenantId, parentEntityId, entityGroupType);
+                });
     }
 
     @Override
@@ -494,9 +524,13 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndUserGroupId(tenantId, entityGroupId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndEntityGroupId(tenantId, entityGroupId);
-        deleteEntityRelations(tenantId, entityGroupId);
         entityGroupDao.removeById(tenantId, entityGroupId.getId());
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityGroupId).build());
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteEntityGroup(tenantId, (EntityGroupId) id);
     }
 
     @Override
@@ -512,6 +546,11 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         log.trace("Executing deleteAllEntityGroups, parentEntityId [{}]", parentEntityId);
         validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         entityGroupsRemover.removeEntities(tenantId, parentEntityId);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteAllEntityGroups(tenantId, tenantId);
     }
 
     @Override
@@ -999,6 +1038,20 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     }
 
     @Override
+    public PageData<EntityGroup> findEdgeEntityGroupsByOwnerIdAndType(TenantId tenantId, EdgeId edgeId, EntityId ownerId, EntityType groupType, PageLink pageLink) {
+        log.trace("[{}] Executing findEdgeEntityGroupsByOwnerIdAndType, edgeId [{}], ownerId [{}], groupType [{}], pageLink [{}]", tenantId, edgeId, ownerId, groupType, pageLink);
+        Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
+        Validator.validateId(edgeId, id -> "Incorrect edgeId " + id);
+        validateEntityId(ownerId, id -> INCORRECT_ENTITY_ID + id);
+        if (groupType == null) {
+            throw new IncorrectParameterException(INCORRECT_GROUP_TYPE + groupType);
+        }
+        validatePageLink(pageLink);
+        String relationType = EDGE_ENTITY_GROUP_RELATION_PREFIX + groupType.name();
+        return this.entityGroupDao.findEdgeEntityGroupsByOwnerIdAndType(tenantId.getId(), edgeId.getId(), ownerId.getId(), relationType, pageLink);
+    }
+
+    @Override
     public ListenableFuture<Boolean> checkEdgeEntityGroupByIdAsync(TenantId tenantId, EdgeId edgeId, EntityGroupId entityGroupId, EntityType groupType) {
         log.trace("Executing checkEdgeEntityGroupByIdAsync, tenantId [{}], edgeId [{}], entityGroupId [{}]", tenantId, edgeId, entityGroupId);
         validateEntityId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
@@ -1094,11 +1147,6 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findEntityGroupById(tenantId, new EntityGroupId(entityId.getId())));
-    }
-
-    @Override
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteEntityGroup(tenantId, (EntityGroupId) id);
     }
 
     @Override

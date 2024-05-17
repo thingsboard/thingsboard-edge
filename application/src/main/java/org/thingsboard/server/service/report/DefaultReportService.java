@@ -48,6 +48,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunctions;
+import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.ReportService;
@@ -137,6 +138,10 @@ public class DefaultReportService implements ReportService {
             this.webClient = WebClient.builder()
                     .filter(ExchangeFilterFunctions.limitResponseSize(maxResponseSize))
                     .clientConnector(new ReactorClientHttpConnector(httpClient))
+                    .exchangeStrategies(ExchangeStrategies.builder()
+                            .codecs(configurer -> configurer.defaultCodecs()
+                                    .maxInMemorySize(maxResponseSize))
+                            .build())
                     .build();
         } catch (Exception e) {
             log.error("Can't initialize report service due to {}", e.getMessage(), e);

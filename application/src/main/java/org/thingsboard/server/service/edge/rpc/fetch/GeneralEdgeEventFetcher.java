@@ -88,4 +88,5 @@ public class GeneralEdgeEventFetcher implements EdgeEventFetcher {
         }
         return new PageData<>();
     }
+
 }

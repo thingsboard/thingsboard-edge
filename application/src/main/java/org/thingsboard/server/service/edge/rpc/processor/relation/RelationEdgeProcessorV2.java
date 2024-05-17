@@ -46,4 +46,5 @@ public class RelationEdgeProcessorV2 extends RelationEdgeProcessor {
     protected EntityRelation constructEntityRelationFromUpdateMsg(RelationUpdateMsg relationUpdateMsg) {
         return JacksonUtil.fromString(relationUpdateMsg.getEntity(), EntityRelation.class, true);
     }
+
 }

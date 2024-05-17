@@ -34,6 +34,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.ToString;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
@@ -63,6 +64,7 @@ public class UserSettings implements Serializable {
     private transient JsonNode settings;
 
     @JsonIgnore
+    @ToString.Exclude
     private byte[] settingsBytes;
 
     public JsonNode getSettings() {

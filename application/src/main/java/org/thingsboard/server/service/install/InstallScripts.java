@@ -193,7 +193,7 @@ public class InstallScripts {
         }
     }
 
-    public void createDefaultRuleChains(TenantId tenantId) throws IOException {
+    public void createDefaultRuleChains(TenantId tenantId) {
         Map<String, RuleChainId> ruleChainIdMap = loadAdditionalTenantRuleChains(tenantId, getTenantRuleChainsDir());
         Path rootRuleChainFile = getRootTenantRuleChainFile();
         loadRootRuleChain(tenantId, ruleChainIdMap, rootRuleChainFile);
@@ -236,7 +236,7 @@ public class InstallScripts {
         return this.loadRuleChain(templateFilePath, ruleChainJson, tenantId, newRuleChainName);
     }
 
-    public void createDefaultEdgeRuleChains(TenantId tenantId) throws IOException {
+    public void createDefaultEdgeRuleChains(TenantId tenantId) {
         Path edgeChainsDir = getEdgeRuleChainsDir();
         loadAdditionalTenantRuleChains(tenantId, edgeChainsDir);
     }
@@ -357,8 +357,9 @@ public class InstallScripts {
     @SneakyThrows
     public void loadSystemImages() {
         log.info("Loading system images...");
-        Stream<Path> dashboardsFiles = Stream.concat(
+        Stream<Path> dashboardsFiles = Stream.concat(Stream.concat(
                 Files.list(Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, DASHBOARDS_DIR)),
+                Files.list(Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DASHBOARDS_DIR))),
                 Files.list(Paths.get(getDataDir(), JSON_DIR, SOLUTIONS_DIR))
                         .filter(file -> file.toFile().isDirectory())
                         .flatMap(solutionDir -> {
@@ -381,17 +382,18 @@ public class InstallScripts {
         }
     }
 
-    public void loadDashboards(TenantId tenantId, CustomerId customerId) throws Exception {
+    public void loadDashboards(TenantId tenantId, CustomerId customerId) {
         Path dashboardsDir = Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, DASHBOARDS_DIR);
         loadDashboardsFromDir(tenantId, customerId, dashboardsDir);
     }
 
-    public void createDefaultTenantDashboards(TenantId tenantId, CustomerId customerId) throws Exception {
+    public void createDefaultTenantDashboards(TenantId tenantId, CustomerId customerId) {
         Path dashboardsDir = Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DASHBOARDS_DIR);
         loadDashboardsFromDir(tenantId, customerId, dashboardsDir);
     }
 
-    private void loadDashboardsFromDir(TenantId tenantId, CustomerId customerId, Path dashboardsDir) throws IOException {
+    @SneakyThrows
+    private void loadDashboardsFromDir(TenantId tenantId, CustomerId customerId, Path dashboardsDir) {
         try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(dashboardsDir, path -> path.toString().endsWith(JSON_EXT))) {
             dirStream.forEach(
                     path -> {
@@ -465,7 +467,8 @@ public class InstallScripts {
         }
     }
 
-    private void loadRootRuleChain(TenantId tenantId, Map<String, RuleChainId> ruleChainIdMap, Path rootRuleChainFile) throws IOException {
+    @SneakyThrows
+    private void loadRootRuleChain(TenantId tenantId, Map<String, RuleChainId> ruleChainIdMap, Path rootRuleChainFile) {
         String rootRuleChainContent = FileUtils.readFileToString(rootRuleChainFile.toFile(), "UTF-8");
         for (Map.Entry<String, RuleChainId> entry : ruleChainIdMap.entrySet()) {
             String key = "${" + entry.getKey() + "}";
@@ -475,7 +478,8 @@ public class InstallScripts {
         loadRuleChain(rootRuleChainFile, rootRuleChainJson, tenantId, null);
     }
 
-    private Map<String, RuleChainId> loadAdditionalTenantRuleChains(TenantId tenantId, Path chainsDir) throws IOException {
+    @SneakyThrows
+    private Map<String, RuleChainId> loadAdditionalTenantRuleChains(TenantId tenantId, Path chainsDir) {
         Map<String, RuleChainId> ruleChainIdMap = new HashMap<>();
         try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(chainsDir, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
             dirStream.forEach(
@@ -539,7 +543,7 @@ public class InstallScripts {
                     }
             );
         } catch (Exception e) {
-            log.error("Unable to load resources lwm2m object model from file: [{}]", resourceLwm2mPath.toString());
+            log.error("Unable to load resources lwm2m object model from file: [{}]", resourceLwm2mPath);
             throw new RuntimeException("resource lwm2m object model from file", e);
         }
     }

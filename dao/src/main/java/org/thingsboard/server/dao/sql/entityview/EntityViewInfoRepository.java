@@ -62,14 +62,14 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
                                                      Pageable pageable);
 
     @Query("SELECT evi FROM EntityViewInfoEntity evi " +
-            "WHERE evi.tenantId = :tenantId AND (evi.customerId IS NULL OR evi.customerId = uuid('13814000-1dd2-11b2-8080-808080808080')) " +
+            "WHERE evi.tenantId = :tenantId AND (evi.customerId IS NULL OR evi.customerId = org.thingsboard.server.common.data.id.EntityId.NULL_UUID) " +
             "AND (:searchText IS NULL OR ilike(evi.name, CONCAT('%', :searchText, '%')) = true)")
     Page<EntityViewInfoEntity> findTenantEntityViewsByTenantId(@Param("tenantId") UUID tenantId,
                                                                @Param("searchText") String searchText,
                                                                Pageable pageable);
 
     @Query("SELECT evi FROM EntityViewInfoEntity evi " +
-            "WHERE evi.tenantId = :tenantId AND (evi.customerId IS NULL OR evi.customerId = uuid('13814000-1dd2-11b2-8080-808080808080')) " +
+            "WHERE evi.tenantId = :tenantId AND (evi.customerId IS NULL OR evi.customerId = org.thingsboard.server.common.data.id.EntityId.NULL_UUID) " +
             "AND evi.type = :type " +
             "AND (:searchText IS NULL OR ilike(evi.name, CONCAT('%', :searchText, '%')) = true)")
     Page<EntityViewInfoEntity> findTenantEntityViewsByTenantIdAndType(@Param("tenantId") UUID tenantId,

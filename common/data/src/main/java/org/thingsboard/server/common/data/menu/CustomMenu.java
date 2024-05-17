@@ -41,9 +41,9 @@ import java.util.ArrayList;
 @EqualsAndHashCode
 public class CustomMenu {
 
-    @Schema(description = "List of disabled regular menu items", required = true, example = "home")
+    @Schema(description = "List of disabled regular menu items", requiredMode = Schema.RequiredMode.REQUIRED, example = "home")
     private ArrayList<String> disabledMenuItems = new ArrayList<>();
-    @Schema(description = "List of custom menu items", required = true)
+    @Schema(description = "List of custom menu items", requiredMode = Schema.RequiredMode.REQUIRED)
     private ArrayList<CustomMenuItem> menuItems = new ArrayList<>();
 
 }

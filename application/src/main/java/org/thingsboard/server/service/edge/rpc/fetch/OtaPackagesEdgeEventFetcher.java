@@ -50,7 +50,7 @@ public class OtaPackagesEdgeEventFetcher extends BasePageableEdgeEventFetcher<Ot
     private final OtaPackageService otaPackageService;
 
     @Override
-    PageData<OtaPackageInfo> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
+    PageData<OtaPackageInfo> fetchEntities(TenantId tenantId, Edge edge, PageLink pageLink) {
         return otaPackageService.findTenantOtaPackagesByTenantId(tenantId, pageLink);
     }
 
@@ -59,4 +59,5 @@ public class OtaPackagesEdgeEventFetcher extends BasePageableEdgeEventFetcher<Ot
         return EdgeUtils.constructEdgeEvent(tenantId, edge.getId(), EdgeEventType.OTA_PACKAGE,
                 EdgeEventActionType.ADDED, otaPackageInfo.getId(), null);
     }
+
 }

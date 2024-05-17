@@ -42,7 +42,7 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
  * Responsible for initialization of various Producers and Consumers used by TB Integration Executor Node.
  * Implementation Depends on the queue queue.type from yml or TB_QUEUE_TYPE environment variable
  */
-public interface TbIntegrationExecutorQueueFactory extends TbCoreIntegrationExecutorQueueFactory {
+public interface TbIntegrationExecutorQueueFactory extends TbCoreIntegrationExecutorQueueFactory, HousekeeperClientQueueFactory {
 
     /**
      * Used to push messages to other instances of TB Core Service

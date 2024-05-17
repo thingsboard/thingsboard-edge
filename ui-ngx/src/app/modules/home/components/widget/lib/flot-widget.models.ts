@@ -33,11 +33,10 @@
 /// <reference path="../../../../../../../src/typings/jquery.flot.typings.d.ts" />
 
 import {
-  DataKey,
+  DataKey, DataKeySettingsWithComparison,
   Datasource,
   DatasourceData,
   FormattedData,
-  JsonSettingsSchema,
   LegendConfig
 } from '@shared/models/widget.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
@@ -234,13 +233,7 @@ export interface TbFlotKeyThreshold {
   color: string;
 }
 
-export interface TbFlotKeyComparisonSettings {
-  showValuesForComparison: boolean;
-  comparisonValuesLabel: string;
-  color: string;
-}
-
-export interface TbFlotKeySettings {
+export interface TbFlotKeySettings extends DataKeySettingsWithComparison {
   excludeFromStacking: boolean;
   hideDataByDefault: boolean;
   disableDataHiding: boolean;
@@ -264,7 +257,6 @@ export interface TbFlotKeySettings {
   axisPosition: TbFlotYAxisPosition;
   axisTicksFormatter: string;
   thresholds: TbFlotKeyThreshold[];
-  comparisonSettings: TbFlotKeyComparisonSettings;
 }
 
 export interface TbFlotLatestKeySettings {

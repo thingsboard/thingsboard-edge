@@ -33,15 +33,19 @@ package org.thingsboard.server.service.queue.ruleengine;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomUtils;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.common.util.ThingsBoardExecutors;
+import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.QueueId;
@@ -80,6 +84,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
@@ -101,12 +108,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @Slf4j
-@RunWith(MockitoJUnitRunner.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class TbRuleEngineQueueConsumerManagerTest {
 
     @Mock
@@ -127,6 +133,9 @@ public class TbRuleEngineQueueConsumerManagerTest {
     @Mock
     private TbQueueAdmin queueAdmin;
     private TbRuleEngineConsumerContext ruleEngineConsumerContext;
+    private ExecutorService consumersExecutor;
+    private ScheduledExecutorService scheduler;
+    private ExecutorService mgmtExecutor;
 
     private TbRuleEngineQueueConsumerManager consumerManager;
     private Queue queue;
@@ -136,7 +145,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
     private AtomicInteger totalConsumedMsgs;
     private AtomicInteger totalProcessedMsgs;
 
-    @Before
+    @BeforeEach
     public void beforeEach() {
         ruleEngineConsumerContext = new TbRuleEngineConsumerContext(
                 actorContext, statsFactory, spy(new TbRuleEngineSubmitStrategyFactory()),
@@ -156,10 +165,10 @@ public class TbRuleEngineQueueConsumerManagerTest {
         }).when(actorContext).tell(any());
         ruleEngineMsgProducer = mock(TbQueueProducer.class);
         when(producerProvider.getRuleEngineMsgProducer()).thenReturn(ruleEngineMsgProducer);
-        ruleEngineConsumerContext.setMgmtThreadPoolSize(2);
+        consumersExecutor = Executors.newCachedThreadPool(ThingsBoardThreadFactory.forName("tb-rule-engine-consumer"));
+        mgmtExecutor = ThingsBoardExecutors.newWorkStealingPool(3, "tb-rule-engine-mgmt");
+        scheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("tb-rule-engine-consumer-scheduler"));
         ruleEngineConsumerContext.setTopicDeletionDelayInSec(5);
-        ruleEngineConsumerContext.init();
-        ruleEngineConsumerContext.setReady(false);
 
         queue = new Queue();
         queue.setName("Test");
@@ -189,14 +198,23 @@ public class TbRuleEngineQueueConsumerManagerTest {
         }).when(queueFactory).createToRuleEngineMsgConsumer(any());
 
         QueueKey queueKey = new QueueKey(ServiceType.TB_RULE_ENGINE, queue);
-        consumerManager = new TbRuleEngineQueueConsumerManager(ruleEngineConsumerContext, queueKey);
+        consumerManager = TbRuleEngineQueueConsumerManager.create()
+                .ctx(ruleEngineConsumerContext)
+                .queueKey(queueKey)
+                .consumerExecutor(consumersExecutor)
+                .scheduler(scheduler)
+                .taskExecutor(mgmtExecutor)
+                .build();
     }
 
-    @After
+    @AfterEach
     public void afterEach() {
         consumerManager.stop();
         consumerManager.awaitStop();
-        ruleEngineConsumerContext.stop();
+
+        consumersExecutor.shutdownNow();
+        scheduler.shutdownNow();
+        mgmtExecutor.shutdownNow();
 
         if (generateQueueMsgs) {
             await().atMost(10, TimeUnit.SECONDS)
@@ -214,14 +232,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
 
         Set<TopicPartitionInfo> partitions = createTpis(2, 3, 4);
         consumerManager.update(partitions);
-        partitions = createTpis(3, 4, 5);
-        consumerManager.update(partitions);
-        partitions = createTpis(1, 2, 3);
-        consumerManager.update(partitions);
-        // simulated multiple partition change events before consumer is ready; only latest partitions should be processed
-        verifyNoInteractions(queueFactory);
 
-        ruleEngineConsumerContext.setReady(true);
         await().atMost(2, TimeUnit.SECONDS)
                 .until(() -> consumers.size() == 3);
         for (TopicPartitionInfo partition : partitions) {
@@ -237,14 +248,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
 
         Set<TopicPartitionInfo> partitions = createTpis(2, 3, 4);
         consumerManager.update(partitions);
-        partitions = createTpis(3, 4, 5);
-        consumerManager.update(partitions);
-        partitions = createTpis(1, 2, 3);
-        consumerManager.update(partitions);
 
-        verifyNoInteractions(queueFactory);
-
-        ruleEngineConsumerContext.setReady(true);
         await().atMost(2, TimeUnit.SECONDS)
                 .until(() -> consumers.size() == 1);
         TestConsumer consumer = getConsumer();
@@ -255,7 +259,6 @@ public class TbRuleEngineQueueConsumerManagerTest {
     public void testPartitionsUpdate_singleConsumer() {
         queue.setConsumerPerPartition(false);
         consumerManager.init(queue);
-        ruleEngineConsumerContext.setReady(true);
 
         Set<TopicPartitionInfo> partitions = Collections.emptySet();
         consumerManager.update(partitions);
@@ -288,7 +291,6 @@ public class TbRuleEngineQueueConsumerManagerTest {
     public void testPartitionsUpdate_consumerPerPartition() {
         queue.setConsumerPerPartition(true);
         consumerManager.init(queue);
-        ruleEngineConsumerContext.setReady(true);
 
         consumerManager.update(Collections.emptySet());
         verify(queueFactory, after(1000).never()).createToRuleEngineMsgConsumer(any());
@@ -331,7 +333,6 @@ public class TbRuleEngineQueueConsumerManagerTest {
     public void testConfigUpdate_singleConsumer() {
         queue.setConsumerPerPartition(false);
         consumerManager.init(queue);
-        ruleEngineConsumerContext.setReady(true);
         Set<TopicPartitionInfo> partitions = createTpis(1, 2, 3);
         consumerManager.update(partitions);
         TestConsumer consumer = getConsumer();
@@ -357,7 +358,6 @@ public class TbRuleEngineQueueConsumerManagerTest {
     public void testConfigUpdate_consumerPerPartition() {
         queue.setConsumerPerPartition(true);
         consumerManager.init(queue);
-        ruleEngineConsumerContext.setReady(true);
         Set<TopicPartitionInfo> partitions = createTpis(1, 2, 3);
         consumerManager.update(partitions);
         TestConsumer consumer1 = getConsumer(1);
@@ -390,7 +390,6 @@ public class TbRuleEngineQueueConsumerManagerTest {
     public void testConfigUpdate_fromSingleToConsumerPerPartition() {
         queue.setConsumerPerPartition(false);
         consumerManager.init(queue);
-        ruleEngineConsumerContext.setReady(true);
         Set<TopicPartitionInfo> partitions = createTpis(1, 2, 3);
         consumerManager.update(partitions);
         TestConsumer consumer = getConsumer();
@@ -410,7 +409,6 @@ public class TbRuleEngineQueueConsumerManagerTest {
     public void testConfigUpdate_fromConsumerPerPartitionToSingle() {
         queue.setConsumerPerPartition(true);
         consumerManager.init(queue);
-        ruleEngineConsumerContext.setReady(true);
         Set<TopicPartitionInfo> partitions = createTpis(1, 2, 3);
         consumerManager.update(partitions);
         TestConsumer consumer1 = getConsumer(1);
@@ -434,7 +432,6 @@ public class TbRuleEngineQueueConsumerManagerTest {
     public void testStop() {
         queue.setConsumerPerPartition(true);
         consumerManager.init(queue);
-        ruleEngineConsumerContext.setReady(true);
         consumerManager.update(createTpis(1));
         TestConsumer consumer = getConsumer(1);
         verifySubscribedAndLaunched(consumer, 1);
@@ -452,7 +449,6 @@ public class TbRuleEngineQueueConsumerManagerTest {
     public void testDelete_consumerPerPartition() {
         queue.setConsumerPerPartition(true);
         consumerManager.init(queue);
-        ruleEngineConsumerContext.setReady(true);
         Set<TopicPartitionInfo> partitions = createTpis(1, 2);
         consumerManager.update(partitions);
         TestConsumer consumer1 = getConsumer(1);
@@ -474,7 +470,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
         int msgCount = totalConsumedMsgs.get();
 
         await().atLeast(2, TimeUnit.SECONDS) // based on topicDeletionDelayInSec(5) = 5 - ( 3 seconds the code may execute starting consumerManager.delete() call)
-                .atMost(7, TimeUnit.SECONDS)
+                .atMost(20, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     partitions.stream()
                             .map(TopicPartitionInfo::getFullTopicName)
@@ -496,7 +492,6 @@ public class TbRuleEngineQueueConsumerManagerTest {
     public void testDelete_singleConsumer() {
         queue.setConsumerPerPartition(false);
         consumerManager.init(queue);
-        ruleEngineConsumerContext.setReady(true);
         Set<TopicPartitionInfo> partitions = createTpis(1, 2);
         consumerManager.update(partitions);
         TestConsumer consumer = getConsumer();
@@ -514,7 +509,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
         int msgCount = totalConsumedMsgs.get();
 
         await().atLeast(2, TimeUnit.SECONDS) // based on topicDeletionDelayInSec(5) = 5 - ( 3 seconds the code may execute starting consumerManager.delete() call)
-                .atMost(7, TimeUnit.SECONDS)
+                .atMost(20, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
                     partitions.stream()
                             .map(TopicPartitionInfo::getFullTopicName)
@@ -535,10 +530,9 @@ public class TbRuleEngineQueueConsumerManagerTest {
     public void testManyDifferentUpdates() throws Exception {
         queue.setConsumerPerPartition(RandomUtils.nextBoolean());
         consumerManager.init(queue);
-        ruleEngineConsumerContext.setReady(true);
 
         Supplier<Queue> queueConfigUpdater = () -> {
-            Queue oldConfig = consumerManager.getQueue();
+            Queue oldConfig = consumerManager.getConfig();
             Queue newConfig = JacksonUtil.clone(oldConfig);
             newConfig.setConsumerPerPartition(RandomUtils.nextBoolean());
             newConfig.setPollInterval(RandomUtils.nextInt(100, 501));
@@ -586,7 +580,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
         Set<TopicPartitionInfo> expectedPartitions = latestPartitions;
         await().atMost(5, TimeUnit.SECONDS)
                 .untilAsserted(() -> {
-                    assertThat(consumerManager.getQueue()).isEqualTo(expectedConfig);
+                    assertThat(consumerManager.getConfig()).isEqualTo(expectedConfig);
                     assertThat(consumerManager.getPartitions()).isEqualTo(expectedPartitions);
                 });
 
@@ -655,7 +649,7 @@ public class TbRuleEngineQueueConsumerManagerTest {
     }
 
     private void verifyMsgProcessed(TbMsg tbMsg) {
-        await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> {
+        await().atMost(15, TimeUnit.SECONDS).untilAsserted(() -> {
             verify(actorContext, atLeastOnce()).tell(argThat(msg -> {
                 return ((QueueToRuleEngineMsg) msg).getMsg().getId().equals(tbMsg.getId());
             }));

@@ -86,7 +86,6 @@ import java.util.stream.Collectors;
 public class JsonConverter {
 
     private static final Gson GSON = new Gson();
-    private static final JsonParser JSON_PARSER = new JsonParser();
     private static final String CAN_T_PARSE_VALUE = "Can't parse value: ";
     private static final String DEVICE_PROPERTY = "device";
 
@@ -135,7 +134,7 @@ public class JsonConverter {
     public static ClaimDeviceMsg convertToClaimDeviceProto(DeviceId deviceId, String json) {
         long durationMs = 0L;
         if (json != null && !json.isEmpty()) {
-            return convertToClaimDeviceProto(deviceId, JSON_PARSER.parse(json));
+            return convertToClaimDeviceProto(deviceId, JsonParser.parseString(json));
         }
         return buildClaimDeviceMsg(deviceId, DataConstants.DEFAULT_SECRET_KEY, durationMs);
     }
@@ -184,7 +183,7 @@ public class JsonConverter {
             result.addProperty("id", msg.getRequestId());
         }
         result.addProperty("method", msg.getMethodName());
-        result.add("params", JSON_PARSER.parse(msg.getParams()));
+        result.add("params", JsonParser.parseString(msg.getParams()));
         return result;
     }
 
@@ -398,7 +397,7 @@ public class JsonConverter {
                 json.addProperty(name, entry.getLongV());
                 break;
             case JSON_V:
-                json.add(name, JSON_PARSER.parse(entry.getJsonV()));
+                json.add(name, JsonParser.parseString(entry.getJsonV()));
                 break;
         }
     }
@@ -419,7 +418,7 @@ public class JsonConverter {
                     result.add(de.getKv().getKey(), new JsonPrimitive(de.getKv().getStringV()));
                     break;
                 case JSON_V:
-                    result.add(de.getKv().getKey(), JSON_PARSER.parse(de.getKv().getJsonV()));
+                    result.add(de.getKv().getKey(), JsonParser.parseString(de.getKv().getJsonV()));
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported data type: " + de.getKv().getType());
@@ -443,7 +442,7 @@ public class JsonConverter {
                     result.add(de.getKey(), new JsonPrimitive(de.getStrValue().get()));
                     break;
                 case JSON:
-                    result.add(de.getKey(), JSON_PARSER.parse(de.getJsonValue().get()));
+                    result.add(de.getKey(), JsonParser.parseString(de.getJsonValue().get()));
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported data type: " + de.getDataType());
@@ -453,7 +452,7 @@ public class JsonConverter {
 
     public static JsonElement toJson(ToServerRpcResponseMsg msg) {
         if (StringUtils.isEmpty(msg.getError())) {
-            return JSON_PARSER.parse(msg.getPayload());
+            return JsonParser.parseString(msg.getPayload());
         } else {
             JsonObject errorMsg = new JsonObject();
             errorMsg.addProperty("error", msg.getError());
@@ -487,7 +486,7 @@ public class JsonConverter {
                     result.addProperty("credentialsValue", payload.getCredentialsValue());
                     break;
                 case MQTT_BASIC:
-                    result.add("credentialsValue", JSON_PARSER.parse(payload.getCredentialsValue()).getAsJsonObject());
+                    result.add("credentialsValue", JsonParser.parseString(payload.getCredentialsValue()).getAsJsonObject());
                     break;
                 case LWM2M_CREDENTIALS:
                     break;
@@ -609,7 +608,7 @@ public class JsonConverter {
     }
 
     public static JsonElement parse(String json) {
-        return JSON_PARSER.parse(json);
+        return JsonParser.parseString(json);
     }
 
     public static <T> T parse(String json, Class<T> clazz) {
@@ -628,16 +627,16 @@ public class JsonConverter {
         return GSON.fromJson(element, type);
     }
 
-    public static void setTypeCastEnabled(boolean enabled) {
+    static void setTypeCastEnabled(boolean enabled) {
         isTypeCastEnabled = enabled;
     }
 
-    public static void setMaxStringValueLength(int length) {
+    static void setMaxStringValueLength(int length) {
         maxStringValueLength = length;
     }
 
     public static ProvisionDeviceRequestMsg convertToProvisionRequestMsg(String json) {
-        JsonElement jsonElement = JSON_PARSER.parse(json);
+        JsonElement jsonElement = JsonParser.parseString(json);
         if (jsonElement.isJsonObject()) {
             return buildProvisionRequestMsg(jsonElement.getAsJsonObject());
         } else {

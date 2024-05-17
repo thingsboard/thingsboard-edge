@@ -47,6 +47,7 @@ import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -129,6 +130,33 @@ public abstract class DataValidator<D extends BaseData<?>> {
 
         Matcher emailMatcher = EMAIL_PATTERN.matcher(email);
         return emailMatcher.matches();
+    }
+
+    public static void validateLocaleCode(String localeCode) {
+        if (!doValidateLocaleCode(localeCode)) {
+            throw new DataValidationException("Invalid locale format '" + localeCode + "'!");
+        }
+    }
+
+    public static boolean doValidateLocaleCode(String localeCode) {
+        if (localeCode == null) {
+            return false;
+        }
+        String[] parts = localeCode.split("_");
+        try {
+            switch (parts.length) {
+                case 3: return isLocaleValid(new Locale(parts[0], parts[1], parts[2]));
+                case 2: return isLocaleValid(new Locale(parts[0], parts[1]));
+                case 1: return isLocaleValid(new Locale(parts[0]));
+                default: return false;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private static boolean isLocaleValid(Locale locale) {
+        return locale.getISO3Language() != null && locale.getISO3Country() != null;
     }
 
     protected void validateNumberOfEntitiesPerTenant(TenantId tenantId,

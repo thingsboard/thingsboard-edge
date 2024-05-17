@@ -42,6 +42,7 @@ import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.housekeeper.CleanUpService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.exception.DataValidationException;
 
@@ -50,9 +51,6 @@ import java.util.Map;
 
 @Slf4j
 public abstract class AbstractEntityService {
-
-    public static final String INCORRECT_EDGE_ID = "Incorrect edgeId ";
-    public static final String INCORRECT_PAGE_LINK = "Incorrect page link ";
 
     @Autowired
     protected ApplicationEventPublisher eventPublisher;
@@ -73,6 +71,10 @@ public abstract class AbstractEntityService {
     @Autowired(required = false)
     protected EdgeService edgeService;
 
+    @Autowired
+    @Lazy
+    protected CleanUpService cleanUpService;
+
     protected void createRelation(TenantId tenantId, EntityRelation relation) {
         log.debug("Creating relation: {}", relation);
         relationService.saveRelation(tenantId, relation);
@@ -81,16 +83,6 @@ public abstract class AbstractEntityService {
     protected void deleteRelation(TenantId tenantId, EntityRelation relation) {
         log.debug("Deleting relation: {}", relation);
         relationService.deleteRelation(tenantId, relation);
-    }
-
-    protected void deleteEntityRelations(TenantId tenantId, EntityId entityId) {
-        relationService.deleteEntityRelations(tenantId, entityId);
-        alarmService.deleteEntityAlarmRelations(tenantId, entityId);
-    }
-
-    protected void deleteEntityGroups(TenantId tenantId, EntityId entityId) {
-        log.trace("Executing deleteEntityGroups [{}]", entityId);
-        entityGroupService.deleteAllEntityGroups(tenantId, entityId);
     }
 
     public static final void checkConstraintViolation(Exception t, String constraintName, String constraintMessage) {

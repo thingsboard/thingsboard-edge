@@ -53,4 +53,5 @@ public class EntityViewMsgConstructorV2 extends BaseEntityViewMsgConstructor {
         }
         return builder.build();
     }
+
 }

@@ -31,7 +31,7 @@
 package org.thingsboard.common.util;
 
 import org.hamcrest.Matchers;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
 

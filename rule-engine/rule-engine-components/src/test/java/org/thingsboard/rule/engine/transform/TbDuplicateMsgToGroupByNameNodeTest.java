@@ -504,6 +504,62 @@ class TbDuplicateMsgToGroupByNameNodeTest {
         });
     }
 
+    private static Stream<Arguments> givenGroupName_whenOnMsg_thenDuplicateToGroupEntities() {
+        return Stream.of(
+                // config with entity group name as string
+                Arguments.of("Entity Group Name"),
+                // config with entity group name as metadata key from metadata
+                Arguments.of("${groupNameMetaData}"),
+                // config with entity group name as message key from message body
+                Arguments.of("$[groupName]")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    void givenGroupName_whenOnMsg_thenDuplicateToGroupEntities(String groupName) throws TbNodeException {
+        // GIVEN
+        var configuration = new TbDuplicateMsgToGroupByNameNodeConfiguration().defaultConfiguration();
+        configuration.setConsiderMessageOriginatorAsAGroupOwner(true);
+        configuration.setGroupType(EntityType.DEVICE);
+        configuration.setGroupName(groupName);
+        initWithConfig(configuration);
+        String entityGroupName = "Entity Group Name";
+
+        var msg = getTbMsgWithBody(TENANT_ID);
+
+        var deviceGroupId = new EntityGroupId(UUID.randomUUID());
+
+        var deviceGroup = new EntityGroup();
+        deviceGroup.setId(deviceGroupId);
+        deviceGroup.setName(config.getGroupName());
+        deviceGroup.setType(config.getGroupType());
+        deviceGroup.setTenantId(TENANT_ID);
+
+        EntityId firstDeviceId = new DeviceId(UUID.randomUUID());
+        EntityId secondDeviceId = new DeviceId(UUID.randomUUID());
+        var groupDeviceIdsList = List.of(firstDeviceId, secondDeviceId);
+
+        when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
+        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
+        when(ctxMock.getPeContext()).thenReturn(peCtxMock);
+        when(peCtxMock.getEntityGroupService()).thenReturn(entityGroupServiceMock);
+
+        when(entityGroupServiceMock.findEntityGroupByTypeAndName(
+                any(), any(), any(), any()))
+                .thenReturn(Optional.of(deviceGroup));
+        when(entityGroupServiceMock.findAllEntityIdsAsync(
+                any(), any(), any()))
+                .thenReturn(Futures.immediateFuture(groupDeviceIdsList));
+
+        // WHEN
+        node.onMsg(ctxMock, msg);
+
+        // THEN
+        verify(entityGroupServiceMock)
+                .findEntityGroupByTypeAndName(eq(TENANT_ID), eq(TENANT_ID), eq(config.getGroupType()), eq(entityGroupName));
+    }
+
     private void init() throws TbNodeException {
         initWithConfig(new TbDuplicateMsgToGroupByNameNodeConfiguration().defaultConfiguration());
     }
@@ -512,6 +568,13 @@ class TbDuplicateMsgToGroupByNameNodeTest {
         config = configuration;
         TbNodeConfiguration nodeConfiguration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         node.init(ctxMock, nodeConfiguration);
+    }
+
+    private TbMsg getTbMsgWithBody(EntityId originatorId) {
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("groupNameMetaData", "Entity Group Name");
+        return TbMsg.newMsg(
+                TbMsgType.POST_TELEMETRY_REQUEST, originatorId, metaData, "{ \"temp\": 44, \"humidity\": 86, \"groupName\": \"Entity Group Name\" }");
     }
 
     private TbMsg getTbMsg() {

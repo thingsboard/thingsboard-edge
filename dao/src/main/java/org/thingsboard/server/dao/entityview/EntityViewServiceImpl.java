@@ -178,6 +178,13 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
     }
 
     @Override
+    public ListenableFuture<EntityView> findEntityViewByTenantIdAndNameAsync(TenantId tenantId, String name) {
+        log.trace("Executing findEntityViewByTenantIdAndNameAsync [{}][{}]", tenantId, name);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        return service.submit(() -> findEntityViewByTenantIdAndName(tenantId, name));
+    }
+
+    @Override
     public PageData<EntityView> findEntityViewByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findEntityViewsByTenantId, tenantId [{}], pageLink [{}]", tenantId, pageLink);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
@@ -254,7 +261,7 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
 
     @Override
     public ListenableFuture<EntityView> findEntityViewByIdAsync(TenantId tenantId, EntityViewId entityViewId) {
-        log.trace("Executing findEntityViewById [{}]", entityViewId);
+        log.trace("Executing findEntityViewByIdAsync [{}]", entityViewId);
         validateId(entityViewId, id -> INCORRECT_ENTITY_VIEW_ID + id);
         return entityViewDao.findByIdAsync(tenantId, entityViewId.getId());
     }
@@ -291,11 +298,19 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
     public void deleteEntityView(TenantId tenantId, EntityViewId entityViewId) {
         log.trace("Executing deleteEntityView [{}]", entityViewId);
         validateId(entityViewId, id -> INCORRECT_ENTITY_VIEW_ID + id);
-        deleteEntityRelations(tenantId, entityViewId);
         EntityView entityView = entityViewDao.findById(tenantId, entityViewId.getId());
+        if (entityView == null) {
+            return;
+        }
         entityViewDao.removeById(tenantId, entityViewId.getId());
         publishEvictEvent(new EntityViewEvictEvent(entityView.getTenantId(), entityView.getId(), entityView.getEntityId(), null, entityView.getName(), null));
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityViewId).build());
+    }
+
+    @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteEntityView(tenantId, (EntityViewId) id);
     }
 
     @Override
@@ -303,6 +318,11 @@ public class EntityViewServiceImpl extends AbstractCachedEntityService<EntityVie
         log.trace("Executing deleteEntityViewsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantEntityViewRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteEntityViewsByTenantId(tenantId);
     }
 
     @Override

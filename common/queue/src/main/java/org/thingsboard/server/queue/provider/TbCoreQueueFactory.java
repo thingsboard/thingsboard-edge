@@ -38,6 +38,7 @@ import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationM
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineNotificationMsg;
@@ -56,7 +57,7 @@ import org.thingsboard.server.queue.common.TbProtoQueueMsg;
  * Responsible for initialization of various Producers and Consumers used by TB Core Node.
  * Implementation Depends on the queue queue.type from yml or TB_QUEUE_TYPE environment variable
  */
-public interface TbCoreQueueFactory extends TbCoreIntegrationExecutorQueueFactory {
+public interface TbCoreQueueFactory extends TbCoreIntegrationExecutorQueueFactory, HousekeeperClientQueueFactory {
 
     /**
      * Used to push messages to instances of TB Transport Service
@@ -171,6 +172,7 @@ public interface TbCoreQueueFactory extends TbCoreIntegrationExecutorQueueFactor
      * @return
      */
     TbQueueProducer<TbProtoQueueMsg<ToVersionControlServiceMsg>> createVersionControlMsgProducer();
+
     /**
      * Used to consume Integration API Calls
      *
@@ -193,5 +195,11 @@ public interface TbCoreQueueFactory extends TbCoreIntegrationExecutorQueueFactor
     default TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> createIntegrationRuleEngineMsgProducer() {
         return createRuleEngineMsgProducer();
     }
+
+    TbQueueConsumer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> createHousekeeperMsgConsumer();
+
+    TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> createHousekeeperReprocessingMsgProducer();
+
+    TbQueueConsumer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> createHousekeeperReprocessingMsgConsumer();
 
 }

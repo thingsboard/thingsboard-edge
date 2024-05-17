@@ -53,6 +53,8 @@ public interface RoleService extends EntityDaoService {
 
     Optional<Role> findRoleByTenantIdAndName(TenantId tenantId, String name);
 
+    ListenableFuture<Optional<Role>> findRoleByTenantIdAndNameAsync(TenantId tenantId, String name);
+
     Optional<Role> findRoleByByTenantIdAndCustomerIdAndName(TenantId tenantId, CustomerId customerId, String name);
 
     PageData<Role> findRolesByTenantId(TenantId tenantId, PageLink pageLink);

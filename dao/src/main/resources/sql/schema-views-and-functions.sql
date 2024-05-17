@@ -136,6 +136,7 @@ SELECT e.*, c.title as owner_name,
 FROM entity_view e
          LEFT JOIN customer c ON c.id = e.customer_id;
 
+DROP VIEW IF EXISTS customer_info_view CASCADE;
 CREATE OR REPLACE VIEW customer_info_view as
 SELECT c.*, c2.title as owner_name,
        array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)

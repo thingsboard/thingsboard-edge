@@ -64,6 +64,7 @@ import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
+import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -106,6 +107,9 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     @Autowired
     private EntityCountService countService;
 
+    @Autowired
+    private JpaExecutorService executor;
+
     @TransactionalEventListener(classes = AssetCacheEvictEvent.class)
     @Override
     public void handleEvictEvent(AssetCacheEvictEvent event) {
@@ -133,7 +137,7 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
 
     @Override
     public ListenableFuture<Asset> findAssetByIdAsync(TenantId tenantId, AssetId assetId) {
-        log.trace("Executing findAssetById [{}]", assetId);
+        log.trace("Executing findAssetByIdAsync [{}]", assetId);
         validateId(assetId, id -> INCORRECT_ASSET_ID + id);
         return assetDao.findByIdAsync(tenantId, assetId.getId());
     }
@@ -145,6 +149,13 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
         return cache.getAndPutInTransaction(new AssetCacheKey(tenantId, name),
                 () -> assetDao.findAssetsByTenantIdAndName(tenantId.getId(), name)
                         .orElse(null), true);
+    }
+
+    @Override
+    public ListenableFuture<Asset> findAssetByTenantIdAndNameAsync(TenantId tenantId, String name) {
+        log.trace("Executing findAssetByTenantIdAndNameAsync [{}][{}]", tenantId, name);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        return executor.submit(() -> findAssetByTenantIdAndName(tenantId, name));
     }
 
     @Override
@@ -206,19 +217,25 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     @Transactional
     public void deleteAsset(TenantId tenantId, AssetId assetId) {
         validateId(assetId, id -> INCORRECT_ASSET_ID + id);
-        if (entityViewService.existsByTenantIdAndEntityId(tenantId, assetId)) {
+        deleteEntity(tenantId, assetId, false);
+    }
+
+    @Override
+    @Transactional
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        if (!force && entityViewService.existsByTenantIdAndEntityId(tenantId, id)) {
             throw new DataValidationException("Can't delete asset that has entity views!");
         }
 
-        Asset asset = assetDao.findById(tenantId, assetId.getId());
-        alarmService.deleteEntityAlarmRelations(tenantId, assetId);
+        Asset asset = assetDao.findById(tenantId, id.getId());
+        if (asset == null) {
+            return;
+        }
         deleteAsset(tenantId, asset);
     }
 
     private void deleteAsset(TenantId tenantId, Asset asset) {
         log.trace("Executing deleteAsset [{}]", asset.getId());
-        relationService.deleteEntityRelations(tenantId, asset.getId());
-
         assetDao.removeById(tenantId, asset.getUuidId());
 
         publishEvictEvent(new AssetCacheEvictEvent(asset.getTenantId(), asset.getName(), null));
@@ -262,6 +279,11 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
         log.trace("Executing deleteAssetsByTenantId, tenantId [{}]", tenantId);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         tenantAssetsRemover.removeEntities(tenantId, tenantId);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteAssetsByTenantId(tenantId);
     }
 
     @Override
@@ -479,12 +501,6 @@ public class BaseAssetService extends AbstractCachedEntityService<AssetCacheKey,
     @Override
     public long countByTenantId(TenantId tenantId) {
         return assetDao.countByTenantId(tenantId);
-    }
-
-    @Override
-    @Transactional
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteAsset(tenantId, (AssetId) id);
     }
 
     @Override

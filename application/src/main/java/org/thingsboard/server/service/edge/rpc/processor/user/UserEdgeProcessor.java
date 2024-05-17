@@ -56,29 +56,21 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
         DownlinkMsg downlinkMsg = null;
         EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
         switch (edgeEvent.getAction()) {
-            case ADDED:
-            case ADDED_TO_ENTITY_GROUP:
-            case UPDATED:
-            case ASSIGNED_TO_EDGE:
+            case ADDED, ADDED_TO_ENTITY_GROUP, UPDATED, ASSIGNED_TO_EDGE -> {
                 User user = userService.findUserById(edgeEvent.getTenantId(), userId);
                 if (user != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addUserUpdateMsg(((UserMsgConstructor)userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructUserUpdatedMsg(msgType, user, entityGroupId))
+                            .addUserUpdateMsg(((UserMsgConstructor) userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructUserUpdatedMsg(msgType, user, entityGroupId))
                             .build();
                 }
-                break;
-            case DELETED:
-            case REMOVED_FROM_ENTITY_GROUP:
-            case UNASSIGNED_FROM_EDGE:
-            case CHANGE_OWNER:
-                downlinkMsg = DownlinkMsg.newBuilder()
-                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addUserUpdateMsg(((UserMsgConstructor)userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructUserDeleteMsg(userId, entityGroupId))
-                        .build();
-                break;
-            case CREDENTIALS_UPDATED:
+            }
+            case DELETED, REMOVED_FROM_ENTITY_GROUP, UNASSIGNED_FROM_EDGE, CHANGE_OWNER -> downlinkMsg = DownlinkMsg.newBuilder()
+                    .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                    .addUserUpdateMsg(((UserMsgConstructor) userMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructUserDeleteMsg(userId, entityGroupId))
+                    .build();
+            case CREDENTIALS_UPDATED -> {
                 UserCredentials userCredentialsByUserId = userService.findUserCredentialsByUserId(edgeEvent.getTenantId(), userId);
                 if (userCredentialsByUserId != null && userCredentialsByUserId.isEnabled()) {
                     UserCredentialsUpdateMsg userCredentialsUpdateMsg =
@@ -88,8 +80,9 @@ public class UserEdgeProcessor extends BaseEdgeProcessor {
                             .addUserCredentialsUpdateMsg(userCredentialsUpdateMsg)
                             .build();
                 }
-                break;
+            }
         }
         return downlinkMsg;
     }
+
 }

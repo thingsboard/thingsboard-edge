@@ -80,7 +80,7 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>,
 
     List<CustomerEntity> findCustomersByTenantIdAndIdIn(UUID tenantId, List<UUID> customerIds);
 
-    @Query("SELECT c.id FROM CustomerEntity c WHERE c.tenantId = :tenantId AND (c.parentCustomerId is null OR c.parentCustomerId = uuid('13814000-1dd2-11b2-8080-808080808080'))")
+    @Query("SELECT c.id FROM CustomerEntity c WHERE c.tenantId = :tenantId AND (c.parentCustomerId is null OR c.parentCustomerId = org.thingsboard.server.common.data.id.EntityId.NULL_UUID)")
     Page<UUID> findIdsByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId, Pageable pageable);
 
     @Query("SELECT c.id FROM CustomerEntity c WHERE c.tenantId = :tenantId AND c.parentCustomerId = :customerId")
@@ -88,9 +88,25 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>,
                                               @Param("customerId") UUID customerId,
                                               Pageable pageable);
 
+    @Query(value = "SELECT * FROM customer c WHERE c.tenant_id = :tenantId AND c.is_public IS TRUE AND " +
+            "(c.parent_customer_id IS NULL OR c.parent_customer_id = '13814000-1dd2-11b2-8080-808080808080') ORDER BY c.id ASC LIMIT 1", nativeQuery = true)
+    CustomerEntity findPublicCustomerByTenantIdAndNullCustomerId(@Param("tenantId") UUID tenantId);
+
+    @Query(value = "SELECT * FROM customer c WHERE c.tenant_id = :tenantId AND c.is_public IS TRUE AND " +
+            "c.parent_customer_id = :customerId ORDER BY c.id ASC LIMIT 1", nativeQuery = true)
+    CustomerEntity findPublicCustomerByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                                             @Param("customerId") UUID customerId);
+
     Long countByTenantId(UUID tenantId);
 
     @Query("SELECT externalId FROM CustomerEntity WHERE id = :id")
     UUID getExternalIdById(@Param("id") UUID id);
+
+    @Query(value = "SELECT c.* FROM customer c " +
+            "INNER JOIN (SELECT tenant_id, title FROM customer GROUP BY tenant_id, title HAVING COUNT(title) > 1) dc " +
+            "ON c.tenant_id = dc.tenant_id AND c.title = dc.title " +
+            "ORDER BY c.tenant_id, c.title, c.id",
+            nativeQuery = true)
+    Page<CustomerEntity> findCustomersWithTheSameTitle(Pageable pageable);
 
 }
