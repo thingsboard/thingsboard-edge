@@ -104,6 +104,21 @@ public class TranslationController extends BaseController {
             "]" +
             MARKDOWN_CODE_BLOCK_END;
 
+    private static final ObjectNode AVAILABLE_JAVA_LOCALE_CODES = JacksonUtil.newObjectNode();
+
+    static {
+        List<Locale> availableLocales = Arrays.stream(DateFormat.getAvailableLocales())
+                .filter(availableLocale -> StringUtils.countMatches(availableLocale.toString(), "_") == 1
+                        && !LOCALE_CODES_TO_EXCLUDE.contains(availableLocale.toString())
+                        && !availableLocale.toString().matches(".*\\d+.*"))
+                .toList();
+        for (Locale availableLocale : availableLocales) {
+            String displayLanguage = availableLocale.getDisplayLanguage(availableLocale);
+            String displayCountry = availableLocale.getDisplayCountry(availableLocale).isBlank() ? "" : " (" + availableLocale.getDisplayCountry(availableLocale) + ")";
+            AVAILABLE_JAVA_LOCALE_CODES.put(availableLocale.toString(), displayLanguage + displayCountry);
+        }
+    }
+
     private final TbTranslationService tbTranslationService;
     private final WhiteLabelingService whiteLabelingService;
 
@@ -142,19 +157,7 @@ public class TranslationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/availableJavaLocales")
     public JsonNode getAvailableJavaLocales() {
-        ObjectNode result = JacksonUtil.newObjectNode();
-
-        List<Locale> availableLocales = Arrays.stream(DateFormat.getAvailableLocales())
-                .filter(availableLocale -> StringUtils.countMatches(availableLocale.toString(), "_") == 1
-                        && !LOCALE_CODES_TO_EXCLUDE.contains(availableLocale.toString())
-                        && !availableLocale.toString().matches(".*\\d+.*"))
-                .toList();
-        for (Locale availableLocale : availableLocales) {
-            String displayLanguage = availableLocale.getDisplayLanguage(availableLocale);
-            String displayCountry = availableLocale.getDisplayCountry(availableLocale).isBlank() ? "" : " (" + availableLocale.getDisplayCountry(availableLocale) + ")";
-            result.put(availableLocale.toString(), displayLanguage + displayCountry);
-        }
-        return result;
+        return AVAILABLE_JAVA_LOCALE_CODES;
     }
 
     @ApiOperation(value = "Get system translation for login page",
