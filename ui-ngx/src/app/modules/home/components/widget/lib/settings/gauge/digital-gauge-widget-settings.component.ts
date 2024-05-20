@@ -29,22 +29,30 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
+import { Datasource, WidgetSettings, WidgetSettingsComponent } from '@shared/models/widget.models';
 import { Component } from '@angular/core';
 import { AbstractControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { GaugeType } from '@home/components/widget/lib/canvas-digital-gauge';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { ValueSourceProperty } from '@home/components/widget/lib/settings/common/value-source.component';
 import {
+  backwardCompatibilityFixedLevelColors,
+  backwardCompatibilityTicks,
   digitalGaugeLayoutImages,
   digitalGaugeLayouts,
   digitalGaugeLayoutTranslations,
   DigitalGaugeType
 } from '@home/components/widget/lib/digital-gauge.models';
-import { deepClone, formatValue } from '@core/utils';
-import { ColorSettings, ColorType, constantColor, simpleDateFormat } from '@shared/models/widget-settings.models';
+import { formatValue } from '@core/utils';
+import {
+  ColorSettings,
+  ColorType,
+  constantColor,
+  simpleDateFormat,
+  ValueSourceDataKeyType,
+  ValueSourceWithDataKey
+} from '@shared/models/widget-settings.models';
 
 @Component({
   selector: 'tb-digital-gauge-widget-settings',
@@ -63,6 +71,15 @@ export class DigitalGaugeWidgetSettingsComponent extends WidgetSettingsComponent
 
   valuePreviewFn = this._valuePreviewFn.bind(this, true);
   previewFn = this._valuePreviewFn.bind(this, false);
+
+  public get datasource(): Datasource {
+    const datasources: Datasource[] = this.widgetConfig.config.datasources;
+    if (datasources && datasources.length) {
+      return datasources[0];
+    } else {
+      return null;
+    }
+  }
 
   constructor(protected store: Store<AppState>,
               protected fb: UntypedFormBuilder) {
@@ -135,16 +152,14 @@ export class DigitalGaugeWidgetSettingsComponent extends WidgetSettingsComponent
   }
 
   protected onSettingsSet(settings: WidgetSettings) {
-
-
     if (!settings.barColor) {
-      settings.barColor = constantColor(null);
+      settings.barColor = constantColor(settings.gaugeColor);
 
       if (settings.fixedLevelColors.length) {
         settings.barColor.rangeList = {
           advancedMode: settings.useFixedLevelColor,
           range: null,
-          rangeAdvanced: deepClone(settings.fixedLevelColors)
+          rangeAdvanced: backwardCompatibilityFixedLevelColors(settings.fixedLevelColors)
         };
       }
       if (settings.levelColors.length) {
@@ -199,7 +214,7 @@ export class DigitalGaugeWidgetSettingsComponent extends WidgetSettingsComponent
       showTicks: [settings.showTicks, []],
       tickWidth: [settings.tickWidth, [Validators.min(0)]],
       colorTicks: [settings.colorTicks, []],
-      ticksValue: this.prepareTicksValueFormArray(settings.ticksValue),
+      ticksValue: this.prepareTicksValueFormArray(backwardCompatibilityTicks(settings.ticksValue)),
 
       animation: [settings.animation, []],
       animationDuration: [settings.animationDuration, [Validators.min(0)]],
@@ -244,11 +259,32 @@ export class DigitalGaugeWidgetSettingsComponent extends WidgetSettingsComponent
     const showTicks: boolean = this.digitalGaugeWidgetSettingsForm.get('showTicks').value;
     const animation: boolean = this.digitalGaugeWidgetSettingsForm.get('animation').value;
 
+
     if (gaugeType === 'donut') {
       this.digitalGaugeWidgetSettingsForm.get('donutStartAngle').enable();
+
+      this.digitalGaugeWidgetSettingsForm.get('showMinMax').disable({emitEvent: false});
+      this.digitalGaugeWidgetSettingsForm.get('minValue').enable({emitEvent: false});
+      this.digitalGaugeWidgetSettingsForm.get('maxValue').enable({emitEvent: false});
+      this.digitalGaugeWidgetSettingsForm.get('minMaxFont').disable({emitEvent: false});
+      this.digitalGaugeWidgetSettingsForm.get('minMaxColor').disable({emitEvent: false});
     } else {
       this.digitalGaugeWidgetSettingsForm.get('donutStartAngle').disable();
+
+      this.digitalGaugeWidgetSettingsForm.get('showMinMax').enable({emitEvent: false});
+      if (showMinMax) {
+        this.digitalGaugeWidgetSettingsForm.get('minValue').enable();
+        this.digitalGaugeWidgetSettingsForm.get('maxValue').enable();
+        this.digitalGaugeWidgetSettingsForm.get('minMaxFont').enable();
+        this.digitalGaugeWidgetSettingsForm.get('minMaxColor').enable();
+      } else {
+        this.digitalGaugeWidgetSettingsForm.get('minValue').disable();
+        this.digitalGaugeWidgetSettingsForm.get('maxValue').disable();
+        this.digitalGaugeWidgetSettingsForm.get('minMaxFont').disable();
+        this.digitalGaugeWidgetSettingsForm.get('minMaxColor').disable();
+      }
     }
+
     if (showTitle) {
       this.digitalGaugeWidgetSettingsForm.get('title').enable();
       this.digitalGaugeWidgetSettingsForm.get('titleFont').enable();
@@ -281,17 +317,6 @@ export class DigitalGaugeWidgetSettingsComponent extends WidgetSettingsComponent
     } else {
       this.digitalGaugeWidgetSettingsForm.get('valueFont').disable();
       this.digitalGaugeWidgetSettingsForm.get('valueColor').disable();
-    }
-    if (showMinMax) {
-      this.digitalGaugeWidgetSettingsForm.get('minValue').enable();
-      this.digitalGaugeWidgetSettingsForm.get('maxValue').enable();
-      this.digitalGaugeWidgetSettingsForm.get('minMaxFont').enable();
-      this.digitalGaugeWidgetSettingsForm.get('minMaxColor').enable();
-    } else {
-      this.digitalGaugeWidgetSettingsForm.get('minValue').disable();
-      this.digitalGaugeWidgetSettingsForm.get('maxValue').disable();
-      this.digitalGaugeWidgetSettingsForm.get('minMaxFont').disable();
-      this.digitalGaugeWidgetSettingsForm.get('minMaxColor').disable();
     }
     if (showTicks) {
       this.digitalGaugeWidgetSettingsForm.get('tickWidth').enable();
@@ -338,7 +363,7 @@ export class DigitalGaugeWidgetSettingsComponent extends WidgetSettingsComponent
     settingsForm.setControl('ticksValue', this.prepareTicksValueFormArray(settings.ticksValue), {emitEvent: false});
   }
 
-  private prepareTicksValueFormArray(ticksValue: ValueSourceProperty[] | undefined): UntypedFormArray {
+  private prepareTicksValueFormArray(ticksValue: ValueSourceWithDataKey[] | undefined): UntypedFormArray {
     const ticksValueControls: Array<AbstractControl> = [];
     if (ticksValue) {
       ticksValue.forEach((tickValue) => {
@@ -361,8 +386,8 @@ export class DigitalGaugeWidgetSettingsComponent extends WidgetSettingsComponent
   }
 
   public addTickValue() {
-    const tickValue: ValueSourceProperty = {
-      valueSource: 'predefinedValue'
+    const tickValue: ValueSourceWithDataKey = {
+      type: ValueSourceDataKeyType.constant
     };
     const tickValuesArray = this.digitalGaugeWidgetSettingsForm.get('ticksValue') as UntypedFormArray;
     const tickValueControl = this.fb.control(tickValue, []);

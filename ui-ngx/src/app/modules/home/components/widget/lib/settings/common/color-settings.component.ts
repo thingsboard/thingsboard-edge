@@ -49,6 +49,8 @@ import {
 import { IAliasController } from '@core/api/widget-api.models';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { DataKeysCallbacks } from '@home/components/widget/config/data-keys.component.models';
+import { Datasource } from '@shared/models/widget.models';
 
 @Injectable()
 export class ColorSettingsComponentService {
@@ -99,6 +101,12 @@ export class ColorSettingsComponent implements OnInit, ControlValueAccessor, OnD
 
   @Input()
   aliasController: IAliasController;
+
+  @Input()
+  dataKeyCallbacks: DataKeysCallbacks;
+
+  @Input()
+  datasource: Datasource;
 
   @Input()
   @coerceBoolean()
@@ -170,6 +178,8 @@ export class ColorSettingsComponent implements OnInit, ControlValueAccessor, OnD
         colorSettings: this.modelValue,
         settingsComponents: this.colorSettingsComponentService.getOtherColorSettingsComponents(this),
         aliasController: this.aliasController,
+        dataKeyCallbacks: this.dataKeyCallbacks,
+        datasource: this.datasource,
         rangeAdvancedMode: this.rangeAdvancedMode,
         gradientAdvancedMode: this.gradientAdvancedMode,
         minValue: this.minValue,
