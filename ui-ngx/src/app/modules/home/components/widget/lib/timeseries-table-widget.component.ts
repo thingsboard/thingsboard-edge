@@ -357,7 +357,10 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     } else {
       this.dateFormatFilter = isDefined(this.settings.dateFormat?.format) ? this.settings.dateFormat?.format : 'yyyy-MM-dd HH:mm:ss';
     }
-    this.exportTimestampColumn = isDefined(this.settings?.timestampExportOption) ? this.settings.timestampExportOption : columnExportOptions.onlyVisible;
+    this.ctx.customDateFormatExport = this.dateFormatFilter;
+
+    this.exportTimestampColumn = isDefined(this.settings?.timestampExportOption) ?
+      this.settings.timestampExportOption : columnExportOptions.onlyVisible;
 
     this.rowStylesInfo = getRowStyleInfo(this.settings, 'rowData, ctx');
 
@@ -871,10 +874,12 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
       columnsToExport.unshift('Timestamp');
     }
 
-    let sourcesLatest: {[datasourceName: string]: {[key: string]: any}} = {};
-    const sourcesLatestContentFunc: {[datasourceName: string]: {[key: string]: {value: any, contentFunction: any, useContentFunctionOnExport: boolean}}} = {};
+    const sourcesLatest: {[datasourceName: string]: {[key: string]: any}} = {};
+    const sourcesLatestContentFunc:
+      {[datasourceName: string]: {[key: string]: {value: any; contentFunction: any; useContentFunctionOnExport: boolean}}} = {};
     const sourcesTsRows: {[ts: string]: {[key: string]: any}} = {};
-    const sourcesTsRowsContentFunc: {[ts: string]: {[key: string]: {value: any, contentFunction: any, useContentFunctionOnExport: boolean}}} = {};
+    const sourcesTsRowsContentFunc:
+      {[ts: string]: {[key: string]: {value: any; contentFunction: any; useContentFunctionOnExport: boolean}}} = {};
     if (this.sources.length) {
       this.sources.forEach((source, index) => {
         const useCellContentFunction = source.header.filter(header => header?.contentInfo.useCellContentFunction);
@@ -908,7 +913,8 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
             const value = row[1];
             let tsRow = sourcesTsRows[tsKey];
             if (!tsRow) {
-              tsRow = isDefined(sourcesLatest[datasourceData.datasource.name]) ? deepClone(sourcesLatest[datasourceData.datasource.name]) : {};
+              tsRow = isDefined(sourcesLatest[datasourceData.datasource.name])
+                ? deepClone(sourcesLatest[datasourceData.datasource.name]) : {};
               if (columnsToExport.includes('Timestamp')) {
                 tsRow.Timestamp = this.datePipe.transform(ts, this.dateFormatFilter);
               }
@@ -919,7 +925,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
               }
             }
             if (useCellContentFunction.length) {
-              const header = source.header.find(value => value.dataKey.label === key);
+              const header = source.header.find(headerValue => headerValue.dataKey.label === key);
               if (isDefinedAndNotNull(header.contentInfo.useCellContentFunction)) {
                 if (!sourcesTsRowsContentFunc[tsKey]) {
                   sourcesTsRowsContentFunc[tsKey] = {};
@@ -935,7 +941,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
             tsRow[key] = value;
           });
         });
-      })
+      });
     }
 
     if (this.data.length) {
@@ -949,7 +955,8 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
                 sourcesTsRowsContentFunc[timestamp][key].useContentFunctionOnExport) {
                 const div = document.createElement('div');
                 try {
-                  div.innerHTML = sourcesTsRowsContentFunc[timestamp][key].contentFunction(sourcesTsRowsContentFunc[timestamp][key].value, sourcesTsRows[timestamp], this.ctx);
+                  div.innerHTML = sourcesTsRowsContentFunc[timestamp][key]
+                    .contentFunction(sourcesTsRowsContentFunc[timestamp][key].value, sourcesTsRows[timestamp], this.ctx);
                 } catch (e) {
                   div.innerText = sourcesTsRowsContentFunc[timestamp][key].value;
                 }
