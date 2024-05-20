@@ -162,7 +162,7 @@ public class GroupPermissionController extends BaseController {
 
             GroupPermission savedGroupPermission = checkNotNull(groupPermissionService.saveGroupPermission(getTenantId(), groupPermission));
 
-            if (oldGroupPermission != null && oldGroupPermission.getUserGroupId() != savedGroupPermission.getUserGroupId()) {
+            if (oldGroupPermission != null && !oldGroupPermission.getUserGroupId().equals(savedGroupPermission.getUserGroupId())) {
                 userPermissionsService.onGroupPermissionUpdated(oldGroupPermission);
             }
             userPermissionsService.onGroupPermissionUpdated(savedGroupPermission);
