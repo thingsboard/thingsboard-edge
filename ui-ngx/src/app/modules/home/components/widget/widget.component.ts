@@ -76,7 +76,6 @@ import {
   deepClone,
   insertVariable,
   isDefined,
-  isDefinedAndNotNull,
   isFunction,
   isNotEmptyStr,
   objToBase64,
@@ -1562,25 +1561,23 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       filename = this.utils.customTranslation(this.widget.config.title, this.widget.config.title);
     }
     const data = this.prepareWidgetExportData();
+    const dateFormat = this.widgetExportDateFormat();
     if (isObservable(data)) {
       data.subscribe((d) => {
-        this.doExportWidgetData(filename, d, widgetExportType);
+        this.doExportWidgetData(filename, d, widgetExportType, dateFormat);
       });
     } else {
-      this.doExportWidgetData(filename, data, widgetExportType);
+      this.doExportWidgetData(filename, data, widgetExportType, dateFormat);
     }
   }
 
-  private doExportWidgetData(filename: string, data: {[key: string]: any}[], widgetExportType: WidgetExportType) {
+  private doExportWidgetData(filename: string, data: {[key: string]: any}[],
+                             widgetExportType: WidgetExportType, dateFormat: string) {
     if (widgetExportType === WidgetExportType.csv) {
       this.importExport.exportCsv(data, filename);
     } else if (widgetExportType === WidgetExportType.xls) {
       this.importExport.exportXls(data, filename);
     } else if (widgetExportType === WidgetExportType.xlsx) {
-      const showDate = isDefinedAndNotNull(this.widget?.config?.settings?.showDate) ?
-        this.widget.config.settings.showDate : true;
-      const dateFormat = isDefinedAndNotNull(this.widget?.config?.settings?.dateFormat?.format) && showDate
-        ? this.widget.config.settings.dateFormat.format : 'yyyy-MM-dd HH:mm:ss';
       this.importExport.exportXlsx(data, filename, dateFormat);
     }
   }
@@ -1593,6 +1590,13 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     } else {
       return [];
     }
+  }
+
+  private widgetExportDateFormat(): string {
+    if (isNotEmptyStr(this.widgetContext.customDateFormatExport)) {
+      return this.widgetContext.customDateFormatExport;
+    }
+    return 'yyyy-MM-dd HH:mm:ss';
   }
 
   private getActiveEntityInfo(): SubscriptionEntityInfo {
