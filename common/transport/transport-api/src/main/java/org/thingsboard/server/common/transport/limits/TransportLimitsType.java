@@ -28,18 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.util;
+package org.thingsboard.server.common.transport.limits;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
-@Data
-@AllArgsConstructor
-public class TbPair<S, T> {
-    private S first;
-    private T second;
-
-    public static <S, T> TbPair<S, T> of(S first, T second) {
-        return new TbPair<>(first, second);
-    }
+public enum TransportLimitsType {
+    TENANT_LIMITS, DEVICE_LIMITS, GATEWAY_LIMITS
 }
