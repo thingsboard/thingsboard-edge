@@ -34,7 +34,7 @@ import { UntypedFormBuilder, UntypedFormGroup, Validators } from "@angular/forms
 import { WidgetSettings, WidgetSettingsComponent } from "@shared/models/widget.models";
 import { AppState } from '@core/core.state';
 import { Store } from "@ngrx/store";
-import { badgePositionTranslationsMap, badgeStyleTranslationsMap } from '@shared/models/mobile-app.models';
+import { badgePositionTranslationsMap } from '@shared/models/mobile-app.models';
 import { mobileAppQrCodeWidgetDefaultSettings } from '@home/components/widget/lib/cards/mobile-app-qr-code-widget.models';
 
 @Component({
@@ -47,7 +47,6 @@ export class MobileAppQrCodeWidgetSettingsComponent extends WidgetSettingsCompon
   mobileAppQRCodeWidgetSettingsForm: UntypedFormGroup;
 
   badgePositionTranslationsMap = badgePositionTranslationsMap;
-  badgeStyleTranslationsMap = badgeStyleTranslationsMap;
 
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder) {
@@ -73,7 +72,6 @@ export class MobileAppQrCodeWidgetSettingsComponent extends WidgetSettingsCompon
       }),
       qrCodeConfig: this.fb.group({
         badgeEnabled: [settings.qrCodeConfig.badgeEnabled],
-        badgeStyle: [{value: settings.qrCodeConfig.badgeStyle, disabled: true}],
         badgePosition: [{value: settings.qrCodeConfig.badgePosition, disabled: true}],
         qrCodeLabelEnabled: [settings.qrCodeConfig.qrCodeLabelEnabled],
         qrCodeLabel: [settings.qrCodeConfig.qrCodeLabel, [Validators.required]]
@@ -94,17 +92,14 @@ export class MobileAppQrCodeWidgetSettingsComponent extends WidgetSettingsCompon
 
     if (!androidEnabled && !iosEnabled) {
       this.mobileAppQRCodeWidgetSettingsForm.get('qrCodeConfig.badgeEnabled').disable({emitEvent: false});
-      this.mobileAppQRCodeWidgetSettingsForm.get('qrCodeConfig.badgeStyle').disable({emitEvent: false});
       this.mobileAppQRCodeWidgetSettingsForm.get('qrCodeConfig.badgePosition').disable({emitEvent: false});
     }
 
     if (androidEnabled || iosEnabled) {
       this.mobileAppQRCodeWidgetSettingsForm.get('qrCodeConfig.badgeEnabled').enable({emitEvent: false});
       if (badgeEnabled) {
-        this.mobileAppQRCodeWidgetSettingsForm.get('qrCodeConfig.badgeStyle').enable({emitEvent: false});
         this.mobileAppQRCodeWidgetSettingsForm.get('qrCodeConfig.badgePosition').enable({emitEvent: false});
       } else {
-        this.mobileAppQRCodeWidgetSettingsForm.get('qrCodeConfig.badgeStyle').disable({emitEvent: false});
         this.mobileAppQRCodeWidgetSettingsForm.get('qrCodeConfig.badgePosition').disable({emitEvent: false});
       }
     }
