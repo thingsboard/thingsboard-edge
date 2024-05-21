@@ -162,8 +162,10 @@ public class TbCreateRelationNodeTest extends AbstractRuleNodeUpgradeTest {
     private static Stream<Arguments> givenSupportedEntityTypeToCreateEntityIfNotExists_whenOnMsg_thenVerifyConditions() {
         return Stream.of(
                 Arguments.of(new Device(deviceId)),
-                Arguments.of(new Asset(assetId)),
+                Arguments.of(new Asset(assetId))
+                /* edge-only: customers are not allowed to be created on the edge
                 Arguments.of(new Customer(customerId))
+                 */
         );
     }
 

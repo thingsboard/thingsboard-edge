@@ -38,8 +38,10 @@ import com.google.common.util.concurrent.MoreExecutors;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.thingsboard.common.util.ThingsBoardExecutors;
@@ -323,6 +325,8 @@ public class CustomerServiceTest extends AbstractServiceTest {
         customerService.deleteCustomer(tenantId, savedCustomer.getId());
     }
 
+    // edge-only: public customer creation is not supported on Edge
+    @Ignore
     @Test
     public void testFindOrCreatePublicCustomer_Concurrency() throws Exception {
         Customer customer = new Customer();
