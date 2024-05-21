@@ -17,6 +17,7 @@ package org.thingsboard.rule.engine.action;
 
 import com.google.common.util.concurrent.Futures;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -197,6 +198,7 @@ class TbAssignToCustomerNodeTest extends AbstractRuleNodeUpgradeTest {
         verifyNoMoreInteractions(ctxMock);
     }
 
+    @Disabled("Customers are not allowed to be created on the edge")
     @ParameterizedTest
     @MethodSource("givenSupportedOriginatorTypeAndCustomerTitle_whenOnMsg_thenVerify")
     void givenSupportedOriginatorTypeAndCustomerTitle_whenOnMsg_thenVerifyCustomerCreatedAndSuccessOutMsg(EntityType type, String customerTitle) throws TbNodeException {
