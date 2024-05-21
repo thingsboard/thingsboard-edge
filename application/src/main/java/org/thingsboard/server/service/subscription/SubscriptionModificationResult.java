@@ -28,54 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ws;
+package org.thingsboard.server.service.subscription;
 
 import lombok.Builder;
 import lombok.Data;
-import org.thingsboard.server.service.security.model.SecurityUser;
-
-import java.net.InetSocketAddress;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 
 /**
- * Created by ashvayka on 27.03.18.
+ * The modification result of entity subscription
  */
 @Builder
 @Data
-public class WebSocketSessionRef {
+public class SubscriptionModificationResult {
 
-    private static final long serialVersionUID = 1L;
+    private TenantId tenantId;
+    private EntityId entityId;
+    private TbSubscription<?> subscription;
+    private TbSubscription<?> missedUpdatesCandidate;
+    private TbEntitySubEvent event;
 
-    private final String sessionId;
-    private volatile SecurityUser securityCtx;
-    private final InetSocketAddress localAddress;
-    private final InetSocketAddress remoteAddress;
-    private final WebSocketSessionType sessionType;
-    private final AtomicInteger sessionSubIdSeq = new AtomicInteger();
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        WebSocketSessionRef that = (WebSocketSessionRef) o;
-        return Objects.equals(sessionId, that.sessionId);
+    public boolean hasEvent() {
+        return event != null;
     }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(sessionId);
-    }
-
-    @Override
-    public String toString() {
-        String info = "";
-        if (securityCtx != null) {
-            info += "[" + securityCtx.getTenantId() + "]";
-            info += "[" + securityCtx.getId() + "]";
-        }
-        info += "[" + sessionId + "]";
-        return info;
-    }
-
 }

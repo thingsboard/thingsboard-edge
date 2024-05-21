@@ -217,7 +217,8 @@ public class DefaultWebSocketService implements WebSocketService {
                 wsSessionsMap.put(sessionId, new WsSessionMetaData(sessionRef));
                 break;
             case ERROR:
-                log.debug("[{}] Unknown websocket session error: {}. ", sessionId, event.getError().orElse(null));
+                log.debug("[{}] Unknown websocket session error: ", sessionId,
+                        event.getError().orElse(new RuntimeException("No error specified")));
                 break;
             case CLOSED:
                 wsSessionsMap.remove(sessionId);
@@ -318,6 +319,16 @@ public class DefaultWebSocketService implements WebSocketService {
             } catch (IOException e) {
                 log.warn("[{}] Failed to send session close", sessionId, e);
             }
+        }
+    }
+
+    @Override
+    public void cleanupIfStale(String sessionId) {
+        if (!msgEndpoint.isOpen(sessionId)) {
+            log.info("[{}] Cleaning up stale session ", sessionId);
+            wsSessionsMap.remove(sessionId);
+            oldSubService.cancelAllSessionSubscriptions(sessionId);
+            entityDataSubService.cancelAllSessionSubscriptions(sessionId);
         }
     }
 
