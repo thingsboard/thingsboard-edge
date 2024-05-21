@@ -41,7 +41,7 @@
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
   <mat-card-content style="padding-top: 16px">
     <div class="tb-form-panel no-border no-padding" [formGroup]="mobileAppSettingsForm">
-      <div class="tb-form-panel no-padding" *ngIf="isTenantAdmin()">
+      <div class="tb-form-panel no-border no-padding" *ngIf="isTenantAdmin()">
         <div class="tb-form-row no-border no-padding-bottom">
           <mat-slide-toggle class="mat-slide" formControlName="useSystemSettings" (click)="$event.stopPropagation()">
             {{ 'admin.mobile-app.use-system-settings' | translate }}
