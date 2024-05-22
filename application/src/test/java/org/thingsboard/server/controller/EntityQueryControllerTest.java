@@ -77,6 +77,7 @@ import org.thingsboard.server.common.data.query.KeyFilter;
 import org.thingsboard.server.common.data.query.NumericFilterPredicate;
 import org.thingsboard.server.common.data.query.SchedulerEventFilter;
 import org.thingsboard.server.common.data.query.StringFilterPredicate;
+import org.thingsboard.server.common.data.query.RelationsQueryFilter;
 import org.thingsboard.server.common.data.query.TsValue;
 import org.thingsboard.server.common.data.queue.QueueStats;
 import org.thingsboard.server.common.data.role.Role;
@@ -84,6 +85,9 @@ import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.scheduler.MonthlyRepeat;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerRepeat;
+import org.thingsboard.server.common.data.relation.EntityRelation;
+import org.thingsboard.server.common.data.relation.EntitySearchDirection;
+import org.thingsboard.server.common.data.relation.RelationEntityTypeFilter;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.queue.QueueStatsService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
@@ -491,6 +495,65 @@ public class EntityQueryControllerTest extends AbstractControllerTest {
         Assert.assertEquals(10, data2.getTotalPages());
         Assert.assertTrue(data2.hasNext());
         Assert.assertEquals(10, data2.getData().size());
+    }
+
+    @Test
+    public void testFindEntityDataByQueryWithNegateParam() throws Exception {
+        List<Device> devices = new ArrayList<>();
+        for (int i = 0; i < 97; i++) {
+            Device device = new Device();
+            device.setName("Device" + i);
+            device.setType("default");
+            device.setLabel("testLabel" + (int) (Math.random() * 1000));
+            devices.add(doPost("/api/device", device, Device.class));
+            Thread.sleep(1);
+        }
+
+        Device mainDevice = new Device();
+        mainDevice.setName("Main device");
+        mainDevice = doPost("/api/device", mainDevice, Device.class);
+
+        for (int i = 0; i < 10; i++) {
+            EntityRelation relation = createFromRelation(mainDevice, devices.get(i), "CONTAINS");
+            doPost("/api/relation", relation).andExpect(status().isOk());
+        }
+
+        for (int i = 10; i < 97; i++) {
+            EntityRelation relation = createFromRelation(mainDevice, devices.get(i), "NOT_CONTAINS");
+            doPost("/api/relation", relation).andExpect(status().isOk());
+        }
+
+        RelationsQueryFilter filter = new RelationsQueryFilter();
+        filter.setRootEntity(mainDevice.getId());
+        filter.setDirection(EntitySearchDirection.FROM);
+        filter.setNegate(true);
+        filter.setFilters(List.of(new RelationEntityTypeFilter("CONTAINS", List.of(EntityType.DEVICE), false)));
+
+        EntityDataSortOrder sortOrder = new EntityDataSortOrder(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "createdTime"), EntityDataSortOrder.Direction.ASC
+        );
+        EntityDataPageLink pageLink = new EntityDataPageLink(10, 0, null, sortOrder);
+        List<EntityKey> entityFields = Collections.singletonList(new EntityKey(EntityKeyType.ENTITY_FIELD, "name"));
+
+        EntityDataQuery query = new EntityDataQuery(filter, pageLink, entityFields, null, null);
+
+        PageData<EntityData> data = doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<>() {});
+
+        Assert.assertEquals(87, data.getTotalElements());
+
+        filter.setFilters(List.of(new RelationEntityTypeFilter("NOT_CONTAINS", List.of(EntityType.DEVICE), false)));
+        query = new EntityDataQuery(filter, pageLink, entityFields, null, null);
+        data = doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<>() {});
+        Assert.assertEquals(10, data.getTotalElements());
+
+        filter.setFilters(List.of(new RelationEntityTypeFilter("NOT_CONTAINS", List.of(EntityType.DEVICE), true)));
+        query = new EntityDataQuery(filter, pageLink, entityFields, null, null);
+        data = doPostWithTypedResponse("/api/entitiesQuery/find", query, new TypeReference<>() {});
+        Assert.assertEquals(87, data.getTotalElements());
+    }
+
+    private EntityRelation createFromRelation(Device mainDevice, Device device, String relationType) {
+        return new EntityRelation(mainDevice.getId(), device.getId(), relationType);
     }
 
     @Test

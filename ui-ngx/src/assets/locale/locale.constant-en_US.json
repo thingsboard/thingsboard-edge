@@ -705,6 +705,7 @@
         "filter-type-apiUsageState": "API Usage State",
         "entity-filter": "Entity filter",
         "resolve-multiple": "Resolve as multiple entities",
+        "resolve-multiple-hint": "Enable to render data from all filtered entities simultaneously. \nIf disabled, the widget shows data from the selected entity only.",
         "filter-type": "Filter type",
         "filter-type-required": "Filter type is required.",
         "entity-filter-no-entity-matched": "No entities matching specified filter were found.",
@@ -5055,7 +5056,8 @@
         "relation-filters": "Relation filters",
         "additional-info": "Additional info (JSON)",
         "invalid-additional-info": "Unable to parse additional info json.",
-        "no-relations-text": "No relations found"
+        "no-relations-text": "No relations found",
+        "not": "Not"
     },
     "resource": {
         "add": "Add resource",
