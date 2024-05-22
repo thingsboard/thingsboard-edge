@@ -71,4 +71,6 @@ public class CacheConstants {
     public static final String WHITE_LABELING_CACHE = "whiteLabeling";
     public static final String CUSTOM_TRANSLATION_CACHE = "customTranslation";
     public static final String ALARM_TYPES_CACHE = "alarmTypes";
+    public static final String MOBILE_APP_SETTINGS_CACHE = "mobileAppSettings";
+    public static final String MOBILE_SECRET_KEY_CACHE = "mobileSecretKey";
 }

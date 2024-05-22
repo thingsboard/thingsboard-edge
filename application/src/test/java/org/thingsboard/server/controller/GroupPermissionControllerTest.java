@@ -36,10 +36,12 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.permission.AllowedPermissionsInfo;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.role.Role;
@@ -52,6 +54,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -127,6 +130,57 @@ public class GroupPermissionControllerTest extends AbstractControllerTest {
         groupPermission = doPost("/api/groupPermission", groupPermission, GroupPermission.class);
         doPost("/api/groupPermission", groupPermission)
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void testCleanUserGroupCacheAfterGroupPermissionUpdated() throws Exception {
+        Customer customer = new Customer();
+        customer.setTitle("TEst customer");
+        customer = doPost("/api/customer", customer, Customer.class);
+
+        EntityGroup firstUserGroup = new EntityGroup();
+        firstUserGroup.setType(EntityType.USER);
+        firstUserGroup.setName("UserGroup" + RandomStringUtils.randomAlphabetic(6));
+        firstUserGroup.setOwnerId(customer.getId());
+        firstUserGroup = doPost("/api/entityGroup", firstUserGroup, EntityGroup.class);
+
+        EntityGroup secondUserGroup = new EntityGroup();
+        secondUserGroup.setType(EntityType.USER);
+        secondUserGroup.setOwnerId(customer.getId());
+        secondUserGroup.setName("UserGroup" + RandomStringUtils.randomAlphabetic(6));
+        secondUserGroup = doPost("/api/entityGroup", secondUserGroup, EntityGroup.class);
+
+        User firstGroupUser = new User();
+        firstGroupUser.setAuthority(Authority.CUSTOMER_USER);
+        firstGroupUser.setTenantId(tenantId);
+        firstGroupUser.setCustomerId(customer.getId());
+        firstGroupUser.setEmail("customerUser123@thingsboard.org");
+        firstGroupUser = createUser(firstGroupUser, "customer", firstUserGroup.getId());
+
+        Role savedGroupRole = createRole(RandomStringUtils.randomAlphabetic(10), RoleType.GROUP);
+        savedGroupRole = doPost("/api/role", savedGroupRole, Role.class);
+
+        GroupPermission groupPermission = new GroupPermission();
+        groupPermission.setRoleId(savedGroupRole.getId());
+        groupPermission.setUserGroupId(firstUserGroup.getId());
+        groupPermission.setEntityGroupId(savedDeviceGroup.getId());
+        groupPermission.setEntityGroupType(savedDeviceGroup.getType());
+        groupPermission = doPost("/api/groupPermission", groupPermission, GroupPermission.class);
+
+        // login as customer user and check permission
+        login(firstGroupUser.getEmail(), "customer");
+        AllowedPermissionsInfo allowedPermissionsInfo = doGet("/api/permissions/allowedPermissions", AllowedPermissionsInfo.class);
+        assertThat(allowedPermissionsInfo.getUserPermissions().getGroupPermissions().containsKey(savedDeviceGroup.getId())).isTrue();
+
+        // update group persmission
+        loginUser(tenantAdmin.getEmail(), "testPassword1");
+        groupPermission.setUserGroupId(secondUserGroup.getId());
+        groupPermission = doPost("/api/groupPermission", groupPermission, GroupPermission.class);
+
+        // login as customer user and check permission
+        login(firstGroupUser.getEmail(), "customer");
+        AllowedPermissionsInfo allowedPermissionsInfoAfterUpdate = doGet("/api/permissions/allowedPermissions", AllowedPermissionsInfo.class);
+        assertThat(allowedPermissionsInfoAfterUpdate.getUserPermissions().getGroupPermissions().containsKey(savedDeviceGroup.getId())).isFalse();
     }
 
     @Test

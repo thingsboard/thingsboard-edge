@@ -223,7 +223,7 @@ public class JwtTokenFactory {
             throw new IllegalArgumentException("Cannot create JWT Token without username/email");
         }
 
-                claimsBuilder
+        claimsBuilder
                 .add(USER_ID, securityUser.getId().getId().toString())
                 .add(SCOPES, scopes);
         if (securityUser.getSessionId() != null) {
@@ -232,7 +232,7 @@ public class JwtTokenFactory {
 
         ZonedDateTime currentTime = ZonedDateTime.now();
 
-        claimsBuilder.expiration(Date.from(currentTime.plusSeconds(expirationTime).toInstant()));
+        claimsBuilder.expiration(Date.from(currentTime.plusSeconds(expirationTime).toInstant())); // need for getting exp time in generate report
 
         return Jwts.builder()
                 .claims(claimsBuilder.build())

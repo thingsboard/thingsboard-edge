@@ -179,6 +179,38 @@ public class JwtTokenFactoryTest {
         });
     }
 
+    @Test
+    public void testGetExpirationTimeFromClaims() {
+        SecurityUser securityUser = new SecurityUser();
+        securityUser.setId(new UserId(UUID.randomUUID()));
+        securityUser.setEmail("tenant@thingsboard.org");
+        securityUser.setAuthority(Authority.TENANT_ADMIN);
+        securityUser.setTenantId(new TenantId(UUID.randomUUID()));
+        securityUser.setEnabled(true);
+        securityUser.setFirstName("A");
+        securityUser.setLastName("B");
+        securityUser.setUserPrincipal(new UserPrincipal(UserPrincipal.Type.USER_NAME, securityUser.getEmail()));
+        securityUser.setCustomerId(new CustomerId(UUID.randomUUID()));
+
+        AccessJwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
+
+        Claims claims = accessToken.getClaims();
+        assertThat(claims.getExpiration()).matches(actualExpirationTime -> {
+            Calendar expirationTime = Calendar.getInstance();
+            expirationTime.setTime(new Date());
+            expirationTime.add(Calendar.SECOND, jwtSettings.getTokenExpirationTime());
+            if (actualExpirationTime.equals(expirationTime.getTime())) {
+                return true;
+            } else if (actualExpirationTime.before(expirationTime.getTime())) {
+                int gap = 2;
+                expirationTime.add(Calendar.SECOND, -gap);
+                return actualExpirationTime.after(expirationTime.getTime());
+            } else {
+                return false;
+            }
+        });
+    }
+
     private void mockJwtSettings(JwtSettings settings) {
         AdminSettings adminJwtSettings = new AdminSettings();
         adminJwtSettings.setJsonValue(JacksonUtil.valueToTree(settings));
