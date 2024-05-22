@@ -1317,7 +1317,7 @@ transport:
 
 # CoAP server parameters
 coap:
-  # Enable/disable coap transport protocol.
+  # Enable/disable coap server.
   enabled: "${COAP_SERVER_ENABLED:true}"
   # CoAP bind address
   bind_address: "${COAP_BIND_ADDRESS:0.0.0.0}"
@@ -1350,7 +1350,7 @@ coap:
       pem:
         # Path to the server certificate file (holds server certificate or certificate chain, may include server private key)
         cert_file: "${COAP_DTLS_PEM_CERT:coapserver.pem}"
-        # Path to the server certificate private key file. Optional by default. Required if the private key is not present in server certificate file;
+        # Path to the server certificate private key file. Optional by default. Required if the private key is not present in the server certificate file;
         key_file: "${COAP_DTLS_PEM_KEY:coapserver_key.pem}"
         # Server certificate private key password (optional)
         key_password: "${COAP_DTLS_PEM_KEY_PASSWORD:server_key_password}"
