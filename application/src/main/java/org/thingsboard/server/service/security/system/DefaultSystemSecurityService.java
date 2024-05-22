@@ -75,7 +75,6 @@ import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.service.security.auth.rest.RestAuthenticationDetails;
 import org.thingsboard.server.service.security.exception.UserPasswordExpiredException;
-import org.thingsboard.server.service.security.exception.UserPasswordNotValidException;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.utils.MiscUtils;
 import ua_parser.Client;
@@ -92,6 +91,8 @@ import static org.thingsboard.server.common.data.CacheConstants.SECURITY_SETTING
 @Service
 @Slf4j
 public class DefaultSystemSecurityService implements SystemSecurityService {
+
+    public static final int DEFAULT_MOBILE_SECRET_KEY_LENGTH = 64;
 
     @Autowired
     private AdminSettingsService adminSettingsService;
@@ -130,6 +131,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
             securitySettings.setPasswordPolicy(new UserPasswordPolicy());
             securitySettings.getPasswordPolicy().setMinimumLength(6);
             securitySettings.getPasswordPolicy().setMaximumLength(72);
+            securitySettings.setMobileSecretKeyLength(DEFAULT_MOBILE_SECRET_KEY_LENGTH);
         }
         return securitySettings;
     }

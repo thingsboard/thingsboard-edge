@@ -79,6 +79,10 @@ public class GatewaySessionHandlerTest {
         lenient().doNothing().when(transportService).recordActivity(any());
         lenient().when(transportContext.getTransportService()).thenReturn(transportService);
         lenient().when(deviceSessionCtx.getContext()).thenReturn(transportContext);
+
+        var deviceInfo = new TransportDeviceInfo();
+        deviceInfo.setDeviceId(new DeviceId(UUID.randomUUID()));
+        lenient().when(deviceSessionCtx.getDeviceInfo()).thenReturn(deviceInfo);
         handler = new GatewaySessionHandler(deviceSessionCtx, UUID.randomUUID(), true);
         lenient().when(handler.getNodeId()).thenReturn("nodeId");
     }

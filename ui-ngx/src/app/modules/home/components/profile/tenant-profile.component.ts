@@ -90,7 +90,8 @@ export class TenantProfileComponent extends EntityComponent<TenantProfile> {
         topic: 'tb_rule_engine.main',
         additionalInfo: {
           description: '',
-          customProperties: ''
+          customProperties: '',
+          duplicateMsgToAllPartitions: false
         }
       },
       {
@@ -114,7 +115,8 @@ export class TenantProfileComponent extends EntityComponent<TenantProfile> {
         },
         additionalInfo: {
           description: '',
-          customProperties: ''
+          customProperties: '',
+          duplicateMsgToAllPartitions: false
         }
       },
       {
@@ -138,7 +140,8 @@ export class TenantProfileComponent extends EntityComponent<TenantProfile> {
         },
         additionalInfo: {
           description: '',
-          customProperties: ''
+          customProperties: '',
+          duplicateMsgToAllPartitions: false
         }
       }
     ];

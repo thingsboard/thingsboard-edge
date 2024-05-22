@@ -116,6 +116,8 @@ message SessionInfoProto {
   int64 deviceProfileIdLSB = 13;
   int64 customerIdMSB = 14;
   int64 customerIdLSB = 15;
+  optional int64 gatewayIdMSB = 16;
+  optional int64 gatewayIdLSB = 17;
 }
 
 enum SessionEvent {
@@ -440,6 +442,7 @@ message GetQueueRoutingInfoResponseMsg {
   string queueName = 5;
   string queueTopic = 6;
   int32 partitions = 7;
+  optional bool duplicateMsgToAllPartitions = 8;
 }
 
 message QueueUpdateMsg {
@@ -450,6 +453,7 @@ message QueueUpdateMsg {
   string queueName = 5;
   string queueTopic = 6;
   int32 partitions = 7;
+  optional bool duplicateMsgToAllPartitions = 8;
 }
 
 message QueueDeleteMsg {
