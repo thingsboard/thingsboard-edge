@@ -1313,7 +1313,7 @@
                 "sizeY": 58,
                 "row": 0,
                 "col": 85,
-                "mobileHide": true,
+                "mobileHide": false,
                 "mobileHeight": 10
               }
             },
