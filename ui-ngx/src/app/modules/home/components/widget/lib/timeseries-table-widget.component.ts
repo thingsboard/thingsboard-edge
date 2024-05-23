@@ -357,7 +357,7 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
     } else {
       this.dateFormatFilter = isDefined(this.settings.dateFormat?.format) ? this.settings.dateFormat?.format : 'yyyy-MM-dd HH:mm:ss';
     }
-    this.ctx.customDateFormatExport = this.dateFormatFilter;
+    this.ctx.exportDateFormat = this.dateFormatFilter;
 
     this.exportTimestampColumn = isDefined(this.settings?.timestampExportOption) ?
       this.settings.timestampExportOption : columnExportOptions.onlyVisible;

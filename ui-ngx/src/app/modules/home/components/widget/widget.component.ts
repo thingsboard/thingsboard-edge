@@ -1596,8 +1596,8 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
   }
 
   private widgetExportDateFormat(): string {
-    if (isNotEmptyStr(this.widgetContext.customDateFormatExport)) {
-      return this.widgetContext.customDateFormatExport;
+    if (isNotEmptyStr(this.widgetContext.exportDateFormat)) {
+      return this.widgetContext.exportDateFormat;
     }
     return 'yyyy-MM-dd HH:mm:ss';
   }

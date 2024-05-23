@@ -302,7 +302,7 @@ export class WidgetContext {
 
   exportWidgetData: (widgetExportType: WidgetExportType) => void;
   customDataExport?: () => {[key: string]: any}[] | RxJS.Observable<{[key: string]: any}[]>;
-  customDateFormatExport?: string;
+  exportDateFormat?: string;
 
   datasources?: Array<Datasource>;
   data?: Array<DatasourceData>;
