@@ -186,6 +186,8 @@ export class RuleChainPageComponent extends PageComponent
   ruleNodeSearch = '';
   ruleNodeTypeSearch = this.fb.control('', {nonNullable: true});
 
+  ruleNodeTypeSearchFocus = false;
+
   ruleChain: RuleChain;
   ruleChainMetaData: RuleChainMetaData;
 
@@ -316,6 +318,10 @@ export class RuleChainPageComponent extends PageComponent
     }
   }
 
+  focus(focus: boolean) {
+    this.ruleNodeTypeSearchFocus = focus;
+  }
+
   ngAfterViewChecked(){
     this.changeDetector.detectChanges();
   }
@@ -398,7 +404,7 @@ export class RuleChainPageComponent extends PageComponent
     if (!this.hotKeys.length) {
       this.hotKeys.push(
         new Hotkey('ctrl+a', (event: KeyboardEvent) => {
-            if (this.enableHotKeys) {
+            if (this.enableHotKeys && !this.ruleNodeTypeSearchFocus) {
               event.preventDefault();
               this.ruleChainCanvas.modelService.selectAll();
               return false;
@@ -409,7 +415,7 @@ export class RuleChainPageComponent extends PageComponent
       );
       this.hotKeys.push(
         new Hotkey('ctrl+c', (event: KeyboardEvent) => {
-            if (this.enableHotKeys) {
+            if (this.enableHotKeys && !this.ruleNodeTypeSearchFocus) {
               event.preventDefault();
               this.copyRuleNodes();
               return false;
@@ -420,7 +426,7 @@ export class RuleChainPageComponent extends PageComponent
       );
       this.hotKeys.push(
         new Hotkey('ctrl+v', (event: KeyboardEvent) => {
-            if (this.enableHotKeys) {
+            if (this.enableHotKeys && !this.ruleNodeTypeSearchFocus) {
               event.preventDefault();
               if (this.itembuffer.hasRuleNodes()) {
                 this.pasteRuleNodes();
@@ -467,7 +473,7 @@ export class RuleChainPageComponent extends PageComponent
       );
       this.hotKeys.push(
         new Hotkey('del', (event: KeyboardEvent) => {
-            if (this.enableHotKeys) {
+            if (this.enableHotKeys && !this.ruleNodeTypeSearchFocus) {
               event.preventDefault();
               this.ruleChainCanvas.modelService.deleteSelected();
               return false;
