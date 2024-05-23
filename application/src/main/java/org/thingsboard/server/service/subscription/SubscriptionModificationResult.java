@@ -28,61 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-syntax = "proto3";
-package msgqueue;
+package org.thingsboard.server.service.subscription;
 
-option java_package = "org.thingsboard.server.common.msg.gen";
-option java_outer_classname = "MsgProtos";
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-// Stores message metadata as map of strings
-message TbMsgMetaDataProto {
-    map<string, string> data = 1;
-}
+/**
+ * The modification result of entity subscription
+ */
+@Builder
+@Data
+public class SubscriptionModificationResult {
 
-// Stores stack of nested (caller) rule chains
-message TbMsgProcessingStackItemProto {
-    int64 ruleChainIdMSB = 1;
-    int64 ruleChainIdLSB = 2;
-    int64 ruleNodeIdMSB = 3;
-    int64 ruleNodeIdLSB = 4;
-}
+    private TenantId tenantId;
+    private EntityId entityId;
+    private TbSubscription<?> subscription;
+    private TbSubscription<?> missedUpdatesCandidate;
+    private TbEntitySubEvent event;
 
-message TbMsgProcessingCtxProto {
-    int32 ruleNodeExecCounter = 1;
-    repeated TbMsgProcessingStackItemProto stack = 2;
-}
-
-message TbMsgProto {
-    string id = 1;
-    string type = 2;
-    string entityType = 3;
-    int64 entityIdMSB = 4;
-    int64 entityIdLSB = 5;
-
-    int64 ruleChainIdMSB = 6;
-    int64 ruleChainIdLSB = 7;
-
-    int64 ruleNodeIdMSB = 8;
-    int64 ruleNodeIdLSB = 9;
-    int64 clusterPartition = 10;
-
-    TbMsgMetaDataProto metaData = 11;
-
-    // Transaction Data (12) was removed in 2.5
-
-    int32 dataType = 13;
-    string data = 14;
-
-    int64 ts = 15;
-    // Will be removed in 3.4. Moved to processing context
-    int32 ruleNodeExecCounter = 16;
-
-    int64 customerIdMSB = 17;
-    int64 customerIdLSB = 18;
-
-    TbMsgProcessingCtxProto ctx = 19;
-
-    int64 correlationIdMSB = 20;
-    int64 correlationIdLSB = 21;
-    int32 partition = 22;
+    public boolean hasEvent() {
+        return event != null;
+    }
 }

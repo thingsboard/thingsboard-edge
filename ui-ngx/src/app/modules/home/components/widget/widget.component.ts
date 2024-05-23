@@ -105,7 +105,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { ActivatedRoute, Router } from '@angular/router';
 import cssjs from '@core/css/css';
 import { ModulesWithFactories, ResourcesService } from '@core/services/resources.service';
-import { catchError, map, switchMap } from 'rxjs/operators';
+import { catchError, map, switchMap, take, mergeMap } from 'rxjs/operators';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TimeService } from '@core/services/time.service';
 import { DeviceService } from '@app/core/http/device.service';
@@ -1554,21 +1554,24 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
   }
 
   private exportWidgetData(widgetExportType: WidgetExportType) {
-    let filename: string;
-    if (this.widgetContext.widgetTitle && this.widgetContext.widgetTitle.length) {
-      filename = this.utils.customTranslation(this.widgetContext.widgetTitle, this.widgetContext.widgetTitle);
-    } else {
-      filename = this.utils.customTranslation(this.widget.config.title, this.widget.config.title);
-    }
     const data = this.prepareWidgetExportData();
     const dateFormat = this.widgetExportDateFormat();
-    if (isObservable(data)) {
-      data.subscribe((d) => {
-        this.doExportWidgetData(filename, d, widgetExportType, dateFormat);
-      });
-    } else {
-      this.doExportWidgetData(filename, data, widgetExportType, dateFormat);
-    }
+    this.dashboardWidget.title$.pipe(
+      take(1),
+      mergeMap(widgetTitle => {
+        if (isObservable(data)) {
+          return data.pipe(
+            map(widgetData => ({widgetTitle, data: widgetData}))
+          );
+        } else {
+          return of({widgetTitle, data});
+        }
+      })
+    ).subscribe(result => {
+      let fileName = this.widgetInfo.widgetName + (isNotEmptyStr(result.widgetTitle) ? `_${result.widgetTitle}` : '');
+      fileName = fileName.toLowerCase().replace(/\W/g, '_');
+      this.doExportWidgetData(fileName, result.data, widgetExportType, dateFormat);
+    });
   }
 
   private doExportWidgetData(filename: string, data: {[key: string]: any}[],
