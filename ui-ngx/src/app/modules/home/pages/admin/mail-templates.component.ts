@@ -40,14 +40,10 @@ import { Authority } from '@shared/models/authority.enum';
 import { AuthState } from '@core/auth/auth.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AuthUser } from '@shared/models/user.model';
-import {
-  MailTemplate,
-  MailTemplatesSettings,
-  mailTemplateTranslations
-} from '@shared/models/settings.models';
+import { MailTemplate, MailTemplatesSettings, mailTemplateTranslations } from '@shared/models/settings.models';
 import { Operation, Resource } from '@shared/models/security.models';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
-import { isDefinedAndNotNull, isUndefined } from '@core/utils';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-mail-templates',
