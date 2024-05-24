@@ -5370,7 +5370,8 @@
                 "QUEUE_STATS": "Queue Stats",
                 "VERSION_CONTROL": "Version control",
                 "ASSET_PROFILE": "Asset Profile",
-                "NOTIFICATION": "Notification"
+                "NOTIFICATION": "Notification",
+                "MOBILE_APP_SETTINGS": "Mobile application settings"
             }
         },
         "operation": {
