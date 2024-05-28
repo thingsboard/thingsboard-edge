@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
@@ -62,10 +63,14 @@ import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
 public abstract class AbstractTbEntityService {
+
+    @Autowired
+    private Environment env;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
@@ -91,6 +96,10 @@ public abstract class AbstractTbEntityService {
     @Autowired(required = false)
     @Lazy
     private EntitiesVersionControlService vcService;
+
+    protected boolean isTestProfile() {
+        return Set.of(this.env.getActiveProfiles()).contains("test");
+    }
 
     protected <T> T checkNotNull(T reference) throws ThingsboardException {
         return checkNotNull(reference, "Requested item wasn't found!");

@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -98,7 +99,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         Set<String> systemLocaleCodes = getAvailableResourceLocaleCodes();
         for (String localeCode : systemLocaleCodes) {
             JsonNode resourceLocaleTranslation = readResourceLocaleTranslation(localeCode);
-            TRANSLATION_INFO_MAP.put(localeCode, createTranslationInfo(localeCode, resourceLocaleTranslation, false));
+            TRANSLATION_INFO_MAP.put(localeCode, createTranslationInfo(DEFAULT_LOCALE_KEYS, localeCode, resourceLocaleTranslation, false));
             TRANSLATION_VALUE_MAP.put(localeCode, merge(defaultTranslation.deepCopy(), resourceLocaleTranslation));
         }
     }
@@ -123,6 +124,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         Set<String> customizedLocales = getMergedCustomizedLocales(tenantId, customerId);
         Set<String> currentCustomizedLocales = customTranslationService.getCurrentCustomizedLocales(tenantId, customerId);
 
+        Set<String> engLocaleKeys = extractKeys(getFullTranslation(tenantId, customerId, DEFAULT_LOCALE_CODE));
         for (String customizedLocale : customizedLocales) {
             JsonNode customTranslation = getMergedCustomTranslation(tenantId, customerId, customizedLocale);
             if (translationInfos.containsKey(customizedLocale)) {
@@ -130,7 +132,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
                 customTranslation = merge(resourceTranslation, customTranslation);
             }
             boolean customized = currentCustomizedLocales.contains(customizedLocale);
-            translationInfos.put(customizedLocale, createTranslationInfo(customizedLocale, customTranslation, customized));
+            translationInfos.put(customizedLocale, createTranslationInfo(engLocaleKeys, customizedLocale, customTranslation, customized));
         }
         return new ArrayList<>(translationInfos.values());
     }
@@ -180,13 +182,12 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     public JsonNode getTranslationForBasicEdit(TenantId tenantId, CustomerId customerId, String localeCode) {
         JsonNode fullTranslation = getFullTranslation(tenantId, customerId, localeCode).deepCopy();
         JsonNode currentCustomTranslation = customTranslationService.getCurrentCustomTranslation(tenantId, customerId, localeCode);
-        JsonNode originalTranslation = TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE).deepCopy();
+        JsonNode originalTranslation = getTranslatedOnly(tenantId, customerId, DEFAULT_LOCALE_CODE, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE).deepCopy());
+        JsonNode parentOriginalTranslation = getParentTranslatedOnly(tenantId, customerId, DEFAULT_LOCALE_CODE, TRANSLATION_VALUE_MAP.get(DEFAULT_LOCALE_CODE).deepCopy());
         JsonNode resourceTranslation = TRANSLATION_VALUE_MAP.containsKey(localeCode) ? readResourceLocaleTranslation(localeCode) : JacksonUtil.newObjectNode();
         JsonNode translated = getTranslatedOnly(tenantId, customerId, localeCode, resourceTranslation.deepCopy());
         JsonNode parentTranslated = getParentTranslatedOnly(tenantId, customerId, localeCode, resourceTranslation.deepCopy());
-        JsonNode originCustomTranslation = getMergedCustomTranslation(tenantId, customerId, DEFAULT_LOCALE_CODE);
-
-        buildTranslationInfoForEdit(fullTranslation, translated, parentTranslated, originalTranslation, currentCustomTranslation, originCustomTranslation);
+        buildTranslationInfoForEdit(fullTranslation, translated, parentTranslated, originalTranslation, currentCustomTranslation, parentOriginalTranslation);
         return fullTranslation;
     }
 
@@ -237,14 +238,14 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         }
     }
 
-    private static TranslationInfo createTranslationInfo(String localeCode, JsonNode translation, boolean customized) {
-        int progress = calculateTranslationProgress(translation);
+    private static TranslationInfo createTranslationInfo(Set<String> engLocaleKeys, String localeCode, JsonNode translation, boolean customized) {
+        int progress = calculateTranslationProgress(engLocaleKeys, translation);
         Locale locale = Locale.forLanguageTag(localeCode.replace("_", "-"));
         return TranslationInfo.builder()
                 .customized(customized)
                 .localeCode(localeCode)
                 .country(locale.getDisplayCountry())
-                .language(locale.getDisplayLanguage(locale) + " (" + locale.getDisplayLanguage() + ")")
+                .language(StringUtils.capitalize(locale.getDisplayLanguage(locale) + " (" + locale.getDisplayLanguage() + ")"))
                 .progress(progress)
                 .build();
     }
@@ -305,15 +306,15 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         }
     }
 
-    private static int calculateTranslationProgress(JsonNode translation) {
+    private static int calculateTranslationProgress(Set<String> defaultLocaleKeys, JsonNode translation) {
         Set<String> localeKeys = extractKeys(translation);
-        long translated = DEFAULT_LOCALE_KEYS.stream()
+        long translated = defaultLocaleKeys.stream()
                 .filter(localeKeys::contains)
                 .count();
-        return (int) (((translated) * 100) / DEFAULT_LOCALE_KEYS.size());
+        return (int) (((translated) * 100) / defaultLocaleKeys.size());
     }
 
-    private void buildTranslationInfoForEdit(JsonNode fullTranslation, JsonNode translated, JsonNode parentTranslated, JsonNode original, JsonNode custom, JsonNode originCustom) {
+    private void buildTranslationInfoForEdit(JsonNode fullTranslation, JsonNode translated, JsonNode parentTranslated, JsonNode original, JsonNode custom, JsonNode parentOrigin) {
         Iterator<String> fieldNamesIterator = fullTranslation.fieldNames();
         while (fieldNamesIterator.hasNext()) {
             String fieldName = fieldNamesIterator.next();
@@ -322,18 +323,14 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
             JsonNode parentTranslatedNode = parentTranslated == null ? null : parentTranslated.get(fieldName);
             JsonNode originNode = original == null ? null : original.get(fieldName);
             JsonNode translatedNode = translated == null ? null : translated.get(fieldName);
-            JsonNode originCustomNode = originCustom == null ? null : originCustom.get(fieldName);
+            JsonNode parentOriginNode = parentOrigin == null ? null : parentOrigin.get(fieldName);
             if (fullNode.isObject()) {
-                buildTranslationInfoForEdit(fullNode, translatedNode, parentTranslatedNode, originNode, customNode, originCustomNode);
+                buildTranslationInfoForEdit(fullNode, translatedNode, parentTranslatedNode, originNode, customNode, parentOriginNode);
             } else {
                 ObjectNode info = newObjectNode();
                 // original translation
                 if (originNode != null) {
                     info.put("o", originNode.asText());
-                } else {
-                    if (originCustomNode != null) {
-                        info.put("o", originCustomNode.asText());
-                    }
                 }
                 // parent translation
                 if (parentTranslatedNode != null) {
@@ -349,7 +346,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
                     info.put("s", "U"); // untranslated key
                 }
                 //check if key added on current level
-                if (originNode == null && parentTranslatedNode == null) {
+                if (parentTranslatedNode == null && parentOriginNode == null) {
                     info.put("s", "A"); // added key
                 }
                 ((ObjectNode) fullTranslation).set(fieldName, info);

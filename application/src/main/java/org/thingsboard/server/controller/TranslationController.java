@@ -84,7 +84,7 @@ import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_COD
 @RequiredArgsConstructor
 public class TranslationController extends BaseController {
 
-    public static final List<String> LOCALE_CODES_TO_EXCLUDE = Arrays.asList("ru_UA", "ccp_IN");
+    public static final List<String> LOCALE_CODES_TO_EXCLUDE = Arrays.asList("ru_UA", "ccp_IN", "ccp_BD", "ii_CN", "sat_IN");
 
     private static final String CUSTOM_TRANSLATION_INFO_EXAMPLE = "\n\n" +
             MARKDOWN_CODE_BLOCK_START +
@@ -103,6 +103,21 @@ public class TranslationController extends BaseController {
             "  }" +
             "]" +
             MARKDOWN_CODE_BLOCK_END;
+
+    private static final ObjectNode AVAILABLE_JAVA_LOCALE_CODES = JacksonUtil.newObjectNode();
+
+    static {
+        List<Locale> availableLocales = Arrays.stream(DateFormat.getAvailableLocales())
+                .filter(availableLocale -> StringUtils.countMatches(availableLocale.toString(), "_") == 1
+                        && !LOCALE_CODES_TO_EXCLUDE.contains(availableLocale.toString())
+                        && !availableLocale.toString().matches(".*\\d+.*"))
+                .toList();
+        for (Locale availableLocale : availableLocales) {
+            String displayLanguage = availableLocale.getDisplayLanguage(availableLocale);
+            String displayCountry = availableLocale.getDisplayCountry(availableLocale).isBlank() ? "" : " (" + availableLocale.getDisplayCountry(availableLocale) + ")";
+            AVAILABLE_JAVA_LOCALE_CODES.put(availableLocale.toString(), displayLanguage + displayCountry);
+        }
+    }
 
     private final TbTranslationService tbTranslationService;
     private final WhiteLabelingService whiteLabelingService;
@@ -142,18 +157,7 @@ public class TranslationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/availableJavaLocales")
     public JsonNode getAvailableJavaLocales() {
-        ObjectNode result = JacksonUtil.newObjectNode();
-
-        List<Locale> availableLocales = Arrays.stream(DateFormat.getAvailableLocales())
-                .filter(availableLocale -> StringUtils.countMatches(availableLocale.toString(), "_") == 1
-                        && !LOCALE_CODES_TO_EXCLUDE.contains(availableLocale.toString()))
-                .toList();
-        for (Locale availableLocale : availableLocales) {
-            String displayLanguage = availableLocale.getDisplayLanguage(availableLocale);
-            String displayCountry = availableLocale.getDisplayCountry(availableLocale).isBlank() ? "" : " (" + availableLocale.getDisplayCountry(availableLocale) + ")";
-            result.put(availableLocale.toString(), displayLanguage + displayCountry);
-        }
-        return result;
+        return AVAILABLE_JAVA_LOCALE_CODES;
     }
 
     @ApiOperation(value = "Get system translation for login page",
@@ -197,7 +201,6 @@ public class TranslationController extends BaseController {
             @RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
             @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader,
             HttpServletResponse response) throws Exception {
-        checkWhiteLabelingPermissions(Operation.READ);
         TenantId tenantId = getCurrentUser().getTenantId();
         CustomerId customerId = getCurrentUser().getCustomerId();
 

@@ -80,6 +80,7 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.data.RecaptchaValidationResult;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.security.auth.rest.RestAuthenticationDetails;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
@@ -427,6 +428,7 @@ public class SignUpController extends BaseController {
 
         sendUserActivityNotification(tenantId, user.getFirstName() + " " + user.getLastName(), email, true, selfRegistrationParams.getNotificationEmail());
 
+        systemSecurityService.logLoginAction(user, new RestAuthenticationDetails(request), ActionType.LOGIN, null);
         return tokenFactory.createTokenPair(securityUser);
     }
 

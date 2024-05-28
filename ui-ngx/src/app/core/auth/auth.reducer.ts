@@ -46,6 +46,7 @@ const emptyUserAuthState: AuthPayload = {
   hasRepository: false,
   tbelEnabled: false,
   persistDeviceStateToTelemetry: false,
+  mobileQrEnabled: false,
   maxResourceSize: 0,
   userSettings: initialUserSettings,
   allowedDashboardIds: [],

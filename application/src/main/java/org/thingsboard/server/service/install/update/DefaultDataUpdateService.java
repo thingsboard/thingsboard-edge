@@ -87,6 +87,7 @@ import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.dao.tenant.TenantProfileService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.component.RuleNodeClassInfo;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
@@ -174,6 +175,9 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private CustomerDao customerDao;
 
+    @Autowired
+    private TenantProfileService tenantProfileService;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
 
@@ -190,6 +194,8 @@ public class DefaultDataUpdateService implements DataUpdateService {
             case "3.6.4":
                 log.info("Updating data from version 3.6.4 to 3.7.0 ...");
                 updateCustomersWithTheSameTitle();
+                updateMaxRuleNodeExecsPerMessage();
+                updateGatewayRateLimits();
                 break;
             case "ce":
                 log.info("Updating data ...");
@@ -217,6 +223,53 @@ public class DefaultDataUpdateService implements DataUpdateService {
         } else {
             log.info("Skipping edge events migration");
         }
+    }
+
+    private void updateGatewayRateLimits() {
+        var tenantProfiles = new PageDataIterable<>(link -> tenantProfileService.findTenantProfiles(TenantId.SYS_TENANT_ID, link), DEFAULT_PAGE_SIZE);
+        tenantProfiles.forEach(tenantProfile -> {
+            var configurationOpt = tenantProfile.getProfileConfiguration();
+            configurationOpt.ifPresent(configuration -> {
+                boolean updated = false;
+                if (configuration.getTransportDeviceMsgRateLimit() != null && configuration.getTransportGatewayMsgRateLimit() == null) {
+                    configuration.setTransportGatewayMsgRateLimit(configuration.getTransportDeviceMsgRateLimit());
+                    updated = true;
+                }
+                if (configuration.getTransportDeviceTelemetryMsgRateLimit() != null && configuration.getTransportGatewayTelemetryMsgRateLimit() == null) {
+                    configuration.setTransportGatewayTelemetryMsgRateLimit(configuration.getTransportDeviceTelemetryMsgRateLimit());
+                    updated = true;
+                }
+                if (configuration.getTransportDeviceTelemetryDataPointsRateLimit() != null && configuration.getTransportGatewayTelemetryDataPointsRateLimit() == null) {
+                    configuration.setTransportGatewayTelemetryDataPointsRateLimit(configuration.getTransportDeviceTelemetryDataPointsRateLimit());
+                    updated = true;
+                }
+                if (updated) {
+                    try {
+                        tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+                    } catch (Exception e) {
+                        log.error("Failed to update tenant profile with id: {} due to: ", tenantProfile.getId(), e);
+                    }
+                }
+            });
+        });
+    }
+
+    private void updateMaxRuleNodeExecsPerMessage() {
+        var tenantProfiles = new PageDataIterable<>(
+                link -> tenantProfileService.findTenantProfiles(TenantId.SYS_TENANT_ID, link), DEFAULT_PAGE_SIZE);
+        tenantProfiles.forEach(tenantProfile -> {
+            var configurationOpt = tenantProfile.getProfileConfiguration();
+            configurationOpt.ifPresent(configuration -> {
+                if (configuration.getMaxRuleNodeExecsPerMessage() == 0) {
+                    configuration.setMaxRuleNodeExecutionsPerMessage(1000);
+                    try {
+                        tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfile);
+                    } catch (Exception e) {
+                        log.error("Failed to update tenant profile with id: {} due to: ", tenantProfile.getId(), e);
+                    }
+                }
+            });
+        });
     }
 
     private void updateCustomersWithTheSameTitle() {

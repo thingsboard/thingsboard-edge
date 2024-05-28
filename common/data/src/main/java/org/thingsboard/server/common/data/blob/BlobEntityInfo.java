@@ -64,7 +64,7 @@ public class BlobEntityInfo extends BaseDataWithAdditionalInfo<BlobEntityId> imp
     @Schema(description = "blob entity type", accessMode = Schema.AccessMode.READ_ONLY, example = "report")
     private String type;
     @Length(fieldName = "contentType")
-    @Schema(description = "blob content type", accessMode = Schema.AccessMode.READ_ONLY, example = "application/pdf", allowableValues = "application/pdf, image/jpeg, image/png")
+    @Schema(description = "blob content type", accessMode = Schema.AccessMode.READ_ONLY, example = "application/pdf", allowableValues = {"application/pdf", "image/jpeg", "image/png"})
     private String contentType;
 
     public BlobEntityInfo() {

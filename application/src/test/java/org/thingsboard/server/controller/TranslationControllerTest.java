@@ -233,6 +233,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
         verifyInfo(tenantTranslationForEdit.get("update"), "tenant", null, "system", "C");
         verifyInfo(tenantTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
         verifyInfo(tenantTranslationForEdit.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
+        verifyInfo(tenantTranslationForEdit.get("newSystem"), null, "newSystemEnglish", null, "U");
         verifyInfo(tenantTranslationForEdit.get("newTenant"), null, "newTenantEnglish", null, "A");
 
         // get customer for edit
@@ -244,6 +245,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
         verifyInfo(customerTranslationForEdit.get("remove"), "customer", null, "tenant", "C");
         verifyInfo(customerTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
         verifyInfo(customerTranslationForEdit.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
+        verifyInfo(customerTranslationForEdit.get("newSystem"), null, "newSystemEnglish", null, "U");
         verifyInfo(customerTranslationForEdit.get("newCustomer"), null, "newCustomerEnglish", null, "A");
 
         // get subcustomer translation  for edit
@@ -256,6 +258,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
         verifyInfo(subCustomerTranslation.get("search"), "subCustomer", null, "customer", "C");
         verifyInfo(subCustomerTranslation.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
         verifyInfo(subCustomerTranslation.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
+        verifyInfo(subCustomerTranslation.get("newSystem"), null, "newSystemEnglish", null, "U");
         verifyInfo(subCustomerTranslation.get("newSubCustomer"), null, "newSubCustomerEnglish", null, "A");
 
         //set value for added key
@@ -292,6 +295,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
         verifyInfo(tenantTranslationForEdit.get("update"), "tenant", null, "system", "C");
         verifyInfo(tenantTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
         verifyInfo(tenantTranslationForEdit.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
+        verifyInfo(tenantTranslationForEdit.get("newSystem"), "newSystemES", "newSystemEnglish", null, "T");
         verifyInfo(tenantTranslationForEdit.get("newTenant"), "newTenantES", "newTenantEnglish", null, "A");
 
         // get customer for edit
@@ -303,6 +307,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
         verifyInfo(customerTranslationForEdit.get("remove"), "customer", null, "tenant", "C");
         verifyInfo(customerTranslationForEdit.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
         verifyInfo(customerTranslationForEdit.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
+        verifyInfo(customerTranslationForEdit.get("newSystem"), "newSystemES", "newSystemEnglish", null, "T");
         verifyInfo(customerTranslationForEdit.get("newCustomer"), "newCustomerES", "newCustomerEnglish", null, "A");
 
         // get subcustomer translation  for edit
@@ -315,6 +320,7 @@ public class TranslationControllerTest extends AbstractControllerTest {
         verifyInfo(subCustomerTranslation.get("search"), "subCustomer", null, "customer", "C");
         verifyInfo(subCustomerTranslation.get("access").get("unauthorized"), "No autorizado", "Unauthorized", null, "T");
         verifyInfo(subCustomerTranslation.get("solution-template").get("solution-template"), null, "Solution template", null, "U");
+        verifyInfo(subCustomerTranslation.get("newSystem"), "newSystemES", "newSystemEnglish", null, "T");
         verifyInfo(subCustomerTranslation.get("newSubCustomer"), "newSubCustomerES", "newSubCustomerEnglish", null, "A");
     }
 

@@ -136,7 +136,7 @@ public class AuditLogControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Assert.assertEquals(11, loadedAuditLogs.size());
+        Assert.assertEquals(11 + 1, loadedAuditLogs.size());
 
         loadedAuditLogs = new ArrayList<>();
         pageLink = new TimePageLink(5);
@@ -150,7 +150,7 @@ public class AuditLogControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        Assert.assertEquals(11, loadedAuditLogs.size());
+        Assert.assertEquals(11 + 1, loadedAuditLogs.size());
     }
 
     @Test
@@ -229,7 +229,7 @@ public class AuditLogControllerTest extends AbstractControllerTest {
             createAuditLog(ActionType.LOGIN, tenantAdminUserId, entityTs);
         });
         assertThat(partitioningRepository.fetchPartitions("audit_log"))
-                .contains(ISO_8601_EXTENDED_DATETIME_TIME_ZONE_FORMAT.parse("2022-04-28T00:00:00Z").getTime());;
+                .contains(ISO_8601_EXTENDED_DATETIME_TIME_ZONE_FORMAT.parse("2022-04-28T00:00:00Z").getTime()); ;
     }
 
     private AuditLog createAuditLog(ActionType actionType, EntityId entityId, long entityTs) {
