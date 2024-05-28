@@ -41,7 +41,13 @@
   <div class="tb-form-panel no-border no-padding" *ngIf="!mobileAppQRCodeWidgetSettingsForm.get('useSystemSettings').value">
     <div class="tb-form-panel" formGroupName="qrCodeConfig">
       <div class="tb-form-panel-title" translate>widget-config.card-style</div>
-      <div class="tb-form-hint tb-primary-fill">{{ 'widgets.mobile-app-qr-code.configuration-hint' | translate }}</div>
+      <div class="tb-form-hint tb-primary-fill">
+        {{ 'widgets.mobile-app-qr-code.configuration-hint' | translate }}
+        <button mat-icon-button color="primary" class="tb-mat-24"
+                routerLink="/settings/mobile-app">
+          <mat-icon class="material-icons tb-mat-16">open_in_new</mat-icon>
+        </button>
+      </div>
       <div class="tb-form-panel stroked no-padding no-gap">
         <div class="tb-form-row space-between no-border no-padding-bottom column-xs">
           <mat-slide-toggle class="mat-slide fixed-title-width-230" formControlName="badgeEnabled"
