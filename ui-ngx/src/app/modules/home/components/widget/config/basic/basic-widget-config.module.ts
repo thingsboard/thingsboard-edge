@@ -144,6 +144,7 @@ import {
 import {
   RadarChartBasicConfigComponent
 } from '@home/components/widget/config/basic/chart/radar-chart-basic-config.component';
+import { MobileAppQrCodeBasicConfigComponent } from '@home/components/widget/config/basic/cards/mobile-app-qr-code-basic-config.component';
 
 @NgModule({
   declarations: [
@@ -186,7 +187,8 @@ import {
     PieChartBasicConfigComponent,
     BarChartBasicConfigComponent,
     PolarAreaChartBasicConfigComponent,
-    RadarChartBasicConfigComponent
+    RadarChartBasicConfigComponent,
+    MobileAppQrCodeBasicConfigComponent
   ],
   imports: [
     CommonModule,
@@ -231,7 +233,8 @@ import {
     PieChartBasicConfigComponent,
     BarChartBasicConfigComponent,
     PolarAreaChartBasicConfigComponent,
-    RadarChartBasicConfigComponent
+    RadarChartBasicConfigComponent,
+    MobileAppQrCodeBasicConfigComponent
   ]
 })
 export class BasicWidgetConfigModule {
@@ -270,5 +273,6 @@ export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetCo
   'tb-pie-chart-basic-config': PieChartBasicConfigComponent,
   'tb-bar-chart-basic-config': BarChartBasicConfigComponent,
   'tb-polar-area-chart-basic-config': PolarAreaChartBasicConfigComponent,
-  'tb-radar-chart-basic-config': RadarChartBasicConfigComponent
+  'tb-radar-chart-basic-config': RadarChartBasicConfigComponent,
+  'tb-mobile-app-qr-code-basic-config': MobileAppQrCodeBasicConfigComponent
 };
