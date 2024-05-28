@@ -49,8 +49,8 @@ import { EMPTY, Observable } from 'rxjs';
 import {
   ColorProcessor,
   ColorType,
-  ValueSourceDataKeyType,
-  ValueSourceWithDataKey
+  ValueSourceType,
+  ValueSourceTypeConfig
 } from '@shared/models/widget-settings.models';
 import GenericOptions = CanvasGauges.GenericOptions;
 
@@ -296,13 +296,18 @@ export class TbCanvasDigitalGauge {
       color: this.localSettings.gaugeColor
     });
 
-    function setLevelColor(levelSetting, color: string) {
-      if (levelSetting.type === ValueSourceDataKeyType.constant && isFinite(levelSetting.value)) {
+    function setLevelColor(levelSetting: ValueSourceTypeConfig | number, color: string) {
+      if (typeof levelSetting === 'number') {
+        predefineLevelColors.push({
+          value: levelSetting,
+          color
+        });
+      } else if (levelSetting.type === ValueSourceType.constant && isFinite(levelSetting.value)) {
         predefineLevelColors.push({
           value: levelSetting.value,
           color
         });
-      } else if (levelSetting.type === ValueSourceDataKeyType.latestKey || levelSetting.type === ValueSourceDataKeyType.entity) {
+      } else if (levelSetting.type === ValueSourceType.latestKey || levelSetting.type === ValueSourceType.entity) {
         try {
           levelColorsDatasource = ColorProcessor.generateDatasource(
             this.ctx, levelColorsDatasource, levelSetting, {color, index: predefineLevelColors.length}
@@ -311,11 +316,6 @@ export class TbCanvasDigitalGauge {
           return;
         }
         predefineLevelColors.push(null);
-      } else if (isFinite(levelSetting)) {
-        predefineLevelColors.push({
-          value: levelSetting,
-          color
-        });
       }
     }
 
@@ -335,12 +335,12 @@ export class TbCanvasDigitalGauge {
     return predefineLevelColors;
   }
 
-  settingTicksSubscribe(options: ValueSourceWithDataKey[]): number[] {
+  settingTicksSubscribe(options: ValueSourceTypeConfig[]): number[] {
     let ticksDatasource: Datasource[] = [];
     const predefineTicks: number[] = [];
 
     for (const tick of options) {
-      if (tick.type === ValueSourceDataKeyType.constant && isFinite(tick.value)) {
+      if (tick.type === ValueSourceType.constant && isFinite(tick.value)) {
         predefineTicks.push(tick.value);
       } else {
         try {

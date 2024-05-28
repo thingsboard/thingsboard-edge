@@ -50,8 +50,8 @@ import {
   ColorType,
   constantColor,
   simpleDateFormat,
-  ValueSourceDataKeyType,
-  ValueSourceWithDataKey
+  ValueSourceType,
+  ValueSourceTypeConfig
 } from '@shared/models/widget-settings.models';
 
 @Component({
@@ -363,7 +363,7 @@ export class DigitalGaugeWidgetSettingsComponent extends WidgetSettingsComponent
     settingsForm.setControl('ticksValue', this.prepareTicksValueFormArray(settings.ticksValue), {emitEvent: false});
   }
 
-  private prepareTicksValueFormArray(ticksValue: ValueSourceWithDataKey[] | undefined): UntypedFormArray {
+  private prepareTicksValueFormArray(ticksValue: ValueSourceTypeConfig[] | undefined): UntypedFormArray {
     const ticksValueControls: Array<AbstractControl> = [];
     if (ticksValue) {
       ticksValue.forEach((tickValue) => {
@@ -386,8 +386,8 @@ export class DigitalGaugeWidgetSettingsComponent extends WidgetSettingsComponent
   }
 
   public addTickValue() {
-    const tickValue: ValueSourceWithDataKey = {
-      type: ValueSourceDataKeyType.constant
+    const tickValue: ValueSourceTypeConfig = {
+      type: ValueSourceType.constant
     };
     const tickValuesArray = this.digitalGaugeWidgetSettingsForm.get('ticksValue') as UntypedFormArray;
     const tickValueControl = this.fb.control(tickValue, []);
