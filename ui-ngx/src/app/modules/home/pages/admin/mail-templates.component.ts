@@ -40,13 +40,10 @@ import { Authority } from '@shared/models/authority.enum';
 import { AuthState } from '@core/auth/auth.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AuthUser } from '@shared/models/user.model';
-import {
-  MailTemplate,
-  MailTemplatesSettings,
-  mailTemplateTranslations
-} from '@shared/models/settings.models';
+import { MailTemplate, MailTemplatesSettings, mailTemplateTranslations } from '@shared/models/settings.models';
 import { Operation, Resource } from '@shared/models/security.models';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-mail-templates',
@@ -118,7 +115,7 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
     this.mailTemplatesSettings = this.route.snapshot.data.mailTemplatesSettings;
     this.mailTemplateTypes = Object.keys(MailTemplate).filter(type => Object.keys(this.mailTemplatesSettings).includes(type));
     if (this.isTenantAdmin()) {
-      this.useSystemMailSettings = this.mailTemplatesSettings.useSystemMailSettings;
+      this.useSystemMailSettings = isDefinedAndNotNull(this.mailTemplatesSettings.useSystemMailSettings) ? this.mailTemplatesSettings.useSystemMailSettings : true;
     }
   }
 
