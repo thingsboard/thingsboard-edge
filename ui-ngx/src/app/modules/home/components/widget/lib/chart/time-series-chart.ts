@@ -486,8 +486,8 @@ export class TbTimeSeriesChart {
             entityAliasId,
             dataKeys: [entityDataKey]
           };
+          thresholdDatasources.push(datasource);
         }
-        thresholdDatasources.push(datasource);
       } else { // constant
         value = threshold.value;
       }

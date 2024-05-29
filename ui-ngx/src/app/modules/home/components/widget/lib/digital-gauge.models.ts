@@ -35,8 +35,10 @@ import { FontSettings } from '@home/components/widget/lib/settings.models';
 import {
   AdvancedColorRange,
   ColorSettings,
-  ValueSourceType,
-  ValueSourceTypeConfig
+  ColorType,
+  constantColor,
+  ValueSourceConfig,
+  ValueSourceType
 } from '@shared/models/widget-settings.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { isDefinedAndNotNull } from '@core/utils';
@@ -49,8 +51,8 @@ export interface AttributeSourceProperty {
 }
 
 export interface FixedLevelColors {
-  from?: ValueSourceTypeConfig | number;
-  to?: ValueSourceTypeConfig | number;
+  from?: AttributeSourceProperty;
+  to?: AttributeSourceProperty;
   color: string;
 }
 
@@ -60,8 +62,6 @@ export interface ColorLevelSetting {
 }
 
 export type colorLevel = Array<string | ColorLevelSetting>;
-
-export type attributesGaugeType = 'levelColors' | 'ticks';
 
 export enum DigitalGaugeType {
   arc = 'arc',
@@ -127,7 +127,7 @@ export interface DigitalGaugeSettings {
   hideValue?: boolean;
   hideMinMax?: boolean;
   showTicks?: boolean;
-  ticksValue?: ValueSourceTypeConfig[];
+  ticksValue?: ValueSourceConfig[];
   ticks?: number[];
   colorTicks?: string;
   tickWidth?: number;
@@ -138,7 +138,7 @@ export const defaultDigitalSimpleGaugeOptions: DigitalGaugeSettings = {
   timestampFormat: 'yyyy-MM-dd HH:mm:ss',
 };
 
-export const backwardCompatibilityFixedLevelColors = (fixedLevelColors) => {
+export const backwardCompatibilityFixedLevelColors = (fixedLevelColors: FixedLevelColors[]) => {
   const valueSourceWithDataKey: AdvancedColorRange[] = [];
   fixedLevelColors.forEach(fixedLevelColor => valueSourceWithDataKey.push({
     from: {
@@ -160,8 +160,8 @@ export const backwardCompatibilityFixedLevelColors = (fixedLevelColors) => {
   return valueSourceWithDataKey;
 };
 
-export const backwardCompatibilityTicks = (ticksValue) => {
-  const ticks: ValueSourceTypeConfig[] = [];
+export const backwardCompatibilityTicks = (ticksValue: AttributeSourceProperty[] & ValueSourceConfig[]): ValueSourceConfig[] => {
+  const ticks: ValueSourceConfig[] = [];
   if (ticksValue?.length && isDefinedAndNotNull(ticksValue[0]?.valueSource)) {
     ticksValue.forEach(tick => ticks.push({
       type: tick?.valueSource === 'predefinedValue' ? ValueSourceType.constant : ValueSourceType.entity,
@@ -171,7 +171,32 @@ export const backwardCompatibilityTicks = (ticksValue) => {
       entityKeyType: DataKeyType.attribute
     }) );
   } else {
-    return ticksValue;
+    return (ticksValue as ValueSourceConfig[]);
   }
   return ticks;
+};
+
+export const convertLevelColorsSettingsToColorProcessor = (settings: DigitalGaugeSettings) => {
+  if (!settings.barColor) {
+    settings.barColor = constantColor(settings.gaugeColor);
+    if (settings.fixedLevelColors?.length) {
+      settings.barColor.rangeList = {
+        advancedMode: settings.useFixedLevelColor,
+        range: null,
+        rangeAdvanced: backwardCompatibilityFixedLevelColors(settings.fixedLevelColors)
+      };
+    }
+    if (settings.levelColors?.length) {
+      settings.barColor.gradient = {
+        advancedMode: false,
+        gradient: settings.levelColors as string[],
+        gradientAdvanced: null
+      };
+    }
+    if (settings.useFixedLevelColor) {
+      settings.barColor.type = ColorType.range;
+    } else if (settings.levelColors.length) {
+      settings.barColor.type = ColorType.gradient;
+    }
+  }
 };

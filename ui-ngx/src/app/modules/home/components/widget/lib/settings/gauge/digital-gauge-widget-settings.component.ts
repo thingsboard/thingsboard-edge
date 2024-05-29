@@ -50,8 +50,8 @@ import {
   ColorType,
   constantColor,
   simpleDateFormat,
-  ValueSourceType,
-  ValueSourceTypeConfig
+  ValueSourceConfig,
+  ValueSourceType
 } from '@shared/models/widget-settings.models';
 
 @Component({
@@ -363,7 +363,7 @@ export class DigitalGaugeWidgetSettingsComponent extends WidgetSettingsComponent
     settingsForm.setControl('ticksValue', this.prepareTicksValueFormArray(settings.ticksValue), {emitEvent: false});
   }
 
-  private prepareTicksValueFormArray(ticksValue: ValueSourceTypeConfig[] | undefined): UntypedFormArray {
+  private prepareTicksValueFormArray(ticksValue: ValueSourceConfig[] | undefined): UntypedFormArray {
     const ticksValueControls: Array<AbstractControl> = [];
     if (ticksValue) {
       ticksValue.forEach((tickValue) => {
@@ -386,7 +386,7 @@ export class DigitalGaugeWidgetSettingsComponent extends WidgetSettingsComponent
   }
 
   public addTickValue() {
-    const tickValue: ValueSourceTypeConfig = {
+    const tickValue: ValueSourceConfig = {
       type: ValueSourceType.constant
     };
     const tickValuesArray = this.digitalGaugeWidgetSettingsForm.get('ticksValue') as UntypedFormArray;
