@@ -30,18 +30,40 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-
-<div fxLayout="row" [formGroup]="tickValueFormGroup">
-  <tb-value-source-data-key fxFlex
-                            formControlName="tickValue"
-                            [aliasController]="aliasController"
-                            [dataKeyCallbacks]="dataKeyCallbacks"
-                            [datasource]="datasource">
-  </tb-value-source-data-key>
-  <button *ngIf="!disabled" mat-icon-button
-          class="tb-box-button"
+<div class="tb-form-row no-padding no-border" style="gap: 0; width: 100%;" [formGroup]="advancedRangeLevelFormGroup">
+  <div class="range-container">
+    <div class="range-input range-input-fields">
+      <div fxFlex fxLayout="row" fxLayoutAlign="start center">
+        <div class="range-text" translate>widgets.color.from</div>
+        <tb-value-source-data-key fxFlex
+                                  formControlName="from"
+                                  [aliasController]="aliasController"
+                                  [dataKeyCallbacks]="dataKeyCallbacks"
+                                  [datasource]="datasource">
+        </tb-value-source-data-key>
+      </div>
+      <div fxFlex fxLayout="row" fxLayoutAlign="start center">
+        <div class="range-text" translate>widgets.color.to</div>
+        <tb-value-source-data-key fxFlex
+                                  formControlName="to"
+                                  [aliasController]="aliasController"
+                                  [dataKeyCallbacks]="dataKeyCallbacks"
+                                  [datasource]="datasource">
+        </tb-value-source-data-key>
+      </div>
+    </div>
+    <tb-color-input asBoxInput
+                    class="range-input"
+                    required
+                    colorClearButton
+                    noBorder
+                    formControlName="color">
+    </tb-color-input>
+  </div>
+  <button *ngIf="!disabled" mat-icon-button style="min-width: 40px;"
           type="button"
-          (click)="removeTickValue.emit()"
+          class="tb-box-button"
+          (click)="removeAdvancedRange.emit()"
           matTooltip="{{ 'action.remove' | translate }}"
           matTooltipPosition="above">
     <mat-icon>delete</mat-icon>
