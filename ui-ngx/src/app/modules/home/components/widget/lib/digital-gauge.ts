@@ -42,7 +42,7 @@ import { CanvasDigitalGauge, CanvasDigitalGaugeOptions } from '@home/components/
 import { DatePipe } from '@angular/common';
 import { IWidgetSubscription } from '@core/api/widget-api.models';
 import { Subscription } from 'rxjs';
-import { ColorProcessor, createdValueSubscription, ValueSourceType } from '@shared/models/widget-settings.models';
+import { ColorProcessor, createValueSubscription, ValueSourceType } from '@shared/models/widget-settings.models';
 import GenericOptions = CanvasGauges.GenericOptions;
 
 // @dynamic
@@ -206,7 +206,6 @@ export class TbCanvasDigitalGauge {
   private ticksSourcesSubscription: IWidgetSubscription;
 
   private readonly barColorProcessor: ColorProcessor;
-  private updatedBarColor$: Subscription;
 
   private gauge: CanvasDigitalGauge;
 
@@ -220,7 +219,7 @@ export class TbCanvasDigitalGauge {
       this.localSettings.ticks = this.localSettings.ticksValue
         .map(tick => tick.type === ValueSourceType.constant && isFinite(tick.value) ? tick.value : null);
 
-      createdValueSubscription(
+      createValueSubscription(
         this.ctx,
         this.localSettings.ticksValue,
         this.updateAttribute.bind(this)
@@ -234,7 +233,7 @@ export class TbCanvasDigitalGauge {
       this.updateSetting();
     }
 
-    this.updatedBarColor$ = this.barColorProcessor.colorUpdated.subscribe(() => {
+    this.barColorProcessor.colorUpdated?.subscribe(() => {
       this.gauge.update({} as CanvasDigitalGaugeOptions);
     });
   }
@@ -300,7 +299,6 @@ export class TbCanvasDigitalGauge {
     if (this.ticksSourcesSubscription) {
       this.ctx.subscriptionApi.removeSubscription(this.ticksSourcesSubscription.id);
     }
-    this.updatedBarColor$?.unsubscribe();
     this.gauge = null;
   }
 }

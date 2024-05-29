@@ -312,14 +312,15 @@ export const defaultGradient = (minValue?: number, maxValue?: number): ColorGrad
   maxValue: isDefinedAndNotNull(maxValue) ? maxValue : 100
 });
 
-export const updateGradientMinMaxValues = (colorSettings: ColorSettings, minValue: number, maxValue: number): ColorSettings => {
+const updateGradientMinMaxValues = (colorSettings: ColorSettings, minValue?: number, maxValue?: number): void => {
   if (isDefinedAndNotNull(colorSettings.gradient)) {
-    colorSettings.gradient.minValue = minValue;
-    colorSettings.gradient.maxValue = maxValue;
-  } else {
-    colorSettings.gradient = defaultGradient(minValue, maxValue);
+    if (isDefinedAndNotNull(minValue)) {
+      colorSettings.gradient.minValue = minValue;
+    }
+    if (isDefinedAndNotNull(maxValue)) {
+      colorSettings.gradient.maxValue = maxValue;
+    }
   }
-  return colorSettings;
 };
 
 export const defaultColorFunction = 'var temperature = value;\n' +
@@ -365,19 +366,34 @@ export const validateCssSize = (strSize?: string): string | undefined => {
 
 type ValueColorFunction = (value: any) => string;
 
+export interface ColorProcessorSettings {
+  settings: ColorSettings;
+  ctx?: WidgetContext;
+  minGradientValue?: number;
+  maxGradientValue?: number;
+}
+
 export abstract class ColorProcessor {
 
   static fromSettings(color: ColorSettings, ctx?: WidgetContext): ColorProcessor {
-    const settings = color || constantColor(null);
+    return ColorProcessor.fromColorProcessorSettings({
+      settings: color,
+      ctx
+    });
+  }
+
+  static fromColorProcessorSettings(setting: ColorProcessorSettings): ColorProcessor {
+    const settings = setting.settings || constantColor(null);
     switch (settings.type) {
       case ColorType.constant:
         return new ConstantColorProcessor(settings);
       case ColorType.range:
-        return new RangeColorProcessor(settings, ctx);
+        return new RangeColorProcessor(settings, setting.ctx);
       case ColorType.function:
         return new FunctionColorProcessor(settings);
       case ColorType.gradient:
-        return new GradientColorProcessor(settings, ctx);
+        updateGradientMinMaxValues(settings, setting.minGradientValue, setting.maxGradientValue);
+        return new GradientColorProcessor(settings, setting.ctx);
       default:
         return new ConstantColorProcessor(settings);
     }
@@ -385,7 +401,7 @@ export abstract class ColorProcessor {
 
   color: string;
 
-  colorUpdated: EventEmitter<void> = new EventEmitter<void>();
+  colorUpdated?: EventEmitter<void>;
 
   protected constructor(protected settings: ColorSettings) {
     this.color = settings.color;
@@ -425,12 +441,14 @@ export abstract class AdvancedModeColorProcessor extends ColorProcessor {
   protected advancedMode: boolean;
   private currentValue: number;
 
+  colorUpdated = new EventEmitter<void>();
+
   protected constructor(protected settings: ColorSettings,
                         protected ctx: WidgetContext) {
     super(settings);
     this.advancedMode = this.getCurrentConfig().advancedMode;
     if (this.advancedMode) {
-      createdValueSubscription(
+      createValueSubscription(
         this.ctx,
         this.datasourceConfigs(),
         this.onDataUpdated.bind(this)
@@ -454,6 +472,9 @@ export abstract class AdvancedModeColorProcessor extends ColorProcessor {
     if (this.sourcesSubscription) {
       this.ctx.subscriptionApi.removeSubscription(this.sourcesSubscription.id);
     }
+    this.colorUpdated.complete();
+    this.colorUpdated.unsubscribe();
+    this.colorUpdated = null;
   }
 
   private onDataUpdated(subscription: IWidgetSubscription) {
@@ -1156,9 +1177,9 @@ export const getLatestSingleTsValue = (data: Array<DatasourceData>): DataEntry =
   return null;
 };
 
-export const createdValueSubscription = (ctx: WidgetContext,
-                                         datasourceConfigs: ValueSourceConfig[],
-                                         onDataUpdated: WidgetSubscriptionCallbacks['onDataUpdated']): Observable<IWidgetSubscription> => {
+export const createValueSubscription = (ctx: WidgetContext,
+                                        datasourceConfigs: ValueSourceConfig[],
+                                        onDataUpdated: WidgetSubscriptionCallbacks['onDataUpdated']): Observable<IWidgetSubscription> => {
   let datasources: Datasource[] = [];
   let index = 0;
 
@@ -1180,9 +1201,9 @@ export const createdValueSubscription = (ctx: WidgetContext,
 };
 
 const generateDatasource = (ctx: WidgetContext,
-                                   datasources: Datasource[],
-                                   valueSource: ValueSourceConfig,
-                                   index: number): Datasource[] => {
+                            datasources: Datasource[],
+                            valueSource: ValueSourceConfig,
+                            index: number): Datasource[] => {
   if (valueSource.type === ValueSourceType.latestKey) {
     if (ctx.datasources.length && isDefinedAndNotNull(ctx.datasources[0].aliasName)) {
       datasources = configureDatasource(ctx, valueSource, ctx.datasources[0].aliasName, datasources, index, true);
@@ -1196,11 +1217,11 @@ const generateDatasource = (ctx: WidgetContext,
 };
 
 const configureDatasource = (ctx: WidgetContext,
-                                    valueSource: ValueSourceConfig,
-                                    entityAlias: string,
-                                    datasources: Datasource[],
-                                    index: number,
-                                    isLatest: boolean): Datasource[] => {
+                             valueSource: ValueSourceConfig,
+                             entityAlias: string,
+                             datasources: Datasource[],
+                             index: number,
+                             isLatest: boolean): Datasource[] => {
   const indexes = [index];
   const entityAliasId = ctx.aliasController.getEntityAliasId(entityAlias);
   let datasource = datasources.find(d =>
@@ -1245,8 +1266,8 @@ const configureDatasource = (ctx: WidgetContext,
 
 
 const subscribeForDatasource = (ctx: WidgetContext,
-                                       datasource: Datasource[],
-                                       onDataUpdated: WidgetSubscriptionCallbacks['onDataUpdated']): Observable<IWidgetSubscription> => {
+                                datasource: Datasource[],
+                                onDataUpdated: WidgetSubscriptionCallbacks['onDataUpdated']): Observable<IWidgetSubscription> => {
   if (!datasource.length) {
     return EMPTY;
   }
