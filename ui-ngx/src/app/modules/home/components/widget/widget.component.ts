@@ -1555,12 +1555,13 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
 
   private exportWidgetData(widgetExportType: WidgetExportType) {
     const data = this.prepareWidgetExportData();
+    const dateFormat = this.widgetExportDateFormat();
     this.dashboardWidget.title$.pipe(
       take(1),
       mergeMap(widgetTitle => {
         if (isObservable(data)) {
           return data.pipe(
-            map(data => ({widgetTitle, data}))
+            map(widgetData => ({widgetTitle, data: widgetData}))
           );
         } else {
           return of({widgetTitle, data});
@@ -1569,17 +1570,17 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     ).subscribe(result => {
       let fileName = this.widgetInfo.widgetName + (isNotEmptyStr(result.widgetTitle) ? `_${result.widgetTitle}` : '');
       fileName = fileName.toLowerCase().replace(/\W/g, '_');
-      this.doExportWidgetData(fileName, result.data, widgetExportType);
+      this.doExportWidgetData(fileName, result.data, widgetExportType, dateFormat);
     });
   }
 
-  private doExportWidgetData(filename: string, data: {[key: string]: any}[], widgetExportType: WidgetExportType) {
+  private doExportWidgetData(filename: string, data: {[key: string]: any}[],
+                             widgetExportType: WidgetExportType, dateFormat: string) {
     if (widgetExportType === WidgetExportType.csv) {
       this.importExport.exportCsv(data, filename);
     } else if (widgetExportType === WidgetExportType.xls) {
       this.importExport.exportXls(data, filename);
     } else if (widgetExportType === WidgetExportType.xlsx) {
-      const dateFormat = isDefined(this.widget?.config?.settings?.dateFormat?.format) ? this.widget.config.settings.dateFormat.format : 'yyyy-MM-dd HH:mm:ss';
       this.importExport.exportXlsx(data, filename, dateFormat);
     }
   }
@@ -1592,6 +1593,13 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     } else {
       return [];
     }
+  }
+
+  private widgetExportDateFormat(): string {
+    if (isNotEmptyStr(this.widgetContext.exportDateFormat)) {
+      return this.widgetContext.exportDateFormat;
+    }
+    return 'yyyy-MM-dd HH:mm:ss';
   }
 
   private getActiveEntityInfo(): SubscriptionEntityInfo {
