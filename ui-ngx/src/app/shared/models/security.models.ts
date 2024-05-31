@@ -113,7 +113,8 @@ export enum Resource {
   QUEUE = 'QUEUE',
   QUEUE_STATS = 'QUEUE_STATS',
   VERSION_CONTROL = 'VERSION_CONTROL',
-  NOTIFICATION = 'NOTIFICATION'
+  NOTIFICATION = 'NOTIFICATION',
+  MOBILE_APP_SETTINGS = 'MOBILE_APP_SETTINGS'
 }
 
 const resourceTypeTranslations = new Map<Resource, string>();
