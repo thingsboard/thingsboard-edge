@@ -404,7 +404,7 @@ export class RuleChainPageComponent extends PageComponent
               return false;
             }
             return true;
-          }, ['INPUT', 'SELECT', 'TEXTAREA'],
+          }, [],
           this.translate.instant('rulenode.select-all-objects'))
       );
       this.hotKeys.push(
@@ -415,7 +415,7 @@ export class RuleChainPageComponent extends PageComponent
               return false;
             }
             return true;
-          }, ['INPUT', 'SELECT', 'TEXTAREA'],
+          }, [],
           this.translate.instant('rulenode.copy-selected'))
       );
       this.hotKeys.push(
@@ -428,7 +428,7 @@ export class RuleChainPageComponent extends PageComponent
               return false;
             }
             return true;
-          }, ['INPUT', 'SELECT', 'TEXTAREA'],
+          }, [],
           this.translate.instant('action.paste'))
       );
       this.hotKeys.push(
@@ -473,7 +473,7 @@ export class RuleChainPageComponent extends PageComponent
               return false;
             }
             return true;
-          }, ['INPUT', 'SELECT', 'TEXTAREA'],
+          }, [],
           this.translate.instant('rulenode.delete-selected-objects'))
       );
       this.hotKeys.push(
