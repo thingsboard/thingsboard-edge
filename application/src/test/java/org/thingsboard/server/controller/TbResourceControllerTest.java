@@ -42,6 +42,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.ResultActions;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
@@ -50,6 +51,7 @@ import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.lwm2m.LwM2mObject;
@@ -706,6 +708,25 @@ public class TbResourceControllerTest extends AbstractControllerTest {
         removeLoadResources(resources);
     }
 
+    @Test
+    public void testFindAllResource_CustomerUserWithoutPermission() throws Exception {
+        String apiResources = loginTenantAdminAndCreateResources();
+
+        loginNewCustomerUserWithoutPermissions();
+
+        returnResourcesWithoutPermissionForbidden(apiResources,
+                "You don't have permission to perform this operation!");
+    }
+    @Test
+    public void testFindAllResource_TenantUserWithoutPermission() throws Exception {
+        String apiResources = loginTenantAdminAndCreateResources();
+
+        loginNewTenantUserWithoutPermissions();
+
+        returnResourcesWithoutPermissionForbidden(apiResources,
+                "You don't have permission to perform 'READ' operation with 'TB_RESOURCE' resource!");
+    }
+
     private TbResource save(TbResource tbResource) throws Exception {
         return doPostWithTypedResponse("/api/resource", tbResource, new TypeReference<>() {
         });
@@ -746,6 +767,105 @@ public class TbResourceControllerTest extends AbstractControllerTest {
             doDelete("/api/resource/" + resource.getId().getId().toString())
                     .andExpect(status().isOk());
         }
+    }
+
+    private String loginTenantAdminAndCreateResources() throws Exception {
+        String apiResources = "/api/resource?";
+        loginTenantAdmin();
+        createResources(apiResources);
+        return apiResources;
+    }
+
+    private void returnResourcesWithoutPermissionForbidden(String apiResources, String msg) throws Exception {
+        PageLink pageLink = new PageLink(24);
+        Object[] vars = {pageLink.getPageSize(), pageLink.getPage()};
+        String urlTemplate = apiResources + "pageSize={pageSize}&page={page}";
+        doGet(urlTemplate, vars)
+                .andExpect(status().isForbidden())
+                .andExpect(statusReason(containsString(msg)));
+
+    }
+
+    private void loginNewCustomerUserWithoutPermissions() throws Exception {
+        EntityGroupInfo savedUserGroupInfo = createUserGroupWithoutRole();
+        String pwd = "customerUserWithoutRole";
+        User savedCustomerUser = createCustomerUser(savedUserGroupInfo, "customerUserWithoutRole@thingsboard.org", pwd);
+        Assert.assertNotNull(savedCustomerUser);
+        loginUser(savedCustomerUser.getName(), pwd);
+    }
+
+    private void loginNewTenantUserWithoutPermissions() throws Exception {
+        EntityGroupInfo savedUserGroupInfo = createUserGroupWithoutRole();
+        String pwd = "tenantUserWithoutRole";
+        User savedTenantUser = createTenantUser(savedUserGroupInfo, "tenantUserWithoutRole@thingsboard.org", pwd);
+        Assert.assertNotNull(savedTenantUser);
+        loginUser(savedTenantUser.getName(), pwd);
+    }
+
+    private EntityGroupInfo createUserGroupWithoutRole() throws Exception {
+        EntityGroup customerUserGroup = new EntityGroup();
+        customerUserGroup.setType(EntityType.USER);
+        customerUserGroup.setName("Customer User Group");
+        EntityGroup userGroup = doPost("/api/entityGroup", customerUserGroup, EntityGroup.class);
+        Assert.assertNotNull(userGroup);
+        EntityGroupInfo savedUserGroupInfo =
+                doPostWithResponse("/api/entityGroup", userGroup, EntityGroupInfo.class);
+        Assert.assertNotNull(savedUserGroupInfo);
+        return savedUserGroupInfo;
+    }
+
+    private User createCustomerUser(EntityGroupInfo savedUserGroupInfo, String email, String pwd) throws Exception {
+       Customer customer = new Customer();
+        customer.setOwnerId(tenantAdminUserId);
+        customer.setTenantId(tenantId);
+        customer.setParentCustomerId(null);
+        customer.setTitle("Customer without Role");
+        Customer  savedCustomer = doPost("/api/customer", customer, Customer.class);
+        Assert.assertNotNull(savedCustomer);
+
+        User user = new User();
+        user.setAuthority(Authority.CUSTOMER_USER);
+        user.setTenantId(tenantId);
+        user.setCustomerId(savedCustomer.getId());
+        user.setEmail(email);
+        return createUser(user, pwd, savedUserGroupInfo.getId());
+    }
+
+    private User createTenantUser(EntityGroupInfo savedUserGroupInfo, String email, String pwd) throws Exception {
+        User user = new User();
+        user.setAuthority(Authority.TENANT_ADMIN);
+        user.setTenantId(tenantId);
+        user.setEmail(email);
+        return createUser(user, pwd, savedUserGroupInfo.getId());
+    }
+
+    private void createResources(String apiResources) throws Exception {
+        List<TbResourceInfo> resources = new ArrayList<>();
+        int cntEntity = 10;
+        for (int i = 0; i < cntEntity; i++) {
+            TbResource resource = new TbResource();
+            resource.setTitle("Resource" + i);
+            resource.setResourceType(ResourceType.JKS);
+            resource.setFileName(i + DEFAULT_FILE_NAME);
+            resource.setEncodedData(TEST_DATA);
+            resources.add(new TbResourceInfo(save(resource)));
+        }
+        List<TbResourceInfo> loadedResources = new ArrayList<>();
+        PageLink pageLink = new PageLink(24);
+        PageData<TbResourceInfo> pageData;
+        do {
+            pageData = doGetTypedWithPageLink(apiResources,
+                    new TypeReference<>() {
+                    }, pageLink);
+            loadedResources.addAll(pageData.getData());
+            if (pageData.hasNext()) {
+                pageLink = pageLink.nextPageLink();
+            }
+        } while (pageData.hasNext());
+
+        Collections.sort(resources, idComparator);
+        Collections.sort(loadedResources, idComparator);
+        Assert.assertEquals(resources, loadedResources);
     }
 
 }
