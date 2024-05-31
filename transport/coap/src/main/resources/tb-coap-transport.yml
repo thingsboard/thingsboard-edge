@@ -145,7 +145,6 @@ redis:
     # Determines the behavior when a thread requests a connection from the pool but there are no available connections and the pool cannot create more due to the maxTotal configuration
     blockWhenExhausted: "${REDIS_POOL_CONFIG_BLOCK_WHEN_EXHAUSTED:true}"
 
-# COAP server parameters
 transport:
   # Local CoAP transport parameters
   coap:

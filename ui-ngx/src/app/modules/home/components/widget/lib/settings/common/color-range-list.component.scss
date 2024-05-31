@@ -28,12 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.mobile;
 
+:host {
+  .range {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    flex-direction: row;
 
-public enum BadgeStyle {
-
-    ORIGINAL,
-    WHITE;
-
+    &-container {
+      display: flex;
+      flex: 1;
+      flex-direction: row;
+      align-items: center;
+      gap: 12px;
+      padding: 8px;
+      margin-right: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 6px;
+    }
+  }
 }

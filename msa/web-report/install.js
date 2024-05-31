@@ -31,17 +31,11 @@
 const fse = require('fs-extra');
 const path = require('path');
 const server = require('playwright-core/lib/server');
-const chromeInfo = server.registry.findExecutable('chromium');
 
 const EXECUTABLE_PATHS = {
-    'linux': ['chrome-linux', 'chrome'],
-    'windows': ['chrome-win', 'chrome.exe']
+    'ubuntu22.04-x64': ['chrome-linux', 'chrome'],
+    'win64': ['chrome-win', 'chrome.exe']
 };
-
-const DOWNLOAD_PATHS = {
-    'linux': 'builds/chromium/%s/chromium-linux.zip',
-    'windows': 'builds/chromium/%s/chromium-win64.zip'
-}
 
 let _projectRoot = null;
 let browsersJSON = null;
@@ -50,9 +44,9 @@ let chromium = null;
 (async() => {
     browsersJSON = fse.readJsonSync(path.join(projectRoot(), 'node_modules', 'playwright-core', 'browsers.json')).browsers;
     chromium = browsersJSON.find(d => d.name === 'chromium');
-    await server.registry.install([createdExecutables('linux'),  createdExecutables('windows')], true);
-    await copyChromeFromPkg('linux');
-    await copyChromeFromPkg('windows');
+    await server.registry.install([createdExecutables('ubuntu22.04-x64'),  createdExecutables('win64')], true);
+    await copyChromeFromPkg('ubuntu22.04-x64');
+    await copyChromeFromPkg('win64');
     await fse.move(path.join(projectRoot(), 'target', 'thingsboard-web-report-linux'),
         path.join(targetPackageDir('linux'), 'bin', 'tb-web-report'),
         {overwrite: true});
@@ -79,9 +73,9 @@ function targetChromiumDir(platform) {
 
 function downloadChromiumDir(platform) {
     let platformDir;
-    if (platform === 'linux') {
+    if (platform === 'ubuntu22.04-x64') {
         platformDir = 'chromiumLinux';
-    } else if (platform === 'windows') {
+    } else if (platform === 'win64') {
         platformDir = 'chromiumWin';
     }
     return  path.join(projectRoot(), 'target', platformDir);
@@ -97,17 +91,21 @@ async function copyChromeFromPkg(platform) {
 function createdExecutables(platform) {
     const chromiumData = JSON.parse(JSON.stringify(chromium));
     chromiumData.dir = downloadChromiumDir(platform);
+    chromiumData.platform = platform;
     const executablePath = path.join(chromiumData.dir, ...EXECUTABLE_PATHS[platform]);
     return {
         type: 'browser',
-        name: 'chromium-linux',
+        name: 'chromium',
         browserName: 'chromium',
-        directory: chromeInfo.directory,
-        executablePath: executablePath,
-        executablePathOrDie: (sdkLanguage) => server.registry.executablePathOrDie('chromium', executablePath, false, sdkLanguage),
+        directory: chromium.dir,
+        platform: platform,
+        executablePath: () => executablePath,
+        executablePathOrDie: sdkLanguage => server.registry.executablePathOrDie('chromium', executablePath, true, sdkLanguage),
         installType: 'download-by-default',
-        validateHostRequirements: (sdkLanguage) => server.registry._validateHostRequirements(sdkLanguage, 'chromium', chromium.dir, ['chrome-linux'], [], ['chrome-win']),
-        _install: () => server.registry._downloadExecutable(chromiumData, executablePath, DOWNLOAD_PATHS[platform], 'PLAYWRIGHT_CHROMIUM_DOWNLOAD_HOST'),
+        _validateHostRequirements: (sdkLanguage) => server.registry._validateHostRequirements(sdkLanguage, 'chromium', chromium.dir, ['chrome-linux'], [], ['chrome-win']),
+        downloadURLs: server.registry._downloadURLs(chromiumData),
+        browserVersion: chromiumData.browserVersion,
+        _install: () => server.registry._downloadExecutable(chromiumData, executablePath),
         _dependencyGroup: 'chromium',
         _isHermeticInstallation: true,
     };
