@@ -46,6 +46,8 @@ import { AuthUser } from '@shared/models/user.model';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { ActionUpdateMobileQrCodeEnabled } from '@core/auth/auth.actions';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-mobile-app-settings',
@@ -55,6 +57,8 @@ import { ActionUpdateMobileQrCodeEnabled } from '@core/auth/auth.actions';
 export class MobileAppSettingsComponent extends PageComponent implements HasConfirmForm, OnDestroy {
 
   authUser: AuthUser = getCurrentAuthUser(this.store);
+
+  readonly = this.isTenantAdmin() && !this.userPermissionsService.hasGenericPermission(Resource.MOBILE_APP_SETTINGS, Operation.WRITE);
 
   mobileAppSettingsForm: FormGroup;
 
@@ -66,7 +70,8 @@ export class MobileAppSettingsComponent extends PageComponent implements HasConf
 
   constructor(protected store: Store<AppState>,
               private mobileAppService: MobileAppService,
-              private fb: FormBuilder) {
+              private fb: FormBuilder,
+              private userPermissionsService: UserPermissionsService) {
     super(store);
     this.buildMobileAppSettingsForm();
     this.mobileAppService.getMobileAppSettings()
@@ -188,6 +193,9 @@ export class MobileAppSettingsComponent extends PageComponent implements HasConf
     this.mobileAppSettings = {...mobileAppSettings};
     if (!this.isTenantAdmin()) {
       this.mobileAppSettings.useSystemSettings = false;
+    }
+    if (this.readonly) {
+      this.mobileAppSettingsForm.disable();
     }
     this.mobileAppSettingsForm.reset(this.mobileAppSettings);
   }
