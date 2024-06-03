@@ -31,17 +31,15 @@
 package org.thingsboard.server.service.security.auth;
 
 import io.jsonwebtoken.Claims;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
-import org.thingsboard.server.common.data.notification.targets.platform.SystemAdministratorsFilter;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.model.JwtSettings;
 import org.thingsboard.server.common.data.security.model.JwtToken;
@@ -55,6 +53,8 @@ import org.thingsboard.server.service.security.model.token.AccessJwtToken;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Optional;
@@ -62,19 +62,13 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class JwtTokenFactoryTest {
 
     private JwtTokenFactory tokenFactory;
     private AdminSettingsService adminSettingsService;
-    private NotificationCenter notificationCenter;
     private JwtSettingsService jwtSettingsService;
 
     private JwtSettings jwtSettings;
@@ -83,12 +77,11 @@ public class JwtTokenFactoryTest {
     public void beforeEach() {
         jwtSettings = new JwtSettings();
         jwtSettings.setTokenIssuer("tb");
-        jwtSettings.setTokenSigningKey("abewafaf");
+        jwtSettings.setTokenSigningKey(Base64.getEncoder().encodeToString(RandomStringUtils.randomAlphanumeric(64).getBytes(StandardCharsets.UTF_8)));
         jwtSettings.setTokenExpirationTime((int) TimeUnit.HOURS.toSeconds(2));
         jwtSettings.setRefreshTokenExpTime((int) TimeUnit.DAYS.toSeconds(7));
 
         adminSettingsService = mock(AdminSettingsService.class);
-        notificationCenter = mock(NotificationCenter.class);
         jwtSettingsService = mockJwtSettingsService();
         mockJwtSettings(jwtSettings);
 
@@ -97,16 +90,7 @@ public class JwtTokenFactoryTest {
 
     @Test
     public void testCreateAndParseAccessJwtToken() {
-        SecurityUser securityUser = new SecurityUser();
-        securityUser.setId(new UserId(UUID.randomUUID()));
-        securityUser.setEmail("tenant@thingsboard.org");
-        securityUser.setAuthority(Authority.TENANT_ADMIN);
-        securityUser.setTenantId(new TenantId(UUID.randomUUID()));
-        securityUser.setEnabled(true);
-        securityUser.setFirstName("A");
-        securityUser.setLastName("B");
-        securityUser.setUserPrincipal(new UserPrincipal(UserPrincipal.Type.USER_NAME, securityUser.getEmail()));
-        securityUser.setCustomerId(new CustomerId(UUID.randomUUID()));
+        SecurityUser securityUser = createSecurityUser();
 
         testCreateAndParseAccessJwtToken(securityUser);
 
@@ -135,18 +119,12 @@ public class JwtTokenFactoryTest {
         assertThat(parsedSecurityUser.getCustomerId()).isEqualTo(securityUser.getCustomerId());
         assertThat(parsedSecurityUser.getFirstName()).isEqualTo(securityUser.getFirstName());
         assertThat(parsedSecurityUser.getLastName()).isEqualTo(securityUser.getLastName());
+        assertThat(parsedSecurityUser.getSessionId()).isNotNull().isEqualTo(securityUser.getSessionId());
     }
 
     @Test
     public void testCreateAndParseRefreshJwtToken() {
-        SecurityUser securityUser = new SecurityUser();
-        securityUser.setId(new UserId(UUID.randomUUID()));
-        securityUser.setEmail("tenant@thingsboard.org");
-        securityUser.setAuthority(Authority.TENANT_ADMIN);
-        securityUser.setUserPrincipal(new UserPrincipal(UserPrincipal.Type.USER_NAME, securityUser.getEmail()));
-        securityUser.setEnabled(true);
-        securityUser.setTenantId(new TenantId(UUID.randomUUID()));
-        securityUser.setCustomerId(new CustomerId(UUID.randomUUID()));
+        SecurityUser securityUser = createSecurityUser();
 
         JwtToken refreshToken = tokenFactory.createRefreshToken(securityUser);
         checkExpirationTime(refreshToken, jwtSettings.getRefreshTokenExpTime());
@@ -162,15 +140,7 @@ public class JwtTokenFactoryTest {
 
     @Test
     public void testCreateAndParsePreVerificationJwtToken() {
-        SecurityUser securityUser = new SecurityUser();
-        securityUser.setId(new UserId(UUID.randomUUID()));
-        securityUser.setEmail("tenant@thingsboard.org");
-        securityUser.setAuthority(Authority.TENANT_ADMIN);
-        securityUser.setUserPrincipal(new UserPrincipal(UserPrincipal.Type.USER_NAME, securityUser.getEmail()));
-        securityUser.setEnabled(true);
-        securityUser.setTenantId(new TenantId(UUID.randomUUID()));
-        securityUser.setCustomerId(new CustomerId(UUID.randomUUID()));
-
+        SecurityUser securityUser = createSecurityUser();
         int tokenLifetime = (int) TimeUnit.MINUTES.toSeconds(30);
         JwtToken preVerificationToken = tokenFactory.createPreVerificationToken(securityUser, tokenLifetime);
         checkExpirationTime(preVerificationToken, tokenLifetime);
@@ -187,18 +157,54 @@ public class JwtTokenFactoryTest {
     }
 
     @Test
-    public void testJwtSigningKeyIssueNotification() {
-        JwtSettings badJwtSettings = jwtSettings;
-        badJwtSettings.setTokenSigningKey(JwtSettingsService.TOKEN_SIGNING_KEY_DEFAULT);
-        mockJwtSettings(badJwtSettings);
-        jwtSettingsService = mockJwtSettingsService();
+    public void testGetExpirationTimeFromClaims() {
+        SecurityUser securityUser = createSecurityUser();
 
-        for (int i = 0; i < 5; i++) { // to check if notification is not sent twice
-            jwtSettingsService.getJwtSettings();
-        }
-        verify(notificationCenter, times(1)).sendGeneralWebNotification(eq(TenantId.SYS_TENANT_ID),
-                isA(SystemAdministratorsFilter.class), argThat(template -> template.getConfiguration().getDeliveryMethodsTemplates().get(NotificationDeliveryMethod.WEB)
-                        .getBody().contains("The platform is configured to use default JWT Signing Key")));
+        AccessJwtToken accessToken = tokenFactory.createAccessJwtToken(securityUser);
+
+        Claims claims = accessToken.getClaims();
+        assertThat(claims.getExpiration()).matches(actualExpirationTime -> {
+            Calendar expirationTime = Calendar.getInstance();
+            expirationTime.setTime(new Date());
+            expirationTime.add(Calendar.SECOND, jwtSettings.getTokenExpirationTime());
+            if (actualExpirationTime.equals(expirationTime.getTime())) {
+                return true;
+            } else if (actualExpirationTime.before(expirationTime.getTime())) {
+                int gap = 2;
+                expirationTime.add(Calendar.SECOND, -gap);
+                return actualExpirationTime.after(expirationTime.getTime());
+            } else {
+                return false;
+            }
+        });
+    }
+
+    @Test
+    public void testSessionId() {
+        SecurityUser securityUser = createSecurityUser();
+        String sessionId = securityUser.getSessionId();
+
+        String accessToken = tokenFactory.createAccessJwtToken(securityUser).getToken();
+        securityUser = tokenFactory.parseAccessJwtToken(accessToken);
+        assertThat(securityUser.getSessionId()).isNotNull().isEqualTo(sessionId);
+
+        String newAccessToken = tokenFactory.createTokenPair(securityUser).getToken();
+        securityUser = tokenFactory.parseAccessJwtToken(newAccessToken);
+        assertThat(securityUser.getSessionId()).isNotNull().isNotEqualTo(sessionId);
+    }
+
+    private SecurityUser createSecurityUser() {
+        SecurityUser securityUser = new SecurityUser();
+        securityUser.setId(new UserId(UUID.randomUUID()));
+        securityUser.setEmail("tenant@thingsboard.org");
+        securityUser.setAuthority(Authority.TENANT_ADMIN);
+        securityUser.setTenantId(new TenantId(UUID.randomUUID()));
+        securityUser.setEnabled(true);
+        securityUser.setFirstName("A");
+        securityUser.setLastName("B");
+        securityUser.setUserPrincipal(new UserPrincipal(UserPrincipal.Type.USER_NAME, securityUser.getEmail()));
+        securityUser.setCustomerId(new CustomerId(UUID.randomUUID()));
+        return securityUser;
     }
 
     private void mockJwtSettings(JwtSettings settings) {
@@ -209,12 +215,11 @@ public class JwtTokenFactoryTest {
     }
 
     private DefaultJwtSettingsService mockJwtSettingsService() {
-        return new DefaultJwtSettingsService(adminSettingsService, Optional.empty(),
-                Optional.of(notificationCenter), new DefaultJwtSettingsValidator());
+        return new DefaultJwtSettingsService(adminSettingsService, Optional.empty(), new DefaultJwtSettingsValidator(), Optional.empty());
     }
 
     private void checkExpirationTime(JwtToken jwtToken, int tokenLifetime) {
-        Claims claims = tokenFactory.parseTokenClaims(jwtToken.getToken()).getBody();
+        Claims claims = tokenFactory.parseTokenClaims(jwtToken.getToken()).getPayload();
         assertThat(claims.getExpiration()).matches(actualExpirationTime -> {
             Calendar expirationTime = Calendar.getInstance();
             expirationTime.setTime(new Date());

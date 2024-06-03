@@ -31,7 +31,7 @@
 package org.thingsboard.server.dao.oauth2;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.BaseData;
@@ -101,7 +101,7 @@ public class OAuth2ServiceImpl extends AbstractEntityService implements OAuth2Se
         } catch (IllegalArgumentException e){
             throw new IncorrectParameterException(INCORRECT_DOMAIN_SCHEME);
         }
-        validateString(domainName, INCORRECT_DOMAIN_NAME + domainName);
+        validateString(domainName, dn -> INCORRECT_DOMAIN_NAME + dn);
         return oauth2RegistrationDao.findEnabledByDomainSchemesDomainNameAndPkgNameAndPlatformType(
                 Arrays.asList(domainScheme, SchemeType.MIXED), domainName, pkgName, platformType)
                 .stream()
@@ -157,14 +157,14 @@ public class OAuth2ServiceImpl extends AbstractEntityService implements OAuth2Se
     @Override
     public OAuth2Registration findRegistration(UUID id) {
         log.trace("Executing findRegistration [{}]", id);
-        validateId(id, INCORRECT_CLIENT_REGISTRATION_ID + id);
+        validateId(id, uuid -> INCORRECT_CLIENT_REGISTRATION_ID + uuid);
         return oauth2RegistrationDao.findById(null, id);
     }
 
     @Override
     public String findAppSecret(UUID id, String pkgName) {
         log.trace("Executing findAppSecret [{}][{}]", id, pkgName);
-        validateId(id, INCORRECT_CLIENT_REGISTRATION_ID + id);
+        validateId(id, uuid -> INCORRECT_CLIENT_REGISTRATION_ID + uuid);
         validateString(pkgName, "Incorrect package name");
         return oauth2RegistrationDao.findAppSecret(id, pkgName);
     }

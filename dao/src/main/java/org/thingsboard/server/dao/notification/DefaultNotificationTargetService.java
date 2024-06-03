@@ -63,6 +63,8 @@ import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.entity.EntityDaoService;
+import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
+import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.user.UserService;
 
@@ -72,7 +74,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 @Service
 @Slf4j
@@ -88,7 +90,10 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
     @Override
     public NotificationTarget saveNotificationTarget(TenantId tenantId, NotificationTarget notificationTarget) {
         try {
-            return notificationTargetDao.saveAndFlush(tenantId, notificationTarget);
+            NotificationTarget savedTarget = notificationTargetDao.saveAndFlush(tenantId, notificationTarget);
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedTarget.getId())
+                    .created(notificationTarget.getId() == null).build());
+            return savedTarget;
         } catch (Exception e) {
             checkConstraintViolation(e, Map.of(
                     "uq_notification_target_name", "Recipients group with such name already exists"
@@ -192,19 +197,21 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
     @Override
     public PageData<User> findRecipientsForRuleNotificationTargetConfig(TenantId tenantId, PlatformUsersNotificationTargetConfig targetConfig, RuleOriginatedNotificationInfo info, PageLink pageLink) {
         switch (targetConfig.getUsersFilter().getType()) {
-            case ORIGINATOR_ENTITY_OWNER_USERS:
+            case ORIGINATOR_ENTITY_OWNER_USERS -> {
                 CustomerId customerId = info.getAffectedCustomerId();
                 if (customerId != null && !customerId.isNullUid()) {
                     return userService.findCustomerUsers(tenantId, customerId, pageLink);
                 } else {
                     return userService.findTenantAdmins(tenantId, pageLink);
                 }
-            case AFFECTED_USER:
+            }
+            case AFFECTED_USER -> {
                 UserId userId = info.getAffectedUserId();
                 if (userId != null) {
                     return new PageData<>(List.of(userService.findUserById(tenantId, userId)), 1, 1, false);
                 }
-            case AFFECTED_TENANT_ADMINISTRATORS:
+            }
+            case AFFECTED_TENANT_ADMINISTRATORS -> {
                 TenantId affectedTenantId = info.getAffectedTenantId();
                 if (affectedTenantId == null) {
                     affectedTenantId = tenantId;
@@ -212,27 +219,38 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
                 if (!affectedTenantId.isNullUid()) {
                     return userService.findTenantAdmins(affectedTenantId, pageLink);
                 }
-                break;
-            default:
-                throw new IllegalArgumentException("Recipient type not supported");
+            }
+            default -> throw new IllegalArgumentException("Recipient type not supported");
         }
         return new PageData<>();
     }
 
     @Override
     public void deleteNotificationTargetById(TenantId tenantId, NotificationTargetId id) {
-        if (notificationRequestDao.existsByTenantIdAndStatusAndTargetId(tenantId, NotificationRequestStatus.SCHEDULED, id)) {
+        deleteEntity(tenantId, id, false);
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        NotificationTargetId targetId = (NotificationTargetId) id;
+        if (!force && notificationRequestDao.existsByTenantIdAndStatusAndTargetId(tenantId, NotificationRequestStatus.SCHEDULED, targetId)) {
             throw new IllegalArgumentException("Recipients group is referenced by scheduled notification request");
         }
-        if (notificationRuleDao.existsByTenantIdAndTargetId(tenantId, id)) {
+        if (!force && notificationRuleDao.existsByTenantIdAndTargetId(tenantId, targetId)) {
             throw new IllegalArgumentException("Recipients group is being used in notification rule");
         }
         notificationTargetDao.removeById(tenantId, id.getId());
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(id).build());
     }
 
     @Override
     public void deleteNotificationTargetsByTenantId(TenantId tenantId) {
         notificationTargetDao.removeByTenantId(tenantId);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteNotificationTargetsByTenantId(tenantId);
     }
 
     @Override
@@ -243,11 +261,6 @@ public class DefaultNotificationTargetService extends AbstractEntityService impl
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {
         return Optional.ofNullable(findNotificationTargetById(tenantId, new NotificationTargetId(entityId.getId())));
-    }
-
-    @Override
-    public void deleteEntity(TenantId tenantId, EntityId id) {
-        deleteNotificationTargetById(tenantId, (NotificationTargetId) id);
     }
 
     @Override

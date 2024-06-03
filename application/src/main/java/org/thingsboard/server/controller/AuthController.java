@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.controller;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +48,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.cache.limits.RateLimitService;
 import org.thingsboard.server.common.data.User;
@@ -123,9 +121,8 @@ public class AuthController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/auth/changePassword", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public ObjectNode changePassword(
-            @Parameter(description = "Change Password Request")
-            @RequestBody ChangePasswordRequest changePasswordRequest) throws ThingsboardException {
+    public JwtPair changePassword(@Parameter(description = "Change Password Request")
+                                  @RequestBody ChangePasswordRequest changePasswordRequest) throws ThingsboardException {
         accessControlService.checkPermission(getCurrentUser(), Resource.PROFILE, Operation.WRITE);
         String currentPassword = changePasswordRequest.getCurrentPassword();
         String newPassword = changePasswordRequest.getNewPassword();
@@ -142,10 +139,7 @@ public class AuthController extends BaseController {
         userService.replaceUserCredentials(securityUser.getTenantId(), userCredentials);
 
         eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(securityUser.getId()));
-        ObjectNode response = JacksonUtil.newObjectNode();
-        response.put("token", tokenFactory.createAccessJwtToken(securityUser).getToken());
-        response.put("refreshToken", tokenFactory.createRefreshToken(securityUser).getToken());
-        return response;
+        return tokenFactory.createTokenPair(securityUser);
     }
 
     @ApiOperation(value = "Get the current User password policy (getUserPasswordPolicy)",
@@ -282,7 +276,9 @@ public class AuthController extends BaseController {
             }
         }
 
-        return tokenFactory.createTokenPair(securityUser);
+        var tokenPair = tokenFactory.createTokenPair(securityUser);
+        systemSecurityService.logLoginAction(user, new RestAuthenticationDetails(request), ActionType.LOGIN, null);
+        return tokenPair;
     }
 
     @ApiOperation(value = "Reset password (resetPassword)",

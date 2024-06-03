@@ -36,17 +36,19 @@ import { Component, OnInit } from '@angular/core';
 import { environment as env } from '@env/environment';
 
 import { TranslateService } from '@ngx-translate/core';
-import { select, Store } from '@ngrx/store';
+import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { LocalStorageService } from '@core/local-storage/local-storage.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MatIconRegistry } from '@angular/material/icon';
-import { combineLatest } from 'rxjs';
-import { selectIsAuthenticated, selectIsUserLoaded } from '@core/auth/auth.selectors';
-import { distinctUntilChanged, filter, map, skip } from 'rxjs/operators';
+import { selectUserReady } from '@core/auth/auth.selectors';
+import { filter, skip, tap } from 'rxjs/operators';
 import { AuthService } from '@core/auth/auth.service';
 import { ReportService } from '@core/http/report.service';
 import { svgIcons, svgIconsUrl } from '@shared/models/icon.models';
+import { ActionSettingsChangeLanguage } from '@core/settings/settings.actions';
+import { SETTINGS_KEY } from '@core/settings/settings.effects';
+import { TranslateDefaultLoader } from '@core/translate/translate-default-loader';
 
 @Component({
   selector: 'tb-root',
@@ -102,17 +104,23 @@ export class AppComponent implements OnInit {
     if (!env.production) {
       console.log(`Default Lang: ${env.defaultLang}`);
     }
-    this.translate.setDefaultLang(env.defaultLang);
+    // @ts-ignore
+    this.translate.changeDefaultLang(env.defaultLang);
   }
 
   setupAuth() {
-    combineLatest([
-      this.store.pipe(select(selectIsAuthenticated)),
-      this.store.pipe(select(selectIsUserLoaded))]
-    ).pipe(
-      map(results => ({isAuthenticated: results[0], isUserLoaded: results[1]})),
-      distinctUntilChanged(),
+    this.store.select(selectUserReady).pipe(
       filter((data) => data.isUserLoaded),
+      tap((data) => {
+        if (!data.isAuthenticated) {
+          const settings = this.storageService.getItem(SETTINGS_KEY);
+          const userLang = settings?.userLang ?? null;
+          (this.translate.currentLoader as TranslateDefaultLoader).isAuthenticated = false;
+          this.notifyUserLang(userLang);
+        } else {
+          this.notifyUserLang(this.translate.currentLang, true);
+        }
+      }),
       skip(1),
     ).subscribe((data) => {
       this.authService.gotoDefaultPlace(data.isAuthenticated);
@@ -130,6 +138,10 @@ export class AppComponent implements OnInit {
     if (loadingElement.length) {
       loadingElement.remove();
     }
+  }
+
+  private notifyUserLang(userLang: string, ignoredLoad = false) {
+    this.store.dispatch(new ActionSettingsChangeLanguage({userLang, reload: true, ignoredLoad}));
   }
 
 }

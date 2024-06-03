@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.event.EventType;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -76,6 +77,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         newConverter.setName(converterName);
         newConverter.setType(type);
         newConverter.setConfiguration(converterConfig);
+        newConverter.setDebugMode(true);
         switch (type) {
             case UPLINK:
                 uplinkConverter = doPost("/api/converter", newConverter, Converter.class);
@@ -137,21 +139,36 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
     }
 
     public List<EventInfo> getIntegrationDebugMessages(long startTs, String expectedMessageType, String expectedStatus, long timeout) throws Exception {
+        return getEntityDebugMessages(integration.getTenantId(), integration.getId(), startTs, expectedMessageType, expectedStatus, timeout);
+    }
+
+    public List<EventInfo> getConverterDebugMessages(long startTs, String expectedMessageType, IntegrationDebugMessageStatus expectedStatus, long timeout) throws Exception {
+        return getConverterDebugMessages(startTs, expectedMessageType, expectedStatus.name(), timeout);
+    }
+
+    public List<EventInfo> getConverterDebugMessages(long startTs, String expectedMessageType, String expectedStatus, long timeout) throws Exception {
+        return getEntityDebugMessages(integration.getTenantId(), integration.getDefaultConverterId(), startTs, expectedMessageType, expectedStatus, timeout);
+    }
+
+    private List<EventInfo> getEntityDebugMessages(TenantId tenantId, EntityId entityId, long startTs, String expectedMessageType, String expectedStatus, long timeout) throws Exception {
         long endTs = startTs + timeout * 1000;
         List<EventInfo> targetMsgs;
         List<EventInfo> allMsgs;
+
         do {
             SortOrder sortOrder = new SortOrder("createdTime", SortOrder.Direction.DESC);
             TimePageLink pageLink = new TimePageLink(100, 0, null, sortOrder, startTs, endTs);
-            PageData<EventInfo> events = doGetTypedWithTimePageLink("/api/events/INTEGRATION/{entityId}/DEBUG_INTEGRATION?tenantId={tenantId}&",
+            EntityType entityType = entityId.getEntityType();
+            PageData<EventInfo> events = doGetTypedWithTimePageLink(
+                    String.format("/api/events/%s/%s/DEBUG_%s?tenantId=%s&", entityType, entityId, entityType, tenantId),
                     new TypeReference<>() {
                     },
-                    pageLink, integration.getId(), integration.getTenantId());
+                    pageLink);
             allMsgs = events.getData();
             targetMsgs = events.getData().stream().filter(event -> expectedMessageType.equals(event.getBody().get("type").asText())
                     && (IntegrationDebugMessageStatus.ANY.name().equals(expectedStatus)
-                    || expectedStatus.equals(event.getBody().get("status").asText()))).collect(Collectors.toList());
-            if (targetMsgs.size() > 0) {
+                    || expectedStatus.equalsIgnoreCase(event.getBody().get("status").asText()))).collect(Collectors.toList());
+            if (!targetMsgs.isEmpty()) {
                 break;
             }
             Thread.sleep(100);

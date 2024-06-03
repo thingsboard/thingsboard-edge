@@ -47,6 +47,4 @@ public interface QueueStatsService extends EntityDaoService {
 
     List<QueueStats> findByTenantId(TenantId tenantId);
 
-    void deleteByTenantId(TenantId tenantId);
-
 }

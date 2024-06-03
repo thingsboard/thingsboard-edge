@@ -38,17 +38,18 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
-import org.thingsboard.server.cluster.TbClusterService;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
@@ -112,8 +113,6 @@ import org.thingsboard.server.service.entitiy.entityview.TbEntityViewService;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -135,7 +134,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
 
     @Autowired
     private TimeseriesService timeseriesService;
-    
+
     @Autowired
     private DeviceService deviceService;
 
@@ -171,9 +170,6 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
 
     @Autowired
     private DbCallbackExecutorService dbCallbackExecutorService;
-
-    @Autowired
-    private TbClusterService tbClusterService;
 
     private ListeningScheduledExecutorService scheduledExecutor;
 
@@ -267,7 +263,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
         }
     }
-    
+
     private ListenableFuture<Void> processLatestTimeseriesAndAddToEdgeQueue(TenantId tenantId, EntityId entityId, Edge edge,
                                                                             EdgeEventType entityType) {
         ListenableFuture<List<TsKvEntry>> getAllLatestFuture = timeseriesService.findAllLatest(tenantId, entityId);
@@ -371,8 +367,7 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
         return futureToSet;
     }
 
-    private ListenableFuture<List<EntityRelation>> findRelationByQuery(TenantId tenantId, Edge edge,
-                                                                       EntityId entityId, EntitySearchDirection direction) {
+    private ListenableFuture<List<EntityRelation>> findRelationByQuery(TenantId tenantId, Edge edge, EntityId entityId, EntitySearchDirection direction) {
         EntityRelationsQuery query = new EntityRelationsQuery();
         query.setParameters(new RelationsSearchParameters(entityId, direction, 1, false));
         return relationService.findByQuery(tenantId, query);
@@ -485,20 +480,14 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
             return Futures.transformAsync(entityIdsFuture, entityIds -> {
                 if (entityIds != null && !entityIds.isEmpty()) {
                     EntityType groupType = EntityType.valueOf(entityGroupEntitiesRequestMsg.getType());
-                    switch (groupType) {
-                        case DEVICE:
-                            return syncDevices(edge, entityIds, entityGroupId);
-                        case ASSET:
-                            return syncAssets(edge, entityIds, entityGroupId);
-                        case ENTITY_VIEW:
-                            return syncEntityViews(edge, entityIds, entityGroupId);
-                        case DASHBOARD:
-                            return syncDashboards(edge, entityIds, entityGroupId);
-                        case USER:
-                            return syncUsers(edge, entityIds, entityGroupId);
-                        default:
-                            return Futures.immediateFuture(null);
-                    }
+                    return switch (groupType) {
+                        case DEVICE -> syncDevices(edge, entityIds, entityGroupId);
+                        case ASSET -> syncAssets(edge, entityIds, entityGroupId);
+                        case ENTITY_VIEW -> syncEntityViews(edge, entityIds, entityGroupId);
+                        case DASHBOARD -> syncDashboards(edge, entityIds, entityGroupId);
+                        case USER -> syncUsers(edge, entityIds, entityGroupId);
+                        default -> Futures.immediateFuture(null);
+                    };
                 } else {
                     log.trace("No entities found for the requested entity group {} [{}]", entityGroupId.getId(), entityGroupEntitiesRequestMsg.getType());
                     return Futures.immediateFuture(null);
@@ -708,15 +697,16 @@ public class DefaultEdgeRequestsService implements EdgeRequestsService {
     }
 
     private ListenableFuture<Void> saveEdgeEvent(TenantId tenantId,
-                               EdgeId edgeId,
-                               EdgeEventType type,
-                               EdgeEventActionType action,
-                               EntityId entityId,
-                               JsonNode body,
-                               EntityId entityGroupId) {
+                                                 EdgeId edgeId,
+                                                 EdgeEventType type,
+                                                 EdgeEventActionType action,
+                                                 EntityId entityId,
+                                                 JsonNode body,
+                                                 EntityId entityGroupId) {
         log.trace("Pushing edge event to edge queue. tenantId [{}], edgeId [{}], type [{}], action[{}], entityId [{}], body [{}], entityGroupId [{}]",
                 tenantId, edgeId, type, action, entityId, body, entityGroupId);
-        EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, type, action, entityId, body);
+        EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
         return edgeEventService.saveAsync(edgeEvent);
     }
+
 }

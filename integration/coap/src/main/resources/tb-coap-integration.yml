@@ -134,6 +134,8 @@ coap:
     bind_address: "${COAP_DTLS_BIND_ADDRESS:0.0.0.0}"
     # CoAP DTLS bind port
     bind_port: "${COAP_DTLS_BIND_PORT:5684}"
+    # CoAP DTLS connection ID length. RFC 9146, Connection Identifier for DTLS 1.2
+    connection_id_length: "${COAP_DTLS_CONNECTION_ID_LENGTH:}"
     # Path to the key store that holds the certificate
     key_store: "${COAP_DTLS_KEY_STORE:coapserver.jks}"
     # Password used to access the key store

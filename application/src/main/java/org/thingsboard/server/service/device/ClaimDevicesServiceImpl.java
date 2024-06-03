@@ -70,7 +70,6 @@ import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -109,16 +108,16 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
         Device device = deviceService.findDeviceById(tenantId, deviceId);
         Cache cache = cacheManager.getCache(CLAIM_DEVICES_CACHE);
         List<Object> key = constructCacheKey(device.getId());
+        String deviceName = device.getName();
         if (isAllowedClaimingByDefault) {
             if (device.getCustomerId().getId().equals(ModelConstants.NULL_UUID)) {
                 persistInCache(secretKey, durationMs, cache, key);
                 return Futures.immediateFuture(null);
             }
-            log.warn("The device [{}] has been already claimed!", device.getName());
-            return Futures.immediateFailedFuture(new IllegalArgumentException());
+            return Futures.immediateFailedFuture(new IllegalArgumentException("Device [" + deviceName + "] has been already claimed!"));
         } else {
             ListenableFuture<List<AttributeKvEntry>> claimingAllowedFuture = attributesService.find(tenantId, device.getId(),
-                    AttributeScope.SERVER_SCOPE, Collections.singletonList(CLAIM_ATTRIBUTE_NAME));
+                    AttributeScope.SERVER_SCOPE, List.of(CLAIM_ATTRIBUTE_NAME));
             return Futures.transform(claimingAllowedFuture, list -> {
                 if (list != null && !list.isEmpty()) {
                     Optional<Boolean> claimingAllowedOptional = list.get(0).getBooleanValue();
@@ -128,8 +127,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                         return null;
                     }
                 }
-                log.warn("Failed to find claimingAllowed attribute for device or it is already claimed![{}]", device.getName());
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("Failed to find claimingAllowed attribute for device [" + deviceName + "] or it is already claimed!");
             }, MoreExecutors.directExecutor());
         }
     }
@@ -226,7 +224,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
                 }
                 SettableFuture<ReclaimResult> result = SettableFuture.create();
                 telemetryService.saveAndNotify(
-                        tenantId, device.getId(), AttributeScope.SERVER_SCOPE, Collections.singletonList(
+                        tenantId, device.getId(), AttributeScope.SERVER_SCOPE, List.of(
                                 new BaseAttributeKvEntry(new BooleanDataEntry(CLAIM_ATTRIBUTE_NAME, true), System.currentTimeMillis())
                         ),
                         new FutureCallback<>() {
@@ -248,7 +246,7 @@ public class ClaimDevicesServiceImpl implements ClaimDevicesService {
     }
 
     private List<Object> constructCacheKey(DeviceId deviceId) {
-        return Collections.singletonList(deviceId);
+        return List.of(deviceId);
     }
 
     private void persistInCache(String secretKey, long durationMs, Cache cache, List<Object> key) {

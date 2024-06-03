@@ -69,7 +69,7 @@ RUN apt-get update \
     && mv /tmp/start-web-report.sh /usr/bin \
     && chown -R node:node ${pkg.installFolder} \
     && mkdir /ms-playwright \
-    && yarn install --production && yarn cache clean --all \
+    && yarn install --production --non-interactive --network-concurrency 4 --network-timeout 100000 --mutex network && yarn cache clean --all \
     && chmod -R 777 /ms-playwright
 
 USER node

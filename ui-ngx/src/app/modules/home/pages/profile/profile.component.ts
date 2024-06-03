@@ -39,7 +39,6 @@ import { AppState } from '@core/core.state';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { ActionAuthUpdateUserDetails } from '@core/auth/auth.actions';
-import { environment as env } from '@env/environment';
 import { TranslateService } from '@ngx-translate/core';
 import { ActionSettingsChangeLanguage } from '@core/settings/settings.actions';
 import { ActivatedRoute } from '@angular/router';
@@ -57,7 +56,7 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
   authorities = Authority;
   profile: UntypedFormGroup;
   user: User;
-  languageList = env.supportedLangs;
+  languageList: [locelCode: string, localeLanguage: string];
 
   authState = getCurrentAuthState(this.store);
 
@@ -72,6 +71,7 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
 
   ngOnInit() {
     this.buildProfileForm();
+    this.languageList = this.route.snapshot.data.locales;
     this.userLoaded(this.route.snapshot.data.user);
   }
 
@@ -110,7 +110,7 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
             id: user.id,
             lastName: user.lastName,
           } }));
-        this.store.dispatch(new ActionSettingsChangeLanguage({ userLang: user.additionalInfo.lang }));
+        this.store.dispatch(new ActionSettingsChangeLanguage({ userLang: user.additionalInfo.lang, reload: false, ignoredLoad: false }));
         this.authService.refreshJwtToken(false);
       }
     );

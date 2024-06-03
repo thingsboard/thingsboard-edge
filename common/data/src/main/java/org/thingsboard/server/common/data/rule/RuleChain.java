@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasDefaultOption;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.RuleChainId;
@@ -51,15 +52,15 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class RuleChain extends BaseDataWithAdditionalInfo<RuleChainId> implements HasName, TenantEntity, ExportableEntity<RuleChainId> {
+public class RuleChain extends BaseDataWithAdditionalInfo<RuleChainId> implements HasName, TenantEntity, ExportableEntity<RuleChainId>, HasDefaultOption {
 
     private static final long serialVersionUID = -5656679015121935465L;
 
-    @Schema(required = true, description = "JSON object with Tenant Id.", accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "JSON object with Tenant Id.", accessMode = Schema.AccessMode.READ_ONLY)
     private TenantId tenantId;
     @NoXss
     @Length(fieldName = "name")
-    @Schema(required = true, description = "Rule Chain name", example = "Humidity data processing")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Rule Chain name", example = "Humidity data processing")
     private String name;
     @Schema(description = "Rule Chain type. 'EDGE' rule chains are processing messages on the edge devices only.", example = "A4B72CCDFF33")
     private RuleChainType type;
@@ -124,9 +125,16 @@ public class RuleChain extends BaseDataWithAdditionalInfo<RuleChainId> implement
         setJson(data, json -> this.configuration = json, bytes -> this.configurationBytes = bytes);
     }
 
+    @JsonIgnore
+    @Override
+    public boolean isDefault() {
+        return root && type == RuleChainType.CORE;
+    }
+
     @Override
     @JsonIgnore
     public EntityType getEntityType() {
         return EntityType.RULE_CHAIN;
     }
+
 }

@@ -1,0 +1,141 @@
+///
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+///
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+///
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
+///
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+///
+
+import { Component, TemplateRef, ViewChild } from '@angular/core';
+import { WidgetSettings } from '@shared/models/widget.models';
+import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import {
+  radarChartWidgetDefaultSettings,
+  RadarChartWidgetSettings
+} from '@home/components/widget/lib/chart/radar-chart-widget.models';
+import {
+  LatestChartWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/chart/latest-chart-widget-settings.component';
+
+@Component({
+  selector: 'tb-radar-chart-widget-settings',
+  templateUrl: './latest-chart-widget-settings.component.html',
+  styleUrls: ['./../widget-settings.scss']
+})
+export class RadarChartWidgetSettingsComponent extends LatestChartWidgetSettingsComponent<RadarChartWidgetSettings> {
+
+  @ViewChild('radarChart')
+  radarChartConfigTemplate: TemplateRef<any>;
+
+  constructor(protected store: Store<AppState>,
+              protected fb: UntypedFormBuilder) {
+    super(store, fb);
+  }
+
+  protected defaultLatestChartSettings() {
+    return radarChartWidgetDefaultSettings;
+  }
+
+  public latestChartConfigTemplate(): TemplateRef<any> {
+    return this.radarChartConfigTemplate;
+  }
+
+  protected setupLatestChartControls(latestChartWidgetSettingsForm: UntypedFormGroup, settings: WidgetSettings) {
+    latestChartWidgetSettingsForm.addControl('shape', this.fb.control(settings.shape, []));
+    latestChartWidgetSettingsForm.addControl('color', this.fb.control(settings.color, []));
+    latestChartWidgetSettingsForm.addControl('showLine', this.fb.control(settings.showLine, []));
+    latestChartWidgetSettingsForm.addControl('lineType', this.fb.control(settings.lineType, []));
+    latestChartWidgetSettingsForm.addControl('lineWidth', this.fb.control(settings.lineWidth, [Validators.min(0)]));
+    latestChartWidgetSettingsForm.addControl('showPoints', this.fb.control(settings.showPoints, []));
+    latestChartWidgetSettingsForm.addControl('pointShape', this.fb.control(settings.pointShape, []));
+    latestChartWidgetSettingsForm.addControl('pointSize', this.fb.control(settings.pointSize, [Validators.min(0)]));
+    latestChartWidgetSettingsForm.addControl('showLabel', this.fb.control(settings.showLabel, []));
+    latestChartWidgetSettingsForm.addControl('labelPosition', this.fb.control(settings.labelPosition, []));
+    latestChartWidgetSettingsForm.addControl('labelFont', this.fb.control(settings.labelFont, []));
+    latestChartWidgetSettingsForm.addControl('labelColor', this.fb.control(settings.labelColor, []));
+    latestChartWidgetSettingsForm.addControl('fillAreaSettings', this.fb.control(settings.fillAreaSettings, []));
+
+    latestChartWidgetSettingsForm.addControl('axisShowLabel', this.fb.control(settings.axisShowLabel, []));
+    latestChartWidgetSettingsForm.addControl('axisLabelFont', this.fb.control(settings.axisLabelFont, []));
+    latestChartWidgetSettingsForm.addControl('axisShowTickLabels', this.fb.control(settings.axisShowTickLabels, []));
+    latestChartWidgetSettingsForm.addControl('axisTickLabelFont', this.fb.control(settings.axisTickLabelFont, []));
+    latestChartWidgetSettingsForm.addControl('axisTickLabelColor', this.fb.control(settings.axisTickLabelColor, []));
+  }
+
+  protected latestChartValidatorTriggers(): string[] {
+    return ['showLine', 'showPoints', 'showLabel', 'axisShowLabel', 'axisShowTickLabels'];
+  }
+
+  protected updateLatestChartValidators(latestChartWidgetSettingsForm: UntypedFormGroup, emitEvent: boolean, trigger?: string) {
+    const showLine: boolean = latestChartWidgetSettingsForm.get('showLine').value;
+    const showPoints: boolean = latestChartWidgetSettingsForm.get('showPoints').value;
+    const showLabel: boolean = latestChartWidgetSettingsForm.get('showLabel').value;
+    const axisShowLabel: boolean = latestChartWidgetSettingsForm.get('axisShowLabel').value;
+    const axisShowTickLabels: boolean = latestChartWidgetSettingsForm.get('axisShowTickLabels').value;
+
+    if (showLine) {
+      latestChartWidgetSettingsForm.get('lineType').enable();
+      latestChartWidgetSettingsForm.get('lineWidth').enable();
+    } else {
+      latestChartWidgetSettingsForm.get('lineType').disable();
+      latestChartWidgetSettingsForm.get('lineWidth').disable();
+    }
+
+    if (showPoints) {
+      latestChartWidgetSettingsForm.get('pointShape').enable();
+      latestChartWidgetSettingsForm.get('pointSize').enable();
+    } else {
+      latestChartWidgetSettingsForm.get('pointShape').disable();
+      latestChartWidgetSettingsForm.get('pointSize').disable();
+    }
+
+    if (showLabel) {
+      latestChartWidgetSettingsForm.get('labelPosition').enable();
+      latestChartWidgetSettingsForm.get('labelFont').enable();
+      latestChartWidgetSettingsForm.get('labelColor').enable();
+    } else {
+      latestChartWidgetSettingsForm.get('labelPosition').disable();
+      latestChartWidgetSettingsForm.get('labelFont').disable();
+      latestChartWidgetSettingsForm.get('labelColor').disable();
+    }
+
+    if (axisShowLabel) {
+      latestChartWidgetSettingsForm.get('axisLabelFont').enable();
+    } else {
+      latestChartWidgetSettingsForm.get('axisLabelFont').disable();
+    }
+
+    if (axisShowTickLabels) {
+      latestChartWidgetSettingsForm.get('axisTickLabelFont').enable();
+      latestChartWidgetSettingsForm.get('axisTickLabelColor').enable();
+    } else {
+      latestChartWidgetSettingsForm.get('axisTickLabelFont').disable();
+      latestChartWidgetSettingsForm.get('axisTickLabelColor').disable();
+    }
+  }
+}

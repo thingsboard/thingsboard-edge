@@ -211,7 +211,6 @@ import org.thingsboard.server.common.data.sync.vc.VersionLoadResult;
 import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
 import org.thingsboard.server.common.data.sync.vc.request.create.VersionCreateRequest;
 import org.thingsboard.server.common.data.sync.vc.request.load.VersionLoadRequest;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.widget.DeprecatedFilter;
 import org.thingsboard.server.common.data.widget.WidgetType;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
@@ -3814,10 +3813,10 @@ public class RestClient implements Closeable {
         return restTemplate.postForEntity(baseURL + "/api/customMenu/customMenu", customMenu, CustomMenu.class).getBody();
     }
 
-    public Optional<CustomTranslation> getCustomTranslation() {
+    public Optional<JsonNode> getCustomTranslation(String localeCode) {
         try {
-            ResponseEntity<CustomTranslation> customTranslation = restTemplate.getForEntity(baseURL + "/api/customTranslation/customTranslation", CustomTranslation.class);
-            return Optional.ofNullable(customTranslation.getBody());
+            ResponseEntity<JsonNode> response = restTemplate.getForEntity(baseURL + "/api/translation/custom/{localeCode}", JsonNode.class, localeCode);
+            return Optional.ofNullable(response.getBody());
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return Optional.empty();
@@ -3827,10 +3826,10 @@ public class RestClient implements Closeable {
         }
     }
 
-    public Optional<CustomTranslation> getCurrentCustomTranslation() {
+    public Optional<JsonNode> getMergedCustomTranslation(String localeCode) {
         try {
-            ResponseEntity<CustomTranslation> customTranslation = restTemplate.getForEntity(baseURL + "/api/customTranslation/currentCustomTranslation", CustomTranslation.class);
-            return Optional.ofNullable(customTranslation.getBody());
+            ResponseEntity<JsonNode> response = restTemplate.getForEntity(baseURL + "/api/translation/custom/merged/{localeCode}", JsonNode.class, localeCode);
+            return Optional.ofNullable(response.getBody());
         } catch (HttpClientErrorException exception) {
             if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return Optional.empty();
@@ -3840,8 +3839,12 @@ public class RestClient implements Closeable {
         }
     }
 
-    public CustomTranslation saveCustomTranslation(CustomTranslation customTranslation) {
-        return restTemplate.postForEntity(baseURL + "/api/customTranslation/customTranslation", customTranslation, CustomTranslation.class).getBody();
+    public void saveCustomTranslation(String localeCode, JsonNode customTranslationValue) {
+        restTemplate.postForEntity(baseURL + "/api/translation/custom/{localeCode}", customTranslationValue, Void.class, localeCode);
+    }
+
+    public void deleteCustomTranslation(String localeCode) {
+        restTemplate.delete(baseURL + "/api/translation/custom/{localeCode}", localeCode);
     }
 
     public PageData<DashboardInfo> getUserDashboards(PageLink pageLink, String operation, UserId userId) {

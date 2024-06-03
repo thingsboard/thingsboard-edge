@@ -107,7 +107,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
             if (log.isTraceEnabled()) {
                 log.trace("[{}][{}] Uplink conversion took {} ms.", configuration.getId(), configuration.getName(), System.currentTimeMillis() - startTime);
             }
-            JsonElement element = new JsonParser().parse(rawResult);
+            JsonElement element = JsonParser.parseString(rawResult);
             List<UplinkData> resultList = new ArrayList<>();
             if (element.isJsonArray()) {
                 for (JsonElement uplinkJson : element.getAsJsonArray()) {

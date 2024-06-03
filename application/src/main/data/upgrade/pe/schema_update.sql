@@ -193,6 +193,14 @@ CREATE TABLE IF NOT EXISTS white_labeling (
     domain_name VARCHAR(255) UNIQUE,
     CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type));
 
+CREATE TABLE IF NOT EXISTS custom_translation (
+    tenant_id UUID NOT NULL,
+    customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
+    locale_code VARCHAR(10),
+    value VARCHAR(1000000),
+    CONSTRAINT custom_translation_pkey PRIMARY KEY (tenant_id, customer_id, locale_code)
+);
+
 ALTER TABLE resource ADD COLUMN IF NOT EXISTS customer_id uuid;
 
 CREATE INDEX IF NOT EXISTS idx_entity_group_by_type_name_and_owner_id ON entity_group(type, name, owner_id);
@@ -215,3 +223,5 @@ CREATE INDEX IF NOT EXISTS idx_raw_data_event_main
     ON raw_data_event (tenant_id ASC, entity_id ASC, ts DESC NULLS LAST) WITH (FILLFACTOR=95);
 
 CREATE INDEX IF NOT EXISTS idx_group_permission_tenant_id ON group_permission(tenant_id);
+
+ALTER TABLE mobile_app_settings ADD COLUMN IF NOT EXISTS use_system_settings boolean default true;

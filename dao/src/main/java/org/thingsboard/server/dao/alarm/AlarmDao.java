@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.dao.Dao;
 
 import java.util.Collection;
@@ -101,13 +102,17 @@ public interface AlarmDao extends Dao<Alarm> {
 
     PageData<AlarmId> findAlarmIdsByAssigneeId(TenantId tenantId, UUID userId, PageLink pageLink);
 
+    PageData<TbPair<UUID, Long>> findAlarmIdsByOriginatorId(TenantId tenantId, EntityId originatorId, long createdTimeOffset, AlarmId idOffset, int limit);
+
     void createEntityAlarmRecord(EntityAlarm entityAlarm);
 
     List<EntityAlarm> findEntityAlarmRecords(TenantId tenantId, AlarmId id);
 
     List<EntityAlarm> findEntityAlarmRecordsByEntityTypes(TenantId tenantId, AlarmId id, List<EntityType> types);
 
-    void deleteEntityAlarmRecords(TenantId tenantId, EntityId entityId);
+    List<EntityAlarm> findEntityAlarmRecordsByEntityId(TenantId tenantId, EntityId entityId);
+
+    int deleteEntityAlarmRecords(TenantId tenantId, EntityId entityId);
 
     void deleteEntityAlarmRecordsByTenantId(TenantId tenantId);
 

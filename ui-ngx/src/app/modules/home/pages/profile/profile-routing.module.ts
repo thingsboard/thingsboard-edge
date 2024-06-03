@@ -29,8 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable, NgModule } from '@angular/core';
-import { Resolve, RouterModule, Routes } from '@angular/router';
+import { inject, Injectable, NgModule } from '@angular/core';
+import { ActivatedRouteSnapshot, Resolve, ResolveFn, RouterModule, RouterStateSnapshot, Routes } from '@angular/router';
 
 import { ProfileComponent } from './profile.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
@@ -41,6 +41,8 @@ import { AppState } from '@core/core.state';
 import { UserService } from '@core/http/user.service';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Observable } from 'rxjs';
+import { CustomTranslationService } from '@core/http/custom-translation.service';
+import { map } from 'rxjs/operators';
 
 @Injectable()
 export class UserProfileResolver implements Resolve<User> {
@@ -54,6 +56,15 @@ export class UserProfileResolver implements Resolve<User> {
     return this.userService.getUser(userId);
   }
 }
+
+export const allowLocalesResolver: ResolveFn<Array<Array<string>>> = (
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot,
+  customTranslation = inject(CustomTranslationService)
+): Observable<Array<Array<string>>> => customTranslation.getAvailableLocales().pipe(
+      map(locales => Object.entries(locales)
+        .sort((a, b) => a[0] > b[0] ? 1 : -1))
+  );
 
 export const profileRoutes: Routes = [
   {
@@ -69,7 +80,8 @@ export const profileRoutes: Routes = [
       }
     },
     resolve: {
-      user: UserProfileResolver
+      user: UserProfileResolver,
+      locales: allowLocalesResolver
     }
   }
 ];

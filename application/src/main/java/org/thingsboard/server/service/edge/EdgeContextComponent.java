@@ -50,6 +50,9 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.notification.NotificationRuleService;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.oauth2.OAuth2Service;
 import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
@@ -89,6 +92,7 @@ import org.thingsboard.server.service.edge.rpc.processor.entityview.EntityViewPr
 import org.thingsboard.server.service.edge.rpc.processor.group.EntityGroupEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.group.GroupPermissionsEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.integration.IntegrationEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.notification.NotificationEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.oauth2.OAuth2EdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.ota.OtaPackageEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.queue.QueueEdgeProcessor;
@@ -103,6 +107,7 @@ import org.thingsboard.server.service.edge.rpc.processor.settings.AdminSettingsE
 import org.thingsboard.server.service.edge.rpc.processor.telemetry.TelemetryEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.tenant.TenantEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.tenant.TenantProfileEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.translation.CustomTranslationEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.user.UserEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.widget.WidgetBundleEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.widget.WidgetTypeEdgeProcessor;
@@ -187,6 +192,15 @@ public class EdgeContextComponent {
     private ResourceService resourceService;
 
     @Autowired
+    private NotificationRuleService notificationRuleService;
+
+    @Autowired
+    private NotificationTargetService notificationTargetService;
+
+    @Autowired
+    private NotificationTemplateService notificationTemplateService;
+
+    @Autowired
     private OAuth2Service oAuth2Service;
 
     @Autowired
@@ -259,6 +273,9 @@ public class EdgeContextComponent {
     private ResourceEdgeProcessor resourceEdgeProcessor;
 
     @Autowired
+    private NotificationEdgeProcessor notificationEdgeProcessor;
+
+    @Autowired
     private OAuth2EdgeProcessor oAuth2EdgeProcessor;
 
     @Autowired
@@ -327,6 +344,9 @@ public class EdgeContextComponent {
     private EntityGroupEdgeProcessor entityGroupProcessor;
 
     @Autowired
+    private CustomTranslationEdgeProcessor customTranslationEdgeProcessor;
+
+    @Autowired
     private WhiteLabelingEdgeProcessor whiteLabelingProcessor;
 
     @Autowired
@@ -343,4 +363,5 @@ public class EdgeContextComponent {
 
     @Autowired
     private IntegrationEdgeProcessor integrationProcessor;
+
 }

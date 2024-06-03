@@ -38,6 +38,7 @@ import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationM
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
@@ -62,6 +63,7 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
     private TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> toIntegrationExecutorNotifications;
     private TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> toIntegrationExecutorDownlinks;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> toUsageStats;
+    private TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> toHousekeeper;
 
     public TbRuleEngineProducerProvider(TbRuleEngineQueueFactory tbQueueProvider) {
         this.tbQueueProvider = tbQueueProvider;
@@ -77,6 +79,7 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
         this.toIntegrationExecutorNotifications = tbQueueProvider.createIntegrationExecutorNotificationsMsgProducer();
         this.toIntegrationExecutorDownlinks = tbQueueProvider.createIntegrationExecutorDownlinkMsgProducer();
         this.toUsageStats = tbQueueProvider.createToUsageStatsServiceMsgProducer();
+        this.toHousekeeper = tbQueueProvider.createHousekeeperMsgProducer();
     }
 
     @Override
@@ -133,4 +136,10 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
     public TbQueueProducer<TbProtoQueueMsg<ToRuleEngineMsg>> getIntegrationRuleEngineMsgProducer() {
         throw new RuntimeException(NOT_IMPLEMENTED);
     }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToHousekeeperServiceMsg>> getHousekeeperMsgProducer() {
+        return toHousekeeper;
+    }
+
 }

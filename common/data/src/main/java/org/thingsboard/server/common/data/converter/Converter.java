@@ -111,7 +111,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.tenantId = tenantId;
     }
 
-    @Schema(required = true, description = "Unique Converter Name in scope of Tenant", example = "Http Converter")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Unique Converter Name in scope of Tenant", example = "Http Converter")
     @Override
     public String getName() {
         return name;
@@ -121,7 +121,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.name = name;
     }
 
-    @Schema(required = true, description = "The type of the converter to process incoming or outgoing messages")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "The type of the converter to process incoming or outgoing messages")
     public ConverterType getType() {
         return type;
     }

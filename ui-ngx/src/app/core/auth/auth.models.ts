@@ -41,8 +41,10 @@ export interface SysParamsState {
   hasRepository: boolean;
   tbelEnabled: boolean;
   persistDeviceStateToTelemetry: boolean;
+  mobileQrEnabled: boolean;
   userSettings: UserSettings;
   maxResourceSize: number;
+  availableLocales: string[];
 }
 
 export interface SysParams extends SysParamsState {

@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.dao.blob.BlobEntityDao;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -117,6 +118,11 @@ public class JpaBlobEntityDao extends JpaPartitionedAbstractDao<BlobEntityEntity
 
     private long getPartitionSizeInMs() {
         return TimeUnit.HOURS.toMillis(partitionSizeInHours);
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.BLOB_ENTITY;
     }
 
 }

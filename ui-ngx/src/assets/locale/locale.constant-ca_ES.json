@@ -955,15 +955,7 @@
     "custom-translation": {
         "custom-translation": "Traducció personalitzada",
         "translation-map": "Mapa de traducció",
-        "key": "Clau de traducció",
-        "import": "Importa la traducció",
-        "export": "Exporta la traducció",
-        "export-data": "Exporta les dades de traducció",
-        "import-data": "Importa les dades de traducció",
-        "translation-file": "Fitxer de traducció",
-        "invalid-translation-file-error": "No s'ha pogut importar el fitxer de traducció: l'estructura de dades de traducció no és vàlida.",
-        "custom-translation-hint": "Definiu el JSON de traducció personalitzat a continuació. Aquest JSON sobreescriurà la traducció predeterminada. Feu clic a «Baixa el fitxer locale» per a obtenir la traducció existent. També podeu utilitzar el fitxer baixat com a referència a les parelles disponibles de traducció clau-valor.",
-        "download-locale-file": "Baixa el fitxer locale"
+        "translation-file": "Fitxer de traducció"
     },
     "datetime": {
         "date-from": "Data des de",
@@ -1710,8 +1702,7 @@
                 "step": "Pas",
                 "min-evaluation-period": "Període mínim d'avaluació",
                 "max-evaluation-period": "Període màxim d'avaluació"
-            },
-            "composite-operations-support": "Admet operacions compostes de lectura/escriptura/observació"
+            }
         },
         "snmp": {
             "add-communication-config": "Afegeix la configuració de comunicació",

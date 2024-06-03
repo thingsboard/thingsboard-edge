@@ -125,6 +125,29 @@ import {
 import {
   TimeSeriesChartBasicConfigComponent
 } from '@home/components/widget/config/basic/chart/time-series-chart-basic-config.component';
+import { ComparisonKeyRowComponent } from '@home/components/widget/config/basic/chart/comparison-key-row.component';
+import {
+  ComparisonKeysTableComponent
+} from '@home/components/widget/config/basic/chart/comparison-keys-table.component';
+import {
+  StatusWidgetBasicConfigComponent
+} from '@home/components/widget/config/basic/indicator/status-widget-basic-config.component';
+import {
+  PieChartBasicConfigComponent
+} from '@home/components/widget/config/basic/chart/pie-chart-basic-config.component';
+import {
+  BarChartBasicConfigComponent
+} from '@home/components/widget/config/basic/chart/bar-chart-basic-config.component';
+import {
+  PolarAreaChartBasicConfigComponent
+} from '@home/components/widget/config/basic/chart/polar-area-chart-basic-config.component';
+import {
+  RadarChartBasicConfigComponent
+} from '@home/components/widget/config/basic/chart/radar-chart-basic-config.component';
+import {
+  DigitalSimpleGaugeBasicConfigComponent
+} from '@home/components/widget/config/basic/gauge/digital-simple-gauge-basic-config.component';
+import { MobileAppQrCodeBasicConfigComponent } from '@home/components/widget/config/basic/cards/mobile-app-qr-code-basic-config.component';
 
 @NgModule({
   declarations: [
@@ -160,7 +183,16 @@ import {
     PowerButtonBasicConfigComponent,
     SliderBasicConfigComponent,
     ToggleButtonBasicConfigComponent,
-    TimeSeriesChartBasicConfigComponent
+    TimeSeriesChartBasicConfigComponent,
+    ComparisonKeyRowComponent,
+    ComparisonKeysTableComponent,
+    StatusWidgetBasicConfigComponent,
+    PieChartBasicConfigComponent,
+    BarChartBasicConfigComponent,
+    PolarAreaChartBasicConfigComponent,
+    RadarChartBasicConfigComponent,
+    DigitalSimpleGaugeBasicConfigComponent,
+    MobileAppQrCodeBasicConfigComponent
   ],
   imports: [
     CommonModule,
@@ -200,7 +232,14 @@ import {
     PowerButtonBasicConfigComponent,
     SliderBasicConfigComponent,
     ToggleButtonBasicConfigComponent,
-    TimeSeriesChartBasicConfigComponent
+    TimeSeriesChartBasicConfigComponent,
+    StatusWidgetBasicConfigComponent,
+    PieChartBasicConfigComponent,
+    BarChartBasicConfigComponent,
+    PolarAreaChartBasicConfigComponent,
+    RadarChartBasicConfigComponent,
+    DigitalSimpleGaugeBasicConfigComponent,
+    MobileAppQrCodeBasicConfigComponent
   ]
 })
 export class BasicWidgetConfigModule {
@@ -234,5 +273,12 @@ export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetCo
   'tb-power-button-basic-config': PowerButtonBasicConfigComponent,
   'tb-slider-basic-config': SliderBasicConfigComponent,
   'tb-toggle-button-basic-config': ToggleButtonBasicConfigComponent,
-  'tb-time-series-chart-basic-config': TimeSeriesChartBasicConfigComponent
+  'tb-time-series-chart-basic-config': TimeSeriesChartBasicConfigComponent,
+  'tb-status-widget-basic-config': StatusWidgetBasicConfigComponent,
+  'tb-pie-chart-basic-config': PieChartBasicConfigComponent,
+  'tb-bar-chart-basic-config': BarChartBasicConfigComponent,
+  'tb-polar-area-chart-basic-config': PolarAreaChartBasicConfigComponent,
+  'tb-radar-chart-basic-config': RadarChartBasicConfigComponent,
+  'tb-digital-simple-gauge-basic-config': DigitalSimpleGaugeBasicConfigComponent,
+  'tb-mobile-app-qr-code-basic-config': MobileAppQrCodeBasicConfigComponent
 };

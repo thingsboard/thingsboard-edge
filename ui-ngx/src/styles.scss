@@ -37,6 +37,7 @@
 @import './scss/animations';
 @import './scss/mixins';
 @import './scss/fonts';
+@import './scss/flags';
 
 body, html {
   height: 100%;
@@ -870,6 +871,9 @@ mat-icon {
     }
     .mat-icon {
       color: rgba(0, 0, 0, .54);
+    }
+    &.tb-pointer {
+      cursor: pointer;
     }
   }
 

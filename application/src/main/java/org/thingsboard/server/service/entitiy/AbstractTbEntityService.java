@@ -37,23 +37,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.alarm.AlarmInfo;
-import org.thingsboard.server.common.data.alarm.AlarmQuery;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.edge.EdgeService;
@@ -65,10 +63,14 @@ import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
 public abstract class AbstractTbEntityService {
+
+    @Autowired
+    private Environment env;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
@@ -95,11 +97,8 @@ public abstract class AbstractTbEntityService {
     @Lazy
     private EntitiesVersionControlService vcService;
 
-    protected void removeAlarmsByEntityId(TenantId tenantId, EntityId entityId) {
-        PageData<AlarmInfo> alarms =
-                alarmService.findAlarms(tenantId, new AlarmQuery(entityId, new TimePageLink(Integer.MAX_VALUE), null, null, null, false));
-
-        alarms.getData().stream().map(AlarmInfo::getId).forEach(alarmId -> alarmService.delAlarm(tenantId, alarmId));
+    protected boolean isTestProfile() {
+        return Set.of(this.env.getActiveProfiles()).contains("test");
     }
 
     protected <T> T checkNotNull(T reference) throws ThingsboardException {

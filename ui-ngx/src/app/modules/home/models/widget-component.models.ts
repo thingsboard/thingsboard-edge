@@ -42,13 +42,13 @@ import {
   WidgetActionSource,
   WidgetConfig,
   WidgetControllerDescriptor,
+  WidgetExportType,
   WidgetType,
   widgetType,
   WidgetTypeDescriptor,
   WidgetTypeDetails,
   widgetTypeFqn,
-  WidgetTypeParameters,
-  WidgetExportType
+  WidgetTypeParameters
 } from '@shared/models/widget.models';
 import { Timewindow, WidgetTimewindow } from '@shared/models/time/time.models';
 import {
@@ -122,6 +122,7 @@ import { UserSettingsService } from '@core/http/user-settings.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { DynamicComponentModule } from '@core/services/dynamic-component-factory.service';
 import { DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
+import { UtilsService } from '@core/services/utils.service';
 
 export interface IWidgetAction {
   name: string;
@@ -214,6 +215,7 @@ export class WidgetContext {
   customDialog: CustomDialogService;
   resourceService: ResourceService;
   userSettingsService: UserSettingsService;
+  utilsService: UtilsService;
   telemetryWsService: TelemetryWebsocketService;
   telemetrySubscribers?: TelemetrySubscriber[];
   date: DatePipe;
@@ -300,6 +302,7 @@ export class WidgetContext {
 
   exportWidgetData: (widgetExportType: WidgetExportType) => void;
   customDataExport?: () => {[key: string]: any}[] | RxJS.Observable<{[key: string]: any}[]>;
+  exportDateFormat?: string;
 
   datasources?: Array<Datasource>;
   data?: Array<DatasourceData>;

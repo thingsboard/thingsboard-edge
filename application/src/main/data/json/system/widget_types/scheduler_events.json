@@ -11,7 +11,7 @@
     "resources": [],
     "templateHtml": "<tb-scheduler-events \n    [ctx]=\"ctx\"\n    widgetMode=\"true\">\n</tb-scheduler-events>",
     "templateCss": "",
-    "controllerScript": "self.onInit = function() {\n}\n\nself.onResize = function() {\n    self.ctx.$scope.schedulerEventsWidget.resize();\n}\n\nself.onDestroy = function() {\n}\n",
+    "controllerScript": "self.onInit = function() {\n}\n\nself.onResize = function() {\n    self.ctx.$scope.schedulerEventsWidget.resize();\n}\n\nself.onDestroy = function() {\n}\n\nself.onEditModeChanged = function() {\n    self.ctx.$scope.schedulerEventsWidget.onEditModeChanged();\n}",
     "settingsSchema": "",
     "dataKeySettingsSchema": "",
     "settingsDirective": "tb-scheduler-events-widget-settings",

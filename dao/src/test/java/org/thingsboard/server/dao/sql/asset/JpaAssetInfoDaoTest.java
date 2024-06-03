@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -105,6 +106,34 @@ public class JpaAssetInfoDaoTest extends AbstractJpaDaoTest {
 
         PageData<AssetInfo> assetInfos2 = assetInfoDao.findAssetsByTenantId(tenantId1, pageLink.nextPageLink());
         Assert.assertEquals(5, assetInfos2.getData().size());
+    }
+
+    @Test
+    public void testFindAssetInfosBySearchText() {
+        UUID tenantId = Uuids.timeBased();
+        CustomerId customerId = createCustomer(tenantId, null, 0).getId();
+
+        for (int i = 0; i < 5; i++) {
+            Asset asset = new Asset();
+            asset.setId(new AssetId(Uuids.timeBased()));
+            asset.setTenantId(TenantId.fromUUID(tenantId));
+            asset.setCustomerId(customerId);
+            asset.setName("ASSET_" + i);
+            asset.setLabel("label_" + i);
+            String type = "asset_type_" + i;
+            asset.setType(type);
+            asset.setAssetProfileId(assetProfileId(type));
+            assets.add(assetDao.save(AbstractServiceTest.SYSTEM_TENANT_ID, asset));
+        }
+
+        PageData<AssetInfo> assetInfosByName = assetInfoDao.findAssetsByTenantIdAndCustomerId(tenantId,customerId.getId(), new PageLink(15, 0, "ASSET_2"));
+        Assert.assertEquals(1, assetInfosByName.getData().size());
+
+        PageData<AssetInfo> assetInfosByLabel = assetInfoDao.findAssetsByTenantIdAndCustomerId(tenantId, customerId.getId(), new PageLink(15, 0, "label_3"));
+        Assert.assertEquals(1, assetInfosByLabel.getData().size());
+
+        PageData<AssetInfo> assetInfosByType = assetInfoDao.findAssetsByTenantIdAndCustomerId(tenantId, customerId.getId(), new PageLink(15, 0, "asset_type_4"));
+        Assert.assertEquals(1, assetInfosByType.getData().size());
     }
 
     @Test
