@@ -709,7 +709,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void testFindAllResource_CustomerUserWithoutPermission() throws Exception {
+    public void testFindAllResource_customerUserWithoutPermission() throws Exception {
         String apiResources = loginTenantAdminAndCreateResources();
 
         loginNewCustomerUserWithoutPermissions();
@@ -718,7 +718,7 @@ public class TbResourceControllerTest extends AbstractControllerTest {
                 "You don't have permission to perform this operation!");
     }
     @Test
-    public void testFindAllResource_TenantUserWithoutPermission() throws Exception {
+    public void testFindAllResource_tenantUserWithoutPermission() throws Exception {
         String apiResources = loginTenantAdminAndCreateResources();
         String msgError = "You don't have permission to perform 'READ' operation with 'TB_RESOURCE' resource!";
 
