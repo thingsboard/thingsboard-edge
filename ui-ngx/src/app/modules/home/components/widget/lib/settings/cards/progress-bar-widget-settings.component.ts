@@ -94,7 +94,8 @@ export class ProgressBarWidgetSettingsComponent extends WidgetSettingsComponent 
       barColor: [settings.barColor, []],
       barBackground: [settings.barBackground, []],
 
-      background: [settings.background, []]
+      background: [settings.background, []],
+      padding: [settings.padding, []]
     });
   }
 

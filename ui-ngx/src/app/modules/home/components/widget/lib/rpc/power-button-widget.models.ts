@@ -91,6 +91,7 @@ export interface PowerButtonWidgetSettings {
   mainColorDisabled: string;
   backgroundColorDisabled: string;
   background: BackgroundSettings;
+  padding: string;
 }
 
 export const powerButtonDefaultSettings: PowerButtonWidgetSettings = {
@@ -189,7 +190,8 @@ export const powerButtonDefaultSettings: PowerButtonWidgetSettings = {
       color: 'rgba(255,255,255,0.72)',
       blur: 3
     }
-  }
+  },
+  padding: '12px'
 };
 
 interface PowerButtonColor {

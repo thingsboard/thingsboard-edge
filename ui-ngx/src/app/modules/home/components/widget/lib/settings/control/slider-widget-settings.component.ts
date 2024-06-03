@@ -128,6 +128,7 @@ export class SliderWidgetSettingsComponent extends WidgetSettingsComponent {
       rightIconColor: [settings.rightIconColor, []],
 
       background: [settings.background, []],
+      padding: [settings.padding, []]
     });
   }
 
