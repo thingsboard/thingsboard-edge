@@ -36,7 +36,6 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.internal.util.collections.ConcurrentReferenceHashMap;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
@@ -52,12 +51,13 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
+import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.EnumSet;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -84,7 +84,6 @@ public class TbChangeOwnerNode implements TbNode {
     private static final Set<EntityType> supportedEntityTypes = EnumSet.of(EntityType.TENANT, EntityType.CUSTOMER);
     private static final String supportedEntityTypesStr = supportedEntityTypes.stream().map(Enum::name).collect(Collectors.joining(", "));
 
-    private ConcurrentMap<CustomerCreationLock, Object> customerCreationLocks;
     private TbChangeOwnerNodeConfiguration config;
     private EntityType ownerType;
 
@@ -104,7 +103,6 @@ public class TbChangeOwnerNode implements TbNode {
         if (StringUtils.isBlank(config.getOwnerNamePattern())) {
             throw new TbNodeException("Owner name should be specified!", true);
         }
-        customerCreationLocks = new ConcurrentReferenceHashMap<>();
     }
 
     @Override
@@ -125,34 +123,35 @@ public class TbChangeOwnerNode implements TbNode {
     }
 
     private ListenableFuture<CustomerId> findOrCreateCustomer(TbContext ctx, TbMsg msg, String ownerName) {
-        ListenableFuture<Optional<Customer>> optionalCustomerListenableFuture = ctx.getDbCallbackExecutor().executeAsync(
-                () -> ctx.getCustomerService().findCustomerByTenantIdAndTitle(ctx.getTenantId(), ownerName)
-        );
+        CustomerService customerService = ctx.getCustomerService();
+        TenantId tenantId = ctx.getTenantId();
+        ListenableFuture<Optional<Customer>> optionalCustomerListenableFuture = customerService.findCustomerByTenantIdAndTitleAsync(tenantId, ownerName);
         if (config.isCreateOwnerIfNotExists()) {
             return Futures.transform(optionalCustomerListenableFuture,
                     customerOpt -> {
                         if (customerOpt.isPresent()) {
                             return customerOpt.get().getId();
                         }
-                        var customerCreationLock = new CustomerCreationLock(ctx.getTenantId(), ownerName);
-                        synchronized (customerCreationLocks.computeIfAbsent(customerCreationLock, k -> new Object())) {
-                            customerOpt = ctx.getCustomerService().findCustomerByTenantIdAndTitle(ctx.getTenantId(), ownerName);
-                            if (customerOpt.isPresent()) {
-                                return customerOpt.get().getId();
-                            }
+                        try {
                             Customer newCustomer = new Customer();
                             newCustomer.setTitle(ownerName);
-                            newCustomer.setTenantId(ctx.getTenantId());
+                            newCustomer.setTenantId(tenantId);
                             if (config.isCreateOwnerOnOriginatorLevel()) {
                                 EntityId currentOriginatorOwnerId = ctx.getPeContext()
-                                        .getOwner(ctx.getTenantId(), msg.getOriginator());
+                                        .getOwner(tenantId, msg.getOriginator());
                                 newCustomer.setOwnerId(currentOriginatorOwnerId);
                             }
-                            Customer savedCustomer = ctx.getCustomerService().saveCustomer(newCustomer);
+                            Customer savedCustomer = customerService.saveCustomer(newCustomer);
                             ctx.enqueue(ctx.customerCreatedMsg(savedCustomer, ctx.getSelfId()),
                                     () -> log.trace("Pushed Customer Created message: {}", savedCustomer),
                                     throwable -> log.warn("Failed to push Device Created message: {}", savedCustomer, throwable));
                             return savedCustomer.getId();
+                        } catch (DataValidationException e) {
+                            customerOpt = customerService.findCustomerByTenantIdAndTitle(tenantId, ownerName);
+                            if (customerOpt.isPresent()) {
+                                return customerOpt.get().getId();
+                            }
+                            throw new RuntimeException("Failed to create customer with title '" + ownerName + "'", e);
                         }
                     }, MoreExecutors.directExecutor());
         }
@@ -160,7 +159,7 @@ public class TbChangeOwnerNode implements TbNode {
             if (customer.isPresent()) {
                 return customer.get().getId();
             }
-            throw new NoSuchElementException("Customer with name '" + ownerName + "' doesn't exist!");
+            throw new NoSuchElementException("Customer with title '" + ownerName + "' doesn't exist!");
         }, MoreExecutors.directExecutor());
     }
 
@@ -181,13 +180,6 @@ public class TbChangeOwnerNode implements TbNode {
     }
 
     @Override
-    public void destroy() {
-        if (customerCreationLocks != null) {
-            customerCreationLocks.clear();
-        }
-    }
-
-    @Override
     public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
         boolean hasChanges = false;
         switch (fromVersion) {
@@ -204,6 +196,4 @@ public class TbChangeOwnerNode implements TbNode {
         return new TbPair<>(hasChanges, oldConfiguration);
     }
 
-    private record CustomerCreationLock(TenantId tenantId, String customerTitle) {
-    }
 }
