@@ -62,6 +62,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
@@ -92,6 +93,7 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
+import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
@@ -130,6 +132,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public static final String EDGE_ENTITY_GROUP_RELATION_PREFIX = "EDGE_ENTITY_GROUP_";
 
     private static final ReentrantLock roleCreationLock = new ReentrantLock();
+    private RoleId tenantAdminRoleId;
 
     @Autowired
     private EntityGroupDao entityGroupDao;
@@ -157,6 +160,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Autowired
     private JpaExecutorService executorService;
+
+    @Autowired
+    private UserService userService;
 
     @Override
     public EntityGroup findEntityGroupById(TenantId tenantId, EntityGroupId entityGroupId) {
@@ -779,23 +785,32 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Override
     public void removeEntityFromEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
-        log.trace("Executing removeEntityFromEntityGroup, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
-        validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
-        validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
-        relationService.deleteRelation(tenantId, entityGroupId, entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
-        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
-        eventPublisher.publishEvent(ActionEntityEvent.builder()
-                .tenantId(tenantId)
-                .entityId(entityId)
-                .actionType(ActionType.REMOVED_FROM_ENTITY_GROUP)
-                .entityGroup(entityGroup).build());
+        removeEntitiesFromEntityGroup(tenantId, entityGroupId, Collections.singletonList(entityId));
     }
 
     @Override
     public void removeEntitiesFromEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds) {
         log.trace("Executing removeEntitiesFromEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
         validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
-        entityIds.forEach(entityId -> removeEntityFromEntityGroup(tenantId, entityGroupId, entityId));
+        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+        if (isTenantAdminUserGroup(entityGroup)) {
+            if (containsLastTenantAdmin(tenantId, entityIds.stream().map(UserId.class::cast).collect(Collectors.toList()))) {
+                throw new IncorrectParameterException("At least one tenant administrator must remain!");
+            }
+        }
+        entityIds.forEach(entityId -> removeEntityFromEntityGroup(tenantId, entityId, entityGroup));
+    }
+
+    private void removeEntityFromEntityGroup(TenantId tenantId, EntityId entityId, EntityGroup entityGroup) {
+        log.trace("Executing removeEntityFromEntityGroup, entityGroupId [{}], entityId [{}]", entityGroup.getId(), entityId);
+        validateId(entityGroup.getId(), id -> INCORRECT_ENTITY_GROUP_ID + id);
+        validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
+        relationService.deleteRelation(tenantId, entityGroup.getId(), entityId, EntityRelation.CONTAINS_TYPE, RelationTypeGroup.FROM_ENTITY_GROUP);
+        eventPublisher.publishEvent(ActionEntityEvent.builder()
+                .tenantId(tenantId)
+                .entityId(entityId)
+                .actionType(ActionType.REMOVED_FROM_ENTITY_GROUP)
+                .entityGroup(entityGroup).build());
     }
 
     @Override
@@ -1203,6 +1218,31 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
             default:
                 throw new IllegalArgumentException("Wrong entity type: " + entityType);
         }
+    }
+
+    @Override
+    public boolean isTenantAdminUserGroup(EntityGroup entityGroup) {
+        return EntityType.USER.equals(entityGroup.getType()) && (entityGroup.getOwnerId() instanceof TenantId)
+                && groupPermissionService.existsByUserGroupIdAndRoleId(entityGroup.getId(), getTenantAdminRoleId());
+    }
+
+    @Override
+    public boolean containsLastTenantAdmin(TenantId tenantId, List<UserId> usersToRemove) {
+        return userService.countUsersByTenantIdAndRoleIdAndIdNotIn(tenantId, getTenantAdminRoleId(), usersToRemove) == 0;
+    }
+
+    private RoleId getTenantAdminRoleId() {
+        if (tenantAdminRoleId == null) {
+            roleCreationLock.lock();
+            try {
+                if (tenantAdminRoleId == null) {
+                    tenantAdminRoleId = roleService.findOrCreateTenantAdminRole().getId();
+                }
+            } finally {
+                roleCreationLock.unlock();
+            }
+        }
+        return tenantAdminRoleId;
     }
 
 }
