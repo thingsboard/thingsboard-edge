@@ -785,13 +785,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
 
     @Override
     public void removeEntityFromEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, EntityId entityId) {
-        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
-        if (isTenantAdminUserGroup(entityGroup)) {
-            if (containsLastTenantAdmin(tenantId, Collections.singletonList((UserId) entityId))) {
-                throw new IncorrectParameterException("At least one tenant administrator must remain!");
-            }
-        }
-        removeEntityFromEntityGroup(tenantId, entityId, entityGroup);
+        removeEntitiesFromEntityGroup(tenantId, entityGroupId, Collections.singletonList(entityId));
     }
 
     @Override
