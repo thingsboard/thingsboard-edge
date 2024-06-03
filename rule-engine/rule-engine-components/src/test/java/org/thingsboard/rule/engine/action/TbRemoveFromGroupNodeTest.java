@@ -62,12 +62,13 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TbRemoveFromGroupNodeTest {
 
-    private final TenantId TENANT_ID = new TenantId(UUID.fromString("cb27b618-e85b-4a65-b270-edc4b59fc01f"));
+    private final TenantId TENANT_ID = TenantId.fromUUID(UUID.fromString("cb27b618-e85b-4a65-b270-edc4b59fc01f"));
     private final DeviceId DEVICE_ID = new DeviceId(UUID.fromString("961167a0-c6a7-44a9-ac2b-f1f40102ba97"));
     private final ListeningExecutor dbCallbackExecutor = new TestDbCallbackExecutor();
 
@@ -94,11 +95,7 @@ class TbRemoveFromGroupNodeTest {
         var configuration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         node.init(ctxMock, configuration);
 
-        when(ctxMock.getPeContext()).thenReturn(peContextMock);
-        when(peContextMock.getOwner(any(), any())).thenReturn(TENANT_ID);
-        when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
-        when(peContextMock.getEntityGroupService()).thenReturn(entityGroupServiceMock);
-        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
+        initMocks();
         when(entityGroupServiceMock.findEntityGroupByTypeAndNameAsync(any(), any(), any(), any()))
                 .thenReturn(Futures.immediateFuture(Optional.of(new EntityGroup(entityGroupId))));
 
@@ -111,6 +108,7 @@ class TbRemoveFromGroupNodeTest {
         verify(entityGroupServiceMock).findEntityGroupByTypeAndNameAsync(eq(TENANT_ID), eq(TENANT_ID), eq(EntityType.DEVICE), eq("Device Group"));
         verify(entityGroupServiceMock).removeEntityFromEntityGroup(eq(TENANT_ID), eq(entityGroupId), eq(DEVICE_ID));
         verify(ctxMock).tellNext(msg, "Success");
+        verifyNoMoreInteractions(ctxMock, peContextMock, entityGroupServiceMock);
     }
 
     @Test
@@ -119,11 +117,7 @@ class TbRemoveFromGroupNodeTest {
         var configuration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         node.init(ctxMock, configuration);
 
-        when(ctxMock.getPeContext()).thenReturn(peContextMock);
-        when(peContextMock.getOwner(any(), any())).thenReturn(TENANT_ID);
-        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
-        when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
-        when(peContextMock.getEntityGroupService()).thenReturn(entityGroupServiceMock);
+        initMocks();
         when(entityGroupServiceMock.findEntityGroupByTypeAndNameAsync(any(), any(), any(), any()))
                 .thenReturn(Futures.immediateFuture(Optional.empty()));
 
@@ -134,11 +128,20 @@ class TbRemoveFromGroupNodeTest {
         assertThatThrownBy(() -> node.onMsg(ctxMock, msg))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("java.lang.RuntimeException: No entity group found with type '" + EntityType.DEVICE + " ' and name 'Device Group'.");
+        verifyNoMoreInteractions(ctxMock, peContextMock, entityGroupServiceMock);
     }
 
     @Test
     public void givenDefaultConfig_whenInit_thenOk() {
         var configuration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         assertThatNoException().isThrownBy(() -> node.init(ctxMock, configuration));
+    }
+
+    private void initMocks() {
+        when(ctxMock.getPeContext()).thenReturn(peContextMock);
+        when(peContextMock.getOwner(any(), any())).thenReturn(TENANT_ID);
+        when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
+        when(peContextMock.getEntityGroupService()).thenReturn(entityGroupServiceMock);
+        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
     }
 }

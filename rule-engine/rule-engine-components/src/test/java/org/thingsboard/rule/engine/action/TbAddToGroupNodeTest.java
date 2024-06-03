@@ -64,13 +64,15 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatNoException
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class TbAddToGroupNodeTest {
 
-    private final TenantId TENANT_ID = new TenantId(UUID.fromString("b744dd76-79ea-442c-a7b8-c06c7f568488"));
+    private final TenantId TENANT_ID = TenantId.fromUUID(UUID.fromString("b744dd76-79ea-442c-a7b8-c06c7f568488"));
     private final DeviceId DEVICE_ID = new DeviceId(UUID.fromString("48641148-1f52-4d9e-ad74-238515365df5"));
+    private final EntityGroupId ENTITY_GROUP_ID = new EntityGroupId(UUID.fromString("dc91a98a-055c-4493-aae9-2de393f4f5ab"));
     private final ListeningExecutor dbCallbackExecutor = new TestDbCallbackExecutor();
 
     private TbAddToGroupNode node;
@@ -93,18 +95,13 @@ class TbAddToGroupNodeTest {
 
     @Test
     public void givenEntityWithoutEntityGroup_whenOnMsg_thenAddToExistingGroup() throws TbNodeException {
-        EntityGroupId entityGroupId = new EntityGroupId(UUID.fromString("0aba647a-c081-42da-83eb-2fe9dc920bcb"));
         config.setGroupNamePattern("${groupName}");
         var configuration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         node.init(ctxMock, configuration);
 
-        when(ctxMock.getPeContext()).thenReturn(peContextMock);
-        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
-        when(peContextMock.getOwner(any(), any())).thenReturn(TENANT_ID);
-        when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
-        when(peContextMock.getEntityGroupService()).thenReturn(entityGroupServiceMock);
+        initMocks();
         when(entityGroupServiceMock.findEntityGroupByTypeAndNameAsync(any(), any(), any(), any()))
-                .thenReturn(Futures.immediateFuture(Optional.of(new EntityGroup(entityGroupId))));
+                .thenReturn(Futures.immediateFuture(Optional.of(new EntityGroup(ENTITY_GROUP_ID))));
 
         TbMsg msg = TbMsg.newMsg(
                 TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID,
@@ -113,26 +110,22 @@ class TbAddToGroupNodeTest {
 
         verify(peContextMock).getOwner(eq(TENANT_ID), eq(DEVICE_ID));
         verify(entityGroupServiceMock).findEntityGroupByTypeAndNameAsync(eq(TENANT_ID), eq(TENANT_ID), eq(EntityType.DEVICE), eq("Device Group"));
-        verify(entityGroupServiceMock).addEntityToEntityGroup(eq(TENANT_ID), eq(entityGroupId), eq(DEVICE_ID));
+        verify(entityGroupServiceMock).addEntityToEntityGroup(eq(TENANT_ID), eq(ENTITY_GROUP_ID), eq(DEVICE_ID));
         verify(ctxMock).tellNext(msg, "Success");
+        verifyNoMoreInteractions(ctxMock, peContextMock, entityGroupServiceMock);
     }
 
     @Test
     public void givenEntityAndEntityGroupNotExistAndCreateGroupIfNotExistsIsTrue_whenOnMsg_thenCreateAndAddEntityToNewGroup() throws TbNodeException {
-        EntityGroupId entityGroupId = new EntityGroupId(UUID.fromString("968ac449-ef4c-4ad9-9574-a955d036b5d5"));
         config.setGroupNamePattern("${groupName}");
         config.setCreateGroupIfNotExists(true);
         var configuration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         node.init(ctxMock, configuration);
 
-        when(ctxMock.getPeContext()).thenReturn(peContextMock);
-        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
-        when(peContextMock.getOwner(any(), any())).thenReturn(TENANT_ID);
-        when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
-        when(peContextMock.getEntityGroupService()).thenReturn(entityGroupServiceMock);
+        initMocks();
         when(entityGroupServiceMock.findEntityGroupByTypeAndNameAsync(any(), any(), any(), any()))
                 .thenReturn(Futures.immediateFuture(Optional.empty()));
-        when(entityGroupServiceMock.saveEntityGroup(any(), any(), any())).thenReturn(new EntityGroup(entityGroupId));
+        when(entityGroupServiceMock.saveEntityGroup(any(), any(), any())).thenReturn(new EntityGroup(ENTITY_GROUP_ID));
 
         TbMsg msg = TbMsg.newMsg(
                 TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID,
@@ -145,13 +138,14 @@ class TbAddToGroupNodeTest {
         newEntityGroup.setName("Another Device Group");
         newEntityGroup.setType(EntityType.DEVICE);
         verify(entityGroupServiceMock).saveEntityGroup(eq(TENANT_ID), eq(TENANT_ID), eq(newEntityGroup));
-        verify(entityGroupServiceMock).addEntityToEntityGroup(eq(TENANT_ID), eq(entityGroupId), eq(DEVICE_ID));
+        verify(entityGroupServiceMock).addEntityToEntityGroup(eq(TENANT_ID), eq(ENTITY_GROUP_ID), eq(DEVICE_ID));
         verify(ctxMock).tellNext(msg, "Success");
+        verifyNoMoreInteractions(ctxMock, peContextMock, entityGroupServiceMock);
     }
 
     @Test
     void givenEntityWithEntityGroupAndRemoveFromCurrentGroups_whenOnMsg_thenAddToExistingGroupAndRemoveFromCurrentGroups() throws TbNodeException {
-        EntityGroupId currentEntityGroupId = new EntityGroupId(UUID.fromString("95017c30-e91a-4387-8fbf-4913e881ab05"));
+        EntityGroupId currentEntityGroupId = ENTITY_GROUP_ID;
         EntityGroupId newEntityGroupId = new EntityGroupId(UUID.fromString("0aba647a-c081-42da-83eb-2fe9dc920bcb"));
         Device device = new Device(DEVICE_ID);
         device.setTenantId(TENANT_ID);
@@ -160,11 +154,7 @@ class TbAddToGroupNodeTest {
         var configuration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         node.init(ctxMock, configuration);
 
-        when(ctxMock.getPeContext()).thenReturn(peContextMock);
-        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
-        when(peContextMock.getOwner(any(), any())).thenReturn(TENANT_ID);
-        when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
-        when(peContextMock.getEntityGroupService()).thenReturn(entityGroupServiceMock);
+        initMocks();
         when(entityGroupServiceMock.findEntityGroupByTypeAndNameAsync(any(), any(), any(), any()))
                 .thenReturn(Futures.immediateFuture(Optional.of(new EntityGroup(newEntityGroupId))));
         when(entityGroupServiceMock.findEntityGroupsForEntityAsync(any(), any()))
@@ -186,11 +176,20 @@ class TbAddToGroupNodeTest {
         verify(entityGroupServiceMock).findEntityGroupByTypeAndNameAsync(eq(TENANT_ID), eq(TENANT_ID), eq(EntityType.DEVICE), eq(EntityGroup.GROUP_ALL_NAME));
         verify(entityGroupServiceMock).addEntityToEntityGroup(eq(TENANT_ID), eq(newEntityGroupId), eq(DEVICE_ID));
         verify(ctxMock).tellNext(msg, "Success");
+        verifyNoMoreInteractions(ctxMock, peContextMock, entityGroupServiceMock);
     }
 
     @Test
     public void givenDefaultConfig_whenInit_thenOk() {
         var configuration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
         assertThatNoException().isThrownBy(() -> node.init(ctxMock, configuration));
+    }
+
+    private void initMocks() {
+        when(ctxMock.getPeContext()).thenReturn(peContextMock);
+        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
+        when(peContextMock.getOwner(any(), any())).thenReturn(TENANT_ID);
+        when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
+        when(peContextMock.getEntityGroupService()).thenReturn(entityGroupServiceMock);
     }
 }
