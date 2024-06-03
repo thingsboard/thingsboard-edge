@@ -720,11 +720,14 @@ public class TbResourceControllerTest extends AbstractControllerTest {
     @Test
     public void testFindAllResource_TenantUserWithoutPermission() throws Exception {
         String apiResources = loginTenantAdminAndCreateResources();
+        String msgError = "You don't have permission to perform 'READ' operation with 'TB_RESOURCE' resource!";
 
         loginNewTenantUserWithoutPermissions();
 
-        returnResourcesWithoutPermissionForbidden(apiResources,
-                "You don't have permission to perform 'READ' operation with 'TB_RESOURCE' resource!");
+        returnResourcesWithoutPermissionForbidden(apiResources, msgError);
+
+        apiResources = "/api/resource/tenant?";
+        returnResourcesWithoutPermissionForbidden(apiResources, msgError);
     }
 
     private TbResource save(TbResource tbResource) throws Exception {

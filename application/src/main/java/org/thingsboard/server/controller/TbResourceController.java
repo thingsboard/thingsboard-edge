@@ -252,6 +252,7 @@ public class TbResourceController extends BaseController {
                                                        @RequestParam(required = false) String sortProperty,
                                                        @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
                                                        @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), Resource.TB_RESOURCE, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         TbResourceInfoFilter filter = TbResourceInfoFilter.builder()
                 .tenantId(getTenantId())
