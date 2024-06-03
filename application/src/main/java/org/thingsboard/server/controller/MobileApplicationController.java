@@ -98,7 +98,7 @@ public class MobileApplicationController extends BaseController {
             "    }\n" +
             "}";
 
-    public static final String ANDROID_APPLICATION_STORE_LINK = "https://play.google.com/store/apps/details?id=org.thingsboard.demo.app";
+    public static final String ANDROID_APPLICATION_STORE_LINK = "https://play.google.com/store/apps/details?id=org.thingsboard.cloud";
     public static final String APPLE_APPLICATION_STORE_LINK = "https://apps.apple.com/ua/app/thingsboard-cloud/id6499209395";
     public static final String SECRET = "secret";
     public static final String SECRET_PARAM_DESCRIPTION = "A string value representing short-lived secret key";
