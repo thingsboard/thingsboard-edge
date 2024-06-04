@@ -161,6 +161,7 @@ export const HelpLinks = {
     ruleNodeSendSms: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rule-engine-2-0/external-nodes/#send-sms-node`,
     ruleNodeMath: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rule-engine-2-0/action-nodes/#math-function-node`,
     ruleNodeCalculateDelta: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rule-engine-2-0/enrichment-nodes/#calculate-delta`,
+    ruleNodeRestCallReply: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rule-engine-2-0/action-nodes/#rest-call-reply-node`,
     ruleNodePushToCloud: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rule-engine-2-0/action-nodes/#push-to-cloud`,
     ruleNodePushToEdge: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rule-engine-2-0/action-nodes/#push-to-edge`, //CE END
     ruleNodeIntegrationDownlink: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rule-engine-2-0/action-nodes/#integration-downlink-node`,
@@ -171,7 +172,6 @@ export const HelpLinks = {
     ruleNodeDuplicateToRelated: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rule-engine-2-0/transformation-nodes/#duplicate-to-related-node`,
     ruleNodeChangeOwner: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rule-engine-2-0/action-nodes/#change-owner-node`,
     ruleNodeGenerateReport: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rule-engine-2-0/action-nodes/#generate-report-node`,
-    ruleNodeRestCallReply: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rule-engine-2-0/action-nodes/#rest-call-reply-node`,
     ruleNodeAggregateLatest: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rule-engine-2-0/analytics-nodes/#aggregate-latest-node`,
     ruleNodeAggregateStream: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rule-engine-2-0/analytics-nodes/#aggregate-stream-node`,
     ruleNodeAlarmsCount: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/rule-engine-2-0/analytics-nodes/#alarms-count-node`,

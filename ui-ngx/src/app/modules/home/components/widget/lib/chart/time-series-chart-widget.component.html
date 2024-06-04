@@ -30,8 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-time-series-chart-panel" [style.padding]="padding"
-     [class.overlay]="overlayEnabled" [style]="backgroundStyle$ | async">
+<div class="tb-time-series-chart-panel" [style.padding]="padding" [style]="backgroundStyle$ | async">
   <div class="tb-time-series-chart-overlay" [style]="overlayStyle"></div>
   <ng-container *ngTemplateOutlet="widgetTitlePanel"></ng-container>
   <div class="tb-time-series-chart-content" [class]="legendClass">
