@@ -70,7 +70,8 @@ export class MobileAppQrCodeWidgetSettingsComponent extends WidgetSettingsCompon
         qrCodeLabelEnabled: [settings.qrCodeConfig.qrCodeLabelEnabled],
         qrCodeLabel: [settings.qrCodeConfig.qrCodeLabel]
       }),
-      background: [settings.background]
+      background: [settings.background],
+      padding: [settings.padding, []]
     });
   }
 
