@@ -264,15 +264,7 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
     this.searchText = searchText;
     return this.entityService.getEntitiesByNameFilter(this.entityType, searchText,
       50, this.entitySubType, {ignoreLoading: true}).pipe(
-      map((data) => {
-        if (data) {
-          if (this.entityType === EntityType.QUEUE_STATS) {
-            data.forEach((entity: QueueStatisticsInfo) => entity.name = `${entity.queueName} (${entity.serviceId})`);
-          }
-          return data;
-        }
-        return [];
-      }));
+      map((data) => data ? data : []));
   }
 
   onFocus() {
