@@ -212,9 +212,6 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
       this.entityService.getEntities(this.entityType, value).subscribe(
         (entities) => {
           this.entities = entities;
-          if (this.entityType === EntityType.QUEUE_STATS) {
-            this.entities.forEach((queueStat: QueueStatisticsInfo) => queueStat.name = `${queueStat.queueName} (${queueStat.serviceId})`);
-          }
           this.entityListFormGroup.get('entities').setValue(this.entities);
         }
       );
