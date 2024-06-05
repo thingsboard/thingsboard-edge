@@ -103,7 +103,7 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
 
   ngOnInit(): void {
     if (!this.mobileAppSettings) {
-      this.mobileAppService.getMobileAppSettings().subscribe((settings => {
+      this.mobileAppService.getMergedMobileAppSettings().subscribe((settings => {
         this.mobileAppSettings = settings;
         if (isDefinedAndNotNull(this.ctx.settings.useSystemSettings) && !this.ctx.settings.useSystemSettings) {
           this.mobileAppSettings = mergeDeep(this.mobileAppSettings, this.ctx.settings);

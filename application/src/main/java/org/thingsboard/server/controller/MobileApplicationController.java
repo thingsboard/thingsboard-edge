@@ -100,8 +100,8 @@ public class MobileApplicationController extends BaseController {
             "    }\n" +
             "}";
 
-    public static final String ANDROID_APPLICATION_STORE_LINK = "https://play.google.com/store/apps/details?id=org.thingsboard.cloud";
-    public static final String APPLE_APPLICATION_STORE_LINK = "https://apps.apple.com/ua/app/thingsboard-cloud/id6499209395";
+    public static final String DEFAULT_GOOGLE_APP_STORE_LINK = "https://play.google.com/store/apps/details?id=org.thingsboard.cloud";
+    public static final String DEFAULT_APPLE_APP_STORE_LINK = "https://apps.apple.com/ua/app/thingsboard-cloud/id6499209395";
     public static final String SECRET = "secret";
     public static final String SECRET_PARAM_DESCRIPTION = "A string value representing short-lived secret key";
     public static final String DEFAULT_APP_DOMAIN = "thingsboard.cloud";
@@ -215,8 +215,15 @@ public class MobileApplicationController extends BaseController {
     }
 
     @GetMapping(value = "/api/noauth/qr")
-    public ResponseEntity<?> getApplicationRedirect(@RequestHeader(value = "User-Agent") String userAgent) {
-        MobileAppSettings mobileAppSettings = mobileAppSettingsService.getMobileAppSettings(TenantId.SYS_TENANT_ID);
+    public ResponseEntity<?> getApplicationRedirect(@RequestHeader(value = "User-Agent") String userAgent, HttpServletRequest request) {
+        String domainName = request.getServerName();
+        WhiteLabeling loginWL = whiteLabelingService.findByDomainName(domainName);
+        MobileAppSettings mobileAppSettings;
+        if (loginWL != null) {
+            mobileAppSettings = mobileAppSettingsService.getMergedMobileAppSettings(loginWL.getTenantId());
+        } else {
+            mobileAppSettings = mobileAppSettingsService.getMobileAppSettings(TenantId.SYS_TENANT_ID);
+        }
         if (userAgent.contains("Android")) {
             return ResponseEntity.status(HttpStatus.FOUND)
                     .header("Location", getGoogleStoreLink(mobileAppSettings))
@@ -235,8 +242,8 @@ public class MobileApplicationController extends BaseController {
             notes = "The response payload contains links to google play and apple store." + AVAILABLE_FOR_ANY_AUTHORIZED_USER)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/api/mobile/app/storeLinks")
-    public JsonNode getMobileAppStoreLinks() {
-        MobileAppSettings mobileAppSettings = mobileAppSettingsService.getMobileAppSettings(TenantId.SYS_TENANT_ID);
+    public JsonNode getMobileAppStoreLinks() throws ThingsboardException {
+        MobileAppSettings mobileAppSettings = mobileAppSettingsService.getMergedMobileAppSettings(getTenantId());
         ObjectNode infoObject = JacksonUtil.newObjectNode();
         infoObject.put("googlePlayLink", getGoogleStoreLink(mobileAppSettings));
         infoObject.put("appStoreLink", getAppleStoreLink(mobileAppSettings));
