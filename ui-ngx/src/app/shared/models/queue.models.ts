@@ -145,4 +145,5 @@ export interface QueueStatisticsInfo extends BaseData<QueueId>, HasTenantId {
   queueName: string;
   serviceId: string;
   name?: string;
+  tenantId?: TenantId;
 }
