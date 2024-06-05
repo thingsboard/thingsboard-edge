@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +65,7 @@ import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Optional;
 
 import static org.thingsboard.server.controller.ControllerConstants.AVAILABLE_FOR_ANY_AUTHORIZED_USER;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
@@ -214,18 +216,41 @@ public class MobileApplicationController extends BaseController {
 
     @GetMapping(value = "/api/noauth/qr")
     public ResponseEntity<?> getApplicationRedirect(@RequestHeader(value = "User-Agent") String userAgent) {
+        MobileAppSettings mobileAppSettings = mobileAppSettingsService.getMobileAppSettings(TenantId.SYS_TENANT_ID);
         if (userAgent.contains("Android")) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header("Location", ANDROID_APPLICATION_STORE_LINK)
+                    .header("Location", getGoogleStoreLink(mobileAppSettings))
                     .build();
         } else if (userAgent.contains("iPhone") || userAgent.contains("iPad")) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header("Location", APPLE_APPLICATION_STORE_LINK)
+                    .header("Location", getAppleStoreLink(mobileAppSettings))
                     .build();
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .build();
         }
+    }
+
+    @ApiOperation(value = "Get Mobile application store link (getMobileAppStoreLinks)",
+            notes = "The response payload contains links to google play and apple store." + AVAILABLE_FOR_ANY_AUTHORIZED_USER)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @GetMapping(value = "/api/mobile/app/storeLinks")
+    public JsonNode getMobileAppStoreLinks() {
+        MobileAppSettings mobileAppSettings = mobileAppSettingsService.getMobileAppSettings(TenantId.SYS_TENANT_ID);
+        ObjectNode infoObject = JacksonUtil.newObjectNode();
+        infoObject.put("googlePlayLink", getGoogleStoreLink(mobileAppSettings));
+        infoObject.put("appStoreLink", getAppleStoreLink(mobileAppSettings));
+        return infoObject;
+    }
+
+    private String getGoogleStoreLink(MobileAppSettings mobileAppSettings) {
+        return mobileAppSettings.isUseDefaultApp() ? DEFAULT_GOOGLE_APP_STORE_LINK :
+                Optional.ofNullable(mobileAppSettings.getAndroidConfig().getStoreLink()).orElse(DEFAULT_GOOGLE_APP_STORE_LINK);
+    }
+
+    private String getAppleStoreLink(MobileAppSettings mobileAppSettings) {
+        return mobileAppSettings.isUseDefaultApp() ? DEFAULT_APPLE_APP_STORE_LINK :
+                Optional.ofNullable(mobileAppSettings.getIosConfig().getStoreLink()).orElse(DEFAULT_APPLE_APP_STORE_LINK);
     }
 
 }

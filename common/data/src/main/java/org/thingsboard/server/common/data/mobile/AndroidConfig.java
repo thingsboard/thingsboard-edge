@@ -49,5 +49,7 @@ public class AndroidConfig {
     private String appPackage;
     @NoXss
     private String sha256CertFingerprints;
+    @NoXss
+    private String storeLink;
 
 }
