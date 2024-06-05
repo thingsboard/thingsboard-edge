@@ -97,4 +97,11 @@ export class MobileAppQrCodeWidgetSettingsComponent extends WidgetSettingsCompon
     }
   }
 
+  navigateToMobileAppSettings($event) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    window.open(window.location.origin + '/settings/mobile-app', '_blank');
+  }
+
 }

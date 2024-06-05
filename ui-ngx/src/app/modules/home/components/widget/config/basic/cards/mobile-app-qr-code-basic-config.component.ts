@@ -196,4 +196,11 @@ export class MobileAppQrCodeBasicConfigComponent extends BasicWidgetConfigCompon
     config.enableFullscreen = buttons.includes('fullscreen');
   }
 
+  navigateToMobileAppSettings($event) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    window.open(window.location.origin + '/settings/mobile-app', '_blank');
+  }
+
 }

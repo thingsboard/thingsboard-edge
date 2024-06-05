@@ -44,7 +44,8 @@
       <div class="tb-form-hint tb-primary-fill">
         {{ 'widgets.mobile-app-qr-code.configuration-hint' | translate }}
         <button mat-icon-button color="primary" class="tb-mat-24"
-                routerLink="/settings/mobile-app">
+                style="position: relative;top: 3px"
+                (click)="navigateToMobileAppSettings($event)">
           <mat-icon class="material-icons tb-mat-16">open_in_new</mat-icon>
         </button>
       </div>
