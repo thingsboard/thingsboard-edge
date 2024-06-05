@@ -40,7 +40,6 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Operation } from '@shared/models/security.models';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
-import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-entity-select',
@@ -78,10 +77,6 @@ export class EntitySelectComponent implements ControlValueAccessor, OnInit, Afte
 
   @Input()
   disabled: boolean;
-
-  @Input()
-  @coerceBoolean()
-  addQueueStats = false;
 
   displayEntityTypeSelect: boolean;
 

@@ -55,7 +55,6 @@ import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { getEntityDetailsPageURL, isDefinedAndNotNull, isEqual } from '@core/utils';
 import { coerceBoolean } from '@shared/decorators/coercion';
-import { QueueStatisticsInfo } from '@shared/models/queue.models';
 
 @Component({
   selector: 'tb-entity-autocomplete',

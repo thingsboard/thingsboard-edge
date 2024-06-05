@@ -67,6 +67,8 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit, OnDe
   aliasFilterTypes: Array<AliasFilterType>;
   entityGroupTypes: Array<EntityType>;
 
+  listEntityTypes: Array<EntityType | AliasEntityType>;
+
   aliasFilterType = AliasFilterType;
   aliasFilterTypeTranslations = aliasFilterTypeTranslationMap;
   entityType = EntityType;
@@ -90,6 +92,11 @@ export class EntityFilterComponent implements ControlValueAccessor, OnInit, OnDe
     this.entityGroupTypes = entityGroupTypes.filter((entityType) =>
       this.allowedEntityTypes ? this.allowedEntityTypes.indexOf(entityType) > - 1 : true
     );
+
+    this.listEntityTypes = this.entityService.prepareAllowedEntityTypesList(this.allowedEntityTypes, false);
+    if (!this.allowedEntityTypes?.length || this.allowedEntityTypes.includes(EntityType.QUEUE_STATS)) {
+      this.listEntityTypes.push(EntityType.QUEUE_STATS);
+    }
 
     this.entityFilterFormGroup = this.fb.group({
       type: [null, [Validators.required]]

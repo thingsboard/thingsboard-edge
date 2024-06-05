@@ -956,7 +956,7 @@ export class EntityService {
   }
 
   public prepareAllowedEntityTypesList(allowedEntityTypes: Array<EntityType | AliasEntityType>,
-                                       useAliasEntityTypes?: boolean, operation?: Operation, addQueueStats = false): Array<EntityType | AliasEntityType> {
+                                       useAliasEntityTypes?: boolean, operation?: Operation): Array<EntityType | AliasEntityType> {
     const authState = getCurrentAuthState(this.store);
     const entityTypes: Array<EntityType | AliasEntityType> = [];
     switch (authState.authUser.authority) {
@@ -976,13 +976,12 @@ export class EntityService {
         entityTypes.push(EntityType.SCHEDULER_EVENT);
         entityTypes.push(EntityType.BLOB_ENTITY);
         entityTypes.push(EntityType.ROLE);
-        if (addQueueStats) {
-          entityTypes.push(EntityType.QUEUE_STATS);
-        }
         if (authState.edgesSupportEnabled) {
           entityTypes.push(EntityType.EDGE);
         }
         if (useAliasEntityTypes) {
+          entityTypes.push(EntityType.QUEUE_STATS);
+
           entityTypes.push(AliasEntityType.CURRENT_CUSTOMER);
           entityTypes.push(AliasEntityType.CURRENT_TENANT);
         }
