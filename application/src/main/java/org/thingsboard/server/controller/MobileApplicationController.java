@@ -31,7 +31,6 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -46,11 +45,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.mobile.AndroidConfig;
-import org.thingsboard.server.common.data.mobile.HasStoreLink;
 import org.thingsboard.server.common.data.mobile.IosConfig;
 import org.thingsboard.server.common.data.mobile.MobileAppSettings;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -67,7 +64,6 @@ import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Optional;
 
 import static org.thingsboard.server.controller.ControllerConstants.AVAILABLE_FOR_ANY_AUTHORIZED_USER;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
@@ -79,6 +75,8 @@ public class MobileApplicationController extends BaseController {
 
     @Value("${cache.specs.mobileSecretKey.timeToLiveInMinutes:2}")
     private int mobileSecretKeyTtl;
+    @Value("${mobileApp.domain:thingsboard.cloud}")
+    private String defaultAppDomain;
 
     public static final String ASSET_LINKS_PATTERN = "[{\n" +
             "  \"relation\": [\"delegate_permission/common.handle_all_urls\"],\n" +
@@ -102,11 +100,8 @@ public class MobileApplicationController extends BaseController {
             "    }\n" +
             "}";
 
-    public static final String DEFAULT_GOOGLE_APP_STORE_LINK = "https://play.google.com/store/apps/details?id=org.thingsboard.cloud";
-    public static final String DEFAULT_APPLE_APP_STORE_LINK = "https://apps.apple.com/ua/app/thingsboard-cloud/id6499209395";
     public static final String SECRET = "secret";
     public static final String SECRET_PARAM_DESCRIPTION = "A string value representing short-lived secret key";
-    public static final String DEFAULT_APP_DOMAIN = "thingsboard.cloud";
     public static final String DEEP_LINK_PATTERN = "https://%s/api/noauth/qr?secret=%s&ttl=%s";
 
     private final SystemSecurityService systemSecurityService;
@@ -198,7 +193,7 @@ public class MobileApplicationController extends BaseController {
         if (!mobileAppSettings.isUseDefaultApp()) {
             appDomain = platformDomain;
         } else {
-            appDomain = DEFAULT_APP_DOMAIN;
+            appDomain = defaultAppDomain;
         }
         String deepLink = String.format(DEEP_LINK_PATTERN, appDomain, secret, mobileSecretKeyTtl);
         if (!appDomain.equals(platformDomain)) {
@@ -227,38 +222,19 @@ public class MobileApplicationController extends BaseController {
             mobileAppSettings = mobileAppSettingsService.getMobileAppSettings(TenantId.SYS_TENANT_ID);
         }
         boolean useDefaultApp = mobileAppSettings.isUseDefaultApp();
+        String googlePlayLink = useDefaultApp ? mobileAppSettings.getDefaultGooglePlayLink() : mobileAppSettings.getAndroidConfig().getStoreLink();
+        String appStoreLink = useDefaultApp ? mobileAppSettings.getDefaultAppStoreLink() : mobileAppSettings.getIosConfig().getStoreLink();
         if (userAgent.contains("Android")) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header("Location", getAppStoreLink(useDefaultApp, mobileAppSettings.getAndroidConfig(), DEFAULT_GOOGLE_APP_STORE_LINK))
+                    .header("Location", googlePlayLink)
                     .build();
         } else if (userAgent.contains("iPhone") || userAgent.contains("iPad")) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header("Location", getAppStoreLink(useDefaultApp, mobileAppSettings.getIosConfig(), DEFAULT_APPLE_APP_STORE_LINK))
+                    .header("Location", appStoreLink)
                     .build();
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .build();
-        }
-    }
-
-    @ApiOperation(value = "Get Mobile application store link (getMobileAppStoreLinks)",
-            notes = "The response payload contains links to google play and apple store." + AVAILABLE_FOR_ANY_AUTHORIZED_USER)
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @GetMapping(value = "/api/mobile/app/storeLinks")
-    public JsonNode getMobileAppStoreLinks() throws ThingsboardException {
-        MobileAppSettings mobileAppSettings = mobileAppSettingsService.getMergedMobileAppSettings(getTenantId());
-        ObjectNode infoObject = JacksonUtil.newObjectNode();
-        boolean useDefaultApp = mobileAppSettings.isUseDefaultApp();
-        infoObject.put("googlePlayLink", getAppStoreLink(useDefaultApp, mobileAppSettings.getAndroidConfig(), DEFAULT_GOOGLE_APP_STORE_LINK));
-        infoObject.put("appStoreLink", getAppStoreLink(useDefaultApp, mobileAppSettings.getIosConfig(), DEFAULT_APPLE_APP_STORE_LINK));
-        return infoObject;
-    }
-
-    private String getAppStoreLink(boolean useDefaultApp, HasStoreLink storeLink, String defaultAppStoreLink) {
-        if (useDefaultApp || StringUtils.isEmpty(storeLink.getStoreLink())) {
-            return defaultAppStoreLink;
-        } else {
-            return storeLink.getStoreLink();
         }
     }
 

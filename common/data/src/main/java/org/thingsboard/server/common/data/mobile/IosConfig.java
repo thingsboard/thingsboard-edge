@@ -42,7 +42,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class IosConfig implements HasStoreLink {
+public class IosConfig {
 
     private boolean enabled;
     @NoXss
