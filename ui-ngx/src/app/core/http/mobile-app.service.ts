@@ -33,7 +33,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
 import { Observable } from 'rxjs';
-import { MobileAppSettings, MobileAppStoreLinks } from '@shared/models/mobile-app.models';
+import { MobileAppSettings } from '@shared/models/mobile-app.models';
 
 @Injectable({
   providedIn: 'root'
@@ -59,10 +59,6 @@ export class MobileAppService {
 
   public getMobileAppDeepLink(config?: RequestConfig): Observable<string> {
     return this.http.get<string>(`/api/mobile/deepLink`, defaultHttpOptionsFromConfig(config));
-  }
-
-  public getMobileAppStoreLinks(config?: RequestConfig): Observable<MobileAppStoreLinks> {
-    return this.http.get<MobileAppStoreLinks>('/api/mobile/app/storeLinks', defaultHttpOptionsFromConfig(config));
   }
 
 }
