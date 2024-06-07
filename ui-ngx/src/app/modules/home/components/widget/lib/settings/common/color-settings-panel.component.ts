@@ -35,7 +35,8 @@ import {
   ColorSettings,
   ColorType,
   colorTypeTranslations,
-  defaultGradient, defaultRange
+  defaultGradient,
+  defaultRange
 } from '@shared/models/widget-settings.models';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -122,7 +123,7 @@ export class ColorSettingsPanelComponent extends PageComponent implements OnInit
       }
     );
     this.colorSettingsFormGroup.get('type').valueChanges.subscribe(() => {
-      setTimeout(() => {this.popover?.updatePosition();}, 0);
+      Promise.resolve().then(() => this.popover?.updatePosition());
     });
   }
 
