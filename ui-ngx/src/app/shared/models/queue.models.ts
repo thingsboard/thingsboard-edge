@@ -140,3 +140,9 @@ export interface QueueInfo extends BaseData<QueueId> {
     duplicateMsgToAllPartitions?: boolean;
   };
 }
+
+export interface QueueStatisticsInfo extends Omit<BaseData<QueueId>, 'label'> {
+  queueName: string;
+  serviceId: string;
+  tenantId?: TenantId;
+}
