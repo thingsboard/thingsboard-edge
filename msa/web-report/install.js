@@ -44,14 +44,14 @@ let chromium = null;
 (async() => {
     browsersJSON = fse.readJsonSync(path.join(projectRoot(), 'node_modules', 'playwright-core', 'browsers.json')).browsers;
     chromium = browsersJSON.find(d => d.name === 'chromium');
-    await server.registry.install([createdExecutables('ubuntu22.04-x64'),  createdExecutables('win64')], true);
+    await server.registry.install([createdExecutables('ubuntu22.04-x64'), createdExecutables('win64')], true);
     await copyChromeFromPkg('ubuntu22.04-x64');
     await copyChromeFromPkg('win64');
     await fse.move(path.join(projectRoot(), 'target', 'thingsboard-web-report-linux'),
-        path.join(targetPackageDir('linux'), 'bin', 'tb-web-report'),
+        path.join(targetPackageDir('ubuntu22.04-x64'), 'bin', 'tb-web-report'),
         {overwrite: true});
     await fse.move(path.join(projectRoot(), 'target', 'thingsboard-web-report-win.exe'),
-        path.join(targetPackageDir('windows'), 'bin', 'tb-web-report.exe'),
+        path.join(targetPackageDir('win64'), 'bin', 'tb-web-report.exe'),
         {overwrite: true});
 })();
 
@@ -64,7 +64,7 @@ function projectRoot() {
 }
 
 function targetPackageDir(platform) {
-    return path.join(projectRoot(), 'target', 'package', platform);
+    return path.join(projectRoot(), 'target', 'package', platformTargetDir(platform));
 }
 
 function targetChromiumDir(platform) {
@@ -79,6 +79,15 @@ function downloadChromiumDir(platform) {
         platformDir = 'chromiumWin';
     }
     return  path.join(projectRoot(), 'target', platformDir);
+}
+
+function platformTargetDir(platform) {
+    if (platform === 'ubuntu22.04-x64') {
+        return 'linux';
+    } else if (platform === 'win64') {
+        return 'windows';
+    }
+    return '';
 }
 
 async function copyChromeFromPkg(platform) {
