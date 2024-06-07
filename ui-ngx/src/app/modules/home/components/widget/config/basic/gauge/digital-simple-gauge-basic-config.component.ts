@@ -113,7 +113,7 @@ export class DigitalSimpleGaugeBasicConfigComponent extends BasicWidgetConfigCom
   protected onConfigSet(configData: WidgetConfigComponentData) {
     const settings: DigitalGaugeSettings = {...defaultDigitalSimpleGaugeOptions, ...(configData.config.settings || {})};
 
-    convertLevelColorsSettingsToColorProcessor(settings);
+    convertLevelColorsSettingsToColorProcessor(settings, settings.defaultColor || '#2196f3');
 
     this.simpleGaugeWidgetConfigForm = this.fb.group({
       timewindowConfig: [getTimewindowConfig(configData.config), []],
@@ -139,7 +139,6 @@ export class DigitalSimpleGaugeBasicConfigComponent extends BasicWidgetConfigCom
       titleFont: [settings.titleFont, []],
       titleColor: [settings.titleFont?.color, []],
 
-      defaultColor: [settings.defaultColor, []],
       gaugeColor: [settings.gaugeColor, []],
       barColor: [settings.barColor, []],
 
@@ -180,7 +179,6 @@ export class DigitalSimpleGaugeBasicConfigComponent extends BasicWidgetConfigCom
     this.widgetConfig.config.settings.titleFont = config.titleFont;
     this.widgetConfig.config.settings.titleFont.color = config.titleColor;
 
-    this.widgetConfig.config.settings.defaultColor = config.defaultColor;
     this.widgetConfig.config.settings.gaugeColor = config.gaugeColor;
     this.widgetConfig.config.settings.barColor = config.barColor;
     const barColor: ColorSettings = config.barColor;
