@@ -136,7 +136,7 @@ public class ThingsboardInstallService {
                             dataUpdateService.updateData("3.6.4");
                             entityDatabaseSchemaService.createCustomerTitleUniqueConstraintIfNotExists();
                             systemDataLoaderService.updateDefaultNotificationConfigs(false);
-                            systemDataLoaderService.updateJwtSettings();
+                            systemDataLoaderService.updateSecuritySettings();
                             //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
                         case "edge": // leave this after latest case version
                             // reset full sync required - to upload the latest widgets from cloud

@@ -13,12 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.common.data.mobile;
+package org.thingsboard.server.common.transport.limits;
 
-
-public enum BadgeStyle {
-
-    ORIGINAL,
-    WHITE;
-
+public enum TransportLimitsType {
+    TENANT_LIMITS, DEVICE_LIMITS, GATEWAY_LIMITS, GATEWAY_DEVICE_LIMITS
 }
