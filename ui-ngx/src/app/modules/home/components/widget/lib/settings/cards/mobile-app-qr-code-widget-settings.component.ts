@@ -70,7 +70,8 @@ export class MobileAppQrCodeWidgetSettingsComponent extends WidgetSettingsCompon
         qrCodeLabelEnabled: [settings.qrCodeConfig.qrCodeLabelEnabled],
         qrCodeLabel: [settings.qrCodeConfig.qrCodeLabel]
       }),
-      background: [settings.background]
+      background: [settings.background],
+      padding: [settings.padding, []]
     });
   }
 
@@ -94,6 +95,13 @@ export class MobileAppQrCodeWidgetSettingsComponent extends WidgetSettingsCompon
         this.mobileAppQRCodeWidgetSettingsForm.get('qrCodeConfig.qrCodeLabel').disable({emitEvent: false});
       }
     }
+  }
+
+  navigateToMobileAppSettings($event) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    window.open(window.location.origin + '/settings/mobile-app', '_blank');
   }
 
 }
