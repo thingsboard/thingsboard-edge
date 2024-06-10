@@ -110,11 +110,11 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
     private boolean mqttSslEnabled;
     @Value("${transport.mqtt.ssl.bind_port}")
     private Integer mqttsBindPort;
-    @Value("${transport.coap.enabled}")
+    @Value("${coap.enabled}")
     private boolean coapEnabled;
     @Value("${coap.bind_port}")
     private Integer coapBindPort;
-    @Value("${transport.coap.dtls.enabled}")
+    @Value("${coap.dtls.enabled}")
     private boolean coapDtlsEnabled;
     @Value("${coap.dtls.bind_port}")
     private Integer coapsBindPort;

@@ -53,5 +53,5 @@ else
   java -cp ${jarfile} $JAVA_OPTS -Dloader.main=org.thingsboard.server.TbEdgeApplication \
                       -Dspring.jpa.hibernate.ddl-auto=none \
                       -Dlogging.config=${CONF_FOLDER}/logback.xml \
-                      org.springframework.boot.loader.PropertiesLauncher
+                      org.springframework.boot.loader.launch.PropertiesLauncher
 fi
