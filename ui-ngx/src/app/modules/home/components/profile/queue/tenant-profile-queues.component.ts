@@ -189,7 +189,8 @@ export class TenantProfileQueuesComponent implements ControlValueAccessor, Valid
       topic: '',
       additionalInfo: {
         description: '',
-        customProperties: ''
+        customProperties: '',
+        duplicateMsgToAllPartitions: false
       }
     };
     this.idMap.push(queue.id);

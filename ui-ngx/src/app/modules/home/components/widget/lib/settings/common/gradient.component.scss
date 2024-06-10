@@ -1,0 +1,158 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+@import "../../../../../../../../scss/constants";
+
+:host {
+  overflow: auto;
+  height: 100%;
+  max-height: 420px;
+
+  .gradient-preview {
+    width: 100%;
+    padding: 40px 12px 0;
+    .gradient-background {
+      position: relative;
+      height: 56px;
+      border-radius: 8px;
+    }
+  }
+
+  .gradient-settings {
+    flex: 1;
+    gap: 16px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tb-add-gradient {
+    margin-right: 92px;
+    @media #{$mat-lt-lg} {
+      margin-right: 52px;
+    }
+  }
+}
+::ng-deep {
+  .gradient {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    flex-direction: row;
+
+    &-container {
+      display: flex;
+      flex: 1;
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 8px;
+      margin-right: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 6px;
+      &-start, &-end {
+        margin-right: 92px;
+        @media #{$mat-lt-lg} {
+          margin-right: 52px;
+        }
+      }
+
+      .tb-gradient-text {
+        width: 140px;
+        @media #{$mat-xs} {
+          width: 50px;
+        }
+      }
+    }
+    .start-gradient-container, .end-gradient-container, .list-gradient-container {
+      display: flex;
+      gap: 8px;
+      .gradient-text {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.38);
+      }
+      &-advanced {
+        flex: 1;
+        @media #{$mat-xs} {
+          align-items: center;
+        }
+      }
+    }
+  }
+  .gradient-background {
+    .pointer {
+      position: absolute;
+      width: 8px;
+      height: 60px;
+      border-radius: 6px;
+      top: -2px;
+      border: 2px solid white;
+      -webkit-box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.75);
+      -moz-box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.75);
+      box-shadow: 0 0 2px 0 rgba(0, 0, 0, 0.75);
+
+      &.start {
+        left: 1px;
+      }
+
+      &.end {
+        right: 1px;
+      }
+
+      &-value {
+        position: absolute;
+        top: -40px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 33px;
+        height: 24px;
+        border-radius: 4px;
+        background-color: rgba(0, 0, 0, 0.06);
+        &-text {
+          font-size: 14px;
+          font-weight: 500;
+        }
+        &:after {
+          content: "";
+          bottom: -8px;
+          position: absolute;
+          width: 0;
+          height: 0;
+          border-left: 8px solid transparent;
+          border-right: 8px solid transparent;
+          border-top: 8px solid rgba(0, 0, 0, 0.06);
+        }
+      }
+    }
+  }
+}

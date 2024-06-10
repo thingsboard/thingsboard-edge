@@ -42,13 +42,13 @@ import {
   WidgetActionSource,
   WidgetConfig,
   WidgetControllerDescriptor,
+  WidgetExportType,
   WidgetType,
   widgetType,
   WidgetTypeDescriptor,
   WidgetTypeDetails,
   widgetTypeFqn,
-  WidgetTypeParameters,
-  WidgetExportType
+  WidgetTypeParameters
 } from '@shared/models/widget.models';
 import { Timewindow, WidgetTimewindow } from '@shared/models/time/time.models';
 import {
@@ -302,6 +302,7 @@ export class WidgetContext {
 
   exportWidgetData: (widgetExportType: WidgetExportType) => void;
   customDataExport?: () => {[key: string]: any}[] | RxJS.Observable<{[key: string]: any}[]>;
+  exportDateFormat?: string;
 
   datasources?: Array<Datasource>;
   data?: Array<DatasourceData>;

@@ -28,12 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.mobile;
+package org.thingsboard.server.service.subscription;
 
+import lombok.Builder;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-public enum BadgeStyle {
+/**
+ * The modification result of entity subscription
+ */
+@Builder
+@Data
+public class SubscriptionModificationResult {
 
-    ORIGINAL,
-    WHITE;
+    private TenantId tenantId;
+    private EntityId entityId;
+    private TbSubscription<?> subscription;
+    private TbSubscription<?> missedUpdatesCandidate;
+    private TbEntitySubEvent event;
 
+    public boolean hasEvent() {
+        return event != null;
+    }
 }

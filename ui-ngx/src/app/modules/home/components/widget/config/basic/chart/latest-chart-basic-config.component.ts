@@ -204,6 +204,7 @@ export abstract class LatestChartBasicConfigComponent<S extends LatestChartWidge
 
       cardButtons: [this.getCardButtons(configData.config), []],
       borderRadius: [configData.config.borderRadius, []],
+      padding: [settings.padding, []],
 
       actions: [configData.config.actions || {}, []]
     });
@@ -252,6 +253,7 @@ export abstract class LatestChartBasicConfigComponent<S extends LatestChartWidge
 
     this.setCardButtons(config.cardButtons, this.widgetConfig.config);
     this.widgetConfig.config.borderRadius = config.borderRadius;
+    this.widgetConfig.config.settings.padding = config.padding;
 
     this.widgetConfig.config.actions = config.actions;
 

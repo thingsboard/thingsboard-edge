@@ -64,7 +64,8 @@ import {
 import { ColorRangeListComponent } from '@home/components/widget/lib/settings/common/color-range-list.component';
 import { ColorRangePanelComponent } from '@home/components/widget/lib/settings/common/color-range-panel.component';
 import {
-  ColorRangeSettingsComponent, ColorRangeSettingsComponentService
+  ColorRangeSettingsComponent,
+  ColorRangeSettingsComponentService
 } from '@home/components/widget/lib/settings/common/color-range-settings.component';
 import {
   GetValueActionSettingsComponent
@@ -164,6 +165,11 @@ import {
   StatusWidgetStateSettingsComponent
 } from '@home/components/widget/lib/settings/common/indicator/status-widget-state-settings.component';
 import { ChartBarSettingsComponent } from '@home/components/widget/lib/settings/common/chart/chart-bar-settings.component';
+import { AdvancedRangeComponent } from '@home/components/widget/lib/settings/common/advanced-range.component';
+import { GradientComponent } from '@home/components/widget/lib/settings/common/gradient.component';
+import {
+  ValueSourceDataKeyComponent
+} from '@home/components/widget/lib/settings/common/value-source-data-key.component';
 
 @NgModule({
   declarations: [
@@ -182,6 +188,7 @@ import { ChartBarSettingsComponent } from '@home/components/widget/lib/settings/
     BackgroundSettingsComponent,
     BackgroundSettingsPanelComponent,
     ValueSourceComponent,
+    ValueSourceDataKeyComponent,
     LegendConfigComponent,
     WidgetFontComponent,
     CountWidgetSettingsComponent,
@@ -220,7 +227,9 @@ import { ChartBarSettingsComponent } from '@home/components/widget/lib/settings/
     TimeSeriesChartGridSettingsComponent,
     StatusWidgetStateSettingsComponent,
     DataKeyInputComponent,
-    EntityAliasInputComponent
+    EntityAliasInputComponent,
+    AdvancedRangeComponent,
+    GradientComponent
   ],
   imports: [
     CommonModule,
@@ -243,6 +252,7 @@ import { ChartBarSettingsComponent } from '@home/components/widget/lib/settings/
     BackgroundSettingsComponent,
     BackgroundSettingsPanelComponent,
     ValueSourceComponent,
+    ValueSourceDataKeyComponent,
     LegendConfigComponent,
     WidgetFontComponent,
     CountWidgetSettingsComponent,
@@ -281,7 +291,9 @@ import { ChartBarSettingsComponent } from '@home/components/widget/lib/settings/
     TimeSeriesChartGridSettingsComponent,
     StatusWidgetStateSettingsComponent,
     DataKeyInputComponent,
-    EntityAliasInputComponent
+    EntityAliasInputComponent,
+    AdvancedRangeComponent,
+    GradientComponent
   ],
   providers: [
     ColorSettingsComponentService,

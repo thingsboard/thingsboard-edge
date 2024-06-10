@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.scheduler.SchedulerRepeat;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
+import javax.validation.constraints.AssertTrue;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -100,6 +101,7 @@ public class SchedulerEventControllerTest extends AbstractControllerTest {
         doPost("/api/schedulerEvent", savedSchedulerEvent, SchedulerEvent.class);
         SchedulerEvent foundSchedulerEvent = doGet("/api/schedulerEvent/" + savedSchedulerEvent.getId().getId().toString(), SchedulerEvent.class);
         Assert.assertEquals(savedSchedulerEvent.getName(), foundSchedulerEvent.getName());
+        Assert.assertTrue(savedSchedulerEvent.isEnabled());
     }
 
     @Test

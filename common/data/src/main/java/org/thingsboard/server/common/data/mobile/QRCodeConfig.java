@@ -48,7 +48,6 @@ public class QRCodeConfig {
     private boolean badgeEnabled;
     private boolean qrCodeLabelEnabled;
     private BadgePosition badgePosition;
-    private BadgeStyle badgeStyle;
     @NoXss
     private String qrCodeLabel;
 

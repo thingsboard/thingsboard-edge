@@ -30,9 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxLayout="row" class="tb-entity-select" [formGroup]="entitySelectFormGroup">
+<div [formGroup]="entitySelectFormGroup">
   <tb-entity-type-select
-    style="min-width: 100px; padding-right: 8px;"
     *ngIf="displayEntityTypeSelect"
     [showLabel]="true"
     [required]="required"
@@ -42,7 +41,6 @@
     formControlName="entityType">
   </tb-entity-type-select>
   <tb-entity-autocomplete
-    fxFlex
     *ngIf="modelValue.entityType && modelValue.entityType !== AliasEntityType.CURRENT_TENANT
                                  && modelValue.entityType !== AliasEntityType.CURRENT_USER
                                  && modelValue.entityType !== AliasEntityType.CURRENT_USER_OWNER"

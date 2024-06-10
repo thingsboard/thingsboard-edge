@@ -28,28 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  display: block;
-  .mat-expansion-panel {
-    box-shadow: none;
-    &.tick-value {
-      border: 1px groove rgba(0, 0, 0, .25);
-      .mat-expansion-panel-header {
-        padding: 0 24px 0 8px;
-        &.mat-expanded {
-          height: 48px;
-        }
-      }
-    }
-  }
-}
+package org.thingsboard.server.controller;
 
-:host ::ng-deep {
-  .mat-expansion-panel {
-    &.tick-value {
-      .mat-expansion-panel-body {
-        padding: 0 8px 8px;
-      }
+import org.junit.Test;
+import org.thingsboard.server.dao.service.DaoSqlTest;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@DaoSqlTest
+public class OwnerControllerTest extends AbstractControllerTest {
+
+    @Test
+    public void testShouldNotChangeOwnerForTheOnlyTenantAdmin() throws Exception {
+        loginTenantAdmin();
+
+        // try to change owner for last tenant admin
+        doPost("/api/owner/CUSTOMER/" + customerId.getId() + "/USER/" + tenantAdminUser.getId().getId())
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("At least one tenant administrator must remain!")));
     }
-  }
 }
