@@ -278,7 +278,7 @@ public class UserController extends BaseController {
             @Parameter(description = "Send activation email (or use activation link)", schema = @Schema(defaultValue = "true"))
             @RequestParam(required = false, defaultValue = "true") boolean sendActivationMail,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
-            @Parameter(description = "A list of entityGroupIds, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
+            @Parameter(description = "A list of entity group ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
             @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds,
             HttpServletRequest request) throws ThingsboardException {
 

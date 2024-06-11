@@ -192,7 +192,7 @@ public class EdgeController extends BaseController {
             @Parameter(description = "A JSON value representing the edge.", required = true)
             @RequestBody Edge edge,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
-            @Parameter(description = "A list of entityGroupIds, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
+            @Parameter(description = "A list of entity group ids, separated by comma ','", array = @ArraySchema(schema = @Schema()))
             @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws Exception {
         TenantId tenantId = getCurrentUser().getTenantId();
         edge.setTenantId(tenantId);

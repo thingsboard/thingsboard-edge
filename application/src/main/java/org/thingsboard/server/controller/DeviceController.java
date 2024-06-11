@@ -203,7 +203,7 @@ public class DeviceController extends BaseController {
                              @Parameter(description = "Optional value of the device credentials to be used during device creation. " +
                                      "If omitted, access token will be auto-generated.") @RequestParam(name = "accessToken", required = false) String accessToken,
                              @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
-                             @Parameter(description = "A list of entityGroupIds, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
+                             @Parameter(description = "A list of entity group ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
                              @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
         return saveGroupEntity(device, strEntityGroupId, strEntityGroupIds,
@@ -240,7 +240,7 @@ public class DeviceController extends BaseController {
     public Device saveDeviceWithCredentials(@Parameter(description = "The JSON object with device and credentials. See method description above for example.")
                                             @Valid @RequestBody SaveDeviceWithCredentialsRequest deviceAndCredentials,
                                             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
-                                            @Parameter(description = "A list of entityGroupIds, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
+                                            @Parameter(description = "A list of entity group ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
                                             @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         Device device = deviceAndCredentials.getDevice();
         DeviceCredentials credentials = deviceAndCredentials.getCredentials();
