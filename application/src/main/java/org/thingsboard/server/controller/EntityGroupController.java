@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -737,7 +738,7 @@ public class EntityGroupController extends AutoCommitController {
     public void addEntitiesToEntityGroup(
             @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId,
-            @Parameter(description = "A list of entity ids", required = true)
+            @Parameter(description = "A list of entity ids", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestBody String[] strEntityIds) throws ThingsboardException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);
@@ -804,7 +805,7 @@ public class EntityGroupController extends AutoCommitController {
     public void removeEntitiesFromEntityGroup(
             @Parameter(description = ENTITY_GROUP_ID_PARAM_DESCRIPTION, required = true)
             @PathVariable(ControllerConstants.ENTITY_GROUP_ID) String strEntityGroupId,
-            @Parameter(description = "A list of entity ids", required = true)
+            @Parameter(description = "A list of entity ids", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestBody String[] strEntityIds) throws ThingsboardException {
         checkParameter(ControllerConstants.ENTITY_GROUP_ID, strEntityGroupId);
         checkArrayParameter("entityIds", strEntityIds);
@@ -941,7 +942,7 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroups", params = {"entityGroupIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<EntityGroupInfo> getEntityGroupsByIds(
-            @Parameter(description = "A list of group ids, separated by comma ','")
+            @Parameter(description = "A list of group ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
             @RequestParam("entityGroupIds") String[] strEntityGroupIds) throws ThingsboardException {
         checkArrayParameter("entityGroupIds", strEntityGroupIds);
         SecurityUser user = getCurrentUser();
@@ -963,7 +964,7 @@ public class EntityGroupController extends AutoCommitController {
     @RequestMapping(value = "/entityGroupInfos", params = {"entityGroupIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<EntityInfo> getEntityGroupEntityInfosByIds(
-            @Parameter(description = "A list of group ids, separated by comma ','")
+            @Parameter(description = "A list of group ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
             @RequestParam("entityGroupIds") String[] strEntityGroupIds) throws ThingsboardException {
         checkArrayParameter("entityGroupIds", strEntityGroupIds);
         SecurityUser user = getCurrentUser();

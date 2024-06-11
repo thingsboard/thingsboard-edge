@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -210,6 +211,7 @@ public class DashboardController extends BaseController {
             @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "A JSON value representing the dashboard.")
             @RequestBody Dashboard dashboard,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+            @Parameter(description = "A list of entityGroupIds, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
             @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         SecurityUser user = getCurrentUser();
         return saveGroupEntity(dashboard, strEntityGroupId, strEntityGroupIds, (dashboard1, entityGroups) -> {
@@ -415,7 +417,7 @@ public class DashboardController extends BaseController {
     @RequestMapping(value = "/dashboards", params = {"dashboardIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<DashboardInfo> getDashboardsByIds(
-            @Parameter(description = "A list of dashboard ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of dashboard ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestParam("dashboardIds") String[] strDashboardIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("dashboardIds", strDashboardIds);
         SecurityUser user = getCurrentUser();
