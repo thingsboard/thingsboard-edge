@@ -2729,6 +2729,7 @@
         "change-owner": "Change owner",
         "select-target-owner": "Select target owner",
         "no-owners-matching": "No owners matching '{{owner}}' were found.",
+        "no-owners-text": "No owners found",
         "target-owner-required": "Target owner is required.",
         "confirm-change-owner-title": "Are you sure you want to change owner for { count, plural, =1 {1 selected entity} other {# selected entities} }?",
         "confirm-change-owner-text": "Be careful, after the confirmation all selected entities will be removed from the current owner and will be placed to group 'All' of the target owner.",

@@ -303,26 +303,31 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
           this.entityText = 'converter.converter';
           this.noEntitiesMatchingText = 'converter.no-converters-matching';
           this.entityRequiredText = 'converter.converter-required';
+          this.notFoundEntities = 'converter.no-converters-text';
           break;
         case EntityType.INTEGRATION:
           this.entityText = 'integration.integration';
           this.noEntitiesMatchingText = 'integration.no-integrations-matching';
           this.entityRequiredText = 'integration.integration-required';
+          this.notFoundEntities = 'integration.no-integrations-text';
           break;
         case EntityType.SCHEDULER_EVENT:
           this.entityText = 'scheduler.scheduler-event';
           this.noEntitiesMatchingText = 'scheduler.no-scheduler-events-matching';
           this.entityRequiredText = 'scheduler.scheduler-event-required';
+          this.notFoundEntities = 'scheduler.no-scheduler-events';
           break;
         case EntityType.BLOB_ENTITY:
           this.entityText = 'blob-entity.blob-entity';
           this.noEntitiesMatchingText = 'blob-entity.no-blob-entities-matching';
           this.entityRequiredText = 'blob-entity.blob-entity-required';
+          this.notFoundEntities = 'lob-entity.no-blob-entities-prompt';
           break;
         case EntityType.ROLE:
           this.entityText = 'role.role';
           this.noEntitiesMatchingText = 'role.no-roles-matching';
           this.entityRequiredText = 'role.role-required';
+          this.notFoundEntities = 'role.no-roles-text';
           break;
       }
     }

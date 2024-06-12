@@ -298,4 +298,8 @@ export class OwnerAutocompleteComponent implements ControlValueAccessor, OnInit,
     }, 0);
   }
 
+  textIsNotEmpty(text: string): boolean {
+    return (text && text.length > 0);
+  }
+
 }
