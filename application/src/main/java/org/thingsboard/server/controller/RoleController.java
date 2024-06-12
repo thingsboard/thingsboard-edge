@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -262,7 +263,7 @@ public class RoleController extends AutoCommitController {
     @RequestMapping(value = "/roles", params = {"roleIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Role> getRolesByIds(
-            @Parameter(description = "A list of role ids, separated by comma ','")
+            @Parameter(description = "A list of role ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
             @RequestParam("roleIds") String[] strRoleIds) throws Exception {
         checkArrayParameter("roleIds", strRoleIds);
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.ROLE, Operation.READ)) {
