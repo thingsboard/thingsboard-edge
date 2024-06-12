@@ -202,8 +202,10 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         mobileAppSettingsService.deleteByTenantId(tenantId);
         notificationSettingsService.deleteNotificationSettings(tenantId);
+
         tenantDao.removeById(tenantId, tenantId.getId());
         publishEvictEvent(new TenantEvictEvent(tenantId, true));
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(tenantId).entity(tenant).build());
 
         cleanUpService.removeTenantEntities(tenantId, // don't forget to implement deleteByTenantId from EntityDaoService when adding entity type to this list
                 EntityType.ENTITY_VIEW, EntityType.WIDGETS_BUNDLE, EntityType.WIDGET_TYPE,
@@ -215,7 +217,6 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
                 EntityType.NOTIFICATION_RULE, EntityType.NOTIFICATION_TEMPLATE, EntityType.NOTIFICATION_TARGET,
                 EntityType.QUEUE_STATS, EntityType.CUSTOMER
         );
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(tenantId).entity(tenant).build());
     }
 
     @Override
