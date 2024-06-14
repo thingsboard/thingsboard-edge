@@ -213,13 +213,6 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     private void processAssetUplinkData(IntegrationContext context, UplinkData data) {
-        // Asset rate limit hotfix - assuming that asset rate limit == device rate limit.
-        // Minor downside - device with the same name as an asset will share the rate limit
-        // The Rate limit error message will say 'device', not an 'asset'
-        TenantId tenantId = configuration.getTenantId();
-        context.getRateLimitService().ifPresent(rls -> rls.checkLimit(tenantId, data.getAssetName(), data::toString));
-        // ...Asset rate limit hotfix
-
         String entityName = data.getAssetName();
         TenantId tenantId = configuration.getTenantId();
         context.getRateLimitService().ifPresent(rls -> rls.checkLimitPerAsset(tenantId, entityName, data::toString));
