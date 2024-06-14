@@ -188,9 +188,9 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     private void processDeviceUplinkData(IntegrationContext context, UplinkData data) {
-        TenantId tenantId = configuration.getTenantId();
-        context.getRateLimitService().ifPresent(rls -> rls.checkLimit(tenantId, data.getDeviceName(), data::toString));
         String entityName = data.getDeviceName();
+        TenantId tenantId = configuration.getTenantId();
+        context.getRateLimitService().ifPresent(rls -> rls.checkLimitPerDevice(tenantId, entityName, data::toString));
         DeviceUplinkDataProto.Builder builder = DeviceUplinkDataProto.newBuilder()
                 .setDeviceName(entityName)
                 .setDeviceType(data.getDeviceType());
@@ -214,6 +214,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     private void processAssetUplinkData(IntegrationContext context, UplinkData data) {
         String entityName = data.getAssetName();
+        TenantId tenantId = configuration.getTenantId();
+        context.getRateLimitService().ifPresent(rls -> rls.checkLimitPerAsset(tenantId, entityName, data::toString));
         AssetUplinkDataProto.Builder builder = AssetUplinkDataProto.newBuilder()
                 .setAssetName(entityName).setAssetType(data.getAssetType());
         if (StringUtils.isNotEmpty(data.getAssetLabel())) {
