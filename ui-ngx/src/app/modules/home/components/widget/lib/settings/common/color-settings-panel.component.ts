@@ -121,7 +121,7 @@ export class ColorSettingsPanelComponent extends PageComponent implements OnInit
       }
     );
     this.colorSettingsFormGroup.get('type').valueChanges.subscribe(() => {
-      Promise.resolve().then(() => this.popover?.updatePosition());
+      setTimeout(() => {this.popover?.updatePosition();}, 0);
     });
   }
 
