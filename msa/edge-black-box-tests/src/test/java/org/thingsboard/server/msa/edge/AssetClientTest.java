@@ -184,15 +184,25 @@ public class AssetClientTest extends AbstractContainerTest {
                     return assetOptional.isPresent() && !assetOptional.get().getName().equals(savedAssetOnCloud.getName());
                 });
 
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<Asset> assetOptional = edgeRestClient.getAssetById(savedAssetOnEdge.getId());
+                    return assetOptional.isPresent() && !assetOptional.get().getName().equals(savedAssetOnCloud.getName());
+                });
+
         // delete asset
         edgeRestClient.deleteAsset(savedAssetOnEdge.getId());
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
-                    PageData<Asset> edgeAssets = cloudRestClient.getEdgeAssets(edge.getId(), new PageLink(1000));
+                    PageData<Asset> edgeAssetsOnCloud = cloudRestClient.getEdgeAssets(edge.getId(), new PageLink(1000));
+                    long countOnCloud = edgeAssetsOnCloud.getData().stream().filter(d -> savedAssetOnEdge.getId().equals(d.getId())).count();
+                    PageData<Asset> edgeAssets = edgeRestClient.getTenantAssets(new PageLink(1000), "Building");
                     long count = edgeAssets.getData().stream().filter(d -> savedAssetOnEdge.getId().equals(d.getId())).count();
-                    return count == 0;
+                    return count == 0 && countOnCloud == 0;
                 });
 
         cloudRestClient.deleteAsset(savedAssetOnEdge.getId());
