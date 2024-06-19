@@ -52,7 +52,6 @@ import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
@@ -130,10 +129,10 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
                 new TbMsgMetaData(Map.of("ownerName", "Test Customer")), TbMsg.EMPTY_JSON_OBJECT);
         node.onMsg(ctxMock, msg);
 
-        verify(ctxMock).tellSuccess(eq(msg));
-        verify(customerServiceMock).findCustomerByTenantIdAndTitleAsync(eq(TENANT_ID), eq("Test Customer"));
+        verify(ctxMock).tellSuccess(msg);
+        verify(customerServiceMock).findCustomerByTenantIdAndTitleAsync(TENANT_ID, "Test Customer");
         verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);
-        verify(peContextMock).changeEntityOwner(eq(TENANT_ID), eq(customerId), eq(DEVICE_ID));
+        verify(peContextMock).changeEntityOwner(TENANT_ID, customerId, DEVICE_ID);
         verifyNoMoreInteractions(ctxMock, customerServiceMock, peContextMock);
     }
 
@@ -152,9 +151,9 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
         node.onMsg(ctxMock, msg);
 
-        verify(ctxMock).tellSuccess(eq(msg));
+        verify(ctxMock).tellSuccess(msg);
         verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);
-        verify(peContextMock).changeEntityOwner(eq(TENANT_ID), eq(TENANT_ID), eq(DEVICE_ID));
+        verify(peContextMock).changeEntityOwner(TENANT_ID, TENANT_ID, DEVICE_ID);
         verifyNoMoreInteractions(ctxMock, customerServiceMock, peContextMock);
     }
 
@@ -172,7 +171,7 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
         node.onMsg(ctxMock, msg);
 
-        verify(ctxMock).tellSuccess(eq(msg));
+        verify(ctxMock).tellSuccess(msg);
         verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);
         verifyNoMoreInteractions(ctxMock, customerServiceMock, peContextMock);
     }
@@ -206,15 +205,15 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
                 new TbMsgMetaData(Map.of("ownerName", "Test Customer")), TbMsg.EMPTY_JSON_OBJECT);
         node.onMsg(ctxMock, msg);
 
-        verify(ctxMock).tellSuccess(eq(msg));
-        verify(customerServiceMock).findCustomerByTenantIdAndTitleAsync(eq(TENANT_ID), eq("Test Customer"));
+        verify(ctxMock).tellSuccess(msg);
+        verify(customerServiceMock).findCustomerByTenantIdAndTitleAsync(TENANT_ID, "Test Customer");
         Customer newCustomer = new Customer();
         newCustomer.setTitle("Test Customer");
         newCustomer.setTenantId(TENANT_ID);
         newCustomer.setOwnerId(ownerId);
-        verify(customerServiceMock).saveCustomer(eq(newCustomer));
+        verify(customerServiceMock).saveCustomer(newCustomer);
         verify(peContextMock, times(2)).getOwner(TENANT_ID, DEVICE_ID);
-        verify(peContextMock).changeEntityOwner(eq(TENANT_ID), eq(newCustomerId), eq(DEVICE_ID));
+        verify(peContextMock).changeEntityOwner(TENANT_ID, newCustomerId, DEVICE_ID);
         verify(ctxMock).enqueue(eq(createdCustomerMsg), any(Runnable.class), any(Consumer.class));
         verifyNoMoreInteractions(ctxMock, customerServiceMock, peContextMock);
     }
@@ -246,11 +245,12 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         verify(ctxMock).tellFailure(eq(msg), throwableCaptor.capture());
         assertThat(throwableCaptor.getValue()).isInstanceOf(RuntimeException.class)
                 .hasMessage("Failed to create customer with title 'Test Customer'");
-        verify(customerServiceMock).findCustomerByTenantIdAndTitleAsync(eq(TENANT_ID), eq("Test Customer"));
+        verify(customerServiceMock).findCustomerByTenantIdAndTitleAsync(TENANT_ID, "Test Customer");
         Customer newCustomer = new Customer();
         newCustomer.setTitle("Test Customer");
         newCustomer.setTenantId(TENANT_ID);
-        verify(customerServiceMock).saveCustomer(eq(newCustomer));
+        verify(customerServiceMock).saveCustomer(newCustomer);
+        verify(customerServiceMock).findCustomerByTenantIdAndTitle(TENANT_ID, "Test Customer");
         verifyNoMoreInteractions(ctxMock, customerServiceMock, peContextMock);
     }
 
@@ -276,8 +276,16 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         verify(ctxMock).tellFailure(eq(msg), throwableCaptor.capture());
         assertThat(throwableCaptor.getValue()).isInstanceOf(RuntimeException.class)
                 .hasMessage("Customer with title 'Test Customer' doesn't exist!");
-        verify(customerServiceMock).findCustomerByTenantIdAndTitleAsync(eq(TENANT_ID), eq("Test Customer"));
+        verify(customerServiceMock).findCustomerByTenantIdAndTitleAsync(TENANT_ID, "Test Customer");
         verifyNoMoreInteractions(ctxMock, customerServiceMock, peContextMock);
+    }
+
+    @Test
+    public void givenDefaultConfig_whenVerify_thenOk() {
+        assertThat(config.getOwnerType()).isEqualTo(EntityType.TENANT);
+        assertThat(config.getOwnerNamePattern()).isNull();
+        assertThat(config.isCreateOwnerIfNotExists()).isFalse();
+        assertThat(config.isCreateOwnerOnOriginatorLevel()).isFalse();
     }
 
     @Test
@@ -305,12 +313,14 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
                     .isInstanceOf(TbNodeException.class)
                     .hasMessage("Unsupported owner type '" + ownerType +
                             "'! Only " + supportedEntityTypesStr + " types are allowed.");
-            return;
         }
-        if (EntityType.CUSTOMER.equals(ownerType) && StringUtils.isBlank(config.getOwnerNamePattern())) {
+        if (EntityType.CUSTOMER.equals(ownerType)) {
             assertThatThrownBy(() -> node.init(ctxMock, configuration))
                     .isInstanceOf(TbNodeException.class)
                     .hasMessage("Owner name should be specified!");
+        }
+        if (EntityType.TENANT.equals(ownerType)) {
+            assertThatNoException().isThrownBy(() -> node.init(ctxMock, configuration));
         }
     }
 

@@ -69,12 +69,12 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
         name = "change owner",
         configClazz = TbChangeOwnerNodeConfiguration.class,
         version = 1,
-        nodeDescription = "Changes Owner of the Originator entity to the selected Owner by type (Tenant, Customer)." +
-                "If selected Owner type - <b>Customer:</b></br>" +
-                "Rule node finds target Owner by owner name pattern and then change the owner of the originator entity.</br>" +
-                "Rule node can create new Owner if it doesn't exist and selected checkbox 'Create new owner if not exists'.",
-        nodeDetails = "If an entity already belongs to this owner or entity owner is successfully changed - " +
-                "Message sent via <b>Success</b> chain, otherwise, <b>Failure</b> chain will be used.",
+        nodeDescription = "Changes owner of the originator entity to the selected owner by type Tenant or Customer.",
+        nodeDetails = "If <b>Tenant</b> is selected, rule node changes the owner of the originator to the tenant.<br>" +
+                "If <b>Customer</b> is selected, rule node finds target owner by owner name pattern and then change the owner of the originator entity.</br>" +
+                "If the target owner does not exist and the 'Create new owner if not exists' toggle is enabled, the rule node will create a new owner.<br>" +
+                "If both 'Create new owner if not exists' and 'Create owner on originator level' are enabled, the rule node creates a new owner as a sub-customer of the previous owner.<br><br>" +
+                "Output connections: <code>Success</code> - if an entity already belongs to this owner or entity owner is successfully changed, otherwise - <code>Failure</code>.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeChangeOwnerConfig",
         icon = "assignment_ind"
@@ -97,7 +97,7 @@ public class TbChangeOwnerNode implements TbNode {
         if (!supportedEntityTypes.contains(ownerType)) {
             throw new TbNodeException(unsupportedOwnerTypeErrorMessage(), true);
         }
-        if (!EntityType.CUSTOMER.equals(ownerType)) {
+        if (EntityType.TENANT.equals(ownerType)) {
             return;
         }
         if (StringUtils.isBlank(config.getOwnerNamePattern())) {
