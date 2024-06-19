@@ -153,10 +153,6 @@ public class ThingsboardInstallService {
                             systemDataLoaderService.updateDefaultNotificationConfigs(false);
                             systemDataLoaderService.updateSecuritySettings();
                             //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
-                        case "edge": // leave this after latest case version
-                            // reset full sync required - to upload the latest widgets from cloud
-                            // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to 'edge' version
-                            dataUpdateService.updateData("edge");
                             break;
                         case "CE":
                             log.info("Upgrading ThingsBoard Edge from version CE to PE ...");
@@ -171,6 +167,10 @@ public class ThingsboardInstallService {
                     entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
                     entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
                     dataUpdateService.updateData("ce");
+
+                    // reset full sync required - to upload the latest widgets from cloud
+                    // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to 'edge' version
+                    dataUpdateService.updateData("edge");
 
                     log.info("Updating system data...");
                     // dataUpdateService.upgradeRuleNodes();
