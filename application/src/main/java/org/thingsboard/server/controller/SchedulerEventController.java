@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -233,7 +234,7 @@ public class SchedulerEventController extends BaseController {
     @RequestMapping(value = "/schedulerEvents", params = {"schedulerEventIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<SchedulerEventInfo> getSchedulerEventsByIds(
-            @Parameter(description = "A list of scheduler event ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of scheduler event ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestParam("schedulerEventIds") String[] strSchedulerEventIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("schedulerEventIds", strSchedulerEventIds);
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.SCHEDULER_EVENT, Operation.READ)) {

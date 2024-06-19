@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParseException;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -499,7 +500,7 @@ public class ConverterController extends AutoCommitController {
     @RequestMapping(value = "/converters", params = {"converterIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Converter> getConvertersByIds(
-            @Parameter(description = "A list of converter ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of converter ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestParam("converterIds") String[] strConverterIds) throws Exception {
         checkArrayParameter("converterIds", strConverterIds);
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.CONVERTER, Operation.READ)) {

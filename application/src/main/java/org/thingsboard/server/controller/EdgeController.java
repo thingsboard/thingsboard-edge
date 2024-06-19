@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -191,6 +192,7 @@ public class EdgeController extends BaseController {
             @Parameter(description = "A JSON value representing the edge.", required = true)
             @RequestBody Edge edge,
             @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
+            @Parameter(description = "A list of entity group ids, separated by comma ','", array = @ArraySchema(schema = @Schema()))
             @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws Exception {
         TenantId tenantId = getCurrentUser().getTenantId();
         edge.setTenantId(tenantId);
@@ -507,7 +509,7 @@ public class EdgeController extends BaseController {
     @RequestMapping(value = "/edges", params = {"edgeIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Edge> getEdgesByIds(
-            @Parameter(description = "A list of edges ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of edges ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestParam("edgeIds") String[] strEdgeIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("edgeIds", strEdgeIds);
         SecurityUser user = getCurrentUser();

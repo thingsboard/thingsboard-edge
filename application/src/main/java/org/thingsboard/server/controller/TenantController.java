@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -173,6 +174,7 @@ public class TenantController extends BaseController {
     @RequestMapping(value = "/tenants", params = {"tenantIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Tenant> getTenantsByIds(
+            @Parameter(description = "A list of tenant ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
             @RequestParam("tenantIds") String[] strTenantIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("tenantIds", strTenantIds);
         SecurityUser user = getCurrentUser();
