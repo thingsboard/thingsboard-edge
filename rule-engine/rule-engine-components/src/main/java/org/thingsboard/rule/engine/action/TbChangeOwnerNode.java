@@ -73,7 +73,7 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
         nodeDetails = "If <b>Tenant</b> is selected, rule node changes the owner of the originator to the tenant.<br>" +
                 "If <b>Customer</b> is selected, rule node finds target owner by owner name pattern and then change the owner of the originator entity.</br>" +
                 "If the target owner does not exist and the 'Create new owner if not exists' toggle is enabled, the rule node will create a new owner.<br>" +
-                "If both 'Create new owner if not exists' and 'Create owner on originator level' are enabled, the rule node creates a new owner as a sub-customer of the previous owner.<br><br>" +
+                "If both 'Create new owner if not exists' and 'Create new owner as sub-customer of current owner' are enabled, the rule node creates a new owner as a sub-customer of the current owner.<br><br>" +
                 "Output connections: <code>Success</code> - if an entity already belongs to this owner or entity owner is successfully changed, otherwise - <code>Failure</code>.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeChangeOwnerConfig",
