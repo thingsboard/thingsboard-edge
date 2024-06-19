@@ -138,16 +138,16 @@ public class ThingsboardInstallService {
                             systemDataLoaderService.updateDefaultNotificationConfigs(false);
                             systemDataLoaderService.updateSecuritySettings();
                             //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
-                        case "edge": // leave this after latest case version
-                            // reset full sync required - to upload the latest widgets from cloud
-                            // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to 'edge' version
-                            dataUpdateService.updateData("edge");
                             break;
                         default:
                             throw new RuntimeException("Unable to upgrade ThingsBoard Edge, unsupported fromVersion: " + upgradeFromVersion);
                     }
                     entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
                     entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
+
+                    // reset full sync required - to upload the latest widgets from cloud
+                    // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to 'edge' version
+                    dataUpdateService.updateData("edge");
 
                     log.info("Updating system data...");
                     // dataUpdateService.upgradeRuleNodes();
