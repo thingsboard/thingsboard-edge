@@ -62,6 +62,7 @@ export interface DefaultTenantProfileConfiguration {
 
   integrationMsgsPerTenantRateLimit?: string;
   integrationMsgsPerDeviceRateLimit?: string;
+  integrationMsgsPerAssetRateLimit?: string;
 
   tenantEntityExportRateLimit?: string;
   tenantEntityImportRateLimit?: string;

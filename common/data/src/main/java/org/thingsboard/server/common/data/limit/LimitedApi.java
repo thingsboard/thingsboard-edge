@@ -52,6 +52,7 @@ public enum LimitedApi {
     EDGE_UPLINK_MESSAGES_PER_EDGE(DefaultTenantProfileConfiguration::getEdgeUplinkMessagesRateLimitsPerEdge, "Edge uplink messages per edge", false),
     INTEGRATION_MSGS_PER_TENANT(DefaultTenantProfileConfiguration::getIntegrationMsgsPerTenantRateLimit, "integration messages", true),
     INTEGRATION_MSGS_PER_DEVICE(DefaultTenantProfileConfiguration::getIntegrationMsgsPerDeviceRateLimit, "integration messages per device", false),
+    INTEGRATION_MSGS_PER_ASSET(DefaultTenantProfileConfiguration::getIntegrationMsgsPerAssetRateLimit, "integration messages per asset", false),
     INTEGRATION_EVENTS(false, true),
     CONVERTER_EVENTS(false, true),
     REPORTS("reports generation", true),

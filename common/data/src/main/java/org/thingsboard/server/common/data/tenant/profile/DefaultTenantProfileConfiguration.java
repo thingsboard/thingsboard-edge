@@ -90,6 +90,7 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
     private String integrationMsgsPerTenantRateLimit;
     @Schema(example = "20:1,600:60")
     private String integrationMsgsPerDeviceRateLimit;
+    private String integrationMsgsPerAssetRateLimit;
 
     @Schema(example = "20:1,600:60")
     private String tenantEntityExportRateLimit;
