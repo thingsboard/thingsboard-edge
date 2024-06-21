@@ -187,8 +187,14 @@ export class WidgetActionDialogComponent extends DialogComponent<WidgetActionDia
   displayShowWidgetActionForm(): boolean {
     return !!this.data.actionsData.actionSources[this.widgetActionFormGroup.get('actionSourceId').value]?.hasShowCondition;
   }
+
   customFunctionHelpId(): string {
       return this.isEntityGroup ? 'entity_group/action/custom_action_fn' : 'widget/action/custom_action_fn';
+  }
+
+  entityGroupRowClickHint(): string {
+    return this.isEntityGroup && this.widgetActionFormGroup.get('actionSourceId').value === 'rowClick' ?
+      this.translate.instant('widget-config.entity-group-row-click-hint') : '';
   }
 
   getWidgetActionFunctionHelpId(): string | undefined {

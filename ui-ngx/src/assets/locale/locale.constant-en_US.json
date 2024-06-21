@@ -6958,6 +6958,7 @@
         "column-index": "Column index",
         "select-column-index": "Select column index",
         "column-index-required": "Column index is required.",
+        "entity-group-row-click-hint": "To use the custom action \"On row click\", please set the \"Open entity details on\" option in settings tab to anything other than \"On row click\".",
         "not-set": "Not set",
         "action-name": "Name",
         "action-name-required": "Action name is required.",
