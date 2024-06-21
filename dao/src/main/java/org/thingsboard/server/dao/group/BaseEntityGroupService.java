@@ -811,6 +811,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         log.trace("Executing removeEntitiesFromEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
         validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+        if (entityGroup == null) {
+            return;
+        }
         if (isTenantAdminUserGroup(entityGroup)) {
             if (containsLastTenantAdmin(tenantId, entityIds.stream().map(UserId.class::cast).collect(Collectors.toList()))) {
                 throw new IncorrectParameterException("At least one tenant administrator must remain!");
