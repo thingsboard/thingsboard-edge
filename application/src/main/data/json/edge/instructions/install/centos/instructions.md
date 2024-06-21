@@ -151,7 +151,7 @@ wget https://dist.thingsboard.io/tb-edge-${TB_EDGE_TAG}pe.deb
 Go to the download repository and install ThingsBoard Edge service:
 
 ```bash
-sudo rpm -Uvh tb-edge-${TB_EDGE_TAG}.rpm
+sudo rpm -Uvh tb-edge-${TB_EDGE_TAG}pe.rpm
 {:copy-code}
 ```
 

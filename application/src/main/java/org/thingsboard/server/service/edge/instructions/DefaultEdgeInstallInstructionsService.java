@@ -95,7 +95,7 @@ public class DefaultEdgeInstallInstructionsService extends BaseEdgeInstallUpgrad
         String edgeVersion = appVersion.replace("-SNAPSHOT", "");
         edgeVersion = edgeVersion.replace("PE", "pe");
         ubuntuInstallInstructions = ubuntuInstallInstructions.replace("${TB_EDGE_VERSION}", edgeVersion);
-        ubuntuInstallInstructions = ubuntuInstallInstructions.replace("${TB_EDGE_TAG}", getTagVersion(edgeVersion));
+        ubuntuInstallInstructions = ubuntuInstallInstructions.replace("${TB_EDGE_TAG}", getTagVersion(edgeVersion).replace("pe", ""));
         return new EdgeInstructions(ubuntuInstallInstructions);
     }
 
