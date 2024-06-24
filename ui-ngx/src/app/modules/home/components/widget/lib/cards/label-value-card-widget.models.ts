@@ -34,53 +34,14 @@ import {
   BackgroundType,
   ColorSettings,
   constantColor,
-  cssUnit, DateFormatSettings,
-  Font, lastUpdateAgoDateFormat
+  cssUnit,
+  Font
 } from '@shared/models/widget-settings.models';
 
-export enum ValueCardLayout {
-  square = 'square',
-  vertical = 'vertical',
-  centered = 'centered',
-  simplified = 'simplified',
-  horizontal = 'horizontal',
-  horizontal_reversed = 'horizontal_reversed'
-}
-
-export const valueCardLayouts = (horizontal: boolean): ValueCardLayout[] => {
-  if (horizontal) {
-    return [ValueCardLayout.horizontal, ValueCardLayout.horizontal_reversed];
-  } else {
-    return [ValueCardLayout.square, ValueCardLayout.vertical, ValueCardLayout.centered, ValueCardLayout.simplified];
-  }
-};
-
-export const valueCardLayoutTranslations = new Map<ValueCardLayout, string>(
-  [
-    [ValueCardLayout.square, 'widgets.value-card.layout-square'],
-    [ValueCardLayout.vertical, 'widgets.value-card.layout-vertical'],
-    [ValueCardLayout.centered, 'widgets.value-card.layout-centered'],
-    [ValueCardLayout.simplified, 'widgets.value-card.layout-simplified'],
-    [ValueCardLayout.horizontal, 'widgets.value-card.layout-horizontal'],
-    [ValueCardLayout.horizontal_reversed, 'widgets.value-card.layout-horizontal-reversed']
-  ]
-);
-
-export const valueCardLayoutImages = new Map<ValueCardLayout, string>(
-  [
-    [ValueCardLayout.square, 'assets/widget/value-card/square-layout.svg'],
-    [ValueCardLayout.vertical, 'assets/widget/value-card/vertical-layout.svg'],
-    [ValueCardLayout.centered, 'assets/widget/value-card/centered-layout.svg'],
-    [ValueCardLayout.simplified, 'assets/widget/value-card/simplified-layout.svg'],
-    [ValueCardLayout.horizontal, 'assets/widget/value-card/horizontal-layout.svg'],
-    [ValueCardLayout.horizontal_reversed, 'assets/widget/value-card/horizontal-reversed-layout.svg']
-  ]
-);
-
-export interface ValueCardWidgetSettings {
-  layout: ValueCardLayout;
+export interface LabelValueCardWidgetSettings {
   autoScale: boolean;
   showLabel: boolean;
+  label: string;
   labelFont: Font;
   labelColor: ColorSettings;
   showIcon: boolean;
@@ -90,51 +51,37 @@ export interface ValueCardWidgetSettings {
   iconColor: ColorSettings;
   valueFont: Font;
   valueColor: ColorSettings;
-  showDate: boolean;
-  dateFormat: DateFormatSettings;
-  dateFont: Font;
-  dateColor: ColorSettings;
   background: BackgroundSettings;
+  padding: string;
 }
 
-export const valueCardDefaultSettings = (horizontal: boolean): ValueCardWidgetSettings => ({
-  layout: horizontal ? ValueCardLayout.horizontal : ValueCardLayout.square,
+export const labelValueCardWidgetDefaultSettings: LabelValueCardWidgetSettings = {
   autoScale: true,
   showLabel: true,
+  label: 'Temperature',
   labelFont: {
     family: 'Roboto',
-    size: 16,
+    size: 20,
     sizeUnit: 'px',
     style: 'normal',
-    weight: '500',
-    lineHeight: '1.5'
+    weight: '400',
+    lineHeight: '24px'
   },
   labelColor: constantColor('rgba(0, 0, 0, 0.87)'),
   showIcon: true,
   icon: 'thermostat',
-  iconSize: 40,
+  iconSize: 24,
   iconSizeUnit: 'px',
   iconColor: constantColor('var(--tb-primary-500)'),
   valueFont: {
     family: 'Roboto',
-    size: 52,
+    size: 20,
     sizeUnit: 'px',
     style: 'normal',
-    weight: '500',
-    lineHeight: '100%'
+    weight: '400',
+    lineHeight: '24px'
   },
   valueColor: constantColor('rgba(0, 0, 0, 0.87)'),
-  showDate: true,
-  dateFormat: lastUpdateAgoDateFormat(),
-  dateFont: {
-    family: 'Roboto',
-    size: 12,
-    sizeUnit: 'px',
-    style: 'normal',
-    weight: '500',
-    lineHeight: '1.33'
-  },
-  dateColor: constantColor('rgba(0, 0, 0, 0.38)'),
   background: {
     type: BackgroundType.color,
     color: '#fff',
@@ -143,5 +90,6 @@ export const valueCardDefaultSettings = (horizontal: boolean): ValueCardWidgetSe
       color: 'rgba(255,255,255,0.72)',
       blur: 3
     }
-  }
-});
+  },
+  padding: '12px'
+};
