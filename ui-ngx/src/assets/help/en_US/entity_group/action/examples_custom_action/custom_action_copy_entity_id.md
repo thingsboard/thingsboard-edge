@@ -10,8 +10,8 @@ if (copyToClipboard(entityId.id)) {
     message: 'Entity Id has been copied',
     type: 'success',
     duration: 750,
-    verticalPosition: 'bottom',
-    horizontalPosition: 'right'
+    verticalPosition: 'top',
+    horizontalPosition: 'left'
   }));
 }
 
