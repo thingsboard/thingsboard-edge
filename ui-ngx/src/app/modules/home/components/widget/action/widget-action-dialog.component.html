@@ -47,7 +47,7 @@
     <fieldset [disabled]="isLoading$ | async">
       <div class="tb-form-panel no-padding no-border">
         <div class="tb-form-row">
-          <div class="fixed-title-width">{{'widget-config.action-source' | translate}}*</div>
+          <div class="fixed-title-width" [tb-hint-tooltip-icon]="entityGroupRowClickHint()">{{'widget-config.action-source' | translate}}*</div>
           <mat-form-field fxFlex appearance="outline" subscriptSizing="dynamic">
             <mat-select required formControlName="actionSourceId" placeholder="{{ 'widget-config.select-action-source' | translate }}">
               <mat-option *ngFor="let actionSourceItem of data.actionsData.actionSources | keyvalue" [value]="actionSourceItem.key">
