@@ -179,6 +179,10 @@ export class GatewayLogsComponent implements AfterViewInit {
     }
   }
 
+  trackByLogTs(_: number, log: GatewayLogData): number {
+    return log.ts;
+  }
+
   private changeSubscription() {
     if (this.ctx.datasources && this.ctx.datasources[0].entity && this.ctx.defaultSubscription.options.datasources) {
       this.ctx.defaultSubscription.options.datasources[0].dataKeys = [{
@@ -193,5 +197,4 @@ export class GatewayLogsComponent implements AfterViewInit {
       };
     }
   }
-
 }
