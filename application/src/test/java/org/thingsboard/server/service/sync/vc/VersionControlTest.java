@@ -38,6 +38,7 @@ import com.google.common.collect.Streams;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.debug.TbMsgGeneratorNode;
 import org.thingsboard.rule.engine.debug.TbMsgGeneratorNodeConfiguration;
@@ -53,33 +54,48 @@ import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileTransportConfiguration;
 import org.thingsboard.server.common.data.device.profile.DeviceProfileData;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
+import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.GroupPermission;
+import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
+import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
+import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.role.RoleType;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
@@ -120,6 +136,9 @@ import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DaoSqlTest
+@TestPropertySource(properties = {
+        "service.integrations.supported=ALL",
+})
 public class VersionControlTest extends AbstractControllerTest {
 
     @Autowired
@@ -316,31 +335,6 @@ public class VersionControlTest extends AbstractControllerTest {
         Dashboard importedDashboard = findDashboard(dashboard.getName());
         checkImportedEntity(tenantId1, dashboard, tenantId1, importedDashboard);
         checkImportedDashboardData(dashboard, importedDashboard);
-    }
-
-    @Test
-    public void testDashboardVc_betweenTenants_withCustomer_updated() throws Exception {
-        Dashboard dashboard = createDashboard(null, "Dashboard of tenant 1");
-        String versionId = createVersion("dashboards", EntityType.DASHBOARD);
-
-        loginTenant2();
-        loadVersion(versionId, EntityType.DASHBOARD);
-        Dashboard importedDashboard = findDashboard(dashboard.getName());
-        checkImportedEntity(tenantId1, dashboard, tenantId2, importedDashboard);
-
-        loginTenant1();
-        Customer customer = createCustomer("Customer 1");
-        versionId = createVersion("customers", EntityType.CUSTOMER);
-        assignDashboardToCustomer(dashboard.getId(), customer.getId());
-        versionId = createVersion("assign dashboard", EntityType.DASHBOARD);
-
-        loginTenant2();
-        loadVersion(versionId, EntityType.DASHBOARD, EntityType.CUSTOMER);
-        Customer importedCustomer = findCustomer(customer.getName());
-        importedDashboard = findDashboard(dashboard.getName());
-        assertThat(importedDashboard.getAssignedCustomers()).hasOnlyOneElementSatisfying(customerInfo -> {
-            assertThat(customerInfo.getCustomerId()).isEqualTo(importedCustomer.getId());
-        });
     }
 
     @Test
@@ -576,6 +570,178 @@ public class VersionControlTest extends AbstractControllerTest {
         checkImportedEntity(tenantId1, defaultDeviceProfile, tenantId2, importedDeviceProfile);
     }
 
+    @Test
+    public void testIntegrationVcWithConverter_betweenTenants() throws Exception {
+        Converter converter = createConverter(ConverterType.DOWNLINK, "Converter 1");
+        Integration integration = createIntegration(converter.getId(), IntegrationType.HTTP, "Integration 1");
+        String versionId = createVersion("converters and integrations", EntityType.CONVERTER, EntityType.INTEGRATION);
+
+        loginTenant2();
+        loadVersion(versionId, config -> {
+            config.setAutoGenerateIntegrationKey(true);
+        }, EntityType.CONVERTER, EntityType.INTEGRATION);
+
+        Converter importedConverter = findConverter(converter.getName());
+        checkImportedEntity(tenantId1, converter, tenantId2, importedConverter);
+        checkImportedConverterData(converter, importedConverter);
+
+        Integration importedIntegration = findIntegration(integration.getName());
+        checkImportedEntity(tenantId1, integration, tenantId2, importedIntegration);
+        checkImportedIntegrationData(integration, importedIntegration);
+    }
+
+    @Test
+    public void testIntegrationVcWithConverter_sameTenant() throws Exception {
+        Converter converter = createConverter(ConverterType.DOWNLINK, "Converter 1");
+        Integration integration = createIntegration(converter.getId(), IntegrationType.HTTP, "Integration 1");
+        String versionId = createVersion("converters and integrations", EntityType.CONVERTER, EntityType.INTEGRATION);
+
+        loadVersion(versionId, EntityType.CONVERTER, EntityType.INTEGRATION);
+
+        Converter importedConverter = findConverter(converter.getName());
+        checkImportedEntity(tenantId1, converter, tenantId1, importedConverter);
+        checkImportedConverterData(converter, importedConverter);
+
+        Integration importedIntegration = findIntegration(integration.getName());
+        checkImportedEntity(tenantId1, integration, tenantId1, importedIntegration);
+        checkImportedIntegrationData(integration, importedIntegration);
+    }
+
+    @Test
+    public void testEntityGroupVc_betweenTenants() throws Exception {
+        List<EntityGroup> entityGroups = new ArrayList<>();
+        for (EntityType groupType : EntityGroup.groupTypes) {
+            if (groupType == EntityType.EDGE) {
+                continue;
+            }
+            EntityGroup entityGroup = createEntityGroup(tenantId1, groupType, groupType + " group");
+            entityGroups.add(entityGroup);
+        }
+        String versionId = createVersion("entity groups", EntityGroup.groupTypes);
+
+        loginTenant2();
+        loadVersion(versionId, EntityGroup.groupTypes);
+
+        for (EntityGroup entityGroup : entityGroups) {
+            EntityGroup importedEntityGroup = findEntityGroup(entityGroup.getName(), entityGroup.getType());
+            checkImportedEntity(tenantId1, tenantId1, entityGroup, tenantId2, tenantId2, importedEntityGroup);
+            checkImportedEntityGroupData(entityGroup, importedEntityGroup);
+        }
+    }
+
+    @Test
+    public void testEntityGroupVc_sameTenant() throws Exception {
+        List<EntityGroup> entityGroups = new ArrayList<>();
+        for (EntityType groupType : EntityGroup.groupTypes) {
+            if (groupType == EntityType.EDGE) {
+                continue;
+            }
+            EntityGroup entityGroup = createEntityGroup(tenantId1, groupType, groupType + " group");
+            entityGroups.add(entityGroup);
+        }
+        String versionId = createVersion("entity groups", EntityGroup.groupTypes);
+
+        loadVersion(versionId, EntityGroup.groupTypes);
+
+        for (EntityGroup entityGroup : entityGroups) {
+            EntityGroup importedEntityGroup = findEntityGroup(entityGroup.getName(), entityGroup.getType());
+            checkImportedEntity(tenantId1, tenantId1, entityGroup, tenantId1, tenantId1, importedEntityGroup);
+            checkImportedEntityGroupData(entityGroup, importedEntityGroup);
+        }
+    }
+
+    @Test
+    public void testEntityGroupVcWithPermissions_betweenTenants() throws Exception {
+        EntityGroup userGroup = createEntityGroup(tenantId1, EntityType.USER, "User group 1");
+        EntityGroup deviceGroup = createEntityGroup(tenantId1, EntityType.DEVICE, "My devices");
+        Role role = createGroupRole(null, "Role for User group 1", List.of(Operation.READ));
+        createGroupPermission(userGroup.getId(), role.getId(), deviceGroup.getId(), EntityType.DEVICE);
+        String versionId = createVersion("groups", EntityType.USER, EntityType.DEVICE, EntityType.ROLE);
+
+        loginTenant2();
+        loadVersion(versionId, EntityType.USER, EntityType.DEVICE, EntityType.ROLE);
+
+        Role importedRole = findRole(role.getName());
+        checkImportedEntity(tenantId1, role, tenantId2, importedRole);
+        assertThat(importedRole.getName()).isEqualTo(role.getName());
+        assertThat(importedRole.getPermissions()).isEqualTo(role.getPermissions());
+
+        EntityGroup importedDeviceGroup = findEntityGroup(deviceGroup.getName(), EntityType.DEVICE);
+        checkImportedEntity(tenantId1, tenantId1, deviceGroup, tenantId2, tenantId2, importedDeviceGroup);
+
+        EntityGroup importedUserGroup = findEntityGroup(userGroup.getName(), EntityType.USER);
+        checkImportedEntity(tenantId1, tenantId1, userGroup, tenantId2, tenantId2, importedUserGroup);
+
+        List<GroupPermissionInfo> importedGroupPermissions = findGroupPermissions(importedUserGroup.getId());
+        assertThat(importedGroupPermissions).singleElement().satisfies(importedGroupPermission -> {
+            assertThat(importedGroupPermission.getRoleId()).isEqualTo(importedRole.getId());
+            assertThat(importedGroupPermission.getEntityGroupId()).isEqualTo(importedDeviceGroup.getId());
+            assertThat(importedGroupPermission.getEntityGroupType()).isEqualTo(EntityType.DEVICE);
+        });
+    }
+
+    @Test
+    public void testEntityGroupVcWithPermissions_sameTenant() throws Exception {
+        EntityGroup userGroup = createEntityGroup(tenantId1, EntityType.USER, "User group 1");
+        EntityGroup deviceGroup = createEntityGroup(tenantId1, EntityType.DEVICE, "My devices");
+        Role role = createGroupRole(null, "Role for User group 1", List.of(Operation.READ));
+        GroupPermission groupPermission = createGroupPermission(userGroup.getId(), role.getId(), deviceGroup.getId(), EntityType.DEVICE);
+        String versionId = createVersion("user groups", EntityType.USER);
+
+        loadVersion(versionId, EntityType.USER);
+
+        EntityGroup importedUserGroup = findEntityGroup(userGroup.getName(), EntityType.USER);
+        checkImportedEntity(tenantId1, tenantId1, userGroup, tenantId1, tenantId1, importedUserGroup);
+
+        List<GroupPermissionInfo> importedGroupPermissions = findGroupPermissions(importedUserGroup.getId());
+        assertThat(importedGroupPermissions).singleElement().satisfies(permission -> {
+            assertThat(new GroupPermission(permission)).isEqualTo(groupPermission);
+        });
+    }
+
+    @Test
+    public void testEntityGroupVcWithPermissions_betweenTenants_permissionsUpdated() throws Exception {
+        EntityGroup deviceGroup = createEntityGroup(tenantId1, EntityType.DEVICE, "My devices");
+        Role role = createGroupRole(null, "Role for User group 1", List.of(Operation.READ));
+        EntityGroup userGroup = createEntityGroup(tenantId1, EntityType.USER, "User group 1");
+        GroupPermission groupPermission = createGroupPermission(userGroup.getId(), role.getId(), deviceGroup.getId(), EntityType.DEVICE);
+        String versionId = createVersion("groups", EntityType.USER, EntityType.DEVICE, EntityType.ROLE);
+
+        loginTenant2();
+        loadVersion(versionId, EntityType.USER, EntityType.DEVICE, EntityType.ROLE);
+
+        Role importedRole = findRole(role.getName());
+        EntityGroup importedDeviceGroup = findEntityGroup(deviceGroup.getName(), EntityType.DEVICE);
+        EntityGroup importedUserGroup = findEntityGroup(userGroup.getName(), EntityType.USER);
+
+        List<GroupPermissionInfo> importedGroupPermissions = findGroupPermissions(importedUserGroup.getId());
+        assertThat(importedGroupPermissions).singleElement().satisfies(importedGroupPermission -> {
+            assertThat(importedGroupPermission.getRoleId()).isEqualTo(importedRole.getId());
+            assertThat(importedGroupPermission.getEntityGroupId()).isEqualTo(importedDeviceGroup.getId());
+            assertThat(importedGroupPermission.getEntityGroupType()).isEqualTo(EntityType.DEVICE);
+        });
+
+        loginTenant1();
+        doDelete("/api/groupPermission/" + groupPermission.getId()).andExpect(status().isOk());
+        assertThat(findGroupPermissions(userGroup.getId())).isEmpty();
+        role = createGenericRole(null, "Read devices", Map.of(
+                Resource.DEVICE, List.of(Operation.READ),
+                Resource.DEVICE_GROUP, List.of(Operation.READ)
+        ));
+        groupPermission = createGroupPermission(userGroup.getId(), role.getId());
+        versionId = createVersion("groups 2", EntityType.ROLE, EntityType.USER);
+
+        loginTenant2();
+        loadVersion(versionId, EntityType.ROLE, EntityType.USER);
+
+        Role newImportedRole = findRole(role.getName());
+        List<GroupPermissionInfo> updatedGroupPermissions = findGroupPermissions(importedUserGroup.getId());
+        assertThat(updatedGroupPermissions).singleElement().satisfies(newGroupPermission -> {
+            assertThat(newGroupPermission.getEntityGroupId()).matches(entityGroupId -> entityGroupId == null || entityGroupId.isNullUid());
+            assertThat(newGroupPermission.getRoleId()).isEqualTo(newImportedRole.getId());
+        });
+    }
+
     private <E extends ExportableEntity<?> & HasTenantId> void checkImportedEntity(TenantId tenantId1, E initialEntity, TenantId tenantId2, E importedEntity) {
         assertThat(initialEntity.getTenantId()).isEqualTo(tenantId1);
         assertThat(importedEntity.getTenantId()).isEqualTo(tenantId2);
@@ -585,6 +751,27 @@ public class VersionControlTest extends AbstractControllerTest {
             assertThat(importedEntity.getId()).isEqualTo(initialEntity.getId());
         } else {
             assertThat(importedEntity.getId()).isNotEqualTo(initialEntity.getId());
+        }
+    }
+
+    protected <E extends ExportableEntity<?> & HasOwnerId> void checkImportedEntity(TenantId tenantId1, EntityId ownerId1, E initialEntity,
+                                                                                    TenantId tenantId2, EntityId ownerId2, E importedEntity) {
+        if (initialEntity instanceof HasTenantId) {
+            assertThat(((HasTenantId) initialEntity).getTenantId()).isEqualTo(tenantId1);
+            assertThat(((HasTenantId) importedEntity).getTenantId()).isEqualTo(tenantId2);
+        }
+        assertThat(initialEntity.getOwnerId()).isEqualTo(ownerId1);
+        assertThat(importedEntity.getOwnerId()).isEqualTo(ownerId2);
+
+        assertThat(importedEntity.getExternalId()).isEqualTo(initialEntity.getId());
+
+        boolean sameTenant = tenantId1.equals(tenantId2);
+        if (!sameTenant) {
+            assertThat(importedEntity.getId()).isNotEqualTo(initialEntity.getId());
+            assertThat(importedEntity.getOwnerId()).isNotEqualTo(initialEntity.getOwnerId());
+        } else {
+            assertThat(importedEntity.getId()).isEqualTo(initialEntity.getId());
+            assertThat(importedEntity.getOwnerId()).isEqualTo(initialEntity.getOwnerId());
         }
     }
 
@@ -632,6 +819,29 @@ public class VersionControlTest extends AbstractControllerTest {
         }
     }
 
+    protected void checkImportedEntityGroupData(EntityGroup initialEntityGroup, EntityGroup importedEntityGroup) {
+        assertThat(importedEntityGroup.getType()).isEqualTo(initialEntityGroup.getType());
+        assertThat(importedEntityGroup.getName()).isEqualTo(initialEntityGroup.getName());
+        assertThat(importedEntityGroup.getConfiguration()).isEqualTo(initialEntityGroup.getConfiguration());
+        assertThat(importedEntityGroup.getAdditionalInfo()).isEqualTo(initialEntityGroup.getAdditionalInfo());
+    }
+
+    protected void checkImportedConverterData(Converter initialConverter, Converter importedConverter) {
+        assertThat(importedConverter.getType()).isEqualTo(initialConverter.getType());
+        assertThat(importedConverter.getName()).isEqualTo(initialConverter.getName());
+        assertThat(importedConverter.getConfiguration()).isEqualTo(initialConverter.getConfiguration());
+        assertThat(importedConverter.getAdditionalInfo()).isEqualTo(initialConverter.getAdditionalInfo());
+        assertThat(importedConverter.isDebugMode()).isEqualTo(initialConverter.isDebugMode());
+    }
+
+    protected void checkImportedIntegrationData(Integration initialIntegration, Integration importedIntegration) {
+        assertThat(importedIntegration.getName()).isEqualTo(initialIntegration.getName());
+        assertThat(importedIntegration.getType()).isEqualTo(initialIntegration.getType());
+        assertThat(importedIntegration.getConfiguration()).isEqualTo(initialIntegration.getConfiguration());
+        assertThat(importedIntegration.getAdditionalInfo()).isEqualTo(initialIntegration.getAdditionalInfo());
+        assertThat(importedIntegration.getSecret()).isEqualTo(initialIntegration.getSecret());
+    }
+
     private String createVersion(String name, EntityType... entityTypes) throws Exception {
         ComplexVersionCreateRequest request = new ComplexVersionCreateRequest();
         request.setVersionName(name);
@@ -644,6 +854,8 @@ public class VersionControlTest extends AbstractControllerTest {
             config.setSaveRelations(true);
             config.setSaveAttributes(true);
             config.setSaveCredentials(true);
+            config.setSavePermissions(true);
+            config.setSaveGroupEntities(true);
             return config;
         })));
 
@@ -675,6 +887,8 @@ public class VersionControlTest extends AbstractControllerTest {
             config.setSaveRelations(true);
             config.setSaveAttributes(true);
             config.setSaveCredentials(true);
+            config.setSavePermissions(true);
+            config.setSaveGroupEntities(true);
             request.getEntityTypes().put(entityType, config);
         });
 
@@ -709,6 +923,8 @@ public class VersionControlTest extends AbstractControllerTest {
             config.setLoadAttributes(true);
             config.setLoadRelations(true);
             config.setLoadCredentials(true);
+            config.setLoadPermissions(true);
+            config.setLoadGroupEntities(true);
             config.setRemoveOtherEntities(false);
             config.setFindExistingEntityByName(true);
             configModifier.accept(config);
@@ -956,6 +1172,70 @@ public class VersionControlTest extends AbstractControllerTest {
         return relation;
     }
 
+    protected EntityGroup createEntityGroup(EntityId ownerId, EntityType groupType, String name) {
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setOwnerId(ownerId);
+        entityGroup.setType(groupType);
+        entityGroup.setName(name);
+        entityGroup.setAdditionalInfo(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
+        return entityGroupService.saveEntityGroup(TenantId.SYS_TENANT_ID, ownerId, entityGroup);
+    }
+
+    protected Converter createConverter(ConverterType type, String name) {
+        Converter converter = new Converter();
+        converter.setType(type);
+        converter.setName(name);
+        converter.setConfiguration(JacksonUtil.newObjectNode()
+                .<ObjectNode>set("encoder", new TextNode("b"))
+                .set("decoder", new TextNode("c")));
+        converter.setDebugMode(true);
+        converter.setAdditionalInfo(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
+        return doPost("/api/converter", converter, Converter.class);
+    }
+
+    protected Integration createIntegration(ConverterId converterId, IntegrationType type, String name) {
+        Integration integration = new Integration();
+        integration.setType(type);
+        integration.setName(name);
+        integration.setDefaultConverterId(converterId);
+        integration.setRoutingKey("abc");
+        integration.setSecret("scrt");
+        integration.setEnabled(false);
+        integration.setConfiguration(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
+        integration.setAdditionalInfo(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
+        return doPost("/api/integration", integration, Integration.class);
+    }
+
+    protected Role createGenericRole(CustomerId customerId, String name, Map<Resource, List<Operation>> permissions) {
+        return createRole(customerId, name, RoleType.GENERIC, permissions);
+    }
+
+    protected Role createGroupRole(CustomerId customerId, String name, List<Operation> permissions) {
+        return createRole(customerId, name, RoleType.GROUP, permissions);
+    }
+
+    private Role createRole(CustomerId customerId, String name, RoleType roleType, Object permissions) {
+        Role role = new Role();
+        role.setCustomerId(customerId);
+        role.setName(name);
+        role.setType(roleType);
+        role.setPermissions(JacksonUtil.valueToTree(permissions));
+        return doPost("/api/role", role, Role.class);
+    }
+
+    protected GroupPermission createGroupPermission(EntityGroupId userGroupId, RoleId genericRoleId) {
+        return createGroupPermission(userGroupId, genericRoleId, null, null);
+    }
+
+    protected GroupPermission createGroupPermission(EntityGroupId userGroupId, RoleId roleId, EntityGroupId entityGroupId, EntityType entityGroupType) {
+        GroupPermission groupPermission = new GroupPermission();
+        groupPermission.setUserGroupId(userGroupId);
+        groupPermission.setRoleId(roleId);
+        groupPermission.setEntityGroupId(entityGroupId);
+        groupPermission.setEntityGroupType(entityGroupType);
+        return doPost("/api/groupPermission", groupPermission, GroupPermission.class);
+    }
+
     protected void checkImportedRuleChainData(RuleChain initialRuleChain, RuleChainMetaData initialMetaData, RuleChain importedRuleChain, RuleChainMetaData importedMetaData) {
         assertThat(importedRuleChain.getType()).isEqualTo(initialRuleChain.getType());
         assertThat(importedRuleChain.getName()).isEqualTo(initialRuleChain.getName());
@@ -1015,6 +1295,26 @@ public class VersionControlTest extends AbstractControllerTest {
 
     private RuleChainMetaData findRuleChainMetaData(RuleChainId ruleChainId) throws Exception {
         return doGet("/api/ruleChain/" + ruleChainId + "/metadata", RuleChainMetaData.class);
+    }
+
+    private Integration findIntegration(String name) throws Exception {
+        return doGetTypedWithPageLink("/api/integrations?", new TypeReference<PageData<Integration>>() {}, new PageLink(100, 0, name)).getData().get(0);
+    }
+
+    private Converter findConverter(String name) throws Exception {
+        return doGetTypedWithPageLink("/api/converters?", new TypeReference<PageData<Converter>>() {}, new PageLink(100, 0, name)).getData().get(0);
+    }
+
+    private EntityGroup findEntityGroup(String name, EntityType groupType) throws Exception {
+        return doGetTypedWithPageLink("/api/entityGroups/" + groupType + "?", new TypeReference<PageData<EntityGroup>>() {}, new PageLink(100, 0, name)).getData().get(0);
+    }
+
+    private Role findRole(String name) throws Exception {
+        return doGetTypedWithPageLink("/api/roles?", new TypeReference<PageData<Role>>() {}, new PageLink(100, 0, name)).getData().get(0);
+    }
+
+    private List<GroupPermissionInfo> findGroupPermissions(EntityGroupId userGroupId) throws Exception {
+        return doGetTyped("/api/userGroup/" + userGroupId + "/groupPermissions?", new TypeReference<>() {});
     }
 
 }

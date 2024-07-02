@@ -112,8 +112,8 @@ import org.thingsboard.server.service.sync.vc.repository.TbRepositorySettingsSer
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -149,11 +149,10 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     private final TbTransactionalCache<UUID, VersionControlTaskCacheEntry> taskCache;
     private final VersionControlExecutor executor;
 
-    private static final Set<EntityType> GROUP_ENTITIES = new HashSet<>(Arrays.asList(
+    private static final Set<EntityType> GROUP_ENTITIES = EnumSet.of(
             EntityType.CUSTOMER, EntityType.DEVICE, EntityType.ASSET, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.USER
-    ));
+    );
 
-    @SuppressWarnings("UnstableApiUsage")
     @Override
     public ListenableFuture<UUID> saveEntitiesVersion(User user, VersionCreateRequest request) throws Exception {
         checkBranchName(request.getBranch());
@@ -564,11 +563,14 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             importEntities(ctx, Collections.emptyList(), entityType, true);
         }
 
-        for (EntityType entityType : entityTypes) {
-            log.debug("[{}] Loading {} groups", ctx.getTenantId(), entityType);
-            sw.startNew("Groups " + entityType.name());
-            ctx.setSettings(getEntityImportSettings(request, entityType));
-            importEntityGroups(ctx, entityType);
+        for (EntityType groupType : GROUP_ENTITIES) {
+            if (!entityTypes.contains(groupType)) {
+                continue;
+            }
+            log.debug("[{}] Loading {} groups", ctx.getTenantId(), groupType);
+            sw.startNew("Groups " + groupType.name());
+            ctx.setSettings(getEntityImportSettings(request, groupType));
+            importEntityGroups(ctx, groupType);
             persistToCache(ctx);
         }
 
