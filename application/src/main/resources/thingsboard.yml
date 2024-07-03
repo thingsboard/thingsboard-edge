@@ -1922,6 +1922,9 @@ service:
     pubsub:
       # Thread pool size for pubsub rule node executor provider. If not set - default pubsub executor provider value will be used (5 * number of available processors)
       executor_thread_pool_size: "${TB_RULE_ENGINE_PUBSUB_EXECUTOR_THREAD_POOL_SIZE:0}"
+  converter:
+    git_hub_url: "${CONVERTER_GIT_HUB_URL:https://api.github.com/repos/thingsboard/data-converters/contents/}"
+    git_hub_token: "${CONVERTER_GIT_HUB_TOKEN:}"
 
 # Metrics parameters
 metrics:
