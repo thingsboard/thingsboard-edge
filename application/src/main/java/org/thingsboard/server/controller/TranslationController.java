@@ -139,7 +139,6 @@ public class TranslationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/translation/availableLocales")
     public JsonNode getAvailableLocales() throws ThingsboardException {
-        checkWhiteLabelingPermissions(Operation.READ);
         ObjectNode result = JacksonUtil.newObjectNode();
         Set<String> availableLocaleCodes = tbTranslationService.getAvailableLocaleCodes(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
         for (String localeCode : availableLocaleCodes) {
