@@ -35,20 +35,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Value;
+import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.thingsboard.server.common.data.mobile.AndroidConfig;
 import org.thingsboard.server.common.data.mobile.IosConfig;
 import org.thingsboard.server.common.data.mobile.MobileAppSettings;
 import org.thingsboard.server.common.data.mobile.QRCodeConfig;
 import org.thingsboard.server.common.data.security.model.JwtPair;
+import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.thingsboard.server.dao.mobile.BaseMobileAppSettingsService.DEFAULT_QR_CODE_LABEL;
 
 @Slf4j
 @DaoSqlTest
@@ -326,4 +328,58 @@ public class MobileApplicationControllerTest extends AbstractControllerTest {
         assertThat(customerCustomAppParsedDeepLink.matches()).isTrue();
         assertThat(customerCustomAppParsedDeepLink.group(1)).isEqualTo("localhost");
     }
+
+    @Test
+    public void shouldGetCorrectDeepLinkForTenantsWithWhiteLabeling() throws Exception {
+        loginSysAdmin();
+        MobileAppSettings mobileAppSettings = doGet("/api/mobile/app/settings", MobileAppSettings.class);
+        assertThat(mobileAppSettings.getQrCodeConfig().getQrCodeLabel()).isEqualTo(TEST_LABEL);
+        assertThat(mobileAppSettings.isUseDefaultApp()).isTrue();
+
+        mobileAppSettings.setUseDefaultApp(false);
+
+        doPost("/api/mobile/app/settings", mobileAppSettings)
+                .andExpect(status().isOk());
+
+        loginTenantAdmin();
+        String domainName = "my.domain.name";
+        updateDomainNameAndBaseUrl(domainName, domainName);
+
+        //check deep link
+        String deepLinkForWrongBaseUrl = doGet("/api/mobile/deepLink", String.class);
+
+        Pattern expectedPattern = Pattern.compile("\"https://([^/]+)/api/noauth/qr\\?secret=([^&]+)&ttl=([^&]+)\"");
+        Matcher parsedDeepLink = expectedPattern.matcher(deepLinkForWrongBaseUrl);
+        assertThat(parsedDeepLink.matches()).isTrue();
+        String appHost = parsedDeepLink.group(1);
+        assertThat(appHost).isEqualTo(domainName);
+
+        // update base url to correct one
+        updateDomainNameAndBaseUrl("my.domain.name","https://my.domain.name");
+
+        //check deep link
+        String deepLinkForCorrectBaseUrl = doGet("/api/mobile/deepLink", String.class);
+
+        Matcher parsedDeepLinkAfterUpdate = expectedPattern.matcher(deepLinkForCorrectBaseUrl);
+        assertThat(parsedDeepLinkAfterUpdate.matches()).isTrue();
+        String appHostAfterUpdate = parsedDeepLink.group(1);
+        assertThat(appHostAfterUpdate).isEqualTo(domainName);
+
+    }
+
+    private LoginWhiteLabelingParams updateDomainNameAndBaseUrl(String domainName, String baseUrl) throws Exception {
+        LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+
+        loginWhiteLabelingParams.setDomainName(domainName);
+        loginWhiteLabelingParams.setBaseUrl(baseUrl);
+        loginWhiteLabelingParams.setProhibitDifferentUrl(true);
+        doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
+
+        Awaitility.await("Waiting while login whitelabel params is updated")
+                .atMost(10, TimeUnit.SECONDS)
+                .until(() -> baseUrl.equals(doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class).getBaseUrl()));
+
+        return doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
+    }
+
 }
