@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -187,6 +188,9 @@ public class MobileApplicationController extends BaseController {
         SecurityUser currentUser = getCurrentUser();
         String secret = mobileAppSecretService.generateMobileAppSecret(getCurrentUser());
         String baseUrl = systemSecurityService.getBaseUrl(currentUser.getAuthority(), currentUser.getTenantId(), currentUser.getCustomerId(), request);
+        if (!StringUtils.startsWithAny(baseUrl, "http://", "https://")) {
+            baseUrl = "https://" + baseUrl;
+        }
         String platformDomain = new URI(baseUrl).getHost();
         MobileAppSettings mobileAppSettings = mobileAppSettingsService.getMergedMobileAppSettings(currentUser.getTenantId());
         String appDomain;
