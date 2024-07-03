@@ -60,9 +60,7 @@ public class ConverterGitHubController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/files", method = RequestMethod.GET)
     @ResponseBody
-    public TbGitHubContent[] getListFiles(
-            @RequestParam(required = false) String pathDir
-                                          ) throws ThingsboardException {
+    public TbGitHubContent[] getListFiles(@RequestParam(required = false) String pathDir) throws ThingsboardException {
         return converterGitHubService.listFiles(pathDir);
     }
 
