@@ -47,4 +47,5 @@ public class RoleMsgConstructorV2 extends BaseRoleMsgConstructor {
                 .setIdMSB(role.getId().getId().getMostSignificantBits())
                 .setIdLSB(role.getId().getId().getLeastSignificantBits()).build();
     }
+
 }
