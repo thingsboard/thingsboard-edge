@@ -351,7 +351,7 @@ public class HashPartitionService implements PartitionService {
 
     private QueueKey getQueueKey(ServiceType serviceType, String queueName, TenantId tenantId) {
         TenantId isolatedOrSystemTenantId = getIsolatedOrSystemTenantId(serviceType, tenantId);
-        if (queueName == null) {
+        if (queueName == null || queueName.isEmpty()) {
             queueName = MAIN_QUEUE_NAME;
         }
         QueueKey queueKey = new QueueKey(serviceType, queueName, isolatedOrSystemTenantId);
@@ -721,6 +721,7 @@ public class HashPartitionService implements PartitionService {
         public QueueConfig(QueueRoutingInfo queueRoutingInfo) {
             this.duplicateMsgToAllPartitions = queueRoutingInfo.isDuplicateMsgToAllPartitions();
         }
+
     }
 
 }
