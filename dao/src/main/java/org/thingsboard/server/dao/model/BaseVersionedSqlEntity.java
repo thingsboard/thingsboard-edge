@@ -28,29 +28,49 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.sync.ie;
+package org.thingsboard.server.dao.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Version;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.security.DeviceCredentials;
+import lombok.Getter;
+import lombok.Setter;
+import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.HasVersion;
 
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
 @Data
-public class DeviceExportData extends GroupEntityExportData<Device> {
+@EqualsAndHashCode(callSuper = true)
+@MappedSuperclass
+public abstract class BaseVersionedSqlEntity<D extends BaseData & HasVersion> extends BaseSqlEntity<D> implements HasVersion {
 
-    @JsonProperty(index = 3)
-    @JsonIgnoreProperties({"id", "deviceId", "createdTime", "version"})
-    private DeviceCredentials credentials;
+    @Getter @Setter
+    @Version
+    @Column(name = ModelConstants.VERSION_PROPERTY)
+    protected Integer version;
 
-    @JsonIgnore
-    @Override
-    public boolean hasCredentials() {
-        return credentials != null;
+    public BaseVersionedSqlEntity() {
+        super();
     }
+
+    public BaseVersionedSqlEntity(D domain) {
+        super(domain);
+        this.version = domain.getVersion();
+    }
+
+    public BaseVersionedSqlEntity(BaseVersionedSqlEntity<?> entity) {
+        super(entity);
+        this.version = entity.version;
+    }
+
+    @Override
+    public String toString() {
+        return "BaseVersionedSqlEntity{" +
+                "id=" + id +
+                ", createdTime=" + createdTime +
+                ", version=" + version +
+                '}';
+    }
+
 }

@@ -47,7 +47,7 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.objects.TelemetryEntityView;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
@@ -59,7 +59,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.ENTITY_TYPE_PROPER
 @EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
 @Slf4j
-public abstract class AbstractEntityViewEntity<T extends EntityView> extends BaseSqlEntity<T> {
+public abstract class AbstractEntityViewEntity<T extends EntityView> extends BaseVersionedSqlEntity<T> {
 
     @Column(name = ModelConstants.ENTITY_VIEW_ENTITY_ID_PROPERTY)
     private UUID entityId;
@@ -100,11 +100,8 @@ public abstract class AbstractEntityViewEntity<T extends EntityView> extends Bas
         super();
     }
 
-    public AbstractEntityViewEntity(EntityView entityView) {
-        if (entityView.getId() != null) {
-            this.setUuid(entityView.getId().getId());
-        }
-        this.setCreatedTime(entityView.getCreatedTime());
+    public AbstractEntityViewEntity(T entityView) {
+        super(entityView);
         if (entityView.getEntityId() != null) {
             this.entityId = entityView.getEntityId().getId();
             this.entityType = entityView.getEntityId().getEntityType();
@@ -131,8 +128,7 @@ public abstract class AbstractEntityViewEntity<T extends EntityView> extends Bas
     }
 
     public AbstractEntityViewEntity(EntityViewEntity entityViewEntity) {
-        this.setId(entityViewEntity.getId());
-        this.setCreatedTime(entityViewEntity.getCreatedTime());
+        super(entityViewEntity);
         this.entityId = entityViewEntity.getEntityId();
         this.entityType = entityViewEntity.getEntityType();
         this.tenantId = entityViewEntity.getTenantId();
@@ -149,6 +145,7 @@ public abstract class AbstractEntityViewEntity<T extends EntityView> extends Bas
     protected EntityView toEntityView() {
         EntityView entityView = new EntityView(new EntityViewId(getUuid()));
         entityView.setCreatedTime(createdTime);
+        entityView.setVersion(version);
 
         if (entityId != null) {
             entityView.setEntityId(EntityIdFactory.getByTypeAndUuid(entityType.name(), entityId));
@@ -174,4 +171,5 @@ public abstract class AbstractEntityViewEntity<T extends EntityView> extends Bas
         }
         return entityView;
     }
+
 }

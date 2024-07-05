@@ -28,29 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.sync.ie;
+package org.thingsboard.server.common.data;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.security.DeviceCredentials;
+public interface HasVersion {
 
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-@Data
-public class DeviceExportData extends GroupEntityExportData<Device> {
+    Integer getVersion();
 
-    @JsonProperty(index = 3)
-    @JsonIgnoreProperties({"id", "deviceId", "createdTime", "version"})
-    private DeviceCredentials credentials;
+    void setVersion(Integer version);
 
-    @JsonIgnore
-    @Override
-    public boolean hasCredentials() {
-        return credentials != null;
-    }
 }

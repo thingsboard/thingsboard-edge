@@ -53,7 +53,7 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
@@ -63,7 +63,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = ModelConstants.DEVICE_PROFILE_TABLE_NAME)
-public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> {
+public final class DeviceProfileEntity extends BaseVersionedSqlEntity<DeviceProfile> {
 
     @Column(name = ModelConstants.DEVICE_PROFILE_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -126,13 +126,10 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> {
     }
 
     public DeviceProfileEntity(DeviceProfile deviceProfile) {
-        if (deviceProfile.getId() != null) {
-            this.setUuid(deviceProfile.getId().getId());
-        }
+        super(deviceProfile);
         if (deviceProfile.getTenantId() != null) {
             this.tenantId = deviceProfile.getTenantId().getId();
         }
-        this.setCreatedTime(deviceProfile.getCreatedTime());
         this.name = deviceProfile.getName();
         this.type = deviceProfile.getType();
         this.image = deviceProfile.getImage();
@@ -167,6 +164,7 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> {
     public DeviceProfile toData() {
         DeviceProfile deviceProfile = new DeviceProfile(new DeviceProfileId(this.getUuid()));
         deviceProfile.setCreatedTime(createdTime);
+        deviceProfile.setVersion(version);
         if (tenantId != null) {
             deviceProfile.setTenantId(TenantId.fromUUID(tenantId));
         }
@@ -202,4 +200,5 @@ public final class DeviceProfileEntity extends BaseSqlEntity<DeviceProfile> {
 
         return deviceProfile;
     }
+
 }

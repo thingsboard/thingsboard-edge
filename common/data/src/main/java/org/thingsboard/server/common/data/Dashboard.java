@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
 
 @Schema
 @EqualsAndHashCode(callSuper = true)
-public class Dashboard extends BaseData<DashboardId> implements GroupEntity<DashboardId>, HasName, HasTenantId, HasTitle, ExportableEntity<DashboardId>, HasImage {
+public class Dashboard extends BaseData<DashboardId> implements GroupEntity<DashboardId>, HasName, HasTenantId, HasTitle, ExportableEntity<DashboardId>, HasImage, HasVersion {
 
     private static final long serialVersionUID = 872682138346187503L;
 
@@ -78,6 +78,9 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
     @Getter
     @Setter
     private DashboardId externalId;
+    @Getter
+    @Setter
+    private Integer version;
 
     public Dashboard() {
         super();
@@ -102,6 +105,7 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
         this.mobileOrder = dashboard.getMobileOrder();
         this.configuration = dashboard.getConfiguration();
         this.externalId = dashboard.getExternalId();
+        this.version = dashboard.getVersion();
     }
 
     @Schema(description = "JSON object with the dashboard Id. " +

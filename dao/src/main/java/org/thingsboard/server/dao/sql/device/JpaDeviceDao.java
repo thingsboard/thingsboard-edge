@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceIdInfo;
 import org.thingsboard.server.common.data.DeviceTransportType;
@@ -86,14 +85,6 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
     @Override
     protected JpaRepository<DeviceEntity, UUID> getRepository() {
         return deviceRepository;
-    }
-
-    @Override
-    @Transactional
-    public Device saveAndFlush(TenantId tenantId, Device device) {
-        Device result = this.save(tenantId, device);
-        deviceRepository.flush();
-        return result;
     }
 
     @Override
@@ -222,7 +213,7 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
     @Override
     public PageData<DeviceId> findIdsByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink) {
         Page<UUID> page;
-        if(customerId == null){
+        if (customerId == null) {
             page = deviceRepository.findIdsByTenantIdAndNullCustomerId(tenantId, DaoUtil.toPageable(pageLink));
         } else {
             page = deviceRepository.findIdsByTenantIdAndCustomerId(tenantId, customerId, DaoUtil.toPageable(pageLink));

@@ -30,6 +30,9 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.asset.AssetProfile;
@@ -37,19 +40,16 @@ import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
 import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = ModelConstants.ASSET_PROFILE_TABLE_NAME)
-public final class AssetProfileEntity extends BaseSqlEntity<AssetProfile> {
+public final class AssetProfileEntity extends BaseVersionedSqlEntity<AssetProfile> {
 
     @Column(name = ModelConstants.ASSET_PROFILE_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -86,13 +86,10 @@ public final class AssetProfileEntity extends BaseSqlEntity<AssetProfile> {
     }
 
     public AssetProfileEntity(AssetProfile assetProfile) {
-        if (assetProfile.getId() != null) {
-            this.setUuid(assetProfile.getId().getId());
-        }
+        super(assetProfile);
         if (assetProfile.getTenantId() != null) {
             this.tenantId = assetProfile.getTenantId().getId();
         }
-        this.setCreatedTime(assetProfile.getCreatedTime());
         this.name = assetProfile.getName();
         this.image = assetProfile.getImage();
         this.description = assetProfile.getDescription();
@@ -116,6 +113,7 @@ public final class AssetProfileEntity extends BaseSqlEntity<AssetProfile> {
     public AssetProfile toData() {
         AssetProfile assetProfile = new AssetProfile(new AssetProfileId(this.getUuid()));
         assetProfile.setCreatedTime(createdTime);
+        assetProfile.setVersion(version);
         if (tenantId != null) {
             assetProfile.setTenantId(TenantId.fromUUID(tenantId));
         }

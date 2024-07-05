@@ -576,6 +576,9 @@ public class ProtoUtils {
         if (isNotNull(device.getDeviceDataBytes())) {
             builder.setDeviceData(ByteString.copyFrom(device.getDeviceDataBytes()));
         }
+        if (isNotNull(device.getVersion())) {
+            builder.setVersion(device.getVersion());
+        }
         return builder.build();
     }
 
@@ -606,6 +609,9 @@ public class ProtoUtils {
         }
         if (proto.hasDeviceData()) {
             device.setDeviceDataBytes(proto.getDeviceData().toByteArray());
+        }
+        if (proto.hasVersion()) {
+            device.setVersion(proto.getVersion());
         }
         return device;
     }
@@ -662,6 +668,9 @@ public class ProtoUtils {
             builder.setDefaultEdgeRuleChainIdMSB(getMsb(deviceProfile.getDefaultEdgeRuleChainId()))
                     .setDefaultEdgeRuleChainIdLSB(getLsb(deviceProfile.getDefaultEdgeRuleChainId()));
         }
+        if (isNotNull(deviceProfile.getVersion())) {
+            builder.setVersion(deviceProfile.getVersion());
+        }
         return builder.build();
     }
 
@@ -706,6 +715,9 @@ public class ProtoUtils {
         }
         if (proto.hasDefaultEdgeRuleChainIdMSB() && proto.hasDefaultEdgeRuleChainIdLSB()) {
             deviceProfile.setDefaultEdgeRuleChainId(getEntityId(proto.getDefaultEdgeRuleChainIdMSB(), proto.getDefaultEdgeRuleChainIdLSB(), RuleChainId::new));
+        }
+        if (proto.hasVersion()) {
+            deviceProfile.setVersion(proto.getVersion());
         }
         return deviceProfile;
     }
@@ -1003,6 +1015,9 @@ public class ProtoUtils {
         if (deviceCredentials.getCredentialsValue() != null) {
             builder.setCredentialsValue(deviceCredentials.getCredentialsValue());
         }
+        if (deviceCredentials.getVersion() != null) {
+            builder.setVersion(deviceCredentials.getVersion());
+        }
         return builder.build();
     }
 
@@ -1014,6 +1029,7 @@ public class ProtoUtils {
         deviceCredentials.setCredentialsId(proto.getCredentialsId());
         deviceCredentials.setCredentialsType(DeviceCredentialsType.valueOf(proto.getCredentialsType().name()));
         deviceCredentials.setCredentialsValue(proto.hasCredentialsValue() ? proto.getCredentialsValue() : null);
+        deviceCredentials.setVersion(proto.hasVersion() ? proto.getVersion() : null);
         return deviceCredentials;
     }
 

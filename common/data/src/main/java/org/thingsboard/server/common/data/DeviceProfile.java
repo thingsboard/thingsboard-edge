@@ -57,7 +57,7 @@ import java.io.IOException;
 @ToString(exclude = {"image", "profileDataBytes"})
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class DeviceProfile extends BaseData<DeviceProfileId> implements HasName, TenantEntity, HasOtaPackage, HasRuleEngineProfile, ExportableEntity<DeviceProfileId>, HasImage, HasDefaultOption {
+public class DeviceProfile extends BaseData<DeviceProfileId> implements HasName, TenantEntity, HasOtaPackage, HasRuleEngineProfile, ExportableEntity<DeviceProfileId>, HasImage, HasDefaultOption, HasVersion {
 
     private static final long serialVersionUID = 6998485460273302018L;
 
@@ -112,6 +112,7 @@ public class DeviceProfile extends BaseData<DeviceProfileId> implements HasName,
     private RuleChainId defaultEdgeRuleChainId;
 
     private DeviceProfileId externalId;
+    private Integer version;
 
     public DeviceProfile() {
         super();
@@ -137,6 +138,7 @@ public class DeviceProfile extends BaseData<DeviceProfileId> implements HasName,
         this.softwareId = deviceProfile.getSoftwareId();
         this.defaultEdgeRuleChainId = deviceProfile.getDefaultEdgeRuleChainId();
         this.externalId = deviceProfile.getExternalId();
+        this.version = deviceProfile.getVersion();
     }
 
     @Schema(description = "JSON object with the device profile Id. " +
@@ -155,7 +157,7 @@ public class DeviceProfile extends BaseData<DeviceProfileId> implements HasName,
     }
 
     @Schema(description = "Used to mark the default profile. Default profile is used when the device profile is not specified during device creation.")
-    public boolean isDefault(){
+    public boolean isDefault() {
         return isDefault;
     }
 
@@ -192,4 +194,5 @@ public class DeviceProfile extends BaseData<DeviceProfileId> implements HasName,
     public EntityType getEntityType() {
         return EntityType.DEVICE_PROFILE;
     }
+
 }

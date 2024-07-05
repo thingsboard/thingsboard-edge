@@ -41,7 +41,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
@@ -61,7 +61,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.EDGE_TYPE_PROPERTY
 @Data
 @EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
-public abstract class AbstractEdgeEntity<T extends Edge> extends BaseSqlEntity<T> {
+public abstract class AbstractEdgeEntity<T extends Edge> extends BaseVersionedSqlEntity<T> {
 
     @Column(name = EDGE_TENANT_ID_PROPERTY, columnDefinition = "uuid")
     private UUID tenantId;
@@ -101,11 +101,8 @@ public abstract class AbstractEdgeEntity<T extends Edge> extends BaseSqlEntity<T
         super();
     }
 
-    public AbstractEdgeEntity(Edge edge) {
-        if (edge.getId() != null) {
-            this.setUuid(edge.getId().getId());
-        }
-        this.setCreatedTime(edge.getCreatedTime());
+    public AbstractEdgeEntity(T edge) {
+        super(edge);
         if (edge.getTenantId() != null) {
             this.tenantId = edge.getTenantId().getId();
         }
@@ -126,8 +123,7 @@ public abstract class AbstractEdgeEntity<T extends Edge> extends BaseSqlEntity<T
     }
 
     public AbstractEdgeEntity(EdgeEntity edgeEntity) {
-        this.setId(edgeEntity.getId());
-        this.setCreatedTime(edgeEntity.getCreatedTime());
+        super(edgeEntity);
         this.tenantId = edgeEntity.getTenantId();
         this.customerId = edgeEntity.getCustomerId();
         this.rootRuleChainId = edgeEntity.getRootRuleChainId();
@@ -144,6 +140,7 @@ public abstract class AbstractEdgeEntity<T extends Edge> extends BaseSqlEntity<T
     protected Edge toEdge() {
         Edge edge = new Edge(new EdgeId(getUuid()));
         edge.setCreatedTime(createdTime);
+        edge.setVersion(version);
         if (tenantId != null) {
             edge.setTenantId(TenantId.fromUUID(tenantId));
         }
@@ -163,4 +160,5 @@ public abstract class AbstractEdgeEntity<T extends Edge> extends BaseSqlEntity<T
         edge.setAdditionalInfo(additionalInfo);
         return edge;
     }
+
 }

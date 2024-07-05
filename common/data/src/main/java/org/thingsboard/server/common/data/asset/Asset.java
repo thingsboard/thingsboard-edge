@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasLabel;
+import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -53,7 +54,7 @@ import java.util.Optional;
 
 @Schema
 @EqualsAndHashCode(callSuper = true)
-public class Asset extends BaseDataWithAdditionalInfo<AssetId> implements HasLabel, GroupEntity<AssetId>, ExportableEntity<AssetId> {
+public class Asset extends BaseDataWithAdditionalInfo<AssetId> implements HasLabel, GroupEntity<AssetId>, ExportableEntity<AssetId>, HasVersion {
 
     private static final long serialVersionUID = 2807343040519543363L;
 
@@ -73,6 +74,8 @@ public class Asset extends BaseDataWithAdditionalInfo<AssetId> implements HasLab
 
     @Getter @Setter
     private AssetId externalId;
+    @Getter @Setter
+    private Integer version;
 
     public Asset() {
         super();
@@ -91,6 +94,7 @@ public class Asset extends BaseDataWithAdditionalInfo<AssetId> implements HasLab
         this.label = asset.getLabel();
         this.assetProfileId = asset.getAssetProfileId();
         this.externalId = asset.getExternalId();
+        this.version = asset.getVersion();
     }
 
     public void update(Asset asset) {
@@ -102,6 +106,7 @@ public class Asset extends BaseDataWithAdditionalInfo<AssetId> implements HasLab
         this.assetProfileId = asset.getAssetProfileId();
         Optional.ofNullable(asset.getAdditionalInfo()).ifPresent(this::setAdditionalInfo);
         this.externalId = asset.getExternalId();
+        this.version = asset.getVersion();
     }
 
     @Schema(description = "JSON object with the asset Id. " +

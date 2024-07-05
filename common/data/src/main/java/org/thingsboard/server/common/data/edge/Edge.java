@@ -33,12 +33,14 @@ package org.thingsboard.server.common.data.edge;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasLabel;
+import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -52,7 +54,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @ToString
 @Setter
 public class Edge extends BaseDataWithAdditionalInfo<EdgeId>
-        implements HasLabel, GroupEntity<EdgeId> {
+        implements HasLabel, GroupEntity<EdgeId>, HasVersion {
 
     private static final long serialVersionUID = 4934987555236873728L;
 
@@ -81,6 +83,9 @@ public class Edge extends BaseDataWithAdditionalInfo<EdgeId>
     @Length(fieldName = "cloudEndpoint")
     private String cloudEndpoint;
 
+    @Getter
+    private Integer version;
+
     public Edge() {
         super();
     }
@@ -100,6 +105,7 @@ public class Edge extends BaseDataWithAdditionalInfo<EdgeId>
         this.edgeLicenseKey = edge.getEdgeLicenseKey();
         this.cloudEndpoint = edge.getCloudEndpoint();
         this.rootRuleChainId = edge.getRootRuleChainId();
+        this.version = edge.getVersion();
     }
 
     public void update(Edge edge) {
@@ -113,12 +119,13 @@ public class Edge extends BaseDataWithAdditionalInfo<EdgeId>
         this.secret = edge.getSecret();
         this.edgeLicenseKey = edge.getEdgeLicenseKey();
         this.cloudEndpoint = edge.getCloudEndpoint();
+        this.version = edge.getVersion();
     }
 
     @Schema(description = "JSON object with the Edge Id. " +
             "Specify this field to update the Edge. " +
             "Referencing non-existing Edge Id will cause error. " +
-            "Omit this field to create new Edge." )
+            "Omit this field to create new Edge.")
     @Override
     public EdgeId getId() {
         return super.getId();
@@ -202,4 +209,5 @@ public class Edge extends BaseDataWithAdditionalInfo<EdgeId>
             this.customerId = new CustomerId(CustomerId.NULL_UUID);
         }
     }
+
 }

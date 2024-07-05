@@ -41,7 +41,7 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
@@ -57,7 +57,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPER
 @Data
 @EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
-public abstract class AbstractAssetEntity<T extends Asset> extends BaseSqlEntity<T> {
+public abstract class AbstractAssetEntity<T extends Asset> extends BaseVersionedSqlEntity<T> {
 
     @Column(name = ASSET_TENANT_ID_PROPERTY, columnDefinition = "uuid")
     private UUID tenantId;
@@ -88,11 +88,8 @@ public abstract class AbstractAssetEntity<T extends Asset> extends BaseSqlEntity
         super();
     }
 
-    public AbstractAssetEntity(Asset asset) {
-        if (asset.getId() != null) {
-            this.setUuid(asset.getId().getId());
-        }
-        this.setCreatedTime(asset.getCreatedTime());
+    public AbstractAssetEntity(T asset) {
+        super(asset);
         if (asset.getTenantId() != null) {
             this.tenantId = asset.getTenantId().getId();
         }
@@ -112,8 +109,7 @@ public abstract class AbstractAssetEntity<T extends Asset> extends BaseSqlEntity
     }
 
     public AbstractAssetEntity(AssetEntity assetEntity) {
-        this.setId(assetEntity.getId());
-        this.setCreatedTime(assetEntity.getCreatedTime());
+        super(assetEntity);
         this.tenantId = assetEntity.getTenantId();
         this.customerId = assetEntity.getCustomerId();
         this.assetProfileId = assetEntity.getAssetProfileId();
@@ -127,6 +123,7 @@ public abstract class AbstractAssetEntity<T extends Asset> extends BaseSqlEntity
     protected Asset toAsset() {
         Asset asset = new Asset(new AssetId(id));
         asset.setCreatedTime(createdTime);
+        asset.setVersion(version);
         if (tenantId != null) {
             asset.setTenantId(TenantId.fromUUID(tenantId));
         }

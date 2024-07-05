@@ -34,12 +34,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.List;
 
 @Schema
 @Data
 @EqualsAndHashCode(callSuper = true)
+@ToString(callSuper = true)
 public class DeviceInfo extends Device {
 
     @Valid
@@ -63,4 +65,5 @@ public class DeviceInfo extends Device {
         this.groups = groups;
         this.active = active;
     }
+
 }

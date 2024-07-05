@@ -205,7 +205,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
         savedDevice.setName("My new device");
-        doPost("/api/device", savedDevice, Device.class);
+        savedDevice = doPost("/api/device", savedDevice, Device.class);
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(savedDevice, savedDevice,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
@@ -261,7 +261,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
 
         savedDevice.setName("My new device");
-        doPost("/api/device", savedDevice, Device.class);
+        savedDevice = doPost("/api/device", savedDevice, Device.class);
 
         testNotifyManyEntityManyTimeMsgToEdgeServiceEntityEqAny(savedDevice, savedDevice,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
@@ -664,8 +664,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService, gatewayNotificationsService);
 
-        doPost("/api/device/credentials", deviceCredentials)
-                .andExpect(status().isOk());
+        deviceCredentials = doPost("/api/device/credentials", deviceCredentials, DeviceCredentials.class);
 
         testNotifyEntityMsgToEdgePushMsgToCoreOneTime(savedDevice, savedDevice.getId(), savedDevice.getId(), savedTenant.getId(),
                 tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(), ActionType.CREDENTIALS_UPDATED, deviceCredentials);
@@ -1236,10 +1235,27 @@ public class DeviceControllerTest extends AbstractControllerTest {
         Assert.assertEquals(newAttributeValue, actualAttribute.get("value"));
     }
 
+    @Test
+    public void testSaveDeviceWithOutdatedVersion() throws Exception {
+        Device device = createDevice("Device v1");
+        assertThat(device.getVersion()).isOne();
+
+        device.setName("Device v2");
+        device = doPost("/api/device", device, Device.class);
+        assertThat(device.getVersion()).isEqualTo(2);
+
+        device.setVersion(1);
+        String response = doPost("/api/device", device).andExpect(status().isConflict())
+                .andReturn().getResponse().getContentAsString();
+        assertThat(JacksonUtil.toJsonNode(response).get("message").asText())
+                .containsIgnoringCase("already changed by someone else");
+    }
+
     private Device createDevice(String name) {
         Device device = new Device();
         device.setName(name);
         device.setType("default");
         return doPost("/api/device", device, Device.class);
     }
+
 }

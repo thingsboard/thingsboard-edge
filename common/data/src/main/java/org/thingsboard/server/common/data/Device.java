@@ -37,6 +37,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -55,7 +56,8 @@ import java.util.Optional;
 @Schema
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
-public class Device extends BaseDataWithAdditionalInfo<DeviceId> implements GroupEntity<DeviceId>, HasLabel, HasCustomerId, HasOtaPackage, ExportableEntity<DeviceId> {
+@ToString(callSuper = true)
+public class Device extends BaseDataWithAdditionalInfo<DeviceId> implements GroupEntity<DeviceId>, HasLabel, HasCustomerId, HasOtaPackage, ExportableEntity<DeviceId>, HasVersion {
 
     private static final long serialVersionUID = 2807343040519543363L;
 
@@ -81,6 +83,8 @@ public class Device extends BaseDataWithAdditionalInfo<DeviceId> implements Grou
 
     @Getter @Setter
     private DeviceId externalId;
+    @Getter @Setter
+    private Integer version;
 
     public Device() {
         super();
@@ -102,6 +106,7 @@ public class Device extends BaseDataWithAdditionalInfo<DeviceId> implements Grou
         this.firmwareId = device.getFirmwareId();
         this.softwareId = device.getSoftwareId();
         this.externalId = device.getExternalId();
+        this.version = device.getVersion();
     }
 
     public Device updateDevice(Device device) {
@@ -116,13 +121,14 @@ public class Device extends BaseDataWithAdditionalInfo<DeviceId> implements Grou
         this.setSoftwareId(device.getSoftwareId());
         Optional.ofNullable(device.getAdditionalInfo()).ifPresent(this::setAdditionalInfo);
         this.setExternalId(device.getExternalId());
+        this.setVersion(device.getVersion());
         return this;
     }
 
     @Schema(description = "JSON object with the Device Id. " +
             "Specify this field to update the Device. " +
             "Referencing non-existing Device Id will cause error. " +
-            "Omit this field to create new Device." )
+            "Omit this field to create new Device.")
     @Override
     public DeviceId getId() {
         return super.getId();
@@ -250,39 +256,10 @@ public class Device extends BaseDataWithAdditionalInfo<DeviceId> implements Grou
         this.softwareId = softwareId;
     }
 
-    @Schema(description = "Additional parameters of the device",implementation = com.fasterxml.jackson.databind.JsonNode.class)
+    @Schema(description = "Additional parameters of the device", implementation = com.fasterxml.jackson.databind.JsonNode.class)
     @Override
     public JsonNode getAdditionalInfo() {
         return super.getAdditionalInfo();
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("Device [tenantId=");
-        builder.append(tenantId);
-        builder.append(", customerId=");
-        builder.append(customerId);
-        builder.append(", name=");
-        builder.append(name);
-        builder.append(", type=");
-        builder.append(type);
-        builder.append(", label=");
-        builder.append(label);
-        builder.append(", deviceProfileId=");
-        builder.append(deviceProfileId);
-        builder.append(", deviceData=");
-        builder.append(firmwareId);
-        builder.append(", firmwareId=");
-        builder.append(deviceData);
-        builder.append(", additionalInfo=");
-        builder.append(getAdditionalInfo());
-        builder.append(", createdTime=");
-        builder.append(createdTime);
-        builder.append(", id=");
-        builder.append(id);
-        builder.append("]");
-        return builder.toString();
     }
 
     @Override

@@ -45,7 +45,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.dao.DaoUtil;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
@@ -55,7 +55,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = ModelConstants.RULE_CHAIN_TABLE_NAME)
-public class RuleChainEntity extends BaseSqlEntity<RuleChain> {
+public class RuleChainEntity extends BaseVersionedSqlEntity<RuleChain> {
 
     @Column(name = ModelConstants.RULE_CHAIN_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -91,10 +91,7 @@ public class RuleChainEntity extends BaseSqlEntity<RuleChain> {
     }
 
     public RuleChainEntity(RuleChain ruleChain) {
-        if (ruleChain.getId() != null) {
-            this.setUuid(ruleChain.getUuidId());
-        }
-        this.setCreatedTime(ruleChain.getCreatedTime());
+        super(ruleChain);
         this.tenantId = DaoUtil.getId(ruleChain.getTenantId());
         this.name = ruleChain.getName();
         this.type = ruleChain.getType();
@@ -114,6 +111,7 @@ public class RuleChainEntity extends BaseSqlEntity<RuleChain> {
     public RuleChain toData() {
         RuleChain ruleChain = new RuleChain(new RuleChainId(this.getUuid()));
         ruleChain.setCreatedTime(createdTime);
+        ruleChain.setVersion(version);
         ruleChain.setTenantId(TenantId.fromUUID(tenantId));
         ruleChain.setName(name);
         ruleChain.setType(type);
@@ -129,4 +127,5 @@ public class RuleChainEntity extends BaseSqlEntity<RuleChain> {
         }
         return ruleChain;
     }
+
 }

@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasImage;
 import org.thingsboard.server.common.data.HasTitle;
+import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
@@ -49,7 +50,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 @Schema
 @EqualsAndHashCode(callSuper = true)
-public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEntity, ExportableEntity<WidgetsBundleId>, HasTitle, HasImage {
+public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEntity, ExportableEntity<WidgetsBundleId>, HasTitle, HasImage, HasVersion {
 
     private static final long serialVersionUID = -7627368878362410489L;
 
@@ -92,6 +93,9 @@ public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEn
     @Getter
     @Setter
     private WidgetsBundleId externalId;
+    @Getter
+    @Setter
+    private Integer version;
 
     public WidgetsBundle() {
         super();
@@ -110,12 +114,13 @@ public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEn
         this.description = widgetsBundle.getDescription();
         this.order = widgetsBundle.getOrder();
         this.externalId = widgetsBundle.getExternalId();
+        this.version = widgetsBundle.getVersion();
     }
 
     @Schema(description = "JSON object with the Widget Bundle Id. " +
             "Specify this field to update the Widget Bundle. " +
             "Referencing non-existing Widget Bundle Id will cause error. " +
-            "Omit this field to create new Widget Bundle." )
+            "Omit this field to create new Widget Bundle.")
     @Override
     public WidgetsBundleId getId() {
         return super.getId();

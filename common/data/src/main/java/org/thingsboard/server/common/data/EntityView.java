@@ -52,7 +52,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 public class EntityView extends BaseDataWithAdditionalInfo<EntityViewId>
-        implements GroupEntity<EntityViewId>, ExportableEntity<EntityViewId> {
+        implements GroupEntity<EntityViewId>, ExportableEntity<EntityViewId>, HasVersion {
 
     private static final long serialVersionUID = 5582010124562018986L;
 
@@ -76,6 +76,7 @@ public class EntityView extends BaseDataWithAdditionalInfo<EntityViewId>
     private long endTimeMs;
 
     private EntityViewId externalId;
+    private Integer version;
 
     public EntityView() {
         super();
@@ -96,6 +97,7 @@ public class EntityView extends BaseDataWithAdditionalInfo<EntityViewId>
         this.startTimeMs = entityView.getStartTimeMs();
         this.endTimeMs = entityView.getEndTimeMs();
         this.externalId = entityView.getExternalId();
+        this.version = entityView.getVersion();
     }
 
     @Schema(description = "JSON object with Customer Id. Use 'assignEntityViewToCustomer' to change the Customer Id.", accessMode = Schema.AccessMode.READ_ONLY)
@@ -140,7 +142,7 @@ public class EntityView extends BaseDataWithAdditionalInfo<EntityViewId>
     @Schema(description = "JSON object with the Entity View Id. " +
             "Specify this field to update the Entity View. " +
             "Referencing non-existing Entity View Id will cause error. " +
-            "Omit this field to create new Entity View." )
+            "Omit this field to create new Entity View.")
     @Override
     public EntityViewId getId() {
         return super.getId();
@@ -152,7 +154,7 @@ public class EntityView extends BaseDataWithAdditionalInfo<EntityViewId>
         return super.getCreatedTime();
     }
 
-    @Schema(description = "Additional parameters of the device",implementation = com.fasterxml.jackson.databind.JsonNode.class)
+    @Schema(description = "Additional parameters of the device", implementation = com.fasterxml.jackson.databind.JsonNode.class)
     @Override
     public JsonNode getAdditionalInfo() {
         return super.getAdditionalInfo();

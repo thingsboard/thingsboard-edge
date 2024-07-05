@@ -31,6 +31,8 @@
 package org.thingsboard.server.dao.model.sql;
 
 import com.fasterxml.jackson.databind.JavaType;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -41,12 +43,9 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseEntity;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.MappedSuperclass;
 import java.util.HashSet;
 import java.util.UUID;
 
@@ -54,7 +53,7 @@ import java.util.UUID;
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
-public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseSqlEntity<T> implements BaseEntity<T> {
+public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseVersionedSqlEntity<T> {
 
     private static final JavaType assignedCustomersType =
             JacksonUtil.constructCollectionType(HashSet.class, ShortCustomerInfo.class);
@@ -87,11 +86,8 @@ public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseS
         super();
     }
 
-    public AbstractDashboardEntity(Dashboard dashboard) {
-        if (dashboard.getId() != null) {
-            this.setUuid(dashboard.getId().getId());
-        }
-        this.setCreatedTime(dashboard.getCreatedTime());
+    public AbstractDashboardEntity(T dashboard) {
+        super(dashboard);
         if (dashboard.getTenantId() != null) {
             this.tenantId = dashboard.getTenantId().getId();
         }
@@ -117,6 +113,7 @@ public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseS
     protected Dashboard toDashboard() {
         Dashboard dashboard = new Dashboard(new DashboardId(this.getUuid()));
         dashboard.setCreatedTime(this.getCreatedTime());
+        dashboard.setVersion(version);
         if (tenantId != null) {
             dashboard.setTenantId(TenantId.fromUUID(tenantId));
         }
@@ -139,4 +136,5 @@ public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseS
         }
         return dashboard;
     }
+
 }
