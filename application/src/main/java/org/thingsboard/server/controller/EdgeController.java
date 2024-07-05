@@ -561,8 +561,7 @@ public class EdgeController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/edge/settings", method = RequestMethod.GET)
-    @ResponseBody
+    @GetMapping(value = "/edge/settings")
     public EdgeSettings getEdgeSettings() throws ThingsboardException {
         try {
             SecurityUser user = getCurrentUser();
@@ -574,8 +573,7 @@ public class EdgeController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/edge/events", method = RequestMethod.GET)
-    @ResponseBody
+    @GetMapping(value = "/edge/events")
     public PageData<CloudEvent> getCloudEvents(
             @RequestParam int pageSize,
             @RequestParam int page,
