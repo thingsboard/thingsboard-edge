@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
+import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -53,7 +54,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Data
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Role extends BaseDataWithAdditionalInfo<RoleId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId, ExportableEntity<RoleId> {
+public class Role extends BaseDataWithAdditionalInfo<RoleId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId, ExportableEntity<RoleId>, HasVersion {
 
     private static final long serialVersionUID = 5582010124562018986L;
 
@@ -82,6 +83,7 @@ public class Role extends BaseDataWithAdditionalInfo<RoleId> implements HasName,
     private byte[] permissionsBytes;
 
     private RoleId externalId;
+    private Integer version;
 
     public Role() {
         super();
@@ -94,7 +96,8 @@ public class Role extends BaseDataWithAdditionalInfo<RoleId> implements HasName,
     public Role(Role role) {
         super(role);
         setPermissions(role.getPermissions());
-        externalId = role.getExternalId();
+        this.externalId = role.getExternalId();
+        this.version = role.getVersion();
     }
 
     @Schema(description = "JSON object with Customer or Tenant Id", accessMode = Schema.AccessMode.READ_ONLY)
@@ -129,7 +132,7 @@ public class Role extends BaseDataWithAdditionalInfo<RoleId> implements HasName,
     @Schema(description = "JSON object with the Role Id. " +
             "Specify this field to update the Role. " +
             "Referencing non-existing Role Id will cause error. " +
-            "Omit this field to create new Role." )
+            "Omit this field to create new Role.")
     @Override
     public RoleId getId() {
         return super.getId();

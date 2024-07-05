@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableNoTenantIdEntity;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
+import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.validation.Length;
@@ -55,7 +56,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class EntityGroup extends BaseData<EntityGroupId> implements HasName, HasOwnerId, ExportableNoTenantIdEntity<EntityGroupId> {
+public class EntityGroup extends BaseData<EntityGroupId> implements HasName, HasOwnerId, ExportableNoTenantIdEntity<EntityGroupId>, HasVersion {
 
     private static final long serialVersionUID = 2807349040519543363L;
 
@@ -103,6 +104,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     private JsonNode configuration;
 
     private EntityGroupId externalId;
+    private Integer version;
 
     public EntityGroup(EntityGroupId id) {
         super(id);
@@ -116,6 +118,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
         this.additionalInfo = entityGroup.getAdditionalInfo();
         this.configuration = entityGroup.getConfiguration();
         this.externalId = entityGroup.getExternalId();
+        this.version = entityGroup.getVersion();
     }
 
     @Override
@@ -162,4 +165,5 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     public EntityGroupId getId() {
         return super.getId();
     }
+
 }

@@ -42,8 +42,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.dao.model.BaseEntity;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import java.util.UUID;
@@ -59,7 +58,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPER
 @Data
 @EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
-public abstract class AbstractEntityGroupEntity<T extends EntityGroup> extends BaseSqlEntity<T> implements BaseEntity<T> {
+public abstract class AbstractEntityGroupEntity<T extends EntityGroup> extends BaseVersionedSqlEntity<T> {
 
     @Enumerated(EnumType.STRING)
     @Column(name = ENTITY_GROUP_TYPE_PROPERTY)
@@ -90,11 +89,8 @@ public abstract class AbstractEntityGroupEntity<T extends EntityGroup> extends B
         super();
     }
 
-    public AbstractEntityGroupEntity(EntityGroup entityGroup) {
-        if (entityGroup.getId() != null) {
-            this.setUuid(entityGroup.getId().getId());
-        }
-        this.createdTime = entityGroup.getCreatedTime();
+    public AbstractEntityGroupEntity(T entityGroup) {
+        super(entityGroup);
         this.name = entityGroup.getName();
         this.type = entityGroup.getType();
         if (entityGroup.getOwnerId() != null) {
@@ -109,8 +105,7 @@ public abstract class AbstractEntityGroupEntity<T extends EntityGroup> extends B
     }
 
     public AbstractEntityGroupEntity(EntityGroupEntity entityGroupEntity) {
-        this.setId(entityGroupEntity.getId());
-        this.setCreatedTime(entityGroupEntity.getCreatedTime());
+        super(entityGroupEntity);
         this.name = entityGroupEntity.getName();
         this.type = entityGroupEntity.getType();
         this.ownerId = entityGroupEntity.getOwnerId();
@@ -123,6 +118,7 @@ public abstract class AbstractEntityGroupEntity<T extends EntityGroup> extends B
     protected EntityGroup toEntityGroup() {
         EntityGroup entityGroup = new EntityGroup(new EntityGroupId(getUuid()));
         entityGroup.setCreatedTime(createdTime);
+        entityGroup.setVersion(version);
         entityGroup.setName(name);
         entityGroup.setType(type);
         if (ownerId != null) {

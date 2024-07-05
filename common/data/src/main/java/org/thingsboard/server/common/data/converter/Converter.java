@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -48,7 +49,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 @Schema
 @EqualsAndHashCode(callSuper = true)
-public class Converter extends BaseData<ConverterId> implements HasName, TenantEntity, ExportableEntity<ConverterId> {
+public class Converter extends BaseData<ConverterId> implements HasName, TenantEntity, ExportableEntity<ConverterId>, HasVersion {
 
     private static final long serialVersionUID = -1541581333235769915L;
 
@@ -66,6 +67,9 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
     @Getter
     @Setter
     private ConverterId externalId;
+    @Getter
+    @Setter
+    private Integer version;
 
     public Converter() {
         super();
@@ -83,8 +87,9 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         this.debugMode = converter.isDebugMode();
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
-        this.externalId = converter.getExternalId();
         this.edgeTemplate = converter.isEdgeTemplate();
+        this.externalId = converter.getExternalId();
+        this.version = converter.getVersion();
     }
 
     @Schema(description = "JSON object with the Converter Id. " +

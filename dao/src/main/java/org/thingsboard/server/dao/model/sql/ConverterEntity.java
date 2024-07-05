@@ -43,8 +43,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseEntity;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
@@ -62,7 +61,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPER
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = CONVERTER_TABLE_NAME)
-public final class ConverterEntity extends BaseSqlEntity<Converter> implements BaseEntity<Converter> {
+public final class ConverterEntity extends BaseVersionedSqlEntity<Converter> {
 
     @Column(name = CONVERTER_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -96,10 +95,7 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements B
     }
 
     public ConverterEntity(Converter converter) {
-        this.createdTime = converter.getCreatedTime();
-        if (converter.getId() != null) {
-            this.setUuid(converter.getId().getId());
-        }
+        super(converter);
         if (converter.getTenantId() != null) {
             this.tenantId = converter.getTenantId().getId();
         }
@@ -118,6 +114,7 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements B
     public Converter toData() {
         Converter converter = new Converter(new ConverterId(id));
         converter.setCreatedTime(createdTime);
+        converter.setVersion(version);
         if (tenantId != null) {
             converter.setTenantId(new TenantId(tenantId));
         }
@@ -132,4 +129,5 @@ public final class ConverterEntity extends BaseSqlEntity<Converter> implements B
         converter.setEdgeTemplate(edgeTemplate);
         return converter;
     }
+
 }

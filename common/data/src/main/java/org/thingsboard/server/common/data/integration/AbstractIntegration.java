@@ -34,9 +34,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -46,7 +49,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Schema
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-public abstract class AbstractIntegration extends BaseData<IntegrationId> implements HasName, TenantEntity {
+public abstract class AbstractIntegration extends BaseData<IntegrationId> implements HasName, TenantEntity, HasVersion {
 
     private static final long serialVersionUID = 1934983577296873728L;
 
@@ -60,6 +63,9 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
     private Boolean isRemote;
     private Boolean allowCreateDevicesOrAssets;
     private boolean isEdgeTemplate;
+
+    @Getter @Setter
+    private Integer version;
 
     public AbstractIntegration() {
         super();
@@ -79,6 +85,7 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
         this.isEdgeTemplate = integration.isEdgeTemplate();
+        this.version = integration.getVersion();
     }
 
     @Schema(description = "JSON object with the Integration Id. " +
@@ -198,4 +205,5 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
     public EntityType getEntityType() {
         return EntityType.INTEGRATION;
     }
+
 }

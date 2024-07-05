@@ -45,8 +45,7 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
-import org.thingsboard.server.dao.model.BaseEntity;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
@@ -64,7 +63,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TYPE_PROPERTY
 @Entity
 @Table(name = ModelConstants.ROLE_TABLE_NAME)
 @Slf4j
-public class RoleEntity extends BaseSqlEntity<Role> implements BaseEntity<Role> {
+public class RoleEntity extends BaseVersionedSqlEntity<Role> {
 
     @Column(name = ROLE_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -95,10 +94,7 @@ public class RoleEntity extends BaseSqlEntity<Role> implements BaseEntity<Role> 
     }
 
     public RoleEntity(Role role) {
-        if (role.getId() != null) {
-            this.setUuid(role.getId().getId());
-        }
-        this.createdTime = role.getCreatedTime();
+        super(role);
         if (role.getTenantId() != null) {
             this.tenantId = role.getTenantId().getId();
         }
@@ -118,7 +114,7 @@ public class RoleEntity extends BaseSqlEntity<Role> implements BaseEntity<Role> 
     public Role toData() {
         Role role = new Role(new RoleId(getUuid()));
         role.setCreatedTime(createdTime);
-
+        role.setVersion(version);
         if (tenantId != null) {
             role.setTenantId(new TenantId(tenantId));
         }
@@ -134,4 +130,5 @@ public class RoleEntity extends BaseSqlEntity<Role> implements BaseEntity<Role> 
         }
         return role;
     }
+
 }
