@@ -30,20 +30,42 @@
  */
 package org.thingsboard.server.service.converter;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import java.util.ArrayList;
+import java.util.List;
 
-@Data
-@AllArgsConstructor
-public class TbGitHubContent {
+public class TbFileNode {
     private String name;
     private String path;
-    private String sha;
-    private String url;
-    private String git_url;
-    private String html_url;
-    private String download_url;
-    private String type;
-    private String content;
-    private String encoding;
+    private boolean isDirectory;
+    private List<TbFileNode> children;
+
+    public TbFileNode(String name, String path, boolean isDirectory) {
+        this.name = name;
+        this.path = path;
+        this.isDirectory = isDirectory;
+        this.children = new ArrayList<>();
+    }
+
+    // Getters and setters...
+
+    public void addChild(TbFileNode child) {
+        this.children.add(child);
+    }
+
+    public List<TbFileNode> getChildren() {
+        return children;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public boolean isDirectory() {
+        return isDirectory;
+    }
 }
+

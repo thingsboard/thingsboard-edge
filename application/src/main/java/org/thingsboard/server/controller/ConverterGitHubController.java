@@ -33,17 +33,24 @@ package org.thingsboard.server.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.TbConverterGitHubService;
+import org.thingsboard.server.service.converter.TbFileNode;
 import org.thingsboard.server.service.converter.TbGitHubContent;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @TbCoreComponent
@@ -56,20 +63,60 @@ public class ConverterGitHubController {
 
 
     @ApiOperation(value = "Get Converters from GitHub (getListFiles)",
-            notes = "Returns list of all files from Converters GitHub")
+            notes = "Returns list of all files from one Node Converters GitHub")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/files", method = RequestMethod.GET)
+    @RequestMapping(value = "/node", method = RequestMethod.GET)
     @ResponseBody
     public TbGitHubContent[] getListFiles(@RequestParam(required = false) String pathDir) throws ThingsboardException {
         return converterGitHubService.listFiles(pathDir);
     }
 
-    @ApiOperation(value = "Get One Converter from GitHub (getFileContent)",
-            notes = "Returns one file from Converters GitHub")
+    @ApiOperation(value = "Get Converters from GitHub (getListFiles)",
+            notes = "Returns list of all files from Node Converters GitHub including child nodes.")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/filecontent", method = RequestMethod.GET)
+    @RequestMapping(value = "/node/list", method = RequestMethod.GET)
     @ResponseBody
-    public String getFileContent(@RequestParam String filePath) throws ThingsboardException {
-        return converterGitHubService.getFileContent(filePath);
+    public List<Map<String, Object>> getListFilesNode(@RequestParam(required = false) String pathDir) throws ThingsboardException {
+        return converterGitHubService.getAllFilesFromDirectory(pathDir);
+    }
+
+    @ApiOperation(value = "Get Converters from GitHub (getListFiles)",
+            notes = "Returns tree of all files from Node Converters GitHub including child nodes.")
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/node/tree", method = RequestMethod.GET)
+    @ResponseBody
+    public TbFileNode buildFileTree(@RequestParam(required = false) String pathDir) throws ThingsboardException {
+        return converterGitHubService.buildFileTree(pathDir);
+    }
+
+    @ApiOperation(value = "Get One Converter from GitHub (getFileContent)",
+            notes = "Returns one file from Converters GitHub format: String (Json, base64, md))")
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/filecontent", method = RequestMethod.GET, produces = "text/plain")
+    @ResponseBody
+    public ResponseEntity<String> getFileContentString(@RequestParam String filePath) throws ThingsboardException {
+        String content = converterGitHubService.getFileContentJson(filePath);
+        return ResponseEntity.ok(content);
+    }
+
+    @ApiOperation(value = "Get One Converter from GitHub (getFileContent)",
+            notes = "Returns one file from Converters GitHub format: PNG")
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/filecontent/png", method = RequestMethod.GET)
+    @ResponseBody
+    public ResponseEntity<byte[]> getFileContentPng(@RequestParam String filePath) throws ThingsboardException {
+        try {
+            byte[] content = converterGitHubService.getFileContentPng(filePath);
+            if (content != null) {
+                return ResponseEntity.ok()
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .body(content);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            log.error("Error occurred: [{}]", e.getMessage(), e);
+            throw new ThingsboardException(e, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
     }
 }
