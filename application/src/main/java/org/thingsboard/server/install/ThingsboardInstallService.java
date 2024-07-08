@@ -156,10 +156,6 @@ public class ThingsboardInstallService {
                             log.info("Upgrading ThingsBoard from version 3.7.0 to 3.7.1 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.7.0");
                             //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
-                        case "edge": // leave this after latest case version
-                            // reset full sync required - to upload the latest widgets from cloud
-                            // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to 'edge' version
-                            dataUpdateService.updateData("edge");
                             break;
                         case "CE":
                             log.info("Upgrading ThingsBoard Edge from version CE to PE ...");
