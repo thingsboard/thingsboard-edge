@@ -155,7 +155,6 @@ public class ThingsboardInstallService {
                         case "3.7.0":
                             log.info("Upgrading ThingsBoard from version 3.7.0 to 3.7.1 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.7.0");
-                            break;
                             //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
                         case "edge": // leave this after latest case version
                             // reset full sync required - to upload the latest widgets from cloud
@@ -175,6 +174,10 @@ public class ThingsboardInstallService {
                     entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
                     entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
                     dataUpdateService.updateData("ce");
+
+                    // reset full sync required - to upload the latest widgets from cloud
+                    // tenantsFullSyncRequiredUpdater and fixDuplicateSystemWidgetsBundles moved to 'edge' version
+                    dataUpdateService.updateData("edge");
 
                     log.info("Updating system data...");
                     // dataUpdateService.upgradeRuleNodes();

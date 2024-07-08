@@ -133,6 +133,12 @@ cloud:
       no_read_records_sleep: "${CLOUD_RPC_NO_READ_RECORDS_SLEEP:1000}"
       sleep_between_batches: "${CLOUD_RPC_SLEEP_BETWEEN_BATCHES:1000}"
     max_inbound_message_size: "${CLOUD_RPC_MAX_INBOUND_MESSAGE_SIZE:4194304}"
+    proxy:
+      enabled: "${CLOUD_RPC_PROXY_ENABLED:false}"
+      host: "${CLOUD_RPC_PROXY_HOST:}"
+      port: "${CLOUD_RPC_PROXY_PORT:}"
+      username: "${CLOUD_RPC_PROXY_USERNAME:}"
+      password: "${CLOUD_RPC_PROXY_PASSWORD:}"
 
 # Application info parameters
 app:
