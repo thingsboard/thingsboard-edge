@@ -29,84 +29,69 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ValueSourceProperty } from '@home/components/widget/lib/settings/common/value-source.component';
 import { Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
 import {
-  AbstractControl,
   ControlValueAccessor,
+  NG_VALUE_ACCESSOR,
   UntypedFormBuilder,
   UntypedFormGroup,
-  NG_VALUE_ACCESSOR, ValidationErrors,
   Validators
 } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { TranslateService } from '@ngx-translate/core';
-import { isNumber } from '@core/utils';
 import { IAliasController } from '@core/api/widget-api.models';
-
-export interface FixedColorLevel {
-  from?: ValueSourceProperty;
-  to?: ValueSourceProperty;
-  color: string;
-}
-
-export function fixedColorLevelValidator(control: AbstractControl): ValidationErrors | null {
-  const fixedColorLevel: FixedColorLevel = control.value;
-  if (!fixedColorLevel || !fixedColorLevel.color) {
-    return {
-      fixedColorLevel: true
-    };
-  }
-  return null;
-}
+import { AdvancedColorRange } from '@shared/models/widget-settings.models';
+import { DataKeysCallbacks } from '@home/components/widget/config/data-keys.component.models';
+import { Datasource } from '@shared/models/widget.models';
 
 @Component({
-  selector: 'tb-fixed-color-level',
-  templateUrl: './fixed-color-level.component.html',
-  styleUrls: ['./fixed-color-level.component.scss'],
+  selector: 'tb-advanced-range',
+  templateUrl: './advanced-range.component.html',
+  styleUrls: ['./advanced-range.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => FixedColorLevelComponent),
+      useExisting: forwardRef(() => AdvancedRangeComponent),
       multi: true
     }
   ]
 })
-export class FixedColorLevelComponent extends PageComponent implements OnInit, ControlValueAccessor {
+export class AdvancedRangeComponent extends PageComponent implements OnInit, ControlValueAccessor {
 
   @Input()
   disabled: boolean;
 
   @Input()
-  expanded = false;
-
-  @Input()
   aliasController: IAliasController;
 
+  @Input()
+  dataKeyCallbacks: DataKeysCallbacks;
+
+  @Input()
+  datasource: Datasource;
+
   @Output()
-  removeFixedColorLevel = new EventEmitter();
+  removeAdvancedRange = new EventEmitter();
 
-  private modelValue: FixedColorLevel;
+  private modelValue: AdvancedColorRange;
 
-  private propagateChange = null;
+  private propagateChange = (v: any) => { };
 
-  public fixedColorLevelFormGroup: UntypedFormGroup;
+  public advancedRangeLevelFormGroup: UntypedFormGroup;
 
   constructor(protected store: Store<AppState>,
-              private translate: TranslateService,
               private fb: UntypedFormBuilder) {
     super(store);
   }
 
   ngOnInit(): void {
-    this.fixedColorLevelFormGroup = this.fb.group({
+    this.advancedRangeLevelFormGroup = this.fb.group({
       from: [null, []],
       to: [null, []],
       color: [null, [Validators.required]]
     });
-    this.fixedColorLevelFormGroup.valueChanges.subscribe(() => {
+    this.advancedRangeLevelFormGroup.valueChanges.subscribe(() => {
       this.updateModel();
     });
   }
@@ -121,42 +106,19 @@ export class FixedColorLevelComponent extends PageComponent implements OnInit, C
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
     if (isDisabled) {
-      this.fixedColorLevelFormGroup.disable({emitEvent: false});
+      this.advancedRangeLevelFormGroup.disable({emitEvent: false});
     } else {
-      this.fixedColorLevelFormGroup.enable({emitEvent: false});
+      this.advancedRangeLevelFormGroup.enable({emitEvent: false});
     }
   }
 
-  writeValue(value: FixedColorLevel): void {
+  writeValue(value: AdvancedColorRange): void {
     this.modelValue = value;
-    this.fixedColorLevelFormGroup.patchValue(
-      value, {emitEvent: false}
-    );
-  }
-
-  fixedColorLevelRangeText(): string {
-    const value: FixedColorLevel = this.fixedColorLevelFormGroup.value;
-    const from = this.valueSourcePropertyText(value?.from);
-    const to = this.valueSourcePropertyText(value?.to);
-    return `${from} - ${to}`;
-  }
-
-  private valueSourcePropertyText(source?: ValueSourceProperty): string {
-    if (source) {
-      if (source.valueSource === 'predefinedValue') {
-        return `${isNumber(source.value) ? source.value : 0}`;
-      } else if (source.valueSource === 'entityAttribute') {
-        const alias = source.entityAlias || 'Undefined';
-        const key = source.attribute || 'Undefined';
-        return `${alias}.${key}`;
-      }
-    }
-    return 'Undefined';
+    this.advancedRangeLevelFormGroup.patchValue(value, {emitEvent: false});
   }
 
   private updateModel() {
-    const value: FixedColorLevel = this.fixedColorLevelFormGroup.value;
-    this.modelValue = value;
+    this.modelValue = this.advancedRangeLevelFormGroup.value;
     this.propagateChange(this.modelValue);
   }
 }

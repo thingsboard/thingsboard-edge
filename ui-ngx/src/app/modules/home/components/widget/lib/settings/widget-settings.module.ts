@@ -89,7 +89,6 @@ import {
 import {
   DigitalGaugeWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/gauge/digital-gauge-widget-settings.component';
-import { FixedColorLevelComponent } from '@home/components/widget/lib/settings/gauge/fixed-color-level.component';
 import { TickValueComponent } from '@home/components/widget/lib/settings/gauge/tick-value.component';
 import { FlotWidgetSettingsComponent } from '@home/components/widget/lib/settings/chart/flot-widget-settings.component';
 import {
@@ -381,6 +380,12 @@ import {
 import {
   MobileAppQrCodeWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/mobile-app-qr-code-widget-settings.component';
+import {
+  LabelCardWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/label-card-widget-settings.component';
+import {
+  LabelValueCardWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/label-value-card-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -404,7 +409,6 @@ import {
     AnalogueLinearGaugeWidgetSettingsComponent,
     AnalogueCompassWidgetSettingsComponent,
     DigitalGaugeWidgetSettingsComponent,
-    FixedColorLevelComponent,
     TickValueComponent,
     FlotWidgetSettingsComponent,
     LabelDataKeyComponent,
@@ -509,6 +513,8 @@ import {
     BarChartWidgetSettingsComponent,
     PolarAreaChartWidgetSettingsComponent,
     RadarChartWidgetSettingsComponent,
+    LabelCardWidgetSettingsComponent,
+    LabelValueCardWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -540,7 +546,6 @@ import {
     AnalogueLinearGaugeWidgetSettingsComponent,
     AnalogueCompassWidgetSettingsComponent,
     DigitalGaugeWidgetSettingsComponent,
-    FixedColorLevelComponent,
     TickValueComponent,
     FlotWidgetSettingsComponent,
     LabelDataKeyComponent,
@@ -645,6 +650,8 @@ import {
     BarChartWidgetSettingsComponent,
     PolarAreaChartWidgetSettingsComponent,
     RadarChartWidgetSettingsComponent,
+    LabelCardWidgetSettingsComponent,
+    LabelValueCardWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -747,6 +754,8 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-bar-chart-widget-settings': BarChartWidgetSettingsComponent,
   'tb-polar-area-chart-widget-settings': PolarAreaChartWidgetSettingsComponent,
   'tb-radar-chart-widget-settings': RadarChartWidgetSettingsComponent,
+  'tb-label-card-widget-settings': LabelCardWidgetSettingsComponent,
+  'tb-label-value-card-widget-settings': LabelValueCardWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

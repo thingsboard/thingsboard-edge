@@ -75,6 +75,8 @@ public class MobileApplicationController extends BaseController {
 
     @Value("${cache.specs.mobileSecretKey.timeToLiveInMinutes:2}")
     private int mobileSecretKeyTtl;
+    @Value("${mobileApp.domain:thingsboard.cloud}")
+    private String defaultAppDomain;
 
     public static final String ASSET_LINKS_PATTERN = "[{\n" +
             "  \"relation\": [\"delegate_permission/common.handle_all_urls\"],\n" +
@@ -98,11 +100,8 @@ public class MobileApplicationController extends BaseController {
             "    }\n" +
             "}";
 
-    public static final String ANDROID_APPLICATION_STORE_LINK = "https://play.google.com/store/apps/details?id=org.thingsboard.demo.app";
-    public static final String APPLE_APPLICATION_STORE_LINK = "https://apps.apple.com/ua/app/thingsboard-cloud/id6499209395";
     public static final String SECRET = "secret";
     public static final String SECRET_PARAM_DESCRIPTION = "A string value representing short-lived secret key";
-    public static final String DEFAULT_APP_DOMAIN = "thingsboard.cloud";
     public static final String DEEP_LINK_PATTERN = "https://%s/api/noauth/qr?secret=%s&ttl=%s";
 
     private final SystemSecurityService systemSecurityService;
@@ -122,7 +121,7 @@ public class MobileApplicationController extends BaseController {
             mobileAppSettings = mobileAppSettingsService.getMobileAppSettings(TenantId.SYS_TENANT_ID);
         }
         AndroidConfig androidConfig = mobileAppSettings.getAndroidConfig();
-        if (androidConfig != null && androidConfig.isEnabled() && !androidConfig.getAppPackage().isBlank() && !androidConfig.getSha256CertFingerprints().isBlank()) {
+        if (androidConfig != null && androidConfig.isEnabled() && androidConfig.getAppPackage() != null && androidConfig.getSha256CertFingerprints() != null) {
             return ResponseEntity.ok(JacksonUtil.toJsonNode(String.format(ASSET_LINKS_PATTERN, androidConfig.getAppPackage(), androidConfig.getSha256CertFingerprints())));
         } else {
             return ResponseEntity.notFound().build();
@@ -141,7 +140,7 @@ public class MobileApplicationController extends BaseController {
             mobileAppSettings = mobileAppSettingsService.getMobileAppSettings(TenantId.SYS_TENANT_ID);
         }
         IosConfig iosConfig = mobileAppSettings.getIosConfig();
-        if (iosConfig != null && iosConfig.isEnabled() && !iosConfig.getAppId().isBlank()) {
+        if (iosConfig != null && iosConfig.isEnabled() && iosConfig.getAppId() != null) {
             return ResponseEntity.ok(JacksonUtil.toJsonNode(String.format(APPLE_APP_SITE_ASSOCIATION_PATTERN, iosConfig.getAppId())));
         } else {
             return ResponseEntity.notFound().build();
@@ -194,7 +193,7 @@ public class MobileApplicationController extends BaseController {
         if (!mobileAppSettings.isUseDefaultApp()) {
             appDomain = platformDomain;
         } else {
-            appDomain = DEFAULT_APP_DOMAIN;
+            appDomain = defaultAppDomain;
         }
         String deepLink = String.format(DEEP_LINK_PATTERN, appDomain, secret, mobileSecretKeyTtl);
         if (!appDomain.equals(platformDomain)) {
@@ -213,14 +212,25 @@ public class MobileApplicationController extends BaseController {
     }
 
     @GetMapping(value = "/api/noauth/qr")
-    public ResponseEntity<?> getApplicationRedirect(@RequestHeader(value = "User-Agent") String userAgent) {
+    public ResponseEntity<?> getApplicationRedirect(@RequestHeader(value = "User-Agent") String userAgent, HttpServletRequest request) {
+        String domainName = request.getServerName();
+        WhiteLabeling loginWL = whiteLabelingService.findByDomainName(domainName);
+        MobileAppSettings mobileAppSettings;
+        if (loginWL != null) {
+            mobileAppSettings = mobileAppSettingsService.getMergedMobileAppSettings(loginWL.getTenantId());
+        } else {
+            mobileAppSettings = mobileAppSettingsService.getMobileAppSettings(TenantId.SYS_TENANT_ID);
+        }
+        boolean useDefaultApp = mobileAppSettings.isUseDefaultApp();
+        String googlePlayLink = useDefaultApp ? mobileAppSettings.getDefaultGooglePlayLink() : mobileAppSettings.getAndroidConfig().getStoreLink();
+        String appStoreLink = useDefaultApp ? mobileAppSettings.getDefaultAppStoreLink() : mobileAppSettings.getIosConfig().getStoreLink();
         if (userAgent.contains("Android")) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header("Location", ANDROID_APPLICATION_STORE_LINK)
+                    .header("Location", googlePlayLink)
                     .build();
         } else if (userAgent.contains("iPhone") || userAgent.contains("iPad")) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header("Location", APPLE_APPLICATION_STORE_LINK)
+                    .header("Location", appStoreLink)
                     .build();
         } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

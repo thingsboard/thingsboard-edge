@@ -89,7 +89,6 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
-import org.thingsboard.server.common.msg.queue.ServiceType;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.stats.TbApiUsageReportClient;
 import org.thingsboard.server.common.transport.util.JsonUtils;
@@ -118,6 +117,7 @@ import org.thingsboard.server.queue.TbQueueCallback;
 import org.thingsboard.server.queue.TbQueueMsgMetadata;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.common.TbRuleEngineProducerService;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -170,6 +170,9 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
     @Autowired
     @Lazy
     private TbQueueProducerProvider producerProvider;
+
+    @Autowired
+    private TbRuleEngineProducerService ruleEngineProducerService;
 
     @Autowired
     @Lazy
@@ -242,13 +245,11 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
 
     private boolean initialized;
 
-    protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> ruleEngineMsgProducer;
     protected TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToRuleEngineMsg>> integrationRuleEngineMsgProducer;
 
     @PostConstruct
     public void init() {
         super.init();
-        ruleEngineMsgProducer = producerProvider.getRuleEngineMsgProducer();
         integrationRuleEngineMsgProducer = producerProvider.getIntegrationRuleEngineMsgProducer();
         this.callbackExecutor = ThingsBoardExecutors.newWorkStealingPool(20, "default-integration-callback");
     }
@@ -794,7 +795,6 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
         }
 
         TbMsg tbMsg = TbMsg.newMsg(queueName, msgType, deviceId, getCustomerId(sessionInfo), metaData, gson.toJson(json), ruleChainId, null);
-
         sendToRuleEngine(tenantId, tbMsg, callback);
     }
 
@@ -814,16 +814,11 @@ public class DefaultPlatformIntegrationService extends IntegrationActivityManage
         }
 
         TbMsg tbMsg = TbMsg.newMsg(queueName, msgType, assetId, customerId, metaData, gson.toJson(json), ruleChainId, null);
-
         sendToRuleEngine(tenantId, tbMsg, callback);
     }
 
     private void sendToRuleEngine(TenantId tenantId, TbMsg tbMsg, TbQueueCallback callback) {
-        TopicPartitionInfo tpi = partitionService.resolve(ServiceType.TB_RULE_ENGINE, tbMsg.getQueueName(), tenantId, tbMsg.getOriginator());
-        TransportProtos.ToRuleEngineMsg msg = TransportProtos.ToRuleEngineMsg.newBuilder().setTbMsg(TbMsg.toByteString(tbMsg))
-                .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
-                .setTenantIdLSB(tenantId.getId().getLeastSignificantBits()).build();
-        integrationRuleEngineMsgProducer.send(tpi, new TbProtoQueueMsg<>(tbMsg.getId(), msg), callback);
+        ruleEngineProducerService.sendToRuleEngine(integrationRuleEngineMsgProducer, tenantId, tbMsg, callback);
     }
 
     protected UUID getRoutingKey(TransportProtos.SessionInfoProto sessionInfo) {

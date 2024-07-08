@@ -112,8 +112,8 @@ import org.thingsboard.server.service.sync.vc.repository.TbRepositorySettingsSer
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -149,11 +149,10 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     private final TbTransactionalCache<UUID, VersionControlTaskCacheEntry> taskCache;
     private final VersionControlExecutor executor;
 
-    private static final Set<EntityType> GROUP_ENTITIES = new HashSet<>(Arrays.asList(
+    private static final Set<EntityType> GROUP_ENTITIES = EnumSet.of(
             EntityType.CUSTOMER, EntityType.DEVICE, EntityType.ASSET, EntityType.DASHBOARD, EntityType.ENTITY_VIEW, EntityType.USER
-    ));
+    );
 
-    @SuppressWarnings("UnstableApiUsage")
     @Override
     public ListenableFuture<UUID> saveEntitiesVersion(User user, VersionCreateRequest request) throws Exception {
         checkBranchName(request.getBranch());
@@ -202,13 +201,13 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
         var cacheEntry = taskCache.get(requestId);
         if (cacheEntry == null || cacheEntry.get() == null) {
             log.debug("[{}] No cache record: {}", requestId, cacheEntry);
-            throw new ThingsboardException(ThingsboardErrorCode.ITEM_NOT_FOUND);
+            throw new ThingsboardException("Task execution timed-out", ThingsboardErrorCode.ITEM_NOT_FOUND);
         } else {
             var entry = cacheEntry.get();
             log.trace("[{}] Cache get: {}", requestId, entry);
             var result = getter.apply(entry);
             if (result == null) {
-                throw new ThingsboardException(ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+                throw new ThingsboardException("Invalid task", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
             } else {
                 return result;
             }
@@ -564,11 +563,14 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
             importEntities(ctx, Collections.emptyList(), entityType, true);
         }
 
-        for (EntityType entityType : entityTypes) {
-            log.debug("[{}] Loading {} groups", ctx.getTenantId(), entityType);
-            sw.startNew("Groups " + entityType.name());
-            ctx.setSettings(getEntityImportSettings(request, entityType));
-            importEntityGroups(ctx, entityType);
+        for (EntityType groupType : GROUP_ENTITIES) {
+            if (!entityTypes.contains(groupType)) {
+                continue;
+            }
+            log.debug("[{}] Loading {} groups", ctx.getTenantId(), groupType);
+            sw.startNew("Groups " + groupType.name());
+            ctx.setSettings(getEntityImportSettings(request, groupType));
+            importEntityGroups(ctx, groupType);
             persistToCache(ctx);
         }
 
@@ -879,12 +881,8 @@ public class DefaultEntitiesVersionControlService implements EntitiesVersionCont
     }
 
     @Override
-    public ListenableFuture<Void> deleteVersionControlSettings(TenantId tenantId) throws Exception {
-        if (repositorySettingsService.delete(tenantId)) {
-            return gitServiceQueue.clearRepository(tenantId);
-        } else {
-            return Futures.immediateFuture(null);
-        }
+    public ListenableFuture<Void> deleteVersionControlSettings(TenantId tenantId) {
+        return gitServiceQueue.clearRepository(tenantId);
     }
 
     @Override

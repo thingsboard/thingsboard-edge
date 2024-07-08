@@ -96,6 +96,7 @@ export interface LevelCardWidgetSettings extends WidgetConfig {
   tooltipBackgroundColor: string;
   tooltipBackgroundBlur: number;
   background: BackgroundSettings;
+  padding: string;
 }
 
 export enum Shapes {
@@ -337,7 +338,8 @@ export const levelCardDefaultSettings: LevelCardWidgetSettings = {
       color: 'rgba(255,255,255,0.72)',
       blur: 3
     }
-  }
+  },
+  padding: '12px'
 };
 
 export const convertLiters = (value: number, units: CapacityUnits, conversionType: ConversionType): number => {

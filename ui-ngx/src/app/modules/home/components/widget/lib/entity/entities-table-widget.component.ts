@@ -897,6 +897,7 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
               dataValue = tsValue.value;
             }
           }
+          dataValue = checkNumericStringAndConvert(dataValue);
           if (column.usePostProcessing && column.postFuncBody) {
             if (!this.postProcessingFunctionMap.has(column.label)) {
               const postFunction = new Function('time', 'value', 'prevValue', 'timePrev', 'prevOrigValue',
@@ -904,7 +905,6 @@ export class EntitiesTableWidgetComponent extends PageComponent implements OnIni
               this.postProcessingFunctionMap.set(column.label, postFunction);
             }
 
-            dataValue = checkNumericStringAndConvert(dataValue);
             let dataTs = 0;
             if (tsValue && isDefinedAndNotNull(tsValue.ts)) {
               dataTs = tsValue.ts;

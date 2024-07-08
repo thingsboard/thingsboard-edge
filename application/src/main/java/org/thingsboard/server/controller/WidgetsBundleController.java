@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -256,7 +257,7 @@ public class WidgetsBundleController extends BaseController {
     @RequestMapping(value = "/widgetsBundles", params = {"widgetsBundleIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<WidgetsBundle> getWidgetsBundlesByIds(
-            @Parameter(description = "A list of widgets bundle ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of widgets bundle ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestParam("widgetsBundleIds") String[] strWidgetsBundleIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("widgetsBundleIds", strWidgetsBundleIds);
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.WIDGETS_BUNDLE, Operation.READ)) {

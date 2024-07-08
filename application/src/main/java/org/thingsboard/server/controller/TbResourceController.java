@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -218,6 +219,7 @@ public class TbResourceController extends BaseController {
                                                  @RequestParam(required = false) String sortProperty,
                                                  @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
                                                  @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), Resource.TB_RESOURCE, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         TbResourceInfoFilter.TbResourceInfoFilterBuilder filter = TbResourceInfoFilter.builder();
         filter.tenantId(getTenantId());
@@ -251,6 +253,7 @@ public class TbResourceController extends BaseController {
                                                        @RequestParam(required = false) String sortProperty,
                                                        @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
                                                        @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), Resource.TB_RESOURCE, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         TbResourceInfoFilter filter = TbResourceInfoFilter.builder()
                 .tenantId(getTenantId())
@@ -287,7 +290,7 @@ public class TbResourceController extends BaseController {
                                                  @RequestParam String sortOrder,
                                                  @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"id", "name"}, requiredMode = Schema.RequiredMode.REQUIRED))
                                                  @RequestParam String sortProperty,
-                                                 @Parameter(description = "LwM2M Object ids.", required = true)
+                                                 @Parameter(description = "LwM2M Object ids.",  array = @ArraySchema(schema = @Schema(type = "string")), required = true)
                                                  @RequestParam(required = false) String[] objectIds) throws ThingsboardException {
         return checkNotNull(tbResourceService.findLwM2mObject(getTenantId(), sortOrder, sortProperty, objectIds));
     }

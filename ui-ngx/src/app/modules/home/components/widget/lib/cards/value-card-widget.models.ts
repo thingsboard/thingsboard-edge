@@ -114,7 +114,7 @@ export const valueCardDefaultSettings = (horizontal: boolean): ValueCardWidgetSe
   icon: 'thermostat',
   iconSize: 40,
   iconSizeUnit: 'px',
-  iconColor: constantColor('#5469FF'),
+  iconColor: constantColor('var(--tb-primary-500)'),
   valueFont: {
     family: 'Roboto',
     size: 52,

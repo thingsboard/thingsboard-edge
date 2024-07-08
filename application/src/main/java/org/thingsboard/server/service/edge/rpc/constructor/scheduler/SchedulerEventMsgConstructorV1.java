@@ -70,4 +70,5 @@ public class SchedulerEventMsgConstructorV1 extends BaseSchedulerEventMsgConstru
         }
         return builder.build();
     }
+
 }
