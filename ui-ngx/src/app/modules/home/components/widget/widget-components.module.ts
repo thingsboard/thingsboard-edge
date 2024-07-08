@@ -123,6 +123,12 @@ import { LabelValueCardWidgetComponent } from '@home/components/widget/lib/cards
 import {
   RestConnectorSecurityComponent
 } from '@home/components/widget/lib/gateway/connectors-configuration/rest-connector-secuirity/rest-connector-security.component';
+import {
+  UnreadNotificationWidgetComponent
+} from '@home/components/widget/lib/cards/unread-notification-widget.component';
+import {
+  NotificationTypeFilterPanelComponent
+} from '@home/components/widget/lib/cards/notification-type-filter-panel.component';
 import { GatewayHelpLinkPipe } from '@home/pipes/public-api';
 import {
   BrokerConfigControlComponent,
@@ -201,8 +207,9 @@ import {
     PolarAreaWidgetComponent,
     RadarChartWidgetComponent,
     LabelCardWidgetComponent,
-    LabelValueCardWidgetComponent
-  ],
+    LabelValueCardWidgetComponent,
+    UnreadNotificationWidgetComponent,
+    NotificationTypeFilterPanelComponent],
   imports: [
     CommonModule,
     SharedModule,
@@ -281,7 +288,9 @@ import {
     PolarAreaWidgetComponent,
     RadarChartWidgetComponent,
     LabelCardWidgetComponent,
-    LabelValueCardWidgetComponent
+    LabelValueCardWidgetComponent,
+    UnreadNotificationWidgetComponent,
+    NotificationTypeFilterPanelComponent
   ],
   providers: [
     {provide: WIDGET_COMPONENTS_MODULE_TOKEN, useValue: WidgetComponentsModule}
