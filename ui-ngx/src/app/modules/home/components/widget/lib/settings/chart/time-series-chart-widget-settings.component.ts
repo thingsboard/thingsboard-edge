@@ -48,7 +48,6 @@ import {
   TimeSeriesChartWidgetSettings
 } from '@home/components/widget/lib/chart/time-series-chart-widget.models';
 import {
-  TimeSeriesChartTooltipTrigger,
   TimeSeriesChartKeySettings,
   TimeSeriesChartType,
   TimeSeriesChartYAxes,
@@ -56,6 +55,7 @@ import {
 } from '@home/components/widget/lib/chart/time-series-chart.models';
 import { WidgetConfigComponentData } from '@home/models/widget-component.models';
 import { WidgetService } from '@core/http/widget.service';
+import { TimeSeriesChartTooltipTrigger } from '@home/components/widget/lib/chart/time-series-chart-tooltip.models';
 
 @Component({
   selector: 'tb-time-series-chart-widget-settings',
