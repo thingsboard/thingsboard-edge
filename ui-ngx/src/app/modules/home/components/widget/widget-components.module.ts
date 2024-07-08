@@ -37,7 +37,9 @@ import { DisplayColumnsPanelComponent } from '@home/components/widget/lib/displa
 import { AlarmsTableWidgetComponent } from '@home/components/widget/lib/alarm/alarms-table-widget.component';
 import { SharedHomeComponentsModule } from '@home/components/shared-home-components.module';
 import { TimeseriesTableWidgetComponent } from '@home/components/widget/lib/timeseries-table-widget.component';
-import { EntitiesHierarchyWidgetComponent } from '@home/components/widget/lib/entity/entities-hierarchy-widget.component';
+import {
+  EntitiesHierarchyWidgetComponent
+} from '@home/components/widget/lib/entity/entities-hierarchy-widget.component';
 import { RpcWidgetsModule } from '@home/components/widget/lib/rpc/rpc-widgets.module';
 import {
   DateRangeNavigatorPanelComponent,
@@ -102,12 +104,22 @@ import { SliderWidgetComponent } from '@home/components/widget/lib/rpc/slider-wi
 import { ToggleButtonWidgetComponent } from '@home/components/widget/lib/button/toggle-button-widget.component';
 import { TimeSeriesChartWidgetComponent } from '@home/components/widget/lib/chart/time-series-chart-widget.component';
 import { AddConnectorDialogComponent } from '@home/components/widget/lib/gateway/dialog/add-connector-dialog.component';
-import { MappingTableComponent } from '@home/components/widget/lib/gateway/connectors-configuration/mapping-table.component';
+import {
+  MappingTableComponent
+} from '@home/components/widget/lib/gateway/connectors-configuration/mapping-table.component';
 import { MappingDialogComponent } from '@home/components/widget/lib/gateway/dialog/mapping-dialog.component';
-import { DeviceInfoTableComponent } from '@home/components/widget/lib/gateway/connectors-configuration/device-info-table.component';
-import { MappingDataKeysPanelComponent } from '@home/components/widget/lib/gateway/connectors-configuration/mapping-data-keys-panel.component';
-import { BrokerSecurityComponent } from '@home/components/widget/lib/gateway/connectors-configuration/broker-security.component';
-import { EllipsisChipListDirective } from '@home/components/widget/lib/gateway/connectors-configuration/ellipsis-chip-list.directive';
+import {
+  DeviceInfoTableComponent
+} from '@home/components/widget/lib/gateway/connectors-configuration/device-info-table.component';
+import {
+  MappingDataKeysPanelComponent
+} from '@home/components/widget/lib/gateway/connectors-configuration/mapping-data-keys-panel.component';
+import {
+  BrokerSecurityComponent
+} from '@home/components/widget/lib/gateway/connectors-configuration/broker-security.component';
+import {
+  EllipsisChipListDirective
+} from '@home/components/widget/lib/gateway/connectors-configuration/ellipsis-chip-list.directive';
 import { StatusWidgetComponent } from '@home/components/widget/lib/indicator/status-widget.component';
 import { LatestChartComponent } from '@home/components/widget/lib/chart/latest-chart.component';
 import { PieChartWidgetComponent } from '@home/components/widget/lib/chart/pie-chart-widget.component';
@@ -120,6 +132,7 @@ import { LabelValueCardWidgetComponent } from '@home/components/widget/lib/cards
 import {
   RestConnectorSecurityComponent
 } from '@home/components/widget/lib/gateway/connectors-configuration/rest-connector-secuirity/rest-connector-security.component';
+import { KeyValueIsNotEmptyPipe } from '@shared/pipe/key-value-not-empty.pipe';
 
 @NgModule({
   declarations:
@@ -196,7 +209,8 @@ import {
         RpcWidgetsModule,
         HomePageWidgetsModule,
         SharedHomeComponentsModule,
-        RestConnectorSecurityComponent
+        RestConnectorSecurityComponent,
+      KeyValueIsNotEmptyPipe
     ],
     exports: [
         EntitiesTableWidgetComponent,
