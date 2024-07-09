@@ -59,6 +59,7 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -239,6 +240,12 @@ public class TbMsgGeneratorNode implements TbNode {
                 if (!hasOriginatorFields) {
                     hasChanges = true;
                     ((ObjectNode) oldConfiguration).put(originatorType, EntityType.RULE_NODE.name());
+                }
+                String groupOwnerId = "groupOwnerId";
+                String groupType = "groupType";
+                if (oldConfiguration.has(groupType) || oldConfiguration.has(groupOwnerId)) {
+                    hasChanges = true;
+                    ((ObjectNode) oldConfiguration).remove(List.of(groupOwnerId, groupType));
                 }
                 break;
             default:
