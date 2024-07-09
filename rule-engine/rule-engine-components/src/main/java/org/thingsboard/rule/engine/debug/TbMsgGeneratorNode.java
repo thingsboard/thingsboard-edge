@@ -86,7 +86,8 @@ import static org.thingsboard.server.common.data.DataConstants.QUEUE_NAME;
 public class TbMsgGeneratorNode implements TbNode {
 
     private static final Set<EntityType> supportedEntityTypes = EnumSet.of(EntityType.DEVICE, EntityType.ASSET, EntityType.ENTITY_VIEW,
-            EntityType.TENANT, EntityType.CUSTOMER, EntityType.USER, EntityType.DASHBOARD, EntityType.EDGE, EntityType.RULE_NODE);
+            EntityType.TENANT, EntityType.CUSTOMER, EntityType.USER, EntityType.DASHBOARD, EntityType.EDGE, EntityType.RULE_NODE,
+            EntityType.CONVERTER, EntityType.INTEGRATION, EntityType.SCHEDULER_EVENT, EntityType.BLOB_ENTITY, EntityType.ROLE);
 
     private TbMsgGeneratorNodeConfiguration config;
     private ScriptEngine scriptEngine;
