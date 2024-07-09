@@ -60,6 +60,7 @@ public class TbMsgGeneratorNodeConfiguration implements NodeConfiguration<TbMsgG
         TbMsgGeneratorNodeConfiguration configuration = new TbMsgGeneratorNodeConfiguration();
         configuration.setMsgCount(UNLIMITED_MSG_COUNT);
         configuration.setPeriodInSeconds(1);
+        configuration.setOriginatorType(EntityType.RULE_NODE);
         configuration.setScriptLang(ScriptLanguage.TBEL);
         configuration.setJsScript(DEFAULT_SCRIPT);
         configuration.setTbelScript(DEFAULT_SCRIPT);
