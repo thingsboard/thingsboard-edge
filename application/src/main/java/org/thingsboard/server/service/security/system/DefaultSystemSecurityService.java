@@ -307,7 +307,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
         } else {
             return getBaseUrl(tenantId, customerId, httpServletRequest);
         }
-        return baseUrl;
+        return formatBaseUrl(baseUrl);
     }
 
     private boolean isBaseUrlSet(LoginWhiteLabelingParams loginWhiteLabelingParams) {
@@ -329,7 +329,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
             baseUrl = MiscUtils.constructBaseUrl(httpServletRequest);
         }
 
-        return baseUrl;
+        return formatBaseUrl(baseUrl);
     }
 
     @Override
@@ -390,5 +390,12 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
 
     private static boolean isPositiveInteger(Integer val) {
         return val != null && val > 0;
+    }
+
+    private static String formatBaseUrl(String baseUrl) {
+        if (!org.apache.commons.lang3.StringUtils.startsWithAny(baseUrl, "http://", "https://")) {
+            baseUrl = "https://" + baseUrl;
+        }
+        return baseUrl;
     }
 }
