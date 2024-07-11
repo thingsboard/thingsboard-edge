@@ -269,16 +269,18 @@ public class TbHttpClient {
             }
         }
 
+        boolean isBlobData = false;
         if (!attachments.isEmpty()) {
             BlobEntity blobEntity = ctx.getPeContext().getBlobEntityService().findBlobEntityById(ctx.getTenantId(), attachments.get(0));
             if (blobEntity != null) {
                 data = StandardCharsets.UTF_8.decode(blobEntity.getData()).toString();
+                isBlobData = true;
             } else {
                 log.warn("[{}] Attachments {} not found", ctx.getTenantId(), attachmentsStr);
             }
         }
 
-        return parseToPlainText ? JacksonUtil.toPlainText(data) : JacksonUtil.toJsonNode(data);
+        return parseToPlainText ? JacksonUtil.toPlainText(data) : isBlobData ? data : JacksonUtil.toJsonNode(data);
     }
 
     private TbMsg processResponse(TbContext ctx, TbMsg origMsg, ResponseEntity<String> response) {
