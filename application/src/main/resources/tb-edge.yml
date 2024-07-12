@@ -136,7 +136,7 @@ cloud:
     proxy:
       enabled: "${CLOUD_RPC_PROXY_ENABLED:false}"
       host: "${CLOUD_RPC_PROXY_HOST:}"
-      port: "${CLOUD_RPC_PROXY_PORT:}"
+      port: "${CLOUD_RPC_PROXY_PORT:0}"
       username: "${CLOUD_RPC_PROXY_USERNAME:}"
       password: "${CLOUD_RPC_PROXY_PASSWORD:}"
 
