@@ -45,6 +45,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import {
+  CellClickColumnInfo,
   DataKey,
   datasourcesHasAggregation,
   datasourcesHasOnlyComparisonAggregation,
@@ -179,7 +180,8 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
     generateDataKey: this.generateDataKey.bind(this),
     fetchEntityKeysForDevice: this.fetchEntityKeysForDevice.bind(this),
     fetchEntityKeys: this.fetchEntityKeys.bind(this),
-    fetchDashboardStates: this.fetchDashboardStates.bind(this)
+    fetchDashboardStates: this.fetchDashboardStates.bind(this),
+    fetchCellClickColumns: this.fetchCellClickColumns.bind(this)
   };
 
   widgetEditMode = this.utils.widgetEditMode;
@@ -192,6 +194,8 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
 
   headerOptions: ToggleHeaderOption[] = [];
   selectedOption: string;
+
+  displayDataExport = true;
 
   public dataSettings: UntypedFormGroup;
   public targetDeviceSettings: UntypedFormGroup;
@@ -392,8 +396,11 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
       } else if (this.widgetType === widgetType.rpc) {
         this.targetDeviceSettings.addControl('targetDevice',
           this.fb.control(null, []));
+        this.displayDataExport = false;
       } else if (this.widgetType === widgetType.alarm) {
         this.dataSettings.addControl('alarmSource', this.fb.control(null));
+      } else if (this.widgetType === widgetType.static) {
+        this.displayDataExport = false;
       }
     }
     this.advancedSettings.addControl('settings',
@@ -888,6 +895,30 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
     } else {
       return [query];
     }
+  }
+
+  private fetchCellClickColumns(): Array<CellClickColumnInfo> {
+    if (this.modelValue) {
+      const configuredColumns = new Array<CellClickColumnInfo>();
+      if (this.modelValue.config?.datasources[0]?.dataKeys?.length) {
+        configuredColumns.push(...this.keysToCellClickColumns(this.modelValue.config.datasources[0].dataKeys));
+      }
+      if (this.modelValue.config?.alarmSource?.dataKeys?.length) {
+        configuredColumns.push(...this.keysToCellClickColumns(this.modelValue.config.alarmSource.dataKeys));
+      }
+      return configuredColumns;
+    }
+  }
+
+  private keysToCellClickColumns(dataKeys: Array<DataKey>): Array<CellClickColumnInfo> {
+    const result: Array<CellClickColumnInfo> = [];
+    for (const dataKey of dataKeys) {
+      result.push({
+        name: dataKey.name,
+        label: dataKey?.label
+      });
+    }
+    return result;
   }
 
   private createFilterForDashboardState(query: string): (stateId: string) => boolean {

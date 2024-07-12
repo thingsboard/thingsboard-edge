@@ -34,10 +34,12 @@ import { performance } from 'perf_hooks';
 import { _logger } from '../../config/logger';
 import config from 'config';
 import { GenerateReportRequest, OpenReportMessage, ReportResultMessage } from './tbWebReportModels';
+import winston from 'winston';
 
 const defaultPageNavigationTimeout = Number(config.get('browser.defaultPageNavigationTimeout'));
 const loadDashboardResourcesTimeout = Number(config.get('browser.loadDashboardResourcesTimeout'));
 const dashboardIdleWaitTime = Number(config.get('browser.dashboardIdleWaitTime'));
+const useNewPage = Boolean(config.get('browser.useNewPage'));
 
 const heightCalculationScript = "var height = 0;\n" +
     "     var gridsterChild = document.getElementById('gridster-child');\n" +
@@ -52,7 +54,7 @@ const heightCalculationScript = "var height = 0;\n" +
 
 export class TbWebReportPage {
 
-    private logger = _logger(`TbWebReportPage-${this.id}`);
+    private logger: winston.Logger;
     private page: Page;
     private session: CDPSession;
     private currentBaseUrl: string;
@@ -60,7 +62,8 @@ export class TbWebReportPage {
     private pageHeight = 1080;
 
     constructor(private browser: Browser,
-                private id: number) {
+                public id: number) {
+        this.logger = _logger(`TbWebReportPage-${this.id}`)
     }
 
     async init(): Promise<void> {
@@ -88,6 +91,15 @@ export class TbWebReportPage {
                   msg.url(), JSON.stringify(msg.headers()), msg.postData(), msg.failure()?.errorText);
             });
         }
+        this.page.on('requestfailed', msg => {
+            this.logger.error('Request failed: URL: %s, Error %s, Headers: %s', msg.url(), msg.failure()?.errorText, JSON.stringify(msg.headers()));
+        });
+        this.page.once('crash', () => {
+            this.logger.error('Web page crashed!');
+        });
+        this.page.once('close', () => {
+            this.logger.debug('Web page closed!');
+        });
         this.session = await context.newCDPSession(this.page);
         this.page.setDefaultNavigationTimeout(defaultPageNavigationTimeout);
         await this.page.emulateMedia({media: 'screen'});
@@ -97,9 +109,13 @@ export class TbWebReportPage {
     }
 
     async destroy(): Promise<void> {
+        if (this.session) {
+            await this.session.detach();
+        }
         if (this.page) {
             await this.page.close();
         }
+        this.logger.close();
     }
 
     async generateDashboardReport(request: GenerateReportRequest): Promise<Buffer> {
@@ -150,9 +166,11 @@ export class TbWebReportPage {
                 buffer = await this.page.screenshot(options);
             }
         } finally {
-            try {
-                await this.clearReport();
-            } catch (e) {}
+            if (!useNewPage) {
+                try {
+                    await this.clearReport();
+                } catch (e) {}
+            }
         }
         const endTime = performance.now();
         this.logger.info('Dashboard report generated in %sms.', endTime - startTime);

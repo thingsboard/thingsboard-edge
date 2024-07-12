@@ -34,7 +34,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.postgresql.jdbc.PgArray;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -50,7 +54,10 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -58,12 +65,18 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 @Component
+@Slf4j
 public class Storage {
 
     @Value("${working_directory}")
     private String workingDir;
+    private static final String FINAL_ARCHIVE_FILE = "data.tar";
 
     private final ObjectMapper jsonMapper = new ObjectMapper();
+    private final List<Path> createdFiles = new ArrayList<>();
+
+    private static final String BYTEA_DATA_PREFIX = "BASE64_BYTES:";
+    private static final String ARRAY_DATA_PREFIX = "ARRAY:";
 
     @PostConstruct
     private void init() throws IOException {
@@ -74,15 +87,13 @@ public class Storage {
         Path file = getPath(name);
         Files.deleteIfExists(file);
         Files.createFile(file);
+        createdFiles.add(file);
     }
 
-    public Writer newWriter(String file, boolean gzip) throws IOException {
-        if (gzip) {
-            FileOutputStream fileOutputStream = new FileOutputStream(getPath(file).toFile());
-            return new OutputStreamWriter(new GZIPOutputStream(fileOutputStream), StandardCharsets.UTF_8);
-        } else {
-            return Files.newBufferedWriter(getPath(file), StandardOpenOption.APPEND);
-        }
+    @SneakyThrows
+    public Writer newWriter(String file) {
+        FileOutputStream fileOutputStream = new FileOutputStream(getPath(file).toFile());
+        return new OutputStreamWriter(new GZIPOutputStream(fileOutputStream), StandardCharsets.UTF_8);
     }
 
     @SneakyThrows
@@ -90,6 +101,14 @@ public class Storage {
         row.replaceAll((column, data) -> {
             if (data instanceof PGobject) {
                 data = ((PGobject) data).getValue();
+            } else if (data instanceof byte[]) {
+                data = BYTEA_DATA_PREFIX + Base64.getEncoder().encodeToString((byte[]) data);
+            } else if (data instanceof PgArray) {
+                try {
+                    return ARRAY_DATA_PREFIX + jsonMapper.writeValueAsString(((PgArray) data).getArray());
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
             return data;
         });
@@ -97,9 +116,8 @@ public class Storage {
         writer.write(serialized + System.lineSeparator());
     }
 
-
-    public void readAndProcess(String file, boolean gzip, Consumer<Map<String, Object>> processor) throws IOException {
-        try (BufferedReader reader = newReader(file, gzip)) {
+    public void readAndProcess(String file, Consumer<Map<String, Object>> processor) throws IOException {
+        try (BufferedReader reader = newReader(file)) {
             reader.lines().forEach(line -> {
                 if (StringUtils.isNotBlank(line)) {
                     Map<String, Object> data;
@@ -116,6 +134,17 @@ public class Storage {
                             } catch (IllegalArgumentException ignored) {}
                         } else if (value instanceof Map) {
                             value = jsonMapper.valueToTree(value);
+                        } else if (value instanceof String) {
+                            String string = (String) value;
+                            if (string.startsWith(BYTEA_DATA_PREFIX)) {
+                                value = Base64.getDecoder().decode(StringUtils.removeStart(string, BYTEA_DATA_PREFIX));
+                            } else if (string.startsWith(ARRAY_DATA_PREFIX)) {
+                                try {
+                                    value = jsonMapper.readValue(StringUtils.removeStart(string, ARRAY_DATA_PREFIX), new TypeReference<String[]>() {});
+                                } catch (JsonProcessingException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
                         }
                         return value;
                     });
@@ -125,13 +154,9 @@ public class Storage {
         }
     }
 
-    private BufferedReader newReader(String file, boolean gzip) throws IOException {
-        if (gzip) {
-            FileInputStream fileInputStream = new FileInputStream(getPath(file).toFile());
-            return new BufferedReader(new InputStreamReader(new GZIPInputStream(fileInputStream)));
-        } else {
-            return Files.newBufferedReader(getPath(file));
-        }
+    private BufferedReader newReader(String file) throws IOException {
+        FileInputStream fileInputStream = new FileInputStream(getPath(file).toFile());
+        return new BufferedReader(new InputStreamReader(new GZIPInputStream(fileInputStream)));
     }
 
     @SneakyThrows
@@ -140,7 +165,23 @@ public class Storage {
     }
 
     private Path getPath(String file) {
-        return Path.of(workingDir, file);
+        return Path.of(workingDir, file + ".gz");
     }
 
+    @SneakyThrows
+    public void close() {
+        if (createdFiles.isEmpty()) {
+            return;
+        }
+        log.info("Archiving {} files", createdFiles.size());
+        TarArchiveOutputStream tarArchive = new TarArchiveOutputStream(new FileOutputStream(Path.of(workingDir, FINAL_ARCHIVE_FILE).toFile()));
+        for (Path file : createdFiles) {
+            TarArchiveEntry archiveEntry = new TarArchiveEntry(file, file.getFileName().toString());
+            tarArchive.putArchiveEntry(archiveEntry);
+            Files.copy(file, tarArchive);
+            tarArchive.closeArchiveEntry();
+            Files.delete(file);
+        }
+        tarArchive.close();
+    }
 }

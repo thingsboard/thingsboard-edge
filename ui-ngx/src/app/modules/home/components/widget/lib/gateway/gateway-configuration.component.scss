@@ -70,7 +70,7 @@
   }
 
   .statistics-container {
-    width: 50%;
+    width: 100%;
 
     .command-container {
       width: 100%;
@@ -111,6 +111,10 @@
     &:hover {
       color: #9E9E9E;
     }
+  }
+
+  .mat-mdc-form-field-icon-suffix {
+    display: flex;
   }
 }
 

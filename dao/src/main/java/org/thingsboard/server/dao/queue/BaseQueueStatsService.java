@@ -38,14 +38,18 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.QueueStatsId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.queue.QueueStats;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.dao.service.Validator;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.thingsboard.server.dao.service.Validator.validateId;
+import static org.thingsboard.server.dao.service.Validator.validateIds;
 
 @Service("QueueStatsDaoService")
 @Slf4j
@@ -68,29 +72,42 @@ public class BaseQueueStatsService extends AbstractEntityService implements Queu
     @Override
     public QueueStats findQueueStatsById(TenantId tenantId, QueueStatsId queueStatsId) {
         log.trace("Executing findQueueStatsById [{}]", queueStatsId);
-        validateId(queueStatsId, "Incorrect queueStatsId " + queueStatsId);
+        validateId(queueStatsId, id -> "Incorrect queueStatsId " + id);
         return queueStatsDao.findById(tenantId, queueStatsId.getId());
+    }
+
+    @Override
+    public List<QueueStats> findQueueStatsByIds(TenantId tenantId, List<QueueStatsId> queueStatsIds) {
+        log.trace("Executing findQueueStatsByIds, tenantId [{}], queueStatsIds [{}]", tenantId, queueStatsIds);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validateIds(queueStatsIds, ids -> "Incorrect queueStatsIds " + ids);
+        return queueStatsDao.findByIds(tenantId, queueStatsIds);
     }
 
     @Override
     public QueueStats findByTenantIdAndNameAndServiceId(TenantId tenantId, String queueName, String serviceId) {
         log.trace("Executing findByTenantIdAndNameAndServiceId, tenantId: [{}], queueName: [{}], serviceId: [{}]", tenantId, queueName, serviceId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         return queueStatsDao.findByTenantIdQueueNameAndServiceId(tenantId, queueName, serviceId);
     }
 
     @Override
-    public List<QueueStats> findByTenantId(TenantId tenantId) {
+    public PageData<QueueStats> findByTenantId(TenantId tenantId, PageLink pageLink) {
         log.trace("Executing findByTenantId, tenantId: [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
-        return queueStatsDao.findByTenantId(tenantId);
+        Validator.validatePageLink(pageLink);
+        return queueStatsDao.findByTenantId(tenantId, pageLink);
     }
 
     @Override
     public void deleteByTenantId(TenantId tenantId) {
         log.trace("Executing deleteByTenantId, tenantId [{}]", tenantId);
-        validateId(tenantId, INCORRECT_TENANT_ID + tenantId);
+        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         queueStatsDao.deleteByTenantId(tenantId);
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        queueStatsDao.removeById(tenantId, id.getId());
     }
 
     @Override
@@ -102,4 +119,5 @@ public class BaseQueueStatsService extends AbstractEntityService implements Queu
     public EntityType getEntityType() {
         return EntityType.QUEUE_STATS;
     }
+
 }

@@ -150,7 +150,9 @@ public class ControllerConstants {
     protected static final String ASSET_PROFILE_INFO_DESCRIPTION = "Asset Profile Info is a lightweight object that includes main information about Asset Profile. ";
     protected static final String QUEUE_SERVICE_TYPE_DESCRIPTION = "Service type (implemented only for the TB-RULE-ENGINE)";
     protected static final String QUEUE_QUEUE_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the queue name.";
+    protected static final String QUEUE_STATS_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the queue name or service id.";
     protected static final String QUEUE_ID_PARAM_DESCRIPTION = "A string value representing the queue id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
+    protected static final String QUEUE_STATS_ID_PARAM_DESCRIPTION = "A string value representing the queue stats id. For example, '687f294c-42b6-435a-983c-b7beff2784f9'";
     protected static final String QUEUE_NAME_PARAM_DESCRIPTION = "A string value representing the queue id. For example, 'Main'";
     protected static final String OTA_PACKAGE_INFO_DESCRIPTION = "OTA Package Info is a lightweight object that includes main information about the OTA Package excluding the heavyweight data. ";
     protected static final String OTA_PACKAGE_DESCRIPTION = "OTA Package is a heavyweight object that includes main information about the OTA Package and also data. ";
@@ -2397,4 +2399,41 @@ public class ControllerConstants {
             "}\n";
 
     // Default converter uplinks messages
+
+    static final String REPORT_PARAMS_EXAMPLE = "{\n" +
+            "    \"type\": \"pdf\",\n" +
+            "    \"timezone\": \"Europe/Kiev\",\n" +
+            "    \"timewindow\": {\n" +
+            "        \"displayValue\": \"\",\n" +
+            "        \"hideInterval\": false,\n" +
+            "        \"hideLastInterval\": false,\n" +
+            "        \"hideQuickInterval\": false,\n" +
+            "        \"hideAggregation\": false,\n" +
+            "        \"hideAggInterval\": false,\n" +
+            "        \"hideTimezone\": false,\n" +
+            "        \"selectedTab\": 0,\n" +
+            "        \"realtime\": {\n" +
+            "            \"realtimeType\": 0,\n" +
+            "            \"interval\": 1000,\n" +
+            "            \"timewindowMs\": 60000,\n" +
+            "            \"quickInterval\": \"CURRENT_DAY\"\n" +
+            "        },\n" +
+            "        \"history\": {\n" +
+            "            \"historyType\": 0,\n" +
+            "            \"interval\": 1000,\n" +
+            "            \"timewindowMs\": 60000,\n" +
+            "            \"fixedTimewindow\": {\n" +
+            "                \"startTimeMs\": 1703687976592,\n" +
+            "                \"endTimeMs\": 1703774376592\n" +
+            "            },\n" +
+            "            \"quickInterval\": \"CURRENT_DAY\"\n" +
+            "        },\n" +
+            "        \"aggregation\": {\n" +
+            "            \"type\": \"AVG\",\n" +
+            "            \"limit\": 25000\n" +
+            "        }\n" +
+            "    },\n" +
+            "    \"state\": null\n" +
+            "}";
+
 }

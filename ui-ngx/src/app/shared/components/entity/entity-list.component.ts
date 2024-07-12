@@ -292,4 +292,8 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
       (this.entitiesRequiredText ? this.translate.instant(this.entitiesRequiredText): undefined);
   }
 
+  textIsNotEmpty(text: string): boolean {
+    return (text && text.length > 0);
+  }
+
 }

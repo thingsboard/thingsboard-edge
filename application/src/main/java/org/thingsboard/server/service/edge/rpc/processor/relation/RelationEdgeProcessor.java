@@ -106,4 +106,5 @@ public abstract class RelationEdgeProcessor extends BaseRelationProcessor implem
         }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }
+
 }

@@ -55,7 +55,7 @@ public class CustomerEdgeEventFetcher extends BasePageableEdgeEventFetcher<Custo
     private final CustomerId ownerId;
 
     @Override
-    PageData<Customer> fetchPageData(TenantId tenantId, Edge edge, PageLink pageLink) {
+    PageData<Customer> fetchEntities(TenantId tenantId, Edge edge, PageLink pageLink) {
         List<Customer> customersHierarchy = getCustomersHierarchy(tenantId, ownerId);
         return new PageData<>(customersHierarchy, 1, customersHierarchy.size(), false);
     }
@@ -79,4 +79,5 @@ public class CustomerEdgeEventFetcher extends BasePageableEdgeEventFetcher<Custo
         return EdgeUtils.constructEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.CUSTOMER,
                 EdgeEventActionType.ADDED, customer.getId(), null);
     }
+
 }

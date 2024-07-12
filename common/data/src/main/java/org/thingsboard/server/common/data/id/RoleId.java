@@ -50,7 +50,7 @@ public class RoleId extends UUIDBased implements EntityId {
         return new RoleId(UUID.fromString(roleId));
     }
 
-    @Schema(required = true, description = "string", example = "ROLE", allowableValues = "ROLE")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "string", example = "ROLE", allowableValues = "ROLE")
     @Override
     public EntityType getEntityType() {
         return EntityType.ROLE;

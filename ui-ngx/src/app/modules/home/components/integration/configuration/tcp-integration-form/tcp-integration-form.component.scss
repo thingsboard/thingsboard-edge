@@ -28,6 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
+@import '../scss/constants';
+
 :host {
   .mat-subhead {
     font-weight: 400;
@@ -47,6 +50,20 @@
 
   .fields-group {
     margin-top: 8px;
+
+    .same-width-component-row {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 16px;
+      @media #{$mat-xs} {
+        gap: 8px;
+      }
+
+      & > * {
+        flex: 1;
+      }
+    }
+
     legend + * {
       margin-top: 0;
     }

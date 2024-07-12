@@ -31,7 +31,7 @@
 package org.thingsboard.server.common.msg.tools;
 
 import org.awaitility.pollinterval.FixedPollInterval;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.TimeUnit;
 

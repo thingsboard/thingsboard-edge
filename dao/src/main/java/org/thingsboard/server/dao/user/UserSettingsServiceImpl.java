@@ -63,14 +63,14 @@ public class UserSettingsServiceImpl extends AbstractCachedService<UserSettingsC
     @Override
     public UserSettings saveUserSettings(TenantId tenantId, UserSettings userSettings) {
         log.trace("Executing saveUserSettings for user [{}], [{}]", userSettings.getUserId(), userSettings);
-        validateId(userSettings.getUserId(), INCORRECT_USER_ID + userSettings.getUserId());
+        validateId(userSettings.getUserId(), id -> INCORRECT_USER_ID + id);
         return doSaveUserSettings(tenantId, userSettings);
     }
 
     @Override
     public void updateUserSettings(TenantId tenantId, UserId userId, UserSettingsType type, JsonNode settings) {
         log.trace("Executing updateUserSettings for user [{}], [{}]", userId, settings);
-        validateId(userId, INCORRECT_USER_ID + userId);
+        validateId(userId, id -> INCORRECT_USER_ID + id);
 
         var key = new UserSettingsCompositeKey(userId.getId(), type.name());
         UserSettings oldSettings = userSettingsDao.findById(tenantId, key);
@@ -79,14 +79,14 @@ public class UserSettingsServiceImpl extends AbstractCachedService<UserSettingsC
         UserSettings newUserSettings = new UserSettings();
         newUserSettings.setUserId(userId);
         newUserSettings.setType(type);
-        newUserSettings.setSettings(update(oldSettingsJson, settings));
+        newUserSettings.setSettings(JacksonUtil.update(oldSettingsJson, settings));
         doSaveUserSettings(tenantId, newUserSettings);
     }
 
     @Override
     public UserSettings findUserSettings(TenantId tenantId, UserId userId, UserSettingsType type) {
         log.trace("Executing findUserSettings for user [{}]", userId);
-        validateId(userId, INCORRECT_USER_ID + userId);
+        validateId(userId, id -> INCORRECT_USER_ID + id);
 
         var key = new UserSettingsCompositeKey(userId.getId(), type.name());
         return cache.getAndPutInTransaction(key,
@@ -96,7 +96,7 @@ public class UserSettingsServiceImpl extends AbstractCachedService<UserSettingsC
     @Override
     public void deleteUserSettings(TenantId tenantId, UserId userId, UserSettingsType type, List<String> jsonPaths) {
         log.trace("Executing deleteUserSettings for user [{}]", userId);
-        validateId(userId, INCORRECT_USER_ID + userId);
+        validateId(userId, id -> INCORRECT_USER_ID + id);
         var key = new UserSettingsCompositeKey(userId.getId(), type.name());
         UserSettings userSettings = userSettingsDao.findById(tenantId, key);
         if (userSettings == null) {
@@ -142,28 +142,6 @@ public class UserSettingsServiceImpl extends AbstractCachedService<UserSettingsC
                 throw new DataValidationException("Json field name should not contain \".\" or \",\" symbols");
             }
         }
-    }
-
-    public JsonNode update(JsonNode mainNode, JsonNode updateNode) {
-        Iterator<String> fieldNames = updateNode.fieldNames();
-        while (fieldNames.hasNext()) {
-            String fieldExpression = fieldNames.next();
-            String[] fieldPath = fieldExpression.trim().split("\\.");
-            var node = (ObjectNode) mainNode;
-            for (int i = 0; i < fieldPath.length; i++) {
-                var fieldName = fieldPath[i];
-                var last = i == (fieldPath.length - 1);
-                if (last) {
-                    node.set(fieldName, updateNode.get(fieldExpression));
-                } else {
-                    if (!node.has(fieldName)) {
-                        node.set(fieldName, JacksonUtil.newObjectNode());
-                    }
-                    node = (ObjectNode) node.get(fieldName);
-                }
-            }
-        }
-        return mainNode;
     }
 
 }

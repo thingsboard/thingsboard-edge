@@ -44,7 +44,7 @@ import java.util.List;
 public abstract class TbAbstractDuplicateMsgNode<C> extends TbAbstractTransformNode<C> {
 
     protected ListenableFuture<List<TbMsg>> duplicate(TbContext ctx, TbMsg msg) {
-        ListenableFuture<List<EntityId>> newOriginators = getNewOriginators(ctx, msg.getOriginator());
+        ListenableFuture<List<EntityId>> newOriginators = getNewOriginators(ctx, msg);
         return Futures.transform(newOriginators, entityIds -> {
             if (entityIds == null || entityIds.isEmpty()) {
                 return null;
@@ -61,6 +61,6 @@ public abstract class TbAbstractDuplicateMsgNode<C> extends TbAbstractTransformN
         }, ctx.getDbCallbackExecutor());
     }
 
-    protected abstract ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, EntityId original);
+    protected abstract ListenableFuture<List<EntityId>> getNewOriginators(TbContext ctx, TbMsg msg);
 
 }

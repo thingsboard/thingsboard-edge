@@ -299,9 +299,9 @@ public class JpaBaseEventDao implements EventDao {
                         pageLink.getEndTime(),
                         eventFilter.getServer(),
                         eventFilter.getMsgDirectionType(),
-                        eventFilter.getEntityId(),
+                        StringUtils.isBlank(eventFilter.getEntityId()) ? null : UUID.fromString(eventFilter.getEntityId()),
                         eventFilter.getEntityType(),
-                        eventFilter.getMsgId(),
+                        StringUtils.isBlank(eventFilter.getMsgId()) ? null : UUID.fromString(eventFilter.getMsgId()),
                         eventFilter.getMsgType(),
                         eventFilter.getRelationType(),
                         eventFilter.getDataSearch(),
@@ -526,6 +526,11 @@ public class JpaBaseEventDao implements EventDao {
     @Override
     public List<? extends Event> findLatestEvents(UUID tenantId, UUID entityId, EventType eventType, int limit) {
         return DaoUtil.convertDataList(getEventRepository(eventType).findLatestEvents(tenantId, entityId, limit));
+    }
+
+    @Override
+    public Event findLatestDebugRuleNodeInEvent(UUID tenantId, UUID entityId) {
+        return DaoUtil.getData(ruleNodeDebugEventRepository.findLatestDebugRuleNodeInEvent(tenantId, entityId));
     }
 
     @Override

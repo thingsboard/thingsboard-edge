@@ -46,7 +46,9 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
     @Query("SELECT ai FROM AssetInfoEntity ai " +
             "WHERE ai.tenantId = :tenantId " +
             "AND (:searchText IS NULL OR ilike(ai.name, CONCAT('%', :searchText, '%')) = true " +
-            "OR ilike(ai.ownerName, CONCAT('%', :searchText, '%')) = true)")
+            "  OR ilike(ai.ownerName, CONCAT('%', :searchText, '%')) = true " +
+            "  OR ilike(ai.label, CONCAT('%', :searchText, '%')) = true " +
+            "  OR ilike(ai.type, CONCAT('%', :searchText, '%')) = true) ")
     Page<AssetInfoEntity> findByTenantId(@Param("tenantId") UUID tenantId,
                                          @Param("searchText") String searchText,
                                          Pageable pageable);
@@ -55,30 +57,38 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
             "WHERE ai.tenantId = :tenantId " +
             "AND ai.assetProfileId = :assetProfileId " +
             "AND (:searchText IS NULL OR ilike(ai.name, CONCAT('%', :searchText, '%')) = true " +
-            "OR ilike(ai.ownerName, CONCAT('%', :searchText, '%')) = true)")
+            "  OR ilike(ai.ownerName, CONCAT('%', :searchText, '%')) = true " +
+            "  OR ilike(ai.label, CONCAT('%', :searchText, '%')) = true " +
+            "  OR ilike(ai.type, CONCAT('%', :searchText, '%')) = true) ")
     Page<AssetInfoEntity> findByTenantIdAndAssetProfileId(@Param("tenantId") UUID tenantId,
                                                           @Param("assetProfileId") UUID assetProfileId,
                                                           @Param("searchText") String searchText,
                                                           Pageable pageable);
 
     @Query("SELECT ai FROM AssetInfoEntity ai " +
-            "WHERE ai.tenantId = :tenantId AND (ai.customerId IS NULL OR ai.customerId = uuid('13814000-1dd2-11b2-8080-808080808080')) " +
-            "AND (:searchText IS NULL OR ilike(ai.name, CONCAT('%', :searchText, '%')) = true) ")
+            "WHERE ai.tenantId = :tenantId AND (ai.customerId IS NULL OR ai.customerId = org.thingsboard.server.common.data.id.EntityId.NULL_UUID) " +
+            "AND (:searchText IS NULL OR ilike(ai.name, CONCAT('%', :searchText, '%')) = true " +
+            "  OR ilike(ai.label, CONCAT('%', :searchText, '%')) = true " +
+            "  OR ilike(ai.type, CONCAT('%', :searchText, '%')) = true) ")
     Page<AssetInfoEntity> findTenantAssetsByTenantId(@Param("tenantId") UUID tenantId,
                                                      @Param("searchText") String searchText,
                                                      Pageable pageable);
 
     @Query("SELECT ai FROM AssetInfoEntity ai " +
-            "WHERE ai.tenantId = :tenantId AND (ai.customerId IS NULL OR ai.customerId = uuid('13814000-1dd2-11b2-8080-808080808080')) " +
+            "WHERE ai.tenantId = :tenantId AND (ai.customerId IS NULL OR ai.customerId = org.thingsboard.server.common.data.id.EntityId.NULL_UUID) " +
             "AND ai.assetProfileId = :assetProfileId " +
-            "AND (:searchText IS NULL OR ilike(ai.name, CONCAT('%', :searchText, '%')) = true) ")
+            "AND (:searchText IS NULL OR ilike(ai.name, CONCAT('%', :searchText, '%')) = true " +
+            "  OR ilike(ai.label, CONCAT('%', :searchText, '%')) = true " +
+            "  OR ilike(ai.type, CONCAT('%', :searchText, '%')) = true) ")
     Page<AssetInfoEntity> findTenantAssetsByTenantIdAndAssetProfileId(@Param("tenantId") UUID tenantId,
                                                                       @Param("assetProfileId") UUID assetProfileId,
                                                                       @Param("searchText") String searchText,
                                                                       Pageable pageable);
 
     @Query("SELECT ai FROM AssetInfoEntity ai WHERE ai.tenantId = :tenantId AND ai.customerId = :customerId " +
-            "AND (:searchText IS NULL OR ilike(ai.name, CONCAT('%', :searchText, '%')) = true) ")
+            "AND (:searchText IS NULL OR ilike(ai.name, CONCAT('%', :searchText, '%')) = true " +
+            "  OR ilike(ai.label, CONCAT('%', :searchText, '%')) = true " +
+            "  OR ilike(ai.type, CONCAT('%', :searchText, '%')) = true) ")
     Page<AssetInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
                                                       @Param("customerId") UUID customerId,
                                                       @Param("searchText") String searchText,
@@ -86,7 +96,9 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
 
     @Query("SELECT ai FROM AssetInfoEntity ai WHERE ai.tenantId = :tenantId AND ai.customerId = :customerId " +
             "AND ai.assetProfileId = :assetProfileId " +
-            "AND (:searchText IS NULL OR ilike(ai.name, CONCAT('%', :searchText, '%')) = true) ")
+            "AND (:searchText IS NULL OR ilike(ai.name, CONCAT('%', :searchText, '%')) = true " +
+            "  OR ilike(ai.label, CONCAT('%', :searchText, '%')) = true " +
+            "  OR ilike(ai.type, CONCAT('%', :searchText, '%')) = true) ")
     Page<AssetInfoEntity> findByTenantIdAndCustomerIdAndAssetProfileId(@Param("tenantId") UUID tenantId,
                                                                        @Param("customerId") UUID customerId,
                                                                        @Param("assetProfileId") UUID assetProfileId,
@@ -100,12 +112,16 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
             "LEFT JOIN customer c on c.id = a.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
             "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
-            "OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
+            "  OR e.label ILIKE CONCAT('%', :searchText, '%') " +
+            "  OR e.type ILIKE CONCAT('%', :searchText, '%') " +
+            "  OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
             countQuery = "SELECT count(e.id) FROM asset e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
                     "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
-                    "OR c.title ILIKE CONCAT('%', :searchText, '%'))",
+                    "  OR e.label ILIKE CONCAT('%', :searchText, '%') " +
+                    "  OR e.type ILIKE CONCAT('%', :searchText, '%') " +
+                    "  OR c.title ILIKE CONCAT('%', :searchText, '%'))",
             nativeQuery = true)
     Page<AssetInfoEntity> findByTenantIdAndCustomerIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                                            @Param("customerId") UUID customerId,
@@ -120,13 +136,17 @@ public interface AssetInfoRepository extends JpaRepository<AssetInfoEntity, UUID
             "WHERE" + SUB_CUSTOMERS_QUERY +
             "AND e.asset_profile_id = :assetProfileId " +
             "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
-            "OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
+            "  OR e.label ILIKE CONCAT('%', :searchText, '%') " +
+            "  OR e.type ILIKE CONCAT('%', :searchText, '%') " +
+            "  OR e.owner_name ILIKE CONCAT('%', :searchText, '%'))",
             countQuery = "SELECT count(es.id) FROM asset e " +
                     "LEFT JOIN customer c on c.id = e.customer_id AND c.id != :customerId " +
                     "WHERE" + SUB_CUSTOMERS_QUERY +
                     "AND e.asset_profile_id = :assetProfileId " +
                     "AND (:searchText IS NULL OR e.name ILIKE CONCAT('%', :searchText, '%') " +
-                    "OR c.title ILIKE CONCAT('%', :searchText, '%'))",
+                    "  OR e.label ILIKE CONCAT('%', :searchText, '%') " +
+                    "  OR e.type ILIKE CONCAT('%', :searchText, '%') " +
+                    "  OR c.title ILIKE CONCAT('%', :searchText, '%'))",
             nativeQuery = true)
     Page<AssetInfoEntity> findByTenantIdAndCustomerIdAndAssetProfileIdIncludingSubCustomers(@Param("tenantId") UUID tenantId,
                                                                                             @Param("customerId") UUID customerId,

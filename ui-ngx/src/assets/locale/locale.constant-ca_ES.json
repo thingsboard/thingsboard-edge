@@ -955,15 +955,7 @@
     "custom-translation": {
         "custom-translation": "Traducció personalitzada",
         "translation-map": "Mapa de traducció",
-        "key": "Clau de traducció",
-        "import": "Importa la traducció",
-        "export": "Exporta la traducció",
-        "export-data": "Exporta les dades de traducció",
-        "import-data": "Importa les dades de traducció",
-        "translation-file": "Fitxer de traducció",
-        "invalid-translation-file-error": "No s'ha pogut importar el fitxer de traducció: l'estructura de dades de traducció no és vàlida.",
-        "custom-translation-hint": "Definiu el JSON de traducció personalitzat a continuació. Aquest JSON sobreescriurà la traducció predeterminada. Feu clic a «Baixa el fitxer locale» per a obtenir la traducció existent. També podeu utilitzar el fitxer baixat com a referència a les parelles disponibles de traducció clau-valor.",
-        "download-locale-file": "Baixa el fitxer locale"
+        "translation-file": "Fitxer de traducció"
     },
     "datetime": {
         "date-from": "Data des de",
@@ -1632,7 +1624,7 @@
             "short-id": "Identificador curt del servidor",
             "short-id-tooltip": "Identificador curt del servidor. S'utilitza com a enllaç a la instància d'objecte del servidor associada.\nAquest identificador identifica de manera única cada servidor LwM2M configurat per al client LwM2M.\nEl recurs S'HA d'establir quan el recurs del servidor Bootstrap té un valor 'fals'.\nEls valors ID:0 i ID :65535 NO S'HAN d'utilitzar per identificar el servidor LwM2M.",
             "short-id-required": "Cal identificador curt del servidor.",
-            "short-id-range": "L'identificador de servidor curt hauria d'estar entre 1 i 65534.",
+            "short-id-range": "L'identificador de servidor curt hauria d'estar entre {{ min }} i {{ max }}.",
             "short-id-pattern": "L'identificador de servidor curt ha de ser un nombre enter positiu.",
             "lifetime": "Vida útil del registre del client",
             "lifetime-required": "Cal vida útil del registre del client.",
@@ -1710,8 +1702,7 @@
                 "step": "Pas",
                 "min-evaluation-period": "Període mínim d'avaluació",
                 "max-evaluation-period": "Període màxim d'avaluació"
-            },
-            "composite-operations-support": "Admet operacions compostes de lectura/escriptura/observació"
+            }
         },
         "snmp": {
             "add-communication-config": "Afegeix la configuració de comunicació",

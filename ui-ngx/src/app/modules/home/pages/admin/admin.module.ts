@@ -39,7 +39,6 @@ import { GeneralSettingsComponent } from '@modules/home/pages/admin/general-sett
 import { SecuritySettingsComponent } from '@modules/home/pages/admin/security-settings.component';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { MailTemplatesComponent } from '@home/pages/admin/mail-templates.component';
-import { CustomTranslationComponent } from '@home/pages/admin/custom-translation.component';
 import { CustomMenuComponent } from '@home/pages/admin/custom-menu.component';
 import { WhiteLabelingComponent } from '@home/pages/admin/white-labeling.component';
 import { PaletteComponent } from '@home/pages/admin/palette.component';
@@ -56,6 +55,8 @@ import { QueueComponent } from '@home/pages/admin/queue/queue.component';
 import { RepositoryAdminSettingsComponent } from '@home/pages/admin/repository-admin-settings.component';
 import { AutoCommitAdminSettingsComponent } from '@home/pages/admin/auto-commit-admin-settings.component';
 import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-auth-settings.component';
+import { MobileAppSettingsComponent } from '@home/pages/admin/mobile-app-settings.component';
+import { WidgetComponentsModule } from '@home/components/widget/widget-components.module';
 
 @NgModule({
   declarations:
@@ -65,7 +66,6 @@ import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-aut
       MailTemplatesComponent,
       SmsProviderComponent,
       SendTestSmsDialogComponent,
-      CustomTranslationComponent,
       CustomMenuComponent,
       WhiteLabelingComponent,
       SecuritySettingsComponent,
@@ -81,13 +81,15 @@ import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-aut
       QueueComponent,
       RepositoryAdminSettingsComponent,
       AutoCommitAdminSettingsComponent,
-      TwoFactorAuthSettingsComponent
+      TwoFactorAuthSettingsComponent,
+      MobileAppSettingsComponent
     ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    AdminRoutingModule
-  ]
+    imports: [
+        CommonModule,
+        SharedModule,
+        HomeComponentsModule,
+        AdminRoutingModule,
+        WidgetComponentsModule
+    ]
 })
 export class AdminModule { }

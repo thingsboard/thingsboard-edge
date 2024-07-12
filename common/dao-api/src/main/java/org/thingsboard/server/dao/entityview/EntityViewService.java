@@ -63,6 +63,8 @@ public interface EntityViewService extends EntityDaoService {
 
     EntityView findEntityViewByTenantIdAndName(TenantId tenantId, String name);
 
+    ListenableFuture<EntityView> findEntityViewByTenantIdAndNameAsync(TenantId tenantId, String name);
+
     PageData<EntityView> findEntityViewByTenantId(TenantId tenantId, PageLink pageLink);
 
     PageData<EntityView> findEntityViewByTenantIdAndType(TenantId tenantId, PageLink pageLink, String type);

@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -55,22 +56,25 @@ public class AlarmCreateOrUpdateActiveRequest implements AlarmModificationReques
     @Schema(description = "JSON object with Customer Id", accessMode = Schema.AccessMode.READ_ONLY)
     private CustomerId customerId;
     @NotNull
-    @Schema(required = true, description = "representing type of the Alarm", example = "High Temperature Alarm")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "representing type of the Alarm", example = "High Temperature Alarm")
     @Length(fieldName = "type")
     private String type;
     @NotNull
-    @Schema(required = true, description = "JSON object with alarm originator id")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "JSON object with alarm originator id")
     private EntityId originator;
     @NotNull
-    @Schema(required = true, description = "Alarm severity", example = "CRITICAL")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Alarm severity", example = "CRITICAL")
     private AlarmSeverity severity;
     @Schema(description = "Timestamp of the alarm start time, in milliseconds", example = "1634058704565")
     private long startTs;
     @Schema(description = "Timestamp of the alarm end time(last time update), in milliseconds", example = "1634111163522")
     private long endTs;
+
+    @ToString.Exclude
     @NoXss
     @Schema(description = "JSON object with alarm details")
     private JsonNode details;
+
     @Valid
     @Schema(description = "JSON object with propagation details")
     private AlarmPropagationInfo propagation;

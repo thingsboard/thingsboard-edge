@@ -49,9 +49,12 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.ShortCustomerInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -70,6 +73,7 @@ import org.thingsboard.server.exception.DataValidationException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -99,7 +103,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -116,8 +120,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
     public void afterTest() throws Exception {
         loginSysAdmin();
 
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString())
-                .andExpect(status().isOk());
+        deleteTenant(savedTenant.getId());
     }
 
     @Test
@@ -461,8 +464,8 @@ public class DashboardControllerTest extends AbstractControllerTest {
             }
         } while (pageData.hasNext());
 
-        // Tenant admin user must have access to both dashboards and default gateways dashboard
-        Assert.assertEquals(3, tenantAdminDashboards.size());
+        // Tenant admin user must have access to both dashboards
+        Assert.assertEquals(2, tenantAdminDashboards.size());
 
         User customerUser = new User();
         customerUser.setAuthority(Authority.CUSTOMER_USER);
@@ -498,6 +501,33 @@ public class DashboardControllerTest extends AbstractControllerTest {
     public void testDeleteDashboardExceptionWithRelationsTransactional() throws Exception {
         DashboardId dashboardId = createDashboard("Dashboard for Test WithRelations Transactional Exception").getId();
         testEntityDaoWithRelationsTransactionalException(dashboardDao, savedTenant.getId(), dashboardId, "/api/dashboard/" + dashboardId);
+    }
+
+    @Test
+    public void whenDeletingDashboard_ifReferencedByDeviceProfile_thenReturnError() throws Exception {
+        Dashboard dashboard = createDashboard("test");
+        DeviceProfile deviceProfile = createDeviceProfile("test");
+        deviceProfile.setDefaultDashboardId(dashboard.getId());
+        doPost("/api/deviceProfile", deviceProfile, DeviceProfile.class);
+
+        String response = doDelete("/api/dashboard/" + dashboard.getUuidId()).andExpect(status().isBadRequest())
+                .andReturn().getResponse().getContentAsString();
+        String errorMessage = JacksonUtil.toJsonNode(response).get("message").asText();
+        assertThat(errorMessage).containsIgnoringCase("referenced by a device profile");
+    }
+
+    @Test
+    public void whenDeletingDashboard_ifReferencedByAssetProfile_thenReturnError() throws Exception {
+        Dashboard dashboard = createDashboard("test");
+        AssetProfile assetProfile = createAssetProfile("test");
+        assetProfile.setDefaultDashboardId(dashboard.getId());
+        doPost("/api/assetProfile", assetProfile, AssetProfile.class);
+
+        String response = doDelete("/api/dashboard/" + dashboard.getUuidId()).andExpect(status().isBadRequest())
+                .andReturn().getResponse().getContentAsString();
+        String errorMessage = JacksonUtil.toJsonNode(response).get("message").asText();
+        assertThat(errorMessage).containsIgnoringCase("referenced by an asset profile");
+
     }
 
     private Dashboard createDashboard(String title) {

@@ -45,4 +45,5 @@ public class BaseTbMsgPushNodeConfiguration implements NodeConfiguration<BaseTbM
         configuration.setScope(AttributeScope.SERVER_SCOPE.name());
         return configuration;
     }
+
 }

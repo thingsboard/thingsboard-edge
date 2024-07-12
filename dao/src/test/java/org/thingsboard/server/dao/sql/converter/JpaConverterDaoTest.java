@@ -81,7 +81,7 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
     }
 
     @Test
-    public void testFindAssetsByTenantIdAndName() {
+    public void testFindConverterByTenantIdAndName() {
         UUID converterId1 = Uuids.timeBased();
         UUID converterId2 = Uuids.timeBased();
         UUID tenantId1 = Uuids.timeBased();
@@ -114,21 +114,6 @@ public class JpaConverterDaoTest extends AbstractJpaDaoTest {
         Optional<Converter> converterOpt2 = converterDao.findConverterByTenantIdAndNameAndType(tenantId, name, ConverterType.DOWNLINK);
         assertTrue("Optional expected to be non-empty", converterOpt2.isPresent());
         assertEquals(converterId2, converterOpt2.get().getId().getId());
-    }
-
-    @Test
-    public void testFindConvertersByTenantIdAndName() {
-        UUID converterId1 = Uuids.timeBased();
-        UUID converterId2 = Uuids.timeBased();
-        UUID tenantId = Uuids.timeBased();
-        String name = "TEST_CONVERTER";
-        saveConverter(converterId1, tenantId, name, ConverterType.UPLINK);
-        saveConverter(converterId2, tenantId, name, ConverterType.DOWNLINK);
-
-        PageLink pageLink = new PageLink(2);
-        List<UUID> converterIds = converterDao.findConverterByTenantIdAndName(tenantId, name, pageLink).getData()
-                .stream().map(converter -> converter.getId().getId()).collect(Collectors.toList());
-        assertTrue(converterIds.contains(converterId1) || converterIds.contains(converterId2));
     }
 
     private void saveConverter(UUID id, UUID tenantId, String name, ConverterType type) {

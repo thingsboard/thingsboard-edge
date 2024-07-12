@@ -160,7 +160,13 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                 });
                 break;
             case "3.6.3":
-                updateSchema("3.6.3", 3006003, "3.7.0", 3007000, null);
+                updateSchema("3.6.3", 3006003, "3.6.4", 3006004, null);
+                break;
+            case "3.6.4":
+                updateSchema("3.6.4", 3006004, "3.7.0", 3007000, null);
+                break;
+            case "3.7.0":
+                updateSchema("3.7.0", 3007000, "3.7.1", 3007001, null);
                 break;
             case "ce":
                 log.info("Updating schema ...");
@@ -361,4 +367,5 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
         }
         return isOldSchema;
     }
+
 }

@@ -1,0 +1,99 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+:host {
+  display: grid;
+  height: 100%;
+
+  .key-mapping {
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+
+    .mat-toolbar {
+      min-height: 64px;
+    }
+
+    tb-toggle-select {
+      padding: 4px 0;
+    }
+  }
+
+  .mat-mdc-dialog-content {
+    height: 670px;
+  }
+
+  .ellipsis-chips-container {
+    max-width: 70%;
+  }
+}
+
+:host ::ng-deep {
+  .key-mapping {
+    .mat-mdc-chip-listbox {
+      .mdc-evolution-chip-set__chips {
+        justify-content: flex-end;
+        align-items: center;
+      }
+    }
+  }
+  .tb-form-row {
+    .fixed-title-width {
+      min-width: 40px;
+      width: 35%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mat-mdc-form-field {
+      width: 0;
+    }
+  }
+
+  .see-example {
+    width: 32px;
+    height: 32px;
+    margin: 4px;
+  }
+
+  .mat-mdc-form-field-icon-suffix {
+    display: flex;
+  }
+
+  .device-config {
+    gap: 12px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .device-node-pattern-field {
+    flex-basis: 3%;
+  }
+}

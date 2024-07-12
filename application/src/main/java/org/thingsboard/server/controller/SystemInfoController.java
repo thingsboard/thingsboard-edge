@@ -50,6 +50,8 @@ import org.thingsboard.server.common.data.SystemParams;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.mobile.MobileAppSettings;
+import org.thingsboard.server.common.data.mobile.QRCodeConfig;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
@@ -57,13 +59,16 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.settings.UserSettings;
 import org.thingsboard.server.common.data.settings.UserSettingsType;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.dao.mobile.MobileAppSettingsService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
+import org.thingsboard.server.service.translation.TbTranslationService;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Hidden
@@ -93,6 +98,12 @@ public class SystemInfoController extends BaseController {
 
     @Autowired
     private WhiteLabelingService whiteLabelingService;
+
+    @Autowired
+    private TbTranslationService translationService;
+
+    @Autowired
+    private MobileAppSettingsService mobileAppSettingsService;
 
     @PostConstruct
     public void init() {
@@ -158,6 +169,10 @@ public class SystemInfoController extends BaseController {
             DefaultTenantProfileConfiguration tenantProfileConfiguration = tenantProfileCache.get(tenantId).getDefaultProfileConfiguration();
             systemParams.setMaxResourceSize(tenantProfileConfiguration.getMaxResourceSize());
         }
+        systemParams.setAvailableLocales(translationService.getAvailableLocaleCodes(tenantId, customerId));
+        systemParams.setMobileQrEnabled(Optional.ofNullable(mobileAppSettingsService.getMergedMobileAppSettings(tenantId))
+                .map(MobileAppSettings::getQrCodeConfig).map(QRCodeConfig::isShowOnHomePage)
+                .orElse(false));
         return systemParams;
     }
 

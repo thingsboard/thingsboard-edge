@@ -23,7 +23,7 @@ if "%1" == "--loadDemo" (
 SET BASE=%~dp0
 SET LOADER_PATH=%BASE%\conf,%BASE%\extensions
 SET SQL_DATA_FOLDER=%BASE%\data\sql
-SET jarfile=%BASE%\lib\thingsboard.jar
+SET jarfile=%BASE%\lib\${pkg.name}.jar
 SET installDir=%BASE%\data
 
 PUSHD "%BASE%\conf"
@@ -34,7 +34,7 @@ java -cp "%jarfile%" -Dloader.main=org.thingsboard.server.ThingsboardInstallAppl
                     -Dspring.jpa.hibernate.ddl-auto=none^
                     -Dinstall.upgrade=false^
                     -Dlogging.config="%BASE%\install\logback.xml"^
-                    org.springframework.boot.loader.PropertiesLauncher
+                    org.springframework.boot.loader.launch.PropertiesLauncher
 
 if errorlevel 1 (
    @echo ThingsBoard installation failed!

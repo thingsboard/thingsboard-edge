@@ -188,6 +188,7 @@ export class LiquidLevelCardWidgetSettingsComponent extends WidgetSettingsCompon
 
       liquidColor: [settings.liquidColor, []],
       background: [settings.background],
+      padding: [settings.padding, []],
 
       showTooltip: [settings.showTooltip, []],
       showTooltipLevel: [settings.showTooltipLevel, []],

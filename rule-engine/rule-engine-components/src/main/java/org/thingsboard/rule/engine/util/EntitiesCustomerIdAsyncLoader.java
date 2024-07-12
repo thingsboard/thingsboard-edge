@@ -46,7 +46,7 @@ public class EntitiesCustomerIdAsyncLoader {
     public static ListenableFuture<CustomerId> findEntityIdAsync(TbContext ctx, EntityId originator) {
         switch (originator.getEntityType()) {
             case CUSTOMER:
-                return Futures.immediateFuture((CustomerId) originator);
+                return toCustomerIdAsync(ctx, ctx.getCustomerService().findCustomerByIdAsync(ctx.getTenantId(), (CustomerId) originator));
             case USER:
                 return toCustomerIdAsync(ctx, ctx.getUserService().findUserByIdAsync(ctx.getTenantId(), (UserId) originator));
             case ASSET:

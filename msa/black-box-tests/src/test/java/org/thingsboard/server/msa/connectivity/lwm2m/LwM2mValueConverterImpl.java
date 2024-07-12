@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.StringUtils;
 import java.math.BigInteger;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Base64;
 import java.util.Date;
 
 import static org.eclipse.leshan.core.model.ResourceModel.Type.OPAQUE;

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.coapserver;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.californium.elements.config.Configuration;
 import org.eclipse.californium.elements.util.SslContextUtil;
@@ -62,6 +63,7 @@ import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_RETRANSMIS
 import static org.eclipse.californium.scandium.config.DtlsConfig.DTLS_ROLE;
 import static org.eclipse.californium.scandium.config.DtlsConfig.DtlsRole.SERVER_ONLY;
 
+@Getter
 @Slf4j
 @ConditionalOnProperty(prefix = "coap.dtls", value = "enabled", havingValue = "true")
 @Component
@@ -73,10 +75,10 @@ public class TbCoapDtlsSettings {
     @Value("${coap.dtls.bind_port}")
     private Integer port;
 
-    @Value("${transport.coap.dtls.retransmission_timeout:9000}")
+    @Value("${coap.dtls.retransmission_timeout:9000}")
     private int dtlsRetransmissionTimeout;
 
-    @Value("${transport.coap.dtls.connection_id_length}")
+    @Value("${coap.dtls.connection_id_length:}")
     private Integer cIdLength;
 
     @Bean

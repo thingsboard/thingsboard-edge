@@ -89,7 +89,6 @@ import {
 import {
   DigitalGaugeWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/gauge/digital-gauge-widget-settings.component';
-import { FixedColorLevelComponent } from '@home/components/widget/lib/settings/gauge/fixed-color-level.component';
 import { TickValueComponent } from '@home/components/widget/lib/settings/gauge/tick-value.component';
 import { FlotWidgetSettingsComponent } from '@home/components/widget/lib/settings/chart/flot-widget-settings.component';
 import {
@@ -361,15 +360,40 @@ import {
   TimeSeriesChartLineSettingsComponent
 } from '@home/components/widget/lib/settings/chart/time-series-chart-line-settings.component';
 import {
-  TimeSeriesChartBarSettingsComponent
-} from '@home/components/widget/lib/settings/chart/time-series-chart-bar-settings.component';
-import {
   TimeSeriesChartWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/chart/time-series-chart-widget-settings.component';
+import {
+  StatusWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/indicator/status-widget-settings.component';
+import {
+  PieChartWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/chart/pie-chart-widget-settings.component';
+import {
+  BarChartWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/chart/bar-chart-widget-settings.component';
+import {
+  PolarAreaChartWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/chart/polar-area-chart-widget-settings.component';
+import {
+  RadarChartWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/chart/radar-chart-widget-settings.component';
+import {
+  MobileAppQrCodeWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/mobile-app-qr-code-widget-settings.component';
+import {
+  LabelCardWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/label-card-widget-settings.component';
+import {
+  LabelValueCardWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/label-value-card-widget-settings.component';
+import {
+  UnreadNotificationWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/unread-notification-widget-settings.component';
 
 @NgModule({
   declarations: [
     QrCodeWidgetSettingsComponent,
+    MobileAppQrCodeWidgetSettingsComponent,
     TimeseriesTableWidgetSettingsComponent,
     TimeseriesTableKeySettingsComponent,
     TimeseriesTableLatestKeySettingsComponent,
@@ -388,7 +412,6 @@ import {
     AnalogueLinearGaugeWidgetSettingsComponent,
     AnalogueCompassWidgetSettingsComponent,
     DigitalGaugeWidgetSettingsComponent,
-    FixedColorLevelComponent,
     TickValueComponent,
     FlotWidgetSettingsComponent,
     LabelDataKeyComponent,
@@ -487,8 +510,15 @@ import {
     ToggleButtonWidgetSettingsComponent,
     TimeSeriesChartKeySettingsComponent,
     TimeSeriesChartLineSettingsComponent,
-    TimeSeriesChartBarSettingsComponent,
     TimeSeriesChartWidgetSettingsComponent,
+    StatusWidgetSettingsComponent,
+    PieChartWidgetSettingsComponent,
+    BarChartWidgetSettingsComponent,
+    PolarAreaChartWidgetSettingsComponent,
+    RadarChartWidgetSettingsComponent,
+    LabelCardWidgetSettingsComponent,
+    LabelValueCardWidgetSettingsComponent,
+    UnreadNotificationWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -501,6 +531,7 @@ import {
   ],
   exports: [
     QrCodeWidgetSettingsComponent,
+    MobileAppQrCodeWidgetSettingsComponent,
     TimeseriesTableWidgetSettingsComponent,
     TimeseriesTableKeySettingsComponent,
     TimeseriesTableLatestKeySettingsComponent,
@@ -519,7 +550,6 @@ import {
     AnalogueLinearGaugeWidgetSettingsComponent,
     AnalogueCompassWidgetSettingsComponent,
     DigitalGaugeWidgetSettingsComponent,
-    FixedColorLevelComponent,
     TickValueComponent,
     FlotWidgetSettingsComponent,
     LabelDataKeyComponent,
@@ -618,8 +648,15 @@ import {
     ToggleButtonWidgetSettingsComponent,
     TimeSeriesChartKeySettingsComponent,
     TimeSeriesChartLineSettingsComponent,
-    TimeSeriesChartBarSettingsComponent,
     TimeSeriesChartWidgetSettingsComponent,
+    StatusWidgetSettingsComponent,
+    PieChartWidgetSettingsComponent,
+    BarChartWidgetSettingsComponent,
+    PolarAreaChartWidgetSettingsComponent,
+    RadarChartWidgetSettingsComponent,
+    LabelCardWidgetSettingsComponent,
+    LabelValueCardWidgetSettingsComponent,
+    UnreadNotificationWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -630,6 +667,7 @@ export class WidgetSettingsModule {
 
 export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsComponent>} = {
   'tb-qrcode-widget-settings': QrCodeWidgetSettingsComponent,
+  'tb-mobile-app-qr-code-widget-settings': MobileAppQrCodeWidgetSettingsComponent,
   'tb-timeseries-table-widget-settings': TimeseriesTableWidgetSettingsComponent,
   'tb-timeseries-table-key-settings': TimeseriesTableKeySettingsComponent,
   'tb-timeseries-table-latest-key-settings': TimeseriesTableLatestKeySettingsComponent,
@@ -716,6 +754,14 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-toggle-button-widget-settings': ToggleButtonWidgetSettingsComponent,
   'tb-time-series-chart-key-settings': TimeSeriesChartKeySettingsComponent,
   'tb-time-series-chart-widget-settings': TimeSeriesChartWidgetSettingsComponent,
+  'tb-status-widget-settings': StatusWidgetSettingsComponent,
+  'tb-pie-chart-widget-settings': PieChartWidgetSettingsComponent,
+  'tb-bar-chart-widget-settings': BarChartWidgetSettingsComponent,
+  'tb-polar-area-chart-widget-settings': PolarAreaChartWidgetSettingsComponent,
+  'tb-radar-chart-widget-settings': RadarChartWidgetSettingsComponent,
+  'tb-label-card-widget-settings': LabelCardWidgetSettingsComponent,
+  'tb-label-value-card-widget-settings': LabelValueCardWidgetSettingsComponent,
+  'tb-unread-notification-widget-settings': UnreadNotificationWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

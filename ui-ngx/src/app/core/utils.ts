@@ -365,6 +365,8 @@ export const isEmpty = (a: any): boolean => _.isEmpty(a);
 
 export const unset = (object: any, path: string | symbol): boolean => _.unset(object, path);
 
+export const setByPath = <T extends object>(object: T, path: string | number | symbol, value: any): T => _.set(object, path, value);
+
 export const isEqualIgnoreUndefined = (a: any, b: any): boolean => {
   if (a === b) {
     return true;
@@ -387,6 +389,16 @@ export const isArraysEqualIgnoreUndefined = (a: any[], b: any[]): boolean => {
 
 export function mergeDeep<T>(target: T, ...sources: T[]): T {
   return _.merge(target, ...sources);
+}
+
+function ignoreArrayMergeFunc(target: any, sources: any) {
+  if (_.isArray(target)) {
+    return sources;
+  }
+}
+
+export function mergeDeepIgnoreArray<T>(target: T, ...sources: T[]): T {
+  return _.mergeWith(target, ...sources, ignoreArrayMergeFunc);
 }
 
 export function guid(): string {

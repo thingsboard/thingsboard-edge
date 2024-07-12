@@ -232,7 +232,7 @@ public final class IntegrationGrpcSession implements Closeable {
             if (msg.getDeviceDataCount() > 0) {
                 for (DeviceUplinkDataProto data : msg.getDeviceDataList()) {
                     ctx.getRateLimitService().checkLimit(configuration.getTenantId(), data::toString);
-                    ctx.getRateLimitService().checkLimit(configuration.getTenantId(), data.getDeviceName(), data::toString);
+                    ctx.getRateLimitService().checkLimitPerDevice(configuration.getTenantId(), data.getDeviceName(), data::toString);
 
                     final UUID sessionId = this.sessionId;
                     ctx.getPlatformIntegrationService().processUplinkData(configuration, sessionId, data, null);
@@ -242,6 +242,7 @@ public final class IntegrationGrpcSession implements Closeable {
             if (msg.getAssetDataCount() > 0) {
                 for (AssetUplinkDataProto data : msg.getAssetDataList()) {
                     ctx.getRateLimitService().checkLimit(configuration.getTenantId(), data::toString);
+                    ctx.getRateLimitService().checkLimitPerAsset(configuration.getTenantId(), data.getAssetName(), data::toString);
                     ctx.getPlatformIntegrationService().processUplinkData(configuration, data, null);
                 }
             }

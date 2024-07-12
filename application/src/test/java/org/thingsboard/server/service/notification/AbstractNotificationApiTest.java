@@ -36,6 +36,7 @@ import org.junit.After;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.util.Pair;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.notification.SlackService;
 import org.thingsboard.server.common.data.User;
@@ -117,6 +118,8 @@ public abstract class AbstractNotificationApiTest extends AbstractControllerTest
     protected SqlPartitioningRepository partitioningRepository;
     @Autowired
     protected DefaultNotifications defaultNotifications;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     public static final String DEFAULT_NOTIFICATION_SUBJECT = "Just a test";
     public static final NotificationType DEFAULT_NOTIFICATION_TYPE = NotificationType.GENERAL;
@@ -127,7 +130,8 @@ public abstract class AbstractNotificationApiTest extends AbstractControllerTest
         notificationRuleService.deleteNotificationRulesByTenantId(TenantId.SYS_TENANT_ID);
         notificationTemplateService.deleteNotificationTemplatesByTenantId(TenantId.SYS_TENANT_ID);
         notificationTargetService.deleteNotificationTargetsByTenantId(TenantId.SYS_TENANT_ID);
-        partitioningRepository.dropPartitionsBefore("notification", Long.MAX_VALUE, 1);
+        jdbcTemplate.execute("TRUNCATE TABLE notification");
+        partitioningRepository.cleanupPartitionsCache("notification", Long.MAX_VALUE, 0);
         notificationSettingsService.deleteNotificationSettings(TenantId.SYS_TENANT_ID);
     }
 
@@ -154,13 +158,21 @@ public abstract class AbstractNotificationApiTest extends AbstractControllerTest
         return submitNotificationRequest(targetId, text, 0, deliveryMethods);
     }
 
+    protected NotificationRequest submitNotificationRequest(NotificationType type, NotificationTargetId targetId, String text, NotificationDeliveryMethod... deliveryMethods) {
+        if (deliveryMethods.length == 0) {
+            deliveryMethods = new NotificationDeliveryMethod[]{NotificationDeliveryMethod.WEB};
+        }
+        NotificationTemplate notificationTemplate = createNotificationTemplate(type, DEFAULT_NOTIFICATION_SUBJECT, text, deliveryMethods);
+        return submitNotificationRequest(List.of(targetId), notificationTemplate.getId(), 0);
+    }
+
     protected NotificationRequest submitNotificationRequest(NotificationTargetId targetId, String text, int delayInSec, NotificationDeliveryMethod... deliveryMethods) {
         return submitNotificationRequest(List.of(targetId), text, delayInSec, deliveryMethods);
     }
 
     protected NotificationRequest submitNotificationRequest(List<NotificationTargetId> targets, String text, int delayInSec, NotificationDeliveryMethod... deliveryMethods) {
         if (deliveryMethods.length == 0) {
-            deliveryMethods = new NotificationDeliveryMethod[]{NotificationDeliveryMethod.WEB};
+            deliveryMethods = new NotificationDeliveryMethod[]{NotificationDeliveryMethod.WEB, NotificationDeliveryMethod.MOBILE_APP};
         }
         NotificationTemplate notificationTemplate = createNotificationTemplate(DEFAULT_NOTIFICATION_TYPE, DEFAULT_NOTIFICATION_SUBJECT, text, deliveryMethods);
         return submitNotificationRequest(targets, notificationTemplate.getId(), delayInSec);
@@ -262,8 +274,12 @@ public abstract class AbstractNotificationApiTest extends AbstractControllerTest
     }
 
     protected List<Notification> getMyNotifications(boolean unreadOnly, int limit) throws Exception {
-        return doGetTypedWithPageLink("/api/notifications?unreadOnly={unreadOnly}&", new TypeReference<PageData<Notification>>() {},
-                new PageLink(limit, 0), unreadOnly).getData();
+        return getMyNotifications(NotificationDeliveryMethod.WEB, unreadOnly, limit);
+    }
+
+    protected List<Notification> getMyNotifications(NotificationDeliveryMethod deliveryMethod, boolean unreadOnly, int limit) throws Exception {
+        return doGetTypedWithPageLink("/api/notifications?unreadOnly={unreadOnly}&deliveryMethod={deliveryMethod}&", new TypeReference<PageData<Notification>>() {},
+                new PageLink(limit, 0), unreadOnly, deliveryMethod).getData();
     }
 
     protected NotificationRule createNotificationRule(NotificationRuleTriggerConfig triggerConfig, String subject, String text, NotificationTargetId... targets) {

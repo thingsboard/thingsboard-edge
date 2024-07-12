@@ -65,7 +65,8 @@ public class PublicCustomerUserGroupEdgeEventFetcher implements EdgeEventFetcher
         EntityGroup publicUserGroup = customerService.findOrCreatePublicUserGroup(tenantId, ownerId);
         result.add(EdgeUtils.constructEdgeEvent(edge.getTenantId(), edge.getId(), EdgeEventType.ENTITY_GROUP,
                 EdgeEventActionType.ADDED, publicUserGroup.getId(), null));
-        // @voba - returns PageData object to be in sync with other fetchers
+        // returns PageData object to be in sync with other fetchers
         return new PageData<>(result, 1, result.size(), false);
     }
+
 }

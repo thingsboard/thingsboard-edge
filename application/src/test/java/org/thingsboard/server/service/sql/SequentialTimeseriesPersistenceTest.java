@@ -65,8 +65,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 @DaoSqlTest
 public class SequentialTimeseriesPersistenceTest extends AbstractControllerTest {
 
@@ -92,7 +90,7 @@ public class SequentialTimeseriesPersistenceTest extends AbstractControllerTest 
 
         Tenant tenant = new Tenant();
         tenant.setTitle("My tenant");
-        savedTenant = doPost("/api/tenant", tenant, Tenant.class);
+        savedTenant = saveTenant(tenant);
         Assert.assertNotNull(savedTenant);
 
         tenantAdmin = new User();
@@ -108,7 +106,7 @@ public class SequentialTimeseriesPersistenceTest extends AbstractControllerTest 
     @After
     public void afterTest() throws Exception {
         loginSysAdmin();
-        doDelete("/api/tenant/" + savedTenant.getId().getId().toString()).andExpect(status().isOk());
+        deleteTenant(savedTenant.getId());
     }
 
     @Test
@@ -162,7 +160,7 @@ public class SequentialTimeseriesPersistenceTest extends AbstractControllerTest 
     void checkDiffBetweenLatestTsForDevicesAndAsset(List<Device> devices, Asset asset) throws ExecutionException, InterruptedException, TimeoutException {
         TsKvEntry assetTsKvEntry = getTsKvLatest(asset.getId(), GENERIC_CUMULATIVE_OBJ);
         Assert.assertTrue(assetTsKvEntry.getJsonValue().isPresent());
-        JsonObject assetJsonObject = new JsonParser().parse(assetTsKvEntry.getJsonValue().get()).getAsJsonObject();
+        JsonObject assetJsonObject = JsonParser.parseString(assetTsKvEntry.getJsonValue().get()).getAsJsonObject();
         for (Device device : devices) {
             Long assetValue = assetJsonObject.get(device.getName()).getAsLong();
             TsKvEntry deviceLatest = getTsKvLatest(device.getId(), TOTALIZER);
@@ -197,7 +195,7 @@ public class SequentialTimeseriesPersistenceTest extends AbstractControllerTest 
     JsonObject getJsonObject(String key, long value, Optional<String> tsKvEntryOpt) {
         JsonObject jsonObject = new JsonObject();
         if (tsKvEntryOpt.isPresent()) {
-            jsonObject = new JsonParser().parse(tsKvEntryOpt.get()).getAsJsonObject();
+            jsonObject = JsonParser.parseString(tsKvEntryOpt.get()).getAsJsonObject();
         }
         jsonObject.addProperty(key, value);
         return jsonObject;

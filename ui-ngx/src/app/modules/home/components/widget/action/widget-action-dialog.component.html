@@ -47,7 +47,7 @@
     <fieldset [disabled]="isLoading$ | async">
       <div class="tb-form-panel no-padding no-border">
         <div class="tb-form-row">
-          <div class="fixed-title-width">{{'widget-config.action-source' | translate}}*</div>
+          <div class="fixed-title-width" [tb-hint-tooltip-icon]="entityGroupRowClickHint()">{{'widget-config.action-source' | translate}}*</div>
           <mat-form-field fxFlex appearance="outline" subscriptSizing="dynamic">
             <mat-select required formControlName="actionSourceId" placeholder="{{ 'widget-config.select-action-source' | translate }}">
               <mat-option *ngFor="let actionSourceItem of data.actionsData.actionSources | keyvalue" [value]="actionSourceItem.key">
@@ -60,6 +60,27 @@
                       [matTooltip]="'widget-config.action-source-required' | translate"
                       *ngIf="widgetActionFormGroup.get('actionSourceId').hasError('required')
                        && widgetActionFormGroup.get('actionSourceId').touched"
+                      class="tb-error">
+              warning
+            </mat-icon>
+          </mat-form-field>
+        </div>
+        <div class="tb-form-row" *ngIf="widgetActionFormGroup.get('actionSourceId').value === 'cellClick'">
+          <div class="fixed-title-width">{{'widget-config.column-index' | translate}}*</div>
+          <mat-form-field fxFlex appearance="outline" subscriptSizing="dynamic">
+            <mat-select #columnIndexSelect formControlName="columnIndex" placeholder="{{ columnIndexPlaceholderText }}">
+              <mat-option *ngFor="let column of configuredColumns; let $index = index"
+                          [value]="$index"
+                          [disabled]="usedCellClickColumns.includes($index)">
+                {{ getCellClickColumnInfo($index, column) }}
+              </mat-option>
+            </mat-select>
+            <mat-icon matSuffix
+                      matTooltipPosition="above"
+                      matTooltipClass="tb-error-tooltip"
+                      [matTooltip]="'widget-config.column-index-required' | translate"
+                      *ngIf="widgetActionFormGroup.get('columnIndex').hasError('required') &&
+                             widgetActionFormGroup.get('columnIndex').touched"
                       class="tb-error">
               warning
             </mat-icon>

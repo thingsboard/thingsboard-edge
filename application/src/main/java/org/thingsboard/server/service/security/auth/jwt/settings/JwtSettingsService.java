@@ -41,10 +41,6 @@ public interface JwtSettingsService {
 
     JwtSettings reloadJwtSettings();
 
-    void createRandomJwtSettings();
-
-    void saveLegacyYmlSettings();
-
     JwtSettings saveJwtSettings(JwtSettings jwtSettings);
 
 }

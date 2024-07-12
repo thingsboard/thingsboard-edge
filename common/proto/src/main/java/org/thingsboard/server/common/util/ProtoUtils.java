@@ -116,6 +116,8 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.DataConstants.GATEWAY_PARAMETER;
+
 @Slf4j
 public class ProtoUtils {
 
@@ -283,31 +285,31 @@ public class ProtoUtils {
                         .setLastUpdateTs(attributeKvEntry.getLastUpdateTs())
                         .setKey(attributeKvEntry.getKey());
                 switch (attributeKvEntry.getDataType()) {
-                    case BOOLEAN:
+                    case BOOLEAN -> {
                         attributeKvEntry.getBooleanValue().ifPresent(attributeValueBuilder::setBoolV);
                         attributeValueBuilder.setHasV(attributeKvEntry.getBooleanValue().isPresent());
                         attributeValueBuilder.setType(TransportProtos.KeyValueType.BOOLEAN_V);
-                        break;
-                    case STRING:
+                    }
+                    case STRING -> {
                         attributeKvEntry.getStrValue().ifPresent(attributeValueBuilder::setStringV);
                         attributeValueBuilder.setHasV(attributeKvEntry.getStrValue().isPresent());
                         attributeValueBuilder.setType(TransportProtos.KeyValueType.STRING_V);
-                        break;
-                    case DOUBLE:
+                    }
+                    case DOUBLE -> {
                         attributeKvEntry.getDoubleValue().ifPresent(attributeValueBuilder::setDoubleV);
                         attributeValueBuilder.setHasV(attributeKvEntry.getDoubleValue().isPresent());
                         attributeValueBuilder.setType(TransportProtos.KeyValueType.DOUBLE_V);
-                        break;
-                    case LONG:
+                    }
+                    case LONG -> {
                         attributeKvEntry.getLongValue().ifPresent(attributeValueBuilder::setLongV);
                         attributeValueBuilder.setHasV(attributeKvEntry.getLongValue().isPresent());
                         attributeValueBuilder.setType(TransportProtos.KeyValueType.LONG_V);
-                        break;
-                    case JSON:
+                    }
+                    case JSON -> {
                         attributeKvEntry.getJsonValue().ifPresent(attributeValueBuilder::setJsonV);
                         attributeValueBuilder.setHasV(attributeKvEntry.getJsonValue().isPresent());
                         attributeValueBuilder.setType(TransportProtos.KeyValueType.JSON_V);
-                        break;
+                    }
                 }
                 builder.addValues(attributeValueBuilder.build());
             }
@@ -683,6 +685,8 @@ public class ProtoUtils {
         }
         if (proto.hasDefaultRuleChainIdMSB() && proto.hasDefaultRuleChainIdLSB()) {
             deviceProfile.setDefaultRuleChainId(getEntityId(proto.getDefaultRuleChainIdMSB(), proto.getDefaultRuleChainIdLSB(), RuleChainId::new));
+        }
+        if (proto.hasDefaultDashboardIdMSB() && proto.hasDefaultDashboardIdLSB()) {
             deviceProfile.setDefaultDashboardId(getEntityId(proto.getDefaultDashboardIdMSB(), proto.getDefaultDashboardIdLSB(), DashboardId::new));
         }
         if (proto.hasDefaultQueueName()) {
@@ -934,7 +938,8 @@ public class ProtoUtils {
                 .setRepositoryUri(repositorySettings.getRepositoryUri())
                 .setAuthMethod(repositorySettings.getAuthMethod().name())
                 .setReadOnly(repositorySettings.isReadOnly())
-                .setShowMergeCommits(repositorySettings.isShowMergeCommits());
+                .setShowMergeCommits(repositorySettings.isShowMergeCommits())
+                .setLocalOnly(repositorySettings.isLocalOnly());
 
         if (isNotNull(repositorySettings.getUsername())) {
             builder.setUsername(repositorySettings.getUsername());
@@ -963,6 +968,7 @@ public class ProtoUtils {
         repositorySettings.setAuthMethod(RepositoryAuthMethod.valueOf(proto.getAuthMethod()));
         repositorySettings.setReadOnly(proto.getReadOnly());
         repositorySettings.setShowMergeCommits(proto.getShowMergeCommits());
+        repositorySettings.setLocalOnly(proto.getLocalOnly());
         if (proto.hasUsername()) {
             repositorySettings.setUsername(proto.getUsername());
         }
@@ -1043,6 +1049,10 @@ public class ProtoUtils {
                 .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits())
                 .setAdditionalInfo(JacksonUtil.toString(device.getAdditionalInfo()));
 
+        if (device.getAdditionalInfo().has(GATEWAY_PARAMETER)) {
+            builder.setIsGateway(device.getAdditionalInfo().get(GATEWAY_PARAMETER).booleanValue());
+        }
+
         PowerSavingConfiguration psmConfiguration = switch (device.getDeviceData().getTransportConfiguration().getType()) {
             case LWM2M -> (Lwm2mDeviceTransportConfiguration) device.getDeviceData().getTransportConfiguration();
             case COAP -> (CoapDeviceTransportConfiguration) device.getDeviceData().getTransportConfiguration();
@@ -1106,8 +1116,11 @@ public class ProtoUtils {
                 .setDefaultConverterIdMSB(getMsb(integration.getDefaultConverterId()))
                 .setDefaultConverterIdLSB(getLsb(integration.getDefaultConverterId()))
                 .setRoutingKey(integration.getRoutingKey())
-                .setSecret(integration.getSecret())
                 .setConfiguration(JacksonUtil.toString(integration.getConfiguration()));
+
+        if (isNotNull(integration.getSecret())) {
+            builder.setSecret(integration.getSecret());
+        }
 
         if (isNotNull(integration.getDownlinkConverterId())) {
             builder.setDownlinkConverterIdMSB(getMsb(integration.getDownlinkConverterId()))
@@ -1137,8 +1150,11 @@ public class ProtoUtils {
         integration.setEdgeTemplate(proto.getIsEdgeTemplate());
         integration.setDefaultConverterId(getEntityId(proto.getDefaultConverterIdMSB(), proto.getDefaultConverterIdLSB(), ConverterId::new));
         integration.setRoutingKey(proto.getRoutingKey());
-        integration.setSecret(proto.getSecret());
         integration.setConfiguration(JacksonUtil.toJsonNode(proto.getConfiguration()));
+
+        if (proto.hasSecret()) {
+            integration.setSecret(proto.getSecret());
+        }
 
         if (proto.hasDownlinkConverterIdMSB() && proto.hasDownlinkConverterIdLSB()) {
             integration.setDownlinkConverterId(getEntityId(proto.getDownlinkConverterIdMSB(), proto.getDownlinkConverterIdLSB(), ConverterId::new));

@@ -37,7 +37,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -403,10 +403,10 @@ public class TbAggLatestTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
             for (int i = 0; i < failedMessages.size(); i++) {
                 TbMsg failedMsg = failedMessages.get(i);
                 String t = throwables.get(i);
-                Assert.assertTrue(t.startsWith("Aggregation failed. Unable to parse value"));
+                Assertions.assertTrue(t.startsWith("Aggregation failed. Unable to parse value"));
                 String invalidValue = invalidValueMap.get(failedMsg.getOriginator());
-                Assert.assertNotNull(invalidValue);
-                Assert.assertTrue(t.contains(invalidValue));
+                Assertions.assertNotNull(invalidValue);
+                Assertions.assertTrue(t.contains(invalidValue));
             }
         }
     }
@@ -449,25 +449,25 @@ public class TbAggLatestTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
     }
 
     private void verifyMessage(TbMsg msg) {
-        Assert.assertTrue(msg.isTypeOf(TbMsgType.POST_TELEMETRY_REQUEST));
+        Assertions.assertTrue(msg.isTypeOf(TbMsgType.POST_TELEMETRY_REQUEST));
         EntityId entityId = msg.getOriginator();
-        Assert.assertNotNull(entityId);
+        Assertions.assertNotNull(entityId);
         String data = msg.getData();
-        Assert.assertNotNull(data);
+        Assertions.assertNotNull(data);
         JsonObject dataJson = gson.fromJson(data, JsonObject.class);
 
-        Assert.assertTrue(dataJson.has("latestAvgTemperature") || dataJson.has("deviceCount"));
+        Assertions.assertTrue(dataJson.has("latestAvgTemperature") || dataJson.has("deviceCount"));
         if (dataJson.has("latestAvgTemperature")) {
             JsonElement elem = dataJson.get("latestAvgTemperature");
-            Assert.assertTrue(elem.isJsonPrimitive());
+            Assertions.assertTrue(elem.isJsonPrimitive());
             double doubleVal = elem.getAsDouble();
-            Assert.assertEquals(expectedAvgTempMap.get(entityId).doubleValue(), doubleVal, 0.0);
+            Assertions.assertEquals(expectedAvgTempMap.get(entityId).doubleValue(), doubleVal, 0.0);
         }
         if (dataJson.has("deviceCount")) {
             JsonElement elem = dataJson.get("deviceCount");
-            Assert.assertTrue(elem.isJsonPrimitive());
+            Assertions.assertTrue(elem.isJsonPrimitive());
             long longVal = elem.getAsLong();
-            Assert.assertEquals(expectedDeviceCountMap.get(entityId).longValue(), longVal);
+            Assertions.assertEquals(expectedDeviceCountMap.get(entityId).longValue(), longVal);
         }
     }
 

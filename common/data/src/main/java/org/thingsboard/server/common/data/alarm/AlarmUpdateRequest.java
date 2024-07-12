@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 import org.thingsboard.server.common.data.id.AlarmId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -56,15 +57,18 @@ public class AlarmUpdateRequest implements AlarmModificationRequest {
             "Omit this field to create new alarm.")
     private AlarmId alarmId;
     @NotNull
-    @Schema(required = true, description = "Alarm severity", example = "CRITICAL")
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Alarm severity", example = "CRITICAL")
     private AlarmSeverity severity;
     @Schema(description = "Timestamp of the alarm start time, in milliseconds", example = "1634058704565")
     private long startTs;
     @Schema(description = "Timestamp of the alarm end time(last time update), in milliseconds", example = "1634111163522")
     private long endTs;
+
+    @ToString.Exclude
     @NoXss
     @Schema(description = "JSON object with alarm details")
     private JsonNode details;
+
     @Valid
     @Schema(description = "JSON object with propagation details")
     private AlarmPropagationInfo propagation;

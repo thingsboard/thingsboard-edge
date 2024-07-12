@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -191,7 +192,7 @@ public class CustomerController extends BaseController {
     public Customer saveCustomer(@io.swagger.v3.oas.annotations.parameters.RequestBody(description = "A JSON value representing the customer.") @RequestBody Customer customer,
                                  @Parameter(description = ENTITY_GROUP_ID_CREATE_PARAM_DESCRIPTION)
                                  @RequestParam(name = "entityGroupId", required = false) String strEntityGroupId,
-                                 @Parameter(description = ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION)
+                                 @Parameter(description = ENTITY_GROUP_IDS_CREATE_PARAM_DESCRIPTION, array = @ArraySchema(schema = @Schema(type = "string")))
                                  @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds) throws ThingsboardException {
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.WHITE_LABELING, Operation.WRITE)) {
             String prevHomeDashboardId = null;
@@ -252,7 +253,7 @@ public class CustomerController extends BaseController {
             @RequestParam int page,
             @Parameter(description = CUSTOMER_TEXT_SEARCH_DESCRIPTION)
             @RequestParam(required = false) String textSearch,
-            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"createdTime", "title", "email", "country, city"}))
+            @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"createdTime", "title", "email", "country", "city"}))
             @RequestParam(required = false) String sortProperty,
             @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
             @RequestParam(required = false) String sortOrder) throws ThingsboardException {
@@ -378,7 +379,7 @@ public class CustomerController extends BaseController {
     @RequestMapping(value = "/customers", params = {"customerIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Customer> getCustomersByIds(
-            @Parameter(description = "A list of customer ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of customer ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestParam("customerIds") String[] strCustomerIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("customerIds", strCustomerIds);
         SecurityUser user = getCurrentUser();

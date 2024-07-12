@@ -41,7 +41,7 @@ import { DOCUMENT } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '@core/auth/auth.service';
 import { OpenReportMessage, ReportResultMessage, WindowMessage } from '@shared/models/window-message.model';
-import { CmdUpdateMsg, WebsocketCmd } from '@shared/models/telemetry/telemetry.models';
+import { CmdUpdateMsg, WebsocketCmd, WebsocketDataMsg } from '@shared/models/telemetry/telemetry.models';
 import { CmdWrapper } from '@shared/models/websocket/websocket.models';
 
 // @dynamic
@@ -112,8 +112,11 @@ export class ReportService {
   }
 
   public onWsCmdUpdateMessage(message: CmdUpdateMsg) {
-    if (message.cmdId !== undefined) {
-      this.receiveWsData.set(message.cmdId, true);
+    const wsDataMsg = message as WebsocketDataMsg;
+    if ('cmdId' in wsDataMsg && wsDataMsg.cmdId) {
+      this.receiveWsData.set(wsDataMsg.cmdId, true);
+    } else if ('subscriptionId' in wsDataMsg && wsDataMsg.subscriptionId) {
+      this.receiveWsData.set(wsDataMsg.subscriptionId, true);
     }
   }
 
@@ -335,7 +338,7 @@ export class ReportService {
       this.authService.logout();
       return of (true);
     } else {
-      return from(this.router.navigateByUrl('/', {replaceUrl: true}));
+      return from(this.router.navigateByUrl('/empty-page', {replaceUrl: true}));
     }
   }
 
