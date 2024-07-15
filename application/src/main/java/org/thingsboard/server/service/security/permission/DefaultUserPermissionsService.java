@@ -79,7 +79,7 @@ import java.util.concurrent.ExecutionException;
 public class DefaultUserPermissionsService implements UserPermissionsService {
 
     @Autowired
-    protected TbTransactionalCache<UserPermissionCacheKey, MergedUserPermissions> cache;
+    private TbTransactionalCache<UserPermissionCacheKey, MergedUserPermissions> cache;
 
     private static final MergedUserPermissions sysAdminPermissions;
 
