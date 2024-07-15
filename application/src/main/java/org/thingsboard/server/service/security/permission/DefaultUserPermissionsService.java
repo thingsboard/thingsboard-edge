@@ -186,12 +186,12 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
     }
 
     private MergedUserPermissions getMergedPermissionsFromCache(TenantId tenantId, CustomerId customerId, UserId userId) {
-        var data = cache.get(new UserPermissionCacheKey(tenantId, customerId, userId));
-        if (data == null) {
+        var cacheValueWrapper = cache.get(new UserPermissionCacheKey(tenantId, customerId, userId));
+        if (cacheValueWrapper == null) {
             log.debug("[{}][{}][{}] Not user permissions in cache", tenantId, customerId, userId);
             return null;
         }
-        return data.get();
+        return cacheValueWrapper.get();
     }
 
     private void putMergedPermissionsToCache(TenantId tenantId, CustomerId customerId, UserId userId, MergedUserPermissions permissions) {
