@@ -44,7 +44,6 @@ import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.thingsboard.server.common.data.FstStatsService;
-import redis.clients.jedis.Connection;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.util.JedisClusterCRC16;
@@ -72,6 +71,7 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
     private final TbRedisSerializer<K, V> valueSerializer;
     private final Expiration evictExpiration;
     private final Expiration cacheTtl;
+    private final boolean cacheEnabled;
 
     public RedisTbTransactionalCache(String cacheName,
                                      CacheSpecsMap cacheSpecsMap,
@@ -88,10 +88,19 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
                 .map(CacheSpecs::getTimeToLiveInMinutes)
                 .map(t -> Expiration.from(t, TimeUnit.MINUTES))
                 .orElseGet(Expiration::persistent);
+        this.cacheEnabled = Optional.ofNullable(cacheSpecsMap)
+                .map(CacheSpecsMap::getSpecs)
+                .map(x -> x.get(cacheName))
+                .map(CacheSpecs::getMaxSize)
+                .map(size -> size > 0)
+                .orElse(false);
     }
 
     @Override
     public TbCacheValueWrapper<V> get(K key) {
+        if (!cacheEnabled) {
+            return null;
+        }
         try (var connection = connectionFactory.getConnection()) {
             byte[] rawKey = getRawKey(key);
             byte[] rawValue = connection.get(rawKey);
@@ -113,6 +122,9 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
 
     @Override
     public void put(K key, V value) {
+        if (!cacheEnabled) {
+            return;
+        }
         try (var connection = connectionFactory.getConnection()) {
             put(connection, key, value, RedisStringCommands.SetOption.UPSERT);
         }
@@ -120,6 +132,9 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
 
     @Override
     public void putIfAbsent(K key, V value) {
+        if (!cacheEnabled) {
+            return;
+        }
         try (var connection = connectionFactory.getConnection()) {
             put(connection, key, value, RedisStringCommands.SetOption.SET_IF_ABSENT);
         }
@@ -127,6 +142,9 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
 
     @Override
     public void evict(K key) {
+        if (!cacheEnabled) {
+            return;
+        }
         try (var connection = connectionFactory.getConnection()) {
             connection.del(getRawKey(key));
         }
@@ -134,6 +152,9 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
 
     @Override
     public void evict(Collection<K> keys) {
+        if (!cacheEnabled) {
+            return;
+        }
         //Redis expects at least 1 key to delete. Otherwise - ERR wrong number of arguments for 'del' command
         if (keys.isEmpty()) {
             return;
@@ -145,6 +166,9 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
 
     @Override
     public void evictOrPut(K key, V value) {
+        if (!cacheEnabled) {
+            return;
+        }
         try (var connection = connectionFactory.getConnection()) {
             var rawKey = getRawKey(key);
             var records = connection.del(rawKey);
@@ -229,6 +253,9 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
     }
 
     public void put(RedisConnection connection, K key, V value, RedisStringCommands.SetOption setOption) {
+        if (!cacheEnabled) {
+            return;
+        }
         byte[] rawKey = getRawKey(key);
         byte[] rawValue = getRawValue(value);
         connection.set(rawKey, rawValue, cacheTtl, setOption);
