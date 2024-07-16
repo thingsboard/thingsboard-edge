@@ -44,6 +44,7 @@ import java.util.Optional;
 
 import static org.thingsboard.server.common.data.CacheConstants.RESOURCE_INFO_CACHE;
 import static org.thingsboard.server.common.data.CacheConstants.SECURITY_SETTINGS_CACHE;
+import static org.thingsboard.server.common.data.CacheConstants.USER_PERMISSIONS_CACHE;
 
 @RequiredArgsConstructor
 @Service
@@ -75,6 +76,10 @@ public class DefaultCacheCleanupService implements CacheCleanupService {
             case "3.6.4":
                 log.info("Clearing cache to upgrade from version 3.6.4 to 3.7.0");
                 clearAll();
+                break;
+            case "3.7.0":
+                log.info("Clearing cache to upgrade from version 3.7.0 to 3.7.1");
+                clearCacheByName(USER_PERMISSIONS_CACHE);
                 break;
             default:
                 //Do nothing, since cache cleanup is optional.
