@@ -40,11 +40,13 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DaoSqlTest
 public class WhiteLabelingServiceTest extends AbstractServiceTest {
@@ -62,6 +64,39 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
         customer.setTenantId(tenantId);
         customer.setTitle("My customer");
         customerId = customerService.saveCustomer(customer).getId();
+    }
+
+    @Test
+    public void testInvalidDomain()  {
+        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        String domainNameWithSpace = "wrong name";
+        loginWhiteLabelingParams.setDomainName("wrong name");
+        assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
+                .isInstanceOf(IncorrectParameterException.class)
+                .hasMessage("Current domain name [" + domainNameWithSpace +"] has an invalid format!");
+
+        String domainNameWithProhibitCharacter = "-wrongname";
+        loginWhiteLabelingParams.setDomainName(domainNameWithProhibitCharacter);
+        assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
+                .isInstanceOf(IncorrectParameterException.class)
+                .hasMessage("Current domain name [" + domainNameWithProhibitCharacter +"] has an invalid format!");
+    }
+
+    @Test
+    public void testInvalidBaseUrl()  {
+        LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
+        loginWhiteLabelingParams.setDomainName("domainname");
+        String baseUrlWithWhiteSpace = "https://wrong url";
+        loginWhiteLabelingParams.setBaseUrl(baseUrlWithWhiteSpace);
+        assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
+                .isInstanceOf(IncorrectParameterException.class)
+                .hasMessage("Current base url [" + baseUrlWithWhiteSpace +"] has an invalid format!");
+
+        String baseUrlWithoutSchema = "wrongurl";
+        loginWhiteLabelingParams.setBaseUrl(baseUrlWithoutSchema);
+        assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
+                .isInstanceOf(IncorrectParameterException.class)
+                .hasMessage("Current base url [" + baseUrlWithoutSchema +"] has an invalid format!");
     }
 
     @Test

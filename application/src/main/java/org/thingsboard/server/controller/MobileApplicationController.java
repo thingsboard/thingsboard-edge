@@ -187,7 +187,12 @@ public class MobileApplicationController extends BaseController {
         SecurityUser currentUser = getCurrentUser();
         String secret = mobileAppSecretService.generateMobileAppSecret(getCurrentUser());
         String baseUrl = systemSecurityService.getBaseUrl(currentUser.getAuthority(), currentUser.getTenantId(), currentUser.getCustomerId(), request);
-        String platformDomain = new URI(baseUrl).getHost();
+        String platformDomain;
+        try {
+            platformDomain = new URI(baseUrl).getHost();
+        } catch (URISyntaxException e) {
+            platformDomain = defaultAppDomain;
+        }
         MobileAppSettings mobileAppSettings = mobileAppSettingsService.getMergedMobileAppSettings(currentUser.getTenantId());
         String appDomain;
         if (!mobileAppSettings.isUseDefaultApp()) {
