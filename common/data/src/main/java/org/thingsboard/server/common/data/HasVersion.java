@@ -34,6 +34,7 @@ public interface HasVersion {
 
     Long getVersion();
 
-    void setVersion(Long version);
+    default void setVersion(Long version) {
+    }
 
 }

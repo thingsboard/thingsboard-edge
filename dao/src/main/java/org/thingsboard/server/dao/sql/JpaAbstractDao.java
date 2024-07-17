@@ -94,7 +94,7 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
         try {
             entity = doSave(entity, isNew);
         } catch (OptimisticLockException e) {
-            throw new EntityVersionMismatchException("The entity was already changed by someone else", e);
+            throw new EntityVersionMismatchException((getEntityType() != null ? getEntityType().getNormalName() : "Entity") + " was already changed by someone else", e);
         }
         return DaoUtil.getData(entity);
     }
@@ -102,7 +102,7 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
     protected E doSave(E entity, boolean isNew) {
         if (isNew) {
             if (entity instanceof HasVersion versionedEntity) {
-                versionedEntity.setVersion(1);
+                versionedEntity.setVersion(1L);
             }
             entityManager.persist(entity);
         } else {
@@ -159,18 +159,18 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
 
     @Override
     @Transactional
-    public boolean removeById(TenantId tenantId, UUID id) {
-//        jdbcTemplate.queryForObject("DELETE FROM " + getEntityType().getTableName() + " WHERE id = ? RETURNING version", Integer.class, id);
-        // TODO: increment version...
-        getRepository().deleteById(id);
+    public void removeById(TenantId tenantId, UUID id) {
+        JpaRepository<E, UUID> repository = getRepository();
+        repository.deleteById(id);
+        repository.flush();
         log.debug("Remove request: {}", id);
-        return !getRepository().existsById(id);
     }
 
     @Transactional
     public void removeAllByIds(Collection<UUID> ids) {
         JpaRepository<E, UUID> repository = getRepository();
         ids.forEach(repository::deleteById);
+        repository.flush();
     }
 
     @Override

@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 
 import java.util.HashSet;
@@ -53,7 +53,7 @@ import java.util.UUID;
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
-public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseVersionedSqlEntity<T> {
+public abstract class AbstractDashboardEntity<T extends Dashboard> extends BaseVersionedEntity<T> {
 
     private static final JavaType assignedCustomersType =
             JacksonUtil.constructCollectionType(HashSet.class, ShortCustomerInfo.class);

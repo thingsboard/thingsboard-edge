@@ -75,7 +75,7 @@ public class Asset extends BaseDataWithAdditionalInfo<AssetId> implements HasLab
     @Getter @Setter
     private AssetId externalId;
     @Getter @Setter
-    private Integer version;
+    private Long version;
 
     public Asset() {
         super();

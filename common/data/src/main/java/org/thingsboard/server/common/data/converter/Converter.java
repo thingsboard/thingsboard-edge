@@ -69,7 +69,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
     private ConverterId externalId;
     @Getter
     @Setter
-    private Integer version;
+    private Long version;
 
     public Converter() {
         super();

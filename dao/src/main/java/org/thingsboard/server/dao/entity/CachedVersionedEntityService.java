@@ -28,49 +28,17 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model;
+package org.thingsboard.server.dao.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.Version;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import org.thingsboard.server.common.data.BaseData;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.server.cache.VersionedTbCache;
 import org.thingsboard.server.common.data.HasVersion;
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-@MappedSuperclass
-public abstract class BaseVersionedSqlEntity<D extends BaseData & HasVersion> extends BaseSqlEntity<D> implements HasVersion {
+import java.io.Serializable;
 
-    @Getter @Setter
-    @Version
-    @Column(name = ModelConstants.VERSION_PROPERTY)
-    protected Integer version;
+public abstract class CachedVersionedEntityService<K extends Serializable, V extends Serializable & HasVersion, E> extends AbstractCachedEntityService<K, V, E> {
 
-    public BaseVersionedSqlEntity() {
-        super();
-    }
-
-    public BaseVersionedSqlEntity(D domain) {
-        super(domain);
-        this.version = domain.getVersion();
-    }
-
-    public BaseVersionedSqlEntity(BaseVersionedSqlEntity<?> entity) {
-        super(entity);
-        this.version = entity.version;
-    }
-
-    @Override
-    public String toString() {
-        return "BaseVersionedSqlEntity{" +
-                "id=" + id +
-                ", createdTime=" + createdTime +
-                ", version=" + version +
-                '}';
-    }
+    @Autowired
+    protected VersionedTbCache<K, V> cache;
 
 }

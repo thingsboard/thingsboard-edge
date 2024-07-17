@@ -45,7 +45,7 @@ import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
-import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
@@ -63,7 +63,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.ROLE_TYPE_PROPERTY
 @Entity
 @Table(name = ModelConstants.ROLE_TABLE_NAME)
 @Slf4j
-public class RoleEntity extends BaseVersionedSqlEntity<Role> {
+public class RoleEntity extends BaseVersionedEntity<Role> {
 
     @Column(name = ROLE_TENANT_ID_PROPERTY)
     private UUID tenantId;

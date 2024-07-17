@@ -80,7 +80,7 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
     private DashboardId externalId;
     @Getter
     @Setter
-    private Integer version;
+    private Long version;
 
     public Dashboard() {
         super();

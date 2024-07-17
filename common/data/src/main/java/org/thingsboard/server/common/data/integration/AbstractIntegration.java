@@ -65,7 +65,7 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
     private boolean isEdgeTemplate;
 
     @Getter @Setter
-    private Integer version;
+    private Long version;
 
     public AbstractIntegration() {
         super();

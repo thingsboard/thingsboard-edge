@@ -174,7 +174,7 @@ public class Integration extends AbstractIntegration implements ExportableEntity
                        Boolean enabled, Boolean isRemote, Boolean allowCreateDevicesOrAssets,
                        boolean isEdgeTemplate, ConverterId defaultConverterId, ConverterId downlinkConverterId,
                        String routingKey, boolean debugMode, String secret,
-                       JsonNode configuration, JsonNode additionalInfo, IntegrationId externalId, Integer version) {
+                       JsonNode configuration, JsonNode additionalInfo, IntegrationId externalId, Long version) {
         super(tenantId, name, type, debugMode, enabled, isRemote, allowCreateDevicesOrAssets, isEdgeTemplate, version);
         this.defaultConverterId = defaultConverterId;
         this.downlinkConverterId = downlinkConverterId;

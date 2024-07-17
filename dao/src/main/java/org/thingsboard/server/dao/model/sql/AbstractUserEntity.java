@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
-import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
@@ -54,7 +54,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
-public abstract class AbstractUserEntity<T extends User> extends BaseVersionedSqlEntity<T> {
+public abstract class AbstractUserEntity<T extends User> extends BaseVersionedEntity<T> {
 
     public static final Map<String, String> userColumnMap = new HashMap<>();
 

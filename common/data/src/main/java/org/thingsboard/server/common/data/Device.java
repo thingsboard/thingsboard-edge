@@ -84,7 +84,7 @@ public class Device extends BaseDataWithAdditionalInfo<DeviceId> implements Grou
     @Getter @Setter
     private DeviceId externalId;
     @Getter @Setter
-    private Integer version;
+    private Long version;
 
     public Device() {
         super();

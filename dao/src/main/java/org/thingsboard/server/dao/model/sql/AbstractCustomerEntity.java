@@ -39,7 +39,7 @@ import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
@@ -50,7 +50,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
-public abstract class AbstractCustomerEntity<T extends Customer> extends BaseVersionedSqlEntity<T> {
+public abstract class AbstractCustomerEntity<T extends Customer> extends BaseVersionedEntity<T> {
 
     public static final Map<String, String> customerColumnMap = new HashMap<>();
 

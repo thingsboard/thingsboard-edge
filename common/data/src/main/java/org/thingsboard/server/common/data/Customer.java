@@ -62,7 +62,7 @@ public class Customer extends ContactBased<CustomerId> implements HasTenantId, H
     @Setter
     private CustomerId externalId;
     @Getter @Setter
-    private Integer version;
+    private Long version;
 
     public Customer() {
         super();

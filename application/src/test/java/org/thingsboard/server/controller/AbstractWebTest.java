@@ -596,7 +596,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         JsonNode activateRequest = getActivateRequest(password);
         ResultActions resultActions = doPost("/api/noauth/activate", activateRequest);
         resultActions.andExpect(status().isOk());
-        return savedUser;
+        return doGet("/api/user/" + savedUser.getId(), User.class);
     }
 
     protected EntityGroupInfo findCustomerAdminsGroup(CustomerId customerId) throws Exception {

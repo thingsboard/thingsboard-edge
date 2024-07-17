@@ -83,7 +83,7 @@ public class Role extends BaseDataWithAdditionalInfo<RoleId> implements HasName,
     private byte[] permissionsBytes;
 
     private RoleId externalId;
-    private Integer version;
+    private Long version;
 
     public Role() {
         super();

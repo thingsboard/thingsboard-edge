@@ -33,8 +33,8 @@ package org.thingsboard.server.dao.device;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -82,7 +82,7 @@ import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.dao.device.provision.ProvisionFailedException;
 import org.thingsboard.server.dao.device.provision.ProvisionRequest;
 import org.thingsboard.server.dao.device.provision.ProvisionResponseStatus;
-import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.entity.CachedVersionedEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.event.EventService;
@@ -90,8 +90,8 @@ import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
-import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
+import org.thingsboard.server.dao.service.validator.DeviceDataValidator;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
@@ -109,53 +109,35 @@ import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service("DeviceDaoService")
 @Slf4j
-public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKey, Device, DeviceCacheEvictEvent> implements DeviceService {
+@RequiredArgsConstructor
+public class DeviceServiceImpl extends CachedVersionedEntityService<DeviceCacheKey, Device, DeviceCacheEvictEvent> implements DeviceService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_DEVICE_PROFILE_ID = "Incorrect deviceProfileId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
     public static final String INCORRECT_DEVICE_ID = "Incorrect deviceId ";
 
-    @Autowired
-    private DeviceDao deviceDao;
-
-    @Autowired
-    private DeviceInfoDao deviceInfoDao;
-
-    @Autowired
-    private DeviceCredentialsService deviceCredentialsService;
-
-    @Autowired
-    private DeviceProfileService deviceProfileService;
-
-    @Autowired
-    private EntityViewService entityViewService;
-
-    @Autowired
-    private EventService eventService;
-
-    @Autowired
-    private TenantService tenantService;
-
-    @Autowired
-    private DataValidator<Device> deviceValidator;
-
-    @Autowired
-    private EntityCountService countService;
-
-    @Autowired
-    private JpaExecutorService executor;
+    private final DeviceDao deviceDao;
+    private final DeviceInfoDao deviceInfoDao;
+    private final DeviceCredentialsService deviceCredentialsService;
+    private final DeviceProfileService deviceProfileService;
+    private final EntityViewService entityViewService;
+    private final EventService eventService;
+    private final TenantService tenantService;
+    private final DeviceDataValidator deviceValidator;
+    private final EntityCountService countService;
+    private final JpaExecutorService executor;
 
     @Override
     public Device findDeviceById(TenantId tenantId, DeviceId deviceId) {
         log.trace("Executing findDeviceById [{}]", deviceId);
         validateId(deviceId, id -> INCORRECT_DEVICE_ID + id);
         if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
-            return cache.getAndPutInTransaction(new DeviceCacheKey(deviceId),
-                    () -> deviceDao.findById(tenantId, deviceId.getId()), true);
+            return cache.get(new DeviceCacheKey(deviceId),
+                    () -> deviceDao.findById(tenantId, deviceId.getId()));
         } else {
-            return cache.getAndPutInTransaction(new DeviceCacheKey(tenantId, deviceId),
-                    () -> deviceDao.findDeviceByTenantIdAndId(tenantId, deviceId.getId()), true);
+            return cache.get(new DeviceCacheKey(tenantId, deviceId),
+                    () -> deviceDao.findDeviceByTenantIdAndId(tenantId, deviceId.getId()));
         }
     }
 
@@ -270,13 +252,14 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
             device.setType(deviceProfile.getName());
             device.setDeviceData(syncDeviceData(deviceProfile, device.getDeviceData()));
             Device savedDevice = deviceDao.saveAndFlush(device.getTenantId(), device);
-            publishEvictEvent(deviceCacheEvictEvent);
             if (device.getId() == null) {
                 entityGroupService.addEntityToEntityGroupAll(savedDevice.getTenantId(), savedDevice.getOwnerId(), savedDevice.getId());
                 countService.publishCountEntityEvictEvent(savedDevice.getTenantId(), EntityType.DEVICE);
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedDevice.getTenantId()).entityId(savedDevice.getId())
                     .entity(savedDevice).oldEntity(oldDevice).created(device.getId() == null).build());
+            deviceCacheEvictEvent.setSavedDevice(savedDevice);
+            publishEvictEvent(deviceCacheEvictEvent);
             return savedDevice;
         } catch (Exception t) {
             handleEvictEvent(deviceCacheEvictEvent);
@@ -290,16 +273,20 @@ public class DeviceServiceImpl extends AbstractCachedEntityService<DeviceCacheKe
     @TransactionalEventListener(classes = DeviceCacheEvictEvent.class)
     @Override
     public void handleEvictEvent(DeviceCacheEvictEvent event) {
-        List<DeviceCacheKey> keys = new ArrayList<>(3);
-        keys.add(new DeviceCacheKey(event.getTenantId(), event.getNewName()));
-        if (event.getDeviceId() != null) {
-            keys.add(new DeviceCacheKey(event.getDeviceId()));
-            keys.add(new DeviceCacheKey(event.getTenantId(), event.getDeviceId()));
-        }
+        List<DeviceCacheKey> toEvict = new ArrayList<>(3);
+        toEvict.add(new DeviceCacheKey(event.getTenantId(), event.getNewName()));
         if (StringUtils.isNotEmpty(event.getOldName()) && !event.getOldName().equals(event.getNewName())) {
-            keys.add(new DeviceCacheKey(event.getTenantId(), event.getOldName()));
+            toEvict.add(new DeviceCacheKey(event.getTenantId(), event.getOldName()));
         }
-        cache.evict(keys);
+        Device savedDevice = event.getSavedDevice();
+        if (savedDevice != null) {
+            cache.put(new DeviceCacheKey(event.getDeviceId()), savedDevice);
+            cache.put(new DeviceCacheKey(event.getTenantId(), event.getDeviceId()), savedDevice);
+        } else {
+            toEvict.add(new DeviceCacheKey(event.getDeviceId()));
+            toEvict.add(new DeviceCacheKey(event.getTenantId(), event.getDeviceId()));
+        }
+        cache.evict(toEvict);
     }
 
     private DeviceData syncDeviceData(DeviceProfile deviceProfile, DeviceData deviceData) {

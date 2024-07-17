@@ -76,7 +76,7 @@ public class EntityView extends BaseDataWithAdditionalInfo<EntityViewId>
     private long endTimeMs;
 
     private EntityViewId externalId;
-    private Integer version;
+    private Long version;
 
     public EntityView() {
         super();

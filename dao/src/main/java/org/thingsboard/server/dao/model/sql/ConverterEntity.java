@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
@@ -61,7 +61,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPER
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = CONVERTER_TABLE_NAME)
-public final class ConverterEntity extends BaseVersionedSqlEntity<Converter> {
+public final class ConverterEntity extends BaseVersionedEntity<Converter> {
 
     @Column(name = CONVERTER_TENANT_ID_PROPERTY)
     private UUID tenantId;

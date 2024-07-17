@@ -40,7 +40,7 @@ ALTER TABLE ts_kv_latest ADD COLUMN version bigint default 0;
 -- KV VERSIONING UPDATE END
 
 
--- Optimistic locking update START
+-- ENTITIES VERSIONING UPDATE START
 
 ALTER TABLE device ADD COLUMN IF NOT EXISTS version INT DEFAULT 1;
 ALTER TABLE device_profile ADD COLUMN IF NOT EXISTS version INT DEFAULT 1;
@@ -59,10 +59,9 @@ ALTER TABLE entity_group ADD COLUMN IF NOT EXISTS version INT DEFAULT 1;
 ALTER TABLE converter ADD COLUMN IF NOT EXISTS version INT DEFAULT 1;
 ALTER TABLE integration ADD COLUMN IF NOT EXISTS version INT DEFAULT 1;
 ALTER TABLE role ADD COLUMN IF NOT EXISTS version INT DEFAULT 1;
-
 /*
 TODO:
   custom translation
   white-labeling
 */
--- Optimistic locking update END
+-- ENTITIES VERSIONING UPDATE END

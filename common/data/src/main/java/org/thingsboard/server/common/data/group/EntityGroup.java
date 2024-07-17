@@ -104,7 +104,7 @@ public class EntityGroup extends BaseData<EntityGroupId> implements HasName, Has
     private JsonNode configuration;
 
     private EntityGroupId externalId;
-    private Integer version;
+    private Long version;
 
     public EntityGroup(EntityGroupId id) {
         super(id);

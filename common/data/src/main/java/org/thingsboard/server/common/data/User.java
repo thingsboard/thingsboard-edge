@@ -68,7 +68,7 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
     private String phone;
 
     @Getter @Setter
-    private Integer version;
+    private Long version;
 
     public User() {
         super();

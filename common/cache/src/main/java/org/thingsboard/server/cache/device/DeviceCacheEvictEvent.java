@@ -31,6 +31,7 @@
 package org.thingsboard.server.cache.device;
 
 import lombok.Data;
+import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 
@@ -41,5 +42,6 @@ public class DeviceCacheEvictEvent {
     private final DeviceId deviceId;
     private final String newName;
     private final String oldName;
+    private Device savedDevice;
 
 }

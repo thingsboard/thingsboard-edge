@@ -64,7 +64,7 @@ public class BaseWidgetType extends BaseData<WidgetTypeId> implements HasName, T
     @Schema(description = "Whether widget type is deprecated.", example = "true")
     private boolean deprecated;
 
-    private Integer version;
+    private Long version;
 
     public BaseWidgetType() {
         super();

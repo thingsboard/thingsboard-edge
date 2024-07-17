@@ -42,7 +42,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.dao.model.BaseVersionedSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedEntity;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import java.util.UUID;
@@ -58,7 +58,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPER
 @Data
 @EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
-public abstract class AbstractEntityGroupEntity<T extends EntityGroup> extends BaseVersionedSqlEntity<T> {
+public abstract class AbstractEntityGroupEntity<T extends EntityGroup> extends BaseVersionedEntity<T> {
 
     @Enumerated(EnumType.STRING)
     @Column(name = ENTITY_GROUP_TYPE_PROPERTY)

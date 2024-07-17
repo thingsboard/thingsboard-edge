@@ -84,7 +84,7 @@ public class Edge extends BaseDataWithAdditionalInfo<EdgeId>
     private String cloudEndpoint;
 
     @Getter
-    private Integer version;
+    private Long version;
 
     public Edge() {
         super();
