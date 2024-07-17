@@ -43,10 +43,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClient.RequestBodySpec;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.TbContext;
@@ -152,6 +152,7 @@ public class TbHttpClient {
 
             this.webClient = WebClient.builder()
                     .clientConnector(new ReactorClientHttpConnector(httpClient))
+                    .defaultHeader(HttpHeaders.CONNECTION, "close") //In previous realization this header was present! (Added for hotfix "Connection reset")
                     .build();
         } catch (SSLException e) {
             throw new TbNodeException(e);
@@ -190,7 +191,7 @@ public class TbHttpClient {
                                BiConsumer<TbMsg, Throwable> onFailure) {
         try {
             if (semaphore != null && !semaphore.tryAcquire(config.getReadTimeoutMs(), TimeUnit.MILLISECONDS)) {
-                ctx.tellFailure(msg, new RuntimeException("Timeout during waiting for reply!"));
+                onFailure.accept(msg, new RuntimeException("Timeout during waiting for reply!"));
                 return;
             }
 
@@ -203,10 +204,10 @@ public class TbHttpClient {
                     .uri(uri)
                     .headers(headers -> prepareHeaders(headers, msg));
 
-            if (HttpMethod.POST.equals(method) || HttpMethod.PUT.equals(method) ||
-                    HttpMethod.PATCH.equals(method) || HttpMethod.DELETE.equals(method) ||
+            if ((HttpMethod.POST.equals(method) || HttpMethod.PUT.equals(method) ||
+                    HttpMethod.PATCH.equals(method) || HttpMethod.DELETE.equals(method)) &&
                     !config.isIgnoreRequestBody()) {
-                request.body(BodyInserters.fromValue(getData(ctx, msg, config.isIgnoreRequestBody(), config.isParseToPlainText())));
+                request.body(BodyInserters.fromValue(getData(ctx, msg, config.isParseToPlainText())));
             }
 
             request
@@ -256,7 +257,7 @@ public class TbHttpClient {
         return uri;
     }
 
-    private String getData(TbContext ctx, TbMsg msg, boolean ignoreBody, boolean parseToPlainText) {
+    private Object getData(TbContext ctx, TbMsg msg, boolean parseToPlainText) {
         String data = msg.getData();
 
         List<BlobEntityId> attachments = new ArrayList<>();
@@ -268,20 +269,18 @@ public class TbHttpClient {
             }
         }
 
+        boolean isBlobData = false;
         if (!attachments.isEmpty()) {
             BlobEntity blobEntity = ctx.getPeContext().getBlobEntityService().findBlobEntityById(ctx.getTenantId(), attachments.get(0));
             if (blobEntity != null) {
                 data = StandardCharsets.UTF_8.decode(blobEntity.getData()).toString();
+                isBlobData = true;
             } else {
                 log.warn("[{}] Attachments {} not found", ctx.getTenantId(), attachmentsStr);
             }
         }
 
-        if (!ignoreBody && parseToPlainText) {
-            return JacksonUtil.toPlainText(data);
-        }
-
-        return data;
+        return parseToPlainText ? JacksonUtil.toPlainText(data) : isBlobData ? data : JacksonUtil.toJsonNode(data);
     }
 
     private TbMsg processResponse(TbContext ctx, TbMsg origMsg, ResponseEntity<String> response) {
@@ -324,10 +323,9 @@ public class TbHttpClient {
     private TbMsg processException(TbMsg origMsg, Throwable e) {
         TbMsgMetaData metaData = origMsg.getMetaData();
         metaData.putValue(ERROR, e.getClass() + ": " + e.getMessage());
-        if (e instanceof RestClientResponseException) {
-            RestClientResponseException restClientResponseException = (RestClientResponseException) e;
+        if (e instanceof WebClientResponseException restClientResponseException) {
             metaData.putValue(STATUS, restClientResponseException.getStatusText());
-            metaData.putValue(STATUS_CODE, restClientResponseException.getRawStatusCode() + "");
+            metaData.putValue(STATUS_CODE, restClientResponseException.getStatusCode().value() + "");
             metaData.putValue(ERROR_BODY, restClientResponseException.getResponseBodyAsString());
         }
         return TbMsg.transformMsgMetadata(origMsg, metaData);

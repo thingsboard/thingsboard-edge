@@ -32,8 +32,8 @@ package org.thingsboard.server.common.data;
 
 public interface HasVersion {
 
-    Integer getVersion();
+    Long getVersion();
 
-    void setVersion(Integer version);
+    void setVersion(Long version);
 
 }

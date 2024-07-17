@@ -28,15 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.attributes;
+:host {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
 
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.dao.util.SqlDao;
-
-@Repository
-@Transactional
-@SqlDao
-public class SqlAttributesInsertRepository extends AttributeKvInsertRepository {
-
+  .mdc-button {
+    max-width: 100%;
+  }
 }

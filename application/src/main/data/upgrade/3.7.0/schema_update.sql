@@ -29,6 +29,17 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
+-- KV VERSIONING UPDATE START
+
+CREATE SEQUENCE IF NOT EXISTS attribute_kv_version_seq cache 1000;
+CREATE SEQUENCE IF NOT EXISTS ts_kv_latest_version_seq cache 1000;
+
+ALTER TABLE attribute_kv ADD COLUMN version bigint default 0;
+ALTER TABLE ts_kv_latest ADD COLUMN version bigint default 0;
+
+-- KV VERSIONING UPDATE END
+
+
 -- Optimistic locking update START
 
 ALTER TABLE device ADD COLUMN IF NOT EXISTS version INT DEFAULT 1;

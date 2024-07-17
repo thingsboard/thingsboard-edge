@@ -33,8 +33,9 @@ package org.thingsboard.server.dao.sqlts.timescale;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -54,7 +55,6 @@ import org.thingsboard.server.dao.dictionary.KeyDictionaryDao;
 import org.thingsboard.server.dao.model.sql.AbstractTsKvEntity;
 import org.thingsboard.server.dao.model.sqlts.timescale.ts.TimescaleTsKvCompositeKey;
 import org.thingsboard.server.dao.model.sqlts.timescale.ts.TimescaleTsKvEntity;
-import org.thingsboard.server.dao.model.sqlts.ts.TsKvEntity;
 import org.thingsboard.server.dao.sql.TbSqlBlockingQueueParams;
 import org.thingsboard.server.dao.sql.TbSqlBlockingQueueWrapper;
 import org.thingsboard.server.dao.sqlts.AbstractSqlTimeseriesDao;
@@ -63,8 +63,6 @@ import org.thingsboard.server.dao.timeseries.TimeseriesDao;
 import org.thingsboard.server.dao.util.TimeUtils;
 import org.thingsboard.server.dao.util.TimescaleDBTsDao;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -93,7 +91,7 @@ public class TimescaleTimeseriesDao extends AbstractSqlTimeseriesDao implements 
     @Autowired
     protected KeyDictionaryDao keyDictionaryDao;
 
-    protected TbSqlBlockingQueueWrapper<TimescaleTsKvEntity> tsQueue;
+    protected TbSqlBlockingQueueWrapper<TimescaleTsKvEntity, Void> tsQueue;
 
     @PostConstruct
     protected void init() {
