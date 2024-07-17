@@ -1165,6 +1165,9 @@ public class ProtoUtils {
             builder.setExternalIdMSB(getMsb(integration.getExternalId()))
                     .setExternalIdLSB(getLsb(integration.getExternalId()));
         }
+        if (isNotNull(integration.getVersion())) {
+            builder.setVersion(integration.getVersion());
+        }
 
         return builder.build();
     }
@@ -1197,6 +1200,9 @@ public class ProtoUtils {
         if (proto.hasExternalIdMSB() && proto.hasExternalIdLSB()) {
             integration.setExternalId(getEntityId(proto.getExternalIdMSB(), proto.getExternalIdLSB(), IntegrationId::new));
         }
+        if (proto.hasVersion()) {
+            integration.setVersion(proto.getVersion());
+        }
 
         return integration;
     }
@@ -1221,6 +1227,9 @@ public class ProtoUtils {
             builder.setExternalIdMSB(getMsb(converter.getExternalId()))
                     .setExternalIdLSB(getLsb(converter.getExternalId()));
         }
+        if (isNotNull(converter.getVersion())) {
+            builder.setVersion(converter.getVersion());
+        }
 
         return builder.build();
     }
@@ -1240,6 +1249,9 @@ public class ProtoUtils {
         }
         if (proto.hasExternalIdMSB() && proto.hasExternalIdLSB()) {
             converter.setExternalId(getEntityId(proto.getExternalIdMSB(), proto.getExternalIdLSB(), ConverterId::new));
+        }
+        if (proto.hasVersion()) {
+            converter.setVersion(proto.getVersion());
         }
 
         return converter;

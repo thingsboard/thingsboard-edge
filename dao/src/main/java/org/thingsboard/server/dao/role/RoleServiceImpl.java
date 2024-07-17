@@ -49,7 +49,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.role.RoleType;
-import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.entity.CachedVersionedEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
@@ -68,7 +68,7 @@ import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service("RoleDaoService")
 @Slf4j
-public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, RoleEvictEvent> implements RoleService {
+public class RoleServiceImpl extends CachedVersionedEntityService<RoleId, Role, RoleEvictEvent> implements RoleService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
@@ -92,7 +92,11 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     @TransactionalEventListener(classes = RoleEvictEvent.class)
     @Override
     public void handleEvictEvent(RoleEvictEvent event) {
-        cache.evict(event.getRoleId());
+        if (event.getSavedRole() != null) {
+            cache.put(event.getSavedRole().getId(), event.getSavedRole());
+        } else {
+            cache.evict(event.getRoleId());
+        }
     }
 
     @Override
@@ -101,7 +105,7 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
         roleValidator.validate(role, Role::getTenantId);
         try {
             Role savedRole = roleDao.save(tenantId, role);
-            publishEvictEvent(new RoleEvictEvent(savedRole.getId()));
+            publishEvictEvent(new RoleEvictEvent(savedRole.getId(), savedRole));
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedRole.getId())
                     .created(role.getId() == null).build());
             return savedRole;
@@ -116,7 +120,7 @@ public class RoleServiceImpl extends AbstractCachedEntityService<RoleId, Role, R
     public Role findRoleById(TenantId tenantId, RoleId roleId) {
         log.trace("Executing findRoleById [{}]", roleId);
         validateId(roleId, id -> INCORRECT_ROLE_ID + id);
-        return cache.getAndPutInTransaction(roleId, () -> roleDao.findById(tenantId, roleId.getId()), true);
+        return cache.get(roleId, () -> roleDao.findById(tenantId, roleId.getId()));
     }
 
     @Override

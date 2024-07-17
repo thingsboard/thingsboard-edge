@@ -238,6 +238,7 @@ message IntegrationProto {
   optional string additionalInfo = 20;
   optional int64 externalIdMSB = 21;
   optional int64 externalIdLSB = 22;
+  optional int64 version = 23;
 }
 
 message ConverterProto {
@@ -254,6 +255,7 @@ message ConverterProto {
   bool isEdgeTemplate = 11;
   optional int64 externalIdMSB = 12;
   optional int64 externalIdLSB = 13;
+  optional int64 version = 14;
 }
 
 message IntegrationInfoListRequestProto {

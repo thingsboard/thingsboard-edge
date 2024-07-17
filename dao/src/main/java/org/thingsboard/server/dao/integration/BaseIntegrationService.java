@@ -52,7 +52,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
-import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.entity.CachedVersionedEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
@@ -72,7 +72,7 @@ import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service("IntegrationDaoService")
 @Slf4j
-public class BaseIntegrationService extends AbstractCachedEntityService<IntegrationId, Integration, IntegrationCacheEvictEvent> implements IntegrationService {
+public class BaseIntegrationService extends CachedVersionedEntityService<IntegrationId, Integration, IntegrationCacheEvictEvent> implements IntegrationService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_INTEGRATION_ID = "Incorrect integrationId ";
@@ -93,7 +93,11 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     @TransactionalEventListener(classes = IntegrationCacheEvictEvent.class)
     @Override
     public void handleEvictEvent(IntegrationCacheEvictEvent event) {
-        cache.evict(event.getIntegrationId());
+        if (event.getSavedIntegration() != null) {
+            cache.put(event.getSavedIntegration().getId(), event.getSavedIntegration());
+        } else {
+            cache.evict(event.getIntegrationId());
+        }
     }
 
     @Override
@@ -102,7 +106,7 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
         integrationValidator.validate(integration, Integration::getTenantId);
         try {
             var result = integrationDao.save(integration.getTenantId(), integration);
-            publishEvictEvent(new IntegrationCacheEvictEvent(result.getId()));
+            publishEvictEvent(new IntegrationCacheEvictEvent(result.getId(), result));
             if (integration.getId() == null) {
                 entityCountService.publishCountEntityEvictEvent(integration.getTenantId(), EntityType.INTEGRATION);
             }
@@ -120,7 +124,7 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     public Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing findIntegrationById [{}]", integrationId);
         validateId(integrationId, id -> INCORRECT_INTEGRATION_ID + id);
-        return cache.getAndPutInTransaction(integrationId, () -> integrationDao.findById(tenantId, integrationId.getId()), true);
+        return cache.get(integrationId, () -> integrationDao.findById(tenantId, integrationId.getId()));
     }
 
     @Override
