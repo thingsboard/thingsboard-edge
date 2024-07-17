@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS entity_group (
     additional_info varchar,
     configuration varchar(10000000),
     external_id uuid,
+    version BIGINT DEFAULT 1,
     CONSTRAINT group_name_per_owner_unq_key UNIQUE (owner_id, owner_type, type, name)
 );
 
@@ -54,6 +55,7 @@ CREATE TABLE IF NOT EXISTS converter (
     tenant_id uuid,
     type varchar(255),
     external_id uuid,
+    version BIGINT DEFAULT 1,
     is_edge_template boolean DEFAULT false
 );
 
@@ -76,6 +78,7 @@ CREATE TABLE IF NOT EXISTS integration (
     type varchar(255),
     external_id uuid,
     is_edge_template boolean DEFAULT false,
+    version BIGINT DEFAULT 1,
     CONSTRAINT fk_integration_converter FOREIGN KEY (converter_id) REFERENCES converter(id),
     CONSTRAINT fk_integration_downlink_converter FOREIGN KEY (downlink_converter_id) REFERENCES converter(id)
 );
@@ -121,7 +124,8 @@ CREATE TABLE IF NOT EXISTS role (
     search_text varchar(255),
     permissions varchar(10000000),
     additional_info varchar,
-    external_id uuid
+    external_id uuid,
+    version BIGINT DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS group_permission (
