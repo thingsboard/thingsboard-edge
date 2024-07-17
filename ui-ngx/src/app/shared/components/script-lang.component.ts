@@ -35,6 +35,7 @@ import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-script-lang',
@@ -57,6 +58,10 @@ export class TbScriptLangComponent extends PageComponent implements ControlValue
 
   @Input()
   disabled: boolean;
+
+  @Input()
+  @coerceBoolean()
+  shortLang = true;
 
   private propagateChange = null;
 
