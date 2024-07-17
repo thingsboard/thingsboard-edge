@@ -36,6 +36,6 @@ import java.util.List;
 
 public interface InsertLatestTsRepository {
 
-    void saveOrUpdate(List<TsKvLatestEntity> entities);
+    List<Long> saveOrUpdate(List<TsKvLatestEntity> entities);
 
 }

@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.model.sql;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BooleanDataEntry;
@@ -56,9 +57,10 @@ import static org.thingsboard.server.dao.model.ModelConstants.LONG_VALUE_COLUMN;
 import static org.thingsboard.server.dao.model.ModelConstants.STRING_VALUE_COLUMN;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "attribute_kv")
-public class AttributeKvEntity implements ToData<AttributeKvEntry>, Serializable {
+public class AttributeKvEntity extends VersionedEntity implements ToData<AttributeKvEntry>, Serializable {
 
     @EmbeddedId
     private AttributeKvCompositeKey id;
@@ -99,6 +101,6 @@ public class AttributeKvEntity implements ToData<AttributeKvEntry>, Serializable
             kvEntry = new JsonDataEntry(strKey, jsonValue);
         }
 
-        return new BaseAttributeKvEntry(kvEntry, lastUpdateTs);
+        return new BaseAttributeKvEntry(kvEntry, lastUpdateTs, version);
     }
 }

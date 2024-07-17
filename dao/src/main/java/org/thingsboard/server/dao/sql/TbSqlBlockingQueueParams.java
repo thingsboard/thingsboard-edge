@@ -45,4 +45,5 @@ public class TbSqlBlockingQueueParams {
     private final long statsPrintIntervalMs;
     private final String statsNamePrefix;
     private final boolean batchSortEnabled;
+    private final boolean withResponse;
 }
