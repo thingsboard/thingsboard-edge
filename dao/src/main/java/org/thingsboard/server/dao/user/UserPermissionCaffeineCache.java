@@ -28,37 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.cache;
+package org.thingsboard.server.dao.user;
 
-import jakarta.annotation.PostConstruct;
-import lombok.Data;
-import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
 import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 
-import java.util.Map;
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("PermissionCache")
+public class UserPermissionCaffeineCache extends CaffeineTbTransactionalCache<UserPermissionCacheKey, MergedUserPermissions> {
 
-@Configuration
-@ConfigurationProperties(prefix = "cache")
-@Data
-public class CacheSpecsMap {
-
-    @Value("${security.jwt.refreshTokenExpTime:604800}")
-    private int refreshTokenExpTime;
-
-    @Getter
-    private Map<String, CacheSpecs> specs;
-
-    @PostConstruct
-    public void replaceTheJWTTokenRefreshExpTime() {
-        if (specs != null) {
-            var cacheSpecs = specs.get(CacheConstants.USERS_SESSION_INVALIDATION_CACHE);
-            if (cacheSpecs != null) {
-                cacheSpecs.setTimeToLiveInMinutes((refreshTokenExpTime / 60) + 1);
-            }
-        }
+    public UserPermissionCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.USER_PERMISSIONS_CACHE);
     }
 
 }

@@ -28,37 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.cache;
+package org.thingsboard.server.dao.user;
 
-import jakarta.annotation.PostConstruct;
-import lombok.Data;
-import lombok.Getter;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-import org.thingsboard.server.common.data.CacheConstants;
+import lombok.EqualsAndHashCode;
+import lombok.RequiredArgsConstructor;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-import java.util.Map;
+import java.io.Serializable;
 
-@Configuration
-@ConfigurationProperties(prefix = "cache")
-@Data
-public class CacheSpecsMap {
+@EqualsAndHashCode
+@RequiredArgsConstructor
+public class UserPermissionCacheKey implements Serializable {
 
-    @Value("${security.jwt.refreshTokenExpTime:604800}")
-    private int refreshTokenExpTime;
+    private final TenantId tenantId;
+    private final CustomerId customerId;
+    private final EntityId userId;
 
-    @Getter
-    private Map<String, CacheSpecs> specs;
-
-    @PostConstruct
-    public void replaceTheJWTTokenRefreshExpTime() {
-        if (specs != null) {
-            var cacheSpecs = specs.get(CacheConstants.USERS_SESSION_INVALIDATION_CACHE);
-            if (cacheSpecs != null) {
-                cacheSpecs.setTimeToLiveInMinutes((refreshTokenExpTime / 60) + 1);
-            }
-        }
+    @Override
+    public String toString() {
+        return (tenantId != null ? tenantId.getId().toString() : "null") + "-" +
+                (customerId != null ? customerId.getId().toString() : "null") + "-" +
+                (userId != null ? userId.getId().toString() : "null") + "-";
     }
 
 }
