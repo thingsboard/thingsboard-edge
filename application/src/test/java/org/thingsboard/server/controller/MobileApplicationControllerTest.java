@@ -343,7 +343,7 @@ public class MobileApplicationControllerTest extends AbstractControllerTest {
 
         loginTenantAdmin();
         String domainName = "my.domain.name";
-        updateDomainNameAndBaseUrl(domainName, domainName);
+        updateDomainNameAndBaseUrl(domainName, "https://" + domainName);
 
         //check deep link
         String deepLinkForWrongBaseUrl = doGet("/api/mobile/deepLink", String.class);

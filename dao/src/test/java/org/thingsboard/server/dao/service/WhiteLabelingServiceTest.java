@@ -73,13 +73,13 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
         loginWhiteLabelingParams.setDomainName("wrong name");
         assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
                 .isInstanceOf(IncorrectParameterException.class)
-                .hasMessage("Current domain name [" + domainNameWithSpace +"] has an invalid format!");
+                .hasMessage("Current domain name [" + domainNameWithSpace +"] has an invalid domain format!");
 
         String domainNameWithProhibitCharacter = "-wrongname";
         loginWhiteLabelingParams.setDomainName(domainNameWithProhibitCharacter);
         assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
                 .isInstanceOf(IncorrectParameterException.class)
-                .hasMessage("Current domain name [" + domainNameWithProhibitCharacter +"] has an invalid format!");
+                .hasMessage("Current domain name [" + domainNameWithProhibitCharacter +"] has an invalid domain format!");
     }
 
     @Test
@@ -90,13 +90,13 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
         loginWhiteLabelingParams.setBaseUrl(baseUrlWithWhiteSpace);
         assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
                 .isInstanceOf(IncorrectParameterException.class)
-                .hasMessage("Current base url [" + baseUrlWithWhiteSpace +"] has an invalid format!");
+                .hasMessage("Current base url [" + baseUrlWithWhiteSpace +"] has an invalid url format!");
 
         String baseUrlWithoutSchema = "wrongurl";
         loginWhiteLabelingParams.setBaseUrl(baseUrlWithoutSchema);
         assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
                 .isInstanceOf(IncorrectParameterException.class)
-                .hasMessage("Current base url [" + baseUrlWithoutSchema +"] has an invalid format!");
+                .hasMessage("Current base url [" + baseUrlWithoutSchema +"] has an invalid url format!");
     }
 
     @Test

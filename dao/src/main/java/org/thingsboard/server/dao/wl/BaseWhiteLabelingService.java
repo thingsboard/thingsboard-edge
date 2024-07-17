@@ -307,10 +307,10 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] already used in the system level!");
         }
         if (!isValidDomain(loginWhiteLabelParams.getDomainName())) {
-            throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] has an invalid format!");
+            throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] has an invalid domain format!");
         }
-        if (!isValidUrl(loginWhiteLabelParams.getBaseUrl())) {
-            throw new IncorrectParameterException("Current base url [" + loginWhiteLabelParams.getBaseUrl() + "] has an invalid format!");
+        if (loginWhiteLabelParams.getBaseUrl() != null && !isValidUrl(loginWhiteLabelParams.getBaseUrl())) {
+            throw new IncorrectParameterException("Current base url [" + loginWhiteLabelParams.getBaseUrl() + "] has an invalid url format!");
         }
         saveLoginWhiteLabelParams(tenantId, customerId, loginWhiteLabelParams);
     }
