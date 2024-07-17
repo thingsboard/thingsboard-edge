@@ -70,16 +70,16 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
     public void testInvalidDomain()  {
         LoginWhiteLabelingParams loginWhiteLabelingParams = new LoginWhiteLabelingParams();
         String domainNameWithSpace = "wrong name";
-        loginWhiteLabelingParams.setDomainName("wrong name");
+        loginWhiteLabelingParams.setDomainName(domainNameWithSpace);
         assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
                 .isInstanceOf(IncorrectParameterException.class)
-                .hasMessage("Current domain name [" + domainNameWithSpace +"] has an invalid domain format!");
+                .hasMessage("Domain name [" + domainNameWithSpace +"] is invalid!");
 
-        String domainNameWithProhibitCharacter = "-wrongname";
+        String domainNameWithProhibitCharacter = "[wrongname.com";
         loginWhiteLabelingParams.setDomainName(domainNameWithProhibitCharacter);
         assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
                 .isInstanceOf(IncorrectParameterException.class)
-                .hasMessage("Current domain name [" + domainNameWithProhibitCharacter +"] has an invalid domain format!");
+                .hasMessage("Domain name [" + domainNameWithProhibitCharacter +"] is invalid!");
     }
 
     @Test
@@ -90,13 +90,13 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
         loginWhiteLabelingParams.setBaseUrl(baseUrlWithWhiteSpace);
         assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
                 .isInstanceOf(IncorrectParameterException.class)
-                .hasMessage("Current base url [" + baseUrlWithWhiteSpace +"] has an invalid url format!");
+                .hasMessage("Base url [" + baseUrlWithWhiteSpace +"] is invalid!");
 
         String baseUrlWithoutSchema = "wrongurl";
         loginWhiteLabelingParams.setBaseUrl(baseUrlWithoutSchema);
         assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
                 .isInstanceOf(IncorrectParameterException.class)
-                .hasMessage("Current base url [" + baseUrlWithoutSchema +"] has an invalid url format!");
+                .hasMessage("Base url [" + baseUrlWithoutSchema +"] is invalid!");
     }
 
     @Test

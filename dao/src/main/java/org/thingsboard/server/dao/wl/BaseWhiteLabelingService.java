@@ -64,13 +64,11 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.regex.Pattern;
 
 import static org.thingsboard.server.dao.entity.AbstractEntityService.checkConstraintViolation;
+import static org.thingsboard.server.dao.service.DataValidator.isValidDomain;
+import static org.thingsboard.server.dao.service.DataValidator.isValidUrl;
 import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forDomainName;
 import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forKey;
 
@@ -81,8 +79,6 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     private static final String ALLOW_WHITE_LABELING = "allowWhiteLabeling";
     private static final String ALLOW_CUSTOMER_WHITE_LABELING = "allowCustomerWhiteLabeling";
-    private static final String DOMAIN_REGEX = "^(((?!-))(xn--|_)?[a-z0-9-]{0,61}[a-z0-9]{1,1}\\.)*(xn--)?([a-z0-9][a-z0-9\\-]{0,60}|[a-z0-9-]{1,30}\\.[a-z]{2,})$";
-    private static final Pattern DOMAIN_PATTERN = Pattern.compile(DOMAIN_REGEX);
 
     private final AdminSettingsService adminSettingsService;
     private final WhiteLabelingDao whiteLabelingDao;
@@ -231,6 +227,9 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         if (!StringUtils.isBlank(loginWhiteLabelingParams.getDomainName())) {
             throw new DataValidationException("Domain name is prohibited for system level");
         }
+        if (loginWhiteLabelingParams.getBaseUrl() != null && !isValidUrl(loginWhiteLabelingParams.getBaseUrl())) {
+            throw new IncorrectParameterException("Base url [" + loginWhiteLabelingParams.getBaseUrl() + "] is invalid!");
+        }
         saveLoginWhiteLabelParams(TenantId.SYS_TENANT_ID, null, loginWhiteLabelingParams);
         return getSystemLoginWhiteLabelingParams();
     }
@@ -264,25 +263,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         }
     }
 
-    public static boolean isValidDomain(String domainName) {
-        if (domainName == null) {
-            return false;
-        }
-        return DOMAIN_PATTERN.matcher(domainName).matches();
-    }
-
-    public static boolean isValidUrl(String url) {
-        try {
-            new URL(url).toURI();
-            return true;
-        } catch (MalformedURLException e) {
-            return false;
-        } catch (URISyntaxException e) {
-            return false;
-        }
-    }
-
-    private boolean isBaseUrlMatchesDomain(String baseUrl, String domainName) {
+     private boolean isBaseUrlMatchesDomain(String baseUrl, String domainName) {
         String baseUrlDomainName = this.domainNameFromBaseUrl(baseUrl);
         return baseUrlDomainName != null && baseUrlDomainName.equalsIgnoreCase(domainName);
     }
@@ -307,10 +288,10 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] already used in the system level!");
         }
         if (!isValidDomain(loginWhiteLabelParams.getDomainName())) {
-            throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] has an invalid domain format!");
+            throw new IncorrectParameterException("Domain name [" + loginWhiteLabelParams.getDomainName() + "] is invalid!");
         }
         if (loginWhiteLabelParams.getBaseUrl() != null && !isValidUrl(loginWhiteLabelParams.getBaseUrl())) {
-            throw new IncorrectParameterException("Current base url [" + loginWhiteLabelParams.getBaseUrl() + "] has an invalid url format!");
+            throw new IncorrectParameterException("Base url [" + loginWhiteLabelParams.getBaseUrl() + "] is invalid!");
         }
         saveLoginWhiteLabelParams(tenantId, customerId, loginWhiteLabelParams);
     }

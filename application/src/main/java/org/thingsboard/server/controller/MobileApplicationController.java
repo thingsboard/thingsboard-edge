@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -71,6 +72,7 @@ import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TE
 @RequiredArgsConstructor
 @RestController
 @TbCoreComponent
+@Slf4j
 public class MobileApplicationController extends BaseController {
 
     @Value("${cache.specs.mobileSecretKey.timeToLiveInMinutes:2}")
@@ -191,6 +193,7 @@ public class MobileApplicationController extends BaseController {
         try {
             platformDomain = new URI(baseUrl).getHost();
         } catch (URISyntaxException e) {
+            log.debug("Failed to get host from base url: {}", baseUrl, e);
             platformDomain = defaultAppDomain;
         }
         MobileAppSettings mobileAppSettings = mobileAppSettingsService.getMergedMobileAppSettings(currentUser.getTenantId());
