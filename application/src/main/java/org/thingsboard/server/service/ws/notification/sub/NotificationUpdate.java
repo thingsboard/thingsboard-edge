@@ -36,6 +36,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.notification.Notification;
 import org.thingsboard.server.common.data.notification.NotificationStatus;
+import org.thingsboard.server.common.data.notification.NotificationType;
 
 import java.util.UUID;
 
@@ -46,6 +47,7 @@ import java.util.UUID;
 public class NotificationUpdate {
 
     private UUID notificationId;
+    private NotificationType notificationType;
 
     private boolean created;
     private Notification notification;

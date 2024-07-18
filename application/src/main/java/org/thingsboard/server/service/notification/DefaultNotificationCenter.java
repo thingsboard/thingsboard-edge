@@ -365,6 +365,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
                 NotificationUpdate update = NotificationUpdate.builder()
                         .updated(true)
                         .notificationId(notificationId.getId())
+                        .notificationType(notification.getType())
                         .newStatus(NotificationStatus.READ)
                         .build();
                 onNotificationUpdate(tenantId, recipientId, update);
