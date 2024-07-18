@@ -228,7 +228,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             throw new DataValidationException("Domain name is prohibited for system level");
         }
         if (loginWhiteLabelingParams.getBaseUrl() != null && !isValidUrl(loginWhiteLabelingParams.getBaseUrl())) {
-            throw new IncorrectParameterException("Base url [" + loginWhiteLabelingParams.getBaseUrl() + "] is invalid!");
+            throw new IncorrectParameterException("Base url " + loginWhiteLabelingParams.getBaseUrl() + " is invalid");
         }
         saveLoginWhiteLabelParams(TenantId.SYS_TENANT_ID, null, loginWhiteLabelingParams);
         return getSystemLoginWhiteLabelingParams();
@@ -282,16 +282,16 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     private void saveEntityLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId, LoginWhiteLabelingParams loginWhiteLabelParams) {
         if (loginWhiteLabelParams.getDomainName() == null) {
-            throw new IncorrectParameterException("Domain name could not be empty!");
+            throw new IncorrectParameterException("Domain name could not be empty");
         }
         if (!isUsedOnSystemLevel(loginWhiteLabelParams.getDomainName())) {
-            throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] already used in the system level!");
+            throw new IncorrectParameterException("Current domain name " + loginWhiteLabelParams.getDomainName() + " already used in the system level");
         }
         if (!isValidDomain(loginWhiteLabelParams.getDomainName())) {
-            throw new IncorrectParameterException("Domain name [" + loginWhiteLabelParams.getDomainName() + "] is invalid!");
+            throw new IncorrectParameterException("Domain name " + loginWhiteLabelParams.getDomainName() + " is invalid");
         }
         if (loginWhiteLabelParams.getBaseUrl() != null && !isValidUrl(loginWhiteLabelParams.getBaseUrl())) {
-            throw new IncorrectParameterException("Base url [" + loginWhiteLabelParams.getBaseUrl() + "] is invalid!");
+            throw new IncorrectParameterException("Base url " + loginWhiteLabelParams.getBaseUrl() + " is invalid");
         }
         saveLoginWhiteLabelParams(tenantId, customerId, loginWhiteLabelParams);
     }

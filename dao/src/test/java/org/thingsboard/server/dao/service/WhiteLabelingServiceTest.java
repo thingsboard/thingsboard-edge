@@ -73,13 +73,13 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
         loginWhiteLabelingParams.setDomainName(domainNameWithSpace);
         assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
                 .isInstanceOf(IncorrectParameterException.class)
-                .hasMessage("Domain name [" + domainNameWithSpace +"] is invalid!");
+                .hasMessage("Domain name " + domainNameWithSpace + " is invalid");
 
         String domainNameWithProhibitCharacter = "[wrongname.com";
         loginWhiteLabelingParams.setDomainName(domainNameWithProhibitCharacter);
         assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
                 .isInstanceOf(IncorrectParameterException.class)
-                .hasMessage("Domain name [" + domainNameWithProhibitCharacter +"] is invalid!");
+                .hasMessage("Domain name " + domainNameWithProhibitCharacter + " is invalid");
     }
 
     @Test
@@ -90,13 +90,13 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
         loginWhiteLabelingParams.setBaseUrl(baseUrlWithWhiteSpace);
         assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
                 .isInstanceOf(IncorrectParameterException.class)
-                .hasMessage("Base url [" + baseUrlWithWhiteSpace +"] is invalid!");
+                .hasMessage("Base url " + baseUrlWithWhiteSpace + " is invalid");
 
         String baseUrlWithoutSchema = "wrongurl";
         loginWhiteLabelingParams.setBaseUrl(baseUrlWithoutSchema);
         assertThatThrownBy(() -> whiteLabelingService.saveTenantLoginWhiteLabelingParams(tenantId, loginWhiteLabelingParams))
                 .isInstanceOf(IncorrectParameterException.class)
-                .hasMessage("Base url [" + baseUrlWithoutSchema +"] is invalid!");
+                .hasMessage("Base url " + baseUrlWithoutSchema + " is invalid");
     }
 
     @Test
