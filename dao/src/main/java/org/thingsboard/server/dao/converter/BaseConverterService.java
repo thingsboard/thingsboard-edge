@@ -161,7 +161,9 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     public void deleteConverter(TenantId tenantId, ConverterId converterId) {
         log.trace("Executing deleteConverter [{}]", converterId);
         Converter converter = findConverterById(tenantId, converterId);
-        validateId(converterId, id -> INCORRECT_CONVERTER_ID + id);
+        if (converter == null) {
+            return;
+        }
         try {
             converterDao.removeById(tenantId, converterId.getId());
         } catch (Exception t) {
