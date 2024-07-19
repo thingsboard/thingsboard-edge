@@ -52,8 +52,10 @@ import org.thingsboard.rule.engine.api.TbPeContext;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
@@ -67,6 +69,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -77,6 +80,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -107,6 +111,14 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
     public void setUp() {
         config = new TbChangeOwnerNodeConfiguration().defaultConfiguration();
         node = spy(new TbChangeOwnerNode());
+    }
+
+    @Test
+    public void verifyDefaultConfig() {
+        assertThat(config.getOwnerNamePattern()).isNull();
+        assertThat(config.getOwnerType()).isEqualTo(EntityType.TENANT);
+        assertThat(config.isCreateOwnerIfNotExists()).isFalse();
+        assertThat(config.isCreateOwnerOnOriginatorLevel()).isFalse();
     }
 
     @Test
@@ -322,6 +334,58 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         if (EntityType.TENANT.equals(ownerType)) {
             assertThatNoException().isThrownBy(() -> node.init(ctxMock, configuration));
         }
+    }
+
+    @Test
+    public void givenCreateOwnerIfNotExistsIsFalseAndCreateOwnerOnOriginatorLevelIsTrue_whenOnMsg_thenDoesNotCreateCustomer() throws TbNodeException, ExecutionException, InterruptedException, ThingsboardException {
+        config.setOwnerType(EntityType.CUSTOMER);
+        config.setOwnerNamePattern("Test Customer");
+        config.setCreateOwnerIfNotExists(false);
+        config.setCreateOwnerOnOriginatorLevel(true);
+
+        var configuration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
+        node.init(ctxMock, configuration);
+
+        when(ctxMock.getCustomerService()).thenReturn(customerServiceMock);
+        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
+        when(customerServiceMock.findCustomerByTenantIdAndTitleAsync(any(), any()))
+                .thenReturn(Futures.immediateFuture(Optional.empty()));
+
+        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        node.onMsg(ctxMock, msg);
+
+        verify(customerServiceMock, never()).saveCustomer(any());
+        verify(customerServiceMock).findCustomerByTenantIdAndTitleAsync(TENANT_ID, "Test Customer");
+        verify(peContextMock, never()).changeEntityOwner(any(TenantId.class), any(EntityId.class), any(EntityId.class));
+    }
+
+    @Test
+    public void givenCustomerExistAndCreateOwnerIfNotExistsIsTrue_whenOnMsg_thenChangeOwnerToExistingCustomer() throws TbNodeException, ExecutionException, InterruptedException, ThingsboardException {
+        CustomerId existingCustomerId = new CustomerId(UUID.fromString("60edc2b1-3d37-46b3-9069-963cc98e75e4"));
+        Device device = new Device(DEVICE_ID);
+        device.setOwnerId(TENANT_ID);
+        config.setOwnerType(EntityType.CUSTOMER);
+        config.setOwnerNamePattern("Test Customer");
+        config.setCreateOwnerIfNotExists(true);
+        var configuration = new TbNodeConfiguration(JacksonUtil.valueToTree(config));
+        node.init(ctxMock, configuration);
+
+        when(ctxMock.getDbCallbackExecutor()).thenReturn(dbCallbackExecutor);
+        when(ctxMock.getCustomerService()).thenReturn(customerServiceMock);
+        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
+        when(customerServiceMock.findCustomerByTenantIdAndTitleAsync(any(), any())).thenReturn(Futures.immediateFuture(Optional.of(new Customer(existingCustomerId))));
+        when(ctxMock.getPeContext()).thenReturn(peContextMock);
+        when(peContextMock.getOwner(any(), any())).thenReturn(TENANT_ID);
+
+        TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
+        node.onMsg(ctxMock, msg);
+
+        verify(ctxMock).tellSuccess(msg);
+        verify(customerServiceMock).findCustomerByTenantIdAndTitleAsync(TENANT_ID, "Test Customer");
+        verify(customerServiceMock, never()).saveCustomer(any(Customer.class));
+        verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);
+        verify(peContextMock).changeEntityOwner(TENANT_ID, existingCustomerId, DEVICE_ID);
+        verifyNoMoreInteractions(ctxMock, customerServiceMock, peContextMock);
     }
 
     private static Stream<Arguments> givenFromVersionAndConfig_whenUpgrade_thenVerifyHasChangesAndConfig() {
