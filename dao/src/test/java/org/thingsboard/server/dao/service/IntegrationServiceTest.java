@@ -301,13 +301,13 @@ public class IntegrationServiceTest extends AbstractServiceTest {
         Integration savedIntegration = integrationService.saveIntegration(integration);
 
         Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
-        verify(integrationDao, times(1)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
+        verify(integrationDao, times(0)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
         Assert.assertNotNull(foundIntegration);
         Assert.assertEquals(savedIntegration, foundIntegration);
 
         for (int i = 0; i < 10; i++) {
             foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
-            verify(integrationDao, times(1)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
+            verify(integrationDao, times(0)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
             Assert.assertNotNull(foundIntegration);
             Assert.assertEquals(savedIntegration, foundIntegration);
         }
@@ -327,16 +327,16 @@ public class IntegrationServiceTest extends AbstractServiceTest {
         Integration savedIntegration = integrationService.saveIntegration(integration);
 
         Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
-        verify(integrationDao, times(1)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
+        verify(integrationDao, times(0)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
         Assert.assertNotNull(foundIntegration);
         Assert.assertEquals(savedIntegration, foundIntegration);
 
 
         savedIntegration.setName("New name");
-        integrationService.saveIntegration(savedIntegration);
+        savedIntegration = integrationService.saveIntegration(savedIntegration);
 
         foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
-        verify(integrationDao, times(2)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
+        verify(integrationDao, times(0)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
         Assert.assertNotNull(foundIntegration);
         Assert.assertEquals(savedIntegration, foundIntegration);
 
@@ -355,7 +355,7 @@ public class IntegrationServiceTest extends AbstractServiceTest {
         Integration savedIntegration = integrationService.saveIntegration(integration);
 
         Integration foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
-        verify(integrationDao, times(1)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
+        verify(integrationDao, times(0)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
         Assert.assertNotNull(foundIntegration);
         Assert.assertEquals(savedIntegration, foundIntegration);
 
@@ -363,7 +363,7 @@ public class IntegrationServiceTest extends AbstractServiceTest {
 
         foundIntegration = integrationService.findIntegrationById(savedIntegration.getTenantId(), savedIntegration.getId());
         Assert.assertNull(foundIntegration);
-        verify(integrationDao, times(2)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
+        verify(integrationDao, times(1)).findById(eq(tenantId), eq(savedIntegration.getUuidId()));
     }
 
     @Test
@@ -386,7 +386,7 @@ public class IntegrationServiceTest extends AbstractServiceTest {
         for (int i = 0; i < integrationNumber; i++) {
             Integration integration = savedIntegrations.get(i);
             Integration foundIntegration = integrationService.findIntegrationById(integration.getTenantId(), integration.getId());
-            verify(integrationDao, times(1)).findById(eq(tenantId), eq(integration.getUuidId()));
+            verify(integrationDao, times(0)).findById(eq(tenantId), eq(integration.getUuidId()));
             Assert.assertNotNull(foundIntegration);
             Assert.assertEquals(integration, foundIntegration);
         }
@@ -396,7 +396,7 @@ public class IntegrationServiceTest extends AbstractServiceTest {
         for (int i = 0; i < integrationNumber; i++) {
             Integration integration = savedIntegrations.get(i);
             Integration foundIntegration = integrationService.findIntegrationById(integration.getTenantId(), integration.getId());
-            verify(integrationDao, times(2)).findById(eq(tenantId), eq(integration.getUuidId()));
+            verify(integrationDao, times(1)).findById(eq(tenantId), eq(integration.getUuidId()));
             Assert.assertNull(foundIntegration);
         }
     }
