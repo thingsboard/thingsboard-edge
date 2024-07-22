@@ -64,8 +64,8 @@ public class UserEdgeTest extends AbstractEdgeTest {
 
     @Test
     public void testCreateUpdateDeleteTenantUser() throws Exception {
-        // create user and add to tenant admin group
-        edgeImitator.expectMessageAmount(2);
+        // create user, activate user and add to tenant admin group
+        edgeImitator.expectMessageAmount(3);
         User newTenantAdmin = new User();
         newTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
         newTenantAdmin.setTenantId(tenantId);
@@ -167,8 +167,8 @@ public class UserEdgeTest extends AbstractEdgeTest {
         // change owner from tenant to parent customer
         changeEdgeOwnerToCustomer(savedCustomer);
 
-        // create user and add to customer admin group
-        edgeImitator.expectMessageAmount(2);
+        // create user, activate user and add to customer admin group
+        edgeImitator.expectMessageAmount(3);
         User customerUser = new User();
         customerUser.setAuthority(Authority.CUSTOMER_USER);
         customerUser.setTenantId(tenantId);
