@@ -141,7 +141,7 @@ export class RecentDashboardsWidgetComponent extends PageComponent implements On
   }
 
   public createDashboardUrl(id: string): string {
-    const baseUrl = this.isFullscreenMode ? '/dashboard/' : '/dashboards/';
+    const baseUrl = this.isFullscreenMode ? '/dashboard/' : '/dashboards/all/';
     return baseUrl + id;
   }
 
