@@ -82,6 +82,7 @@ export class ModbusDataKeysPanelComponent implements OnInit {
   readonly ModbusFunctionCodeTranslationsMap = ModbusFunctionCodeTranslationsMap;
   readonly defaultReadFunctionCodes = [3, 4];
   readonly defaultWriteFunctionCodes = [5, 6, 15, 16];
+  readonly stringAttrUpdatesWriteFunctionCodes = [6, 16];
 
   constructor(private fb: UntypedFormBuilder) {}
 
@@ -99,7 +100,7 @@ export class ModbusDataKeysPanelComponent implements OnInit {
     const dataKeyFormGroup = this.fb.group({
       tag: ['', [Validators.required, Validators.pattern(noLeadTrailSpacesRegex)]],
       value: [{value: '', disabled: !this.isMaster}, [Validators.required, Validators.pattern(noLeadTrailSpacesRegex)]],
-      type: [ModbusDataType.STRING, [Validators.required]],
+      type: [ModbusDataType.BYTES, [Validators.required]],
       address: [0, [Validators.required]],
       objectsCount: [1, [Validators.required]],
       functionCode: [this.getDefaultFunctionCodes()[0]],
@@ -161,6 +162,9 @@ export class ModbusDataKeysPanelComponent implements OnInit {
 
   private getFunctionCodes(dataType: ModbusDataType): number[] {
     if (this.keysType === ModbusValueKey.ATTRIBUTES_UPDATES) {
+      if (dataType === ModbusDataType.STRING) {
+        return this.stringAttrUpdatesWriteFunctionCodes;
+      }
       return this.defaultWriteFunctionCodes;
     }
     const functionCodes = [...this.defaultReadFunctionCodes];
