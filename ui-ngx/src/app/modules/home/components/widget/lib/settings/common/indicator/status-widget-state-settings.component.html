@@ -77,7 +77,7 @@
          [fxLayoutAlign.lt-md]="layout !== StatusWidgetLayout.icon ? 'space-between center': 'start center'"
          style="gap: 12px;">
       <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
-        <div tb-hint-tooltip-icon="{{'widgets.status-widget.primary-color-hint' | translate}}" translate>widgets.status-widget.primary</div>
+        <div tb-hint-tooltip-icon="{{'widgets.status-widget.primary-color-hint' | translate}}">{{ 'widgets.status-widget.primary' | translate }}</div>
         <tb-color-input asBoxInput
                         useThemePalette
                         formControlName="primaryColor">
@@ -85,7 +85,7 @@
       </div>
       <mat-divider *ngIf="layout !== StatusWidgetLayout.icon" vertical fxHide.lt-md></mat-divider>
       <div *ngIf="layout !== StatusWidgetLayout.icon" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
-        <div tb-hint-tooltip-icon="{{'widgets.status-widget.secondary-color-hint' | translate}}" translate>widgets.status-widget.secondary</div>
+        <div tb-hint-tooltip-icon="{{'widgets.status-widget.secondary-color-hint' | translate}}">{{ 'widgets.status-widget.secondary' | translate }}</div>
         <tb-color-input asBoxInput
                         useThemePalette
                         formControlName="secondaryColor">
@@ -105,7 +105,7 @@
          [fxLayoutAlign.lt-md]="layout !== StatusWidgetLayout.icon ? 'space-between center': 'start center'"
          style="gap: 12px;">
       <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
-        <div tb-hint-tooltip-icon="{{'widgets.status-widget.primary-color-hint' | translate}}" translate>widgets.status-widget.primary</div>
+        <div tb-hint-tooltip-icon="{{'widgets.status-widget.primary-color-hint' | translate}}">{{ 'widgets.status-widget.primary' | translate }}</div>
         <tb-color-input asBoxInput
                         useThemePalette
                         formControlName="primaryColorDisabled">
@@ -113,7 +113,7 @@
       </div>
       <mat-divider *ngIf="layout !== StatusWidgetLayout.icon" vertical fxHide.lt-md></mat-divider>
       <div *ngIf="layout !== StatusWidgetLayout.icon" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
-        <div tb-hint-tooltip-icon="{{'widgets.status-widget.secondary-color-hint' | translate}}" translate>widgets.status-widget.secondary</div>
+        <div tb-hint-tooltip-icon="{{'widgets.status-widget.secondary-color-hint' | translate}}">{{ 'widgets.status-widget.secondary' | translate }}</div>
         <tb-color-input asBoxInput
                         useThemePalette
                         formControlName="secondaryColorDisabled">

@@ -30,3 +30,4 @@
 ///
 
 export * from './gateway-help-link/gateway-help-link.pipe';
+export * from './gateway-port-tooltip/gateway-port-tooltip.pipe';

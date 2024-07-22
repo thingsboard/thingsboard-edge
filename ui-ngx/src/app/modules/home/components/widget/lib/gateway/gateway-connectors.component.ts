@@ -65,6 +65,7 @@ import { UtilsService } from '@core/services/utils.service';
 import { EntityType } from '@shared/models/entity-type.models';
 import {
   AddConnectorConfigData,
+  ConnectorBaseConfig,
   ConnectorConfigurationModes,
   ConnectorType,
   GatewayConnector,
@@ -107,7 +108,8 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
 
   allowBasicConfig = new Set<ConnectorType>([
     ConnectorType.MQTT,
-    ConnectorType.OPCUA
+    ConnectorType.OPCUA,
+    ConnectorType.MODBUS,
   ]);
 
   gatewayLogLevel = Object.values(GatewayLogLevel);
@@ -734,7 +736,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       connector.key = 'auto';
     }
     if (!connector.configurationJson) {
-      connector.configurationJson = {};
+      connector.configurationJson = {} as ConnectorBaseConfig;
     }
     connector.basicConfig = connector.configurationJson;
 
@@ -747,7 +749,9 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     switch (connector.type) {
       case ConnectorType.MQTT:
       case ConnectorType.OPCUA:
+      case ConnectorType.MODBUS:
         this.connectorForm.get('type').patchValue(connector.type, {emitValue: false, onlySelf: true});
+        this.connectorForm.get('basicConfig').setValue({}, {emitEvent: false});
 
         setTimeout(() => {
           this.connectorForm.patchValue({...connector, mode: connector.mode || ConnectorConfigurationModes.BASIC});

@@ -40,9 +40,9 @@ import {
   Validator,
 } from '@angular/forms';
 import {
-  ConnectorBaseConfig,
   ConnectorType,
   MappingType,
+  OPCBasicConfig,
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
 import { SharedModule } from '@shared/shared.module';
 import { CommonModule } from '@angular/common';
@@ -50,7 +50,7 @@ import {
   BrokerConfigControlComponent,
   MappingTableComponent,
   SecurityConfigComponent,
-  ServerConfigComponent,
+  OpcServerConfigComponent,
   WorkersConfigControlComponent
 } from '@home/components/widget/lib/gateway/connectors-configuration/public-api';
 import { takeUntil } from 'rxjs/operators';
@@ -80,7 +80,7 @@ import { Subject } from 'rxjs';
     WorkersConfigControlComponent,
     BrokerConfigControlComponent,
     MappingTableComponent,
-    ServerConfigComponent,
+    OpcServerConfigComponent,
   ],
   styleUrls: ['./opc-ua-basic-config.component.scss']
 })
@@ -124,7 +124,7 @@ export class OpcUaBasicConfigComponent implements ControlValueAccessor, Validato
     this.onTouched = fn;
   }
 
-  writeValue(basicConfig: ConnectorBaseConfig): void {
+  writeValue(basicConfig: OPCBasicConfig): void {
     const editedBase = {
       server: basicConfig.server || {},
       mapping: basicConfig.mapping || [],

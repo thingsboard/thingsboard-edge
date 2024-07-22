@@ -28,16 +28,89 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+@import '../scss/constants';
+
 :host {
   width: 100%;
   height: 100%;
   display: block;
+  .tb-master-table {
+    .tb-master-table-content {
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      overflow: hidden;
 
-  .server-conf-field-title {
-    min-width: 250px;
-    width: 30%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+      &.tb-outlined-border {
+        box-shadow: 0 0 0 0 rgb(0 0 0 / 20%), 0 0 0 0 rgb(0 0 0 / 14%), 0 0 0 0 rgb(0 0 0 / 12%);
+        border: solid 1px #e0e0e0;
+        border-radius: 4px;
+      }
+
+      .mat-toolbar-tools{
+        min-height: auto;
+      }
+
+      .title-container{
+        overflow: hidden;
+      }
+
+      .tb-master-table-title {
+        padding-right: 20px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .table-container {
+        overflow: auto;
+        .mat-mdc-table {
+          table-layout: fixed;
+          min-width: 450px;
+
+          .table-value-column {
+            padding: 0 12px;
+            width: 23%;
+
+            &.request-column {
+              width: 38%;
+            }
+          }
+        }
+      }
+
+      .ellipsis {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
+  }
+
+  .no-data-found {
+    height: calc(100% - 120px);
+  }
+
+  @media #{$mat-xs} {
+    .mat-toolbar {
+      height: auto;
+      min-height: 100px;
+
+      .tb-master-table-title{
+        padding-bottom: 5px;
+        width: 100%;
+      }
+    }
+  }
+}
+
+:host ::ng-deep {
+  mat-cell.tb-value-cell {
+    cursor: pointer;
+    .mat-icon {
+      height: 24px;
+      width: 24px;
+      font-size: 24px;
+      color: #757575
+    }
   }
 }

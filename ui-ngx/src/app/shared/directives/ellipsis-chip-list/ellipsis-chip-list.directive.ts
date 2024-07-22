@@ -35,7 +35,7 @@ import {
   Inject,
   Input,
   OnDestroy,
-  Renderer2
+  Renderer2,
 } from '@angular/core';
 import { isEqual } from '@core/utils';
 import { TranslateService } from '@ngx-translate/core';
@@ -45,13 +45,15 @@ import { takeUntil } from 'rxjs/operators';
 
 @Directive({
   // eslint-disable-next-line @angular-eslint/directive-selector
-  selector: '[tb-ellipsis-chip-list]'
+  selector: '[tb-ellipsis-chip-list]',
+  standalone: true,
 })
 export class EllipsisChipListDirective implements OnDestroy {
 
   chipsValue: string[];
 
   private destroy$ = new Subject<void>();
+  private intersectionObserver: IntersectionObserver;
 
   @Input('tb-ellipsis-chip-list')
   set chips(value: string[]) {
@@ -74,6 +76,16 @@ export class EllipsisChipListDirective implements OnDestroy {
     ).subscribe(() => {
       this.adjustChips();
     });
+
+    this.intersectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          this.adjustChips();
+        }
+      });
+    });
+
+    this.intersectionObserver.observe(this.el.nativeElement);
   }
 
   private adjustChips(): void {
@@ -139,5 +151,6 @@ export class EllipsisChipListDirective implements OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.intersectionObserver.disconnect();
   }
 }
