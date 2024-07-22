@@ -115,6 +115,9 @@ export class EntityTypeSelectComponent implements ControlValueAccessor, OnInit, 
     this.entityTypes = this.filterAllowedEntityTypes
       ? this.entityService.prepareAllowedEntityTypesList(this.allowedEntityTypes, this.useAliasEntityTypes, this.operation)
       : this.allowedEntityTypes;
+    if (this.allowedEntityTypes?.length && this.allowedEntityTypes.includes(AliasEntityType.CURRENT_RULE_NODE)) {
+      this.entityTypes.push(AliasEntityType.CURRENT_RULE_NODE);
+    }
     this.entityTypeFormGroup.get('entityType').valueChanges.subscribe(
       (value) => {
         let modelValue;
