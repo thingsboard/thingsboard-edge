@@ -658,7 +658,8 @@ CREATE TABLE IF NOT EXISTS scheduler_event (
     type varchar(255),
     schedule varchar,
     configuration varchar(10000000),
-    enabled boolean
+    enabled boolean,
+    version BIGINT DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS blob_entity (

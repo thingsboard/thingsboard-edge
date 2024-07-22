@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasCustomerId;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasOwnerId;
+import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -53,7 +54,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Data
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEventId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId {
+public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEventId> implements HasName, TenantEntity, HasCustomerId, HasOwnerId, HasVersion {
 
     private static final long serialVersionUID = 2807343040519549363L;
 
@@ -80,6 +81,8 @@ public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEven
     @Length(fieldName = "enabled")
     private boolean enabled = true;
 
+    private Long version;
+
     public SchedulerEventInfo() {
         super();
     }
@@ -97,6 +100,7 @@ public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEven
         this.type = schedulerEventInfo.getType();
         this.enabled = schedulerEventInfo.isEnabled();
         this.setSchedule(schedulerEventInfo.getSchedule());
+        this.version = schedulerEventInfo.getVersion();
     }
 
     @Schema(description = "JSON object with the scheduler event Id. " +
