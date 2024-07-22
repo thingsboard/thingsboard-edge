@@ -32,9 +32,7 @@ package org.thingsboard.server.common.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.Nullable;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.ApiUsageStateValue;
@@ -777,6 +775,9 @@ public class ProtoUtils {
         if (isNotNull(tenant.getAdditionalInfo())) {
             builder.setAdditionalInfo(JacksonUtil.toString(tenant.getAdditionalInfo()));
         }
+        if (isNotNull(tenant.getVersion())) {
+            builder.setVersion(tenant.getVersion());
+        }
         return builder.build();
     }
 
@@ -815,6 +816,9 @@ public class ProtoUtils {
         }
         if (proto.hasAdditionalInfo()) {
             tenant.setAdditionalInfo(JacksonUtil.toJsonNode(proto.getAdditionalInfo()));
+        }
+        if (proto.hasVersion()) {
+            tenant.setVersion(proto.getVersion());
         }
         return tenant;
     }
