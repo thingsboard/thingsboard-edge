@@ -477,6 +477,10 @@ export class UtilsService {
     return isDefined(value);
   }
 
+  public isDefinedAndNotNull(value: any): boolean {
+    return isDefinedAndNotNull(value);
+  }
+
   public defaultValue(value: any, defaultValue: any): any {
     if (isDefinedAndNotNull(value)) {
       return value;
