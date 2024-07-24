@@ -34,16 +34,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -166,12 +162,8 @@ public class UserController extends BaseController {
     private final SystemSecurityService systemSecurityService;
     private final ApplicationEventPublisher eventPublisher;
     private final TbUserService tbUserService;
-
-    @Autowired
-    private EntityQueryService entityQueryService;
-
-    @Autowired
-    private EntityService entityService;
+    private final EntityQueryService entityQueryService;
+    private final EntityService entityService;
 
     @ApiOperation(value = "Get User (getUserById)",
             notes = "Fetch the User object based on the provided User Id. " +
@@ -281,7 +273,6 @@ public class UserController extends BaseController {
             @Parameter(description = "A list of entity group ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
             @RequestParam(name = "entityGroupIds", required = false) String[] strEntityGroupIds,
             HttpServletRequest request) throws ThingsboardException {
-
         if (!Authority.SYS_ADMIN.equals(getCurrentUser().getAuthority())) {
             user.setTenantId(getCurrentUser().getTenantId());
         }
@@ -354,19 +345,10 @@ public class UserController extends BaseController {
             @RequestParam(value = "email") String email,
             HttpServletRequest request) throws ThingsboardException {
         User user = checkNotNull(userService.findUserByEmail(getCurrentUser().getTenantId(), email));
+        accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ, user.getId(), user);
 
-        accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ,
-                user.getId(), user);
-
-        UserCredentials userCredentials = userService.findUserCredentialsByUserId(getCurrentUser().getTenantId(), user.getId());
-        if (!userCredentials.isEnabled() && userCredentials.getActivateToken() != null) {
-            String baseUrl = systemSecurityService.getBaseUrl(getCurrentUser().getAuthority(), getTenantId(), getCurrentUser().getCustomerId(), request);
-            String activateUrl = String.format(ACTIVATE_URL_PATTERN, baseUrl,
-                    userCredentials.getActivateToken());
-            mailService.sendActivationEmail(getTenantId(), activateUrl, email);
-        } else {
-            throw new ThingsboardException("User is already activated!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-        }
+        String activationLink = getActivationLink(user.getId(), request);
+        mailService.sendActivationEmail(getTenantId(), activationLink, email);
     }
 
     @ApiOperation(value = "Get the activation link (getActivationLink)",
@@ -375,22 +357,13 @@ public class UserController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/user/{userId}/activationLink", method = RequestMethod.GET, produces = "text/plain")
     @ResponseBody
-    public String getActivationLink(
-            @Parameter(description = USER_ID_PARAM_DESCRIPTION)
-            @PathVariable(USER_ID) String strUserId,
-            HttpServletRequest request) throws ThingsboardException {
+    public String getActivationLink(@Parameter(description = USER_ID_PARAM_DESCRIPTION)
+                                    @PathVariable(USER_ID) String strUserId,
+                                    HttpServletRequest request) throws ThingsboardException {
         checkParameter(USER_ID, strUserId);
         UserId userId = new UserId(toUUID(strUserId));
-        User user = checkUserId(userId, Operation.READ);
-        SecurityUser authUser = getCurrentUser();
-        UserCredentials userCredentials = userService.findUserCredentialsByUserId(authUser.getTenantId(), user.getId());
-        if (!userCredentials.isEnabled() && userCredentials.getActivateToken() != null) {
-            String baseUrl = systemSecurityService.getBaseUrl(authUser.getAuthority(), getTenantId(), authUser.getCustomerId(), request);
-            return String.format(ACTIVATE_URL_PATTERN, baseUrl,
-                    userCredentials.getActivateToken());
-        } else {
-            throw new ThingsboardException("User is already activated!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-        }
+        checkUserId(userId, Operation.READ);
+        return getActivationLink(userId, request);
     }
 
     @ApiOperation(value = "Delete User (deleteUser)",
@@ -653,8 +626,7 @@ public class UserController extends BaseController {
             @Parameter(description = USER_ID_PARAM_DESCRIPTION)
             @PathVariable(USER_ID) String strUserId,
             @Parameter(description = "Enable (\"true\") or disable (\"false\") the credentials.", schema = @Schema(defaultValue = "true"))
-            @RequestParam(required = false, defaultValue = "true") boolean userCredentialsEnabled) throws
-            ThingsboardException {
+            @RequestParam(required = false, defaultValue = "true") boolean userCredentialsEnabled) throws ThingsboardException {
         checkParameter(USER_ID, strUserId);
         UserId userId = new UserId(toUUID(strUserId));
         checkUserId(userId, Operation.WRITE);
@@ -892,6 +864,23 @@ public class UserController extends BaseController {
     public void removeMobileSession(@RequestHeader(MOBILE_TOKEN_HEADER) String mobileToken,
                                     @AuthenticationPrincipal SecurityUser user) {
         userService.removeMobileSession(user.getTenantId(), mobileToken);
+    }
+
+    private String getActivationLink(UserId userId, HttpServletRequest request) throws ThingsboardException {
+        SecurityUser authUser = getCurrentUser();
+        TenantId tenantId = authUser.getTenantId();
+        UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, userId);
+        if (!userCredentials.isEnabled() && userCredentials.getActivateToken() != null) {
+            if (userCredentials.isActivationTokenExpired()) {
+                userCredentials = userService.generateUserActivationToken(userCredentials);
+                userCredentials = userService.saveUserCredentials(tenantId, userCredentials);
+                log.debug("[{}][{}] Regenerated expired user activation token", tenantId, userId);
+            }
+            String baseUrl = systemSecurityService.getBaseUrl(authUser.getAuthority(), tenantId, authUser.getCustomerId(), request);
+            return String.format(ACTIVATE_URL_PATTERN, baseUrl, userCredentials.getActivateToken());
+        } else {
+            throw new ThingsboardException("User is already activated!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
     }
 
     private void checkNotReserved(String strType, UserSettingsType type) throws ThingsboardException {

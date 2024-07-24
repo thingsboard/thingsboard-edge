@@ -28,51 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.security;
+package org.thingsboard.server.dao.settings;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-import org.thingsboard.server.common.data.BaseDataWithAdditionalInfo;
-import org.thingsboard.server.common.data.id.UserCredentialsId;
-import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.security.model.SecuritySettings;
 
-import java.io.Serial;
+public interface SecuritySettingsService {
 
-@Data
-@EqualsAndHashCode(callSuper = true)
-@ToString(callSuper = true)
-public class UserCredentials extends BaseDataWithAdditionalInfo<UserCredentialsId> {
+    SecuritySettings getSecuritySettings();
 
-    @Serial
-    private static final long serialVersionUID = -2108436378880529163L;
-
-    private UserId userId;
-    private boolean enabled;
-    private String password;
-    private String activateToken;
-    private Long activateTokenExpTime;
-    private String resetToken;
-    private Long resetTokenExpTime;
-
-    public UserCredentials() {
-        super();
-    }
-
-    public UserCredentials(UserCredentialsId id) {
-        super(id);
-    }
-
-
-    @JsonIgnore
-    public boolean isActivationTokenExpired() {
-        return activateTokenExpTime == null || System.currentTimeMillis() > activateTokenExpTime;
-    }
-
-    @JsonIgnore
-    public boolean isResetTokenExpired() {
-        return resetTokenExpTime == null || System.currentTimeMillis() > resetTokenExpTime;
-    }
+    SecuritySettings saveSecuritySettings(SecuritySettings securitySettings);
 
 }

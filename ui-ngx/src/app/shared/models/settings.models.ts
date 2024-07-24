@@ -167,6 +167,11 @@ export interface UserPasswordPolicy {
 
 export interface SecuritySettings {
   passwordPolicy: UserPasswordPolicy;
+  maxFailedLoginAttempts: number;
+  userLockoutNotificationEmail: string;
+  mobileSecretKeyLength: number;
+  userActivationTokenTtl: number;
+  passwordResetTokenTtl: number;
 }
 
 export interface JwtSettings {
