@@ -46,8 +46,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.cache.limits.RateLimitService;
@@ -104,8 +102,7 @@ public class AuthController extends BaseController {
             notes = "Get the information about the User which credentials are used to perform this REST API call.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/auth/user")
-    public @ResponseBody
-    User getUser() throws ThingsboardException {
+    public User getUser() throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
         return userService.findUserById(securityUser.getTenantId(), securityUser.getId());
     }
@@ -114,7 +111,6 @@ public class AuthController extends BaseController {
             notes = "Special API call to record the 'logout' of the user to the Audit Logs. Since platform uses [JWT](https://jwt.io/), the actual logout is the procedure of clearing the [JWT](https://jwt.io/) token on the client side. ")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping(value = "/auth/logout")
-    @ResponseStatus(value = HttpStatus.OK)
     public void logout(HttpServletRequest request) throws ThingsboardException {
         logLogoutAction(request);
     }
