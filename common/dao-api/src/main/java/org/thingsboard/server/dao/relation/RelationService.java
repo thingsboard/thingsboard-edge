@@ -52,7 +52,7 @@ public interface RelationService {
 
     EntityRelation getRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup);
 
-    boolean saveRelation(TenantId tenantId, EntityRelation relation);
+    EntityRelation saveRelation(TenantId tenantId, EntityRelation relation);
 
     void saveRelations(TenantId tenantId, List<EntityRelation> relations);
 
@@ -62,7 +62,7 @@ public interface RelationService {
 
     ListenableFuture<Boolean> deleteRelationAsync(TenantId tenantId, EntityRelation relation);
 
-    boolean deleteRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup);
+    EntityRelation deleteRelation(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup);
 
     ListenableFuture<Boolean> deleteRelationAsync(TenantId tenantId, EntityId from, EntityId to, String relationType, RelationTypeGroup typeGroup);
 

@@ -38,6 +38,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -55,11 +56,12 @@ import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TO_TYPE_P
 import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TYPE_GROUP_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TYPE_PROPERTY;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = RELATION_TABLE_NAME)
 @IdClass(RelationCompositeKey.class)
-public final class RelationEntity implements ToData<EntityRelation> {
+public final class RelationEntity extends VersionedEntity implements ToData<EntityRelation> {
 
     @Id
     @Column(name = RELATION_FROM_ID_PROPERTY, columnDefinition = "uuid")
@@ -118,6 +120,7 @@ public final class RelationEntity implements ToData<EntityRelation> {
         }
         relation.setType(relationType);
         relation.setTypeGroup(RelationTypeGroup.valueOf(relationTypeGroup));
+        relation.setVersion(version);
         relation.setAdditionalInfo(additionalInfo);
         return relation;
     }
