@@ -63,7 +63,7 @@
                 {{ 'widgets.recent-dashboards.name' | translate }}
               </mat-header-cell>
               <mat-cell class="title" *matCellDef="let lastVisitedDashboard">
-                <a routerLink="/dashboards/all/{{lastVisitedDashboard.id}}">{{ lastVisitedDashboard.title }}</a>
+                <a [routerLink]="createDashboardUrl(lastVisitedDashboard.id)">{{ lastVisitedDashboard.title }}</a>
               </mat-cell>
             </ng-container>
             <ng-container matColumnDef="lastVisited">
@@ -93,7 +93,7 @@
                         class="star" [ngClass]="{'starred': dashboard.starred}">{{ dashboard.starred ? 'star' : 'star_border' }}</mat-icon>
             </div>
             <div class="tb-cell title">
-              <a routerLink="/dashboards/{{dashboard.id}}">{{ dashboard.title }}</a>
+              <a [routerLink]="createDashboardUrl(dashboard.id)">{{ dashboard.title }}</a>
             </div>
           </div>
         </div>
