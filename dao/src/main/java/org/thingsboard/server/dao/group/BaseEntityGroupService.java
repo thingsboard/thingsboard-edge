@@ -40,6 +40,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -80,7 +81,7 @@ import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.edge.EdgeService;
-import org.thingsboard.server.dao.entity.AbstractEntityService;
+import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entity.EntityQueryDao;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
@@ -117,7 +118,7 @@ import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service("EntityGroupDaoService")
 @Slf4j
-public class BaseEntityGroupService extends AbstractEntityService implements EntityGroupService {
+public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGroupCacheKey, EntityGroup, EntityGroupEvictEvent> implements EntityGroupService {
 
     public static final String ENTITY_GROUP_RELATION_PREFIX = "ENTITY_GROUP_";
     public static final String INCORRECT_PARENT_ENTITY_ID = "Incorrect parentEntityId ";
@@ -204,10 +205,15 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         log.trace("Executing saveEntityGroup [{}]", entityGroup);
         validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         entityGroup = new EntityGroup(entityGroup);
+        EntityGroup old = null;
+        if (entityGroup.getId() != null) {
+            old = findEntityGroupById(tenantId, entityGroup.getId());
+        }
         if (entityGroup.getId() == null) {
             entityGroup.setOwnerId(parentEntityId);
         }
         new EntityGroupValidator().validate(entityGroup, data -> tenantId);
+        EntityGroupEvictEvent event = new EntityGroupEvictEvent(tenantId, entityGroup.getType(), entityGroup.getName(), old != null ? old.getName() : null, entityGroup.getOwnerId(), old != null ? old.getOwnerId() : null);
         if (entityGroup.getId() == null && entityGroup.getConfiguration() == null) {
             EntityGroupConfiguration entityGroupConfiguration =
                     EntityGroupConfiguration.createDefaultEntityGroupConfiguration(entityGroup.getType());
@@ -218,8 +224,10 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         }
         EntityGroup savedEntityGroup;
         try {
-            savedEntityGroup = entityGroupDao.save(tenantId, entityGroup);
+            savedEntityGroup = entityGroupDao.saveAndFlush(tenantId, entityGroup);
+            publishEvictEvent(event);
         } catch (Exception t) {
+            handleEvictEvent(event);
             ConstraintViolationException e = extractConstraintViolationException(t).orElse(null);
             if (e != null && "group_name_per_owner_unq_key".equalsIgnoreCase(e.getConstraintName())) {
                 throw new DataValidationException("Entity Group with such name, type and owner already exists!");
@@ -530,8 +538,10 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
         validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndUserGroupId(tenantId, entityGroupId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndEntityGroupId(tenantId, entityGroupId);
+        EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         entityGroupDao.removeById(tenantId, entityGroupId.getId());
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityGroupId).build());
+        publishEvictEvent(new EntityGroupEvictEvent(tenantId, entityGroup.getType(), entityGroup.getName(), null, entityGroup.getOwnerId(), null));
     }
 
     @Override
@@ -693,8 +703,9 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public Optional<EntityGroup> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name) {
         log.trace("Executing findEntityGroupByTypeAndName, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
-        return this.entityGroupDao.findEntityGroupByTypeAndName(tenantId.getId(), parentEntityId.getId(),
-                parentEntityId.getEntityType(), groupType, name);
+        return Optional.ofNullable(cache.getAndPutInTransaction(new EntityGroupCacheKey(tenantId, groupType, name, parentEntityId),
+                () -> entityGroupDao.findEntityGroupByTypeAndName(tenantId.getId(), parentEntityId.getId(),
+                        parentEntityId.getEntityType(), groupType, name).orElse(null), true));
     }
 
     @Override
@@ -708,8 +719,7 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     public ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndNameAsync(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name) {
         log.trace("Executing findEntityGroupByTypeAndNameAsync, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
         String relationType = validateAndComposeRelationType(parentEntityId, groupType, name);
-        return this.entityGroupDao.findEntityGroupByTypeAndNameAsync(tenantId.getId(), parentEntityId.getId(),
-                parentEntityId.getEntityType(), groupType, name);
+        return executorService.submit(() -> findEntityGroupByTypeAndName(tenantId, parentEntityId, groupType, name));
     }
 
     private String validateAndComposeRelationType(EntityId parentEntityId, EntityType groupType, String name) {
@@ -1167,6 +1177,26 @@ public class BaseEntityGroupService extends AbstractEntityService implements Ent
     @Override
     public EntityType getEntityType() {
         return EntityType.ENTITY_GROUP;
+    }
+
+    @TransactionalEventListener(classes = EntityGroupEvictEvent.class)
+    @Override
+    public void handleEvictEvent(EntityGroupEvictEvent event) {
+        List<EntityGroupCacheKey> keys = new ArrayList<>(4);
+        if (StringUtils.isNotEmpty(event.oldGroupName()) && !event.oldGroupName().equals(event.newGroupName())) {
+            if (event.oldOwnerId() != null && !event.oldOwnerId().equals(event.newOwnerId())) {
+                keys.add(new EntityGroupCacheKey(event.tenantId(), event.entityType(), event.oldGroupName(), event.oldOwnerId()));
+            } else {
+                keys.add(new EntityGroupCacheKey(event.tenantId(), event.entityType(), event.oldGroupName(), event.newOwnerId()));
+            }
+        } else {
+            if (event.oldOwnerId() != null && !event.oldOwnerId().equals(event.newOwnerId())) {
+                keys.add(new EntityGroupCacheKey(event.tenantId(), event.entityType(), event.newGroupName(), event.oldOwnerId()));
+            } else {
+                keys.add(new EntityGroupCacheKey(event.tenantId(), event.entityType(), event.newGroupName(), event.newOwnerId()));
+            }
+        }
+        cache.evict(keys);
     }
 
     private class EntityGroupValidator extends DataValidator<EntityGroup> {

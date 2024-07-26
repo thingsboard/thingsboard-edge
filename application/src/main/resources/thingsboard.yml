@@ -702,6 +702,9 @@ cache:
     customTranslation:
       timeToLiveInMinutes: "${CACHE_SPECS_CUSTOM_TRANSLATION_TTL:1440}" # Custom translation cache TTL
       maxSize: "${CACHE_SPECS_CUSTOM_TRANSLATION_MAX_SIZE:10000}" # 0 means the cache is disabled
+    entityGroups:
+      timeToLiveInMinutes: "${CACHE_SPECS_ATTRIBUTES_TTL:1440}" # Attributes cache TTL
+      maxSize: "${CACHE_SPECS_ATTRIBUTES_MAX_SIZE:100000}" # 0 means the cache is disabled
 
   # deliberately placed outside the 'specs' group above
   notificationRules:
