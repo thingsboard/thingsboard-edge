@@ -40,7 +40,6 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import {
   DeviceTransportType,
   SnmpDeviceProfileTransportConfiguration
@@ -78,16 +77,6 @@ export class SnmpDeviceProfileTransportConfigurationComponent implements OnInit,
   snmpDeviceProfileTransportConfigurationFormGroup: UntypedFormGroup;
 
   private destroy$ = new Subject<void>();
-  private requiredValue: boolean;
-
-  get required(): boolean {
-    return this.requiredValue;
-  }
-
-  @Input()
-  set required(value: boolean) {
-    this.requiredValue = coerceBooleanProperty(value);
-  }
 
   @Input()
   disabled: boolean;
