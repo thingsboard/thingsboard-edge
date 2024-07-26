@@ -408,6 +408,7 @@ mat-icon {
 }
 
 .tb-ace-doc-tooltip {
+  white-space: pre-wrap;
   code {
     color: #444;
     &.title {

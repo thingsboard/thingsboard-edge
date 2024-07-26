@@ -113,6 +113,7 @@ export class WidgetComponentService {
             widgetName: this.utils.editWidgetInfo.widgetName,
             fullFqn: 'system.customWidget',
             deprecated: false,
+            scada: false,
             type: this.utils.editWidgetInfo.type,
             sizeX: this.utils.editWidgetInfo.sizeX,
             sizeY: this.utils.editWidgetInfo.sizeY,
@@ -608,6 +609,9 @@ export class WidgetComponentService {
       }
       if (isUndefined(result.typeParameters.displayRpcMessageToast)) {
         result.typeParameters.displayRpcMessageToast = true;
+      }
+      if (isUndefined(result.typeParameters.targetDeviceOptional)) {
+        result.typeParameters.targetDeviceOptional = false;
       }
       if (isFunction(widgetTypeInstance.actionSources)) {
         result.actionSources = widgetTypeInstance.actionSources();

@@ -170,6 +170,9 @@ import { GradientComponent } from '@home/components/widget/lib/settings/common/g
 import {
   ValueSourceDataKeyComponent
 } from '@home/components/widget/lib/settings/common/value-source-data-key.component';
+import {
+  ScadaSymbolObjectSettingsComponent
+} from '@home/components/widget/lib/settings/common/scada/scada-symbol-object-settings.component';
 
 @NgModule({
   declarations: [
@@ -226,6 +229,7 @@ import {
     TimeSeriesChartStateRowComponent,
     TimeSeriesChartGridSettingsComponent,
     StatusWidgetStateSettingsComponent,
+    ScadaSymbolObjectSettingsComponent,
     DataKeyInputComponent,
     EntityAliasInputComponent,
     AdvancedRangeComponent,
@@ -290,6 +294,7 @@ import {
     TimeSeriesChartStateRowComponent,
     TimeSeriesChartGridSettingsComponent,
     StatusWidgetStateSettingsComponent,
+    ScadaSymbolObjectSettingsComponent,
     DataKeyInputComponent,
     EntityAliasInputComponent,
     AdvancedRangeComponent,

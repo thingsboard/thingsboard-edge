@@ -38,6 +38,7 @@ export interface WidgetsBundle extends BaseData<WidgetsBundleId>, ExportableEnti
   alias: string;
   title: string;
   image: string;
+  scada: boolean;
   description: string;
   order: number;
 }

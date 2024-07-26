@@ -31,6 +31,9 @@
 package org.thingsboard.server.dao.model.sql;
 
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -39,9 +42,6 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
 import java.util.UUID;
 
 @Data
@@ -61,6 +61,9 @@ public final class WidgetsBundleEntity extends BaseSqlEntity<WidgetsBundle> {
 
     @Column(name = ModelConstants.WIDGETS_BUNDLE_IMAGE_PROPERTY)
     private String image;
+
+    @Column(name = ModelConstants.WIDGETS_BUNDLE_SCADA_PROPERTY)
+    private boolean scada;
 
     @Column(name = ModelConstants.WIDGETS_BUNDLE_DESCRIPTION)
     private String description;
@@ -86,6 +89,7 @@ public final class WidgetsBundleEntity extends BaseSqlEntity<WidgetsBundle> {
         this.alias = widgetsBundle.getAlias();
         this.title = widgetsBundle.getTitle();
         this.image = widgetsBundle.getImage();
+        this.scada = widgetsBundle.isScada();
         this.description = widgetsBundle.getDescription();
         this.order = widgetsBundle.getOrder();
         if (widgetsBundle.getExternalId() != null) {
@@ -103,6 +107,7 @@ public final class WidgetsBundleEntity extends BaseSqlEntity<WidgetsBundle> {
         widgetsBundle.setAlias(alias);
         widgetsBundle.setTitle(title);
         widgetsBundle.setImage(image);
+        widgetsBundle.setScada(scada);
         widgetsBundle.setDescription(description);
         widgetsBundle.setOrder(order);
         if (externalId != null) {

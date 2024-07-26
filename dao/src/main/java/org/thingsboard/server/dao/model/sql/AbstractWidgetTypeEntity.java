@@ -30,17 +30,16 @@
  */
 package org.thingsboard.server.dao.model.sql;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.widget.BaseWidgetType;
-import org.thingsboard.server.dao.model.BaseEntity;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.MappedSuperclass;
 import java.util.UUID;
 
 @Data
@@ -60,6 +59,9 @@ public abstract class AbstractWidgetTypeEntity<T extends BaseWidgetType> extends
     @Column(name = ModelConstants.WIDGET_TYPE_DEPRECATED_PROPERTY)
     private boolean deprecated;
 
+    @Column(name = ModelConstants.WIDGET_TYPE_SCADA_PROPERTY)
+    private boolean scada;
+
     public AbstractWidgetTypeEntity() {
         super();
     }
@@ -75,6 +77,7 @@ public abstract class AbstractWidgetTypeEntity<T extends BaseWidgetType> extends
         this.fqn = widgetType.getFqn();
         this.name = widgetType.getName();
         this.deprecated = widgetType.isDeprecated();
+        this.scada = widgetType.isScada();
     }
 
     public AbstractWidgetTypeEntity(AbstractWidgetTypeEntity widgetTypeEntity) {
@@ -84,6 +87,7 @@ public abstract class AbstractWidgetTypeEntity<T extends BaseWidgetType> extends
         this.fqn = widgetTypeEntity.getFqn();
         this.name = widgetTypeEntity.getName();
         this.deprecated = widgetTypeEntity.isDeprecated();
+        this.scada = widgetTypeEntity.isScada();
     }
 
     protected BaseWidgetType toBaseWidgetType() {
@@ -95,6 +99,7 @@ public abstract class AbstractWidgetTypeEntity<T extends BaseWidgetType> extends
         widgetType.setFqn(fqn);
         widgetType.setName(name);
         widgetType.setDeprecated(deprecated);
+        widgetType.setScada(scada);
         return widgetType;
     }
 

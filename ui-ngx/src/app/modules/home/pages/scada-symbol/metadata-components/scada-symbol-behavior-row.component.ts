@@ -1,0 +1,302 @@
+///
+/// ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+///
+/// Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+///
+/// NOTICE: All information contained herein is, and remains
+/// the property of ThingsBoard, Inc. and its suppliers,
+/// if any.  The intellectual and technical concepts contained
+/// herein are proprietary to ThingsBoard, Inc.
+/// and its suppliers and may be covered by U.S. and Foreign Patents,
+/// patents in process, and are protected by trade secret or copyright law.
+///
+/// Dissemination of this information or reproduction of this material is strictly forbidden
+/// unless prior written permission is obtained from COMPANY.
+///
+/// Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+/// managers or contractors who have executed Confidentiality and Non-disclosure agreements
+/// explicitly covering such access.
+///
+/// The copyright notice above does not evidence any actual or intended publication
+/// or disclosure  of  this source code, which includes
+/// information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+/// ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+/// OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+/// THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+/// AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+/// THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+/// DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+/// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+///
+
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  forwardRef,
+  Input,
+  OnInit,
+  Output,
+  Renderer2,
+  ViewChild,
+  ViewContainerRef,
+  ViewEncapsulation
+} from '@angular/core';
+import {
+  ControlValueAccessor,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validator,
+  ValidatorFn,
+  Validators
+} from '@angular/forms';
+import {
+  ScadaSymbolBehavior,
+  ScadaSymbolBehaviorType,
+  scadaSymbolBehaviorTypes,
+  scadaSymbolBehaviorTypeTranslations
+} from '@home/components/widget/lib/scada/scada-symbol.models';
+import { deepClone, isUndefinedOrNull } from '@core/utils';
+import { MatButton } from '@angular/material/button';
+import { TbPopoverService } from '@shared/components/popover.service';
+import {
+  ScadaSymbolBehaviorPanelComponent
+} from '@home/pages/scada-symbol/metadata-components/scada-symbol-behavior-panel.component';
+import { ValueToDataType } from '@shared/models/action-widget-settings.models';
+import {
+  ScadaSymbolBehaviorsComponent
+} from '@home/pages/scada-symbol/metadata-components/scada-symbol-behaviors.component';
+
+export const behaviorValid = (behavior: ScadaSymbolBehavior): boolean => {
+  if (!behavior.id || !behavior.name || !behavior.type) {
+    return false;
+  }
+  switch (behavior.type) {
+    case ScadaSymbolBehaviorType.value:
+      if (!behavior.valueType || isUndefinedOrNull(behavior.defaultValue)) {
+        return false;
+      }
+      break;
+    case ScadaSymbolBehaviorType.action:
+      if (!behavior.valueToDataType) {
+        return false;
+      }
+      if (behavior.valueToDataType === ValueToDataType.CONSTANT
+        && isUndefinedOrNull(behavior.constantValue)) {
+        return false;
+      }
+      if (behavior.valueToDataType === ValueToDataType.FUNCTION
+        && isUndefinedOrNull(behavior.valueToDataFunction)) {
+        return false;
+      }
+      break;
+    case ScadaSymbolBehaviorType.widgetAction:
+      break;
+  }
+  return true;
+};
+
+@Component({
+  selector: 'tb-scada-symbol-metadata-behavior-row',
+  templateUrl: './scada-symbol-behavior-row.component.html',
+  styleUrls: ['./scada-symbol-behavior-row.component.scss'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => ScadaSymbolBehaviorRowComponent),
+      multi: true
+    },
+    {
+      provide: NG_VALIDATORS,
+      useExisting: forwardRef(() => ScadaSymbolBehaviorRowComponent),
+      multi: true
+    }
+  ],
+  encapsulation: ViewEncapsulation.None
+})
+export class ScadaSymbolBehaviorRowComponent implements ControlValueAccessor, OnInit, Validator {
+
+  @ViewChild('idInput')
+  idInput: ElementRef<HTMLInputElement>;
+
+  @ViewChild('editButton')
+  editButton: MatButton;
+
+  scadaSymbolBehaviorTypes = scadaSymbolBehaviorTypes;
+  scadaSymbolBehaviorTypeTranslations = scadaSymbolBehaviorTypeTranslations;
+
+  @Input()
+  disabled: boolean;
+
+  @Input()
+  index: number;
+
+  @Output()
+  behaviorRemoved = new EventEmitter();
+
+  behaviorRowFormGroup: UntypedFormGroup;
+
+  modelValue: ScadaSymbolBehavior;
+
+  private propagateChange = (_val: any) => {};
+
+  constructor(private fb: UntypedFormBuilder,
+              private cd: ChangeDetectorRef,
+              private popoverService: TbPopoverService,
+              private renderer: Renderer2,
+              private viewContainerRef: ViewContainerRef,
+              private behaviorsComponent: ScadaSymbolBehaviorsComponent) {
+  }
+
+  ngOnInit() {
+    this.behaviorRowFormGroup = this.fb.group({
+      id: [null, [this.behaviorIdValidator()]],
+      name: [null, [Validators.required]],
+      type: [null, [Validators.required]]
+    });
+    this.behaviorRowFormGroup.valueChanges.subscribe(
+      () => this.updateModel()
+    );
+    this.behaviorRowFormGroup.get('type').valueChanges.subscribe((newType: ScadaSymbolBehaviorType) => {
+      this.onTypeChanged(newType);
+    });
+  }
+
+  registerOnChange(fn: any): void {
+    this.propagateChange = fn;
+  }
+
+  registerOnTouched(_fn: any): void {
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
+    if (isDisabled) {
+      this.behaviorRowFormGroup.disable({emitEvent: false});
+    } else {
+      this.behaviorRowFormGroup.enable({emitEvent: false});
+    }
+  }
+
+  writeValue(value: ScadaSymbolBehavior): void {
+    this.modelValue = value;
+    this.behaviorRowFormGroup.patchValue(
+      {
+        id: value?.id,
+        name: value?.name,
+        type: value?.type
+      }, {emitEvent: false}
+    );
+    this.cd.markForCheck();
+  }
+
+  editBehavior($event: Event, matButton: MatButton, add = false, editCanceled = () => {}) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const trigger = matButton._elementRef.nativeElement;
+    if (this.popoverService.hasPopover(trigger)) {
+      this.popoverService.hidePopover(trigger);
+    } else {
+      const ctx: any = {
+        isAdd: add,
+        disabled: this.disabled,
+        behavior: deepClone(this.modelValue)
+      };
+      const scadaSymbolBehaviorPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
+        this.viewContainerRef, ScadaSymbolBehaviorPanelComponent, ['leftOnly', 'leftTopOnly', 'leftBottomOnly'], true, null,
+        ctx,
+        {},
+        {}, {}, true);
+      scadaSymbolBehaviorPanelPopover.tbComponentRef.instance.popover = scadaSymbolBehaviorPanelPopover;
+      scadaSymbolBehaviorPanelPopover.tbComponentRef.instance.behaviorSettingsApplied.subscribe((behavior) => {
+        scadaSymbolBehaviorPanelPopover.hide();
+        this.behaviorRowFormGroup.patchValue(
+          {
+            id: behavior.id,
+            name: behavior.name,
+            type: behavior.type
+          }, {emitEvent: false}
+        );
+        this.modelValue = behavior;
+        this.propagateChange(this.modelValue);
+      });
+      scadaSymbolBehaviorPanelPopover.tbDestroy.subscribe(() => {
+        if (!behaviorValid(this.modelValue)) {
+          editCanceled();
+        }
+      });
+    }
+  }
+
+  focus() {
+    this.idInput.nativeElement.scrollIntoView();
+    this.idInput.nativeElement.focus();
+  }
+
+  onAdd(onCanceled: () => void) {
+    this.idInput.nativeElement.scrollIntoView();
+    this.editBehavior(null, this.editButton, true, onCanceled);
+  }
+
+  public validate(_c: UntypedFormControl) {
+    const idControl = this.behaviorRowFormGroup.get('id');
+    if (idControl.hasError('behaviorIdNotUnique')) {
+      idControl.updateValueAndValidity({onlySelf: false, emitEvent: false});
+    }
+    if (idControl.hasError('behaviorIdNotUnique')) {
+      this.behaviorRowFormGroup.get('id').markAsTouched();
+      return {
+        behaviorIdNotUnique: true
+      };
+    }
+    const behavior: ScadaSymbolBehavior = {...this.modelValue, ...this.behaviorRowFormGroup.value};
+    if (!behaviorValid(behavior)) {
+      return {
+        behavior: true
+      };
+    }
+    return null;
+  }
+
+  private behaviorIdValidator(): ValidatorFn {
+    return control => {
+      if (!control.value) {
+        return {
+          required: true
+        };
+      }
+      if (!this.behaviorsComponent.behaviorIdUnique(control.value, this.index)) {
+        return {
+          behaviorIdNotUnique: true
+        };
+      }
+      return null;
+    };
+  }
+
+  private onTypeChanged(newType: ScadaSymbolBehaviorType) {
+    const prevType = this.modelValue.type;
+    this.modelValue = {...this.modelValue, ...{type: newType}};
+    if (!behaviorValid(this.modelValue)) {
+      this.editBehavior(null, this.editButton, false, () => {
+        this.behaviorRowFormGroup.patchValue(
+          {
+            type: prevType
+          }, {emitEvent: true}
+        );
+      });
+    }
+  }
+
+  private updateModel() {
+    const value: ScadaSymbolBehavior = this.behaviorRowFormGroup.value;
+    this.modelValue = {...this.modelValue, ...value};
+    this.propagateChange(this.modelValue);
+  }
+
+}

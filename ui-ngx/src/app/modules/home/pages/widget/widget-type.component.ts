@@ -68,6 +68,7 @@ export class WidgetTypeComponent extends EntityComponent<WidgetTypeDetails> {
         image: [entity ? entity.image : ''],
         description: [entity  ? entity.description : '', Validators.maxLength(1024)],
         tags: [entity ? entity.tags : []],
+        scada: [entity ? entity.scada : false],
         deprecated: [entity ? entity.deprecated : false]
       }
     );
@@ -79,6 +80,7 @@ export class WidgetTypeComponent extends EntityComponent<WidgetTypeDetails> {
       image: entity.image,
       description: entity.description,
       tags: entity.tags,
+      scada: entity.scada,
       deprecated: entity.deprecated
     });
   }

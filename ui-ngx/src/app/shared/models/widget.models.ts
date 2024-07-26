@@ -57,6 +57,7 @@ import { WidgetConfigComponentData } from '@home/models/widget-component.models'
 import { ComponentStyle, Font, TimewindowStyle } from '@shared/models/widget-settings.models';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
+import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
 
 export enum widgetType {
   timeseries = 'timeseries',
@@ -200,6 +201,7 @@ export interface WidgetTypeParameters {
   defaultLatestDataKeysFunction?: (configComponent: any, configData: any) => DataKey[];
   dataKeySettingsFunction?: DataKeySettingsFunction;
   displayRpcMessageToast?: boolean;
+  targetDeviceOptional?: boolean;
 }
 
 export interface WidgetControllerDescriptor {
@@ -216,6 +218,7 @@ export interface BaseWidgetType extends BaseData<WidgetTypeId> {
   fqn: string;
   name: string;
   deprecated: boolean;
+  scada: boolean;
 }
 
 export const fullWidgetTypeFqn = (type: BaseWidgetType): string =>
@@ -374,7 +377,7 @@ export interface DataKey extends KeyInfo {
   _hash?: number;
 }
 
-export type CellClickColumnInfo = Pick<DataKey, 'name' | 'label'>
+export type CellClickColumnInfo = Pick<DataKey, 'name' | 'label'>;
 
 export enum DataKeyConfigMode {
   general = 'general',
@@ -551,6 +554,7 @@ export interface LegendData {
 }
 
 export enum WidgetActionType {
+  doNothing = 'doNothing',
   openDashboardState = 'openDashboardState',
   updateDashboardState = 'updateDashboardState',
   openDashboard = 'openDashboard',
@@ -575,6 +579,7 @@ export const widgetActionTypes = Object.keys(WidgetActionType) as WidgetActionTy
 
 export const widgetActionTypeTranslationMap = new Map<WidgetActionType, string>(
   [
+    [ WidgetActionType.doNothing, 'widget-action.do-nothing' ],
     [ WidgetActionType.openDashboardState, 'widget-action.open-dashboard-state' ],
     [ WidgetActionType.updateDashboardState, 'widget-action.update-dashboard-state' ],
     [ WidgetActionType.openDashboard, 'widget-action.open-dashboard' ],
@@ -863,6 +868,7 @@ export interface WidgetSize {
 
 export interface IWidgetSettingsComponent {
   aliasController: IAliasController;
+  callbacks: WidgetConfigCallbacks;
   dataKeyCallbacks: DataKeysCallbacks;
   dashboard: Dashboard;
   widget: Widget;
@@ -880,6 +886,8 @@ export abstract class WidgetSettingsComponent extends PageComponent implements
   IWidgetSettingsComponent, OnInit, AfterViewInit {
 
   aliasController: IAliasController;
+
+  callbacks: WidgetConfigCallbacks;
 
   dataKeyCallbacks: DataKeysCallbacks;
 

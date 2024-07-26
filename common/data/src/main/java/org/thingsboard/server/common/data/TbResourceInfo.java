@@ -64,6 +64,8 @@ public class TbResourceInfo extends BaseData<TbResourceId> implements HasName, T
     private String title;
     @Schema(description = "Resource type.", example = "LWM2M_MODEL", accessMode = Schema.AccessMode.READ_ONLY)
     private ResourceType resourceType;
+    @Schema(description = "Resource sub type.", example = "IOT_SVG", accessMode = Schema.AccessMode.READ_ONLY)
+    private ResourceSubType resourceSubType;
     @NoXss
     @Length(fieldName = "resourceKey")
     @Schema(description = "Resource key.", example = "19_1.0", accessMode = Schema.AccessMode.READ_ONLY)
@@ -97,6 +99,7 @@ public class TbResourceInfo extends BaseData<TbResourceId> implements HasName, T
         this.customerId = resourceInfo.customerId;
         this.title = resourceInfo.title;
         this.resourceType = resourceInfo.resourceType;
+        this.resourceSubType = resourceInfo.resourceSubType;
         this.resourceKey = resourceInfo.resourceKey;
         this.searchText = resourceInfo.searchText;
         this.isPublic = resourceInfo.isPublic;

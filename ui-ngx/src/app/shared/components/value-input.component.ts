@@ -51,6 +51,7 @@ import {
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { Subscription } from 'rxjs';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { TranslateService } from '@ngx-translate/core';
 
 type Layout = 'column' | 'row';
 
@@ -83,10 +84,10 @@ export class ValueInputComponent implements OnInit, OnDestroy, OnChanges, Contro
   valueType: ValueType;
 
   @Input()
-  trueLabel = 'value.true';
+  trueLabel: string;
 
   @Input()
-  falseLabel = 'value.false';
+  falseLabel: string;
 
   @Input()
   layout: ValueInputLayout | Layout = 'row';
@@ -116,12 +117,19 @@ export class ValueInputComponent implements OnInit, OnDestroy, OnChanges, Contro
   constructor(
     private breakpointObserver: BreakpointObserver,
     private cd: ChangeDetectorRef,
+    private translate: TranslateService,
     public dialog: MatDialog,
   ) {
 
   }
 
   ngOnInit(): void {
+    if (!this.trueLabel) {
+      this.trueLabel = this.translate.instant('value.true');
+    }
+    if (!this.falseLabel) {
+      this.falseLabel = this.translate.instant('value.false');
+    }
     this._subscription = new Subscription();
     this.showValueType = !this.valueType;
     this.computedLayout = this._computeLayout();

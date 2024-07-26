@@ -400,6 +400,7 @@ public class ModelConstants {
     public static final String WIDGETS_BUNDLE_ALIAS_PROPERTY = ALIAS_PROPERTY;
     public static final String WIDGETS_BUNDLE_TITLE_PROPERTY = TITLE_PROPERTY;
     public static final String WIDGETS_BUNDLE_IMAGE_PROPERTY = "image";
+    public static final String WIDGETS_BUNDLE_SCADA_PROPERTY = "scada";
     public static final String WIDGETS_BUNDLE_DESCRIPTION = "description";
     public static final String WIDGETS_BUNDLE_ORDER = "widgets_bundle_order";
 
@@ -417,6 +418,8 @@ public class ModelConstants {
     public static final String WIDGET_TYPE_DESCRIPTOR_PROPERTY = "descriptor";
 
     public static final String WIDGET_TYPE_DEPRECATED_PROPERTY = "deprecated";
+
+    public static final String WIDGET_TYPE_SCADA_PROPERTY = "scada";
 
     public static final String WIDGET_TYPE_WIDGET_TYPE_PROPERTY = "widget_type";
 
@@ -662,6 +665,7 @@ public class ModelConstants {
 
     public static final String RESOURCE_CUSTOMER_ID_COLUMN = CUSTOMER_ID_PROPERTY;
     public static final String RESOURCE_TYPE_COLUMN = "resource_type";
+    public static final String RESOURCE_SUB_TYPE_COLUMN = "resource_sub_type";
     public static final String RESOURCE_KEY_COLUMN = "resource_key";
     public static final String RESOURCE_TITLE_COLUMN = TITLE_PROPERTY;
     public static final String RESOURCE_FILE_NAME_COLUMN = "file_name";
