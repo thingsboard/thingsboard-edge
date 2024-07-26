@@ -45,7 +45,7 @@ import { CommonModule } from '@angular/common';
 import { takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 
-import { EllipsisChipListDirective } from '@shared/directives/public-api';
+import { EllipsisChipListDirective } from '@shared/directives/ellipsis-chip-list.directive';
 import { ModbusSlaveConfigComponent } from '../modbus-slave-config/modbus-slave-config.component';
 import { ModbusMasterTableComponent } from '../modbus-master-table/modbus-master-table.component';
 
@@ -77,9 +77,10 @@ import { ModbusMasterTableComponent } from '../modbus-master-table/modbus-master
     :host {
       height: 100%;
     }
+
     :host ::ng-deep {
-      .mat-mdc-tab-group, .mat-mdc-tab-body-wrapper {
-        height: 100%;
+      .mat-mdc-tab-body-content {
+        overflow: hidden !important;
       }
     }
   `]
@@ -91,10 +92,9 @@ export class ModbusBasicConfigComponent implements ControlValueAccessor, Validat
 
   basicFormGroup: FormGroup;
 
-  onChange: (value: string) => void;
+  onChange: (value: ModbusBasicConfig) => void;
   onTouched: () => void;
 
-  protected readonly connectorType = ConnectorType;
   private destroy$ = new Subject<void>();
 
   constructor(private fb: FormBuilder) {
@@ -116,7 +116,7 @@ export class ModbusBasicConfigComponent implements ControlValueAccessor, Validat
     this.destroy$.complete();
   }
 
-  registerOnChange(fn: (value: string) => void): void {
+  registerOnChange(fn: (value: ModbusBasicConfig) => void): void {
     this.onChange = fn;
   }
 
@@ -126,8 +126,8 @@ export class ModbusBasicConfigComponent implements ControlValueAccessor, Validat
 
   writeValue(basicConfig: ModbusBasicConfig): void {
     const editedBase = {
-      slave: basicConfig.slave || {},
-      master: basicConfig.master || {},
+      slave: basicConfig.slave ?? {},
+      master: basicConfig.master ?? {},
     };
 
     this.basicFormGroup.setValue(editedBase, {emitEvent: false});

@@ -29,29 +29,35 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Pipe, PipeTransform } from '@angular/core';
-import { PortLimits, } from '@home/components/widget/lib/gateway/gateway-widget.models';
-import { AbstractControl } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
+import { DataSource } from '@angular/cdk/collections';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
-@Pipe({
-  name: 'getGatewayPortTooltip',
-  standalone: true,
-})
-export class GatewayPortTooltipPipe implements PipeTransform {
+export abstract class TbTableDatasource<T> implements DataSource<T> {
 
-  constructor(private translate: TranslateService) {}
+  protected dataSubject = new BehaviorSubject<Array<T>>([]);
 
-  transform(portControl: AbstractControl): string {
-    if (portControl.hasError('required')) {
-      return this.translate.instant('gateway.port-required');
-    } else if (
-      portControl.hasError('min') ||
-      portControl.hasError('max')
-    ) {
-      return this.translate.instant('gateway.port-limits-error',
-        {min: PortLimits.MIN, max: PortLimits.MAX});
-    }
-    return '';
+  connect(): Observable<Array<T>> {
+    return this.dataSubject.asObservable();
+  }
+
+  disconnect(): void {
+    this.dataSubject.complete();
+  }
+
+  loadData(data: Array<T>): void {
+    this.dataSubject.next(data);
+  }
+
+  isEmpty(): Observable<boolean> {
+    return this.dataSubject.pipe(
+      map((data: T[]) => !data.length)
+    );
+  }
+
+  total(): Observable<number> {
+    return this.dataSubject.pipe(
+      map((data: T[]) => data.length)
+    );
   }
 }

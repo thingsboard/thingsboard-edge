@@ -48,10 +48,12 @@ import {
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
 import { SharedModule } from '@shared/shared.module';
 import { CommonModule } from '@angular/common';
-import { SecurityConfigComponent } from '@home/components/widget/lib/gateway/connectors-configuration/public-api';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { TooltipDirective } from '@shared/directives/public-api';
+import { TruncateTooltipDirective } from '@shared/directives/truncate-tooltip.directive';
+import {
+  SecurityConfigComponent
+} from '@home/components/widget/lib/gateway/connectors-configuration/security-config/security-config.component';
 
 @Component({
   selector: 'tb-opc-server-config',
@@ -75,7 +77,7 @@ import { TooltipDirective } from '@shared/directives/public-api';
     CommonModule,
     SharedModule,
     SecurityConfigComponent,
-    TooltipDirective,
+    TruncateTooltipDirective,
   ]
 })
 export class OpcServerConfigComponent implements ControlValueAccessor, Validator, OnDestroy {

@@ -72,8 +72,8 @@ import { isDefinedAndNotNull, isUndefinedOrNull } from '@core/utils';
 import { coerceBoolean } from '@shared/decorators/coercion';
 import { SharedModule } from '@shared/shared.module';
 import { CommonModule } from '@angular/common';
-import { TooltipDirective } from '@shared/directives/public-api';
-import { TbDatasource } from '@shared/abstract/public-api';
+import { TruncateTooltipDirective } from '@shared/directives/truncate-tooltip.directive';
+import { TbTableDatasource } from '@shared/components/table/table-datasource.abstract';
 
 @Component({
   selector: 'tb-mapping-table',
@@ -93,7 +93,7 @@ import { TbDatasource } from '@shared/abstract/public-api';
     }
   ],
   standalone: true,
-  imports: [CommonModule, SharedModule, TooltipDirective]
+  imports: [CommonModule, SharedModule, TruncateTooltipDirective]
 })
 export class MappingTableComponent implements ControlValueAccessor, Validator, AfterViewInit, OnInit, OnDestroy {
 
@@ -326,7 +326,7 @@ export class MappingTableComponent implements ControlValueAccessor, Validator, A
   }
 }
 
-export class MappingDatasource extends TbDatasource<MappingValue> {
+export class MappingDatasource extends TbTableDatasource<MappingValue> {
   constructor() {
     super();
   }
