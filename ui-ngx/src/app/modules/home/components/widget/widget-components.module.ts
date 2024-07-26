@@ -124,7 +124,7 @@ import {
 import {
   NotificationTypeFilterPanelComponent
 } from '@home/components/widget/lib/cards/notification-type-filter-panel.component';
-import { GatewayHelpLinkPipe } from '@home/pipes/gateway-help-link.pipe';
+import { GatewayHelpLinkPipe } from '@home/components/widget/lib/gateway/pipes/gateway-help-link.pipe';
 import { EllipsisChipListDirective } from '@shared/directives/ellipsis-chip-list.directive';
 import {
   BrokerConfigControlComponent
