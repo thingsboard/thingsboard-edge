@@ -38,7 +38,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -55,13 +54,13 @@ import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TO_ID_PRO
 import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TO_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TYPE_GROUP_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.RELATION_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.VERSION_COLUMN;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = RELATION_TABLE_NAME)
 @IdClass(RelationCompositeKey.class)
-public final class RelationEntity extends VersionedEntity implements ToData<EntityRelation> {
+public final class RelationEntity implements ToData<EntityRelation> {
 
     @Id
     @Column(name = RELATION_FROM_ID_PROPERTY, columnDefinition = "uuid")
@@ -86,6 +85,9 @@ public final class RelationEntity extends VersionedEntity implements ToData<Enti
     @Id
     @Column(name = RELATION_TYPE_PROPERTY)
     private String relationType;
+
+    @Column(name = VERSION_COLUMN)
+    private Long version;
 
     @Convert(converter = JsonConverter.class)
     @Column(name = ADDITIONAL_INFO_PROPERTY)
