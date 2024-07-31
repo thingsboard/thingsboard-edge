@@ -912,7 +912,6 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     }
 
     protected <T, R> R doPostAsync(String urlTemplate, T content, Class<R> responseClass, ResultMatcher resultMatcher, String... params) throws Exception {
-
         return readResponse(doPostAsync(urlTemplate, content, DEFAULT_TIMEOUT, params).andExpect(resultMatcher), responseClass);
     }
 
