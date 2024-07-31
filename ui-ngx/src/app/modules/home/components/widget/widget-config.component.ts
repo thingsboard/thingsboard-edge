@@ -195,6 +195,8 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
   headerOptions: ToggleHeaderOption[] = [];
   selectedOption: string;
 
+  displayDataExport = true;
+
   public dataSettings: UntypedFormGroup;
   public targetDeviceSettings: UntypedFormGroup;
   public widgetSettings: UntypedFormGroup;
@@ -394,8 +396,11 @@ export class WidgetConfigComponent extends PageComponent implements OnInit, OnDe
       } else if (this.widgetType === widgetType.rpc) {
         this.targetDeviceSettings.addControl('targetDevice',
           this.fb.control(null, []));
+        this.displayDataExport = false;
       } else if (this.widgetType === widgetType.alarm) {
         this.dataSettings.addControl('alarmSource', this.fb.control(null));
+      } else if (this.widgetType === widgetType.static) {
+        this.displayDataExport = false;
       }
     }
     this.advancedSettings.addControl('settings',

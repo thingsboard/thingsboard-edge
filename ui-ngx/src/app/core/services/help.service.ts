@@ -34,6 +34,7 @@ import { HttpClient } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
 import { Observable, of } from 'rxjs';
 import { catchError, map, mergeMap, tap } from 'rxjs/operators';
+import { docPlatformPrefix } from '@shared/models/constants';
 import { UiSettingsService } from '@core/http/ui-settings.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
@@ -49,6 +50,7 @@ const NOT_FOUND_CONTENT: HelpData = {
 })
 export class HelpService {
 
+  private docPlatformPrefix = docPlatformPrefix;
   private helpCache: {[lang: string]: {[key: string]: string}} = {};
   private wlHelpBaseUrl: string;
 
@@ -137,10 +139,15 @@ export class HelpService {
   }
 
   private processVariables(helpData: HelpData): string {
-    const baseUrlReg = /\${siteBaseUrl}/g;
-    helpData.content = helpData.content.replace(baseUrlReg, this.wl.getHelpLinkBaseUrl());
-    const helpBaseUrlReg = /\${helpBaseUrl}/g;
-    return helpData.content.replace(helpBaseUrlReg, helpData.helpBaseUrl);
+    const variables = {
+      siteBaseUrl: this.wl.getHelpLinkBaseUrl(),
+      docPlatformPrefix: this.docPlatformPrefix,
+      helpBaseUrl: helpData.helpBaseUrl
+    };
+
+    const regExp = new RegExp(Object.keys(variables).map(key => `\\\${${key}}`).join('|'), 'g');
+
+    return helpData.content.replace(regExp, (match) => variables[match.slice(2, -1)]);
   }
 
   private processIncludes(content: string): Observable<string> {

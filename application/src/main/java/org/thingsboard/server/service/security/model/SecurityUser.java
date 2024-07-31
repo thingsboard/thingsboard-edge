@@ -48,18 +48,14 @@ public class SecurityUser extends User {
     private static final long serialVersionUID = -797397440703066079L;
 
     private Collection<GrantedAuthority> authorities;
-    @Getter
-    @Setter
+    @Getter @Setter
     private boolean enabled;
-    @Getter
-    @Setter
+    @Getter @Setter
     private UserPrincipal userPrincipal;
-    @Getter
-    @Setter
+    @Getter @Setter
     private MergedUserPermissions userPermissions;
-    @Getter
-    @Setter
-    private String sessionId;
+    @Getter @Setter
+    private String sessionId = UUID.randomUUID().toString();
 
     public SecurityUser() {
         super();
@@ -74,7 +70,6 @@ public class SecurityUser extends User {
         this.enabled = enabled;
         this.userPrincipal = userPrincipal;
         this.userPermissions = userPermissions;
-        this.sessionId = UUID.randomUUID().toString();
     }
 
     public Collection<GrantedAuthority> getAuthorities() {

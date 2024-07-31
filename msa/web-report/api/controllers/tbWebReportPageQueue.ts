@@ -41,15 +41,14 @@ export class TbWebReportPageQueue {
     private pages: Array<TbWebReportPage> = [];
 
     constructor(private browser: Browser,
-                private maxPageCount: number) {
+                private maxPageCount: number,
+                private useNewPage: boolean) {
     }
 
     async init(): Promise<void> {
         logger.info('Initializing pages queue with size: %s', this.maxPageCount);
         for (let i = 0; i < this.maxPageCount; i++) {
-            const page = new TbWebReportPage(this.browser, i+1);
-            await page.init();
-            this.pages.push(page);
+            await this.createdPages(i + 1);
         }
         logger.info('Pages queue initialized.');
     }
@@ -93,11 +92,22 @@ export class TbWebReportPageQueue {
         }
     }
 
+    private async createdPages(index: number) {
+        const page = new TbWebReportPage(this.browser, index);
+        await page.init();
+        this.pages.push(page);
+    }
+
     private async doGenerateDashboardReport(page: TbWebReportPage, request: GenerateReportRequest): Promise<Buffer> {
         try {
             return await page.generateDashboardReport(request);
         } finally {
-            this.pages.push(page);
+            if (this.useNewPage) {
+                await page.destroy();
+                await this.createdPages(page.id);
+            } else {
+                this.pages.push(page);
+            }
         }
     }
 }

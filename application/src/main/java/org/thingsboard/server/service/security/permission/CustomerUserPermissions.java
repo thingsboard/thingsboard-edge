@@ -107,6 +107,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.ASSET_PROFILE, profilePermissionChecker);
         put(Resource.TB_RESOURCE, customerResourcePermissionChecker);
         put(Resource.OTA_PACKAGE, otaPackagePermissionChecker);
+        put(Resource.MOBILE_APP_SETTINGS, mobileAppPermissionChecker);
     }
 
     private final PermissionChecker<AlarmId, Alarm> customerAlarmPermissionChecker = new PermissionChecker<>() {
@@ -429,6 +430,14 @@ public class CustomerUserPermissions extends AbstractPermissions {
             Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
             // This entity does not have groups, so we are checking only generic level permissions
             return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
+    };
+
+    private static final PermissionChecker mobileAppPermissionChecker = new PermissionChecker.GenericPermissionChecker(Operation.READ) {
+
+        @Override
+        public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
+            return operation == Operation.READ;
         }
     };
 }

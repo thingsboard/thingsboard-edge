@@ -64,7 +64,7 @@
     {{'user.resend-activation' | translate }}
   </button>
   <button mat-raised-button color="primary"
-          [disabled]="(isLoading$ | async)"
+          [disabled]="(isLoading$ | async) || isCurrentUser()"
           (click)="onEntityAction($event, 'loginAsUser')"
           *ngIf="(loginAsUserEnabled$ | async) && resource.USER | hasGenericPermission: operation.IMPERSONATE"
           [fxShow]="!isEdit">

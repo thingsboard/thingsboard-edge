@@ -50,4 +50,5 @@ public class SystemParams {
     boolean whiteLabelingAllowed;
     boolean customerWhiteLabelingAllowed;
     Set<String> availableLocales;
+    boolean mobileQrEnabled;
 }

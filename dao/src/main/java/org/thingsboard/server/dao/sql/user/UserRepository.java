@@ -129,7 +129,7 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     @Query("SELECT u FROM UserEntity u WHERE u.tenantId IN :tenantsIds AND u.id IN " +
             "(SELECT r.toId FROM RelationEntity r WHERE r.fromType = 'ENTITY_GROUP' AND r.toType = 'USER' AND r.fromId IN " +
-            "(SELECT p.userGroupId FROM GroupPermissionEntity p WHERE p.roleId = :roleId))")
+            "(SELECT p.userGroupId FROM GroupPermissionEntity p WHERE p.tenantId IN :tenantsIds AND p.roleId = :roleId))")
     Page<UserEntity> findByTenantsIdsAndRoleId(@Param("tenantsIds") List<UUID> tenantsIds,
                                                @Param("roleId") UUID roleId,
                                                Pageable pageable);
@@ -137,7 +137,8 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     @Query("SELECT u FROM UserEntity u INNER JOIN TenantEntity t ON u.tenantId = t.id " +
             "WHERE t.tenantProfileId IN :tenantProfilesIds AND u.id IN " +
             "(SELECT r.toId FROM RelationEntity r WHERE r.fromType = 'ENTITY_GROUP' AND r.toType = 'USER' AND r.fromId IN " +
-            "(SELECT p.userGroupId FROM GroupPermissionEntity p WHERE p.roleId = :roleId))")
+            "(SELECT p.userGroupId FROM GroupPermissionEntity p INNER JOIN TenantEntity te ON p.tenantId = te.id " +
+            "  WHERE te.tenantProfileId IN :tenantProfilesIds AND p.roleId = :roleId))")
     Page<UserEntity> findByTenantProfilesIdsAndRoleId(@Param("tenantProfilesIds") List<UUID> tenantProfilesIds,
                                                       @Param("roleId") UUID roleId,
                                                       Pageable pageable);

@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -294,7 +295,7 @@ public class IntegrationController extends AutoCommitController {
     @RequestMapping(value = "/integrations", params = {"integrationIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<Integration> getIntegrationsByIds(
-            @Parameter(description = "A list of integration ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of integration ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestParam("integrationIds") String[] strIntegrationIds) throws Exception {
         checkArrayParameter("integrationIds", strIntegrationIds);
         try {
@@ -451,7 +452,7 @@ public class IntegrationController extends AutoCommitController {
     @ResponseBody
     public String findEdgeMissingAttributes(@Parameter(description = EDGE_ID_PARAM_DESCRIPTION, required = true)
                                             @PathVariable(EDGE_ID) String strEdgeId,
-                                            @Parameter(description = "A list of assigned integration ids, separated by comma ','", required = true)
+                                            @Parameter(description = "A list of assigned integration ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
                                             @RequestParam("integrationIds") String[] strIntegrationIds) throws Exception {
         checkArrayParameter("integrationIds", strIntegrationIds);
         EdgeId edgeId = new EdgeId(toUUID(strEdgeId));

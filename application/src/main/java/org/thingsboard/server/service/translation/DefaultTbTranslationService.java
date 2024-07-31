@@ -99,7 +99,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         Set<String> systemLocaleCodes = getAvailableResourceLocaleCodes();
         for (String localeCode : systemLocaleCodes) {
             JsonNode resourceLocaleTranslation = readResourceLocaleTranslation(localeCode);
-            TRANSLATION_INFO_MAP.put(localeCode, createTranslationInfo(localeCode, resourceLocaleTranslation, false));
+            TRANSLATION_INFO_MAP.put(localeCode, createTranslationInfo(DEFAULT_LOCALE_KEYS, localeCode, resourceLocaleTranslation, false));
             TRANSLATION_VALUE_MAP.put(localeCode, merge(defaultTranslation.deepCopy(), resourceLocaleTranslation));
         }
     }
@@ -124,6 +124,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         Set<String> customizedLocales = getMergedCustomizedLocales(tenantId, customerId);
         Set<String> currentCustomizedLocales = customTranslationService.getCurrentCustomizedLocales(tenantId, customerId);
 
+        Set<String> engLocaleKeys = extractKeys(getFullTranslation(tenantId, customerId, DEFAULT_LOCALE_CODE));
         for (String customizedLocale : customizedLocales) {
             JsonNode customTranslation = getMergedCustomTranslation(tenantId, customerId, customizedLocale);
             if (translationInfos.containsKey(customizedLocale)) {
@@ -131,7 +132,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
                 customTranslation = merge(resourceTranslation, customTranslation);
             }
             boolean customized = currentCustomizedLocales.contains(customizedLocale);
-            translationInfos.put(customizedLocale, createTranslationInfo(customizedLocale, customTranslation, customized));
+            translationInfos.put(customizedLocale, createTranslationInfo(engLocaleKeys, customizedLocale, customTranslation, customized));
         }
         return new ArrayList<>(translationInfos.values());
     }
@@ -237,8 +238,8 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         }
     }
 
-    private static TranslationInfo createTranslationInfo(String localeCode, JsonNode translation, boolean customized) {
-        int progress = calculateTranslationProgress(translation);
+    private static TranslationInfo createTranslationInfo(Set<String> engLocaleKeys, String localeCode, JsonNode translation, boolean customized) {
+        int progress = calculateTranslationProgress(engLocaleKeys, translation);
         Locale locale = Locale.forLanguageTag(localeCode.replace("_", "-"));
         return TranslationInfo.builder()
                 .customized(customized)
@@ -305,12 +306,12 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
         }
     }
 
-    private static int calculateTranslationProgress(JsonNode translation) {
+    private static int calculateTranslationProgress(Set<String> defaultLocaleKeys, JsonNode translation) {
         Set<String> localeKeys = extractKeys(translation);
-        long translated = DEFAULT_LOCALE_KEYS.stream()
+        long translated = defaultLocaleKeys.stream()
                 .filter(localeKeys::contains)
                 .count();
-        return (int) (((translated) * 100) / DEFAULT_LOCALE_KEYS.size());
+        return (int) (((translated) * 100) / defaultLocaleKeys.size());
     }
 
     private void buildTranslationInfoForEdit(JsonNode fullTranslation, JsonNode translated, JsonNode parentTranslated, JsonNode original, JsonNode custom, JsonNode parentOrigin) {

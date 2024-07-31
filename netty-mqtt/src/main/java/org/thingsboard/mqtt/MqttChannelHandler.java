@@ -99,6 +99,9 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
                 case PUBCOMP:
                     handlePubcomp(msg);
                     break;
+                case DISCONNECT:
+                    handleDisconnect(msg);
+                    break;
             }
         } else {
             log.error("[{}] Message decoding failed: {}", client.getClientConfig().getClientId(), msg.decoderResult().cause().getMessage());
@@ -219,6 +222,9 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
                 // Don't start reconnect logic here
                 break;
         }
+        if (this.client.getCallback() != null) {
+            this.client.getCallback().onConnAck(message);
+        }
     }
 
     private void handleSubAck(MqttSubAckMessage message) {
@@ -238,6 +244,9 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
 
         if (!pendingSubscription.getFuture().isDone()) {
             pendingSubscription.getFuture().setSuccess(null);
+        }
+        if (this.client.getCallback() != null) {
+            this.client.getCallback().onSubAck(message);
         }
     }
 
@@ -282,6 +291,9 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
         this.client.getServerSubscriptions().remove(unsubscription.getTopic());
         unsubscription.getFuture().setSuccess(null);
         this.client.getPendingServerUnsubscribes().remove(message.variableHeader().messageId());
+        if (this.client.getCallback() != null) {
+            this.client.getCallback().onUnsubAck(message);
+        }
     }
 
     private void handlePuback(MqttPubAckMessage message) {
@@ -293,6 +305,9 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
         pendingPublish.onPubackReceived();
         this.client.getPendingPublishes().remove(message.variableHeader().messageId());
         pendingPublish.getPayload().release();
+        if (this.client.getCallback() != null) {
+            this.client.getCallback().onPubAck(message);
+        }
     }
 
     private void handlePubrec(Channel channel, MqttMessage message) {
@@ -316,7 +331,7 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
             future = Futures.transform(future, x -> {
                 this.client.getQos2PendingIncomingPublishes().remove(incomingQos2Publish.getIncomingPublish().variableHeader().packetId());
                 return null;
-                }, MoreExecutors.directExecutor());
+            }, MoreExecutors.directExecutor());
         }
         future.addListener(() -> {
             MqttFixedHeader fixedHeader = new MqttFixedHeader(MqttMessageType.PUBCOMP, false, MqttQoS.AT_MOST_ONCE, false, 0);
@@ -332,6 +347,12 @@ final class MqttChannelHandler extends SimpleChannelInboundHandler<MqttMessage> 
         this.client.getPendingPublishes().remove(variableHeader.messageId());
         pendingPublish.getPayload().release();
         pendingPublish.onPubcompReceived();
+    }
+
+    private void handleDisconnect(MqttMessage message) {
+        if (this.client.getCallback() != null) {
+            this.client.getCallback().onDisconnect(message);
+        }
     }
 
     @Override

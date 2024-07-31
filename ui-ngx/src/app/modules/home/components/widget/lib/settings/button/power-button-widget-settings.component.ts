@@ -97,7 +97,8 @@ export class PowerButtonWidgetSettingsComponent extends WidgetSettingsComponent 
       mainColorDisabled: [settings.mainColorDisabled, []],
       backgroundColorDisabled: [settings.backgroundColorDisabled, []],
 
-      background: [settings.background, []]
+      background: [settings.background, []],
+      padding: [settings.padding, []]
     });
   }
 }

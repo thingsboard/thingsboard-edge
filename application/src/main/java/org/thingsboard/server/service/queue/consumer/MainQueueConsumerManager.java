@@ -56,7 +56,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -66,7 +66,7 @@ public class MainQueueConsumerManager<M extends TbQueueMsg, C extends QueueConfi
     @Getter
     protected C config;
     protected final MsgPackProcessor<M, C> msgPackProcessor;
-    protected final Function<C, TbQueueConsumer<M>> consumerCreator;
+    protected final BiFunction<C, Integer, TbQueueConsumer<M>> consumerCreator;
     protected final ExecutorService consumerExecutor;
     protected final ScheduledExecutorService scheduler;
     protected final ExecutorService taskExecutor;
@@ -82,7 +82,7 @@ public class MainQueueConsumerManager<M extends TbQueueMsg, C extends QueueConfi
     @Builder
     public MainQueueConsumerManager(QueueKey queueKey, C config,
                                     MsgPackProcessor<M, C> msgPackProcessor,
-                                    Function<C, TbQueueConsumer<M>> consumerCreator,
+                                    BiFunction<C, Integer, TbQueueConsumer<M>> consumerCreator,
                                     ExecutorService consumerExecutor,
                                     ScheduledExecutorService scheduler,
                                     ExecutorService taskExecutor) {
@@ -288,8 +288,9 @@ public class MainQueueConsumerManager<M extends TbQueueMsg, C extends QueueConfi
             removedPartitions.forEach((tpi) -> consumers.remove(tpi).awaitCompletion());
 
             addedPartitions.forEach((tpi) -> {
-                String key = queueKey + "-" + tpi.getPartition().orElse(-1);
-                TbQueueConsumerTask<M> consumer = new TbQueueConsumerTask<>(key, consumerCreator.apply(config));
+                Integer partitionId = tpi.getPartition().orElse(-1);
+                String key = queueKey + "-" + partitionId;
+                TbQueueConsumerTask<M> consumer = new TbQueueConsumerTask<>(key, () -> consumerCreator.apply(config, partitionId));
                 consumers.put(tpi, consumer);
                 consumer.subscribe(Set.of(tpi));
                 launchConsumer(consumer);
@@ -318,7 +319,7 @@ public class MainQueueConsumerManager<M extends TbQueueMsg, C extends QueueConfi
             }
 
             if (consumer == null) {
-                consumer = new TbQueueConsumerTask<>(queueKey, consumerCreator.apply(config));
+                consumer = new TbQueueConsumerTask<>(queueKey, () -> consumerCreator.apply(config, null)); // no partitionId passed
             }
             consumer.subscribe(partitions);
             if (!consumer.isRunning()) {

@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -187,7 +188,7 @@ public class CustomTranslationController extends BaseController {
                     "\n\n Request example: " + CUSTOM_TRANSLATION_EXAMPLE +
                     ControllerConstants.WL_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @PostMapping(value = "/translation/custom/{localeCode}/upload")
+    @PostMapping(value = "/translation/custom/{localeCode}/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(value = HttpStatus.OK)
     public void uploadCustomTranslation(@Parameter(description = "Locale code (e.g. 'en_US').")
                                                      @PathVariable("localeCode") String localeCode,

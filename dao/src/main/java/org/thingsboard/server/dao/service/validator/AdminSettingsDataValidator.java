@@ -69,5 +69,9 @@ public class AdminSettingsDataValidator extends DataValidator<AdminSettings> {
         if (adminSettings.getJsonValue() == null) {
             throw new DataValidationException("Json value should be specified!");
         }
+        if ("general".equals(adminSettings.getKey()) && adminSettings.getJsonValue().has("baseUrl")
+                && !DataValidator.isValidUrl(adminSettings.getJsonValue().get("baseUrl").asText())) {
+            throw new DataValidationException("Base url is invalid!");
+        }
     }
 }

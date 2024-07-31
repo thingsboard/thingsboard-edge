@@ -96,6 +96,7 @@ export interface SliderWidgetSettings {
   rightIconSizeUnit: cssUnit;
   rightIconColor: string;
   background: BackgroundSettings;
+  padding: string;
 }
 
 export const sliderWidgetDefaultSettings: SliderWidgetSettings = {
@@ -207,5 +208,6 @@ export const sliderWidgetDefaultSettings: SliderWidgetSettings = {
       color: 'rgba(255,255,255,0.72)',
       blur: 3
     }
-  }
+  },
+  padding: '24px'
 };

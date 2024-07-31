@@ -61,4 +61,5 @@ public class RoleMsgConstructorV1 extends BaseRoleMsgConstructor {
         }
         return builder.build();
     }
+
 }

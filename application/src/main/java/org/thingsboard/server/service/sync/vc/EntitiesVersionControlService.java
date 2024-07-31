@@ -81,7 +81,7 @@ public interface EntitiesVersionControlService {
 
     ListenableFuture<RepositorySettings> saveVersionControlSettings(TenantId tenantId, RepositorySettings versionControlSettings);
 
-    ListenableFuture<Void> deleteVersionControlSettings(TenantId tenantId) throws Exception;
+    ListenableFuture<Void> deleteVersionControlSettings(TenantId tenantId);
 
     ListenableFuture<Void> checkVersionControlAccess(TenantId tenantId, RepositorySettings settings) throws Exception;
 

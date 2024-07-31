@@ -91,7 +91,7 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
     }
 
     @Override
-    public void checkLimit(TenantId tenantId, String deviceName, Supplier<String> msg) {
+    public void checkLimitPerDevice(TenantId tenantId, String deviceName, Supplier<String> msg) {
         if (log.isTraceEnabled()) {
             log.trace("[{}] Processing msg: {}", deviceName, msg.get());
         }
@@ -101,6 +101,20 @@ public class DefaultIntegrationRateLimitService implements IntegrationRateLimitS
                 log.trace("[{}][{}] Device level rate limit detected: {}", tenantId, deviceName, msg.get());
             }
             throw new TbRateLimitsException(EntityType.DEVICE);
+        }
+    }
+
+    @Override
+    public void checkLimitPerAsset(TenantId tenantId, String assetName, Supplier<String> msg) {
+        if (log.isTraceEnabled()) {
+            log.trace("[{}] Processing msg: {}", assetName, msg.get());
+        }
+
+        if (!rateLimitService.checkRateLimit(LimitedApi.INTEGRATION_MSGS_PER_ASSET, tenantId, Pair.of(tenantId, assetName))) {
+            if (log.isTraceEnabled()) {
+                log.trace("[{}][{}] Asset level rate limit detected: {}", tenantId, assetName, msg.get());
+            }
+            throw new TbRateLimitsException(EntityType.ASSET);
         }
     }
 

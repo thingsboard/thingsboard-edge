@@ -41,4 +41,5 @@ public interface SchedulerEventMsgConstructor extends MsgConstructor {
     SchedulerEventUpdateMsg constructSchedulerEventUpdatedMsg(UpdateMsgType msgType, SchedulerEvent schedulerEvent);
 
     SchedulerEventUpdateMsg constructEventDeleteMsg(SchedulerEventId schedulerEventId);
+
 }

@@ -48,7 +48,7 @@ public class EmailNotificationChannel implements NotificationChannel<User, Email
 
     @Override
     public void sendNotification(User recipient, EmailDeliveryMethodNotificationTemplate processedTemplate, NotificationProcessingContext ctx) throws Exception {
-        mailService.send(recipient.getTenantId(), null, TbEmail.builder()
+        mailService.send(ctx.getTenantId(), null, TbEmail.builder()
                 .to(recipient.getEmail())
                 .subject(processedTemplate.getSubject())
                 .body(processedTemplate.getBody())

@@ -42,7 +42,9 @@ public interface IntegrationRateLimitService {
 
     void checkLimit(TenantId tenantId, Supplier<String> msg);
 
-    void checkLimit(TenantId tenantId, String deviceName, Supplier<String> msg);
+    void checkLimitPerDevice(TenantId tenantId, String deviceName, Supplier<String> msg);
+
+    void checkLimitPerAsset(TenantId tenantId, String assetName, Supplier<String> msg);
 
     boolean checkLimit(TenantId tenantId, IntegrationId integrationId, boolean throwException);
 

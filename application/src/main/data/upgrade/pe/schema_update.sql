@@ -223,3 +223,5 @@ CREATE INDEX IF NOT EXISTS idx_raw_data_event_main
     ON raw_data_event (tenant_id ASC, entity_id ASC, ts DESC NULLS LAST) WITH (FILLFACTOR=95);
 
 CREATE INDEX IF NOT EXISTS idx_group_permission_tenant_id ON group_permission(tenant_id);
+
+ALTER TABLE mobile_app_settings ADD COLUMN IF NOT EXISTS use_system_settings boolean default true;

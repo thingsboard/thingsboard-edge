@@ -42,6 +42,7 @@ import { AppComponent } from './app.component';
 import { DashboardRoutingModule } from '@modules/dashboard/dashboard-routing.module';
 import { RouterModule, Routes } from '@angular/router';
 import { SignupModule } from '@modules/signup/signup.module';
+import { EmptyPageModule } from '@modules/empty-page/empty-page.module';
 
 const routes: Routes = [
   { path: '**',
@@ -70,6 +71,7 @@ export class PageNotFoundRoutingModule { }
     SignupModule,
     HomeModule,
     DashboardRoutingModule,
+    EmptyPageModule,
     PageNotFoundRoutingModule
   ],
   providers: [],

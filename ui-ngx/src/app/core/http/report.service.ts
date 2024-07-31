@@ -338,7 +338,7 @@ export class ReportService {
       this.authService.logout();
       return of (true);
     } else {
-      return from(this.router.navigateByUrl('/', {replaceUrl: true}));
+      return from(this.router.navigateByUrl('/empty-page', {replaceUrl: true}));
     }
   }
 

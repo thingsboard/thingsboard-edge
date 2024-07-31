@@ -32,9 +32,7 @@ package org.thingsboard.server.service.edge.rpc.constructor.scheduler;
 
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
-import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -49,4 +47,5 @@ public class SchedulerEventMsgConstructorV2 extends BaseSchedulerEventMsgConstru
                 .setIdMSB(schedulerEvent.getId().getId().getMostSignificantBits())
                 .setIdLSB(schedulerEvent.getId().getId().getLeastSignificantBits()).build();
     }
+
 }

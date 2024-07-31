@@ -31,6 +31,7 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -243,7 +244,7 @@ public class AssetProfileController extends BaseController {
     @RequestMapping(value = "/assetProfileInfos", params = {"assetProfileIds"}, method = RequestMethod.GET)
     @ResponseBody
     public List<AssetProfileInfo> getAssetProfilesByIds(
-            @Parameter(description = "A list of asset profile ids, separated by comma ','", required = true)
+            @Parameter(description = "A list of asset profile ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestParam("assetProfileIds") String[] strAssetProfileIds) throws ThingsboardException, ExecutionException, InterruptedException {
         checkArrayParameter("assetProfileIds", strAssetProfileIds);
         if (!accessControlService.hasPermission(getCurrentUser(), Resource.ASSET_PROFILE, Operation.READ)) {

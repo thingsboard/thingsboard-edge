@@ -78,7 +78,7 @@ public class SchedulerEventInfo extends BaseDataWithAdditionalInfo<SchedulerEven
 
     @Schema(description = "Enable/disable scheduler", example = "true")
     @Length(fieldName = "enabled")
-    private boolean enabled;
+    private boolean enabled = true;
 
     public SchedulerEventInfo() {
         super();

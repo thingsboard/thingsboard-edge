@@ -116,6 +116,8 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.DataConstants.GATEWAY_PARAMETER;
+
 @Slf4j
 public class ProtoUtils {
 
@@ -683,6 +685,8 @@ public class ProtoUtils {
         }
         if (proto.hasDefaultRuleChainIdMSB() && proto.hasDefaultRuleChainIdLSB()) {
             deviceProfile.setDefaultRuleChainId(getEntityId(proto.getDefaultRuleChainIdMSB(), proto.getDefaultRuleChainIdLSB(), RuleChainId::new));
+        }
+        if (proto.hasDefaultDashboardIdMSB() && proto.hasDefaultDashboardIdLSB()) {
             deviceProfile.setDefaultDashboardId(getEntityId(proto.getDefaultDashboardIdMSB(), proto.getDefaultDashboardIdLSB(), DashboardId::new));
         }
         if (proto.hasDefaultQueueName()) {
@@ -934,7 +938,8 @@ public class ProtoUtils {
                 .setRepositoryUri(repositorySettings.getRepositoryUri())
                 .setAuthMethod(repositorySettings.getAuthMethod().name())
                 .setReadOnly(repositorySettings.isReadOnly())
-                .setShowMergeCommits(repositorySettings.isShowMergeCommits());
+                .setShowMergeCommits(repositorySettings.isShowMergeCommits())
+                .setLocalOnly(repositorySettings.isLocalOnly());
 
         if (isNotNull(repositorySettings.getUsername())) {
             builder.setUsername(repositorySettings.getUsername());
@@ -963,6 +968,7 @@ public class ProtoUtils {
         repositorySettings.setAuthMethod(RepositoryAuthMethod.valueOf(proto.getAuthMethod()));
         repositorySettings.setReadOnly(proto.getReadOnly());
         repositorySettings.setShowMergeCommits(proto.getShowMergeCommits());
+        repositorySettings.setLocalOnly(proto.getLocalOnly());
         if (proto.hasUsername()) {
             repositorySettings.setUsername(proto.getUsername());
         }
@@ -1042,6 +1048,10 @@ public class ProtoUtils {
                 .setDeviceProfileIdMSB(device.getDeviceProfileId().getId().getMostSignificantBits())
                 .setDeviceProfileIdLSB(device.getDeviceProfileId().getId().getLeastSignificantBits())
                 .setAdditionalInfo(JacksonUtil.toString(device.getAdditionalInfo()));
+
+        if (device.getAdditionalInfo().has(GATEWAY_PARAMETER)) {
+            builder.setIsGateway(device.getAdditionalInfo().get(GATEWAY_PARAMETER).booleanValue());
+        }
 
         PowerSavingConfiguration psmConfiguration = switch (device.getDeviceData().getTransportConfiguration().getType()) {
             case LWM2M -> (Lwm2mDeviceTransportConfiguration) device.getDeviceData().getTransportConfiguration();
