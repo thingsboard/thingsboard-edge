@@ -262,7 +262,6 @@ public class DefaultTbClusterService implements TbClusterService {
             HasRuleEngineProfile ruleEngineProfile = getRuleEngineProfileForEntityOrElseNull(tenantId, entityId, tbMsg);
             tbMsg = transformMsg(tbMsg, ruleEngineProfile, useQueueFromTbMsg);
         }
-
         ruleEngineProducerService.sendToRuleEngine(producerProvider.getRuleEngineMsgProducer(), tenantId, tbMsg, callback);
         toRuleEngineMsgs.incrementAndGet();
     }
