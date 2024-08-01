@@ -33,11 +33,8 @@ package org.thingsboard.migrator.config;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.cassandra.CassandraAutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.data.cassandra.CassandraDataAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
-import org.thingsboard.migrator.service.latest_kv.exporting.CassandraLatestKvExporter;
-import org.thingsboard.migrator.service.tenant.exporting.CassandraTsKvExporter;
 
 /**
  * Disables Cassandra autoconfiguration if Cassandra export/import is disabled

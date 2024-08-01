@@ -68,7 +68,6 @@ import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.AttributeScope;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.FeaturesInfo;
 import org.thingsboard.server.common.data.LicenseInfo;
 import org.thingsboard.server.common.data.LicenseUsageInfo;

@@ -45,8 +45,6 @@ import org.thingsboard.server.common.data.queue.QueueStats;
 import org.thingsboard.server.dao.queue.QueueStatsService;
 import org.thingsboard.server.exception.DataValidationException;
 
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 

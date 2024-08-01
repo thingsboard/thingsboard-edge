@@ -36,7 +36,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Data;
 import org.thingsboard.common.util.JacksonUtil;
 
-import java.io.IOException;
 import java.util.Map;
 
 @Data

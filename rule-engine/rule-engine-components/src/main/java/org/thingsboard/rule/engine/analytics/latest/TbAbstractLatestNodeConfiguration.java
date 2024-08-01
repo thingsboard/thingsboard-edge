@@ -31,7 +31,6 @@
 package org.thingsboard.rule.engine.analytics.latest;
 
 import lombok.Data;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
 
 import java.util.concurrent.TimeUnit;
 
