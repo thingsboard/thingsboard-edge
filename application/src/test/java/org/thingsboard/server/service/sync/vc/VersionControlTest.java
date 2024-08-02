@@ -1168,7 +1168,7 @@ public class VersionControlTest extends AbstractControllerTest {
         relation.setType(EntityRelation.MANAGES_TYPE);
         relation.setAdditionalInfo(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
         relation.setTypeGroup(RelationTypeGroup.COMMON);
-        return doPost("/api/relation", relation, EntityRelation.class);
+        return doPost("/api/v2/relation", relation, EntityRelation.class);
     }
 
     protected EntityGroup createEntityGroup(EntityId ownerId, EntityType groupType, String name) {

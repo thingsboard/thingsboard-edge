@@ -118,7 +118,7 @@ public class EntityRelationControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        relation = doPost("/api/relation", relation, EntityRelation.class);
+        relation = doPost("/api/v2/relation", relation, EntityRelation.class);
 
         String url = String.format("/api/relation?fromId=%s&fromType=%s&relationType=%s&toId=%s&toType=%s",
                 mainDevice.getUuidId(), EntityType.DEVICE,
@@ -330,7 +330,7 @@ public class EntityRelationControllerTest extends AbstractControllerTest {
         Device device = buildSimpleDevice("Test device 1");
 
         EntityRelation relation = createFromRelation(mainDevice, device, "CONTAINS");
-        relation = doPost("/api/relation", relation, EntityRelation.class);
+        relation = doPost("/api/v2/relation", relation, EntityRelation.class);
 
         String url = String.format("/api/relation?fromId=%s&fromType=%s&relationType=%s&toId=%s&toType=%s",
                 mainDevice.getUuidId(), EntityType.DEVICE,
@@ -344,7 +344,11 @@ public class EntityRelationControllerTest extends AbstractControllerTest {
 
         Mockito.reset(tbClusterService, auditLogService);
 
-        var deletedRelation = doDelete(url, EntityRelation.class);
+        String deleteUrl = String.format("/api/v2/relation?fromId=%s&fromType=%s&relationType=%s&toId=%s&toType=%s",
+                mainDevice.getUuidId(), EntityType.DEVICE,
+                "CONTAINS", device.getUuidId(), EntityType.DEVICE
+        );
+        var deletedRelation = doDelete(deleteUrl, EntityRelation.class);
 
         testNotifyEntityAllOneTimeRelation(deletedRelation,
                 savedTenant.getId(), tenantAdmin.getCustomerId(), tenantAdmin.getId(), tenantAdmin.getEmail(),
@@ -538,7 +542,7 @@ public class EntityRelationControllerTest extends AbstractControllerTest {
     @Test
     public void testCreateRelationFromTenantToDevice() throws Exception {
         EntityRelation relation = new EntityRelation(tenantAdmin.getTenantId(), mainDevice.getId(), "CONTAINS");
-        relation = doPost("/api/relation", relation, EntityRelation.class);
+        relation = doPost("/api/v2/relation", relation, EntityRelation.class);
 
         String url = String.format("/api/relation?fromId=%s&fromType=%s&relationType=%s&toId=%s&toType=%s",
                 tenantAdmin.getTenantId(), EntityType.TENANT,
@@ -554,7 +558,7 @@ public class EntityRelationControllerTest extends AbstractControllerTest {
     @Test
     public void testCreateRelationFromDeviceToTenant() throws Exception {
         EntityRelation relation = new EntityRelation(mainDevice.getId(), tenantAdmin.getTenantId(), "CONTAINS");
-        relation = doPost("/api/relation", relation, EntityRelation.class);
+        relation = doPost("/api/v2/relation", relation, EntityRelation.class);
 
         String url = String.format("/api/relation?fromId=%s&fromType=%s&relationType=%s&toId=%s&toType=%s",
                 mainDevice.getUuidId(), EntityType.DEVICE,
