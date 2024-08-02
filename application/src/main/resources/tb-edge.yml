@@ -456,7 +456,7 @@ integrations:
   allow_Local_network_hosts: "${INTEGRATIONS_ALLOW_LOCAL_NETWORK_HOSTS:true}"
   rpc:
     # Enable/Disable RPC call via integrations
-    enabled: "${INTEGRATIONS_RPC_ENABLED:false}"
+    enabled: "${INTEGRATIONS_RPC_ENABLED:true}"
     # Integration bind port
     port: "${INTEGRATIONS_RPC_PORT:9090}"
     ssl:
