@@ -100,7 +100,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class AbstractContainerTest {
@@ -708,10 +707,14 @@ public abstract class AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> savedCustomer.getId().equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId()));
 
-        try {
-            // wait until sync process completed fully
-            TimeUnit.SECONDS.sleep(5);
-        } catch (Exception ignored) {}
+        Awaitility.await()
+                .pollInterval(1000, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Boolean edgeSyncProcessActive = cloudRestClient.isEdgeSyncProcessActive(edge.getId());
+                    log.error("Edge sync process active: {}", edgeSyncProcessActive);
+                    return !edgeSyncProcessActive;
+                });
     }
 
     protected RuleChainId createRuleChainAndAssignToEdge(String ruleChainName) {

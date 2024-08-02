@@ -69,7 +69,7 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
                     if (isRoot) {
                         ruleChainService.setRootRuleChain(tenantId, ruleChainId);
                     }
-                    return cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.RULE_CHAIN, EdgeEventActionType.RULE_CHAIN_METADATA_REQUEST, ruleChainId, null, queueStartTs);
+                    return Futures.immediateFuture(null);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     RuleChain ruleChainById = ruleChainService.findRuleChainById(tenantId, ruleChainId);
                     if (ruleChainById != null) {
@@ -91,6 +91,7 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processRuleChainMetadataMsgFromCloud(TenantId tenantId, RuleChainMetadataUpdateMsg ruleChainMetadataUpdateMsg) {
         try {
+            cloudSynchronizationManager.getSync().set(true);
             switch (ruleChainMetadataUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
@@ -109,6 +110,8 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
             String errMsg = String.format("Can't process rule chain metadata update msg %s", ruleChainMetadataUpdateMsg);
             log.error(errMsg, e);
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
+        } finally {
+            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
