@@ -42,6 +42,7 @@ import org.thingsboard.server.dao.asset.AssetInfoDao;
 import org.thingsboard.server.dao.model.sql.AssetInfoEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
+
 import java.util.Objects;
 import java.util.UUID;
 

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.queue.usagestats;
 
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,7 +53,6 @@ import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 import org.thingsboard.server.queue.scheduler.SchedulerComponent;
 
-import jakarta.annotation.PostConstruct;
 import java.util.EnumMap;
 import java.util.Random;
 import java.util.UUID;
