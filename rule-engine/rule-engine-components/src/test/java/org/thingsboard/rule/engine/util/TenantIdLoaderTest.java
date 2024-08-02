@@ -77,8 +77,8 @@ import org.thingsboard.server.common.data.notification.targets.NotificationTarge
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.queue.Queue;
-import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.queue.QueueStats;
+import org.thingsboard.server.common.data.role.Role;
 import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;

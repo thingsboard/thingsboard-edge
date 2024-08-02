@@ -52,12 +52,12 @@ import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ENABLED_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ENABLED_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ORIGINATOR_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ORIGINATOR_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TYPE_PROPERTY;
 

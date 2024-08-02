@@ -50,7 +50,6 @@ import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.attributes.AttributesDao;
-import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.dictionary.KeyDictionaryDao;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.sql.AttributeKvCompositeKey;

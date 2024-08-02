@@ -371,7 +371,7 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
   }
 
   createDeviceProfile($event: Event, profileName: string) {
-    $event.preventDefault();
+    $event.stopPropagation();
     const deviceProfile: DeviceProfile = {
       name: profileName,
       transportType: this.transportType
@@ -382,7 +382,7 @@ export class DeviceProfileAutocompleteComponent implements ControlValueAccessor,
   }
 
   editDeviceProfile($event: Event) {
-    $event.preventDefault();
+    $event.stopPropagation();
     this.deviceProfileService.getDeviceProfile(this.modelValue.id).subscribe(
       (deviceProfile) => {
         this.openDeviceProfileDialog(deviceProfile, false);
