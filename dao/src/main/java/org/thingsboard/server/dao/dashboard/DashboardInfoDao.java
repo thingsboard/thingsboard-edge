@@ -32,10 +32,8 @@ package org.thingsboard.server.dao.dashboard;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.DashboardInfo;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.widget.WidgetTypeInfo;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.ImageContainerDao;
 

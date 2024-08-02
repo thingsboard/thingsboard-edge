@@ -34,6 +34,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,8 +46,6 @@ import org.thingsboard.integration.api.controller.AbstractIntegrationControllerA
 import org.thingsboard.integration.service.RemoteIntegrationManagerService;
 import org.thingsboard.server.queue.util.TbIntegrationComponent;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.concurrent.Executor;
 
 @TbIntegrationComponent

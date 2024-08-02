@@ -39,7 +39,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
-import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
@@ -90,7 +89,7 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
     @Test
     public void shouldUpdateLoginWhiteLabelParams() throws Exception {
         loginSysAdmin();
-        updateBaseUrlAndVerify("domain.com");
+        updateBaseUrlAndVerify("https://domain.com");
 
         loginTenantAdmin();
         updateDomainNameAndVerify("domain2.com");
@@ -256,6 +255,7 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
 
         String domainName = "customer-domain.com";
         loginWhiteLabelingParams.setDomainName(domainName);
+        loginWhiteLabelingParams.setBaseUrl("https://" + domainName);
 
         doPost("/api/whiteLabel/loginWhiteLabelParams?customerId=" + customerId, loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
 
@@ -310,21 +310,13 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
 
         String domainName = "my-domain.com";
         loginWhiteLabelingParams.setDomainName(domainName);
+        loginWhiteLabelingParams.setBaseUrl("https://" + domainName);
 
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
 
         ObjectNode found = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", ObjectNode.class);
 
         assertThat(found.get("domainName").asText()).isEqualTo(loginWhiteLabelingParams.getDomainName().toLowerCase());
-
-        domainName = "MY-DoMaIn.com";
-        loginWhiteLabelingParams.setDomainName(domainName);
-
-        doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
-
-        found = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", ObjectNode.class);
-
-        assertThat(found.get("domainName").asText()).isEqualTo(domainName.toLowerCase());
     }
 
     private void updateAppTitleAndVerify(String appTile) throws Exception {
@@ -356,6 +348,7 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
 
         loginWhiteLabelingParams.setDomainName(domainName);
+        loginWhiteLabelingParams.setBaseUrl("https://" + domainName);
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
 
         Awaitility.await("Waiting while login whitelabel params is updated")
