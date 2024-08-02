@@ -66,9 +66,7 @@ public class BaseCloudEventService implements CloudEventService {
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
     private static final List<EdgeEventActionType> CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES =
-            List.of(EdgeEventActionType.CREDENTIALS_REQUEST,
-                    EdgeEventActionType.ATTRIBUTES_REQUEST,
-                    EdgeEventActionType.RULE_CHAIN_METADATA_REQUEST,
+            List.of(EdgeEventActionType.ATTRIBUTES_REQUEST,
                     EdgeEventActionType.RELATION_REQUEST,
                     EdgeEventActionType.WIDGET_BUNDLE_TYPES_REQUEST,
                     EdgeEventActionType.ENTITY_VIEW_REQUEST,

@@ -242,7 +242,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
         try {
             log.debug("[{}] Starting process DownlinkMsg. downlinkMsgId [{}],",
                     tenantId, downlinkMsg.getDownlinkMsgId());
-            log.trace("DownlinkMsg Body {}", downlinkMsg);
+            if (downlinkMsg.getWidgetTypeUpdateMsgCount() == 0) {
+                log.trace("DownlinkMsg Body {}", downlinkMsg);
+            }
             if (downlinkMsg.hasSyncCompletedMsg()) {
                 result.add(updateSyncRequiredState(tenantId, this.customerId, currentEdgeSettings, queueStartTs));
             }

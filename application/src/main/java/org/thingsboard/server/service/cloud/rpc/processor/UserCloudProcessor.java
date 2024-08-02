@@ -38,8 +38,6 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -98,10 +96,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                     } finally {
                         userCreationLock.unlock();
                     }
-                    return Futures.transformAsync(requestForAdditionalData(tenantId, userId, queueStartTs),
-                            ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.USER, EdgeEventActionType.CREDENTIALS_REQUEST,
-                                    userId, null, null, queueStartTs),
-                            dbCallbackExecutorService);
+                    return requestForAdditionalData(tenantId, userId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     if (userUpdateMsg.hasEntityGroupIdMSB() && userUpdateMsg.hasEntityGroupIdLSB()) {
                         UUID entityGroupUUID = safeGetUUID(userUpdateMsg.getEntityGroupIdMSB(),

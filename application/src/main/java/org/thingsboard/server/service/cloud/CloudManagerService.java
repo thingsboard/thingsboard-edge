@@ -300,14 +300,11 @@ public class CloudManagerService {
             while (!Thread.interrupted()) {
                 try {
                     if (initialized) {
-                        queueStartTs = getQueueStartTs().get();
                         Long queueSeqIdStart = getQueueSeqIdStart().get();
-                        TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
-                                0, null, null, queueStartTs, System.currentTimeMillis());
-                        if (newCloudEventsAvailable(queueSeqIdStart, pageLink)) {
+                        TimePageLink pageLink = newCloudEventsAvailable(queueSeqIdStart);
+                        if (pageLink != null) {
                             PageData<CloudEvent> cloudEvents;
                             boolean success = true;
-                            CloudEvent latestCloudEvent = null;
                             do {
                                 cloudEvents = cloudEventService.findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
                                 if (initialized) {
@@ -322,23 +319,21 @@ public class CloudManagerService {
                                     } else {
                                         success = true;
                                     }
-                                    if (!cloudEvents.getData().isEmpty()) {
-                                        latestCloudEvent = cloudEvents.getData().get(cloudEvents.getData().size() - 1);
+                                    if (success && cloudEvents.getTotalElements() > 0) {
+                                        CloudEvent latestCloudEvent = cloudEvents.getData().get(cloudEvents.getData().size() - 1);
+                                        try {
+                                            Long newStartTs = Uuids.unixTimestamp(latestCloudEvent.getUuidId());
+                                            updateQueueStartTsSeqIdOffset(newStartTs, latestCloudEvent.getSeqId());
+                                            log.debug("Queue offset was updated [{}][{}][{}]", latestCloudEvent.getUuidId(), newStartTs, latestCloudEvent.getSeqId());
+                                        } catch (Exception e) {
+                                            log.error("Failed to update queue offset [{}]", latestCloudEvent);
+                                        }
                                     }
                                     if (success) {
                                         pageLink = pageLink.nextPageLink();
                                     }
                                 }
                             } while (initialized && (!success || cloudEvents.hasNext()));
-                            if (latestCloudEvent != null) {
-                                try {
-                                    Long newStartTs = Uuids.unixTimestamp(latestCloudEvent.getUuidId());
-                                    updateQueueStartTsSeqIdOffset(newStartTs, latestCloudEvent.getSeqId());
-                                    log.debug("Queue offset was updated [{}][{}][{}]", latestCloudEvent.getUuidId(), newStartTs, latestCloudEvent.getSeqId());
-                                } catch (Exception e) {
-                                    log.error("Failed to update queue offset [{}]", latestCloudEvent);
-                                }
-                            }
                         }
                         try {
                             Thread.sleep(cloudEventStorageSettings.getNoRecordsSleepInterval());
@@ -355,14 +350,39 @@ public class CloudManagerService {
         });
     }
 
-    private boolean newCloudEventsAvailable(Long queueSeqIdStart, TimePageLink pageLink) {
-        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
-        if (cloudEvents.getData().isEmpty()) {
-            // check if new cycle started (seq_id starts from '1')
-            cloudEvents = findCloudEventsFromBeginning(pageLink);
-            return cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() == 1);
-        } else {
-            return true;
+    private TimePageLink newCloudEventsAvailable(Long queueSeqIdStart) {
+        try {
+            queueStartTs = getQueueStartTs().get();
+            long queueEndTs = queueStartTs + TimeUnit.DAYS.toMillis(1);
+            TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
+                    0, null, null, queueStartTs, queueEndTs);
+            PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
+            if (cloudEvents.getData().isEmpty()) {
+                // check if new cycle started (seq_id starts from '1')
+                cloudEvents = findCloudEventsFromBeginning(pageLink);
+                if (cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() == 1)) {
+                    log.info("newCloudEventsAvailable: new cycle started (seq_id starts from '1')!");
+                    return pageLink;
+                } else {
+                    while (queueEndTs < System.currentTimeMillis()) {
+                        log.info("newCloudEventsAvailable: queueEndTs < System.currentTimeMillis() [{}] [{}]", queueEndTs, System.currentTimeMillis());
+                        queueStartTs = queueEndTs;
+                        queueEndTs = queueEndTs + TimeUnit.DAYS.toMillis(1);
+                        pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
+                                0, null, null, queueStartTs, queueEndTs);
+                        cloudEvents = cloudEventService.findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
+                        if (!cloudEvents.getData().isEmpty()) {
+                            return pageLink;
+                        }
+                    }
+                    return null;
+                }
+            } else {
+                return pageLink;
+            }
+        } catch (Exception e) {
+            log.warn("Failed to check newCloudEventsAvailable!", e);
+            return null;
         }
     }
 
@@ -444,8 +464,6 @@ public class CloudManagerService {
                             uplinkMsg = telemetryProcessor.convertTelemetryEventToUplink(this.tenantId, cloudEvent);
                     case ATTRIBUTES_REQUEST -> uplinkMsg = telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
                     case RELATION_REQUEST -> uplinkMsg = relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
-                    case RULE_CHAIN_METADATA_REQUEST -> uplinkMsg = ruleChainProcessor.convertRuleChainMetadataRequestEventToUplink(cloudEvent);
-                    case CREDENTIALS_REQUEST -> uplinkMsg = entityProcessor.convertCredentialsRequestEventToUplink(cloudEvent);
                     case GROUP_ENTITIES_REQUEST -> uplinkMsg = entityGroupProcessor.processGroupEntitiesRequestMsgToCloud(cloudEvent);
                     case GROUP_PERMISSIONS_REQUEST -> uplinkMsg = groupPermissionProcessor.processEntityGroupPermissionsRequestMsgToCloud(cloudEvent);
                     case RPC_CALL -> uplinkMsg = deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
@@ -572,6 +590,7 @@ public class CloudManagerService {
         if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSettings.getEdgeId())) {
             tenantProcessor.cleanUp();
             this.currentEdgeSettings = newEdgeSettings;
+            updateQueueStartTsSeqIdOffset(System.currentTimeMillis(), 0L);
         } else {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
         }
@@ -583,8 +602,8 @@ public class CloudManagerService {
             customerProcessor.createCustomerIfNotExists(this.tenantId, edgeConfiguration);
         }
         // TODO: voba - should sync be executed in some other cases ???
-        log.trace("Sending sync request, fullSyncRequired {}, edgeCustomerIdUpdated {}", this.currentEdgeSettings.isFullSyncRequired(), edgeCustomerIdUpdated);
-        edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired() | edgeCustomerIdUpdated);
+        log.trace("Sending sync request, fullSyncRequired {}", this.currentEdgeSettings.isFullSyncRequired());
+        edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired());
         this.syncInProgress = true;
 
         cloudEventService.saveEdgeSettings(tenantId, this.currentEdgeSettings);

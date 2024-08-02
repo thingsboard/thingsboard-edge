@@ -90,6 +90,9 @@ CREATE INDEX IF NOT EXISTS idx_cloud_event_tenant_id_and_created_time ON cloud_e
 
 CREATE INDEX IF NOT EXISTS idx_entity_group_by_type_name_and_owner_id ON entity_group(type, name, owner_id);
 
+CREATE INDEX IF NOT EXISTS idx_cloud_event_tenant_id_entity_id_event_type_event_action_crt ON cloud_event
+    (tenant_id, entity_id, cloud_event_type, cloud_event_action, created_time DESC);
+
 CREATE INDEX IF NOT EXISTS idx_rpc_tenant_id_device_id ON rpc(tenant_id, device_id);
 
 CREATE INDEX IF NOT EXISTS idx_customer_tenant_id_parent_customer_id ON customer(tenant_id, parent_customer_id);
