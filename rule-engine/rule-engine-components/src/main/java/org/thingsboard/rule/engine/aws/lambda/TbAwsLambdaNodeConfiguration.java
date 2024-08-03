@@ -28,20 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ruleengine;
+package org.thingsboard.rule.engine.aws.lambda;
 
 import lombok.Data;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.service.security.model.SecurityUser;
+import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-/**
- * Created by ashvayka on 16.04.18.
- */
 @Data
-public class LocalRequestMetaData {
-    private final TbMsg request;
-    private final SecurityUser user;
-    private final DeferredResult<ResponseEntity> responseWriter;
+public class TbAwsLambdaNodeConfiguration implements NodeConfiguration<TbAwsLambdaNodeConfiguration> {
+
+    public static final String DEFAULT_QUALIFIER = "$LATEST";
+
+    private String accessKey;
+    private String secretKey;
+    private String region;
+    private String functionName;
+    private String qualifier;
+    private int connectionTimeout;
+    private int requestTimeout;
+    private boolean tellFailureIfFuncThrowsExc;
+
+    @Override
+    public TbAwsLambdaNodeConfiguration defaultConfiguration() {
+        TbAwsLambdaNodeConfiguration configuration = new TbAwsLambdaNodeConfiguration();
+        configuration.setRegion("us-east-1");
+        configuration.setQualifier(DEFAULT_QUALIFIER);
+        configuration.setConnectionTimeout(10);
+        configuration.setRequestTimeout(5);
+        configuration.setTellFailureIfFuncThrowsExc(false);
+        return configuration;
+    }
+
 }

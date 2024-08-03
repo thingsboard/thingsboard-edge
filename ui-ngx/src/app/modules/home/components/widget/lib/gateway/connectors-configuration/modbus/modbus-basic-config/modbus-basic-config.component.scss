@@ -28,19 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
+:host {
+  height: 100%;
+}
 
-import jakarta.persistence.Column;
-import jakarta.persistence.MappedSuperclass;
-import lombok.Data;
-
-import static org.thingsboard.server.dao.model.ModelConstants.VERSION_COLUMN;
-
-@Data
-@MappedSuperclass
-public abstract class VersionedEntity {
-
-    @Column(name = VERSION_COLUMN)
-    protected Long version;
-
+:host ::ng-deep {
+  .mat-mdc-tab-body-content {
+    overflow: hidden !important;
+  }
 }

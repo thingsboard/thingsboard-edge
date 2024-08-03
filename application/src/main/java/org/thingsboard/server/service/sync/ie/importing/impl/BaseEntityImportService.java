@@ -43,8 +43,8 @@ import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
-import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.HasDefaultOption;
+import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
@@ -252,7 +252,7 @@ public abstract class BaseEntityImportService<I extends EntityId, E extends Expo
                         relationService.deleteRelation(ctx.getTenantId(), existingRelation.getFrom(), existingRelation.getTo(), existingRelation.getType(), existingRelation.getTypeGroup());
                         importResult.addSendEventsCallback(() ->
                                 logEntityActionService.logEntityRelationAction(tenantId, null,
-                                existingRelation, ctx.getUser(), ActionType.RELATION_DELETED, null, existingRelation));
+                                        existingRelation, ctx.getUser(), ActionType.RELATION_DELETED, null, existingRelation));
                     } else if (Objects.equal(relation.getAdditionalInfo(), existingRelation.getAdditionalInfo())) {
                         relationsMap.remove(relation);
                     }

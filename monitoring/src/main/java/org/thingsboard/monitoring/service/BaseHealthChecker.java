@@ -30,6 +30,8 @@
  */
 package org.thingsboard.monitoring.service;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,8 +46,6 @@ import org.thingsboard.monitoring.data.MonitoredServiceKey;
 import org.thingsboard.monitoring.data.ServiceFailureException;
 import org.thingsboard.monitoring.util.TbStopWatch;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;

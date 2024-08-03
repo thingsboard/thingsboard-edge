@@ -46,7 +46,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -139,6 +138,9 @@ public class ThingsboardSecurityConfiguration {
 
     @Autowired
     private RateLimitProcessingFilter rateLimitProcessingFilter;
+
+    @Autowired
+    private RequestSizeFilter requestSizeFilter;
 
     @Bean
     protected FilterRegistrationBean<ShallowEtagHeaderFilter> buildEtagFilter() throws Exception {
@@ -241,6 +243,7 @@ public class ThingsboardSecurityConfiguration {
                 .addFilterBefore(buildRestPublicLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(buildRefreshTokenProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(requestSizeFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(rateLimitProcessingFilter, UsernamePasswordAuthenticationFilter.class);
         if (oauth2Configuration != null) {
             http.oauth2Login(login -> login

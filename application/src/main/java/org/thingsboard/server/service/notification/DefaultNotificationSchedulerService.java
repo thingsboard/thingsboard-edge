@@ -31,6 +31,8 @@
 package org.thingsboard.server.service.notification;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,8 +57,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.executors.NotificationExecutorService;
 import org.thingsboard.server.service.partition.AbstractPartitionBasedService;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;

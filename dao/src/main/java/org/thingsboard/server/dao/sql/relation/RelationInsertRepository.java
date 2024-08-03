@@ -38,6 +38,6 @@ public interface RelationInsertRepository {
 
     RelationEntity saveOrUpdate(RelationEntity entity);
 
-    void saveOrUpdate(List<RelationEntity> entities);
+    List<RelationEntity> saveOrUpdate(List<RelationEntity> entities);
 
 }

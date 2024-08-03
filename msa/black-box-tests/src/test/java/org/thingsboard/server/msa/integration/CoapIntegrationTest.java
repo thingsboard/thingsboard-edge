@@ -32,6 +32,7 @@ package org.thingsboard.server.msa.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.collect.Sets;
+import jakarta.xml.bind.DatatypeConverter;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
@@ -45,7 +46,6 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
-import jakarta.xml.bind.DatatypeConverter;
 import java.io.IOException;
 
 import static ch.qos.logback.core.encoder.ByteArrayUtil.hexStringToByteArray;

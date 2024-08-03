@@ -29,43 +29,39 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectionStrategy, Component, forwardRef, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Input, OnDestroy, TemplateRef } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
+  FormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
-  UntypedFormGroup,
   ValidationErrors,
   Validator,
-  Validators
 } from '@angular/forms';
-import {
-  noLeadTrailSpacesRegex,
-  SecurityPolicy,
-  SecurityPolicyTypes,
-  ServerConfig
-} from '@home/components/widget/lib/gateway/gateway-widget.models';
+import { ConnectorType, ModbusBasicConfig } from '@home/components/widget/lib/gateway/gateway-widget.models';
 import { SharedModule } from '@shared/shared.module';
 import { CommonModule } from '@angular/common';
-import { SecurityConfigComponent } from '@home/components/widget/lib/gateway/connectors-configuration/public-api';
-import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+
+import { EllipsisChipListDirective } from '@shared/directives/ellipsis-chip-list.directive';
+import { ModbusSlaveConfigComponent } from '../modbus-slave-config/modbus-slave-config.component';
+import { ModbusMasterTableComponent } from '../modbus-master-table/modbus-master-table.component';
 
 @Component({
-  selector: 'tb-server-config',
-  templateUrl: './server-config.component.html',
-  styleUrls: ['./server-config.component.scss'],
+  selector: 'tb-modbus-basic-config',
+  templateUrl: './modbus-basic-config.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => ServerConfigComponent),
+      useExisting: forwardRef(() => ModbusBasicConfigComponent),
       multi: true
     },
     {
       provide: NG_VALIDATORS,
-      useExisting: forwardRef(() => ServerConfigComponent),
+      useExisting: forwardRef(() => ModbusBasicConfigComponent),
       multi: true
     }
   ],
@@ -73,38 +69,36 @@ import { takeUntil } from 'rxjs/operators';
   imports: [
     CommonModule,
     SharedModule,
-    SecurityConfigComponent,
-  ]
+    ModbusSlaveConfigComponent,
+    ModbusMasterTableComponent,
+    EllipsisChipListDirective,
+  ],
+  styleUrls: ['./modbus-basic-config.component.scss'],
 })
-export class ServerConfigComponent implements ControlValueAccessor, Validator, OnDestroy {
 
-  securityPolicyTypes = SecurityPolicyTypes;
-  serverConfigFormGroup: UntypedFormGroup;
+export class ModbusBasicConfigComponent implements ControlValueAccessor, Validator, OnDestroy {
 
-  onChange!: (value: string) => void;
-  onTouched!: () => void;
+  @Input() generalTabContent: TemplateRef<any>;
+
+  basicFormGroup: FormGroup;
+
+  onChange: (value: ModbusBasicConfig) => void;
+  onTouched: () => void;
 
   private destroy$ = new Subject<void>();
 
   constructor(private fb: FormBuilder) {
-    this.serverConfigFormGroup = this.fb.group({
-      name: ['', []],
-      url: ['', [Validators.required, Validators.pattern(noLeadTrailSpacesRegex)]],
-      timeoutInMillis: [1000, [Validators.required, Validators.min(1000)]],
-      scanPeriodInMillis: [1000, [Validators.required, Validators.min(1000)]],
-      enableSubscriptions: [true, []],
-      subCheckPeriodInMillis: [10, [Validators.required, Validators.min(10)]],
-      showMap: [false, []],
-      security: [SecurityPolicy.BASIC128, []],
-      identity: [{}, [Validators.required]]
+    this.basicFormGroup = this.fb.group({
+      master: [],
+      slave: [],
     });
 
-    this.serverConfigFormGroup.valueChanges.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe((value) => {
-      this.onChange(value);
-      this.onTouched();
-    });
+    this.basicFormGroup.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(value => {
+        this.onChange(value);
+        this.onTouched();
+      });
   }
 
   ngOnDestroy(): void {
@@ -112,7 +106,7 @@ export class ServerConfigComponent implements ControlValueAccessor, Validator, O
     this.destroy$.complete();
   }
 
-  registerOnChange(fn: (value: string) => void): void {
+  registerOnChange(fn: (value: ModbusBasicConfig) => void): void {
     this.onChange = fn;
   }
 
@@ -120,13 +114,18 @@ export class ServerConfigComponent implements ControlValueAccessor, Validator, O
     this.onTouched = fn;
   }
 
-  validate(): ValidationErrors | null {
-    return this.serverConfigFormGroup.valid ? null : {
-      serverConfigFormGroup: { valid: false }
+  writeValue(basicConfig: ModbusBasicConfig): void {
+    const editedBase = {
+      slave: basicConfig.slave ?? {},
+      master: basicConfig.master ?? {},
     };
+
+    this.basicFormGroup.setValue(editedBase, {emitEvent: false});
   }
 
-  writeValue(serverConfig: ServerConfig): void {
-    this.serverConfigFormGroup.patchValue(serverConfig, {emitEvent: false});
+  validate(): ValidationErrors | null {
+    return this.basicFormGroup.valid ? null : {
+      basicFormGroup: {valid: false}
+    };
   }
 }
