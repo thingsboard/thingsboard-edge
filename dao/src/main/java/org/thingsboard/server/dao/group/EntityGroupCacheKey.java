@@ -34,7 +34,6 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -46,9 +45,13 @@ public class EntityGroupCacheKey implements Serializable {
     @Serial
     private static final long serialVersionUID = -3320634175313960334L;
 
-    private final TenantId tenantId;
+    private final EntityId ownerId;
     private final EntityType entityType;
     private final String groupName;
-    private final EntityId ownerId;
+
+    @Override
+    public String toString() {
+        return ownerId.getId() + "_" + entityType + "_" + groupName;
+    }
 
 }

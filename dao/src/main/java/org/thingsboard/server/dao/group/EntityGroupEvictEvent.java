@@ -32,7 +32,6 @@ package org.thingsboard.server.dao.group;
 
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
 
-public record EntityGroupEvictEvent(TenantId tenantId, EntityType entityType, String newGroupName, String oldGroupName, EntityId newOwnerId, EntityId oldOwnerId) {
+public record EntityGroupEvictEvent(EntityId ownerId, EntityType entityType, String newGroupName, String oldGroupName) {
 }

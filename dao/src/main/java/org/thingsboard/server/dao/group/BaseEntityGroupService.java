@@ -205,15 +205,11 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
         log.trace("Executing saveEntityGroup [{}]", entityGroup);
         validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
         entityGroup = new EntityGroup(entityGroup);
-        EntityGroup old = null;
-        if (entityGroup.getId() != null) {
-            old = findEntityGroupById(tenantId, entityGroup.getId());
-        }
         if (entityGroup.getId() == null) {
             entityGroup.setOwnerId(parentEntityId);
         }
-        new EntityGroupValidator().validate(entityGroup, data -> tenantId);
-        EntityGroupEvictEvent event = new EntityGroupEvictEvent(tenantId, entityGroup.getType(), entityGroup.getName(), old != null ? old.getName() : null, entityGroup.getOwnerId(), old != null ? old.getOwnerId() : null);
+        EntityGroup old = new EntityGroupValidator().validate(entityGroup, data -> tenantId);
+        EntityGroupEvictEvent event = new EntityGroupEvictEvent(old != null ? old.getOwnerId() : entityGroup.getOwnerId(), entityGroup.getType(), entityGroup.getName(), old != null ? old.getName() : null);
         if (entityGroup.getId() == null && entityGroup.getConfiguration() == null) {
             EntityGroupConfiguration entityGroupConfiguration =
                     EntityGroupConfiguration.createDefaultEntityGroupConfiguration(entityGroup.getType());
@@ -541,7 +537,7 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
         EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         entityGroupDao.removeById(tenantId, entityGroupId.getId());
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityGroupId).build());
-        publishEvictEvent(new EntityGroupEvictEvent(tenantId, entityGroup.getType(), entityGroup.getName(), null, entityGroup.getOwnerId(), null));
+        publishEvictEvent(new EntityGroupEvictEvent(entityGroup.getOwnerId(), entityGroup.getType(), entityGroup.getName(), null));
     }
 
     @Override
@@ -703,7 +699,7 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
     @Override
     public Optional<EntityGroup> findEntityGroupByTypeAndName(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name) {
         log.trace("Executing findEntityGroupByTypeAndName, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
-        return Optional.ofNullable(cache.getAndPutInTransaction(new EntityGroupCacheKey(tenantId, groupType, name, parentEntityId),
+        return Optional.ofNullable(cache.getAndPutInTransaction(new EntityGroupCacheKey(parentEntityId, groupType, name),
                 () -> entityGroupDao.findEntityGroupByTypeAndName(tenantId.getId(), parentEntityId.getId(),
                         parentEntityId.getEntityType(), groupType, name).orElse(null), true));
     }
@@ -718,7 +714,7 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
     @Override
     public ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndNameAsync(TenantId tenantId, EntityId parentEntityId, EntityType groupType, String name) {
         log.trace("Executing findEntityGroupByTypeAndNameAsync, parentEntityId [{}], groupType [{}], name [{}]", parentEntityId, groupType, name);
-        String relationType = validateAndComposeRelationType(parentEntityId, groupType, name);
+        validateAndComposeRelationType(parentEntityId, groupType, name);
         return executorService.submit(() -> findEntityGroupByTypeAndName(tenantId, parentEntityId, groupType, name));
     }
 
@@ -1182,19 +1178,10 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
     @TransactionalEventListener(classes = EntityGroupEvictEvent.class)
     @Override
     public void handleEvictEvent(EntityGroupEvictEvent event) {
-        List<EntityGroupCacheKey> keys = new ArrayList<>(4);
-        if (StringUtils.isNotEmpty(event.oldGroupName()) && !event.oldGroupName().equals(event.newGroupName())) {
-            if (event.oldOwnerId() != null && !event.oldOwnerId().equals(event.newOwnerId())) {
-                keys.add(new EntityGroupCacheKey(event.tenantId(), event.entityType(), event.oldGroupName(), event.oldOwnerId()));
-            } else {
-                keys.add(new EntityGroupCacheKey(event.tenantId(), event.entityType(), event.oldGroupName(), event.newOwnerId()));
-            }
-        } else {
-            if (event.oldOwnerId() != null && !event.oldOwnerId().equals(event.newOwnerId())) {
-                keys.add(new EntityGroupCacheKey(event.tenantId(), event.entityType(), event.newGroupName(), event.oldOwnerId()));
-            } else {
-                keys.add(new EntityGroupCacheKey(event.tenantId(), event.entityType(), event.newGroupName(), event.newOwnerId()));
-            }
+        List<EntityGroupCacheKey> keys = new ArrayList<>(2);
+        keys.add(new EntityGroupCacheKey(event.ownerId(), event.entityType(), event.newGroupName()));
+        if (StringUtils.isNotEmpty(event.oldGroupName())) {
+            keys.add(new EntityGroupCacheKey(event.ownerId(), event.entityType(), event.oldGroupName()));
         }
         cache.evict(keys);
     }
@@ -1209,6 +1196,15 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
                     throw new DataValidationException("Entity group with such external id already exists!");
                 }
             }
+        }
+
+        @Override
+        protected EntityGroup validateUpdate(TenantId tenantId, EntityGroup data) {
+            EntityGroup old = entityGroupDao.findById(tenantId, data.getId().getId());
+            if (old == null) {
+                throw new DataValidationException("Can`t update non existing entity group!");
+            }
+            return old;
         }
 
         @Override
