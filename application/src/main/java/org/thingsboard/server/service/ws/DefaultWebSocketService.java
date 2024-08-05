@@ -36,6 +36,9 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
+import jakarta.annotation.Nullable;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -64,6 +67,7 @@ import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
@@ -98,10 +102,6 @@ import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataCmd;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.EntityDataUpdate;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.UnsubscribeCmd;
 import org.thingsboard.server.service.ws.telemetry.sub.TelemetrySubscriptionUpdate;
-
-import jakarta.annotation.Nullable;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -244,9 +244,10 @@ public class DefaultWebSocketService implements WebSocketService {
             try {
                 Optional.ofNullable(cmdsHandlers.get(cmd.getType()))
                         .ifPresent(cmdHandler -> cmdHandler.handle(sessionRef, cmd));
+            } catch (TbRateLimitsException e) {
+                log.debug("{} Failed to handle WS cmd: {}", sessionRef, cmd, e);
             } catch (Exception e) {
-                log.error("[sessionId: {}, tenantId: {}, userId: {}] Failed to handle WS cmd: {}", sessionId,
-                        sessionRef.getSecurityCtx().getTenantId(), sessionRef.getSecurityCtx().getId(), cmd, e);
+                log.error("{} Failed to handle WS cmd: {}", sessionRef, cmd, e);
             }
         }
     }
@@ -495,7 +496,7 @@ public class DefaultWebSocketService implements WebSocketService {
 
                 subLock.lock();
                 try {
-                    oldSubService.addSubscription(sub);
+                    oldSubService.addSubscription(sub, sessionRef);
                     sendUpdate(sessionRef, new TelemetrySubscriptionUpdate(cmd.getCmdId(), attributesData));
                 } finally {
                     subLock.unlock();
@@ -609,7 +610,7 @@ public class DefaultWebSocketService implements WebSocketService {
 
                 subLock.lock();
                 try {
-                    oldSubService.addSubscription(sub);
+                    oldSubService.addSubscription(sub, sessionRef);
                     sendUpdate(sessionRef, new TelemetrySubscriptionUpdate(cmd.getCmdId(), attributesData));
                 } finally {
                     subLock.unlock();
@@ -706,7 +707,7 @@ public class DefaultWebSocketService implements WebSocketService {
 
                 subLock.lock();
                 try {
-                    oldSubService.addSubscription(sub);
+                    oldSubService.addSubscription(sub, sessionRef);
                     sendUpdate(sessionRef, new TelemetrySubscriptionUpdate(cmd.getCmdId(), data));
                 } finally {
                     subLock.unlock();
@@ -762,7 +763,7 @@ public class DefaultWebSocketService implements WebSocketService {
 
                 subLock.lock();
                 try {
-                    oldSubService.addSubscription(sub);
+                    oldSubService.addSubscription(sub, sessionRef);
                     sendUpdate(sessionRef, new TelemetrySubscriptionUpdate(cmd.getCmdId(), data));
                 } finally {
                     subLock.unlock();
