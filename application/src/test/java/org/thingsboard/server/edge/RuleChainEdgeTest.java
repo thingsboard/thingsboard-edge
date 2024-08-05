@@ -197,7 +197,7 @@ public class RuleChainEdgeTest extends AbstractEdgeTest {
         ruleChain.setType(RuleChainType.EDGE);
         RuleChain savedRuleChain = doPost("/api/ruleChain", ruleChain, RuleChain.class);
 
-        edgeImitator.expectMessageAmount(2);
+        edgeImitator.expectMessageAmount(4);
         doPost("/api/edge/" + edge.getUuidId()
                 + "/ruleChain/" + savedRuleChain.getUuidId(), RuleChain.class);
         RuleChainMetaData metaData = createRuleChainMetadata(savedRuleChain);
@@ -205,7 +205,7 @@ public class RuleChainEdgeTest extends AbstractEdgeTest {
 
         // set new rule chain as root
         RuleChainId currentRootRuleChainId = edge.getRootRuleChainId();
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
         doPost("/api/edge/" + edge.getUuidId()
                 + "/" + savedRuleChain.getUuidId() + "/root", Edge.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
