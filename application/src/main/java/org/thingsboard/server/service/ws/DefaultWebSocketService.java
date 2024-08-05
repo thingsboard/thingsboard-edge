@@ -268,7 +268,7 @@ public class DefaultWebSocketService implements WebSocketService {
         try {
             accessControlService.checkPermission(sessionRef.getSecurityCtx(), Resource.ALARM, Operation.READ);
         } catch (ThingsboardException e) {
-            sendError(sessionRef, cmd.getCmdId(), SubscriptionErrorCode.ACCESS_DENIED, "You don't have permission to view alarms" );
+            sendError(sessionRef, cmd.getCmdId(), SubscriptionErrorCode.ACCESS_DENIED, "You don't have permission to view alarms");
             return;
         }
 
