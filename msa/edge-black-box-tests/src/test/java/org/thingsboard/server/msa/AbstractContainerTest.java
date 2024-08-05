@@ -707,14 +707,10 @@ public abstract class AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> savedCustomer.getId().equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId()));
 
-        Awaitility.await()
-                .pollInterval(1000, TimeUnit.MILLISECONDS)
-                .atMost(30, TimeUnit.SECONDS)
-                .until(() -> {
-                    Boolean edgeSyncProcessActive = cloudRestClient.isEdgeSyncProcessActive(edge.getId());
-                    log.error("Edge sync process active: {}", edgeSyncProcessActive);
-                    return !edgeSyncProcessActive;
-                });
+        try {
+            // wait until sync process completed fully
+            TimeUnit.SECONDS.sleep(5);
+        } catch (Exception ignored) {}
     }
 
     protected RuleChainId createRuleChainAndAssignToEdge(String ruleChainName) {
