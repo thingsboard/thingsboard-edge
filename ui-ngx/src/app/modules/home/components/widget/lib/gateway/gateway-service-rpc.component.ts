@@ -37,6 +37,7 @@ import { ContentType } from '@shared/models/constants';
 import { jsonRequired } from '@shared/components/json-object-edit.component';
 import {
   ConnectorType,
+  GatewayConnectorDefaultTypesTranslatesMap,
   RPCCommand,
   RPCTemplate,
   RPCTemplateConfig,
@@ -85,6 +86,9 @@ export class GatewayServiceRPCComponent implements OnInit {
 
   public connectorType: ConnectorType;
   public templates: Array<RPCTemplate> = [];
+
+  readonly ConnectorType = ConnectorType;
+  readonly gatewayConnectorDefaultTypesTranslates = GatewayConnectorDefaultTypesTranslatesMap;
 
   private subscription: IWidgetSubscription;
   private subscriptionOptions: WidgetSubscriptionOptions = {

@@ -62,6 +62,7 @@ import {
 import {
   MappingTableComponent
 } from '@home/components/widget/lib/gateway/connectors-configuration/mapping-table/mapping-table.component';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-mqtt-basic-config',
@@ -99,7 +100,7 @@ export class MqttBasicConfigComponent implements ControlValueAccessor, Validator
   mappingTypes = MappingType;
   basicFormGroup: FormGroup;
 
-  private onChange: (value: string) => void;
+  private onChange: (value: MQTTBasicConfig) => void;
   private onTouched: () => void;
 
   private destroy$ = new Subject<void>();
@@ -115,7 +116,7 @@ export class MqttBasicConfigComponent implements ControlValueAccessor, Validator
     this.basicFormGroup.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(value => {
-        this.onChange(value);
+        this.onChange(this.getMappedMQTTConfig(value));
         this.onTouched();
       });
   }
@@ -125,7 +126,7 @@ export class MqttBasicConfigComponent implements ControlValueAccessor, Validator
     this.destroy$.complete();
   }
 
-  registerOnChange(fn: (value: string) => void): void {
+  registerOnChange(fn: (value: MQTTBasicConfig) => void): void {
     this.onChange = fn;
   }
 
@@ -150,13 +151,30 @@ export class MqttBasicConfigComponent implements ControlValueAccessor, Validator
     this.basicFormGroup.setValue(editedBase, {emitEvent: false});
   }
 
+  private getMappedMQTTConfig(basicConfig: MQTTBasicConfig): MQTTBasicConfig {
+    let { broker, workers, dataMapping, requestsMapping  } = basicConfig || {};
+
+    if (isDefinedAndNotNull(workers.maxNumberOfWorkers) || isDefinedAndNotNull(workers.maxMessageNumberPerWorker)) {
+      broker = {
+        ...broker,
+        ...workers,
+      };
+    }
+
+    if ((requestsMapping as RequestMappingData[])?.length) {
+      requestsMapping = this.getRequestDataObject(requestsMapping as RequestMappingData[]);
+    }
+
+    return { broker, workers, dataMapping, requestsMapping };
+  }
+
   validate(): ValidationErrors | null {
     return this.basicFormGroup.valid ? null : {
       basicFormGroup: {valid: false}
     };
   }
 
-  private getRequestDataArray(value: Record<RequestType, RequestMappingData>): RequestMappingData[] {
+  private getRequestDataArray(value: Record<RequestType, RequestMappingData[]>): RequestMappingData[] {
     const mappingConfigs = [];
 
     if (isObject(value)) {
@@ -171,5 +189,18 @@ export class MqttBasicConfigComponent implements ControlValueAccessor, Validator
     }
 
     return mappingConfigs;
+  }
+
+  private getRequestDataObject(array: RequestMappingData[]): Record<RequestType, RequestMappingData[]> {
+    return array.reduce((result, { requestType, requestValue }) => {
+      result[requestType].push(requestValue);
+      return result;
+    }, {
+      connectRequests: [],
+      disconnectRequests: [],
+      attributeRequests: [],
+      attributeUpdates: [],
+      serverSideRpc: [],
+    });
   }
 }
