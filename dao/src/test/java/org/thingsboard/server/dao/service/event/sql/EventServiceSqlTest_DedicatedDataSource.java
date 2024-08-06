@@ -28,24 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao;
+package org.thingsboard.server.dao.service.event.sql;
 
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.data.repository.config.BootstrapMode;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.thingsboard.server.dao.util.TbAutoConfiguration;
-import org.thingsboard.server.dao.util.TimescaleDBTsLatestDao;
+import org.springframework.test.context.TestPropertySource;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-@Configuration
-@TbAutoConfiguration
-@ComponentScan({"org.thingsboard.server.dao.sqlts.timescale"})
-@EnableJpaRepositories(value = {"org.thingsboard.server.dao.sqlts.insert.latest.sql", "org.thingsboard.server.dao.sqlts.latest"}, bootstrapMode = BootstrapMode.LAZY)
-@EntityScan({"org.thingsboard.server.dao.model.sqlts.latest"})
-@EnableTransactionManagement
-@TimescaleDBTsLatestDao
-public class TimescaleTsLatestDaoConfig {
-
+@DaoSqlTest
+@TestPropertySource(properties = {
+        "spring.datasource.dedicated.enabled=true",
+        "spring.datasource.dedicated.url=${spring.datasource.url}",
+        "spring.datasource.dedicated.driverClassName=${spring.datasource.driverClassName}"
+})
+public class EventServiceSqlTest_DedicatedDataSource extends EventServiceSqlTest {
 }

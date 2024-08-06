@@ -28,34 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao;
+package org.thingsboard.server.controller;
 
-import org.junit.runner.RunWith;
-import org.mockito.Answers;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-import org.thingsboard.server.common.stats.StatsFactory;
-import org.thingsboard.server.dao.config.DedicatedJpaDaoConfig;
-import org.thingsboard.server.dao.config.JpaDaoConfig;
-import org.thingsboard.server.dao.config.SqlTsDaoConfig;
-import org.thingsboard.server.dao.config.SqlTsLatestDaoConfig;
+import lombok.Getter;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.dao.sqlts.insert.sql.DedicatedSqlPartitioningRepository;
 
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = {JpaDaoConfig.class, SqlTsDaoConfig.class, SqlTsLatestDaoConfig.class, DedicatedJpaDaoConfig.class})
 @DaoSqlTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@TestExecutionListeners({
-        DependencyInjectionTestExecutionListener.class,
-        DirtiesContextTestExecutionListener.class})
-public abstract class AbstractDaoServiceTest {
+@TestPropertySource(properties = {
+        "spring.datasource.dedicated.enabled=true",
+        "spring.datasource.dedicated.url=${spring.datasource.url}",
+        "spring.datasource.dedicated.driverClassName=${spring.datasource.driverClassName}",
+})
+public class AuditLogControllerTest_DedicatedDataSource extends AuditLogControllerTest {
 
-    @MockBean(answer = Answers.RETURNS_MOCKS)
-    StatsFactory statsFactory;
+    @Getter
+    @SpyBean
+    private DedicatedSqlPartitioningRepository partitioningRepository;
 
 }

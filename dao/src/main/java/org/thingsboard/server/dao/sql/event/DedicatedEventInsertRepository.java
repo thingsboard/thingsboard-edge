@@ -28,24 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao;
+package org.thingsboard.server.dao.sql.event;
 
-import org.springframework.boot.autoconfigure.domain.EntityScan;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.data.repository.config.BootstrapMode;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.thingsboard.server.dao.util.SqlTsLatestDao;
-import org.thingsboard.server.dao.util.TbAutoConfiguration;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.thingsboard.server.dao.config.DedicatedDataSource;
 
-@Configuration
-@TbAutoConfiguration
-@ComponentScan({"org.thingsboard.server.dao.sqlts.sql"})
-@EnableJpaRepositories(value = {"org.thingsboard.server.dao.sqlts.insert.latest.sql", "org.thingsboard.server.dao.sqlts.latest"}, bootstrapMode = BootstrapMode.LAZY)
-@EntityScan({"org.thingsboard.server.dao.model.sqlts.latest"})
-@EnableTransactionManagement
-@SqlTsLatestDao
-public class SqlTsLatestDaoConfig {
+import static org.thingsboard.server.dao.config.DedicatedJpaDaoConfig.DEDICATED_JDBC_TEMPLATE;
+import static org.thingsboard.server.dao.config.DedicatedJpaDaoConfig.DEDICATED_TRANSACTION_TEMPLATE;
+
+@DedicatedDataSource
+@Repository
+public class DedicatedEventInsertRepository extends EventInsertRepository {
+
+    public DedicatedEventInsertRepository(@Qualifier(DEDICATED_JDBC_TEMPLATE) JdbcTemplate jdbcTemplate,
+                                          @Qualifier(DEDICATED_TRANSACTION_TEMPLATE) TransactionTemplate transactionTemplate) {
+        super(jdbcTemplate, transactionTemplate);
+    }
 
 }
