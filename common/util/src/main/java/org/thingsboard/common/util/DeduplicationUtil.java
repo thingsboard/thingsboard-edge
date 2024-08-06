@@ -28,32 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.msg.tools;
+package org.thingsboard.common.util;
 
-import lombok.Getter;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.exception.AbstractRateLimitException;
+import org.springframework.util.ConcurrentReferenceHashMap;
 
-/**
- * Created by ashvayka on 22.10.18.
- */
-public class TbRateLimitsException extends AbstractRateLimitException {
-    @Getter
-    private final EntityType entityType;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-    public TbRateLimitsException(EntityType entityType) {
-        super(entityType.name() + " rate limits reached!");
-        this.entityType = entityType;
-    }
+import static org.springframework.util.ConcurrentReferenceHashMap.ReferenceType.SOFT;
 
-    public TbRateLimitsException(EntityType entityType, String msg) {
-        super(msg);
-        this.entityType = entityType;
-    }
+public class DeduplicationUtil {
 
-    public TbRateLimitsException(String message) {
-        super(message);
-        this.entityType = null;
+    private static final ConcurrentMap<Object, Long> cache = new ConcurrentReferenceHashMap<>(16, SOFT);
+
+    public static boolean alreadyProcessed(Object deduplicationKey, long deduplicationDuration) {
+        AtomicBoolean alreadyProcessed = new AtomicBoolean(false);
+        cache.compute(deduplicationKey, (key, lastProcessedTs) -> {
+            if (lastProcessedTs != null) {
+                long passed = System.currentTimeMillis() - lastProcessedTs;
+                if (passed <= deduplicationDuration) {
+                    alreadyProcessed.set(true);
+                    return lastProcessedTs;
+                }
+            }
+            return System.currentTimeMillis();
+        });
+        return alreadyProcessed.get();
     }
 
 }
