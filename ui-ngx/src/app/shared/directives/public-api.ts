@@ -29,9 +29,5 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export * from './components/public-api';
-export * from './decorators/public-api';
-export * from './models/public-api';
-export * from './pipe/public-api';
-export * from './shared.module';
-export * from './directives/public-api';
+export * from './truncate-with-tooltip.directive';
+export * from './ellipsis-chip-list.directive';
