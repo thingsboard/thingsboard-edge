@@ -22,6 +22,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
@@ -141,7 +142,7 @@ public class BaseCloudEventService implements CloudEventService {
     public EdgeSettings findEdgeSettings(TenantId tenantId) {
         try {
             Optional<AttributeKvEntry> attr =
-                    attributesService.find(tenantId, tenantId, DataConstants.SERVER_SCOPE, DataConstants.EDGE_SETTINGS_ATTR_KEY).get();
+                    attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, DataConstants.EDGE_SETTINGS_ATTR_KEY).get();
             if (attr.isPresent()) {
                 log.trace("Found current edge settings {}", attr.get().getValueAsString());
                 return JacksonUtil.fromString(attr.get().getValueAsString(), EdgeSettings.class);
@@ -156,13 +157,13 @@ public class BaseCloudEventService implements CloudEventService {
     }
 
     @Override
-    public ListenableFuture<List<String>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings) {
+    public ListenableFuture<List<Long>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings) {
         try {
             BaseAttributeKvEntry edgeSettingAttr =
                     new BaseAttributeKvEntry(new StringDataEntry(DataConstants.EDGE_SETTINGS_ATTR_KEY, JacksonUtil.toString(edgeSettings)), System.currentTimeMillis());
             List<AttributeKvEntry> attributes =
                     Collections.singletonList(edgeSettingAttr);
-            return attributesService.save(tenantId, tenantId, DataConstants.SERVER_SCOPE, attributes);
+            return attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes);
         } catch (Exception e) {
             log.error("Exception while saving edge settings", e);
             throw new RuntimeException("Exception while saving edge settings", e);
