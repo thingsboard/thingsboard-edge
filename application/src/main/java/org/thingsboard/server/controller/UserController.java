@@ -108,6 +108,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
@@ -871,7 +872,7 @@ public class UserController extends BaseController {
         TenantId tenantId = authUser.getTenantId();
         UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, userId);
         if (!userCredentials.isEnabled() && userCredentials.getActivateToken() != null) {
-            if (userCredentials.isActivationTokenExpired()) {
+            if (System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15) > userCredentials.getActivateTokenExpTime()) { // renew link if less than 15 minutes before expiration
                 userCredentials = userService.generateUserActivationToken(userCredentials);
                 userCredentials = userService.saveUserCredentials(tenantId, userCredentials);
                 log.debug("[{}][{}] Regenerated expired user activation token", tenantId, userId);

@@ -241,8 +241,7 @@ public class MobileApplicationController extends BaseController {
                     .header("Location", appStoreLink)
                     .build();
         } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .build();
+            return response(HttpStatus.NOT_FOUND);
         }
     }
 
