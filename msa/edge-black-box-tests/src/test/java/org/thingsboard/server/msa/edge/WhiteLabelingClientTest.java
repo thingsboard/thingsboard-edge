@@ -149,7 +149,7 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
     private void testLoginWhiteLabeling_tenant() {
         cloudRestClient.login("tenant@thingsboard.org", "tenant");
         edgeRestClient.login("tenant@thingsboard.org", "tenant");
-        updateAndVerifyLoginWhiteLabelingUpdate("tenant_updated.org");
+        updateAndVerifyLoginWhiteLabelingUpdate("tenantupdated.org");
     }
 
     private void updateAndVerifyLoginWhiteLabelingUpdate(String updatedDomainName) {
@@ -176,7 +176,7 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
     private void testLoginWhiteLabeling_customer() {
         Customer savedCustomer = createCustomerAndAssignEdgeToCustomer();
 
-        updateAndVerifyLoginWhiteLabelingUpdate("customer_updated.org");
+        updateAndVerifyLoginWhiteLabelingUpdate("customerupdated.org");
 
         changeOwnerToTenantAndRemoveCustomer(savedCustomer);
     }
@@ -271,9 +271,6 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
         // change owner to tenant
         cloudRestClient.changeOwnerToTenant(edge.getTenantId(), edge.getId());
 
-        // delete customer
-        cloudRestClient.deleteCustomer(savedCustomer.getId());
-
         // validate that customer was deleted from edge
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -285,6 +282,9 @@ public class WhiteLabelingClientTest extends AbstractContainerTest {
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(60, TimeUnit.SECONDS)
                 .until(() -> EntityId.NULL_UUID.equals(edgeRestClient.getEdgeById(edge.getId()).get().getCustomerId().getId()));
+
+        // delete customer
+        cloudRestClient.deleteCustomer(savedCustomer.getId());
     }
 
 }

@@ -69,7 +69,18 @@ public class CustomerClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> edgeRestClient.getCustomerById(savedSubCustomerA.getId()).isPresent());
 
-        cloudRestClient.syncEdge(edge.getId());
+        Awaitility.await()
+                .pollInterval(1000, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    try {
+                        cloudRestClient.syncEdge(edge.getId());
+                        return true;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                });
+
         testPublicCustomerCreatedOnEdge(savedSubCustomerA.getId());
 
         // update customer A
