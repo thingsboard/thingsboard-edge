@@ -200,7 +200,9 @@ public class BaseIntegrationService extends AbstractCachedEntityService<Integrat
     public void deleteIntegration(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing deleteIntegration [{}]", integrationId);
         Integration integration = findIntegrationById(tenantId, integrationId);
-        validateId(integrationId, id -> INCORRECT_INTEGRATION_ID + id);
+        if (integration == null) {
+            return;
+        }
         integrationDao.removeById(tenantId, integrationId.getId());
         publishEvictEvent(new IntegrationCacheEvictEvent(integrationId));
         entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.INTEGRATION);

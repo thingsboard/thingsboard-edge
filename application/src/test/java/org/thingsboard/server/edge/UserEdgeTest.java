@@ -65,7 +65,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
     @Test
     public void testCreateUpdateDeleteTenantUser() throws Exception {
         // create user and add to tenant admin group
-        edgeImitator.expectMessageAmount(2);
+        edgeImitator.expectMessageAmount(3);
         User newTenantAdmin = new User();
         newTenantAdmin.setAuthority(Authority.TENANT_ADMIN);
         newTenantAdmin.setTenantId(tenantId);
@@ -102,13 +102,13 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(edgeUserGroup.getUuidId().getLeastSignificantBits(), userUpdateMsg.getEntityGroupIdLSB());
 
         // update user
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
         savedTenantAdmin.setLastName("Borisov");
         savedTenantAdmin = doPost("/api/user", savedTenantAdmin, User.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
-        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof UserUpdateMsg);
-        userUpdateMsg = (UserUpdateMsg) latestMessage;
+        Optional<UserUpdateMsg> userUpdateMsgOpt = edgeImitator.findMessageByType(UserUpdateMsg.class);
+        Assert.assertTrue(userUpdateMsgOpt.isPresent());
+        userUpdateMsg = userUpdateMsgOpt.get();
         userMsg = JacksonUtil.fromString(userUpdateMsg.getEntity(), User.class, true);
         Assert.assertNotNull(userMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, userUpdateMsg.getMsgType());
@@ -134,7 +134,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         changePasswordRequest.setNewPassword("newTenant");
         doPost("/api/auth/changePassword", changePasswordRequest);
         Assert.assertTrue(edgeImitator.waitForMessages());
-        latestMessage = edgeImitator.getLatestMessage();
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof UserCredentialsUpdateMsg);
         UserCredentialsUpdateMsg userCredentialsUpdateMsg = (UserCredentialsUpdateMsg) latestMessage;
         UserCredentials userCredentialsMsg = JacksonUtil.fromString(userCredentialsUpdateMsg.getEntity(), UserCredentials.class, true);
@@ -207,13 +207,13 @@ public class UserEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(customUserGroup.getUuidId().getLeastSignificantBits(), userUpdateMsg.getEntityGroupIdLSB());
 
         // update user
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
         savedCustomerUser.setLastName("Addams");
         savedCustomerUser = doPost("/api/user", savedCustomerUser, User.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
-        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
-        Assert.assertTrue(latestMessage instanceof UserUpdateMsg);
-        userUpdateMsg = (UserUpdateMsg) latestMessage;
+        Optional<UserUpdateMsg> userUpdateMsgOpt = edgeImitator.findMessageByType(UserUpdateMsg.class);
+        Assert.assertTrue(userUpdateMsgOpt.isPresent());
+        userUpdateMsg = userUpdateMsgOpt.get();
         userMsg = JacksonUtil.fromString(userUpdateMsg.getEntity(), User.class, true);
         Assert.assertNotNull(userMsg);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, userUpdateMsg.getMsgType());
@@ -241,7 +241,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
         changePasswordRequest.setNewPassword("newCustomer");
         doPost("/api/auth/changePassword", changePasswordRequest);
         Assert.assertTrue(edgeImitator.waitForMessages());
-        latestMessage = edgeImitator.getLatestMessage();
+        AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof UserCredentialsUpdateMsg);
         UserCredentialsUpdateMsg userCredentialsUpdateMsg = (UserCredentialsUpdateMsg) latestMessage;
         UserCredentials userCredentialsMsg = JacksonUtil.fromString(userCredentialsUpdateMsg.getEntity(), UserCredentials.class, true);

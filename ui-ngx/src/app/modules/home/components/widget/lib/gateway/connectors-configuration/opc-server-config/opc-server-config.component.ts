@@ -48,24 +48,27 @@ import {
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
 import { SharedModule } from '@shared/shared.module';
 import { CommonModule } from '@angular/common';
-import { SecurityConfigComponent } from '@home/components/widget/lib/gateway/connectors-configuration/public-api';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { TruncateWithTooltipDirective } from '@shared/directives/truncate-with-tooltip.directive';
+import {
+  SecurityConfigComponent
+} from '@home/components/widget/lib/gateway/connectors-configuration/security-config/security-config.component';
 
 @Component({
-  selector: 'tb-server-config',
-  templateUrl: './server-config.component.html',
-  styleUrls: ['./server-config.component.scss'],
+  selector: 'tb-opc-server-config',
+  templateUrl: './opc-server-config.component.html',
+  styleUrls: ['./opc-server-config.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => ServerConfigComponent),
+      useExisting: forwardRef(() => OpcServerConfigComponent),
       multi: true
     },
     {
       provide: NG_VALIDATORS,
-      useExisting: forwardRef(() => ServerConfigComponent),
+      useExisting: forwardRef(() => OpcServerConfigComponent),
       multi: true
     }
   ],
@@ -74,9 +77,10 @@ import { takeUntil } from 'rxjs/operators';
     CommonModule,
     SharedModule,
     SecurityConfigComponent,
+    TruncateWithTooltipDirective,
   ]
 })
-export class ServerConfigComponent implements ControlValueAccessor, Validator, OnDestroy {
+export class OpcServerConfigComponent implements ControlValueAccessor, Validator, OnDestroy {
 
   securityPolicyTypes = SecurityPolicyTypes;
   serverConfigFormGroup: UntypedFormGroup;
@@ -96,7 +100,7 @@ export class ServerConfigComponent implements ControlValueAccessor, Validator, O
       subCheckPeriodInMillis: [10, [Validators.required, Validators.min(10)]],
       showMap: [false, []],
       security: [SecurityPolicy.BASIC128, []],
-      identity: [{}, [Validators.required]]
+      identity: []
     });
 
     this.serverConfigFormGroup.valueChanges.pipe(
@@ -127,6 +131,25 @@ export class ServerConfigComponent implements ControlValueAccessor, Validator, O
   }
 
   writeValue(serverConfig: ServerConfig): void {
-    this.serverConfigFormGroup.patchValue(serverConfig, {emitEvent: false});
+    const {
+      timeoutInMillis = 1000,
+      scanPeriodInMillis = 1000,
+      enableSubscriptions = true,
+      subCheckPeriodInMillis = 10,
+      showMap = false,
+      security = SecurityPolicy.BASIC128,
+      identity = {},
+    } = serverConfig;
+
+    this.serverConfigFormGroup.reset({
+      ...serverConfig,
+      timeoutInMillis,
+      scanPeriodInMillis,
+      enableSubscriptions,
+      subCheckPeriodInMillis,
+      showMap,
+      security,
+      identity,
+    }, { emitEvent: false });
   }
 }

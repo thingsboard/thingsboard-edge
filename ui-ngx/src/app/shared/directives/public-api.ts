@@ -29,4 +29,5 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export * from './gateway-help-link/gateway-help-link.pipe';
+export * from './truncate-with-tooltip.directive';
+export * from './ellipsis-chip-list.directive';

@@ -44,7 +44,6 @@ import java.util.Optional;
 
 import static org.thingsboard.server.common.data.CacheConstants.RESOURCE_INFO_CACHE;
 import static org.thingsboard.server.common.data.CacheConstants.SECURITY_SETTINGS_CACHE;
-import static org.thingsboard.server.common.data.CacheConstants.USER_PERMISSIONS_CACHE;
 
 @RequiredArgsConstructor
 @Service
@@ -79,8 +78,7 @@ public class DefaultCacheCleanupService implements CacheCleanupService {
                 break;
             case "3.7.0":
                 log.info("Clearing cache to upgrade from version 3.7.0 to 3.7.1");
-                clearCacheByName(USER_PERMISSIONS_CACHE);
-                clearCacheByName(SECURITY_SETTINGS_CACHE);
+                clearAll();
                 break;
             default:
                 //Do nothing, since cache cleanup is optional.
@@ -102,7 +100,7 @@ public class DefaultCacheCleanupService implements CacheCleanupService {
         if (redisTemplate.isPresent()) {
             log.info("Flushing all caches");
             redisTemplate.get().execute((RedisCallback<Object>) connection -> {
-                connection.flushAll();
+                connection.serverCommands().flushAll();
                 return null;
             });
             return;

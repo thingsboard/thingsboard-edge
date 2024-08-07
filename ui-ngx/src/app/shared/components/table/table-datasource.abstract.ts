@@ -29,13 +29,35 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export * from './mapping-table/mapping-table.component';
-export * from './device-info-table/device-info-table.component';
-export * from './security-config/security-config.component';
-export * from './server-config/server-config.component';
-export * from './mapping-data-keys-panel/mapping-data-keys-panel.component';
-export * from './type-value-panel/type-value-panel.component';
-export * from './broker-config-control/broker-config-control.component';
-export * from './workers-config-control/workers-config-control.component';
-export * from './opc-ua-basic-config/opc-ua-basic-config.component';
-export * from './mqtt-basic-config/mqtt-basic-config.component';
+import { DataSource } from '@angular/cdk/collections';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+
+export abstract class TbTableDatasource<T> implements DataSource<T> {
+
+  protected dataSubject = new BehaviorSubject<Array<T>>([]);
+
+  connect(): Observable<Array<T>> {
+    return this.dataSubject.asObservable();
+  }
+
+  disconnect(): void {
+    this.dataSubject.complete();
+  }
+
+  loadData(data: Array<T>): void {
+    this.dataSubject.next(data);
+  }
+
+  isEmpty(): Observable<boolean> {
+    return this.dataSubject.pipe(
+      map((data: T[]) => !data.length)
+    );
+  }
+
+  total(): Observable<number> {
+    return this.dataSubject.pipe(
+      map((data: T[]) => data.length)
+    );
+  }
+}

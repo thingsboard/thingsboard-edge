@@ -32,9 +32,7 @@ package org.thingsboard.server.msa;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.californium.core.CoapClient;
-import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.config.CoapConfig;
 import org.eclipse.californium.elements.config.Configuration;
@@ -43,11 +41,6 @@ import org.eclipse.californium.elements.config.IntegerDefinition;
 import org.eclipse.californium.elements.config.TcpConfig;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.msg.session.FeatureType;
-
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.awaitility.Awaitility.await;
 @Slf4j
 public abstract class AbstractCoapClientTest extends AbstractContainerTest{
 
