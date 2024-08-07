@@ -100,7 +100,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
 
     private static final String TABLE_NAME = ModelConstants.CLOUD_EVENT_COLUMN_FAMILY_NAME;
 
-    private TbSqlBlockingQueueWrapper<CloudEventEntity> queue;
+    private TbSqlBlockingQueueWrapper<CloudEventEntity, Void> queue;
 
     @Override
     protected Class<CloudEventEntity> getEntityClass() {

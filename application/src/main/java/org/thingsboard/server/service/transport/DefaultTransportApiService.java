@@ -60,16 +60,13 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.credentials.BasicMqttCredentials;
 import org.thingsboard.server.common.data.device.credentials.ProvisionDeviceCredentialsData;
 import org.thingsboard.server.common.data.device.profile.ProvisionDeviceProfileCredentials;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
@@ -596,20 +593,6 @@ public class DefaultTransportApiService implements TransportApiService {
     private TransportApiResponseMsg getEmptyTransportApiResponse() {
         return TransportApiResponseMsg.newBuilder()
                 .setValidateCredResponseMsg(ValidateDeviceCredentialsResponseMsg.getDefaultInstance()).build();
-    }
-
-    private void sendDeviceAddedMsgToCloud(TenantId tenantId, EntityId entityId) {
-        TransportProtos.CloudNotificationMsgProto.Builder builder = TransportProtos.CloudNotificationMsgProto.newBuilder();
-        builder.setTenantIdMSB(tenantId.getId().getMostSignificantBits());
-        builder.setTenantIdLSB(tenantId.getId().getLeastSignificantBits());
-        builder.setCloudEventType(CloudEventType.DEVICE.name());
-        builder.setCloudEventAction(EdgeEventActionType.ADDED.name());
-        builder.setEntityIdMSB(entityId.getId().getMostSignificantBits());
-        builder.setEntityIdLSB(entityId.getId().getLeastSignificantBits());
-        builder.setEntityType(entityId.getEntityType().name());
-        TransportProtos.CloudNotificationMsgProto msg = builder.build();
-        tbClusterService.pushMsgToCore(tenantId, entityId,
-                TransportProtos.ToCoreMsg.newBuilder().setCloudNotificationMsg(msg).build(), null);
     }
 
     private TransportApiResponseMsg handle(TransportProtos.LwM2MRequestMsg requestMsg) {
