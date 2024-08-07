@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.config;
+package org.thingsboard.server.transport.http.config;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -36,49 +36,56 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.http.HttpStatus;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.msg.tools.MaxPayloadSizeExceededException;
-import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Slf4j
-@Component
 @RequiredArgsConstructor
-public class RequestSizeFilter extends OncePerRequestFilter {
+public class PayloadSizeFilter extends OncePerRequestFilter {
 
-    private final List<String> urls = List.of("/api/plugins/rpc/**", "/api/rpc/**");
+    private final Map<String, Long> limits = new LinkedHashMap<>();
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
-    private final ThingsboardErrorResponseHandler errorResponseHandler;
-    
-    @Value("${transport.http.max_payload_size:65536}")
-    private int maxPayloadSize;
+
+    public PayloadSizeFilter(String limitsConfiguration) {
+        for (String limit : limitsConfiguration.split(";")) {
+            try {
+                String urlPathPattern = limit.split("=")[0];
+                long maxPayloadSize = Long.parseLong(limit.split("=")[1]);
+                limits.put(urlPathPattern, maxPayloadSize);
+            } catch (Exception e) {
+                throw new IllegalArgumentException("Failed to parse size limits configuration: " + limitsConfiguration);
+            }
+        }
+        log.info("Initialized payload size filter with configuration: {}" , limitsConfiguration);
+    }
 
     @Override
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
-        if (request.getContentLength() > maxPayloadSize) {
-            if (log.isDebugEnabled()) {
-                log.debug("Too large payload size. Url: {}, client ip: {}, content length: {}", request.getRequestURL(),
-                        request.getRemoteAddr(), request.getContentLength());
+        for (String url : limits.keySet()) {
+            if (pathMatcher.match(url, request.getRequestURI())) {
+                if (checkMaxPayloadSizeExceeded(request, response, limits.get(url))) {
+                    return;
+                }
+                break;
             }
-            errorResponseHandler.handle(new MaxPayloadSizeExceededException(), response);
-            return;
         }
         chain.doFilter(request, response);
     }
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) {
-        for (String url : urls) {
-            if (pathMatcher.match(url, request.getRequestURI())) {
-                return false;
-            }
+    private boolean checkMaxPayloadSizeExceeded(HttpServletRequest request, HttpServletResponse response, long maxPayloadSize) throws IOException {
+        if (request.getContentLength() > maxPayloadSize) {
+            log.info("[{}] [{}] Payload size {} exceeds the limit of {} bytes", request.getRemoteAddr(), request.getRequestURL(), request.getContentLength(), maxPayloadSize);
+            handleMaxPayloadSizeExceededException(response, new MaxPayloadSizeExceededException(maxPayloadSize));
+            return true;
         }
-        return true;
+        return false;
     }
 
     @Override
@@ -89,5 +96,10 @@ public class RequestSizeFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilterErrorDispatch() {
         return false;
+    }
+
+    private void handleMaxPayloadSizeExceededException(HttpServletResponse response, MaxPayloadSizeExceededException exception) throws IOException {
+        response.setStatus(HttpStatus.PAYLOAD_TOO_LARGE.value());
+        JacksonUtil.writeValue(response.getWriter(), exception.getMessage());
     }
 }
