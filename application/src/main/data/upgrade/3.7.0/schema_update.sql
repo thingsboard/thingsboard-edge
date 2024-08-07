@@ -14,6 +14,9 @@
 -- limitations under the License.
 --
 
+CREATE INDEX IF NOT EXISTS idx_cloud_event_tenant_id_entity_id_event_type_event_action_crt ON cloud_event
+    (tenant_id, entity_id, cloud_event_type, cloud_event_action, created_time DESC);
+
 -- KV VERSIONING UPDATE START
 
 CREATE SEQUENCE IF NOT EXISTS attribute_kv_version_seq cache 1;

@@ -44,9 +44,9 @@ public enum EdgeEventActionType {
     DELETED_COMMENT(ActionType.DELETED_COMMENT),
     ASSIGNED_TO_EDGE(ActionType.ASSIGNED_TO_EDGE),
     UNASSIGNED_FROM_EDGE(ActionType.UNASSIGNED_FROM_EDGE),
-    CREDENTIALS_REQUEST(null),
+    CREDENTIALS_REQUEST(null), // deprecated
     ATTRIBUTES_REQUEST(null),
-    RULE_CHAIN_METADATA_REQUEST(null),
+    RULE_CHAIN_METADATA_REQUEST(null), // deprecated
     RELATION_REQUEST(null),
     WIDGET_BUNDLE_TYPES_REQUEST(null), // deprecated
     ENTITY_VIEW_REQUEST(null),

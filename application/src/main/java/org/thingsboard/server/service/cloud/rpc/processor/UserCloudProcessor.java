@@ -71,10 +71,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
                     } finally {
                         userCreationLock.unlock();
                     }
-                    return Futures.transformAsync(requestForAdditionalData(tenantId, userId, queueStartTs),
-                            ignored -> cloudEventService.saveCloudEventAsync(tenantId, CloudEventType.USER, EdgeEventActionType.CREDENTIALS_REQUEST,
-                                    userId, null, queueStartTs),
-                            dbCallbackExecutorService);
+                    return requestForAdditionalData(tenantId, userId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     User userToDelete = userService.findUserById(tenantId, userId);
                     if (userToDelete != null) {
