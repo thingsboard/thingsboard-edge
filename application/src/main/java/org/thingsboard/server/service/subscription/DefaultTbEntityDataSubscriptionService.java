@@ -59,6 +59,7 @@ import org.thingsboard.server.common.data.query.EntityDataQuery;
 import org.thingsboard.server.common.data.query.EntityKey;
 import org.thingsboard.server.common.data.query.EntityKeyType;
 import org.thingsboard.server.common.data.query.TsValue;
+import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entity.EntityService;
@@ -370,6 +371,9 @@ public class DefaultTbEntityDataSubscriptionService implements TbEntityDataSubsc
 
     private void handleWsCmdRuntimeException(String sessionId, RuntimeException e, EntityDataCmd cmd) {
         log.debug("[{}] Failed to process ws cmd: {}", sessionId, cmd, e);
+        if (e instanceof TbRateLimitsException) {
+            return;
+        }
         wsService.close(sessionId, CloseStatus.SERVICE_RESTARTED);
     }
 
