@@ -44,8 +44,11 @@ import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.thingsboard.server.dao.model.sql.AuditLogEntity;
+import org.thingsboard.server.dao.model.sql.ConverterDebugEventEntity;
 import org.thingsboard.server.dao.model.sql.ErrorEventEntity;
+import org.thingsboard.server.dao.model.sql.IntegrationDebugEventEntity;
 import org.thingsboard.server.dao.model.sql.LifecycleEventEntity;
+import org.thingsboard.server.dao.model.sql.RawDataEventEntity;
 import org.thingsboard.server.dao.model.sql.RuleChainDebugEventEntity;
 import org.thingsboard.server.dao.model.sql.RuleNodeDebugEventEntity;
 import org.thingsboard.server.dao.model.sql.StatisticsEventEntity;
@@ -89,7 +92,8 @@ public class DedicatedJpaDaoConfig {
                                                                                 EntityManagerFactoryBuilder builder) {
         return builder
                 .dataSource(dedicatedDataSource)
-                .packages(LifecycleEventEntity.class, StatisticsEventEntity.class, ErrorEventEntity.class, RuleNodeDebugEventEntity.class, RuleChainDebugEventEntity.class, AuditLogEntity.class)
+                .packages(LifecycleEventEntity.class, StatisticsEventEntity.class, ErrorEventEntity.class, RuleNodeDebugEventEntity.class, RuleChainDebugEventEntity.class,
+                        ConverterDebugEventEntity.class, IntegrationDebugEventEntity.class, RawDataEventEntity.class, AuditLogEntity.class)
                 .persistenceUnit(DEDICATED_PERSISTENCE_UNIT)
                 .build();
     }
