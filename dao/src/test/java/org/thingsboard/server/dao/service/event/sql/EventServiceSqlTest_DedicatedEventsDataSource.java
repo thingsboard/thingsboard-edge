@@ -28,43 +28,16 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sqlts.insert.sql;
+package org.thingsboard.server.dao.service.event.sql;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.dao.config.DedicatedDataSource;
-import org.thingsboard.server.dao.timeseries.SqlPartition;
+import org.springframework.test.context.TestPropertySource;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import static org.thingsboard.server.dao.config.DedicatedJpaDaoConfig.DEDICATED_JDBC_TEMPLATE;
-import static org.thingsboard.server.dao.config.DedicatedJpaDaoConfig.DEDICATED_TRANSACTION_MANAGER;
-
-@DedicatedDataSource
-@Repository
-public class DedicatedSqlPartitioningRepository extends SqlPartitioningRepository {
-
-    @Autowired
-    @Qualifier(DEDICATED_JDBC_TEMPLATE)
-    private JdbcTemplate jdbcTemplate;
-
-    @Transactional(propagation = Propagation.NOT_SUPPORTED, transactionManager = DEDICATED_TRANSACTION_MANAGER)
-    @Override
-    public void save(SqlPartition partition) {
-        super.save(partition);
-    }
-
-    @Transactional(propagation = Propagation.NOT_SUPPORTED, transactionManager = DEDICATED_TRANSACTION_MANAGER)
-    @Override
-    public void createPartitionIfNotExists(String table, long entityTs, long partitionDurationMs) {
-        super.createPartitionIfNotExists(table, entityTs, partitionDurationMs);
-    }
-
-    @Override
-    protected JdbcTemplate getJdbcTemplate() {
-        return jdbcTemplate;
-    }
-
+@DaoSqlTest
+@TestPropertySource(properties = {
+        "spring.datasource.events.enabled=true",
+        "spring.datasource.events.url=${spring.datasource.url}",
+        "spring.datasource.events.driverClassName=${spring.datasource.driverClassName}"
+})
+public class EventServiceSqlTest_DedicatedEventsDataSource extends EventServiceSqlTest {
 }

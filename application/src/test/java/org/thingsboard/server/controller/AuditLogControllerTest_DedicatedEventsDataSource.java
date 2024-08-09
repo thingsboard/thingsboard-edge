@@ -28,16 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.service.event.sql;
+package org.thingsboard.server.controller;
 
+import lombok.Getter;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.thingsboard.server.dao.sqlts.insert.sql.DedicatedEventsSqlPartitioningRepository;
 
 @DaoSqlTest
 @TestPropertySource(properties = {
-        "spring.datasource.dedicated.enabled=true",
-        "spring.datasource.dedicated.url=${spring.datasource.url}",
-        "spring.datasource.dedicated.driverClassName=${spring.datasource.driverClassName}"
+        "spring.datasource.events.enabled=true",
+        "spring.datasource.events.url=${spring.datasource.url}",
+        "spring.datasource.events.driverClassName=${spring.datasource.driverClassName}",
 })
-public class EventServiceSqlTest_DedicatedDataSource extends EventServiceSqlTest {
+public class AuditLogControllerTest_DedicatedEventsDataSource extends AuditLogControllerTest {
+
+    @Getter
+    @SpyBean
+    private DedicatedEventsSqlPartitioningRepository partitioningRepository;
+
 }

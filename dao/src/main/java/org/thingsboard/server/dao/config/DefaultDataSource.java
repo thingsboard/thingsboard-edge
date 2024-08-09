@@ -36,6 +36,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 @Retention(RetentionPolicy.RUNTIME)
-@ConditionalOnProperty(value = "spring.datasource.dedicated.enabled", havingValue = "false", matchIfMissing = true)
+@ConditionalOnProperty(value = "spring.datasource.events.enabled", havingValue = "false", matchIfMissing = true)
 public @interface DefaultDataSource {
 }
