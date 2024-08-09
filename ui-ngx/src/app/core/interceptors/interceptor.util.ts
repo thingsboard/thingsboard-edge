@@ -29,9 +29,33 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export class InterceptorConfig {
-  constructor(public ignoreLoading: boolean = false,
-              public ignoreErrors: boolean = false,
-              public ignoreVersionConflict: boolean = false,
-              public resendRequest: boolean = false) {}
-}
+import { HttpRequest } from '@angular/common/http';
+import { InterceptorConfig } from '@core/interceptors/interceptor-config';
+import { InterceptorHttpParams } from '@core/interceptors/interceptor-http-params';
+
+const internalUrlPrefixes = [
+  '/api/auth/token',
+  '/api/rpc'
+];
+
+export const getInterceptorConfig = (req: HttpRequest<unknown>): InterceptorConfig => {
+  let config: InterceptorConfig;
+  if (req.params && req.params instanceof InterceptorHttpParams) {
+    config = (req.params as InterceptorHttpParams).interceptorConfig;
+  } else {
+    config = new InterceptorConfig();
+  }
+  if (isInternalUrlPrefix(req.url)) {
+    config.ignoreLoading = true;
+  }
+  return config;
+};
+
+const isInternalUrlPrefix = (url: string): boolean => {
+  for (const prefix of internalUrlPrefixes) {
+    if (url.startsWith(prefix)) {
+      return true;
+    }
+  }
+  return false;
+};

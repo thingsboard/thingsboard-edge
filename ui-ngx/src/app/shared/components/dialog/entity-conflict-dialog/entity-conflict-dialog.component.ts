@@ -29,9 +29,48 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export class InterceptorConfig {
-  constructor(public ignoreLoading: boolean = false,
-              public ignoreErrors: boolean = false,
-              public ignoreVersionConflict: boolean = false,
-              public resendRequest: boolean = false) {}
+import { Component, Inject } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
+import { SharedModule } from '@shared/shared.module';
+import { ImportExportService } from '@shared/import-export/import-export.service';
+import { CommonModule } from '@angular/common';
+import { entityTypeTranslations } from '@shared/models/entity-type.models';
+import { EntityInfoData } from '@shared/models/entity.models';
+
+interface EntityConflictDialogData {
+  message: string;
+  entity: EntityInfoData;
+}
+
+@Component({
+  selector: 'tb-entity-conflict-dialog',
+  templateUrl: 'entity-conflict-dialog.component.html',
+  styleUrls: ['./entity-conflict-dialog.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    SharedModule,
+  ],
+})
+export class EntityConflictDialogComponent {
+  readonly entityTypeTranslations = entityTypeTranslations;
+
+  constructor(
+    @Inject(MAT_DIALOG_DATA) public data: EntityConflictDialogData,
+    private dialogRef: MatDialogRef<EntityConflictDialogComponent>,
+    private importExportService: ImportExportService,
+  ) {}
+
+  onCancel(): void {
+    this.dialogRef.close(false);
+  }
+
+  onConfirm(): void {
+    this.dialogRef.close(true);
+  }
+
+  onLinkClick(event: MouseEvent): void {
+    event.preventDefault();
+    this.importExportService.exportEntity(this.data.entity);
+  }
 }
