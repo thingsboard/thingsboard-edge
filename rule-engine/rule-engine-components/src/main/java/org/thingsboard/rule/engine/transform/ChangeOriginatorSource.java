@@ -30,27 +30,10 @@
  */
 package org.thingsboard.rule.engine.transform;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.rule.engine.api.NodeConfiguration;
-
-import static org.thingsboard.rule.engine.transform.ChangeOriginatorSource.CUSTOMER;
-
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class TbChangeOriginatorNodeConfiguration extends TbAbstractTransformNodeConfigurationWithRelationQuery implements NodeConfiguration<TbChangeOriginatorNodeConfiguration> {
-
-    private ChangeOriginatorSource originatorSource;
-    private String entityType;
-    private String entityNamePattern;
-    private boolean preserveOriginatorIfCustomer;
-
-    @Override
-    public TbChangeOriginatorNodeConfiguration defaultConfiguration() {
-        var configuration = new TbChangeOriginatorNodeConfiguration();
-        configuration.setOriginatorSource(CUSTOMER);
-        configuration.setRelationsQuery(getDefaultRelationQuery());
-        configuration.setPreserveOriginatorIfCustomer(false);
-        return configuration;
-    }
+public enum ChangeOriginatorSource {
+    CUSTOMER,
+    TENANT,
+    RELATED,
+    ALARM_ORIGINATOR,
+    ENTITY
 }
