@@ -120,8 +120,6 @@ export class TruncateWithTooltipDirective implements OnInit, AfterViewInit, OnDe
 
   private showTooltip(): void {
     this.tooltip.message = this.text;
-
-    this.renderer.setAttribute(this.elementRef.nativeElement, 'matTooltip', this.text);
     this.tooltip.show();
   }
 
