@@ -67,6 +67,7 @@ import org.thingsboard.server.common.data.kv.TsKvEntry;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.timeseries.TimeseriesService;
@@ -243,9 +244,10 @@ public class DefaultWebSocketService implements WebSocketService {
             try {
                 Optional.ofNullable(cmdsHandlers.get(cmd.getType()))
                         .ifPresent(cmdHandler -> cmdHandler.handle(sessionRef, cmd));
+            } catch (TbRateLimitsException e) {
+                log.debug("{} Failed to handle WS cmd: {}", sessionRef, cmd, e);
             } catch (Exception e) {
-                log.error("[sessionId: {}, tenantId: {}, userId: {}] Failed to handle WS cmd: {}", sessionId,
-                        sessionRef.getSecurityCtx().getTenantId(), sessionRef.getSecurityCtx().getId(), cmd, e);
+                log.error("{} Failed to handle WS cmd: {}", sessionRef, cmd, e);
             }
         }
     }
@@ -266,7 +268,7 @@ public class DefaultWebSocketService implements WebSocketService {
         try {
             accessControlService.checkPermission(sessionRef.getSecurityCtx(), Resource.ALARM, Operation.READ);
         } catch (ThingsboardException e) {
-            sendError(sessionRef, cmd.getCmdId(), SubscriptionErrorCode.ACCESS_DENIED, "You don't have permission to view alarms" );
+            sendError(sessionRef, cmd.getCmdId(), SubscriptionErrorCode.ACCESS_DENIED, "You don't have permission to view alarms");
             return;
         }
 
@@ -494,7 +496,7 @@ public class DefaultWebSocketService implements WebSocketService {
 
                 subLock.lock();
                 try {
-                    oldSubService.addSubscription(sub);
+                    oldSubService.addSubscription(sub, sessionRef);
                     sendUpdate(sessionRef, new TelemetrySubscriptionUpdate(cmd.getCmdId(), attributesData));
                 } finally {
                     subLock.unlock();
@@ -608,7 +610,7 @@ public class DefaultWebSocketService implements WebSocketService {
 
                 subLock.lock();
                 try {
-                    oldSubService.addSubscription(sub);
+                    oldSubService.addSubscription(sub, sessionRef);
                     sendUpdate(sessionRef, new TelemetrySubscriptionUpdate(cmd.getCmdId(), attributesData));
                 } finally {
                     subLock.unlock();
@@ -705,7 +707,7 @@ public class DefaultWebSocketService implements WebSocketService {
 
                 subLock.lock();
                 try {
-                    oldSubService.addSubscription(sub);
+                    oldSubService.addSubscription(sub, sessionRef);
                     sendUpdate(sessionRef, new TelemetrySubscriptionUpdate(cmd.getCmdId(), data));
                 } finally {
                     subLock.unlock();
@@ -761,7 +763,7 @@ public class DefaultWebSocketService implements WebSocketService {
 
                 subLock.lock();
                 try {
-                    oldSubService.addSubscription(sub);
+                    oldSubService.addSubscription(sub, sessionRef);
                     sendUpdate(sessionRef, new TelemetrySubscriptionUpdate(cmd.getCmdId(), data));
                 } finally {
                     subLock.unlock();

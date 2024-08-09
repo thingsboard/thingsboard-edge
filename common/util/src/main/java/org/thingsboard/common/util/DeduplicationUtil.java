@@ -28,75 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  display: flex;
-  flex-direction: row;
-  padding: 0 5px;
+package org.thingsboard.common.util;
 
-  & > * {
-    height: 100%;
-    overflow: auto;
-  }
+import org.springframework.util.ConcurrentReferenceHashMap;
 
-  & > tb-gateway-service-rpc-connector-templates:last-child {
-    margin-left: 10px;
-  }
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.springframework.util.ConcurrentReferenceHashMap.ReferenceType.SOFT;
 
-  .command-form {
-    flex-wrap: nowrap;
-    padding: 0 5px 5px;
+public class DeduplicationUtil {
 
-    & > button {
-      margin-top: 10px;
-    }
-  }
+    private static final ConcurrentMap<Object, Long> cache = new ConcurrentReferenceHashMap<>(16, SOFT);
 
-  .rpc-parameters {
-    width: 100%;
-  }
-
-  .result-block {
-    padding: 0 5px;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-
-    & > span {
-      font-weight: 600;
-      position: relative;
-      font-size: 14px;
-      margin-bottom: 10px;
-
-
-      .result-time {
-        font-weight: 400;
-        font-size: 14px;
-        line-height: 32px;
-        position: absolute;
-        left: 0;
-        top: 25px;
-        z-index: 5;
-        color: rgba(0, 0, 0, 0.54);
-
-        span {
-          padding-left: 10px;
-        }
-      }
+    public static boolean alreadyProcessed(Object deduplicationKey, long deduplicationDuration) {
+        AtomicBoolean alreadyProcessed = new AtomicBoolean(false);
+        cache.compute(deduplicationKey, (key, lastProcessedTs) -> {
+            if (lastProcessedTs != null) {
+                long passed = System.currentTimeMillis() - lastProcessedTs;
+                if (passed <= deduplicationDuration) {
+                    alreadyProcessed.set(true);
+                    return lastProcessedTs;
+                }
+            }
+            return System.currentTimeMillis();
+        });
+        return alreadyProcessed.get();
     }
 
-    tb-json-content {
-      flex: 1;
-    }
-  }
-
-  .border {
-    padding: 16px;
-    box-shadow: 0 0 0 0 rgb(0 0 0 / 20%), 0 0 0 0 rgb(0 0 0 / 14%), 0 0 0 0 rgb(0 0 0 / 12%);
-    border: solid 1px #e0e0e0;
-    border-radius: 4px;
-  }
 }

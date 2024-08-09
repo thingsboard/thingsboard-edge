@@ -186,6 +186,7 @@ public class ProtoUtils {
                 .setEdgeIdMSB(response.getEdgeId().getId().getMostSignificantBits())
                 .setEdgeIdLSB(response.getEdgeId().getId().getLeastSignificantBits())
                 .setSuccess(response.isSuccess())
+                .setError(response.getError())
                 .build();
     }
 
@@ -194,7 +195,8 @@ public class ProtoUtils {
                 new UUID(proto.getResponseIdMSB(), proto.getResponseIdLSB()),
                 TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
                 new EdgeId(new UUID(proto.getEdgeIdMSB(), proto.getEdgeIdLSB())),
-                proto.getSuccess()
+                proto.getSuccess(),
+                proto.getError()
         );
     }
 

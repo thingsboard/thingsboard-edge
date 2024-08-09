@@ -28,10 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  .mat-mdc-tab-body-wrapper {
-    min-height: 320px;
-  }
+
+:host ::ng-deep .mat-mdc-tab-body-wrapper {
+  min-height: 320px;
 }
 
 ::ng-deep .mdc-evolution-chip-set__chips {

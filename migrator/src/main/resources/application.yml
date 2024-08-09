@@ -73,15 +73,14 @@ spring:
     username: ${DATABASE_USERNAME:postgres}
     password: ${DATABASE_PASSWORD:postgres}
 
-  data:
-    cassandra:
-      keyspace-name: ${CASSANDRA_KEYSPACE_NAME:thingsboard}
-      contact-points: ${CASSANDRA_URL:127.0.0.1:9042}
-      local-datacenter: ${CASSANDRA_LOCAL_DATACENTER:datacenter1}
-      request:
-        page-size: ${CASSANDRA_REQUEST_PAGE_SIZE:1000}
-        timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
-        consistency: ${CASSANDRA_CONSISTENCY_LEVEL:local_quorum}
-      connection:
-        connect-timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
-        init-query-timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
+  cassandra:
+    keyspace-name: ${CASSANDRA_KEYSPACE_NAME:thingsboard}
+    contact-points: ${CASSANDRA_URL:127.0.0.1:9042}
+    local-datacenter: ${CASSANDRA_LOCAL_DATACENTER:datacenter1}
+    request:
+      page-size: ${CASSANDRA_REQUEST_PAGE_SIZE:1000}
+      timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
+      consistency: ${CASSANDRA_CONSISTENCY_LEVEL:local_quorum}
+    connection:
+      connect-timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
+      init-query-timeout: ${CASSANDRA_REQUEST_TIMEOUT:10s}
