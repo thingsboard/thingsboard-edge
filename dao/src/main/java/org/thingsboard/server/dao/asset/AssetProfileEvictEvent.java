@@ -30,11 +30,16 @@
  */
 package org.thingsboard.server.dao.asset;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @Data
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class AssetProfileEvictEvent {
 
     private final TenantId tenantId;
@@ -42,5 +47,6 @@ public class AssetProfileEvictEvent {
     private final String oldName;
     private final AssetProfileId assetProfileId;
     private final boolean defaultProfile;
+    private AssetProfile savedAssetProfile;
 
 }
