@@ -133,6 +133,7 @@ export const timeseriesDeleteStrategyTranslations = new Map<TimeseriesDeleteStra
 
 export interface AttributeData {
   lastUpdateTs?: number;
+  skipSync?: boolean;
   key: string;
   value: any;
 }
