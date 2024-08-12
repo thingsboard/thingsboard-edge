@@ -57,6 +57,7 @@ import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { TruncateWithTooltipDirective } from '@shared/directives/truncate-with-tooltip.directive';
 
 @Component({
   selector: 'tb-modbus-security-config',
@@ -78,6 +79,7 @@ import { coerceBoolean } from '@shared/decorators/coercion';
   imports: [
     CommonModule,
     SharedModule,
+    TruncateWithTooltipDirective,
   ]
 })
 export class ModbusSecurityConfigComponent implements ControlValueAccessor, Validator, OnChanges, OnDestroy {
