@@ -46,7 +46,7 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { AttributeService } from '@core/http/attribute.service';
 import { TranslateService } from '@ngx-translate/core';
 import { forkJoin, Observable, of, Subject, Subscription } from 'rxjs';
-import { AttributeData, AttributeScope } from '@shared/models/telemetry/telemetry.models';
+import { AttributeScope } from '@shared/models/telemetry/telemetry.models';
 import { PageComponent } from '@shared/components/page.component';
 import { PageLink } from '@shared/models/page/page-link';
 import { AttributeDatasource } from '@home/models/datasource/attribute-datasource';
@@ -69,6 +69,7 @@ import {
   ConnectorBaseInfo,
   ConnectorConfigurationModes,
   ConnectorType,
+  GatewayAttributeData,
   GatewayConnector,
   GatewayConnectorDefaultTypesTranslatesMap,
   GatewayLogLevel,
@@ -114,7 +115,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
   readonly ConnectorConfigurationModes = ConnectorConfigurationModes;
 
   pageLink: PageLink;
-  dataSource: MatTableDataSource<AttributeData>;
+  dataSource: MatTableDataSource<GatewayAttributeData>;
   connectorForm: FormGroup;
   activeConnectors: Array<string>;
   mode: ConnectorConfigurationModes = this.ConnectorConfigurationModes.BASIC;
@@ -126,7 +127,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
   private serverDataSource: AttributeDatasource;
   private activeData: Array<any> = [];
   private inactiveData: Array<any> = [];
-  private sharedAttributeData: Array<AttributeData> = [];
+  private sharedAttributeData: Array<GatewayAttributeData> = [];
   private basicConfigSub: Subscription;
   private jsonConfigSub: Subscription;
   private subscriptionOptions: WidgetSubscriptionOptions = {
@@ -141,7 +142,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
   };
   private destroy$ = new Subject<void>();
   private subscription: IWidgetSubscription;
-  private attributeUpdateSubject = new Subject<AttributeData>();
+  private attributeUpdateSubject = new Subject<GatewayAttributeData>();
 
   constructor(protected store: Store<AppState>,
               private fb: FormBuilder,
@@ -279,7 +280,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     });
   }
 
-  isConnectorSynced(attribute: AttributeData) {
+  isConnectorSynced(attribute: GatewayAttributeData) {
     const connectorData = attribute.value;
     if (!connectorData.ts || attribute.skipSync) {
       return false;
@@ -361,7 +362,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     this.connectorForm.markAsPristine();
   }
 
-  selectConnector($event: Event, attribute: AttributeData): void {
+  selectConnector($event: Event, attribute: GatewayAttributeData): void {
     if ($event) {
       $event.stopPropagation();
     }
@@ -375,7 +376,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     }
   }
 
-  isSameConnector(attribute: AttributeData): boolean {
+  isSameConnector(attribute: GatewayAttributeData): boolean {
     if (!this.initialConnector) {
       return false;
     }
@@ -396,12 +397,12 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       }));
   }
 
-  returnType(attribute: AttributeData): string {
+  returnType(attribute: GatewayAttributeData): string {
     const value = attribute.value;
     return this.GatewayConnectorTypesTranslatesMap.get(value.type);
   }
 
-  deleteConnector(attribute: AttributeData, $event: Event): void {
+  deleteConnector(attribute: GatewayAttributeData, $event: Event): void {
     $event?.stopPropagation();
 
     const title = `Delete connector \"${attribute.key}\"?`;
@@ -434,7 +435,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     });
   }
 
-  connectorLogs(attribute: AttributeData, $event: Event): void {
+  connectorLogs(attribute: GatewayAttributeData, $event: Event): void {
     if ($event) {
       $event.stopPropagation();
     }
@@ -444,7 +445,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     this.ctx.stateController.openState('connector_logs', params);
   }
 
-  connectorRpc(attribute: AttributeData, $event: Event): void {
+  connectorRpc(attribute: GatewayAttributeData, $event: Event): void {
     if ($event) {
       $event.stopPropagation();
     }
@@ -455,7 +456,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
   }
 
 
-  onEnableConnector(attribute: AttributeData): void {
+  onEnableConnector(attribute: GatewayAttributeData): void {
     attribute.value.ts = new Date().getTime();
 
     this.updateActiveConnectorKeys(attribute.key);
@@ -463,7 +464,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     this.attributeUpdateSubject.next(attribute);
   }
 
-  getErrorsCount(attribute: AttributeData): string {
+  getErrorsCount(attribute: GatewayAttributeData): string {
     const connectorName = attribute.key;
     const connector = this.subscription && this.subscription.data
       .find(data => data && data.dataKey.name === `${connectorName}_ERRORS_COUNT`);
@@ -527,7 +528,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     this.attributeDataSource = new AttributeDatasource(this.attributeService, this.telemetryWsService, this.zone, this.translate);
     this.inactiveConnectorsDataSource = new AttributeDatasource(this.attributeService, this.telemetryWsService, this.zone, this.translate);
     this.serverDataSource = new AttributeDatasource(this.attributeService, this.telemetryWsService, this.zone, this.translate);
-    this.dataSource = new MatTableDataSource<AttributeData>([]);
+    this.dataSource = new MatTableDataSource<GatewayAttributeData>([]);
   }
 
   private initConnectorForm(): void {
@@ -556,8 +557,8 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       .subscribe(name => this.connectorForm.get('basicConfig').get('broker.name')?.setValue(name));
   }
 
-  private getSortingDataAccessor(): (data: AttributeData, sortHeaderId: string) => string | number {
-    return (data: AttributeData, sortHeaderId: string) => {
+  private getSortingDataAccessor(): (data: GatewayAttributeData, sortHeaderId: string) => string | number {
+    return (data: GatewayAttributeData, sortHeaderId: string) => {
       switch (sortHeaderId) {
         case 'syncStatus':
           return this.isConnectorSynced(data) ? 1 : 0;
@@ -594,7 +595,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     });
   }
 
-  private parseConnectors(attribute: AttributeData[]): string[] {
+  private parseConnectors(attribute: GatewayAttributeData[]): string[] {
     const connectors = attribute?.[0]?.value || [];
     return isString(connectors) ? JSON.parse(connectors) : connectors;
   }
@@ -608,7 +609,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
   private observeAttributeChange(): void {
     this.attributeUpdateSubject.pipe(
       debounceTime(300),
-      tap((attribute: AttributeData) => this.executeAttributeUpdates(attribute)),
+      tap((attribute: GatewayAttributeData) => this.executeAttributeUpdates(attribute)),
       takeUntil(this.destroy$),
     ).subscribe();
   }
@@ -630,7 +631,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     }
   }
 
-  private executeAttributeUpdates(attribute: AttributeData): void {
+  private executeAttributeUpdates(attribute: GatewayAttributeData): void {
     forkJoin(this.getAttributeExecutionTasks(attribute))
       .pipe(
         take(1),
@@ -640,7 +641,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       .subscribe();
   }
 
-  private getAttributeExecutionTasks(attribute: AttributeData): Observable<any>[] {
+  private getAttributeExecutionTasks(attribute: GatewayAttributeData): Observable<any>[] {
     const isActive = this.activeConnectors.includes(attribute.key);
     const scopeOld =  isActive ? AttributeScope.SERVER_SCOPE : AttributeScope.SHARED_SCOPE;
     const scopeNew = isActive ? AttributeScope.SHARED_SCOPE : AttributeScope.SERVER_SCOPE;
@@ -777,7 +778,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     this.createJsonConfigWatcher();
   }
 
-  private setClientData(data: PageData<AttributeData>): void {
+  private setClientData(data: PageData<GatewayAttributeData>): void {
     if (this.initialConnector) {
       const clientConnectorData = data.data.find(attr => attr.key === this.initialConnector.name);
       if (clientConnectorData) {
