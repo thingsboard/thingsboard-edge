@@ -357,7 +357,7 @@ public class EntityServiceTest extends AbstractServiceTest {
 
         List<Long> temperatures = new ArrayList<>();
         Random random = new Random();
-        List<ListenableFuture<List<String>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
         long lastUpdateTs = System.currentTimeMillis() - 1024 * 1024;
         for (int i = 0; i < evenDevices.size(); i++) {
             Device device = evenDevices.get(i);
@@ -596,7 +596,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         List<Long> highTemperatures = new ArrayList<>();
         createTestHierarchy(tenantId, assets, devices, new ArrayList<>(), new ArrayList<>(), temperatures, highTemperatures);
 
-        List<ListenableFuture<List<String>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             attributeFutures.add(saveLongAttribute(device.getId(), "temperature", temperatures.get(i), AttributeScope.CLIENT_SCOPE));
@@ -783,7 +783,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         List<Long> highTemperatures = new ArrayList<>();
         createTestHierarchy(tenantId, assets, devices, new ArrayList<>(), new ArrayList<>(), temperatures, highTemperatures);
 
-        List<ListenableFuture<List<String>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             attributeFutures.add(saveLongAttribute(device.getId(), "temperature", temperatures.get(i), AttributeScope.CLIENT_SCOPE));
@@ -858,7 +858,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         List<Long> highConsumptions = new ArrayList<>();
         createTestHierarchy(tenantId, assets, devices, consumptions, highConsumptions, new ArrayList<>(), new ArrayList<>());
 
-        List<ListenableFuture<List<String>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < assets.size(); i++) {
             Asset asset = assets.get(i);
             attributeFutures.add(saveLongAttribute(asset.getId(), "consumption", consumptions.get(i), AttributeScope.SERVER_SCOPE));
@@ -2027,7 +2027,7 @@ public class EntityServiceTest extends AbstractServiceTest {
             }
         }
 
-        List<ListenableFuture<List<String>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             for (AttributeScope currentScope : AttributeScope.values()) {
@@ -2234,8 +2234,8 @@ public class EntityServiceTest extends AbstractServiceTest {
             PageData<EntityData> relationsResult = entityService.findEntityDataByQuery(tenantId, new CustomerId(EntityId.NULL_UUID), mergedUserPermissionsRelationQuery, query);
             long relationsResultCnt = entityService.countEntitiesByQuery(tenantId, new CustomerId(EntityId.NULL_UUID), mergedUserPermissionsRelationQuery, query);
 
-            Assert.assertEquals(relationsCnt/2, relationsResult.getData().size());
-            Assert.assertEquals(relationsCnt/2, relationsResultCnt);
+            Assert.assertEquals(relationsCnt / 2, relationsResult.getData().size());
+            Assert.assertEquals(relationsCnt / 2, relationsResultCnt);
         }
     }
 
@@ -2315,8 +2315,8 @@ public class EntityServiceTest extends AbstractServiceTest {
             PageData<EntityData> relationsResult = entityService.findEntityDataByQuery(tenantId, customer.getId(), mergedUserPermissionsRelationQuery, query);
             long relationsResultCnt = entityService.countEntitiesByQuery(tenantId, customer.getId(), mergedUserPermissionsRelationQuery, query);
 
-            Assert.assertEquals(relationsCnt/2, relationsResult.getData().size());
-            Assert.assertEquals(relationsCnt/2, relationsResultCnt);
+            Assert.assertEquals(relationsCnt / 2, relationsResult.getData().size());
+            Assert.assertEquals(relationsCnt / 2, relationsResultCnt);
         }
     }
 
@@ -2358,7 +2358,7 @@ public class EntityServiceTest extends AbstractServiceTest {
             }
         }
 
-        List<ListenableFuture<List<String>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             attributeFutures.add(saveLongAttribute(device.getId(), "temperature", temperatures.get(i), AttributeScope.CLIENT_SCOPE));
@@ -2636,7 +2636,7 @@ public class EntityServiceTest extends AbstractServiceTest {
             }
         }
 
-        List<ListenableFuture<List<String>>> attributeFutures = new ArrayList<>();
+        List<ListenableFuture<List<Long>>> attributeFutures = new ArrayList<>();
         for (int i = 0; i < devices.size(); i++) {
             Device device = devices.get(i);
             attributeFutures.add(saveStringAttribute(device.getId(), "attributeString", attributeStrings.get(i), AttributeScope.CLIENT_SCOPE));
@@ -3098,17 +3098,17 @@ public class EntityServiceTest extends AbstractServiceTest {
         return filter;
     }
 
-    private ListenableFuture<List<String>> saveLongAttribute(EntityId entityId, String key, long value, AttributeScope scope) {
+    private ListenableFuture<List<Long>> saveLongAttribute(EntityId entityId, String key, long value, AttributeScope scope) {
         return saveLongAttribute(entityId, key, value, 42L, scope);
     }
 
-    private ListenableFuture<List<String>> saveLongAttribute(EntityId entityId, String key, long value, long lastUpdateTs, AttributeScope scope) {
+    private ListenableFuture<List<Long>> saveLongAttribute(EntityId entityId, String key, long value, long lastUpdateTs, AttributeScope scope) {
         KvEntry attrValue = new LongDataEntry(key, value);
         AttributeKvEntry attr = new BaseAttributeKvEntry(attrValue, lastUpdateTs);
         return attributesService.save(SYSTEM_TENANT_ID, entityId, scope, Collections.singletonList(attr));
     }
 
-    private ListenableFuture<List<String>> saveStringAttribute(EntityId entityId, String key, String value, AttributeScope scope) {
+    private ListenableFuture<List<Long>> saveStringAttribute(EntityId entityId, String key, String value, AttributeScope scope) {
         KvEntry attrValue = new StringDataEntry(key, value);
         AttributeKvEntry attr = new BaseAttributeKvEntry(attrValue, 42L);
         return attributesService.save(SYSTEM_TENANT_ID, entityId, scope, Collections.singletonList(attr));
@@ -3471,7 +3471,7 @@ public class EntityServiceTest extends AbstractServiceTest {
         user.setAuthority(Authority.CUSTOMER_USER);
         user.setFirstName("firstName");
         user.setLastName("lastName");
-       user.setAdditionalInfo(JacksonUtil.newObjectNode().put("test", "test"));
+        user.setAdditionalInfo(JacksonUtil.newObjectNode().put("test", "test"));
         user = userDao.save(tenantId, user);
 
         Map<String, Object> row = jdbcTemplate.queryForMap("SELECT " + EntityMapping.userMapping.getMappings().keySet().stream()
@@ -3515,7 +3515,7 @@ public class EntityServiceTest extends AbstractServiceTest {
             if (i % 2 == 0) {
                 entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), savedDevice.getId());
             }
-       }
+        }
 
         DeviceTypeFilter filter = new DeviceTypeFilter();
         filter.setDeviceTypes(List.of("default"));

@@ -380,7 +380,7 @@ public class DeviceServiceTest extends AbstractServiceTest {
         Device device = new Device();
         device.setType(deviceProfile.getName());
         device.setTenantId(tenantId);
-        device.setName("My device"+ StringUtils.randomAlphabetic(5));
+        device.setName("My device" + StringUtils.randomAlphabetic(5));
 
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         TransactionStatus status = platformTransactionManager.getTransaction(def);

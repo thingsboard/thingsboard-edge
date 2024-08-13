@@ -34,12 +34,10 @@ import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -63,11 +61,10 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
-import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.dao.user.UserPermissionCacheKey;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -75,20 +72,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-
-import static org.thingsboard.server.common.data.CacheConstants.USER_PERMISSIONS_CACHE;
 
 @Slf4j
 @Service
 public class DefaultUserPermissionsService implements UserPermissionsService {
 
     @Autowired
-    private CacheManager cacheManager;
+    private TbTransactionalCache<UserPermissionCacheKey, MergedUserPermissions> cache;
 
-    private static MergedUserPermissions sysAdminPermissions;
+    private static final MergedUserPermissions sysAdminPermissions;
 
     static {
         Map<Resource, Set<Operation>> sysAdminGenericPermissions = new HashMap<>();
@@ -130,13 +123,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
             ListenableFuture<List<EntityGroupId>> groups;
             if (isPublic) {
                 ListenableFuture<Optional<EntityGroup>> publicUserGroup = entityGroupService.findPublicUserGroupAsync(user.getTenantId(), user.getCustomerId());
-                groups = Futures.transform(publicUserGroup, groupOptional -> {
-                    if (groupOptional.isPresent()) {
-                        return Arrays.asList(groupOptional.get().getId());
-                    } else {
-                        return Collections.emptyList();
-                    }
-                }, MoreExecutors.directExecutor());
+                groups = Futures.transform(publicUserGroup, groupOptional -> groupOptional.map(entityGroup -> Collections.singletonList(entityGroup.getId())).orElse(Collections.emptyList()), MoreExecutors.directExecutor());
             } else {
                 groups = entityGroupService.findEntityGroupsForEntityAsync(user.getTenantId(), user.getId());
             }
@@ -195,42 +182,26 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
         }
         usersByOwnerMap.forEach((ownerId, userIds) ->
                 userIds.forEach(userId -> evictMergedPermissionsToCache(tenantId,
-                                EntityType.CUSTOMER.equals(ownerId.getEntityType()) ? ownerId : new CustomerId(CustomerId.NULL_UUID), userId)));
+                                EntityType.CUSTOMER.equals(ownerId.getEntityType()) ? new CustomerId(ownerId.getId()) : new CustomerId(CustomerId.NULL_UUID), userId)));
     }
 
     private MergedUserPermissions getMergedPermissionsFromCache(TenantId tenantId, CustomerId customerId, UserId userId) {
-        Cache cache = cacheManager.getCache(USER_PERMISSIONS_CACHE);
-        String cacheKey = toKey(tenantId, customerId, userId);
-        byte[] data = cache.get(cacheKey, byte[].class);
-        MergedUserPermissions result = null;
-        if (data != null && data.length > 0) {
-            try {
-                result = fromBytes(data);
-            } catch (InvalidProtocolBufferException e) {
-                log.warn("[{}][{}][{}] Failed to decode merged user permissions from cache: {}", tenantId, customerId, userId, Arrays.toString(data));
-            }
-        } else {
+        var cacheValueWrapper = cache.get(new UserPermissionCacheKey(tenantId, customerId, userId));
+        if (cacheValueWrapper == null) {
             log.debug("[{}][{}][{}] Not user permissions in cache", tenantId, customerId, userId);
+            return null;
         }
-        return result;
+        return cacheValueWrapper.get();
     }
 
     private void putMergedPermissionsToCache(TenantId tenantId, CustomerId customerId, UserId userId, MergedUserPermissions permissions) {
         log.debug("[{}][{}][{}] Pushing user permissions to cache: {}", tenantId, customerId, userId, permissions);
-        Cache cache = cacheManager.getCache(USER_PERMISSIONS_CACHE);
-        cache.put(toKey(tenantId, customerId, userId), toBytes(permissions));
+        cache.put(new UserPermissionCacheKey(tenantId, customerId, userId), permissions);
     }
 
-    private void evictMergedPermissionsToCache(EntityId tenantId, EntityId customerId, EntityId userId) {
+    private void evictMergedPermissionsToCache(TenantId tenantId, CustomerId customerId, EntityId userId) {
         log.debug("[{}][{}][{}] Evict user permissions to cache", tenantId, customerId, userId);
-        Cache cache = cacheManager.getCache(USER_PERMISSIONS_CACHE);
-        cache.evict(toKey(tenantId, customerId, userId));
-    }
-
-    private String toKey(EntityId tenantId, EntityId customerId, EntityId userId) {
-        return (tenantId != null ? tenantId.getId().toString() : "null") + "-" +
-                (customerId != null ? customerId.getId().toString() : "null") + "-" +
-                (userId != null ? userId.getId().toString() : "null") + "-";
+        cache.evict(new UserPermissionCacheKey(tenantId, customerId, userId));
     }
 
     private AsyncFunction<List<EntityGroupId>, List<GroupPermission>> toGroupPermissionsList(TenantId tenantId) {
@@ -249,7 +220,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
         for (GroupPermission groupPermission : groupPermissions) {
             Role role = roleService.findRoleById(tenantId, groupPermission.getRoleId());
             if (role.getType() == RoleType.GENERIC) {
-                addGenericRolePermissions(role, genericPermissions, groupPermission);
+                addGenericRolePermissions(role, genericPermissions);
             } else {
                 addGroupSpecificRolePermissions(role, groupSpecificPermissions, groupPermission);
             }
@@ -257,7 +228,7 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
         return new MergedUserPermissions(genericPermissions, groupSpecificPermissions);
     }
 
-    private void addGenericRolePermissions(Role role, Map<Resource, Set<Operation>> target, GroupPermission groupPermission) {
+    private void addGenericRolePermissions(Role role, Map<Resource, Set<Operation>> target) {
         Map<Resource, List<Operation>> rolePermissions = new HashMap<>();
         for (Resource resource : Resource.values()) {
             if (role.getPermissions().has(resource.name())) {
@@ -273,44 +244,6 @@ public class DefaultUserPermissionsService implements UserPermissionsService {
         List<Operation> roleOperations = new ArrayList<>();
         role.getPermissions().forEach(node -> roleOperations.add(Operation.valueOf(node.asText())));
         target.computeIfAbsent(groupPermission.getEntityGroupId(), id -> new MergedGroupPermissionInfo(groupPermission.getEntityGroupType(), new HashSet<>())).getOperations().addAll(roleOperations);
-    }
-
-    private byte[] toBytes(MergedUserPermissions result) {
-        TransportProtos.MergedUserPermissionsProto.Builder builder = TransportProtos.MergedUserPermissionsProto.newBuilder();
-        result.getGenericPermissions().forEach(((resource, operations) -> {
-            builder.addGeneric(TransportProtos.GenericUserPermissionsProto.newBuilder()
-                    .setResource(resource.name())
-                    .addAllOperation(operations.stream().map(Operation::name).collect(Collectors.toList())));
-        }));
-        result.getGroupPermissions().forEach((entityGroupId, mergedGroupPermissionInfo) -> {
-            builder.addGroup(TransportProtos.GroupUserPermissionsProto.newBuilder()
-                    .setEntityGroupIdMSB(entityGroupId.getId().getMostSignificantBits())
-                    .setEntityGroupIdLSB(entityGroupId.getId().getLeastSignificantBits())
-                    .setEntityType(mergedGroupPermissionInfo.getEntityType().name())
-                    .addAllOperation(mergedGroupPermissionInfo.getOperations().stream().map(Operation::name).collect(Collectors.toList()))
-            );
-        });
-
-        return builder.build().toByteArray();
-    }
-
-    private MergedUserPermissions fromBytes(byte[] data) throws InvalidProtocolBufferException {
-        TransportProtos.MergedUserPermissionsProto proto = TransportProtos.MergedUserPermissionsProto.parseFrom(data);
-        Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
-        Map<EntityGroupId, MergedGroupPermissionInfo> groupSpecificPermissions = new HashMap<>();
-
-        for (TransportProtos.GenericUserPermissionsProto genericPermissionsProto : proto.getGenericList()) {
-            HashSet<Operation> operations = new HashSet<>();
-            genericPermissionsProto.getOperationList().forEach(o -> operations.add(Operation.valueOf(o)));
-            genericPermissions.put(Resource.valueOf(genericPermissionsProto.getResource()), operations);
-        }
-        for (TransportProtos.GroupUserPermissionsProto groupPermissionsProto : proto.getGroupList()) {
-            HashSet<Operation> operations = new HashSet<>();
-            groupPermissionsProto.getOperationList().forEach(o -> operations.add(Operation.valueOf(o)));
-            groupSpecificPermissions.put(new EntityGroupId(new UUID(groupPermissionsProto.getEntityGroupIdMSB(), groupPermissionsProto.getEntityGroupIdLSB())),
-                    new MergedGroupPermissionInfo(EntityType.valueOf(groupPermissionsProto.getEntityType()), operations));
-        }
-        return new MergedUserPermissions(genericPermissions, groupSpecificPermissions);
     }
 
 }

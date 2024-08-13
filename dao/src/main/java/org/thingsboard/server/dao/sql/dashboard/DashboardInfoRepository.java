@@ -85,7 +85,7 @@ public interface DashboardInfoRepository extends JpaRepository<DashboardInfoEnti
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
             "FROM (select d.id, d.created_time, d.assigned_customers, d.tenant_id, " +
-            "d.customer_id, d.title, d.mobile_hide, d.mobile_order, d.image, d.groups, d.external_id, " +
+            "d.customer_id, d.title, d.mobile_hide, d.mobile_order, d.image, d.groups, d.external_id, d.version, " +
             "c.title as owner_name FROM dashboard_info_view d " +
             "LEFT JOIN customer c on c.id = d.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +

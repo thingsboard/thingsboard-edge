@@ -31,8 +31,6 @@
 package org.thingsboard.server.service.edge.rpc.constructor.role;
 
 import org.thingsboard.server.common.data.id.RoleId;
-import org.thingsboard.server.common.data.id.TbResourceId;
-import org.thingsboard.server.gen.edge.v1.ResourceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
@@ -45,4 +43,5 @@ public abstract class BaseRoleMsgConstructor implements RoleMsgConstructor {
                 .setIdMSB(roleId.getId().getMostSignificantBits())
                 .setIdLSB(roleId.getId().getLeastSignificantBits()).build();
     }
+
 }

@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -44,7 +45,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Schema
-public final class MergedUserPermissions {
+public final class MergedUserPermissions implements Serializable {
 
     @Getter
     @Schema(description = "Map of permissions defined using generic roles ('Customer Administrator', etc)")

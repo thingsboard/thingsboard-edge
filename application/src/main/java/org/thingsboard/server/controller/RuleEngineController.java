@@ -32,13 +32,10 @@ package org.thingsboard.server.controller;
 
 import com.google.common.util.concurrent.FutureCallback;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,7 +59,6 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.exception.ToErrorResponseEntity;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.ruleengine.LocalRequestMetaData;
 import org.thingsboard.server.service.ruleengine.RuleEngineCallService;
 import org.thingsboard.server.service.security.AccessValidator;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -193,7 +189,7 @@ public class RuleEngineController extends BaseController {
                     metaData.put("requestUUID", requestId.toString());
                     metaData.put("expirationTime", Long.toString(expTime));
                     TbMsg msg = TbMsg.newMsg(queueName, TbMsgType.REST_API_REQUEST, entityId, currentUser.getCustomerId(), new TbMsgMetaData(metaData), requestBody);
-                    ruleEngineCallService.processRestAPICallToRuleEngine(currentUser.getTenantId(), requestId, msg, queueName != null,
+                    ruleEngineCallService.processRestApiCallToRuleEngine(currentUser.getTenantId(), requestId, msg, queueName != null,
                             reply -> reply(new LocalRequestMetaData(msg, currentUser, result), reply));
                 }
 
@@ -216,7 +212,7 @@ public class RuleEngineController extends BaseController {
     }
 
     private void reply(LocalRequestMetaData rpcRequest, TbMsg response) {
-        DeferredResult<ResponseEntity> responseWriter = rpcRequest.getResponseWriter();
+        DeferredResult<ResponseEntity> responseWriter = rpcRequest.responseWriter();
         if (response == null) {
             logRuleEngineCall(rpcRequest, null, new TimeoutException("Processing timeout detected!"));
             responseWriter.setResult(new ResponseEntity<>(HttpStatus.REQUEST_TIMEOUT));
@@ -239,7 +235,7 @@ public class RuleEngineController extends BaseController {
     }
 
     private void logRuleEngineCall(LocalRequestMetaData rpcRequest, TbMsg response, Throwable e) {
-        logRuleEngineCall(rpcRequest.getUser(), rpcRequest.getRequest().getOriginator(), rpcRequest.getRequest().getData(), response, e);
+        logRuleEngineCall(rpcRequest.user(), rpcRequest.request().getOriginator(), rpcRequest.request().getData(), response, e);
     }
 
     private void logRuleEngineCall(SecurityUser user, EntityId entityId, String request, TbMsg response, Throwable e) {
@@ -255,4 +251,6 @@ public class RuleEngineController extends BaseController {
                 request,
                 response != null ? response.getData() : "");
     }
+
+    private record LocalRequestMetaData(TbMsg request, SecurityUser user, DeferredResult<ResponseEntity> responseWriter) {}
 }

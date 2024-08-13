@@ -46,8 +46,8 @@ import org.thingsboard.server.dao.resource.TbResourceDao;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.dao.tenant.TenantService;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.dao.widget.WidgetTypeDao;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.List;
 import java.util.stream.Collectors;

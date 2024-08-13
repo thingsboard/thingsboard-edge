@@ -41,4 +41,5 @@ public interface RoleMsgConstructor extends MsgConstructor {
     RoleProto constructRoleProto(UpdateMsgType msgType, Role role);
 
     RoleProto constructRoleDeleteMsg(RoleId roleId);
+
 }
