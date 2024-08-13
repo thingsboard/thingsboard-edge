@@ -142,6 +142,15 @@ public class TbChangeOriginatorNodeTest extends AbstractRuleNodeUpgradeTest {
     }
 
     @Test
+    public void givenRelatedSourceIsNull_whenInit_thenThrowsException() {
+        config.setOriginatorSource(null);
+
+        assertThatThrownBy(() -> node.init(ctxMock, new TbNodeConfiguration(JacksonUtil.valueToTree(config))))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Originator source should be specified.");
+    }
+
+    @Test
     public void givenRelatedSourceAndRelatedQueryIsNull_whenInit_thenThrowsException() {
         config.setOriginatorSource(RELATED);
         config.setRelationsQuery(null);
