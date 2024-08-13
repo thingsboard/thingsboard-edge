@@ -82,7 +82,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -224,7 +223,7 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         newCustomer.setTenantId(TENANT_ID);
         newCustomer.setOwnerId(ownerId);
         verify(customerServiceMock).saveCustomer(newCustomer);
-        verify(peContextMock, times(2)).getOwner(TENANT_ID, DEVICE_ID);
+        verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);
         verify(peContextMock).changeEntityOwner(TENANT_ID, newCustomerId, DEVICE_ID);
         verify(ctxMock).enqueue(eq(createdCustomerMsg), any(Runnable.class), any(Consumer.class));
         verifyNoMoreInteractions(ctxMock, customerServiceMock, peContextMock);
@@ -243,6 +242,8 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
 
         when(ctxMock.getCustomerService()).thenReturn(customerServiceMock);
         when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
+        when(ctxMock.getPeContext()).thenReturn(peContextMock);
+        when(peContextMock.getOwner(any(), any())).thenReturn(ownerId);
         when(customerServiceMock.findCustomerByTenantIdAndTitleAsync(any(), any())).thenReturn(Futures.immediateFuture(Optional.empty()));
         doAnswer(invocation -> {
             throw new DataValidationException("Exception during saving customer");
@@ -257,6 +258,7 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         verify(ctxMock).tellFailure(eq(msg), throwableCaptor.capture());
         assertThat(throwableCaptor.getValue()).isInstanceOf(RuntimeException.class)
                 .hasMessage("Failed to create customer with title 'Test Customer'");
+        verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);
         verify(customerServiceMock).findCustomerByTenantIdAndTitleAsync(TENANT_ID, "Test Customer");
         Customer newCustomer = new Customer();
         newCustomer.setTitle("Test Customer");
@@ -278,6 +280,8 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
 
         when(ctxMock.getCustomerService()).thenReturn(customerServiceMock);
         when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
+        when(ctxMock.getPeContext()).thenReturn(peContextMock);
+        when(peContextMock.getOwner(any(), any())).thenReturn(ownerId);
         when(customerServiceMock.findCustomerByTenantIdAndTitleAsync(any(), any())).thenReturn(Futures.immediateFuture(Optional.empty()));
 
         TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID,
@@ -288,16 +292,9 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
         verify(ctxMock).tellFailure(eq(msg), throwableCaptor.capture());
         assertThat(throwableCaptor.getValue()).isInstanceOf(RuntimeException.class)
                 .hasMessage("Customer with title 'Test Customer' doesn't exist!");
+        verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);
         verify(customerServiceMock).findCustomerByTenantIdAndTitleAsync(TENANT_ID, "Test Customer");
         verifyNoMoreInteractions(ctxMock, customerServiceMock, peContextMock);
-    }
-
-    @Test
-    public void givenDefaultConfig_whenVerify_thenOk() {
-        assertThat(config.getOwnerType()).isEqualTo(EntityType.TENANT);
-        assertThat(config.getOwnerNamePattern()).isNull();
-        assertThat(config.isCreateOwnerIfNotExists()).isFalse();
-        assertThat(config.isCreateOwnerOnOriginatorLevel()).isFalse();
     }
 
     @Test
@@ -348,12 +345,15 @@ public class TbChangeOwnerNodeTest extends AbstractRuleNodeUpgradeTest {
 
         when(ctxMock.getCustomerService()).thenReturn(customerServiceMock);
         when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
+        when(ctxMock.getPeContext()).thenReturn(peContextMock);
+        when(peContextMock.getOwner(any(), any())).thenReturn(TENANT_ID);
         when(customerServiceMock.findCustomerByTenantIdAndTitleAsync(any(), any()))
                 .thenReturn(Futures.immediateFuture(Optional.empty()));
 
         TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, TbMsgMetaData.EMPTY, TbMsg.EMPTY_JSON_OBJECT);
         node.onMsg(ctxMock, msg);
 
+        verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);
         verify(customerServiceMock, never()).saveCustomer(any());
         verify(customerServiceMock).findCustomerByTenantIdAndTitleAsync(TENANT_ID, "Test Customer");
         verify(peContextMock, never()).changeEntityOwner(any(TenantId.class), any(EntityId.class), any(EntityId.class));
