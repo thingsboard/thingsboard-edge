@@ -30,38 +30,22 @@
  */
 package org.thingsboard.server.dao.menu;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CacheSpecsMap;
+import org.thingsboard.server.cache.RedisTbTransactionalCache;
+import org.thingsboard.server.cache.TBRedisCacheConfiguration;
+import org.thingsboard.server.cache.TbJsonRedisSerializer;
+import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.id.CustomMenuId;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
-import org.thingsboard.server.common.data.menu.CustomMenuInfo;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
 
-import java.util.List;
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
+@Service("CustomMenuCache")
+public class CustomMenuRedisCache extends RedisTbTransactionalCache<CustomMenuId, CustomMenu> {
 
-public interface CustomMenuService {
-
-    CustomMenu saveCustomMenu(CustomMenu customMenu, List<EntityId> assignToList);
-
-    void updateCustomMenuAssignToList(CustomMenu savedCustomMenu, List<EntityId> assignToList);
-
-    CustomMenu findCustomMenuById(TenantId tenantId, CustomMenuId customMenuId);
-
-    PageData<CustomMenuInfo> getCustomMenuInfos(TenantId tenantId, CustomerId customerId, PageLink pageLink);
-
-    CustomMenu getSystemAdminCustomMenu();
-
-    CustomMenu getTenantUserCustomMenu(TenantId tenantId, UserId id);
-
-    CustomMenu getCustomerUserCustomMenu(TenantId tenantId, CustomerId customerId, UserId userId);
-
-    void deleteCustomMenu(TenantId tenantId, CustomMenuId customMenuId);
-
-    CustomMenuInfo findCustomMenuInfoById(TenantId tenantId, CustomMenuId customMenuId);
-
-    CustomMenu findDefaultCustomMenuByScope(TenantId tenantId, CustomerId customerId, CMScope scope);
+    public CustomMenuRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
+        super(CacheConstants.CUSTOM_MENU_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbJsonRedisSerializer<>(CustomMenu.class));
+    }
 }

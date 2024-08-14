@@ -37,6 +37,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -214,6 +215,16 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
     public PageData<User> findByAuthorityAndTenantProfilesIds(Authority authority, List<TenantProfileId> tenantProfilesIds, PageLink pageLink) {
         return DaoUtil.toPageData(userRepository.findByAuthorityAndTenantProfilesIds(authority, DaoUtil.toUUIDs(tenantProfilesIds),
                 DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public List<User> findUsersByCustomMenuId(UUID id) {
+        return DaoUtil.convertDataList(userRepository.findByCustomMenuId(id));
+    }
+
+    @Override
+    public void updateCustomersCustomMenuId(List<UUID> ids, UUID customMenuId) {
+        userRepository.updateCustomMenuId(ids, customMenuId);
     }
 
     @Override

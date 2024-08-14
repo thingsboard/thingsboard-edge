@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.UserInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -88,6 +89,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.thingsboard.server.common.data.StringUtils.generateSafeToken;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
@@ -625,6 +627,19 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
             ((ObjectNode) userSettings.getSettings().get("sessions")).remove(mobileToken);
             userSettingsService.saveUserSettings(tenantId, userSettings);
         }
+    }
+
+    @Override
+    public List<User> findUsersByCustomMenuId(CustomMenuId customMenuId) {
+        log.trace("Executing findCustomersByCustomMenuId, customMenuId [{}]", customMenuId);
+        validateId(customMenuId, id -> "Incorrect customMenuId " + id);
+        return userDao.findUsersByCustomMenuId(customMenuId.getId());
+    }
+
+    @Override
+    public void updateUsersCustomMenuId(List<UserId> ids, UUID customMenuId) {
+        log.trace("Executing updateCustomMenuId, customMenuId [{}]", customMenuId);
+        userDao.updateCustomersCustomMenuId(toUUIDs(ids), customMenuId);
     }
 
     private Optional<UserMobileInfo> findMobileInfo(TenantId tenantId, UserId userId) {

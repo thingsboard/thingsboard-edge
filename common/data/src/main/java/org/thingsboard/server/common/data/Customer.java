@@ -38,6 +38,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -61,6 +62,9 @@ public class Customer extends ContactBased<CustomerId> implements HasTenantId, H
     @Getter
     @Setter
     private CustomerId externalId;
+
+    @Getter @Setter
+    private CustomMenuId customMenuId;
 
     public Customer() {
         super();

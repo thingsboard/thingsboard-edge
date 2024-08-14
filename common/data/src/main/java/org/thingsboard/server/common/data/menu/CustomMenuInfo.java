@@ -31,36 +31,58 @@
 package org.thingsboard.server.common.data.menu;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 
-import java.util.ArrayList;
+import java.io.Serial;
+import java.util.Collections;
 import java.util.List;
 
 @Schema
 @Data
-@EqualsAndHashCode
-public class CustomMenuItem {
+@EqualsAndHashCode(callSuper = true)
+public class CustomMenuInfo extends BaseData<CustomMenuId> {
 
-    @Schema(description = "Unique identifier for predefined menu items", example = "home",  accessMode = Schema.AccessMode.READ_ONLY)
-    private String id;
-    @Schema(description = "Name of the menu item", example = "My Custom Menu", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Serial
+    private static final long serialVersionUID = -628571812163942630L;
+    @Schema(description = "Custom menu title (e.g. Customer A menu)")
     private String name;
-    @Schema(description = "URL of the menu item icon. Overrides 'materialIcon'", example = "My Custom Menu")
-    private String iconUrl;
-    @Schema(description = "Material icon name. See [Material Icons](https://fonts.google.com/icons?selected=Material+Icons) for examples", example = "Info")
-    private String materialIcon;
-    @Schema(description = "URL to open in the iframe, when user clicks the menu item", example = "https://myexternalurl.com")
-    private String iframeUrl;
-    @Schema(description = "Id of the Dashboard to open, when user clicks the menu item", example = "https://mycompany.com")
-    private String dashboardId;
-    @Schema(description = "Hide the dashboard toolbar")
-    private Boolean hideDashboardToolbar;
-    @Schema(description = "Set the access token of the current user to a new dashboard")
-    private boolean setAccessToken;
-    @Schema(description = "Mark if menu item is visible for user")
-    private boolean enabled = true;
-    @Schema(description = "List of child menu items")
-    private List<CustomMenuItem> childMenuItems = new ArrayList<>();
 
+    @Schema(description = "User level custom menu is applied to", example = "TENANT")
+    private CMScope scope;
+
+    @Schema(description = "Custom menu could be applied to whole tenant/customer or separete list of users. " +
+            "So possible values are: All (means all users of specified scope), Tenant (specified tenants), Customer (specified customers)," +
+            " User list (specified list of users)", example = "ALL")
+    private CMAssigneeType assigneeType;
+
+    @Schema(description = "Used to mark the default menu. Default menu is applied to all users of tenant/customer if any other is applied on user level.",
+            accessMode = Schema.AccessMode.READ_ONLY)
+    public boolean isDefault(){
+        return assigneeType == CMAssigneeType.ALL;
+    }
+
+    @Valid
+    @Schema(description = "Groups", accessMode = Schema.AccessMode.READ_ONLY)
+    private List<EntityInfo> assigners;
+
+    public CustomMenuInfo() {
+        super();
+    }
+
+    public CustomMenuInfo(CustomMenu customMenu) {
+        this(customMenu, Collections.emptyList());
+    }
+
+    public CustomMenuInfo(CustomMenu customMenu, List<EntityInfo> assigners) {
+        super(customMenu);
+        this.name = customMenu.getName();
+        this.scope = customMenu.getScope();
+        this.assigneeType = customMenu.getAssigneeType();
+        this.assigners = assigners;
+    }
 }

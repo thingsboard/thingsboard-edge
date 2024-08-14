@@ -37,6 +37,7 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseEntity;
@@ -102,6 +103,9 @@ public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSql
     @Column(name = ModelConstants.EXTERNAL_ID_PROPERTY)
     private UUID externalId;
 
+    @Column(name = ModelConstants.CUSTOM_MENU_ID_PROPERTY)
+    private UUID customMenuId;
+
     public AbstractCustomerEntity() {
         super();
     }
@@ -129,6 +133,9 @@ public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSql
         if (customer.getExternalId() != null) {
             this.externalId = customer.getExternalId().getId();
         }
+        if (customer.getCustomMenuId() != null) {
+            this.customMenuId = customer.getCustomMenuId().getId();
+        }
     }
 
     public AbstractCustomerEntity(CustomerEntity customerEntity) {
@@ -148,6 +155,7 @@ public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSql
         this.additionalInfo = customerEntity.getAdditionalInfo();
         this.isPublic = customerEntity.isPublic();
         this.externalId = customerEntity.getExternalId();
+        this.customMenuId = customerEntity.getCustomMenuId();
     }
 
     protected Customer toCustomer() {
@@ -169,6 +177,9 @@ public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSql
         customer.setAdditionalInfo(additionalInfo);
         if (externalId != null) {
             customer.setExternalId(new CustomerId(externalId));
+        }
+        if (customMenuId != null) {
+            customer.setCustomMenuId(new CustomMenuId(customMenuId));
         }
         return customer;
     }

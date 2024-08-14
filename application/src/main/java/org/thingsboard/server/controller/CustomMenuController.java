@@ -31,24 +31,50 @@
 package org.thingsboard.server.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.CustomMenuId;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
+import org.thingsboard.server.common.data.menu.CustomMenuItem;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.security.model.SecurityUser;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOM_MENU_ID;
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOM_MENU_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOM_MENU_TEXT_SEARCH_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 
 @RestController
 @TbCoreComponent
@@ -58,80 +84,145 @@ public class CustomMenuController extends BaseController {
     @Autowired
     private CustomMenuService customMenuService;
 
-    @ApiOperation(value = "Get end-user Custom Menu configuration (getCustomMenu)",
-            notes = "Fetch the Custom Menu object for the end user. The custom menu is configured in the white labeling parameters. " +
-                    "If custom menu configuration on the tenant level is present, it overrides the menu configuration of the system level. " +
-                    "Similar, if the custom menu configuration on the customer level is present, it overrides the menu configuration of the tenant level."
-            )
+    @ApiOperation(value = "Get All Custom menus for current user (getCustomMenus)",
+            notes = "Returns a page of custom menu info objects owned by the tenant or the customer of a current user. ")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customMenu/customMenu", method = RequestMethod.GET, produces = "application/json")
-    @ResponseBody
-    public CustomMenu getCustomMenu() throws ThingsboardException {
-        Authority authority = getCurrentUser().getAuthority();
-        CustomMenu customMenu = null;
-        if (Authority.SYS_ADMIN.equals(authority)) {
-            customMenu = customMenuService.getSystemCustomMenu(TenantId.SYS_TENANT_ID);
-        } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            customMenu = customMenuService.getMergedTenantCustomMenu(getCurrentUser().getTenantId());
-        } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            customMenu = customMenuService.getMergedCustomerCustomMenu(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId());
-        }
-        if (customMenu == null) {
-            customMenu = new CustomMenu();
-        }
-        return customMenu;
+    @GetMapping(value = "/customMenus")
+    public PageData<CustomMenuInfo> getCustomMenus(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+                                               @RequestParam int pageSize,
+                                               @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+                                               @RequestParam int page,
+                                               @Parameter(description = CUSTOM_MENU_TEXT_SEARCH_DESCRIPTION)
+                                               @RequestParam(required = false) String textSearch,
+                                               @Parameter(description = SORT_PROPERTY_DESCRIPTION, schema = @Schema(allowableValues = {"createdTime", "title"}))
+                                               @RequestParam(required = false) String sortProperty,
+                                               @Parameter(description = SORT_ORDER_DESCRIPTION, schema = @Schema(allowableValues = {"ASC", "DESC"}))
+                                               @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
+        return customMenuService.getCustomMenuInfos(getCurrentUser().getTenantId(), getCurrentUser().getCustomerId(), pageLink);
     }
 
-    @ApiOperation(value = "Get Custom Menu configuration (getCustomMenu)",
+    @ApiOperation(value = "Get end-user Custom Menu configuration (getCustomMenu)",
+            notes = "Fetch the Custom Menu object for the authorized user. The custom menu is configured in the white labeling parameters. " +
+                    "If custom menu configuration on the tenant level is present, it overrides the menu configuration of the system level. " +
+                    "If the custom menu configuration on the customer level is present, it overrides the menu configuration of the tenant level." +
+                    "If custom menu configuration is present on user level, it overrides the menu configuration of customer/tenant level. " +
+                    "If no custom menu configured on user/customer/tenant level default customer/tenant hierarchy will be applied")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @GetMapping(value = "/customMenu")
+    public List<CustomMenuItem> getCustomMenu() throws ThingsboardException {
+        SecurityUser currentUser = getCurrentUser();
+        Authority authority = currentUser.getAuthority();
+        CustomMenu menu = null;
+        if (Authority.SYS_ADMIN.equals(authority)) {
+            menu = customMenuService.getSystemAdminCustomMenu();
+        }  else if (Authority.TENANT_ADMIN.equals(authority)) {
+            menu = customMenuService.getTenantUserCustomMenu(currentUser.getTenantId(), currentUser.getId());
+        } else if (Authority.CUSTOMER_USER.equals(authority)) {
+            menu = customMenuService.getCustomerUserCustomMenu(currentUser.getTenantId(), currentUser.getCustomerId(), currentUser.getId());
+        }
+        return checkNotNull(menu).getMenuItems();
+    }
+
+    @ApiOperation(value = "Get Custom Menu configuration by id (getCustomMenuById)",
             notes = "Fetch the Custom Menu object that corresponds to the authority of the user. " +
                     "The API call is designed to load the custom menu items for edition. " +
                     "So, the result is NOT merged with the parent level configuration. " +
                     "Let's assume there is a custom menu configured on a system level. " +
                     "And there is no custom menu items configured on a tenant level. " +
                     "In such a case, the API call will return empty object for the tenant administrator. " +
-                    ControllerConstants.WL_READ_CHECK
-            )
+                    ControllerConstants.CUSTOM_MENU_READ_CHECK
+    )
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customMenu/currentCustomMenu", method = RequestMethod.GET, produces = "application/json")
-    @ResponseBody
-    public CustomMenu getCurrentCustomMenu() throws ThingsboardException {
-        Authority authority = getCurrentUser().getAuthority();
-        checkWhiteLabelingPermissions(Operation.READ);
-        CustomMenu customMenu = null;
-        if (Authority.SYS_ADMIN.equals(authority)) {
-            customMenu = customMenuService.getSystemCustomMenu(TenantId.SYS_TENANT_ID);
-        } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            customMenu = customMenuService.getTenantCustomMenu(getTenantId());
-        } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            customMenu = customMenuService.getCustomerCustomMenu(getTenantId(), getCurrentUser().getCustomerId());
-        }
-        return customMenu;
+    @GetMapping(value = "/customMenu/{customMenuId}")
+    public CustomMenu getCustomMenuById(@Parameter(description = CUSTOM_MENU_ID_PARAM_DESCRIPTION)
+                                        @PathVariable(CUSTOM_MENU_ID) String strCustomMenuId) throws ThingsboardException {
+        CustomMenuId customMenuId = new CustomMenuId(toUUID(strCustomMenuId));
+        return checkCustomMenuId(customMenuId, Operation.READ);
+    }
+
+    @ApiOperation(value = "Get Custom Menu info by id (getCustomMenuById)",
+            notes = "Fetch the Custom Menu info object that contains assign info " +
+                    "The API call is designed to retrieve the custom menu assigners and basic info like name. " +
+                    ControllerConstants.CUSTOM_MENU_READ_CHECK
+    )
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @GetMapping(value = "/customMenu/info/{customMenuId}")
+    public CustomMenuInfo getCustomMenuInfoById(@Parameter(description = CUSTOM_MENU_ID_PARAM_DESCRIPTION)
+                                                @PathVariable(CUSTOM_MENU_ID) String strCustomMenuId) throws ThingsboardException {
+        CustomMenuId customMenuId = new CustomMenuId(toUUID(strCustomMenuId));
+        checkCustomMenuId(customMenuId, Operation.READ);
+        return customMenuService.findCustomMenuInfoById(getTenantId(), customMenuId);
     }
 
     @ApiOperation(value = "Create Or Update Custom Menu (saveCustomMenu)",
             notes = "Creates or Updates the Custom Menu configuration." +
                     ControllerConstants.WL_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/customMenu/customMenu", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.OK)
+    @PostMapping(value = "/customMenu")
     public CustomMenu saveCustomMenu(
             @Parameter(description = "A JSON value representing the custom menu")
-            @RequestBody(required = false) CustomMenu customMenu) throws ThingsboardException {
-        Authority authority = getCurrentUser().getAuthority();
-        checkWhiteLabelingPermissions(Operation.WRITE);
-        CustomMenu savedCustomMenu = null;
-        if (Authority.SYS_ADMIN.equals(authority)) {
-            savedCustomMenu = customMenuService.saveSystemCustomMenu(customMenu);
-        } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            savedCustomMenu = customMenuService.saveTenantCustomMenu(getCurrentUser().getTenantId(), customMenu);
-        } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            savedCustomMenu = customMenuService.saveCustomerCustomMenu(getTenantId(), getCurrentUser().getCustomerId(), customMenu);
+            @RequestBody(required = false) CustomMenu customMenu,
+            @Parameter(description = "A list of entity ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
+            @RequestParam(name = "assignToList", required = false) UUID[] ids) throws ThingsboardException {
+        Operation operation = customMenu.getId() == null ? Operation.CREATE : Operation.WRITE;
+        SecurityUser currentUser = getCurrentUser();
+        customMenu.setTenantId(currentUser.getTenantId());
+        customMenu.setCustomerId(currentUser.getCustomerId());
+        accessControlService.checkCustomMenuPermission(getCurrentUser(), operation, customMenu);
+        List<EntityId> assignToList = getAssignToList(customMenu.getAssigneeType(), ids);
+        return customMenuService.saveCustomMenu(customMenu, assignToList);
+    }
+
+    @ApiOperation(value = "Update custom menu assigners (updateOauth2Clients)",
+            notes = "Update oauth2 clients for the specified domain. ")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN')")
+    @PutMapping(value = "/customMenu/{id}/assignToList")
+    public void updateCustomMenuAssigners(@PathVariable UUID id,
+                                    @RequestBody UUID[] entityIds) throws ThingsboardException {
+        CustomMenuId customMenuId = new CustomMenuId(id);
+        CustomMenu customMenu = checkCustomMenuId(customMenuId, Operation.WRITE);
+        List<EntityId> assigners = getAssignToList(customMenu.getAssigneeType(), entityIds);
+        customMenuService.updateCustomMenuAssignToList(customMenu, assigners);
+    }
+
+    @ApiOperation(value = "Delete custom menu (deleteConverter)",
+            notes = "Deletes the custom menu. " +
+                    "Referencing non-existing custom menu Id will cause an error. " +
+                    "If the custom menu is associated with the user, customer or tenant, it will not be allowed for deletion.")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @RequestMapping(value = "/customMenu/{customMenuId}", method = RequestMethod.DELETE)
+    @ResponseStatus(value = HttpStatus.OK)
+    public void deleteCustomMenu(@Parameter(required = true, description = CUSTOM_MENU_ID_PARAM_DESCRIPTION) @PathVariable(CUSTOM_MENU_ID) String strCustomMenuId) throws ThingsboardException {
+        checkParameter(CUSTOM_MENU_ID, strCustomMenuId);
+        CustomMenuId customMenuId = new CustomMenuId(toUUID(strCustomMenuId));
+        checkCustomMenuId(customMenuId, Operation.DELETE);
+        customMenuService.deleteCustomMenu(getTenantId(),customMenuId);
+    }
+
+    private List<EntityId> getAssignToList(CMAssigneeType type, UUID[] ids) throws ThingsboardException {
+        if (ids == null) {
+            return List.of();
         }
-        return savedCustomMenu;
+        List<EntityId> assignToList = new ArrayList<>();
+        switch (type) {
+            case CUSTOMERS:
+                for (UUID id : ids) {
+                    CustomerId customerId = new CustomerId(id);
+                    checkCustomerId(customerId, Operation.WRITE);
+                    assignToList.add(customerId);
+                }
+                break;
+            case USERS:
+                for (UUID id : ids) {
+                    UserId userId = new UserId(id);
+                    checkUserId(userId, Operation.WRITE);
+                    assignToList.add(userId);
+                }
+                break;
+            default:
+                throw new IllegalArgumentException("List of assigners can be applied only to CUSTOMERS or USERS assignee type!");
+        }
+        return assignToList;
     }
-
-    private void checkWhiteLabelingPermissions(Operation operation) throws ThingsboardException {
-        accessControlService.checkPermission(getCurrentUser(), Resource.WHITE_LABELING, operation);
-    }
-
 }

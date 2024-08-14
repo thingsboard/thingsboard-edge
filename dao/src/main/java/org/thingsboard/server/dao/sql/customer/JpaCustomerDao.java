@@ -37,6 +37,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -160,6 +161,16 @@ public class JpaCustomerDao extends JpaAbstractDao<CustomerEntity, Customer> imp
         return DaoUtil.toPageData(
                 customerRepository.findCustomersWithTheSameTitle(DaoUtil.toPageable(pageLink))
         );
+    }
+
+    @Override
+    public List<Customer> findCustomersByCustomMenuId(UUID customMenuId) {
+        return DaoUtil.convertDataList(customerRepository.findByCustomMenuId(customMenuId));
+    }
+
+    @Override
+    public void updateCustomersCustomMenuId(List<UUID> customerIds, UUID customMenuId) {
+        customerRepository.updateCustomMenuId(customerIds, customMenuId);
     }
 
     @Override

@@ -31,19 +31,94 @@
 package org.thingsboard.server.common.data.menu;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasOwnerId;
+import org.thingsboard.server.common.data.HasTenantId;
+import org.thingsboard.server.common.data.id.CustomMenuId;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.Length;
+import org.thingsboard.server.common.data.validation.NoXss;
 
 import java.util.ArrayList;
 
 @Schema
 @Data
-@EqualsAndHashCode
-public class CustomMenu {
+@EqualsAndHashCode(callSuper = true)
+@Slf4j
+public class CustomMenu extends BaseData<CustomMenuId> implements HasTenantId, HasOwnerId {
 
-    @Schema(description = "List of disabled regular menu items", requiredMode = Schema.RequiredMode.REQUIRED, example = "home")
-    private ArrayList<String> disabledMenuItems = new ArrayList<>();
+    @Schema(description = "JSON object with Tenant Id that owns the menu.", accessMode = Schema.AccessMode.READ_ONLY)
+    private TenantId tenantId;
+
+    @Schema(description = "JSON object with Customer Id that owns the menu.", accessMode = Schema.AccessMode.READ_ONLY)
+    private CustomerId customerId;
+
+    @NoXss
+    @NotNull
+    @Length(fieldName = "name")
+    @Schema(description = "Menu name", example = "Customer A custom menu", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String name;
+
+    @NoXss
+    @NotNull
+    @Schema(description = "User level custom menu is applied to", example = "TENANT")
+    private CMScope scope;
+
+    @NoXss
+    @NotNull
+    @Schema(description = "Custom menu could be applied to whole tenant/customer or separete list of users. " +
+            "So possible values are: All (means all users of specified scope), Tenant (specified tenants), Customer (specified customers)," +
+            " User list (specified list of users)", example = "ALL")
+    private CMAssigneeType assigneeType;
+    @Schema(description = "Used to mark the default menu. Default menu is applied to all users of tenant/customer if any other is applied on user level.",
+            accessMode = Schema.AccessMode.READ_ONLY)
+    public boolean isDefault(){
+        return assigneeType == CMAssigneeType.ALL;
+    }
+
     @Schema(description = "List of custom menu items", requiredMode = Schema.RequiredMode.REQUIRED)
     private ArrayList<CustomMenuItem> menuItems = new ArrayList<>();
 
+    @Schema(description = "JSON object with Customer or Tenant Id", accessMode = Schema.AccessMode.READ_ONLY)
+    @Override
+    public EntityId getOwnerId() {
+        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
+    }
+
+    @Override
+    public void setOwnerId(EntityId entityId) {
+        if (EntityType.CUSTOMER.equals(entityId.getEntityType())) {
+            this.customerId = new CustomerId(entityId.getId());
+        } else {
+            this.customerId = new CustomerId(CustomerId.NULL_UUID);
+        }
+    }
+
+    public CustomMenu() {
+        super();
+    }
+
+    public CustomMenu(CustomMenu customMenu) {
+        super(customMenu);
+        this.tenantId = customMenu.getTenantId();
+        this.customerId = customMenu.getCustomerId();
+        this.name = customMenu.getName();
+        this.scope = customMenu.getScope();
+        this.assigneeType = customMenu.getAssigneeType();
+        this.menuItems = customMenu.getMenuItems();
+    }
+
+    public CustomMenu(CustomMenuId id) {
+        super(id);
+    }
 }

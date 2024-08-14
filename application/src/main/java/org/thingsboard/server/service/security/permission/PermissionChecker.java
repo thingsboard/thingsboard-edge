@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -63,6 +64,10 @@ public interface PermissionChecker<I extends EntityId, T extends TenantEntity> {
     }
 
     default boolean hasEntityGroupInfoPermission(SecurityUser user, Operation operation, EntityGroupInfo entityGroupInfo) throws ThingsboardException {
+        return false;
+    }
+
+    default boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenu customMenu) throws ThingsboardException {
         return false;
     }
 

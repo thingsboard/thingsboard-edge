@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TbResourceId;
+import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -107,6 +108,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.TB_RESOURCE, customerResourcePermissionChecker);
         put(Resource.OTA_PACKAGE, otaPackagePermissionChecker);
         put(Resource.MOBILE_APP_SETTINGS, mobileAppPermissionChecker);
+        put(Resource.CUSTOM_MENU, customMenuPermissionChecker);
     }
 
     private final PermissionChecker<AlarmId, Alarm> customerAlarmPermissionChecker = new PermissionChecker<>() {
@@ -437,6 +439,20 @@ public class CustomerUserPermissions extends AbstractPermissions {
         @Override
         public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {
             return operation == Operation.READ;
+        }
+    };
+
+    private final PermissionChecker customMenuPermissionChecker = new PermissionChecker() {
+        @Override
+        public boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenu customMenu) {
+            if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getCustomerId())) {
+                return false;
+            }
+            if (operation == Operation.CREATE) {
+                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation);
+            } else {
+                return ownersCacheService.getOwners(user.getTenantId(), customMenu.getCustomerId(), customMenu).contains(user.getOwnerId());
+            }
         }
     };
 }
