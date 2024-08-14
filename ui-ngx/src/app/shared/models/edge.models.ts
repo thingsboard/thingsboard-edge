@@ -24,7 +24,7 @@ import { BaseEventBody } from '@shared/models/event.models';
 import { EventId } from '@shared/models/id/event-id';
 import { EntityId } from '@shared/models/id/entity-id';
 import { HasUUID } from '@shared/models/id/has-uuid';
-import { HasTenantId } from '@shared/models/entity.models';
+import {HasTenantId, HasVersion} from '@shared/models/entity.models';
 
 export interface EdgeSettings {
   edgeId: string;
@@ -69,7 +69,7 @@ export enum CloudEventType {
   WIDGET_TYPE = 'WIDGET_TYPE'
 }
 
-export interface Edge extends BaseData<EdgeId>, HasTenantId {
+export interface Edge extends BaseData<EdgeId>, HasTenantId, HasVersion {
   tenantId?: TenantId;
   customerId?: CustomerId;
   name: string;

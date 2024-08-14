@@ -368,7 +368,7 @@ public class DeviceServiceTest extends AbstractServiceTest {
         Device device = new Device();
         device.setType(deviceProfile.getName());
         device.setTenantId(tenantId);
-        device.setName("My device"+ StringUtils.randomAlphabetic(5));
+        device.setName("My device" + StringUtils.randomAlphabetic(5));
 
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         TransactionStatus status = platformTransactionManager.getTransaction(def);
@@ -960,8 +960,8 @@ public class DeviceServiceTest extends AbstractServiceTest {
                 deviceInfosWithLabel.stream()
                         .anyMatch(
                                 d -> d.getId().equals(savedDevice.getId())
-                                    && d.getTenantId().equals(tenantId)
-                                    && d.getLabel().equals(savedDevice.getLabel())
+                                        && d.getTenantId().equals(tenantId)
+                                        && d.getLabel().equals(savedDevice.getLabel())
                         )
         );
 
@@ -1019,9 +1019,9 @@ public class DeviceServiceTest extends AbstractServiceTest {
                 deviceInfosWithLabel.stream()
                         .anyMatch(
                                 d -> d.getId().equals(savedDevice.getId())
-                                    && d.getTenantId().equals(tenantId)
-                                    && d.getDeviceProfileName().equals(savedDevice.getType())
-                                    && d.getLabel().equals(savedDevice.getLabel())
+                                        && d.getTenantId().equals(tenantId)
+                                        && d.getDeviceProfileName().equals(savedDevice.getType())
+                                        && d.getLabel().equals(savedDevice.getLabel())
                         )
         );
 
@@ -1087,4 +1087,5 @@ public class DeviceServiceTest extends AbstractServiceTest {
                         )
         );
     }
+
 }
