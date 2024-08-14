@@ -43,4 +43,7 @@ public interface OAuth2ClientDao extends Dao<OAuth2Client> {
     void deleteByTenantId(TenantId tenantId);
 
     List<OAuth2Client> findByIds(TenantId tenantId, List<OAuth2ClientId> oAuth2ClientIds);
+
+    boolean isPropagateToEdge(TenantId tenantId, UUID oAuth2ClientId);
+
 }
