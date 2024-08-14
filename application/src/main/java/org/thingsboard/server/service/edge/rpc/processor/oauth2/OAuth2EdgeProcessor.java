@@ -40,7 +40,7 @@ public class OAuth2EdgeProcessor extends BaseEdgeProcessor {
     public DownlinkMsg convertOAuth2ProviderEventToDownlink(EdgeEvent edgeEvent) {
         DownlinkMsg downlinkMsg = null;
         OAuth2Client oAuth2Client = JacksonUtil.convertValue(edgeEvent.getBody(), OAuth2Client.class);
-        if (oAuth2Client != null) {
+        if (oAuth2Client != null) { // isEdgeEnabled()
             OAuth2UpdateMsg oAuth2ProviderUpdateMsg = oAuth2MsgConstructor.constructOAuth2UpdateMsg(oAuth2Client);
             downlinkMsg = DownlinkMsg.newBuilder()
                     .setDownlinkMsgId(EdgeUtils.nextPositiveInt())

@@ -20,9 +20,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.oauth2.MapperType;
+import org.thingsboard.server.common.data.oauth2.OAuth2Client;
 import org.thingsboard.server.common.data.oauth2.OAuth2CustomMapperConfig;
 import org.thingsboard.server.common.data.oauth2.OAuth2MapperConfig;
-import org.thingsboard.server.common.data.oauth2.OAuth2Client;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.OAuth2UpdateMsg;
 
@@ -58,6 +58,11 @@ public class OAuth2EdgeTest extends AbstractEdgeTest {
         oAuth2ProviderUpdateMsg = (OAuth2UpdateMsg) latestMessage;
         result = JacksonUtil.fromString(oAuth2ProviderUpdateMsg.getEntity(), OAuth2Client.class, true);
         Assert.assertEquals(oAuth2Client, result);
+//        correct logic of handling --------------------- below
+//        oAuth2Info.setEnabled(false);
+//        oAuth2Info.setEdgeEnabled(false);
+//        doPost("/api/oauth2/config", oAuth2Info, OAuth2Info.class);
+//        Assert.assertFalse(edgeImitator.waitForMessages(5));
 
         edgeImitator.ignoreType(OAuth2UpdateMsg.class);
         loginTenantAdmin();
