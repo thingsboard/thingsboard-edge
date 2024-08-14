@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -60,7 +61,6 @@ import java.util.UUID;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatNoException;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -104,10 +104,10 @@ class TbRemoveFromGroupNodeTest {
                 new TbMsgMetaData(Map.of("groupName", "Device Group")), TbMsg.EMPTY_JSON_OBJECT);
         node.onMsg(ctxMock, msg);
 
-        verify(peContextMock).getOwner(eq(TENANT_ID), eq(DEVICE_ID));
-        verify(entityGroupServiceMock).findEntityGroupByTypeAndNameAsync(eq(TENANT_ID), eq(TENANT_ID), eq(EntityType.DEVICE), eq("Device Group"));
-        verify(entityGroupServiceMock).removeEntityFromEntityGroup(eq(TENANT_ID), eq(entityGroupId), eq(DEVICE_ID));
-        verify(ctxMock).tellNext(msg, "Success");
+        verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);
+        verify(entityGroupServiceMock).findEntityGroupByTypeAndNameAsync(TENANT_ID, TENANT_ID, EntityType.DEVICE, "Device Group");
+        verify(entityGroupServiceMock).removeEntityFromEntityGroup(TENANT_ID, entityGroupId, DEVICE_ID);
+        verify(ctxMock).tellNext(msg, TbNodeConnectionType.SUCCESS);
         verifyNoMoreInteractions(ctxMock, peContextMock, entityGroupServiceMock);
     }
 

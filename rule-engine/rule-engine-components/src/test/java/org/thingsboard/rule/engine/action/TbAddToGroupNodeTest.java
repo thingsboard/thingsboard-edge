@@ -50,6 +50,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -108,10 +109,10 @@ class TbAddToGroupNodeTest {
                 new TbMsgMetaData(Map.of("groupName", "Device Group")), TbMsg.EMPTY_JSON_OBJECT);
         node.onMsg(ctxMock, msg);
 
-        verify(peContextMock).getOwner(eq(TENANT_ID), eq(DEVICE_ID));
-        verify(entityGroupServiceMock).findEntityGroupByTypeAndNameAsync(eq(TENANT_ID), eq(TENANT_ID), eq(EntityType.DEVICE), eq("Device Group"));
-        verify(entityGroupServiceMock).addEntityToEntityGroup(eq(TENANT_ID), eq(ENTITY_GROUP_ID), eq(DEVICE_ID));
-        verify(ctxMock).tellNext(msg, "Success");
+        verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);
+        verify(entityGroupServiceMock).findEntityGroupByTypeAndNameAsync(TENANT_ID, TENANT_ID, EntityType.DEVICE, "Device Group");
+        verify(entityGroupServiceMock).addEntityToEntityGroup(TENANT_ID, ENTITY_GROUP_ID, DEVICE_ID);
+        verify(ctxMock).tellNext(msg, TbNodeConnectionType.SUCCESS);
         verifyNoMoreInteractions(ctxMock, peContextMock, entityGroupServiceMock);
     }
 
@@ -132,14 +133,14 @@ class TbAddToGroupNodeTest {
                 new TbMsgMetaData(Map.of("groupName", "Another Device Group")), TbMsg.EMPTY_JSON_OBJECT);
         node.onMsg(ctxMock, msg);
 
-        verify(peContextMock).getOwner(eq(TENANT_ID), eq(DEVICE_ID));
-        verify(entityGroupServiceMock).findEntityGroupByTypeAndNameAsync(eq(TENANT_ID), eq(TENANT_ID), eq(EntityType.DEVICE), eq("Another Device Group"));
+        verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);
+        verify(entityGroupServiceMock).findEntityGroupByTypeAndNameAsync(TENANT_ID, TENANT_ID, EntityType.DEVICE, "Another Device Group");
         EntityGroup newEntityGroup = new EntityGroup();
         newEntityGroup.setName("Another Device Group");
         newEntityGroup.setType(EntityType.DEVICE);
-        verify(entityGroupServiceMock).saveEntityGroup(eq(TENANT_ID), eq(TENANT_ID), eq(newEntityGroup));
-        verify(entityGroupServiceMock).addEntityToEntityGroup(eq(TENANT_ID), eq(ENTITY_GROUP_ID), eq(DEVICE_ID));
-        verify(ctxMock).tellNext(msg, "Success");
+        verify(entityGroupServiceMock).saveEntityGroup(TENANT_ID, TENANT_ID, newEntityGroup);
+        verify(entityGroupServiceMock).addEntityToEntityGroup(TENANT_ID, ENTITY_GROUP_ID, DEVICE_ID);
+        verify(ctxMock).tellNext(msg, TbNodeConnectionType.SUCCESS);
         verifyNoMoreInteractions(ctxMock, peContextMock, entityGroupServiceMock);
     }
 
@@ -169,13 +170,13 @@ class TbAddToGroupNodeTest {
                 new TbMsgMetaData(Map.of("groupName", "Device Group")), TbMsg.EMPTY_JSON_OBJECT);
         node.onMsg(ctxMock, msg);
 
-        verify(peContextMock).getOwner(eq(TENANT_ID), eq(DEVICE_ID));
-        verify(entityGroupServiceMock).findEntityGroupByTypeAndNameAsync(eq(TENANT_ID), eq(TENANT_ID), eq(EntityType.DEVICE), eq("Device Group"));
-        verify(entityGroupServiceMock).findEntityGroupsForEntityAsync(eq(TENANT_ID), eq(DEVICE_ID));
-        verify(deviceServiceMock).findDeviceById(eq(TENANT_ID), eq(DEVICE_ID));
-        verify(entityGroupServiceMock).findEntityGroupByTypeAndNameAsync(eq(TENANT_ID), eq(TENANT_ID), eq(EntityType.DEVICE), eq(EntityGroup.GROUP_ALL_NAME));
-        verify(entityGroupServiceMock).addEntityToEntityGroup(eq(TENANT_ID), eq(newEntityGroupId), eq(DEVICE_ID));
-        verify(ctxMock).tellNext(msg, "Success");
+        verify(peContextMock).getOwner(TENANT_ID, DEVICE_ID);
+        verify(entityGroupServiceMock).findEntityGroupByTypeAndNameAsync(TENANT_ID, TENANT_ID, EntityType.DEVICE, "Device Group");
+        verify(entityGroupServiceMock).findEntityGroupsForEntityAsync(TENANT_ID, DEVICE_ID);
+        verify(deviceServiceMock).findDeviceById(TENANT_ID, DEVICE_ID);
+        verify(entityGroupServiceMock).findEntityGroupByTypeAndNameAsync(TENANT_ID, TENANT_ID, EntityType.DEVICE, EntityGroup.GROUP_ALL_NAME);
+        verify(entityGroupServiceMock).addEntityToEntityGroup(TENANT_ID, newEntityGroupId, DEVICE_ID);
+        verify(ctxMock).tellNext(msg, TbNodeConnectionType.SUCCESS);
         verifyNoMoreInteractions(ctxMock, peContextMock, entityGroupServiceMock);
     }
 
