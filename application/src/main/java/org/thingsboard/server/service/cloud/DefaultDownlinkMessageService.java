@@ -46,7 +46,8 @@ import org.thingsboard.server.gen.edge.v1.EntityViewUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.NotificationRuleUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.NotificationTargetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.NotificationTemplateUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.OAuth2UpdateMsg;
+import org.thingsboard.server.gen.edge.v1.OAuth2ClientUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.OAuth2DomainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.OtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RelationUpdateMsg;
@@ -236,7 +237,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
             }
             if (downlinkMsg.getRuleChainUpdateMsgCount() > 0) {
                 for (RuleChainUpdateMsg ruleChainUpdateMsg : downlinkMsg.getRuleChainUpdateMsgList()) {
-                    result.add(ruleChainProcessor.processRuleChainMsgFromCloud(tenantId, ruleChainUpdateMsg, queueStartTs));
+                    result.add(ruleChainProcessor.processRuleChainMsgFromCloud(tenantId, ruleChainUpdateMsg));
                 }
             }
             if (downlinkMsg.getRuleChainMetadataUpdateMsgCount() > 0) {
@@ -334,9 +335,14 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                     result.add(notificationCloudProcessor.processNotificationRuleMsgFromCloud(tenantId, notificationRuleUpdateMsg));
                 }
             }
-            if (downlinkMsg.getOAuth2UpdateMsgCount() > 0) {
-                for (OAuth2UpdateMsg oAuth2UpdateMsg : downlinkMsg.getOAuth2UpdateMsgList()) {
-                    result.add(oAuth2CloudProcessor.processOAuth2MsgFromCloud(oAuth2UpdateMsg));
+            if (downlinkMsg.getOAuth2ClientUpdateMsgCount() > 0) {
+                for (OAuth2ClientUpdateMsg oAuth2ClientUpdateMsg : downlinkMsg.getOAuth2ClientUpdateMsgList()) {
+                    result.add(oAuth2CloudProcessor.processOAuth2ClientMsgFromCloud(oAuth2ClientUpdateMsg));
+                }
+            }
+            if (downlinkMsg.getOAuth2DomainUpdateMsgCount() > 0) {
+                for (OAuth2DomainUpdateMsg oAuth2DomainUpdateMsg : downlinkMsg.getOAuth2DomainUpdateMsgList()) {
+                    result.add(oAuth2CloudProcessor.processDomainMsgFromCloud(oAuth2DomainUpdateMsg));
                 }
             }
             if (downlinkMsg.getTenantUpdateMsgCount() > 0) {
