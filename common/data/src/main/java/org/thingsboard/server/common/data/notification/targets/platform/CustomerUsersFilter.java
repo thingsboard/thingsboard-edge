@@ -30,9 +30,9 @@
  */
 package org.thingsboard.server.common.data.notification.targets.platform;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import jakarta.validation.constraints.NotNull;
 import java.util.UUID;
 
 @Data

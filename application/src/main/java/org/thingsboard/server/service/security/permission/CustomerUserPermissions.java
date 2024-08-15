@@ -35,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasOwnerId;
-import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.alarm.Alarm;

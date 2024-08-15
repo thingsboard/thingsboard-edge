@@ -74,10 +74,6 @@ export class TruncateWithTooltipDirective implements OnInit, AfterViewInit, OnDe
   }
 
   ngAfterViewInit(): void {
-    if (!this.text) {
-      this.text = this.elementRef.nativeElement.innerText;
-    }
-
     this.tooltip.position = this.position;
   }
 
@@ -119,9 +115,7 @@ export class TruncateWithTooltipDirective implements OnInit, AfterViewInit, OnDe
   }
 
   private showTooltip(): void {
-    this.tooltip.message = this.text;
-
-    this.renderer.setAttribute(this.elementRef.nativeElement, 'matTooltip', this.text);
+    this.tooltip.message = this.text || this.elementRef.nativeElement.innerText;
     this.tooltip.show();
   }
 

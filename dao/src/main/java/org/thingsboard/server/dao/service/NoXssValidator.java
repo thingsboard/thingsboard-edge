@@ -31,6 +31,8 @@
 package org.thingsboard.server.dao.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import lombok.extern.slf4j.Slf4j;
 import org.owasp.validator.html.AntiSamy;
 import org.owasp.validator.html.Policy;
@@ -38,8 +40,6 @@ import org.owasp.validator.html.PolicyException;
 import org.owasp.validator.html.ScanException;
 import org.thingsboard.server.common.data.validation.NoXss;
 
-import jakarta.validation.ConstraintValidator;
-import jakarta.validation.ConstraintValidatorContext;
 import java.util.Optional;
 
 @Slf4j

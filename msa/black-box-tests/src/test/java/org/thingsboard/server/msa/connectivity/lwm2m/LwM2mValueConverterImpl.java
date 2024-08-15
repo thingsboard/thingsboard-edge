@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.msa.connectivity.lwm2m;
 
-import java.util.Base64;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.core.model.ResourceModel.Type;
 import org.eclipse.leshan.core.node.LwM2mPath;

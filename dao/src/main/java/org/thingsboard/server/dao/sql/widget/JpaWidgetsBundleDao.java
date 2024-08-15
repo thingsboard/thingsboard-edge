@@ -47,7 +47,6 @@ import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 import org.thingsboard.server.dao.widget.WidgetsBundleDao;
 
-import java.util.List;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;

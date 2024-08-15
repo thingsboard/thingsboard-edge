@@ -28,20 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ruleengine;
+package org.thingsboard.server.dao.util;
 
-import lombok.Data;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.server.common.msg.TbMsg;
-import org.thingsboard.server.service.security.model.SecurityUser;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 
-/**
- * Created by ashvayka on 16.04.18.
- */
-@Data
-public class LocalRequestMetaData {
-    private final TbMsg request;
-    private final SecurityUser user;
-    private final DeferredResult<ResponseEntity> responseWriter;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+@Retention(RetentionPolicy.RUNTIME)
+@ConditionalOnExpression("('${database.ts_latest.type}'=='sql' || '${database.ts_latest.type}'=='timescale') && '${cache.ts_latest.enabled:false}'=='true' && '${cache.type:caffeine}'=='redis' ")
+public @interface SqlTsLatestAnyDaoCachedRedis {
 }

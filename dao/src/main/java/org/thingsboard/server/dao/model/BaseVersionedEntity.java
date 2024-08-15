@@ -28,15 +28,49 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.attributes;
+package org.thingsboard.server.dao.model;
 
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.dao.util.SqlDao;
+import jakarta.persistence.Column;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.Version;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
+import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.HasVersion;
 
-@Repository
-@Transactional
-@SqlDao
-public class SqlAttributesInsertRepository extends AttributeKvInsertRepository {
+@Data
+@EqualsAndHashCode(callSuper = true)
+@MappedSuperclass
+public abstract class BaseVersionedEntity<D extends BaseData & HasVersion> extends BaseSqlEntity<D> implements HasVersion {
+
+    @Getter @Setter
+    @Version
+    @Column(name = ModelConstants.VERSION_PROPERTY)
+    protected Long version;
+
+    public BaseVersionedEntity() {
+        super();
+    }
+
+    public BaseVersionedEntity(D domain) {
+        super(domain);
+        this.version = domain.getVersion();
+    }
+
+    public BaseVersionedEntity(BaseVersionedEntity<?> entity) {
+        super(entity);
+        this.version = entity.version;
+    }
+
+    @Override
+    public String toString() {
+        return "BaseVersionedEntity{" +
+                "id=" + id +
+                ", createdTime=" + createdTime +
+                ", version=" + version +
+                '}';
+    }
 
 }

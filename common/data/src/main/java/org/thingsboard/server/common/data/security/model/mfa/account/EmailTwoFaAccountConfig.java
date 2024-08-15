@@ -30,12 +30,11 @@
  */
 package org.thingsboard.server.common.data.security.model.mfa.account;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.security.model.mfa.provider.TwoFaProviderType;
-
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

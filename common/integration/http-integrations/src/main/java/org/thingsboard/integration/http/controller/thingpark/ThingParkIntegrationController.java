@@ -32,6 +32,7 @@ package org.thingsboard.integration.http.controller.thingpark;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,7 +51,6 @@ import org.thingsboard.integration.http.thingpark.ThingParkIntegrationMsg;
 import org.thingsboard.integration.http.thingpark.ThingParkRequestParameters;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 @RestController

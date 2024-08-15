@@ -37,6 +37,8 @@ import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Builder;
 import lombok.Data;
 import lombok.Getter;
@@ -80,8 +82,6 @@ import org.thingsboard.server.transport.snmp.SnmpTransportContext;
 import org.thingsboard.server.transport.snmp.session.DeviceSessionContext;
 import org.thingsboard.server.transport.snmp.session.ScheduledTask;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;

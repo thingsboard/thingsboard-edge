@@ -67,6 +67,8 @@ import org.thingsboard.server.exception.DataValidationException;
 import java.net.URI;
 
 import static org.thingsboard.server.dao.entity.AbstractEntityService.checkConstraintViolation;
+import static org.thingsboard.server.dao.service.DataValidator.isValidDomain;
+import static org.thingsboard.server.dao.service.DataValidator.isValidUrl;
 import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forDomainName;
 import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forKey;
 
@@ -122,7 +124,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     public LoginWhiteLabelingParams getMergedLoginWhiteLabelingParams(String domainName) throws Exception {
         LoginWhiteLabelingParams result;
         WhiteLabeling existingLoginWLSettings;
-        if (validateDomain(domainName) && ((existingLoginWLSettings = whiteLabelingDao.findByDomain(TenantId.SYS_TENANT_ID, domainName)) != null)) {
+        if (isUsedOnSystemLevel(domainName) && ((existingLoginWLSettings = whiteLabelingDao.findByDomain(TenantId.SYS_TENANT_ID, domainName)) != null)) {
             var tenantId = existingLoginWLSettings.getTenantId();
             var customerId = existingLoginWLSettings.getCustomerId();
             result = getEntityLoginWhiteLabelParams(tenantId, customerId);
@@ -146,7 +148,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         LoginWhiteLabelingParams result;
         WhiteLabeling existingLoginWLSettings;
         TenantId tenantId = null;
-        if (validateDomain(domainName) && ((existingLoginWLSettings = whiteLabelingDao.findByDomain(TenantId.SYS_TENANT_ID, domainName)) != null)) {
+        if (isUsedOnSystemLevel(domainName) && ((existingLoginWLSettings = whiteLabelingDao.findByDomain(TenantId.SYS_TENANT_ID, domainName)) != null)) {
             tenantId = existingLoginWLSettings.getTenantId();
             var customerId = existingLoginWLSettings.getCustomerId();
             result = getEntityLoginWhiteLabelParams(tenantId, customerId);
@@ -225,6 +227,9 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         if (!StringUtils.isBlank(loginWhiteLabelingParams.getDomainName())) {
             throw new DataValidationException("Domain name is prohibited for system level");
         }
+        if (loginWhiteLabelingParams.getBaseUrl() != null && !isValidUrl(loginWhiteLabelingParams.getBaseUrl())) {
+            throw new IncorrectParameterException("Base url " + loginWhiteLabelingParams.getBaseUrl() + " is invalid");
+        }
         saveLoginWhiteLabelParams(TenantId.SYS_TENANT_ID, null, loginWhiteLabelingParams);
         return getSystemLoginWhiteLabelingParams();
     }
@@ -241,7 +246,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         return getCustomerLoginWhiteLabelingParams(tenantId, customerId);
     }
 
-    private boolean validateDomain(String domainName) {
+    private boolean isUsedOnSystemLevel(String domainName) {
         try {
             LoginWhiteLabelingParams systemParams = getSystemLoginWhiteLabelingParams();
             if (systemParams != null) {
@@ -258,7 +263,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         }
     }
 
-    private boolean isBaseUrlMatchesDomain(String baseUrl, String domainName) {
+     private boolean isBaseUrlMatchesDomain(String baseUrl, String domainName) {
         String baseUrlDomainName = this.domainNameFromBaseUrl(baseUrl);
         return baseUrlDomainName != null && baseUrlDomainName.equalsIgnoreCase(domainName);
     }
@@ -277,10 +282,16 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     private void saveEntityLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId, LoginWhiteLabelingParams loginWhiteLabelParams) {
         if (loginWhiteLabelParams.getDomainName() == null) {
-            throw new IncorrectParameterException("Domain name could not be empty!");
+            throw new IncorrectParameterException("Domain name could not be empty");
         }
-        if (!validateDomain(loginWhiteLabelParams.getDomainName())) {
-            throw new IncorrectParameterException("Current domain name [" + loginWhiteLabelParams.getDomainName() + "] already used in the system level!");
+        if (!isUsedOnSystemLevel(loginWhiteLabelParams.getDomainName())) {
+            throw new IncorrectParameterException("Current domain name " + loginWhiteLabelParams.getDomainName() + " already used in the system level");
+        }
+        if (!isValidDomain(loginWhiteLabelParams.getDomainName())) {
+            throw new IncorrectParameterException("Domain name " + loginWhiteLabelParams.getDomainName() + " is invalid");
+        }
+        if (loginWhiteLabelParams.getBaseUrl() != null && !isValidUrl(loginWhiteLabelParams.getBaseUrl())) {
+            throw new IncorrectParameterException("Base url " + loginWhiteLabelParams.getBaseUrl() + " is invalid");
         }
         saveLoginWhiteLabelParams(tenantId, customerId, loginWhiteLabelParams);
     }

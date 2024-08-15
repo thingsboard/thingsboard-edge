@@ -33,8 +33,9 @@ import { CustomerId } from '@shared/models/id/customer-id';
 import { ContactBased } from '@shared/models/contact-based.model';
 import { TenantId } from './id/tenant-id';
 import { ExportableEntity, GroupEntityInfo } from '@shared/models/base-data';
+import { HasTenantId, HasVersion } from '@shared/models/entity.models';
 
-export interface Customer extends ContactBased<CustomerId>, ExportableEntity<CustomerId> {
+export interface Customer extends ContactBased<CustomerId>, HasTenantId, HasVersion, ExportableEntity<CustomerId> {
   tenantId: TenantId;
   parentCustomerId?: CustomerId;
   title: string;

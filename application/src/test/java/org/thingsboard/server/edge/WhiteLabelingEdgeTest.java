@@ -132,7 +132,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     private void testLoginWhiteLabeling_tenant() throws Exception {
         loginTenantAdmin();
 
-        updateAndVerifyLoginWhiteLabelingUpdate(StringUtils.randomAlphanumeric(5) + "tenant_updated.org");
+        updateAndVerifyLoginWhiteLabelingUpdate(StringUtils.randomAlphanumeric(5).toLowerCase() + "tenant.updated.org");
     }
 
     private void testLoginWhiteLabeling_customer() throws Exception {
@@ -151,10 +151,10 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         changeEdgeOwnerFromTenantToSubCustomer(savedCustomerA, savedSubCustomerA);
 
         createCustomerUserAndLogin(savedCustomerA, "customerA@thingsboard.org");
-        updateAndVerifyLoginWhiteLabelingUpdate(savedCustomerA.getId() + "customerA_updated.org");
+        updateAndVerifyLoginWhiteLabelingUpdate(savedCustomerA.getId() + "customer.a.updated.org");
 
         createCustomerUserAndLogin(savedSubCustomerA, "subCustomerA@thingsboard.org");
-        updateAndVerifyLoginWhiteLabelingUpdate(savedSubCustomerA.getId() + "subCustomerA_updated.org");
+        updateAndVerifyLoginWhiteLabelingUpdate(savedSubCustomerA.getId() + "sub.customer.a.updated.org");
     }
 
     private void updateAndVerifySystemLoginWhiteLabelingUpdate() throws Exception {
@@ -176,6 +176,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
         edgeImitator.expectMessageAmount(1);
         loginWhiteLabelingParams.setDomainName(updatedDomainName);
+        loginWhiteLabelingParams.setBaseUrl("https://" + updatedDomainName);
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
