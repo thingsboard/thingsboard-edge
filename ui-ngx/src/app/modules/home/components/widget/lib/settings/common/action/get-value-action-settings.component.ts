@@ -77,10 +77,10 @@ export class GetValueActionSettingsComponent implements OnInit, ControlValueAcce
   valueType: ValueType;
 
   @Input()
-  trueLabel = 'value.true';
+  trueLabel: string;
 
   @Input()
-  falseLabel = 'value.false';
+  falseLabel: string;
 
   @Input()
   stateLabel: string;
@@ -110,6 +110,12 @@ export class GetValueActionSettingsComponent implements OnInit, ControlValueAcce
               private cd: ChangeDetectorRef) {}
 
   ngOnInit(): void {
+    if (!this.trueLabel) {
+      this.trueLabel = this.translate.instant('value.true');
+    }
+    if (!this.falseLabel) {
+      this.falseLabel = this.translate.instant('value.false');
+    }
   }
 
   registerOnChange(fn: any): void {
@@ -170,7 +176,7 @@ export class GetValueActionSettingsComponent implements OnInit, ControlValueAcce
       case GetValueAction.DO_NOTHING:
         if (this.valueType === ValueType.BOOLEAN) {
           this.displayValue =
-            this.translate.instant(!!this.modelValue.defaultValue ? this.trueLabel : this.falseLabel);
+            !!this.modelValue.defaultValue ? this.trueLabel : this.falseLabel;
         } else {
           this.displayValue = this.modelValue.defaultValue + '';
         }

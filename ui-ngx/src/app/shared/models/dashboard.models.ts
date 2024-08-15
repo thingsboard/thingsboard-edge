@@ -33,7 +33,7 @@ import { BaseData, ExportableEntity, GroupEntityInfo } from '@shared/models/base
 import { DashboardId } from '@shared/models/id/dashboard-id';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { ShortCustomerInfo } from '@shared/models/customer.model';
-import { Widget } from './widget.models';
+import { LegendPosition, Widget } from './widget.models';
 import { Timewindow } from '@shared/models/time/time.models';
 import { EntityAliases } from './alias.models';
 import { CustomerId } from '@shared/models/id/customer-id';
@@ -56,9 +56,25 @@ export interface WidgetLayouts {
   [id: string]: WidgetLayout;
 }
 
+export enum LayoutType {
+  default = 'default',
+  scada = 'scada'
+}
+
+export const layoutTypes = Object.keys(LayoutType) as LayoutType[];
+
+export const layoutTypeTranslationMap = new Map<LayoutType, string>(
+  [
+    [ LayoutType.default, 'dashboard.layout-type-default' ],
+    [ LayoutType.scada, 'dashboard.layout-type-scada' ]
+  ]
+);
+
 export interface GridSettings {
+  layoutType?: LayoutType;
   backgroundColor?: string;
   columns?: number;
+  minColumns?: number;
   margin?: number;
   outerMargin?: boolean;
   backgroundSizeMode?: string;
@@ -83,7 +99,7 @@ export interface DashboardLayoutInfo {
 }
 
 export interface LayoutDimension {
-  type?: LayoutType;
+  type?: LayoutDimensionType;
   fixedWidth?: number;
   fixedLayout?: DashboardLayoutId;
   leftWidthPercentage?: number;
@@ -91,7 +107,7 @@ export interface LayoutDimension {
 
 export declare type DashboardLayoutId = 'main' | 'right';
 
-export declare type LayoutType = 'percentage' | 'fixed';
+export declare type LayoutDimensionType = 'percentage' | 'fixed';
 
 export declare type DashboardStateLayouts = {[key in DashboardLayoutId]?: DashboardLayout};
 

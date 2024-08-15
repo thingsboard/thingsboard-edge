@@ -74,6 +74,7 @@ import org.thingsboard.server.common.data.FeaturesInfo;
 import org.thingsboard.server.common.data.ImageExportData;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
+import org.thingsboard.server.common.data.ResourceSubType;
 import org.thingsboard.server.common.data.SaveDeviceWithCredentialsRequest;
 import org.thingsboard.server.common.data.ShortEntityView;
 import org.thingsboard.server.common.data.StringUtils;
@@ -3212,10 +3213,19 @@ public class RestClient implements Closeable {
     }
 
     public PageData<TbResourceInfo> getImages(PageLink pageLink, boolean includeSystemImages) {
+       return this.getImages(pageLink, null, includeSystemImages);
+    }
+
+    public PageData<TbResourceInfo> getImages(PageLink pageLink, ResourceSubType imageSubType, boolean includeSystemImages) {
         Map<String, String> params = new HashMap<>();
+        var url = baseURL + "/api/images?includeSystemImages={includeSystemImages}&";
         addPageLinkToParam(params, pageLink);
         params.put("includeSystemImages", String.valueOf(includeSystemImages));
-        return restTemplate.exchange(baseURL + "/api/images?includeSystemImages={includeSystemImages}&" + getUrlParams(pageLink),
+        if (imageSubType != null) {
+            url += "imageSubType={imageSubType}&";
+            params.put("imageSubType", imageSubType.name());
+        }
+        return restTemplate.exchange(url + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
                 new ParameterizedTypeReference<PageData<TbResourceInfo>>() {},

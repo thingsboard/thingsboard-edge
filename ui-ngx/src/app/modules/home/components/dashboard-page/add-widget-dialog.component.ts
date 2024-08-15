@@ -52,6 +52,7 @@ export interface AddWidgetDialogData {
   stateController: IStateController;
   widget: Widget;
   widgetInfo: WidgetInfo;
+  scada: boolean;
 }
 
 @Component({

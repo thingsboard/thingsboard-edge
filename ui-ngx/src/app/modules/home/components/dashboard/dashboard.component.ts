@@ -76,6 +76,8 @@ import { UtilsService } from '@core/services/utils.service';
 import { ResizeObserver } from '@juggle/resize-observer';
 import { WidgetComponentAction, WidgetComponentActionType } from '@home/components/widget/widget-container.component';
 import { TbPopoverComponent } from '@shared/components/popover.component';
+import { displayGrids } from 'angular-gridster2/lib/gridsterConfig.interface';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-dashboard',
@@ -111,13 +113,38 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
   columns: number;
 
   @Input()
+  @coerceBoolean()
+  colWidthInteger = false;
+
+  @Input()
+  @coerceBoolean()
+  setGridSize = false;
+
+  @Input()
   margin: number;
 
   @Input()
   outerMargin: boolean;
 
   @Input()
+  displayGrid: displayGrids = 'onDrag&Resize';
+
+  @Input()
+  gridType: GridType;
+
+  @Input()
+  @coerceBoolean()
+  centerVertical = false;
+
+  @Input()
+  @coerceBoolean()
+  centerHorizontal = false;
+
+  @Input()
   isEdit: boolean;
+
+  @Input()
+  isEditingWidget: boolean;
 
   @Input()
   isPreview: boolean;
@@ -235,7 +262,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
       this.dashboardTimewindow = this.timeService.defaultTimewindow();
     }
     this.gridsterOpts = {
-      gridType: GridType.ScrollVertical,
+      gridType: this.gridType || GridType.ScrollVertical,
       keepFixedHeightInMobile: true,
       disableWarnings: false,
       disableAutoPositionOnConflict: false,
@@ -243,6 +270,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
       swap: false,
       maxRows: 3000,
       minCols: this.columns ? this.columns : 24,
+      setGridSize: this.setGridSize,
       maxCols: 3000,
       maxItemCols: 1000,
       maxItemRows: 1000,
@@ -253,20 +281,28 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
       minItemRows: 1,
       defaultItemCols: 8,
       defaultItemRows: 6,
-      resizable: {enabled: this.isEdit},
-      draggable: {enabled: this.isEdit},
+      displayGrid: this.displayGrid,
+      resizable: {enabled: this.isEdit && !this.isEditingWidget, delayStart: 50},
+      draggable: {enabled: this.isEdit && !this.isEditingWidget},
       itemChangeCallback: item => this.dashboardWidgets.sortWidgets(),
       itemInitCallback: (item, itemComponent) => {
         (itemComponent.item as DashboardWidget).gridsterItemComponent = itemComponent;
+      },
+      colWidthUpdateCallback: (colWidth) => {
+        if (this.colWidthInteger) {
+          return Math.floor(colWidth);
+        } else {
+          return colWidth;
+        }
       }
     };
 
-    this.updateMobileOpts();
+    this.updateGridOpts();
 
     this.breakpointObserverSubscription = this.breakpointObserver
       .observe(MediaBreakpoints['gt-sm']).subscribe(
       () => {
-        this.updateMobileOpts();
+        this.updateGridOpts();
         this.notifyGridsterOptionsChanged();
       }
     );
@@ -293,20 +329,24 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    let updateMobileOpts = false;
-    let updateLayoutOpts = false;
+    let updateGridOpts = false;
+    let updateColumnOpts = false;
     let updateEditingOpts = false;
+    let updateDisplayGridOpts = false;
     let updateWidgets = false;
     let updateDashboardTimewindow = false;
     for (const propName of Object.keys(changes)) {
       const change = changes[propName];
       if (!change.firstChange && change.currentValue !== change.previousValue) {
-        if (['isMobile', 'isMobileDisabled', 'autofillHeight', 'mobileAutofillHeight', 'mobileRowHeight'].includes(propName)) {
-          updateMobileOpts = true;
+        if (['isMobile', 'isMobileDisabled', 'autofillHeight', 'mobileAutofillHeight',
+              'mobileRowHeight', 'colWidthInteger'].includes(propName)) {
+          updateGridOpts = true;
         } else if (['outerMargin', 'margin', 'columns'].includes(propName)) {
-          updateLayoutOpts = true;
-        } else if (propName === 'isEdit') {
+          updateColumnOpts = true;
+        } else if (['isEdit', 'isEditingWidget'].includes(propName)) {
           updateEditingOpts = true;
+        } else if (propName === 'displayGrid') {
+          updateDisplayGridOpts = true;
         } else if (['widgets', 'widgetLayouts'].includes(propName)) {
           updateWidgets = true;
         } else if (propName === 'dashboardTimewindow') {
@@ -320,16 +360,19 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
       this.dashboardTimewindowChangedSubject.next(this.dashboardTimewindow);
     }
 
-    if (updateLayoutOpts) {
-      this.updateLayoutOpts();
+    if (updateColumnOpts) {
+      this.updateColumnOpts();
     }
-    if (updateMobileOpts) {
-      this.updateMobileOpts();
+    if (updateGridOpts) {
+      this.updateGridOpts();
     }
     if (updateEditingOpts) {
       this.updateEditingOpts();
     }
-    if (updateMobileOpts || updateLayoutOpts || updateEditingOpts) {
+    if (updateDisplayGridOpts) {
+      this.updateDisplayGridOpts();
+    }
+    if (updateGridOpts || updateColumnOpts || updateEditingOpts || updateDisplayGridOpts) {
       this.notifyGridsterOptionsChanged();
     }
   }
@@ -376,6 +419,15 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
       return isDefined(this.mobileAutofillHeight) ? this.mobileAutofillHeight : false;
     } else {
       return isDefined(this.autofillHeight) ? this.autofillHeight : false;
+    }
+  }
+
+  onDashboardMouseDown($event: MouseEvent) {
+    if (this.callbacks && this.callbacks.onDashboardMouseDown) {
+      if ($event) {
+        $event.stopPropagation();
+      }
+      this.callbacks.onDashboardMouseDown($event);
     }
   }
 
@@ -546,7 +598,15 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
     });
   }
 
-  private updateMobileOpts(parentHeight?: number) {
+  private onGridsterParentResize() {
+    const parentHeight = this.gridster.el.offsetHeight;
+    if (this.isMobileSize && this.mobileAutofillHeight && parentHeight) {
+      this.updateGridOpts(parentHeight);
+    }
+    this.notifyGridsterOptionsChanged();
+  }
+
+  private updateGridOpts(parentHeight?: number) {
     let updateWidgetRowsAndSort = false;
     const isMobileSize = this.checkIsMobileSize();
     if (this.isMobileSize !== isMobileSize) {
@@ -557,7 +617,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
     if (autofillHeight) {
       this.gridsterOpts.gridType = this.isMobileSize ? GridType.Fixed : GridType.Fit;
     } else {
-      this.gridsterOpts.gridType = this.isMobileSize ? GridType.Fixed : GridType.ScrollVertical;
+      this.gridsterOpts.gridType = this.isMobileSize ? GridType.Fixed : this.gridType || GridType.ScrollVertical;
     }
     const mobileBreakPoint = this.isMobileSize ? 20000 : 0;
     this.gridsterOpts.mobileBreakpoint = mobileBreakPoint;
@@ -570,23 +630,19 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
     }
   }
 
-  private onGridsterParentResize() {
-    const parentHeight = this.gridster.el.offsetHeight;
-    if (this.isMobileSize && this.mobileAutofillHeight && parentHeight) {
-      this.updateMobileOpts(parentHeight);
-    }
-    this.notifyGridsterOptionsChanged();
-  }
-
-  private updateLayoutOpts() {
+  private updateColumnOpts() {
     this.gridsterOpts.minCols = this.columns ? this.columns : 24;
     this.gridsterOpts.outerMargin = isDefined(this.outerMargin) ? this.outerMargin : true;
     this.gridsterOpts.margin = isDefined(this.margin) ? this.margin : 10;
   }
 
   private updateEditingOpts() {
-    this.gridsterOpts.resizable.enabled = this.isEdit;
-    this.gridsterOpts.draggable.enabled = this.isEdit;
+    this.gridsterOpts.resizable.enabled = this.isEdit && !this.isEditingWidget;
+    this.gridsterOpts.draggable.enabled = this.isEdit && !this.isEditingWidget;
+  }
+
+  private updateDisplayGridOpts() {
+    this.gridsterOpts.displayGrid = this.displayGrid;
   }
 
   public notifyGridsterOptionsChanged() {

@@ -163,7 +163,10 @@ import { AlarmDurationPredicateValueComponent } from '@home/components/profile/a
 import { OtaUpdateEventConfigComponent } from '@home/components/scheduler/config/ota-update-event-config.component';
 import { TargetSelectComponent } from '@home/components/scheduler/config/target-select.component';
 import { DashboardImageDialogComponent } from '@home/components/dashboard-page/dashboard-image-dialog.component';
-import { WidgetContainerComponent } from '@home/components/widget/widget-container.component';
+import {
+  EditWidgetActionsTooltipComponent,
+  WidgetContainerComponent
+} from '@home/components/widget/widget-container.component';
 import { SnmpDeviceProfileTransportModule } from '@home/components/profile/device/snmp/snmp-device-profile-transport.module';
 import { DeviceCredentialsModule } from '@home/components/device/device-credentials.module';
 import { DeviceProfileCommonModule } from '@home/components/profile/device/common/device-profile-common.module';
@@ -221,6 +224,7 @@ import {
 import { WidgetConfigComponentsModule } from '@home/components/widget/config/widget-config-components.module';
 import { BasicWidgetConfigModule } from '@home/components/widget/config/basic/basic-widget-config.module';
 import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delete-timeseries-panel.component';
+import { MoveWidgetsDialogComponent } from '@home/components/dashboard-page/layout/move-widgets-dialog.component';
 
 @NgModule({
   declarations:
@@ -257,6 +261,7 @@ import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delet
       EntityAliasDialogComponent,
       DashboardComponent,
       WidgetContainerComponent,
+      EditWidgetActionsTooltipComponent,
       WidgetComponent,
       WidgetConfigComponent,
       WidgetPreviewComponent,
@@ -355,6 +360,7 @@ import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delet
       EditWidgetComponent,
       DashboardWidgetSelectComponent,
       AddWidgetDialogComponent,
+      MoveWidgetsDialogComponent,
       ManageDashboardLayoutsDialogComponent,
       DashboardSettingsDialogComponent,
       ManageDashboardStatesDialogComponent,
@@ -427,6 +433,7 @@ import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delet
     EntityAliasDialogComponent,
     DashboardComponent,
     WidgetContainerComponent,
+    EditWidgetActionsTooltipComponent,
     WidgetComponent,
     WidgetConfigComponent,
     WidgetPreviewComponent,
@@ -517,6 +524,7 @@ import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delet
     EditWidgetComponent,
     DashboardWidgetSelectComponent,
     AddWidgetDialogComponent,
+    MoveWidgetsDialogComponent,
     ManageDashboardLayoutsDialogComponent,
     DashboardSettingsDialogComponent,
     ManageDashboardStatesDialogComponent,

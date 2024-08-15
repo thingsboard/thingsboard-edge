@@ -160,6 +160,7 @@ import { TruncateWithTooltipDirective } from '@shared/directives/truncate-with-t
 import {
     ModbusRpcParametersComponent
 } from '@home/components/widget/lib/gateway/connectors-configuration/modbus/modbus-rpc-parameters/modbus-rpc-parameters.component';
+import { ScadaSymbolWidgetComponent } from '@home/components/widget/lib/scada/scada-symbol-widget.component';
 
 @NgModule({
   declarations: [
@@ -227,7 +228,8 @@ import {
     LabelCardWidgetComponent,
     LabelValueCardWidgetComponent,
     UnreadNotificationWidgetComponent,
-    NotificationTypeFilterPanelComponent
+    NotificationTypeFilterPanelComponent,
+    ScadaSymbolWidgetComponent
   ],
   imports: [
     CommonModule,
@@ -313,7 +315,8 @@ import {
     LabelCardWidgetComponent,
     LabelValueCardWidgetComponent,
     UnreadNotificationWidgetComponent,
-    NotificationTypeFilterPanelComponent
+    NotificationTypeFilterPanelComponent,
+    ScadaSymbolWidgetComponent
   ],
   providers: [
     {provide: WIDGET_COMPONENTS_MODULE_TOKEN, useValue: WidgetComponentsModule}

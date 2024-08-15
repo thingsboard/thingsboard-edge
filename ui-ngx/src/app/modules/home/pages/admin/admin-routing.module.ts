@@ -38,7 +38,7 @@ import { Authority } from '@shared/models/authority.enum';
 import { GeneralSettingsComponent } from '@home/pages/admin/general-settings.component';
 import { SecuritySettingsComponent } from '@modules/home/pages/admin/security-settings.component';
 import { MailTemplatesComponent } from '@home/pages/admin/mail-templates.component';
-import { Observable } from 'rxjs';
+import { forkJoin, Observable } from 'rxjs';
 import { MailTemplatesSettings } from '@shared/models/settings.models';
 import { CustomMenuComponent } from '@home/pages/admin/custom-menu.component';
 import { CustomMenu } from '@shared/models/custom-menu.models';
@@ -52,7 +52,7 @@ import { EntitiesTableComponent } from '@home/components/entity/entities-table.c
 import { ResourcesLibraryTableConfigResolver } from '@home/pages/admin/resource/resources-library-table-config.resolve';
 import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
 import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
-import { BreadCrumbConfig } from '@shared/components/breadcrumb';
+import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
 import { QueuesTableConfigResolver } from '@home/pages/admin/queue/queues-table-config.resolver';
 import { RepositoryAdminSettingsComponent } from '@home/pages/admin/repository-admin-settings.component';
 import { AutoCommitAdminSettingsComponent } from '@home/pages/admin/auto-commit-admin-settings.component';
@@ -65,6 +65,10 @@ import { rolesRoutes } from '@home/pages/role/role-routing.module';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { CustomTranslationRoutes } from '@home/pages/custom-translation/custom-translation-routing.module';
 import { MobileAppSettingsComponent } from '@home/pages/admin/mobile-app-settings.component';
+import { ImageResourceType, IMAGES_URL_PREFIX, ResourceSubType } from '@shared/models/resource.models';
+import { ScadaSymbolComponent } from '@home/pages/scada-symbol/scada-symbol.component';
+import { ImageService } from '@core/http/image.service';
+import { ScadaSymbolData } from '@home/pages/scada-symbol/scada-symbol-editor.models';
 
 export const mailTemplateSettingsResolver: ResolveFn<MailTemplatesSettings> = (
   route: ActivatedRouteSnapshot,
@@ -93,6 +97,22 @@ export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
     return this.oauth2Service.getLoginProcessingUrl();
   }
 }
+
+export const scadaSymbolResolver: ResolveFn<ScadaSymbolData> =
+  (route: ActivatedRouteSnapshot,
+   state: RouterStateSnapshot,
+   imageService = inject(ImageService)) => {
+    const type: ImageResourceType = route.params.type;
+    const key = decodeURIComponent(route.params.key);
+    return forkJoin({
+      imageResource: imageService.getImageInfo(type, key),
+      scadaSymbolContent: imageService.getImageString(`${IMAGES_URL_PREFIX}/${type}/${encodeURIComponent(key)}`)
+    });
+};
+
+export const scadaSymbolBreadcumbLabelFunction: BreadCrumbLabelFunction<ScadaSymbolComponent>
+  = ((route, translate, component) =>
+  component.symbolData?.imageResource?.title);
 
 const routes: Routes = [
   {
@@ -133,8 +153,45 @@ const routes: Routes = [
             data: {
               auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN, Authority.CUSTOMER_USER],
               title: 'image.gallery',
-            },
+              imageSubType: ResourceSubType.IMAGE
+            }
           }
+        ]
+      },
+      {
+        path: 'scada-symbols',
+        data: {
+          breadcrumb: {
+            label: 'scada.symbols',
+            icon: 'view_in_ar'
+          }
+        },
+        children: [
+          {
+            path: '',
+            component: ImageGalleryComponent,
+            data: {
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN, Authority.CUSTOMER_USER],
+              title: 'scada.symbols',
+              imageSubType: ResourceSubType.SCADA_SYMBOL
+            }
+          },
+          {
+            path: ':type/:key',
+            component: ScadaSymbolComponent,
+            canDeactivate: [ConfirmOnExitGuard],
+            data: {
+              breadcrumb: {
+                labelFunction: scadaSymbolBreadcumbLabelFunction,
+                icon: 'view_in_ar'
+              } as BreadCrumbConfig<ScadaSymbolComponent>,
+              auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN, Authority.CUSTOMER_USER],
+              title: 'scada.symbol.symbol'
+            },
+            resolve: {
+              symbolData: scadaSymbolResolver
+            }
+          },
         ]
       },
       {
