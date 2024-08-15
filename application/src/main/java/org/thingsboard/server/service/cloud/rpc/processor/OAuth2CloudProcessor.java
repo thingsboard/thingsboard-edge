@@ -19,9 +19,12 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.domain.Domain;
+import org.thingsboard.server.common.data.domain.DomainInfo;
 import org.thingsboard.server.common.data.id.DomainId;
+import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
@@ -29,7 +32,9 @@ import org.thingsboard.server.gen.edge.v1.OAuth2ClientUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.OAuth2DomainUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -37,7 +42,6 @@ public class OAuth2CloudProcessor extends BaseEdgeProcessor {
 
     public ListenableFuture<Void> processOAuth2ClientMsgFromCloud(OAuth2ClientUpdateMsg oAuth2ClientUpdateMsg) {
         try {
-            cloudSynchronizationManager.getSync().set(true);
             switch (oAuth2ClientUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
@@ -61,15 +65,12 @@ public class OAuth2CloudProcessor extends BaseEdgeProcessor {
             String errMsg = String.format("Can't process oAuth2 client update msg %s", oAuth2ClientUpdateMsg);
             log.error(errMsg, e);
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
 
     public ListenableFuture<Void> processDomainMsgFromCloud(OAuth2DomainUpdateMsg oAuth2DomainUpdateMsg) {
         try {
-            cloudSynchronizationManager.getSync().set(true);
             switch (oAuth2DomainUpdateMsg.getMsgType()) {
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE: {
@@ -77,10 +78,18 @@ public class OAuth2CloudProcessor extends BaseEdgeProcessor {
                     if (domain == null) {
                         throw new RuntimeException("[{" + TenantId.SYS_TENANT_ID + "}] oAuth2DomainUpdateMsg {" + oAuth2DomainUpdateMsg + "} cannot be converted to Domain");
                     }
+                    DomainInfo domainInfo = JacksonUtil.fromString(oAuth2DomainUpdateMsg.getEntity(), DomainInfo.class, true);
+                    if (domainInfo == null) {
+                        throw new RuntimeException("[{" + TenantId.SYS_TENANT_ID + "}] oAuth2DomainUpdateMsg {" + oAuth2DomainUpdateMsg + "} cannot be converted to DomainInfo");
+                    }
                     if (domain.isOauth2Enabled() && !domain.isPropagateToEdge()) {
                         domain.setOauth2Enabled(false);
                     }
-                    domainService.saveDomain(TenantId.SYS_TENANT_ID, domain);
+                    Domain savedDomain = domainService.saveDomain(TenantId.SYS_TENANT_ID, domain);
+                    List<OAuth2ClientId> oAuth2Clients = domainInfo.getOauth2ClientInfos().stream().map(IdBased::getId).collect(Collectors.toList());
+                    if (!CollectionUtils.isEmpty(oAuth2Clients)) {
+                        domainService.updateOauth2Clients(savedDomain.getTenantId(), savedDomain.getId(), oAuth2Clients);
+                    }
                     return Futures.immediateFuture(null);
                 }
                 case ENTITY_DELETED_RPC_MESSAGE:
@@ -97,8 +106,6 @@ public class OAuth2CloudProcessor extends BaseEdgeProcessor {
             String errMsg = String.format("Can't process domain update msg %s", oAuth2DomainUpdateMsg);
             log.error(errMsg, e);
             return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
-        } finally {
-            cloudSynchronizationManager.getSync().remove();
         }
         return Futures.immediateFuture(null);
     }
