@@ -44,8 +44,4 @@ public abstract class JpaPartitionedAbstractDao<E extends BaseEntity<D>, D> exte
 
     public abstract void createPartition(E entity);
 
-    protected EntityManager getEntityManager() {
-        return entityManager;
-    }
-
 }
