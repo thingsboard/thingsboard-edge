@@ -28,34 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao;
+package org.thingsboard.server.dao.sqlts.insert.sql;
 
-import org.junit.runner.RunWith;
-import org.mockito.Answers;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
-import org.thingsboard.server.common.stats.StatsFactory;
-import org.thingsboard.server.dao.config.DedicatedEventsJpaDaoConfig;
-import org.thingsboard.server.dao.config.JpaDaoConfig;
-import org.thingsboard.server.dao.config.SqlTsDaoConfig;
-import org.thingsboard.server.dao.config.SqlTsLatestDaoConfig;
-import org.thingsboard.server.dao.service.DaoSqlTest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.server.dao.config.DedicatedEventsDataSource;
+import org.thingsboard.server.dao.timeseries.SqlPartition;
 
-@RunWith(SpringRunner.class)
-@ContextConfiguration(classes = {JpaDaoConfig.class, SqlTsDaoConfig.class, SqlTsLatestDaoConfig.class, DedicatedEventsJpaDaoConfig.class})
-@DaoSqlTest
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-@TestExecutionListeners({
-        DependencyInjectionTestExecutionListener.class,
-        DirtiesContextTestExecutionListener.class})
-public abstract class AbstractDaoServiceTest {
+import static org.thingsboard.server.dao.config.DedicatedEventsJpaDaoConfig.EVENTS_JDBC_TEMPLATE;
+import static org.thingsboard.server.dao.config.DedicatedEventsJpaDaoConfig.EVENTS_TRANSACTION_MANAGER;
 
-    @MockBean(answer = Answers.RETURNS_MOCKS)
-    StatsFactory statsFactory;
+@DedicatedEventsDataSource
+@Repository
+public class DedicatedEventsSqlPartitioningRepository extends SqlPartitioningRepository {
+
+    @Autowired
+    @Qualifier(EVENTS_JDBC_TEMPLATE)
+    private JdbcTemplate jdbcTemplate;
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED, transactionManager = EVENTS_TRANSACTION_MANAGER)
+    @Override
+    public void save(SqlPartition partition) {
+        super.save(partition);
+    }
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED, transactionManager = EVENTS_TRANSACTION_MANAGER)
+    @Override
+    public void createPartitionIfNotExists(String table, long entityTs, long partitionDurationMs) {
+        super.createPartitionIfNotExists(table, entityTs, partitionDurationMs);
+    }
+
+    @Override
+    protected JdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
 
 }

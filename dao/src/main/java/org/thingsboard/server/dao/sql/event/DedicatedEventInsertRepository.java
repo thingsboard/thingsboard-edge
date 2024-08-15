@@ -30,9 +30,22 @@
  */
 package org.thingsboard.server.dao.sql.event;
 
-public interface EventCleanupRepository {
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.support.TransactionTemplate;
+import org.thingsboard.server.dao.config.DedicatedEventsDataSource;
 
-    void cleanupEvents(long eventExpTime, boolean debug);
+import static org.thingsboard.server.dao.config.DedicatedEventsJpaDaoConfig.EVENTS_JDBC_TEMPLATE;
+import static org.thingsboard.server.dao.config.DedicatedEventsJpaDaoConfig.EVENTS_TRANSACTION_TEMPLATE;
 
-    void migrateEvents(long regularEventTs, long debugEventTs);
+@DedicatedEventsDataSource
+@Repository
+public class DedicatedEventInsertRepository extends EventInsertRepository {
+
+    public DedicatedEventInsertRepository(@Qualifier(EVENTS_JDBC_TEMPLATE) JdbcTemplate jdbcTemplate,
+                                          @Qualifier(EVENTS_TRANSACTION_TEMPLATE) TransactionTemplate transactionTemplate) {
+        super(jdbcTemplate, transactionTemplate);
+    }
+
 }
