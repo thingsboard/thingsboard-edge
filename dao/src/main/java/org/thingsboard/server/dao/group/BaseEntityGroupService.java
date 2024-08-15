@@ -204,7 +204,6 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
     public EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
         log.trace("Executing saveEntityGroup [{}]", entityGroup);
         validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
-        entityGroup = new EntityGroup(entityGroup);
         if (entityGroup.getId() == null) {
             entityGroup.setOwnerId(parentEntityId);
         }
@@ -1180,7 +1179,7 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
     public void handleEvictEvent(EntityGroupEvictEvent event) {
         List<EntityGroupCacheKey> keys = new ArrayList<>(2);
         keys.add(new EntityGroupCacheKey(event.ownerId(), event.entityType(), event.newGroupName()));
-        if (StringUtils.isNotEmpty(event.oldGroupName())) {
+        if (StringUtils.isNotEmpty(event.oldGroupName()) && !event.oldGroupName().equals(event.newGroupName())) {
             keys.add(new EntityGroupCacheKey(event.ownerId(), event.entityType(), event.oldGroupName()));
         }
         cache.evict(keys);

@@ -51,7 +51,7 @@ public class EntityGroupCacheKey implements Serializable {
 
     @Override
     public String toString() {
-        return ownerId.getId() + "_" + entityType + "_" + groupName;
+        return "{" + ownerId.getId() + "}_" + entityType + "_" + groupName;
     }
 
 }
