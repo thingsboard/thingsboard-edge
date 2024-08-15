@@ -45,19 +45,18 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
-import org.thingsboard.server.dao.model.BaseEntity;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ENABLED_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_CUSTOMER_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ENABLED_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ORIGINATOR_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_ORIGINATOR_TYPE_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TABLE_NAME;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TENANT_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TYPE_PROPERTY;
 
@@ -65,7 +64,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.SCHEDULER_EVENT_TY
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = SCHEDULER_EVENT_TABLE_NAME)
-public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> implements BaseEntity<SchedulerEvent> {
+public final class SchedulerEventEntity extends BaseVersionedEntity<SchedulerEvent> {
 
     @Column(name = SCHEDULER_EVENT_TENANT_ID_PROPERTY)
     private UUID tenantId;
@@ -106,10 +105,7 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
     }
 
     public SchedulerEventEntity(SchedulerEvent schedulerEvent) {
-        this.createdTime = schedulerEvent.getCreatedTime();
-        if (schedulerEvent.getId() != null) {
-            this.setUuid(schedulerEvent.getId().getId());
-        }
+        super(schedulerEvent);
         if (schedulerEvent.getTenantId() != null) {
             this.tenantId = schedulerEvent.getTenantId().getId();
         }
@@ -132,6 +128,7 @@ public final class SchedulerEventEntity extends BaseSqlEntity<SchedulerEvent> im
     public SchedulerEvent toData() {
         SchedulerEvent schedulerEvent = new SchedulerEvent(new SchedulerEventId(id));
         schedulerEvent.setCreatedTime(createdTime);
+        schedulerEvent.setVersion(version);
         if (tenantId != null) {
             schedulerEvent.setTenantId(new TenantId(tenantId));
         }

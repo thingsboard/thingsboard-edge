@@ -128,14 +128,14 @@ public class EntityQueryController extends BaseController {
     }
 
     @ApiOperation(value = "Find Entity Keys by Query",
-            notes = "Uses entity data query (see 'Find Entity Data by Query') to find first 100 entities. Then fetch and return all unique time-series and/or attribute keys. Used mostly for UI hints.")
+            notes = "Uses entity data query (see 'Find Entity Data by Query') to find first 100 entities. Then fetch and return all unique time series and/or attribute keys. Used mostly for UI hints.")
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN', 'CUSTOMER_USER')")
     @RequestMapping(value = "/entitiesQuery/find/keys", method = RequestMethod.POST)
     @ResponseBody
     public DeferredResult<ResponseEntity> findEntityTimeseriesAndAttributesKeysByQuery(
             @Parameter(description = "A JSON value representing the entity data query. See API call notes above for more details.")
             @RequestBody EntityDataQuery query,
-            @Parameter(description = "Include all unique time-series keys to the result.")
+            @Parameter(description = "Include all unique time series keys to the result.")
             @RequestParam("timeseries") boolean isTimeseries,
             @Parameter(description = "Include all unique attribute keys to the result.")
             @RequestParam("attributes") boolean isAttributes,

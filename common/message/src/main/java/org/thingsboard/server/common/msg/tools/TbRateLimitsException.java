@@ -50,4 +50,10 @@ public class TbRateLimitsException extends AbstractRateLimitException {
         super(msg);
         this.entityType = entityType;
     }
+
+    public TbRateLimitsException(String message) {
+        super(message);
+        this.entityType = null;
+    }
+
 }

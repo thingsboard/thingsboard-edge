@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.transport.lwm2m.server.ota;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.core.node.codec.CodecException;
@@ -72,8 +74,6 @@ import org.thingsboard.server.transport.lwm2m.server.ota.software.SoftwareUpdate
 import org.thingsboard.server.transport.lwm2m.server.store.TbLwM2MClientOtaInfoStore;
 import org.thingsboard.server.transport.lwm2m.server.uplink.LwM2mUplinkMsgHandler;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

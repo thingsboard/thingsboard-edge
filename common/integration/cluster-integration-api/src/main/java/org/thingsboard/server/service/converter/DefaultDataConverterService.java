@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.converter;
 
+import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.integration.api.converter.ScriptDownlinkDataConverter;
@@ -48,7 +49,6 @@ import org.thingsboard.server.queue.util.TbCoreOrIntegrationExecutorComponent;
 import org.thingsboard.server.service.integration.EventStorageService;
 import org.thingsboard.server.service.integration.RemoteIntegrationRpcService;
 
-import jakarta.annotation.PreDestroy;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;

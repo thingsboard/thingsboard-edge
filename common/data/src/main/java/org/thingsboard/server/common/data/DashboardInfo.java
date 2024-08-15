@@ -65,4 +65,5 @@ public class DashboardInfo extends Dashboard {
         this.ownerName = ownerName;
         this.groups = groups;
     }
+
 }

@@ -78,7 +78,7 @@ public class PostgresTenantDataImporter extends MigrationService {
     @Value("${import.postgres.update_tenant_profile}")
     private boolean updateTenantProfile;
     @Value("${import.postgres.update_ts_kv_dictionary}")
-    private boolean updateTsKvDictionary;
+    private boolean updateKeyDictionary;
     @Value("${import.postgres.resolve_unknown_roles}")
     private boolean resolveUnknownRoles;
 
@@ -156,15 +156,18 @@ public class PostgresTenantDataImporter extends MigrationService {
                 row = new LinkedHashMap<>(row);
                 row.put("tenant_profile_id", defaultTenantProfile);
             }
-        } else if (table == Table.LATEST_KV) {
+        } else if (table == Table.LATEST_KV || table == Table.ATTRIBUTE) {
             String keyName = (String) row.remove("key_name");
-            if (updateTsKvDictionary) {
-                Integer keyId = jdbcTemplate.queryForList("SELECT key_id FROM ts_kv_dictionary WHERE key = ?", Integer.class, keyName).stream().findFirst().orElse(null);
+            if (updateKeyDictionary) {
+                Integer keyId = jdbcTemplate.queryForList("SELECT key_id FROM key_dictionary WHERE key = ?", Integer.class, keyName).stream().findFirst().orElse(null);
                 if (keyId == null) {
-                    jdbcTemplate.update("INSERT INTO ts_kv_dictionary (key) VALUES (?)", keyName);
-                    keyId = jdbcTemplate.queryForObject("SELECT key_id FROM ts_kv_dictionary WHERE key = ?", Integer.class, keyName);
+                    keyId = jdbcTemplate.queryForObject("INSERT INTO key_dictionary (key) VALUES (?) RETURNING key_id", Integer.class, keyName);
                 }
-                Object oldKey = row.put("key", keyId);
+                if (table == Table.LATEST_KV) {
+                    row.put("key", keyId);
+                } else {
+                    row.put("attribute_key", keyId);
+                }
             }
         } else if (table == Table.GROUP_PERMISSION) {
             UUID roleId = (UUID) row.get("role_id");

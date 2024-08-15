@@ -36,7 +36,6 @@ import org.thingsboard.rule.engine.api.NodeConfiguration;
 import org.thingsboard.rule.engine.util.TbMsgSource;
 
 import java.util.HashMap;
-import java.util.Map;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

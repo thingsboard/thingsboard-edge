@@ -34,7 +34,6 @@
   <div [ngSwitch]="type">
     <ng-template [ngSwitchCase]="deviceProfileType.DEFAULT">
       <tb-default-device-profile-configuration
-        [required]="required"
         formControlName="configuration">
       </tb-default-device-profile-configuration>
     </ng-template>
