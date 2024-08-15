@@ -85,28 +85,13 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
     }
 
     protected E doSave(E entity, boolean isNew) {
-        if (isNew) {
-            if (entity instanceof HasVersion versionedEntity) {
-                versionedEntity.setVersion(1L);
-            }
-            entityManager.persist(entity);
-        } else {
-            if (entity instanceof HasVersion versionedEntity) {
-                if (versionedEntity.getVersion() == null) {
-                    HasVersion existingEntity = entityManager.find(versionedEntity.getClass(), entity.getUuid());
-                    if (existingEntity != null) {
-                        versionedEntity.setVersion(existingEntity.getVersion()); // manually resetting the version to latest to allow force overwrite of the entity
-                    } else {
-                        return doSave(entity, true);
-                    }
-                }
-                entity = entityManager.merge(entity);
-                entityManager.flush();
-            } else {
-                entity = entityManager.merge(entity);
-            }
+        // edge-only: we set version to null on Edge, not using optimistic locking
+        if (entity instanceof HasVersion versionedEntity) {
+            versionedEntity.setVersion(null);
+            entity = (E) versionedEntity;
         }
-        return entity;
+        return getRepository().save(entity);
+        // ... edge-only
     }
 
     @Override
