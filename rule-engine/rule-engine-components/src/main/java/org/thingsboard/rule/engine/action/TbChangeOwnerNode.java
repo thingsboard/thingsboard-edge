@@ -59,6 +59,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
@@ -87,6 +88,8 @@ public class TbChangeOwnerNode implements TbNode {
     private TbChangeOwnerNodeConfiguration config;
     private EntityType ownerType;
 
+    private final AtomicBoolean newOwnerCreated = new AtomicBoolean(false);
+
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         config = TbNodeUtils.convert(configuration, TbChangeOwnerNodeConfiguration.class);
@@ -108,26 +111,24 @@ public class TbChangeOwnerNode implements TbNode {
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
         EntityId originator = msg.getOriginator();
-        TenantId tenantId = ctx.getTenantId();
-        EntityId currentOwnerId = ctx.getPeContext().getOwner(tenantId, originator);
         ListenableFuture<Void> changeOwnerFuture;
         switch (ownerType) {
-            case TENANT -> changeOwnerFuture = changeOwnerAsync(ctx, originator, currentOwnerId, tenantId);
+            case TENANT -> changeOwnerFuture = changeOwnerAsync(ctx, originator, ctx.getTenantId());
             case CUSTOMER -> {
-                String newOwnerName = TbNodeUtils.processPattern(config.getOwnerNamePattern(), msg);
-                ListenableFuture<CustomerId> customerIdFuture = findOrCreateCustomerAsync(ctx, currentOwnerId, newOwnerName);
+                String ownerName = TbNodeUtils.processPattern(config.getOwnerNamePattern(), msg);
+                ListenableFuture<CustomerId> customerIdFuture = findOrCreateCustomerAsync(ctx, msg, ownerName);
                 changeOwnerFuture = Futures.transformAsync(customerIdFuture, customerId ->
-                        changeOwnerAsync(ctx, originator, currentOwnerId, customerId), MoreExecutors.directExecutor());
+                        changeOwnerAsync(ctx, originator, customerId), MoreExecutors.directExecutor());
             }
             default -> throw new IllegalArgumentException(unsupportedOwnerTypeErrorMessage());
         }
         withCallback(changeOwnerFuture, __ -> ctx.tellSuccess(msg), t -> ctx.tellFailure(msg, t), MoreExecutors.directExecutor());
     }
 
-    private ListenableFuture<CustomerId> findOrCreateCustomerAsync(TbContext ctx, EntityId currentOwnerId, String newOwnerName) {
+    private ListenableFuture<CustomerId> findOrCreateCustomerAsync(TbContext ctx, TbMsg msg, String ownerName) {
         CustomerService customerService = ctx.getCustomerService();
         TenantId tenantId = ctx.getTenantId();
-        ListenableFuture<Optional<Customer>> optionalCustomerListenableFuture = customerService.findCustomerByTenantIdAndTitleAsync(tenantId, newOwnerName);
+        ListenableFuture<Optional<Customer>> optionalCustomerListenableFuture = customerService.findCustomerByTenantIdAndTitleAsync(tenantId, ownerName);
         if (config.isCreateOwnerIfNotExists()) {
             return Futures.transform(optionalCustomerListenableFuture,
                     customerOpt -> {
@@ -136,22 +137,26 @@ public class TbChangeOwnerNode implements TbNode {
                         }
                         try {
                             Customer newCustomer = new Customer();
-                            newCustomer.setTitle(newOwnerName);
+                            newCustomer.setTitle(ownerName);
                             newCustomer.setTenantId(tenantId);
                             if (config.isCreateOwnerOnOriginatorLevel()) {
-                                newCustomer.setOwnerId(currentOwnerId);
+                                EntityId currentOriginatorOwnerId = ctx.getPeContext()
+                                        .getOwner(tenantId, msg.getOriginator());
+                                newCustomer.setOwnerId(currentOriginatorOwnerId);
+                                newCustomer.setOwnerId(currentOriginatorOwnerId);
                             }
                             Customer savedCustomer = customerService.saveCustomer(newCustomer);
+                            newOwnerCreated.set(true);
                             ctx.enqueue(ctx.customerCreatedMsg(savedCustomer, ctx.getSelfId()),
                                     () -> log.trace("Pushed Customer Created message: {}", savedCustomer),
                                     throwable -> log.warn("Failed to push Customer Created message: {}", savedCustomer, throwable));
                             return savedCustomer.getId();
                         } catch (DataValidationException e) {
-                            customerOpt = customerService.findCustomerByTenantIdAndTitle(tenantId, newOwnerName);
+                            customerOpt = customerService.findCustomerByTenantIdAndTitle(tenantId, ownerName);
                             if (customerOpt.isPresent()) {
                                 return customerOpt.get().getId();
                             }
-                            throw new RuntimeException("Failed to create customer with title '" + newOwnerName + "'", e);
+                            throw new RuntimeException("Failed to create customer with title '" + ownerName + "'", e);
                         }
                     }, MoreExecutors.directExecutor());
         }
@@ -159,14 +164,14 @@ public class TbChangeOwnerNode implements TbNode {
             if (customer.isPresent()) {
                 return customer.get().getId();
             }
-            throw new NoSuchElementException("Customer with title '" + newOwnerName + "' doesn't exist!");
+            throw new NoSuchElementException("Customer with title '" + ownerName + "' doesn't exist!");
         }, MoreExecutors.directExecutor());
     }
 
-    private ListenableFuture<Void> changeOwnerAsync(TbContext ctx, EntityId originator, EntityId currentOwnerId, EntityId targetOwnerId) {
+    private ListenableFuture<Void> changeOwnerAsync(TbContext ctx, EntityId originator, EntityId targetOwnerId) {
         TenantId tenantId = ctx.getTenantId();
         return ctx.getDbCallbackExecutor().executeAsync(() -> {
-            if (!currentOwnerId.equals(targetOwnerId)) {
+            if (newOwnerCreated.get() || !ctx.getPeContext().getOwner(tenantId, originator).equals(targetOwnerId)) {
                 ctx.getPeContext().changeEntityOwner(tenantId, targetOwnerId, originator);
             }
             return null;
