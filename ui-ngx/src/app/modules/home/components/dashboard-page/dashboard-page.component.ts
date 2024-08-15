@@ -1339,7 +1339,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
           col: 0
         };
         newWidget = this.dashboardUtils.validateAndUpdateWidget(newWidget);
-        if (this.isAddingToScadaLayout()) {
+        const scada = this.isAddingToScadaLayout();
+        if (scada) {
           newWidget = this.dashboardUtils.prepareWidgetForScadaLayout(newWidget);
         }
         if (widgetTypeInfo.typeParameters.useCustomDatasources) {
@@ -1356,7 +1357,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
               aliasController: this.dashboardCtx.aliasController,
               stateController: this.dashboardCtx.stateController,
               widget: newWidget,
-              widgetInfo: widgetTypeInfo
+              widgetInfo: widgetTypeInfo,
+              scada
             }
           }).afterClosed().subscribe((addedWidget) => {
             if (addedWidget) {
