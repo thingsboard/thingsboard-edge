@@ -25,11 +25,11 @@ import org.thingsboard.server.dao.Dao;
 
 import java.util.UUID;
 
-public interface CloudEventDao extends Dao<CloudEvent> {
+public interface TsKvCloudEventDao extends Dao<CloudEvent> {
 
     ListenableFuture<Void> saveAsync(CloudEvent cloudEvent);
 
-    PageData<CloudEvent> findCloudEvents(UUID tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
+    PageData<CloudEvent> findTsKvCloudEvents(UUID tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
 
     long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(UUID tenantId,
                                                                                 UUID entityId,

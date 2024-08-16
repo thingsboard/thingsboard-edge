@@ -33,9 +33,9 @@ import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.dao.DaoUtil;
-import org.thingsboard.server.dao.cloud.CloudEventDao;
+import org.thingsboard.server.dao.cloud.TsKvCloudEventDao;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.sql.CloudEventEntity;
+import org.thingsboard.server.dao.model.sql.TsKvCloudEventEntity;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.sql.ScheduledLogExecutorComponent;
 import org.thingsboard.server.dao.sql.TbSqlBlockingQueueParams;
@@ -54,7 +54,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, CloudEvent> implements CloudEventDao {
+public class JpaBaseTsKvCloudEventDao extends JpaAbstractDao<TsKvCloudEventEntity, CloudEvent> implements TsKvCloudEventDao {
 
     private final UUID systemTenantId = NULL_UUID;
 
@@ -62,9 +62,9 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
 
     private final StatsFactory statsFactory;
 
-    private final CloudEventRepository cloudEventRepository;
+    private final TsKvCloudEventRepository tsKvCloudEventRepository;
 
-    private final BaseCloudEventInsertRepository<CloudEventEntity> cloudEventInsertRepository;
+    private final BaseCloudEventInsertRepository<TsKvCloudEventEntity> tsKvCloudEventInsertRepository;
 
     private final SqlPartitioningRepository partitioningRepository;
 
@@ -80,31 +80,31 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
     @Value("${sql.cloud_events.partition_size:24}")
     private int partitionSizeInHours;
 
-    private static final String TABLE_NAME = ModelConstants.CLOUD_EVENT_COLUMN_FAMILY_NAME;
+    private static final String TABLE_NAME = ModelConstants.TS_KV_CLOUD_EVENT_COLUMN_FAMILY_NAME;
 
-    private TbSqlBlockingQueueWrapper<CloudEventEntity, Void> queue;
+    private TbSqlBlockingQueueWrapper<TsKvCloudEventEntity, Void> queue;
 
     @Override
-    protected Class<CloudEventEntity> getEntityClass() {
-        return CloudEventEntity.class;
+    protected Class<TsKvCloudEventEntity> getEntityClass() {
+        return TsKvCloudEventEntity.class;
     }
 
     @Override
-    protected JpaRepository<CloudEventEntity, UUID> getRepository() {
-        return cloudEventRepository;
+    protected JpaRepository<TsKvCloudEventEntity, UUID> getRepository() {
+        return tsKvCloudEventRepository;
     }
 
     @PostConstruct
     private void init() {
         TbSqlBlockingQueueParams params = TbSqlBlockingQueueParams.builder()
-                .logName("Cloud Events")
+                .logName("TsKv Cloud Events")
                 .batchSize(batchSize)
                 .maxDelay(maxDelay)
                 .statsPrintIntervalMs(statsPrintIntervalMs)
-                .statsNamePrefix("cloud.events")
+                .statsNamePrefix("tskv.cloud.events")
                 .batchSortEnabled(true)
                 .build();
-        Function<CloudEventEntity, Integer> hashcodeFunction = entity -> {
+        Function<TsKvCloudEventEntity, Integer> hashcodeFunction = entity -> {
             if (entity.getEntityId() != null) {
                 return entity.getEntityId().hashCode();
             } else {
@@ -112,8 +112,8 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
             }
         };
         queue = new TbSqlBlockingQueueWrapper<>(params, hashcodeFunction, 1, statsFactory);
-        queue.init(logExecutor, entities -> cloudEventInsertRepository.save(entities, TABLE_NAME),
-                Comparator.comparing(CloudEventEntity::getTs)
+        queue.init(logExecutor, entities -> tsKvCloudEventInsertRepository.save(entities, TABLE_NAME),
+                Comparator.comparing(TsKvCloudEventEntity::getTs)
         );
     }
 
@@ -126,7 +126,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
 
     @Override
     public ListenableFuture<Void> saveAsync(CloudEvent cloudEvent) {
-        log.debug("Save cloud event [{}] ", cloudEvent);
+        log.debug("Save tsKv cloud event [{}] ", cloudEvent);
         if (cloudEvent.getId() == null) {
             UUID timeBased = Uuids.timeBased();
             cloudEvent.setId(new CloudEventId(timeBased));
@@ -140,13 +140,13 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
             }
         }
         partitioningRepository.createPartitionIfNotExists(TABLE_NAME, cloudEvent.getCreatedTime(), TimeUnit.HOURS.toMillis(partitionSizeInHours));
-        return save(new CloudEventEntity(cloudEvent));
+        return save(new TsKvCloudEventEntity(cloudEvent));
     }
 
-    private ListenableFuture<Void> save(CloudEventEntity entity) {
+    private ListenableFuture<Void> save(TsKvCloudEventEntity entity) {
         log.debug("Save cloud event [{}] ", entity);
         if (entity.getTenantId() == null) {
-            log.trace("Save system cloud event with predefined id {}", systemTenantId);
+            log.trace("Save system tsKv cloud event with predefined id {}", systemTenantId);
             entity.setTenantId(systemTenantId);
         }
         if (entity.getUuid() == null) {
@@ -156,20 +156,20 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
         return addToQueue(entity);
     }
 
-    private ListenableFuture<Void> addToQueue(CloudEventEntity entity) {
+    private ListenableFuture<Void> addToQueue(TsKvCloudEventEntity entity) {
         return queue.add(entity);
     }
 
     @Override
-    public PageData<CloudEvent> findCloudEvents(UUID tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
-        log.trace("Executing findCloudEvents [{}], [{}], [{}], [{}]", tenantId, seqIdStart, seqIdEnd, pageLink);
+    public PageData<CloudEvent> findTsKvCloudEvents(UUID tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
+        log.trace("Executing findTsKvCloudEvents [{}], [{}], [{}], [{}]", tenantId, seqIdStart, seqIdEnd, pageLink);
         List<SortOrder> sortOrders = new ArrayList<>();
         if (pageLink.getSortOrder() != null) {
             sortOrders.add(pageLink.getSortOrder());
         }
         sortOrders.add(new SortOrder("seqId"));
         return DaoUtil.toPageData(
-                cloudEventRepository
+                tsKvCloudEventRepository
                         .findEventsByTenantId(
                                 tenantId,
                                 pageLink.getStartTime(),
@@ -186,7 +186,7 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
                                                                                        EdgeEventActionType cloudEventAction,
                                                                                        Long startTime,
                                                                                        Long endTime) {
-        return cloudEventRepository
+        return tsKvCloudEventRepository
                 .countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(
                         tenantId,
                         entityId,

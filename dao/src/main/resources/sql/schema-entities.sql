@@ -808,6 +808,20 @@ CREATE TABLE IF NOT EXISTS cloud_event (
 
 ALTER TABLE IF EXISTS cloud_event ALTER COLUMN seq_id SET CYCLE;
 
+CREATE TABLE IF NOT EXISTS ts_kv_cloud_event (
+                                        seq_id INT GENERATED ALWAYS AS IDENTITY,
+                                        id uuid NOT NULL,
+                                        created_time bigint NOT NULL,
+                                        cloud_event_type varchar(255),
+    entity_id uuid,
+    cloud_event_action varchar(255),
+    entity_body varchar(10000000),
+    tenant_id uuid,
+    ts bigint NOT NULL
+    ) PARTITION BY RANGE(created_time);
+
+ALTER TABLE IF EXISTS ts_kv_cloud_event ALTER COLUMN seq_id SET CYCLE;
+
 CREATE OR REPLACE FUNCTION to_uuid(IN entity_id varchar, OUT uuid_id uuid) AS
 $$
 BEGIN
@@ -840,23 +854,6 @@ CREATE TABLE IF NOT EXISTS user_auth_settings (
     user_id uuid UNIQUE NOT NULL CONSTRAINT fk_user_auth_settings_user_id REFERENCES tb_user(id),
     two_fa_settings varchar
 );
-
-CREATE OR REPLACE PROCEDURE cleanup_cloud_events_by_ttl(IN ttl bigint, INOUT deleted bigint)
-    LANGUAGE plpgsql AS
-$$
-DECLARE
-    ttl_ts bigint;
-    ttl_deleted_count bigint DEFAULT 0;
-BEGIN
-    IF ttl > 0 THEN
-        ttl_ts := (EXTRACT(EPOCH FROM current_timestamp) * 1000 - ttl::bigint * 1000)::bigint;
-        EXECUTE format(
-                'WITH deleted AS (DELETE FROM cloud_event WHERE ts < %L::bigint RETURNING *) SELECT count(*) FROM deleted', ttl_ts) into ttl_deleted_count;
-    END IF;
-    RAISE NOTICE 'Cloud events removed by ttl: %', ttl_deleted_count;
-    deleted := ttl_deleted_count;
-END
-$$;
 
 CREATE TABLE IF NOT EXISTS notification_target (
     id UUID NOT NULL CONSTRAINT notification_target_pkey PRIMARY KEY,

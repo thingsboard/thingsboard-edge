@@ -53,3 +53,21 @@ ALTER TABLE widgets_bundle ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 1;
 ALTER TABLE tenant ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 1;
 
 -- ENTITIES VERSIONING UPDATE END
+
+-- edge-only: create new ts_kv_cloud_event table schema
+
+CREATE TABLE IF NOT EXISTS ts_kv_cloud_event (
+                                                 seq_id INT GENERATED ALWAYS AS IDENTITY,
+                                                 id uuid NOT NULL,
+                                                 created_time bigint NOT NULL,
+                                                 cloud_event_type varchar(255),
+    entity_id uuid,
+    cloud_event_action varchar(255),
+    entity_body varchar(10000000),
+    tenant_id uuid,
+    ts bigint NOT NULL
+    ) PARTITION BY RANGE(created_time);
+
+ALTER TABLE IF EXISTS ts_kv_cloud_event ALTER COLUMN seq_id SET CYCLE;
+
+-- edge-only: create new ts_kv_cloud_event table schema end

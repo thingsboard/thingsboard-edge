@@ -35,6 +35,12 @@ import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.UUID;
 
+import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_DELETED;
+import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_UPDATED;
+import static org.thingsboard.server.common.data.msg.TbMsgType.POST_ATTRIBUTES_REQUEST;
+import static org.thingsboard.server.common.data.msg.TbMsgType.POST_TELEMETRY_REQUEST;
+import static org.thingsboard.server.common.data.msg.TbMsgType.TIMESERIES_UPDATED;
+
 @Slf4j
 @RuleNode(
         type = ComponentType.ACTION,
@@ -94,7 +100,9 @@ public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloud
     void processMsg(TbContext ctx, TbMsg msg) {
         try {
             CloudEvent cloudEvent = buildEvent(msg, ctx);
-            ListenableFuture<Void> saveFuture = ctx.getCloudEventService().saveAsync(cloudEvent);
+            ListenableFuture<Void> saveFuture = isTimeseriesCloudEvent(msg)
+                    ? ctx.getCloudEventService().saveAsync(cloudEvent)
+                    : ctx.getCloudEventService().saveTsKvAsync(cloudEvent);
             Futures.addCallback(saveFuture, new FutureCallback<>() {
                 @Override
                 public void onSuccess(@Nullable Void unused) {
@@ -110,6 +118,10 @@ public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloud
             log.error("Failed to build cloud event", e);
             ctx.tellFailure(msg, e);
         }
+    }
+
+    private boolean isTimeseriesCloudEvent(TbMsg msg) {
+        return msg.isTypeOneOf(POST_TELEMETRY_REQUEST, POST_ATTRIBUTES_REQUEST, ATTRIBUTES_UPDATED, ATTRIBUTES_DELETED, TIMESERIES_UPDATED);
     }
 
 }
