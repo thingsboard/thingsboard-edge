@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, Inject, OnInit, SkipSelf } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit, SkipSelf } from '@angular/core';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { Store } from '@ngrx/store';
@@ -39,20 +39,26 @@ import { Router } from '@angular/router';
 import { DialogComponent } from '@app/shared/components/dialog.component';
 import { TranslateService } from '@ngx-translate/core';
 import {
+  BreakpointId,
   DashboardSettings,
   GridSettings,
   LayoutType,
-  layoutTypes, layoutTypeTranslationMap,
-  StateControllerId
+  StateControllerId,
+  ViewFormatType,
+  viewFormatTypes,
+  viewFormatTypeTranslationMap
 } from '@app/shared/models/dashboard.models';
 import { isDefined, isUndefined } from '@core/utils';
 import { StatesControllerService } from './states/states-controller.service';
-import { merge } from 'rxjs';
+import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
+import { merge, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 export interface DashboardSettingsDialogData {
   settings?: DashboardSettings;
   gridSettings?: GridSettings;
   isRightLayout?: boolean;
+  breakpointId?: BreakpointId;
 }
 
 @Component({
@@ -62,11 +68,10 @@ export interface DashboardSettingsDialogData {
   styleUrls: ['./dashboard-settings-dialog.component.scss']
 })
 export class DashboardSettingsDialogComponent extends DialogComponent<DashboardSettingsDialogComponent, DashboardSettingsDialogData>
-  implements OnInit, ErrorStateMatcher {
+  implements OnDestroy, ErrorStateMatcher {
 
-  layoutTypes = layoutTypes;
-
-  layoutTypeTranslations = layoutTypeTranslationMap;
+  viewFormatTypes = viewFormatTypes;
+  viewFormatTypeTranslationMap = viewFormatTypeTranslationMap;
 
   settings: DashboardSettings;
   gridSettings: GridSettings;
@@ -77,9 +82,16 @@ export class DashboardSettingsDialogComponent extends DialogComponent<DashboardS
 
   stateControllerIds: string[];
 
+  layoutSettingsType: string;
+
   submitted = false;
 
   scadaColumns: number[] = [];
+
+  private layoutType = LayoutType.default;
+  private breakpointId: BreakpointId = 'default';
+
+  private destroy$ = new Subject<void>();
 
   private stateControllerTranslationMap = new Map<string, string>([
     ['default', 'dashboard.state-controller-default'],
@@ -92,7 +104,8 @@ export class DashboardSettingsDialogComponent extends DialogComponent<DashboardS
               public dialogRef: MatDialogRef<DashboardSettingsDialogComponent, DashboardSettingsDialogData>,
               private fb: FormBuilder,
               private translate: TranslateService,
-              private statesControllerService: StatesControllerService) {
+              private statesControllerService: StatesControllerService,
+              private dashboardUtils: DashboardUtilsService) {
     super(store, router, dialogRef);
 
     this.stateControllerIds = Object.keys(this.statesControllerService.getStateControllers());
@@ -100,6 +113,7 @@ export class DashboardSettingsDialogComponent extends DialogComponent<DashboardS
     this.settings = this.data.settings;
     this.gridSettings = this.data.gridSettings;
     this.isRightLayout = this.data.isRightLayout;
+    this.breakpointId = this.data.breakpointId;
 
     if (this.settings) {
       const showTitle = isUndefined(this.settings.showTitle) ? true : this.settings.showTitle;
@@ -131,14 +145,18 @@ export class DashboardSettingsDialogComponent extends DialogComponent<DashboardS
           disabled: hideToolbar}, []],
         dashboardCss: [isUndefined(this.settings.dashboardCss) ? '' : this.settings.dashboardCss, []],
       });
-      this.settingsFormGroup.get('stateControllerId').valueChanges.subscribe(
+      this.settingsFormGroup.get('stateControllerId').valueChanges.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(
         (stateControllerId: StateControllerId) => {
           if (stateControllerId !== 'default') {
             this.settingsFormGroup.get('toolbarAlwaysOpen').setValue(true);
           }
         }
       );
-      this.settingsFormGroup.get('showTitle').valueChanges.subscribe(
+      this.settingsFormGroup.get('showTitle').valueChanges.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(
         (showTitleValue: boolean) => {
           if (showTitleValue) {
             this.settingsFormGroup.get('titleColor').enable();
@@ -147,7 +165,9 @@ export class DashboardSettingsDialogComponent extends DialogComponent<DashboardS
           }
         }
       );
-      this.settingsFormGroup.get('showDashboardLogo').valueChanges.subscribe(
+      this.settingsFormGroup.get('showDashboardLogo').valueChanges.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(
         (showDashboardLogoValue: boolean) => {
           if (showDashboardLogoValue) {
             this.settingsFormGroup.get('dashboardLogoUrl').enable();
@@ -156,7 +176,9 @@ export class DashboardSettingsDialogComponent extends DialogComponent<DashboardS
           }
         }
       );
-      this.settingsFormGroup.get('hideToolbar').valueChanges.subscribe(
+      this.settingsFormGroup.get('hideToolbar').valueChanges.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(
         (hideToolbarValue: boolean) => {
           if (hideToolbarValue) {
             this.settingsFormGroup.get('toolbarAlwaysOpen').disable();
@@ -182,6 +204,16 @@ export class DashboardSettingsDialogComponent extends DialogComponent<DashboardS
     }
 
     if (this.gridSettings) {
+      if (isDefined(this.gridSettings.layoutType)) {
+        this.layoutType = this.gridSettings.layoutType;
+      }
+      if (this.layoutType !== LayoutType.divider) {
+        this.layoutSettingsType = this.dashboardUtils.getBreakpointName(this.breakpointId);
+      } else if (this.isRightLayout) {
+        this.layoutSettingsType = this.translate.instant('layout.right');
+      } else {
+        this.layoutSettingsType = this.translate.instant('layout.left');
+      }
       let columns = 24;
       while (columns <= 1008) {
         this.scadaColumns.push(columns);
@@ -189,14 +221,16 @@ export class DashboardSettingsDialogComponent extends DialogComponent<DashboardS
       }
       const mobileAutoFillHeight = isUndefined(this.gridSettings.mobileAutoFillHeight) ? false : this.gridSettings.mobileAutoFillHeight;
       this.gridSettingsFormGroup = this.fb.group({
-        layoutType: [this.gridSettings.layoutType || LayoutType.default, []],
         columns: [this.gridSettings.columns || 24, [Validators.required, Validators.min(10), Validators.max(1008)]],
         minColumns: [this.gridSettings.minColumns || this.gridSettings.columns || 24,
           [Validators.required, Validators.min(10), Validators.max(1008)]],
         margin: [isDefined(this.gridSettings.margin) ? this.gridSettings.margin : 10,
           [Validators.required, Validators.min(0), Validators.max(50)]],
         outerMargin: [isUndefined(this.gridSettings.outerMargin) ? true : this.gridSettings.outerMargin, []],
+        viewFormat: [isUndefined(this.gridSettings.viewFormat) ? ViewFormatType.grid : this.gridSettings.viewFormat, []],
         autoFillHeight: [isUndefined(this.gridSettings.autoFillHeight) ? false : this.gridSettings.autoFillHeight, []],
+        rowHeight: [isUndefined(this.gridSettings.rowHeight) ? 70 : this.gridSettings.rowHeight,
+          [Validators.required, Validators.min(5), Validators.max(200)]],
         backgroundColor: [this.gridSettings.backgroundColor || 'rgba(0,0,0,0)', []],
         backgroundImageUrl: [this.gridSettings.backgroundImageUrl, []],
         backgroundSizeMode: [this.gridSettings.backgroundSizeMode || '100%', []],
@@ -209,27 +243,56 @@ export class DashboardSettingsDialogComponent extends DialogComponent<DashboardS
           isUndefined(this.gridSettings.mobileDisplayLayoutFirst) ? false : this.gridSettings.mobileDisplayLayoutFirst;
         this.gridSettingsFormGroup.addControl('mobileDisplayLayoutFirst', this.fb.control(mobileDisplayLayoutFirst, []));
       }
-      merge(this.gridSettingsFormGroup.get('layoutType').valueChanges,
-            this.gridSettingsFormGroup.get('mobileAutoFillHeight').valueChanges).subscribe(
-        () => {
-          this.updateGridSettingsFormState();
+      if (this.isScada()) {
+        this.gridSettingsFormGroup.get('margin').disable();
+        this.gridSettingsFormGroup.get('outerMargin').disable();
+        this.gridSettingsFormGroup.get('viewFormat').disable({emitEvent: false});
+        this.gridSettingsFormGroup.get('rowHeight').disable();
+        this.gridSettingsFormGroup.get('autoFillHeight').disable({emitEvent: false});
+        this.gridSettingsFormGroup.get('mobileAutoFillHeight').disable({emitEvent: false});
+        this.gridSettingsFormGroup.get('mobileRowHeight').disable();
+        const columnsFields: number = this.gridSettingsFormGroup.get('columns').value;
+        if (columnsFields % 24 !== 0) {
+          const newColumns = Math.min(1008, 24 * Math.ceil(columnsFields / 24));
+          this.gridSettingsFormGroup.get('columns').patchValue(newColumns);
         }
-      );
-      this.updateGridSettingsFormState();
+      } else {
+        merge(
+          this.gridSettingsFormGroup.get('viewFormat').valueChanges,
+          this.breakpointId !== 'default'
+           ? this.gridSettingsFormGroup.get('autoFillHeight').valueChanges
+           : this.gridSettingsFormGroup.get('mobileAutoFillHeight').valueChanges
+        ).pipe(
+          takeUntil(this.destroy$)
+        ).subscribe(() => {
+          this.updateGridSettingsFormState();
+        });
+        this.updateGridSettingsFormState();
+      }
+      if (this.layoutType === LayoutType.default && this.breakpointId !== 'default' || this.isScada()) {
+        this.gridSettingsFormGroup.get('mobileAutoFillHeight').disable({emitEvent: false});
+        this.gridSettingsFormGroup.get('mobileRowHeight').disable();
+      }
     } else {
       this.gridSettingsFormGroup = this.fb.group({});
     }
   }
 
-  ngOnInit(): void {
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   isScada() {
-    if (this.gridSettingsFormGroup) {
-      return this.gridSettingsFormGroup.get('layoutType').value === LayoutType.scada;
-    } else {
-      return false;
-    }
+    return this.layoutType === LayoutType.scada;
+  }
+
+  get isDefaultLayout() {
+    return this.layoutType === LayoutType.default;
+  }
+
+  get isDefaultBreakpoint(): boolean {
+    return this.breakpointId === 'default';
   }
 
   isErrorState(control: FormControl | null, form: FormGroupDirective | NgForm | null): boolean {
@@ -263,28 +326,27 @@ export class DashboardSettingsDialogComponent extends DialogComponent<DashboardS
   }
 
   private updateGridSettingsFormState() {
-    const isScada: boolean = this.gridSettingsFormGroup.get('layoutType').value === LayoutType.scada;
-    if (isScada) {
-      this.gridSettingsFormGroup.get('margin').disable();
-      this.gridSettingsFormGroup.get('outerMargin').disable();
-      this.gridSettingsFormGroup.get('autoFillHeight').disable();
-      this.gridSettingsFormGroup.get('mobileAutoFillHeight').disable({emitEvent: false});
-      this.gridSettingsFormGroup.get('mobileRowHeight').disable();
-      const columns: number = this.gridSettingsFormGroup.get('columns').value;
-      if (columns % 24 !== 0) {
-        const newColumns = Math.min(1008, 24 * Math.ceil(columns / 24));
-        this.gridSettingsFormGroup.get('columns').patchValue(newColumns);
-      }
-    } else {
-      this.gridSettingsFormGroup.get('margin').enable();
-      this.gridSettingsFormGroup.get('outerMargin').enable();
-      this.gridSettingsFormGroup.get('autoFillHeight').enable();
-      this.gridSettingsFormGroup.get('mobileAutoFillHeight').enable({emitEvent: false});
+    if (this.breakpointId === 'default') {
       const mobileAutoFillHeight: boolean = this.gridSettingsFormGroup.get('mobileAutoFillHeight').value;
       if (mobileAutoFillHeight) {
         this.gridSettingsFormGroup.get('mobileRowHeight').disable();
       } else {
         this.gridSettingsFormGroup.get('mobileRowHeight').enable();
+      }
+    } else {
+      const autoFillHeight: boolean = this.gridSettingsFormGroup.get('autoFillHeight').value;
+      const viewFormat: ViewFormatType = this.gridSettingsFormGroup.get('viewFormat').value;
+      if (viewFormat !== ViewFormatType.list || autoFillHeight) {
+        this.gridSettingsFormGroup.get('rowHeight').disable();
+      } else {
+        this.gridSettingsFormGroup.get('rowHeight').enable();
+      }
+      if (viewFormat === ViewFormatType.list) {
+        this.gridSettingsFormGroup.get('columns').disable();
+        this.gridSettingsFormGroup.get('minColumns').disable();
+      } else {
+        this.gridSettingsFormGroup.get('columns').enable();
+        this.gridSettingsFormGroup.get('minColumns').enable();
       }
     }
   }

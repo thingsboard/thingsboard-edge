@@ -56,6 +56,7 @@ import { GridsterItemComponent } from 'angular-gridster2';
 import { UtilsService } from '@core/services/utils.service';
 import ITooltipsterInstance = JQueryTooltipster.ITooltipsterInstance;
 import { from } from 'rxjs';
+import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
 
 export enum WidgetComponentActionType {
   MOUSE_DOWN,
@@ -63,7 +64,8 @@ export enum WidgetComponentActionType {
   CONTEXT_MENU,
   EDIT,
   EXPORT,
-  REMOVE
+  REMOVE,
+  REPLACE_REFERENCE_WITH_WIDGET_COPY,
 }
 
 export class WidgetComponentAction {
@@ -136,6 +138,7 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   widgetExportTypeTranslations = widgetExportTypeTranslationMap;
 
   hovered = false;
+  isReferenceWidget = false;
 
   get widgetEditActionsEnabled(): boolean {
     return (this.isEditActionEnabled || this.isRemoveActionEnabled || this.isExportActionEnabled) && !this.widget?.isFullscreen;
@@ -149,6 +152,7 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
               private cd: ChangeDetectorRef,
               private renderer: Renderer2,
               private container: ViewContainerRef,
+              private dashboardUtils: DashboardUtilsService,
               private utils: UtilsService) {
     super(store);
   }
@@ -163,7 +167,10 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
     $(this.gridsterItem.el).on('mousedown', (e) => this.onMouseDown(e.originalEvent));
     $(this.gridsterItem.el).on('click', (e) => this.onClicked(e.originalEvent));
     $(this.gridsterItem.el).on('contextmenu', (e) => this.onContextMenu(e.originalEvent));
-    this.initEditWidgetActionTooltip();
+    const dashboardElement = this.widget.widgetContext.dashboardPageElement;
+    if (dashboardElement) {
+      this.initEditWidgetActionTooltip(dashboardElement);
+    }
   }
 
   ngAfterViewInit(): void {
@@ -235,6 +242,13 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
     });
   }
 
+  onReplaceReferenceWithWidgetCopy(event: MouseEvent) {
+    this.widgetComponentAction.emit({
+      event,
+      actionType: WidgetComponentActionType.REPLACE_REFERENCE_WITH_WIDGET_COPY
+    });
+  }
+
   onExport(event: MouseEvent) {
     this.widgetComponentAction.emit({
       event,
@@ -259,9 +273,10 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
     }
   }
 
-  private initEditWidgetActionTooltip() {
+  private initEditWidgetActionTooltip(parent: HTMLElement) {
     from(import('tooltipster')).subscribe(() => {
       $(this.gridsterItem.el).tooltipster({
+        parent: $(parent),
         delay: this.widget.selected ? [0, 10000000] : [0, 100],
         distance: 2,
         zIndex: 151,
@@ -281,7 +296,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
         content: '',
         functionPosition: (instance, helper, position) => {
           const clientRect = helper.origin.getBoundingClientRect();
-          position.coord.left = clientRect.right - position.size.width;
+          const container = parent.getBoundingClientRect();
+          position.coord.left = clientRect.right - position.size.width - container.left;
+          position.coord.top = position.coord.top - container.top;
           position.target = clientRect.right;
           return position;
         },
@@ -299,6 +316,11 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
         functionAfter: () => {
           this.hovered = false;
           this.cd.markForCheck();
+        },
+        functionBefore: () => {
+          this.widget.isReference = this.dashboardUtils.isReferenceWidget(
+            this.widget.widgetContext.dashboard.stateController.dashboardCtrl.dashboardCtx.getDashboard(), this.widget.widgetId);
+          componentRef.instance.cd.detectChanges();
         }
       });
       this.editWidgetActionsTooltip = $(this.gridsterItem.el).tooltipster('instance');
@@ -346,29 +368,43 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
 }
 
 @Component({
-  template: `<div class="tb-widget-actions-panel">
-    <button mat-icon-button class="tb-mat-20"
-            [fxShow]="container.isEditActionEnabled"
-            (click)="container.onEdit($event)"
-            matTooltip="{{ 'widget.edit' | translate }}"
-            matTooltipPosition="above">
-      <tb-icon>edit</tb-icon>
-    </button>
-    <button mat-icon-button class="tb-mat-20"
-            [fxShow]="container.isExportActionEnabled"
-            (click)="container.onExport($event)"
-            matTooltip="{{ 'widget.export' | translate }}"
-            matTooltipPosition="above">
-      <tb-icon>file_download</tb-icon>
-    </button>
-    <button mat-icon-button class="tb-mat-20"
-            [fxShow]="container.isRemoveActionEnabled"
-            (click)="container.onRemove($event);"
-            matTooltip="{{ 'widget.remove' | translate }}"
-            matTooltipPosition="above">
-      <tb-icon>close</tb-icon>
-    </button>
-  </div>`,
+  template: `
+    <div class="tb-widget-action-container">
+      <div class="tb-widget-reference-panel tb-primary-fill" *ngIf="container.widget.isReference">
+        {{ 'widget.reference' | translate }}
+        <button mat-icon-button class="tb-mat-16"
+                color="primary"
+                [fxShow]="container.isEditActionEnabled"
+                (click)="container.onReplaceReferenceWithWidgetCopy($event)"
+                matTooltip="{{ 'widget.replace-reference-with-widget-copy' | translate }}"
+                matTooltipPosition="above">
+          <tb-icon matButtonIcon>mdi:file-replace-outline</tb-icon>
+        </button>
+      </div>
+      <div class="tb-widget-actions-panel">
+        <button mat-icon-button class="tb-mat-20"
+                [fxShow]="container.isEditActionEnabled"
+                (click)="container.onEdit($event)"
+                matTooltip="{{ 'widget.edit' | translate }}"
+                matTooltipPosition="above">
+          <tb-icon>edit</tb-icon>
+        </button>
+        <button mat-icon-button class="tb-mat-20"
+                [fxShow]="container.isExportActionEnabled"
+                (click)="container.onExport($event)"
+                matTooltip="{{ 'widget.export' | translate }}"
+                matTooltipPosition="above">
+          <tb-icon>file_download</tb-icon>
+        </button>
+        <button mat-icon-button class="tb-mat-20"
+                [fxShow]="container.isRemoveActionEnabled"
+                (click)="container.onRemove($event);"
+                matTooltip="{{ 'widget.remove' | translate }}"
+                matTooltipPosition="above">
+          <tb-icon>close</tb-icon>
+        </button>
+      </div>
+    </div>`,
   styles: [],
   encapsulation: ViewEncapsulation.None
 })
@@ -380,7 +416,8 @@ export class EditWidgetActionsTooltipComponent implements AfterViewInit {
   @Output()
   viewInited = new EventEmitter();
 
-  constructor(public element: ElementRef<HTMLElement>) {
+  constructor(public element: ElementRef<HTMLElement>,
+              public cd: ChangeDetectorRef) {
   }
 
   ngAfterViewInit() {

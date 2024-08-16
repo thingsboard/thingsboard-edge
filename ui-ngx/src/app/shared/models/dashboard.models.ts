@@ -33,7 +33,7 @@ import { BaseData, ExportableEntity, GroupEntityInfo } from '@shared/models/base
 import { DashboardId } from '@shared/models/id/dashboard-id';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { ShortCustomerInfo } from '@shared/models/customer.model';
-import { LegendPosition, Widget } from './widget.models';
+import { Widget } from './widget.models';
 import { Timewindow } from '@shared/models/time/time.models';
 import { EntityAliases } from './alias.models';
 import { CustomerId } from '@shared/models/id/customer-id';
@@ -58,7 +58,8 @@ export interface WidgetLayouts {
 
 export enum LayoutType {
   default = 'default',
-  scada = 'scada'
+  scada = 'scada',
+  divider = 'divider',
 }
 
 export const layoutTypes = Object.keys(LayoutType) as LayoutType[];
@@ -66,7 +67,22 @@ export const layoutTypes = Object.keys(LayoutType) as LayoutType[];
 export const layoutTypeTranslationMap = new Map<LayoutType, string>(
   [
     [ LayoutType.default, 'dashboard.layout-type-default' ],
-    [ LayoutType.scada, 'dashboard.layout-type-scada' ]
+    [ LayoutType.scada, 'dashboard.layout-type-scada' ],
+    [ LayoutType.divider, 'dashboard.layout-type-divider' ],
+  ]
+);
+
+export enum ViewFormatType {
+  grid = 'grid',
+  list = 'list',
+}
+
+export const viewFormatTypes = Object.keys(ViewFormatType) as ViewFormatType[];
+
+export const viewFormatTypeTranslationMap = new Map<ViewFormatType, string>(
+  [
+    [ ViewFormatType.grid, 'dashboard.view-format-type-grid' ],
+    [ ViewFormatType.list, 'dashboard.view-format-type-list' ],
   ]
 );
 
@@ -77,9 +93,11 @@ export interface GridSettings {
   minColumns?: number;
   margin?: number;
   outerMargin?: boolean;
+  viewFormat?: ViewFormatType;
   backgroundSizeMode?: string;
   backgroundImageUrl?: string;
   autoFillHeight?: boolean;
+  rowHeight?: number;
   mobileAutoFillHeight?: boolean;
   mobileRowHeight?: number;
   mobileDisplayLayoutFirst?: boolean;
@@ -90,13 +108,44 @@ export interface GridSettings {
 export interface DashboardLayout {
   widgets: WidgetLayouts;
   gridSettings: GridSettings;
+  breakpoints?: {[breakpointId in BreakpointId]?: Omit<DashboardLayout, 'breakpoints'>};
 }
 
-export interface DashboardLayoutInfo {
+export declare type DashboardLayoutInfo = {[breakpointId: string]: BreakpointLayoutInfo};
+
+export interface BreakpointLayoutInfo {
   widgetIds?: string[];
   widgetLayouts?: WidgetLayouts;
   gridSettings?: GridSettings;
 }
+
+export declare type BreakpointSystemId = 'default' | 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+export declare type BreakpointId = BreakpointSystemId | string;
+
+export interface BreakpointInfo {
+  id: BreakpointId;
+  maxWidth?: number;
+  minWidth?: number;
+  value?: string;
+}
+
+export const breakpointIdTranslationMap = new Map<BreakpointId, string>([
+  ['default', 'dashboard.breakpoints-id.default'],
+  ['xs', 'dashboard.breakpoints-id.xs'],
+  ['sm', 'dashboard.breakpoints-id.sm'],
+  ['md', 'dashboard.breakpoints-id.md'],
+  ['lg', 'dashboard.breakpoints-id.lg'],
+  ['xl', 'dashboard.breakpoints-id.xl'],
+]);
+
+export const breakpointIdIconMap = new Map<BreakpointId, string>([
+  ['default', 'desktop_windows'],
+  ['xs', 'phone_iphone'],
+  ['sm', 'tablet_mac'],
+  ['md', 'computer'],
+  ['lg', 'monitor'],
+  ['xl', 'desktop_windows'],
+]);
 
 export interface LayoutDimension {
   type?: LayoutDimensionType;
