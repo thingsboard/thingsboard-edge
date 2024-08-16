@@ -25,8 +25,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.id.CloudEventId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.SortOrder;
@@ -177,23 +175,6 @@ public class JpaBaseTsKvCloudEventDao extends JpaAbstractDao<TsKvCloudEventEntit
                                 seqIdStart,
                                 seqIdEnd,
                                 DaoUtil.toPageable(pageLink, sortOrders)));
-    }
-
-    @Override
-    public long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(UUID tenantId,
-                                                                                       UUID entityId,
-                                                                                       CloudEventType cloudEventType,
-                                                                                       EdgeEventActionType cloudEventAction,
-                                                                                       Long startTime,
-                                                                                       Long endTime) {
-        return tsKvCloudEventRepository
-                .countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(
-                        tenantId,
-                        entityId,
-                        cloudEventType,
-                        cloudEventAction,
-                        startTime,
-                        endTime);
     }
 
     @Override

@@ -18,6 +18,7 @@ package org.thingsboard.server.dao.sql.cloud;
 import org.thingsboard.server.dao.model.sql.CloudEventEntity;
 
 import java.util.UUID;
+
 public interface CloudEventRepository extends BaseCloudEventRepository<CloudEventEntity, UUID> {
 
 }

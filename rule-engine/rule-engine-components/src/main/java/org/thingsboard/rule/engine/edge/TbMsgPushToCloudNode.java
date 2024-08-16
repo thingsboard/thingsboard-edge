@@ -101,8 +101,8 @@ public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloud
         try {
             CloudEvent cloudEvent = buildEvent(msg, ctx);
             ListenableFuture<Void> saveFuture = isTimeseriesCloudEvent(msg)
-                    ? ctx.getCloudEventService().saveAsync(cloudEvent)
-                    : ctx.getCloudEventService().saveTsKvAsync(cloudEvent);
+                    ? ctx.getCloudEventService().saveTsKvAsync(cloudEvent)
+                    : ctx.getCloudEventService().saveAsync(cloudEvent);
             Futures.addCallback(saveFuture, new FutureCallback<>() {
                 @Override
                 public void onSuccess(@Nullable Void unused) {

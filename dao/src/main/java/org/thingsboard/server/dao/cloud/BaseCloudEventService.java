@@ -52,9 +52,7 @@ public class BaseCloudEventService implements CloudEventService {
 
     private static final List<EdgeEventActionType> CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES = List.of(
             EdgeEventActionType.ATTRIBUTES_REQUEST,
-            EdgeEventActionType.RELATION_REQUEST,
-            EdgeEventActionType.WIDGET_BUNDLE_TYPES_REQUEST,
-            EdgeEventActionType.ENTITY_VIEW_REQUEST);
+            EdgeEventActionType.RELATION_REQUEST);
 
     public CloudEventDao cloudEventDao;
     public TsKvCloudEventDao tsKvCloudEventDao;
@@ -123,17 +121,13 @@ public class BaseCloudEventService implements CloudEventService {
 
     private boolean shouldAddEventToQueue(TenantId tenantId, CloudEventType cloudEventType, EdgeEventActionType cloudEventAction,
                                           EntityId entityId, Long queueStartTs, boolean isTsKvEvent) {
-        if (queueStartTs == null || queueStartTs <= 0 || !CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES.contains(cloudEventAction)) {
+        if (isTsKvEvent || queueStartTs == null || queueStartTs <= 0 || !CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES.contains(cloudEventAction)) {
             return true;
         }
 
-        long countMsgsInQueue = isTsKvEvent ?
-                tsKvCloudEventDao.countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(
-                        tenantId.getId(), entityId.getId(), cloudEventType, cloudEventAction, queueStartTs, System.currentTimeMillis()) :
-                cloudEventDao.countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(
-                        tenantId.getId(), entityId.getId(), cloudEventType, cloudEventAction, queueStartTs, System.currentTimeMillis()
-                );
-
+        long countMsgsInQueue = cloudEventDao.countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(
+                tenantId.getId(), entityId.getId(), cloudEventType, cloudEventAction, queueStartTs, System.currentTimeMillis()
+        );
 
         if (countMsgsInQueue > 0) {
             log.info("{} Skipping adding of {} event because it's already present in db {} {}",

@@ -31,13 +31,6 @@ public interface TsKvCloudEventDao extends Dao<CloudEvent> {
 
     PageData<CloudEvent> findTsKvCloudEvents(UUID tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
 
-    long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(UUID tenantId,
-                                                                                UUID entityId,
-                                                                                CloudEventType cloudEventType,
-                                                                                EdgeEventActionType cloudEventAction,
-                                                                                Long startTime,
-                                                                                Long endTime);
-
     void cleanupEvents(long eventsTtl);
 
 }
