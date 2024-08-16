@@ -199,6 +199,10 @@ export class WidgetContext {
     }
   }
 
+  get dashboardPageElement(): HTMLElement {
+    return this.dashboard?.stateController?.dashboardCtrl?.elRef?.nativeElement;
+  }
+
   authService: AuthService;
   deviceService: DeviceService;
   assetService: AssetService;
