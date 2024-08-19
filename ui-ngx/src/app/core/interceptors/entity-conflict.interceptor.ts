@@ -35,6 +35,7 @@ import {
   HttpEvent,
   HttpHandler,
   HttpInterceptor,
+  HttpParams,
   HttpRequest,
   HttpStatusCode
 } from '@angular/common/http';
@@ -47,6 +48,8 @@ import {
 import { HasId } from '@shared/models/base-data';
 import { HasVersion } from '@shared/models/entity.models';
 import { getInterceptorConfig } from './interceptor.util';
+import { isDefined } from '@core/utils';
+import { InterceptorConfig } from '@core/interceptors/interceptor-config';
 
 @Injectable()
 export class EntityConflictInterceptor implements HttpInterceptor {
@@ -82,8 +85,12 @@ export class EntityConflictInterceptor implements HttpInterceptor {
 
     return this.openConflictDialog(request.body, error.error.message).pipe(
       switchMap(result => {
-        if (result) {
-          return next.handle(this.updateRequestVersion(request));
+        if (isDefined(result)) {
+          if (result) {
+            return next.handle(this.updateRequestVersion(request));
+          }
+          (request.params as HttpParams & { interceptorConfig: InterceptorConfig }).interceptorConfig.ignoreErrors = true;
+          return throwError(() => error);
         }
         return of(null);
       })
@@ -97,7 +104,9 @@ export class EntityConflictInterceptor implements HttpInterceptor {
 
   private openConflictDialog(entity: unknown & HasId & HasVersion, message: string): Observable<boolean> {
     const dialogRef = this.dialog.open(EntityConflictDialogComponent, {
-      data: { message, entity }
+      disableClose: true,
+      data: { message, entity },
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
     });
 
     return dialogRef.afterClosed();
