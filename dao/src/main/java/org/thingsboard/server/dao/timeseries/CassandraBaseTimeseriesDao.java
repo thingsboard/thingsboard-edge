@@ -199,9 +199,18 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
 
     @Override
     public ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry, long ttl) {
+        return save(tenantId, entityId, tsKvEntry, ttl, false);
+    }
+
+    @Override
+    public ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry, long ttl, boolean replaceValue) {
         List<ListenableFuture<Void>> futures = new ArrayList<>();
         ttl = computeTtl(ttl);
-        int dataPointDays = tsKvEntry.getDataPoints() * Math.max(1, (int) (ttl / SECONDS_IN_DAY));
+        int dataPoints = tsKvEntry.getDataPoints();
+        if (replaceValue) { //TODO: remove all changes related to the 'replaceValue' after release.
+            dataPoints += 4;
+        }
+        int dataPointDays = dataPoints * Math.max(1, (int) (ttl / SECONDS_IN_DAY));
         long partition = toPartitionTs(tsKvEntry.getTs());
         String entityType = entityId.getEntityType().name();
         UUID entityIdId = entityId.getId();
@@ -209,7 +218,7 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
         long ts = tsKvEntry.getTs();
         DataType type = tsKvEntry.getDataType();
         BoundStatementBuilder stmtBuilder;
-        if (setNullValuesEnabled) {
+        if (setNullValuesEnabled || replaceValue) {
             stmtBuilder = new BoundStatementBuilder((ttl == 0 ? getSaveWithNullStmt() : getSaveWithNullWithTtlStmt()).bind());
             stmtBuilder.setString(0, entityType)
                     .setUuid(1, entityIdId)
