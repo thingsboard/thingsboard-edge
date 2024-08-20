@@ -42,6 +42,7 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
 import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
 import { MobileAppTableConfigResolver } from '@home/pages/admin/oauth2/mobile-apps/mobile-app-table-config.resolver';
+import { MenuId } from '@core/services/menu.models';
 
 @Injectable()
 export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
@@ -81,8 +82,7 @@ export const oAuth2Routes: Routes = [
           auth: [Authority.SYS_ADMIN],
           title: 'admin.oauth2.domains',
           breadcrumb: {
-            label: 'admin.oauth2.domains',
-            icon: 'domain'
+            menuId: MenuId.domains
           }
         },
         resolve: {
@@ -96,8 +96,7 @@ export const oAuth2Routes: Routes = [
           auth: [Authority.SYS_ADMIN],
           title: 'admin.oauth2.mobile-apps',
           breadcrumb: {
-            label: 'admin.oauth2.mobile-apps',
-            icon: 'smartphone'
+            menuId: MenuId.mobile_apps
           }
         },
         resolve: {
@@ -109,8 +108,7 @@ export const oAuth2Routes: Routes = [
         data: {
           title: 'admin.oauth2.clients',
           breadcrumb: {
-            label: 'admin.oauth2.clients',
-            icon: 'public'
+            menuId:MenuId.clients
           }
         },
         children: [

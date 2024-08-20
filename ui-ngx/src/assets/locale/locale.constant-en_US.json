@@ -247,7 +247,7 @@
           "authorization-uri": "Authorization URI",
           "authorization-uri-required": "Authorization URI is required.",
           "add-client": "Add OAuth 2.0 client",
-          "client-details": "OAuth 2.0 details",
+          "client-details": "OAuth 2.0 client details",
           "client": "OAuth 2.0 client",
           "clients": "OAuth 2.0 clients",
           "no-oauth2-clients": "No OAuth 2.0 clients found",
