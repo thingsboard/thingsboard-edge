@@ -129,7 +129,6 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
       if (breadcrumbConfig && !breadcrumbConfig.skip) {
         let label: string;
         let labelFunction: () => string;
-        let ignoreTranslate: boolean;
         let icon: string;
         let iconUrl: string;
         let link: any[] | string;
@@ -140,7 +139,6 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
             : this.menuService.getCurrentCustomSection();
         }
         if (customSection) {
-          ignoreTranslate = true;
           label = customSection.name;
           icon = customSection.icon;
           iconUrl = customSection.iconUrl;
@@ -154,9 +152,6 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
             labelFunction = () => this.activeComponentValue ?
               breadcrumbConfig.labelFunction(route, this.translate, this.activeComponentValue, lastChild.data, this.utils) :
               label;
-            ignoreTranslate = true;
-          } else {
-            ignoreTranslate = false;
           }
           icon = section?.icon || breadcrumbConfig.icon || 'home';
           link = [route.pathFromRoot.map(v => v.url.map(segment => segment.toString()).join('/')).join('/')];
@@ -165,7 +160,6 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
           id: guid(),
           label,
           labelFunction,
-          ignoreTranslate,
           icon,
           iconUrl,
           link,

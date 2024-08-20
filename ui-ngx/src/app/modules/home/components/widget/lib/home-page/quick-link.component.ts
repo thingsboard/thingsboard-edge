@@ -64,6 +64,7 @@ import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { deepClone } from '@core/utils';
+import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 
 @Component({
   selector: 'tb-quick-link',
@@ -129,6 +130,7 @@ export class QuickLinkComponent extends PageComponent implements OnInit, Control
               private fb: UntypedFormBuilder,
               private menuService: MenuService,
               public translate: TranslateService,
+              private customTranslate: CustomTranslatePipe,
               @SkipSelf() private errorStateMatcher: ErrorStateMatcher) {
     super(store);
   }
@@ -150,7 +152,7 @@ export class QuickLinkComponent extends PageComponent implements OnInit, Control
           this.updateView(modelValue);
         }),
         map(value => value ? (typeof value === 'string' ? value :
-          ((value as any).translated ? value.name : this.translate.instant(value.name))) : ''),
+          ((value as any).translated ? value.name : this.customTranslate.transform(value.name))) : ''),
         distinctUntilChanged(),
         switchMap(name => this.fetchLinks(name) ),
         share()
@@ -217,9 +219,7 @@ export class QuickLinkComponent extends PageComponent implements OnInit, Control
   }
 
   displayLinkFn = (link?: MenuSection): string | undefined =>
-    link ? ((link as any).translated ? link.name
-      : ((link.ignoreTranslate || link.isCustom) ? (link.fullName || link.name) : this.translate.instant(link.fullName || link.name)))
-      : undefined;
+    link ? ((link as any).translated ? link.name : this.customTranslate.transform(link.fullName || link.name)) : undefined;
 
   fetchLinks(searchText?: string): Observable<Array<MenuSection>> {
     this.searchText = searchText;
@@ -245,9 +245,7 @@ export class QuickLinkComponent extends PageComponent implements OnInit, Control
         map((links) => {
           const result = deepClone(links);
           for (const link of result) {
-            if (!link.ignoreTranslate && !link.isCustom) {
-              link.name = this.translate.instant(link.fullName || link.name);
-            }
+            link.name = this.customTranslate.transform(link.fullName || link.name);
             (link as any).translated = true;
           }
           return result;

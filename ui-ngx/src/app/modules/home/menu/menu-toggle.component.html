@@ -33,7 +33,7 @@
 <a mat-button class="tb-button-toggle" (click)="toggleSection($event)">
   <img *ngIf="section.iconUrl" [src]="section.iconUrl"/>
   <tb-icon matButtonIcon *ngIf="!section.iconUrl && section.icon !== null">{{section.icon}}</tb-icon>
-  <span>{{(section.ignoreTranslate || section.isCustom) ? (section.name | customTranslate) : (section.name | translate)}}</span>
+  <span>{{section.name | customTranslate}}</span>
   <span class=" pull-right fa fa-chevron-down tb-toggle-icon"
         [ngClass]="{'tb-toggled' : section.opened}"></span>
 </a>
