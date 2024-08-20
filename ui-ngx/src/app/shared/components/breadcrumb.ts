@@ -37,6 +37,7 @@ import { MenuId } from '@core/services/menu.models';
 
 export interface BreadCrumb extends HasUUID{
   label: string;
+  customTranslate: boolean;
   labelFunction?: () => string;
   icon: string;
   iconUrl: string;

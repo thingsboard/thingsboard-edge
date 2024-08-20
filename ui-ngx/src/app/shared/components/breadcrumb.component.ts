@@ -128,6 +128,7 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
       const breadcrumbConfig = route.routeConfig.data.breadcrumb as BreadCrumbConfig<any>;
       if (breadcrumbConfig && !breadcrumbConfig.skip) {
         let label: string;
+        let customTranslate: boolean;
         let labelFunction: () => string;
         let icon: string;
         let iconUrl: string;
@@ -140,6 +141,7 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
         }
         if (customSection) {
           label = customSection.name;
+          customTranslate = true;
           icon = customSection.icon;
           iconUrl = customSection.iconUrl;
           link = customSection.path;
@@ -148,6 +150,7 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
           const section = breadcrumbConfig.menuId ?
             availableMenuSections.find(menu => menu.id === breadcrumbConfig.menuId) : null;
           label = section?.name || breadcrumbConfig.label || 'home.home';
+          customTranslate = section?.customTranslate || false;
           if (breadcrumbConfig.labelFunction) {
             labelFunction = () => this.activeComponentValue ?
               breadcrumbConfig.labelFunction(route, this.translate, this.activeComponentValue, lastChild.data, this.utils) :
@@ -159,6 +162,7 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
         const breadcrumb = {
           id: guid(),
           label,
+          customTranslate,
           labelFunction,
           icon,
           iconUrl,

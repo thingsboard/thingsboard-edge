@@ -55,6 +55,7 @@ export interface MenuSection {
   isNew?: boolean;
   stateId?: string;
   childStateIds?: {[stateId: string]: boolean};
+  customTranslate?: boolean;
 }
 
 export const sectionPath = (section: MenuSection): string => {
@@ -1708,6 +1709,7 @@ const buildCustomMenu = (customMenuItems: CustomMenuItem[]): MenuSection[] => {
     const customMenuSection = {
       id: stateId,
       isCustom: true,
+      customTranslate: true,
       stateId,
       name: customMenuItem.name,
       icon: customMenuItem.materialIcon,
@@ -1723,6 +1725,7 @@ const buildCustomMenu = (customMenuItems: CustomMenuItem[]): MenuSection[] => {
         const customMenuChildSection: MenuSection = {
           id: childStateId,
           isCustom: true,
+          customTranslate: true,
           stateId: childStateId,
           name: customMenuChildItem.name,
           type: 'link',
