@@ -89,10 +89,10 @@ export interface HomeMenuItem extends DefaultMenuItem {
   hideDashboardToolbar?: boolean;
 }
 
-export type menuConfigItem = DefaultMenuItem | HomeMenuItem | CustomMenuItemV2;
+export type MenuItem = DefaultMenuItem | HomeMenuItem | CustomMenuItemV2;
 
 export interface CustomMenuV2 {
-  items: menuConfigItem[];
+  items: MenuItem[];
 }
 
 export interface DefaultMenuItemConfig extends DefaultMenuItem {
@@ -105,9 +105,9 @@ export interface CustomMenuItemConfig extends CustomMenuItemV2 {
   pages?: CustomMenuItemConfig[];
 }
 
-export type menuConfigItemConfig = DefaultMenuItemConfig | HomeMenuItem | CustomMenuItemConfig;
+export type MenuItemConfig = DefaultMenuItemConfig | HomeMenuItem | CustomMenuItemConfig;
 
 export interface CustomMenuConfig {
-  items: menuConfigItemConfig[];
+  items: MenuItemConfig[];
 }
 
