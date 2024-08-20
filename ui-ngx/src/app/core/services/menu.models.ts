@@ -75,16 +75,14 @@ export interface MenuReference {
   pages?: Array<MenuReference>;
 }
 
-export interface HomeSection {
+export interface HomeSectionReference {
   name: string;
-  places: Array<HomeSectionPlace>;
+  places: Array<MenuId>;
 }
 
-export interface HomeSectionPlace {
+export interface HomeSection {
   name: string;
-  icon: string;
-  path: string;
-  disabled?: boolean;
+  places: Array<MenuSection>;
 }
 
 export enum MenuId {
@@ -1637,6 +1635,183 @@ const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
   ]
 ]);
 
+const defaultHomeSectionMap = new Map<Authority, HomeSectionReference[]>([
+  [
+    Authority.SYS_ADMIN,
+    [
+      {
+        name: 'tenant.management',
+        places: [MenuId.tenants, MenuId.tenant_profiles]
+      },
+      {
+        name: 'widget.management',
+        places: [MenuId.widget_library]
+      },
+      {
+        name: 'admin.system-settings',
+        places: [MenuId.general, MenuId.mail_server,
+          MenuId.notification_settings, MenuId.security_settings, MenuId.oauth2, MenuId.two_fa, MenuId.resources_library, MenuId.queues,
+          MenuId.mobile_app_settings]
+      },
+      {
+        name: 'white-labeling.white-labeling',
+        places: [MenuId.white_labeling_general, MenuId.login_white_labeling, MenuId.mail_templates]
+      },
+      {
+        name: 'custom-translation.custom-translation',
+        places: [MenuId.custom_translation]
+      },
+      {
+        name: 'custom-menu.custom-menu',
+        places: [MenuId.custom_menu]
+      }
+    ]
+  ],
+  [
+    Authority.TENANT_ADMIN,
+    [
+      {
+        name: 'solution-template.management',
+        places: [MenuId.solution_templates]
+      },
+      {
+        name: 'rulechain.management',
+        places: [MenuId.rule_chains]
+      },
+      {
+        name: 'converter.management',
+        places: [MenuId.converters]
+      },
+      {
+        name: 'integration.management',
+        places: [MenuId.integrations]
+      },
+      {
+        name: 'role.management',
+        places: [MenuId.roles]
+      },
+      {
+        name: 'user.management',
+        places: [MenuId.users]
+      },
+      {
+        name: 'customer.management',
+        places: [MenuId.customers, MenuId.customers_hierarchy]
+      },
+      {
+        name: 'asset.management',
+        places: [MenuId.assets, MenuId.asset_profiles]
+      },
+      {
+        name: 'device.management',
+        places: [MenuId.devices, MenuId.device_profiles, MenuId.otaUpdates]
+      },
+      {
+        name: 'entity-view.management',
+        places: [MenuId.entity_views]
+      },
+      {
+        name: 'edge.management',
+        places: [MenuId.edges, MenuId.rulechain_templates, MenuId.converter_templates, MenuId.integration_templates]
+      },
+      {
+        name: 'dashboard.management',
+        places: [MenuId.widget_library, MenuId.dashboards]
+      },
+      {
+        name: 'scheduler.management',
+        places: [MenuId.scheduler]
+      },
+      {
+        name: 'white-labeling.white-labeling',
+        places: [MenuId.white_labeling_general, MenuId.login_white_labeling, MenuId.mail_templates]
+      },
+      {
+        name: 'custom-translation.custom-translation',
+        places: [MenuId.custom_translation]
+      },
+      {
+        name: 'custom-menu.custom-menu',
+        places: [MenuId.custom_menu]
+      },
+      {
+        name: 'version-control.management',
+        places: [MenuId.version_control]
+      },
+      {
+        name: 'audit-log.audit',
+        places: [MenuId.audit_log, MenuId.api_usage]
+      },
+      {
+        name: 'admin.system-settings',
+        places: [MenuId.home_settings, MenuId.mail_server, MenuId.notification_settings, MenuId.self_registration,
+          MenuId.two_fa, MenuId.resources_library, MenuId.repository_settings, MenuId.auto_commit_settings]
+      }
+    ]
+  ],
+  [
+    Authority.CUSTOMER_USER,
+    [
+      {
+        name: 'role.management',
+        places: [MenuId.roles]
+      },
+      {
+        name: 'user.management',
+        places: [MenuId.users]
+      },
+      {
+        name: 'customer.management',
+        places: [MenuId.customers, MenuId.customers_hierarchy]
+      },
+      {
+        name: 'asset.management',
+        places: [MenuId.assets]
+      },
+      {
+        name: 'device.management',
+        places: [MenuId.devices]
+      },
+      {
+        name: 'entity-view.management',
+        places: [MenuId.entity_views]
+      },
+      {
+        name: 'edge.management',
+        places: [MenuId.edges]
+      },
+      {
+        name: 'dashboard.management',
+        places: [MenuId.dashboards]
+      },
+      {
+        name: 'scheduler.management',
+        places: [MenuId.scheduler]
+      },
+      {
+        name: 'white-labeling.white-labeling',
+        places: [MenuId.white_labeling_general, MenuId.login_white_labeling]
+      },
+      {
+        name: 'custom-translation.custom-translation',
+        places: [MenuId.custom_translation]
+      },
+      {
+        name: 'custom-menu.custom-menu',
+        places: [MenuId.custom_menu]
+      },
+      {
+        name: 'audit-log.audit',
+        places: [MenuId.audit_log]
+      },
+      {
+        name: 'admin.system-settings',
+        places: [MenuId.home_settings]
+      }
+    ]
+  ]
+]);
+
 export const buildUserMenu = (authState: AuthState, userPermissionsService: UserPermissionsService,
                               customMenu: CustomMenu): Array<MenuSection> => {
   const references = defaultUserMenuMap.get(authState.authUser.authority);
@@ -1656,6 +1831,12 @@ export const buildUserMenu = (authState: AuthState, userPermissionsService: User
   }
   menuSections.push(...buildCustomMenu(customMenuItems));
   return menuSections;
+};
+
+export const buildUserHome = (authState: AuthState, availableMenuSections: MenuSection[]): Array<HomeSection> => {
+  const references = defaultHomeSectionMap.get(authState.authUser.authority);
+  return (references || []).map(ref =>
+    homeReferenceToHomeSection(availableMenuSections, ref)).filter(section => !!section);
 };
 
 const referenceToMenuSection = (authState: AuthState, userPermissionsService: UserPermissionsService,
@@ -1775,4 +1956,16 @@ const getCustomMenuStateId = (name: string, stateIds: {[stateId: string]: boolea
   }
   stateIds[stateId] = true;
   return stateId;
+};
+
+const homeReferenceToHomeSection = (availableMenuSections: MenuSection[], reference: HomeSectionReference): HomeSection | undefined => {
+  const places = reference.places.map(id => availableMenuSections.find(m => m.id === id)).filter(p => !!p);
+  if (places.length) {
+    return {
+      name: reference.name,
+      places
+    };
+  } else {
+    return undefined;
+  }
 };
