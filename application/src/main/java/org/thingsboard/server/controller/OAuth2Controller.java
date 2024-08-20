@@ -63,7 +63,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.oauth2client.TbOauth2ClientService;
 import org.thingsboard.server.utils.MiscUtils;
 
-import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.UUID;
@@ -182,7 +181,8 @@ public class OAuth2Controller extends BaseController {
             "as 'SECURITY_OAUTH2_LOGIN_PROCESSING_URL' env variable. By default it is '/login/oauth2/code/'" + SYSTEM_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN')")
     @GetMapping(value = "/oauth2/loginProcessingUrl")
-    public String getLoginProcessingUrl() {
+    public String getLoginProcessingUrl() throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), OAUTH2_CLIENT, Operation.READ);
         return "\"" + oAuth2Configuration.getLoginProcessingUrl() + "\"";
     }
 
