@@ -68,13 +68,11 @@ export class CustomMenuService {
 
   public saveCustomMenu(customMenu: CustomMenu): Observable<any> {
     return this.http.post<CustomMenu>('/api/customMenu/customMenu', customMenu).pipe(
-      mergeMap(() => {
-        return this.loadCustomMenu().pipe(
+      mergeMap(() => this.loadCustomMenu().pipe(
           tap((loaded) => {
             this.customMenuChanged.next(customMenu);
           }
-        ))
-      })
+        )))
     );
   }
 }
