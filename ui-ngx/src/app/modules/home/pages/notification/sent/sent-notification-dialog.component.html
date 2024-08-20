@@ -119,6 +119,7 @@
         </ng-template>
         <ng-template #recipientsList>
           <tb-entity-list
+            syncIdsWithDB
             required
             formControlName="targets"
             labelText="{{ 'notification.recipients' | translate }}"
