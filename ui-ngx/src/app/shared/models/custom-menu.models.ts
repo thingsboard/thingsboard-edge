@@ -47,3 +47,67 @@ export interface CustomMenu {
   disabledMenuItems: MenuId[];
   menuItems: CustomMenuItem[];
 }
+
+export enum CustomMenuItemType {
+  link = 'link',
+  section = 'section'
+}
+
+export enum CustomMenuItemLinkType {
+  url = 'url',
+  dashboard = 'dashboard'
+}
+
+export interface CustomMenuItemV2 {
+  name: string;
+  icon: string;
+  type: CustomMenuItemType;
+  linkType?: CustomMenuItemLinkType;
+  dashboardId?: string;
+  hideDashboardToolbar?: boolean;
+  url?: string;
+  setAccessToken?: boolean;
+  pages?: CustomMenuItemV2[];
+}
+
+export interface DefaultMenuItem {
+  id: MenuId;
+  name?: string;
+  icon?: string;
+  pages?: DefaultMenuItem[];
+}
+
+export enum HomeMenuItemType {
+  default = 'default',
+  dashboard = 'dashboard'
+}
+
+export interface HomeMenuItem extends DefaultMenuItem {
+  id: MenuId.home;
+  type: HomeMenuItemType;
+  dashboardId?: string;
+  hideDashboardToolbar?: boolean;
+}
+
+export type menuConfigItem = DefaultMenuItem | HomeMenuItem | CustomMenuItemV2;
+
+export interface CustomMenuV2 {
+  items: menuConfigItem[];
+}
+
+export interface DefaultMenuItemConfig extends DefaultMenuItem {
+  visible: boolean;
+  pages?: DefaultMenuItemConfig[];
+}
+
+export interface CustomMenuItemConfig extends CustomMenuItemV2 {
+  visible: boolean;
+  pages?: CustomMenuItemConfig[];
+}
+
+export type menuConfigItemConfig = DefaultMenuItemConfig | HomeMenuItem | CustomMenuItemConfig;
+
+export interface CustomMenuConfig {
+  items: menuConfigItemConfig[];
+}
+
