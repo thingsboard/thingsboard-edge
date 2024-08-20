@@ -35,7 +35,7 @@ import { BreadCrumb, BreadCrumbConfig } from './breadcrumb';
 import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { distinctUntilChanged, filter, first, map, switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
-import { MenuSection } from '@core/services/menu.models';
+import { MenuSection, menuSectionMap } from '@core/services/menu.models';
 import { MenuService } from '@core/services/menu.service';
 import { UtilsService } from '@core/services/utils.service';
 import { guid } from '@core/utils';
@@ -147,8 +147,13 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
           link = customSection.path;
           queryParams = customSection.queryParams;
         } else {
-          const section = breadcrumbConfig.menuId ?
-            availableMenuSections.find(menu => menu.id === breadcrumbConfig.menuId) : null;
+          let section: MenuSection = null;
+          if (breadcrumbConfig.menuId) {
+            section = availableMenuSections.find(menu => menu.id === breadcrumbConfig.menuId);
+            if (!section) {
+              section = menuSectionMap.get(breadcrumbConfig.menuId);
+            }
+          }
           label = section?.name || breadcrumbConfig.label || 'home.home';
           customTranslate = section?.customTranslate || false;
           if (breadcrumbConfig.labelFunction) {

@@ -129,6 +129,7 @@ export enum MenuId {
   rule_chains = 'rule_chains',
   edge_management = 'edge_management',
   edges = 'edges',
+  edge_instances = 'edge_instances',
   rulechain_templates = 'rulechain_templates',
   features = 'features',
   otaUpdates = 'otaUpdates',
@@ -175,7 +176,7 @@ export enum MenuId {
 
 declare type MenuFilter = (_authState: AuthState, userPermissionsService: UserPermissionsService) => boolean;
 
-const menuSectionMap = new Map<MenuId, MenuSection>([
+export const menuSectionMap = new Map<MenuId, MenuSection>([
   [
     MenuId.home,
     {
@@ -613,6 +614,17 @@ const menuSectionMap = new Map<MenuId, MenuSection>([
     {
       id: MenuId.edges,
       name: 'edge.instances',
+      fullName: 'edge.edge-instances',
+      type: 'link',
+      path: '/edgeManagement/instances',
+      icon: 'router'
+    }
+  ],
+  [
+    MenuId.edge_instances,
+    {
+      id: MenuId.edge_instances,
+      name: 'edge.edge-instances',
       fullName: 'edge.edge-instances',
       type: 'link',
       path: '/edgeManagement/instances',
@@ -1588,7 +1600,7 @@ const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
         ]
       },
       {
-        id: MenuId.edges,
+        id: MenuId.edge_instances,
         pages: [
           {id: MenuId.edge_all},
           {id: MenuId.edge_groups},
@@ -1778,7 +1790,7 @@ const defaultHomeSectionMap = new Map<Authority, HomeSectionReference[]>([
       },
       {
         name: 'edge.management',
-        places: [MenuId.edges]
+        places: [MenuId.edge_instances]
       },
       {
         name: 'dashboard.management',
