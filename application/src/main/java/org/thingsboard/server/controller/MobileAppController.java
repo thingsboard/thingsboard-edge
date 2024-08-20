@@ -121,6 +121,7 @@ public class MobileAppController extends BaseController {
                                                            @RequestParam(required = false) String sortProperty,
                                                            @Parameter(description = SORT_ORDER_DESCRIPTION)
                                                            @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), MOBILE_APP, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return mobileAppService.findMobileAppInfosByTenantId(getTenantId(), pageLink);
     }

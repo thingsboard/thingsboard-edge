@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.id.DomainId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.domain.TbDomainService;
@@ -123,6 +124,7 @@ public class DomainController extends BaseController {
                                                      @RequestParam(required = false) String sortProperty,
                                                      @Parameter(description = SORT_ORDER_DESCRIPTION)
                                                      @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), DOMAIN, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return domainService.findDomainInfosByTenantId(getTenantId(), pageLink);
     }

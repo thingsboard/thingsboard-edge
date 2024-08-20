@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.mobile;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +50,6 @@ import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.oauth2.OAuth2ClientDao;
-import org.thingsboard.server.dao.service.Validator;
 
 import java.util.List;
 import java.util.Map;
@@ -62,8 +60,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class MobileAppServiceImpl extends AbstractEntityService implements MobileAppService {
-
-    public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
     @Autowired
     private OAuth2ClientDao oauth2ClientDao;
@@ -151,7 +147,6 @@ public class MobileAppServiceImpl extends AbstractEntityService implements Mobil
     @Override
     public void deleteMobileAppsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteMobileAppsByTenantId, tenantId [{}]", tenantId);
-        Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         mobileAppDao.deleteByTenantId(tenantId);
     }
 

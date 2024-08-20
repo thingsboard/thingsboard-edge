@@ -142,6 +142,7 @@ public class OAuth2Controller extends BaseController {
                                                                   @RequestParam(required = false) String sortProperty,
                                                                   @Parameter(description = SORT_ORDER_DESCRIPTION)
                                                                   @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), OAUTH2_CLIENT, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return oAuth2ClientService.findOAuth2ClientInfosByTenantId(getTenantId(), pageLink);
     }
@@ -153,10 +154,7 @@ public class OAuth2Controller extends BaseController {
     public List<OAuth2ClientInfo> findTenantOAuth2ClientInfosByIds(
             @Parameter(description = "A list of oauth2 ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")), required = true)
             @RequestParam("clientIds") UUID[] clientIds) throws ThingsboardException {
-        List<OAuth2ClientId> oAuth2ClientIds = new ArrayList<>();
-        for (UUID oauth2ClientId : clientIds) {
-            oAuth2ClientIds.add(new OAuth2ClientId(oauth2ClientId));
-        }
+        List<OAuth2ClientId> oAuth2ClientIds = getOAuth2ClientIds(clientIds);
         return oAuth2ClientService.findOAuth2ClientInfosByIds(getTenantId(), oAuth2ClientIds);
     }
 

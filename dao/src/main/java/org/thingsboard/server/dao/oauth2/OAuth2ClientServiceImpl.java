@@ -49,24 +49,15 @@ import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
-import org.thingsboard.server.dao.service.Validator;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.thingsboard.server.dao.service.Validator.validateId;
-import static org.thingsboard.server.dao.service.Validator.validateIds;
-import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Slf4j
 @Service("OAuth2ClientService")
 public class OAuth2ClientServiceImpl extends AbstractEntityService implements OAuth2ClientService {
-
-    public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
-    public static final String INCORRECT_CLIENT_REGISTRATION_ID = "Incorrect clientRegistrationId ";
-    public static final String INCORRECT_DOMAIN_NAME = "Incorrect domainName ";
 
     @Autowired
     private OAuth2ClientDao oauth2ClientDao;
@@ -76,7 +67,6 @@ public class OAuth2ClientServiceImpl extends AbstractEntityService implements OA
     @Override
     public List<OAuth2ClientLoginInfo> findOAuth2ClientLoginInfosByDomainName(String domainName) {
         log.trace("Executing findOAuth2ClientLoginInfosByDomainName [{}] ", domainName);
-        validateString(domainName, dn -> INCORRECT_DOMAIN_NAME + dn);
         return oauth2ClientDao.findEnabledByDomainName(domainName)
                 .stream()
                 .map(OAuth2Utils::toClientLoginInfo)
@@ -105,7 +95,6 @@ public class OAuth2ClientServiceImpl extends AbstractEntityService implements OA
     @Override
     public OAuth2Client findOAuth2ClientById(TenantId tenantId, OAuth2ClientId oAuth2ClientId) {
         log.trace("Executing findOAuth2ClientById [{}]", oAuth2ClientId);
-        validateId(oAuth2ClientId, uuid -> INCORRECT_CLIENT_REGISTRATION_ID + uuid);
         return oauth2ClientDao.findById(tenantId, oAuth2ClientId.getId());
     }
 
@@ -118,8 +107,6 @@ public class OAuth2ClientServiceImpl extends AbstractEntityService implements OA
     @Override
     public String findAppSecret(OAuth2ClientId oAuth2ClientId, String pkgName) {
         log.trace("Executing findAppSecret [{}][{}]", oAuth2ClientId, pkgName);
-        validateId(oAuth2ClientId, uuid -> INCORRECT_CLIENT_REGISTRATION_ID + uuid);
-        validateString(pkgName, "Incorrect package name");
         return oauth2ClientDao.findAppSecret(oAuth2ClientId.getId(), pkgName);
     }
 
@@ -138,7 +125,6 @@ public class OAuth2ClientServiceImpl extends AbstractEntityService implements OA
     @Override
     public void deleteOauth2ClientsByTenantId(TenantId tenantId) {
         log.trace("Executing deleteOauth2ClientsByTenantId, tenantId [{}]", tenantId);
-        Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         oauth2ClientDao.deleteByTenantId(tenantId.getId());
     }
 
@@ -152,8 +138,6 @@ public class OAuth2ClientServiceImpl extends AbstractEntityService implements OA
     @Override
     public List<OAuth2ClientInfo> findOAuth2ClientInfosByIds(TenantId tenantId, List<OAuth2ClientId> oAuth2ClientIds) {
         log.trace("Executing findQueueStatsByIds, tenantId [{}], queueStatsIds [{}]", tenantId, oAuth2ClientIds);
-        validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        validateIds(oAuth2ClientIds, ids -> "Incorrect clientIds " + ids);
         return oauth2ClientDao.findByIds(tenantId, oAuth2ClientIds)
                 .stream()
                 .map(OAuth2ClientInfo::new)

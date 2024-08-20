@@ -66,6 +66,8 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.stats.TbApiUsageStateClient;
+import org.thingsboard.server.dao.domain.DomainService;
+import org.thingsboard.server.dao.oauth2.OAuth2ClientService;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
@@ -91,6 +93,12 @@ public class HomePageApiTest extends AbstractControllerTest {
     private AdminSettingsService adminSettingsService;
     @Autowired
     private TbTenantProfileCache tenantProfileCache;
+
+    @Autowired
+    private DomainService domainService;
+
+    @Autowired
+    private OAuth2ClientService oAuth2ClientService;
 
     @MockBean
     private MailService mailService;
@@ -387,7 +395,7 @@ public class HomePageApiTest extends AbstractControllerTest {
         OAuth2Client oAuth2Client = createOauth2Client(TenantId.SYS_TENANT_ID, "test google client");
         OAuth2Client savedOAuth2Client = doPost("/api/oauth2/client", oAuth2Client, OAuth2Client.class);
 
-        Domain domain = createDomain(TenantId.SYS_TENANT_ID, "my.test.domain", true, true);
+        Domain domain = createDomain(TenantId.SYS_TENANT_ID, "my.home.domain", true, true);
         doPost("/api/domain?oauth2ClientIds=" + savedOAuth2Client.getId().getId(), domain, Domain.class);
 
         featuresInfo = doGet("/api/admin/featuresInfo", FeaturesInfo.class);
@@ -403,6 +411,8 @@ public class HomePageApiTest extends AbstractControllerTest {
         adminSettingsService.deleteAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, "twoFaSettings");
         adminSettingsService.deleteAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, "sms");
         adminSettingsService.deleteAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, "whiteLabelParams");
+        oAuth2ClientService.deleteOauth2ClientsByTenantId(TenantId.SYS_TENANT_ID);
+        domainService.deleteDomainsByTenantId(TenantId.SYS_TENANT_ID);
     }
 
     @Test
