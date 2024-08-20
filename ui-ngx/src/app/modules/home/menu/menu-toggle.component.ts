@@ -31,8 +31,6 @@
 
 import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { MenuSection, sectionPath } from '@core/services/menu.models';
-import { MenuService } from '@core/services/menu.service';
-import { UtilsService } from '@core/services/utils.service';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -48,9 +46,7 @@ export class MenuToggleComponent implements OnInit {
 
   @Input() section: MenuSection;
 
-  constructor(public utils: UtilsService,
-              private menuService: MenuService,
-              private router: Router,
+  constructor(private router: Router,
               private store: Store<AppState>) {
   }
 
