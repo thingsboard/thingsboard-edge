@@ -34,8 +34,8 @@ import { select, Store } from '@ngrx/store';
 import { AppState } from '../core.state';
 import { getCurrentOpenedMenuSections, selectAuth, selectIsAuthenticated } from '../auth/auth.selectors';
 import { filter, map, take } from 'rxjs/operators';
-import { buildUserMenu, HomeSection, MenuId, MenuSection } from '@core/services/menu.models';
-import { BehaviorSubject, ReplaySubject, Observable, Subject } from 'rxjs';
+import { buildUserMenu, filterOpenedMenuSection, HomeSection, MenuId, MenuSection } from '@core/services/menu.models';
+import { BehaviorSubject, Observable, ReplaySubject, Subject } from 'rxjs';
 import { Authority } from '@shared/models/authority.enum';
 import { CustomMenuService } from '@core/http/custom-menu.service';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -49,7 +49,7 @@ import { AuthState } from '@core/auth/auth.models';
 })
 export class MenuService {
 
-  private menuSections$: Subject<Array<MenuSection>> = new ReplaySubject<Array<MenuSection>>();
+  private menuSections$: Subject<Array<MenuSection>> = new ReplaySubject<Array<MenuSection>>(1);
   private homeSections$: Subject<Array<HomeSection>> = new BehaviorSubject<Array<HomeSection>>([]);
   private availableMenuLinks$ = this.menuSections$.pipe(
     map((items) => this.allMenuLinks(items))
@@ -127,8 +127,7 @@ export class MenuService {
   private updateOpenedMenuSections() {
     const url = this.router.url;
     const openedMenuSections = getCurrentOpenedMenuSections(this.store);
-    this.currentMenuSections.filter(section => section.type === 'toggle' &&
-      (url.startsWith(section.path) || openedMenuSections.includes(section.path))).forEach(
+    this.currentMenuSections.filter(section => filterOpenedMenuSection(section, url, openedMenuSections)).forEach(
       section => section.opened = true
     );
   }
@@ -967,26 +966,6 @@ export class MenuService {
 
   public homeSections(): Observable<Array<HomeSection>> {
     return this.homeSections$;
-  }
-
-  public sectionActive(section: MenuSection): boolean {
-    if (section.isCustom) {
-      const queryParams = this.extractQueryParams();
-      if (queryParams) {
-        if (queryParams.childStateId) {
-          return section.stateId === queryParams.childStateId ||
-            (section.childStateIds && section.childStateIds[queryParams.childStateId]);
-        } else if (queryParams.stateId) {
-          return section.stateId === queryParams.stateId;
-        } else {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    } else {
-      return section.opened;
-    }
   }
 
   public getCurrentCustomSection(): MenuSection {

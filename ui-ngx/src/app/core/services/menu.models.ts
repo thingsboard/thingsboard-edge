@@ -60,6 +60,18 @@ export interface MenuSection {
   childStateIds?: {[stateId: string]: boolean};
 }
 
+export const sectionPath = (section: MenuSection): string => {
+  if (section.isCustom) {
+    return section.path + '/' + section.stateId;
+  } else {
+    return section.path;
+  }
+};
+
+export const filterOpenedMenuSection = (section: MenuSection, url: string, openedMenuSections: string[]): boolean =>
+  section.type === 'toggle' &&
+    ((!section.isCustom && url.startsWith(section.path)) || openedMenuSections.includes(sectionPath(section)));
+
 export interface MenuReference {
   id: MenuId;
   pages?: Array<MenuReference>;
@@ -1627,9 +1639,9 @@ const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
   ]
 ]);
 
-export const buildUserMenu = (_authState: AuthState, userPermissionsService: UserPermissionsService,
+export const buildUserMenu = (authState: AuthState, userPermissionsService: UserPermissionsService,
                               customMenu: CustomMenu): Array<MenuSection> => {
-  const references = defaultUserMenuMap.get(_authState.authUser.authority);
+  const references = defaultUserMenuMap.get(authState.authUser.authority);
   let disabledItems: MenuId[] = [];
   if (customMenu && customMenu.disabledMenuItems) {
     disabledItems = customMenu.disabledMenuItems;
@@ -1639,7 +1651,7 @@ export const buildUserMenu = (_authState: AuthState, userPermissionsService: Use
     disabledItems[index] = MenuId.notification_settings;
   }
   const menuSections = (references || []).map(ref =>
-    referenceToMenuSection(_authState, userPermissionsService, disabledItems, ref)).filter(section => !!section);
+    referenceToMenuSection(authState, userPermissionsService, disabledItems, ref)).filter(section => !!section);
   let customMenuItems: CustomMenuItem[] = [];
   if (customMenu && customMenu.menuItems) {
     customMenuItems = customMenu.menuItems;
@@ -1648,15 +1660,15 @@ export const buildUserMenu = (_authState: AuthState, userPermissionsService: Use
   return menuSections;
 };
 
-const referenceToMenuSection = (_authState: AuthState, userPermissionsService: UserPermissionsService,
+const referenceToMenuSection = (authState: AuthState, userPermissionsService: UserPermissionsService,
                                 disabledItems: MenuId[], reference: MenuReference): MenuSection | undefined => {
-  if (filterMenuReference(_authState, userPermissionsService, disabledItems, reference)) {
+  if (filterMenuReference(authState, userPermissionsService, disabledItems, reference)) {
     const section = menuSectionMap.get(reference.id);
     if (section) {
       const result = deepClone(section);
       if (reference.pages?.length) {
         result.pages = reference.pages.map(page =>
-          referenceToMenuSection(_authState, userPermissionsService, disabledItems, page)).filter(page => !!page);
+          referenceToMenuSection(authState, userPermissionsService, disabledItems, page)).filter(page => !!page);
       }
       return result;
     } else {
@@ -1667,19 +1679,19 @@ const referenceToMenuSection = (_authState: AuthState, userPermissionsService: U
   }
 };
 
-const filterMenuReference = (_authState: AuthState, userPermissionsService: UserPermissionsService, disabledItems: MenuId[],
+const filterMenuReference = (authState: AuthState, userPermissionsService: UserPermissionsService, disabledItems: MenuId[],
                              reference: MenuReference): boolean => {
-  if (disabledItems.indexOf(reference.id)) {
+  if (disabledItems.includes(reference.id)) {
     return false;
   }
-  if (_authState.authUser.authority === Authority.SYS_ADMIN) {
+  if (authState.authUser.authority === Authority.SYS_ADMIN) {
     return true;
   }
   const filter = menuFilters.get(reference.id);
   if (filter) {
-    if (filter(_authState, userPermissionsService)) {
+    if (filter(authState, userPermissionsService)) {
       if (reference.pages?.length) {
-        if (reference.pages.every(page => !filterMenuReference(_authState, userPermissionsService, disabledItems, page))) {
+        if (reference.pages.every(page => !filterMenuReference(authState, userPermissionsService, disabledItems, page))) {
           return false;
         }
       }
@@ -1705,13 +1717,6 @@ const buildCustomMenu = (customMenuItems: CustomMenuItem[]): MenuSection[] => {
       iconUrl: customMenuItem.iconUrl,
       path: '/iframeView'
     } as MenuSection;
-    customMenuSection.queryParams = {
-      stateId,
-      iframeUrl: customMenuItem.iframeUrl,
-      dashboardId: customMenuItem.dashboardId,
-      hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
-      setAccessToken: customMenuItem.setAccessToken
-    };
     if (customMenuItem.childMenuItems && customMenuItem.childMenuItems.length) {
       customMenuSection.type = 'toggle';
       const pages: MenuSection[] = [];
@@ -1747,6 +1752,13 @@ const buildCustomMenu = (customMenuItems: CustomMenuItem[]): MenuSection[] => {
       customMenuSection.childStateIds = childStateIds;
     } else {
       customMenuSection.type = 'link';
+      customMenuSection.queryParams = {
+        stateId,
+        iframeUrl: customMenuItem.iframeUrl,
+        dashboardId: customMenuItem.dashboardId,
+        hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
+        setAccessToken: customMenuItem.setAccessToken
+      };
     }
     menuSections.push(customMenuSection);
   }

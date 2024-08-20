@@ -30,7 +30,7 @@
 ///
 
 import { ChangeDetectionStrategy, Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { MenuSection } from '@core/services/menu.models';
+import { MenuSection, sectionPath } from '@core/services/menu.models';
 import { MenuService } from '@core/services/menu.service';
 import { UtilsService } from '@core/services/utils.service';
 import { Router } from '@angular/router';
@@ -71,12 +71,8 @@ export class MenuToggleComponent implements OnInit, OnChanges {
     }
   }
 
-  sectionActive(): boolean {
-    return this.menuService.sectionActive(this.section);
-  }
-
   sectionHeight(): string {
-    if (this.sectionActive()) {
+    if (this.section.opened) {
       return this.sectionPages.length * 40 + 'px';
     } else {
       return '0px';
@@ -86,7 +82,7 @@ export class MenuToggleComponent implements OnInit, OnChanges {
   toggleSection(event: MouseEvent) {
     event.stopPropagation();
     this.section.opened = !this.section.opened;
-    this.store.dispatch(new ActionPreferencesUpdateOpenedMenuSection({path: this.section.path, opened: this.section.opened}));
+    this.store.dispatch(new ActionPreferencesUpdateOpenedMenuSection({path: sectionPath(this.section), opened: this.section.opened}));
   }
 
   trackBySectionPages(index: number, section: MenuSection){

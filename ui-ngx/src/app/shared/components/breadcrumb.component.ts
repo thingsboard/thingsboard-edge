@@ -29,11 +29,11 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { BehaviorSubject, Subject, Subscription } from 'rxjs';
 import { BreadCrumb, BreadCrumbConfig } from './breadcrumb';
 import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
-import { distinctUntilChanged, filter, first, map, mergeMap, tap } from 'rxjs/operators';
+import { distinctUntilChanged, filter, first, map, switchMap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { MenuSection } from '@core/services/menu.models';
 import { MenuService } from '@core/services/menu.service';
@@ -73,7 +73,7 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
   routerEventsSubscription = this.router.events.pipe(
     filter((event) => event instanceof NavigationEnd ),
     distinctUntilChanged(),
-    mergeMap(() => this.menuService.availableMenuSections().pipe(first())),
+    switchMap(() => this.menuService.availableMenuSections().pipe(first())),
     map( (sections) => this.buildBreadCrumbs(this.activatedRoute.snapshot, sections) )
   ).subscribe(breadcrumns => this.breadcrumbs$.next(breadcrumns) );
 
@@ -134,20 +134,20 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
         let iconUrl: string;
         let link: any[] | string;
         let queryParams: {[k: string]: any};
-        let section: MenuSection = null;
+        let customSection: MenuSection = null;
         if (breadcrumbConfig.custom || breadcrumbConfig.customChild) {
-          section = breadcrumbConfig.customChild ? this.menuService.getCurrentCustomChildSection()
+          customSection = breadcrumbConfig.customChild ? this.menuService.getCurrentCustomChildSection()
             : this.menuService.getCurrentCustomSection();
         }
-        if (section) {
+        if (customSection) {
           ignoreTranslate = true;
-          label = section.name;
-          icon = section.icon;
-          iconUrl = section.iconUrl;
-          link = section.path;
-          queryParams = section.queryParams;
+          label = customSection.name;
+          icon = customSection.icon;
+          iconUrl = customSection.iconUrl;
+          link = customSection.path;
+          queryParams = customSection.queryParams;
         } else {
-          section = breadcrumbConfig.menuId ?
+          const section = breadcrumbConfig.menuId ?
             availableMenuSections.find(menu => menu.id === breadcrumbConfig.menuId) : null;
           label = section?.name || breadcrumbConfig.label || 'home.home';
           if (breadcrumbConfig.labelFunction) {
@@ -180,7 +180,7 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
     return newBreadcrumbs;
   }
 
-  trackByBreadcrumbs(index: number, breadcrumb: BreadCrumb){
+  trackByBreadcrumbs(_index: number, breadcrumb: BreadCrumb){
     return breadcrumb.id;
   }
 }
