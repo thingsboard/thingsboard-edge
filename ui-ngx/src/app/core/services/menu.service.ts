@@ -49,17 +49,15 @@ import { AuthState } from '@core/auth/auth.models';
 })
 export class MenuService {
 
+  private currentMenuSections: Array<MenuSection>;
   private menuSections$: Subject<Array<MenuSection>> = new ReplaySubject<Array<MenuSection>>(1);
   private homeSections$: Subject<Array<HomeSection>> = new BehaviorSubject<Array<HomeSection>>([]);
   private availableMenuLinks$ = this.menuSections$.pipe(
     map((items) => this.allMenuLinks(items))
   );
-  availableMenuSections$ = this.menuSections$.pipe(
+  private availableMenuSections$ = this.menuSections$.pipe(
     map((items) => this.allMenuSections(items))
   );
-
-  private currentMenuSections: Array<MenuSection> = [];
-  private currentHomeSections: Array<HomeSection> = [];
 
   private currentCustomSection: MenuSection = null;
   private currentCustomChildSection: MenuSection = null;
@@ -89,11 +87,10 @@ export class MenuService {
   }
 
   private buildMenu() {
-    this.currentMenuSections.length = 0;
-    this.currentHomeSections.length = 0;
     this.store.pipe(select(selectAuth), take(1)).subscribe(
       (authState: AuthState) => {
         if (authState.authUser) {
+          let homeSections: Array<HomeSection>;
           const customMenu = this.customMenuService.getCustomMenu();
           let disabledItems: MenuId[] = [];
           if (customMenu && customMenu.disabledMenuItems) {
@@ -105,20 +102,20 @@ export class MenuService {
           }
           switch (authState.authUser.authority) {
             case Authority.SYS_ADMIN:
-              this.currentHomeSections = this.buildSysAdminHome(disabledItems);
+              homeSections = this.buildSysAdminHome(disabledItems);
               break;
             case Authority.TENANT_ADMIN:
-              this.currentHomeSections = this.buildTenantAdminHome(authState, disabledItems);
+              homeSections = this.buildTenantAdminHome(authState, disabledItems);
               break;
             case Authority.CUSTOMER_USER:
-              this.currentHomeSections = this.buildCustomerUserHome(authState, disabledItems);
+              homeSections = this.buildCustomerUserHome(authState, disabledItems);
               break;
           }
           this.currentMenuSections = buildUserMenu(authState, this.userPermissionsService, customMenu);
           this.updateCurrentCustomSection();
           this.updateOpenedMenuSections();
           this.menuSections$.next(this.currentMenuSections);
-          this.homeSections$.next(this.currentHomeSections);
+          this.homeSections$.next(homeSections);
         }
       }
     );
@@ -939,7 +936,7 @@ export class MenuService {
   private allMenuLinks(sections: Array<MenuSection>): Array<MenuSection> {
     const result: Array<MenuSection> = [];
     for (const section of sections) {
-      if (section.type === 'link' && !section.disabled) {
+      if (section.type === 'link') {
         result.push(section);
       }
       if (section.pages && section.pages.length) {
@@ -1031,11 +1028,10 @@ export class MenuService {
         if (parentSection) {
           if (parentSection.pages) {
             const childPages = parentSection.pages;
-            const filteredPages = childPages.filter((page) => !page.disabled);
-            if (filteredPages && filteredPages.length) {
-              const redirectPage = filteredPages.filter((page) => page.path === redirectPath);
+            if (childPages && childPages.length) {
+              const redirectPage = childPages.filter((page) => page.path === redirectPath);
               if (!redirectPage || !redirectPage.length) {
-                return filteredPages[0].path;
+                return childPages[0].path;
               }
             }
             return redirectPath;
@@ -1048,7 +1044,7 @@ export class MenuService {
 
   private findSectionByPath(sections: MenuSection[], sectionPath: string): MenuSection {
     for (const section of sections) {
-      if (sectionPath === section.path && !section.disabled) {
+      if (sectionPath === section.path) {
         return section;
       }
       if (section.pages?.length) {

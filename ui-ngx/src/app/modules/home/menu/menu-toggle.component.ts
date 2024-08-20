@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectionStrategy, Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
 import { MenuSection, sectionPath } from '@core/services/menu.models';
 import { MenuService } from '@core/services/menu.service';
 import { UtilsService } from '@core/services/utils.service';
@@ -44,11 +44,9 @@ import { ActionPreferencesUpdateOpenedMenuSection } from '@core/auth/auth.action
   styleUrls: ['./menu-toggle.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MenuToggleComponent implements OnInit, OnChanges {
+export class MenuToggleComponent implements OnInit {
 
   @Input() section: MenuSection;
-
-  sectionPages: Array<MenuSection>;
 
   constructor(public utils: UtilsService,
               private menuService: MenuService,
@@ -57,23 +55,11 @@ export class MenuToggleComponent implements OnInit, OnChanges {
   }
 
   ngOnInit() {
-    this.sectionPages = this.section.pages.filter((page) => !page.disabled);
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    for (const propName of Object.keys(changes)) {
-      const change = changes[propName];
-      if (!change.firstChange && change.currentValue !== change.previousValue) {
-        if (propName === 'section') {
-          this.sectionPages = this.section.pages.filter((page) => !page.disabled);
-        }
-      }
-    }
   }
 
   sectionHeight(): string {
     if (this.section.opened) {
-      return this.sectionPages.length * 40 + 'px';
+      return this.section.pages.length * 40 + 'px';
     } else {
       return '0px';
     }

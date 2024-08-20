@@ -50,9 +50,7 @@ export interface MenuSection {
   iconUrl?: string;
   pages?: Array<MenuSection>;
   opened?: boolean;
-  disabled?: boolean;
   ignoreTranslate?: boolean;
-  groupType?: EntityType;
   rootOnly?: boolean;
   isCustom?: boolean;
   isNew?: boolean;
