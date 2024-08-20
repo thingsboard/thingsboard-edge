@@ -381,56 +381,47 @@ export class MenuService {
 
     const securitySettingPages: Array<MenuSection> = [
       {
-        id: 'security_settings',
-        name: 'security.security',
-        type: 'toggle',
-        path: '/security-settings',
-        icon: 'security',
+        id: 'security_settings_general',
+        name: 'admin.general',
+        fullName: 'security.general-settings',
+        type: 'link',
+        path: '/security-settings/general',
+        icon: 'settings_applications'
+      },
+      {
+        id: '2fa',
+        name: 'admin.2fa.2fa',
+        type: 'link',
+        path: '/security-settings/2fa',
+        icon: 'mdi:two-factor-authentication'
+      },
+      {
+        id: 'oauth2',
+        name: 'admin.oauth2.oauth2',
+        type: 'link',
+        path: '/security-settings/oauth2',
+        icon: 'mdi:shield-account',
         pages: [
           {
-            id: 'security_settings_general',
-            name: 'admin.general',
-            fullName: 'security.general-settings',
+            id: 'domains',
+            name: 'admin.oauth2.domains',
             type: 'link',
-            path: '/security-settings/general',
-            icon: 'settings_applications'
+            path: '/security-settings/oauth2/domains',
+            icon: 'domain'
           },
           {
-            id: '2fa',
-            name: 'admin.2fa.2fa',
+            id: 'mobile_app',
+            name: 'admin.oauth2.mobile-apps',
             type: 'link',
-            path: '/security-settings/2fa',
-            icon: 'mdi:two-factor-authentication'
+            path: '/security-settings/oauth2/mobile-applications',
+            icon: 'smartphone'
           },
           {
-            id: 'oauth2',
-            name: 'admin.oauth2.oauth2',
+            id: 'clients',
+            name: 'admin.oauth2.clients',
             type: 'link',
-            path: '/security-settings/oauth2',
-            icon: 'mdi:shield-account',
-            pages: [
-              {
-                id: 'domains',
-                name: 'admin.oauth2.domains',
-                type: 'link',
-                path: '/security-settings/oauth2/domains',
-                icon: 'domain'
-              },
-              {
-                id: 'mobile_app',
-                name: 'admin.oauth2.mobile-apps',
-                type: 'link',
-                path: '/security-settings/oauth2/mobile-applications',
-                icon: 'smartphone'
-              },
-              {
-                id: 'clients',
-                name: 'admin.oauth2.clients',
-                type: 'link',
-                path: '/security-settings/oauth2/clients',
-                icon: 'public'
-              }
-            ]
+            path: '/security-settings/oauth2/clients',
+            icon: 'public'
           }
         ]
       }
