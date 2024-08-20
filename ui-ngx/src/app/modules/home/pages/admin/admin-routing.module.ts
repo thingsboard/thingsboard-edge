@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { inject, Injectable, NgModule } from '@angular/core';
+import {inject, Injectable, NgModule} from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, ResolveFn, RouterModule, RouterStateSnapshot, Routes } from '@angular/router';
 import { MailServerComponent } from '@modules/home/pages/admin/mail-server.component';
 import { SmsProviderComponent } from '@home/pages/admin/sms-provider.component';
@@ -45,8 +45,6 @@ import { CustomMenu } from '@shared/models/custom-menu.models';
 import { CustomMenuService } from '@core/http/custom-menu.service';
 import { WhiteLabelingComponent } from '@home/pages/admin/white-labeling.component';
 import { SelfRegistrationComponent } from '@home/pages/admin/self-registration.component';
-import { OAuth2SettingsComponent } from '@home/pages/admin/oauth2-settings.component';
-import { OAuth2Service } from '@core/http/oauth2.service';
 import { HomeSettingsComponent } from '@home/pages/admin/home-settings.component';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { ResourcesLibraryTableConfigResolver } from '@home/pages/admin/resource/resources-library-table-config.resolve';
@@ -65,6 +63,7 @@ import { rolesRoutes } from '@home/pages/role/role-routing.module';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { CustomTranslationRoutes } from '@home/pages/custom-translation/custom-translation-routing.module';
 import { MobileAppSettingsComponent } from '@home/pages/admin/mobile-app-settings.component';
+import { oAuth2Routes } from '@home/pages/admin/oauth2/oauth2-routing.module';
 import { ImageResourceType, IMAGES_URL_PREFIX, ResourceSubType } from '@shared/models/resource.models';
 import { ScadaSymbolComponent } from '@home/pages/scada-symbol/scada-symbol.component';
 import { ImageService } from '@core/http/image.service';
@@ -87,17 +86,6 @@ export class CustomMenuResolver implements Resolve<CustomMenu> {
   }
 }
 
-@Injectable()
-export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
-
-  constructor(private oauth2Service: OAuth2Service) {
-  }
-
-  resolve(): Observable<string> {
-    return this.oauth2Service.getLoginProcessingUrl();
-  }
-}
-
 export const scadaSymbolResolver: ResolveFn<ScadaSymbolData> =
   (route: ActivatedRouteSnapshot,
    state: RouterStateSnapshot,
@@ -108,7 +96,7 @@ export const scadaSymbolResolver: ResolveFn<ScadaSymbolData> =
       imageResource: imageService.getImageInfo(type, key),
       scadaSymbolContent: imageService.getImageString(`${IMAGES_URL_PREFIX}/${type}/${encodeURIComponent(key)}`)
     });
-};
+  };
 
 export const scadaSymbolBreadcumbLabelFunction: BreadCrumbLabelFunction<ScadaSymbolComponent>
   = ((route, translate, component) =>
@@ -466,22 +454,7 @@ const routes: Routes = [
           }
         }
       },
-      {
-        path: 'oauth2',
-        component: OAuth2SettingsComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.SYS_ADMIN],
-          title: 'admin.oauth2.oauth2',
-          breadcrumb: {
-            label: 'admin.oauth2.oauth2',
-            icon: 'security'
-          }
-        },
-        resolve: {
-          loginProcessingUrl: OAuth2LoginProcessingUrlResolver
-        }
-      },
+      ...oAuth2Routes,
       ...rolesRoutes,
       {
         path: 'selfRegistration',
@@ -597,7 +570,6 @@ const routes: Routes = [
   exports: [RouterModule],
   providers: [
     CustomMenuResolver,
-    OAuth2LoginProcessingUrlResolver,
     ResourcesLibraryTableConfigResolver,
     QueuesTableConfigResolver
   ]

@@ -259,7 +259,7 @@ public class DefaultEdgeNotificationService implements EdgeNotificationService {
                         case NOTIFICATION_RULE, NOTIFICATION_TARGET, NOTIFICATION_TEMPLATE ->
                                 notificationProcessor.processEntityNotification(tenantId, edgeNotificationMsg);
                         case DEVICE_GROUP_OTA -> deviceProcessor.processDeviceOtaNotification(tenantId, edgeNotificationMsg);
-                        case OAUTH2 -> oAuth2Processor.processOAuth2Notification(tenantId, edgeNotificationMsg);
+                        case OAUTH2_CLIENT -> oAuth2Processor.processOAuth2Notification(tenantId, edgeNotificationMsg);
                         case CUSTOM_TRANSLATION -> customTranslationEdgeProcessor.processCustomTranslationNotification(tenantId, edgeNotificationMsg);
                         default -> log.warn("[{}] Edge event type [{}] is not designed to be pushed to edge", tenantId, type);
                     }

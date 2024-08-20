@@ -54,8 +54,8 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.oauth2.OAuth2Info;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
+import org.thingsboard.server.common.data.oauth2.OAuth2Client;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -256,9 +256,9 @@ public class EdgeEventSourcingListener {
                     return false;
             }
         }
-        if (entity instanceof OAuth2Info oAuth2Info) {
-            return oAuth2Info.isEdgeEnabled();
-        }
+//        if (entity instanceof OAuth2Info oAuth2Info) {
+//            return oAuth2Info.isEdgeEnabled();
+//        }
         // Default: If the entity doesn't match any of the conditions, consider it as valid.
         return true;
     }
@@ -283,8 +283,8 @@ public class EdgeEventSourcingListener {
     private EdgeEventType getEdgeEventTypeForEntityEvent(Object entity) {
         if (entity instanceof AlarmComment) {
             return EdgeEventType.ALARM_COMMENT;
-        } else if (entity instanceof OAuth2Info) {
-            return EdgeEventType.OAUTH2;
+        } else if (entity instanceof OAuth2Client) {
+            return EdgeEventType.OAUTH2_CLIENT;
         } else if (entity instanceof DeviceGroupOtaPackage) {
             return EdgeEventType.DEVICE_GROUP_OTA;
         }
@@ -294,7 +294,7 @@ public class EdgeEventSourcingListener {
     private String getBodyMsgForEntityEvent(Object entity) {
         if (entity instanceof AlarmComment || entity instanceof DeviceGroupOtaPackage) {
             return JacksonUtil.toString(entity);
-        } else if (entity instanceof OAuth2Info) {
+        } else if (entity instanceof OAuth2Client) {
             return JacksonUtil.toString(entity);
         }
         return null;
