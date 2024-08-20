@@ -35,6 +35,7 @@ import { NgModule } from '@angular/core';
 import { otaUpdatesRoutes } from '@home/pages/ota-update/ota-update-routing.module';
 import { vcRoutes } from '@home/pages/vc/vc-routing.module';
 import { schedulerRoutes } from '@home/pages/scheduler/scheduler-routing.module';
+import { MenuId } from '@core/services/menu.models';
 
 const routes: Routes = [
   {
@@ -42,8 +43,7 @@ const routes: Routes = [
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
-        label: 'feature.advanced-features',
-        icon: 'construction'
+        menuId: MenuId.features
       }
     },
     children: [

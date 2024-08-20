@@ -36,6 +36,7 @@ import { Observable } from 'rxjs';
 import { OAuth2Service } from '@core/http/oauth2.service';
 import { AlarmTableComponent } from '@home/components/alarm/alarm-table.component';
 import { AlarmsMode } from '@shared/models/alarm.models';
+import { MenuId } from '@core/services/menu.models';
 
 @Injectable()
 export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
@@ -56,8 +57,7 @@ const routes: Routes = [
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       title: 'alarm.alarms',
       breadcrumb: {
-        label: 'alarm.alarms',
-        icon: 'mdi:alert-outline'
+        menuId: MenuId.alarms
       },
       isPage: true,
       alarmsMode: AlarmsMode.ALL

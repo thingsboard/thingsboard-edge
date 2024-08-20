@@ -44,6 +44,7 @@ import {
 import { SolutionsService } from '@core/http/solutions.service';
 import { SolutionTemplateDetailsComponent } from '@home/pages/solution-template/solution-template-details.component';
 import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
+import { MenuId } from '@core/services/menu.models';
 
 @Injectable()
 export class SolutionTemplateInfosResolver implements Resolve<Array<TenantSolutionTemplateInfo>> {
@@ -79,8 +80,7 @@ const routes: Routes = [
     path: 'solutionTemplates',
     data: {
       breadcrumb: {
-        label: 'solution-template.solution-templates',
-        icon: 'apps'
+        menuId: MenuId.solution_templates
       }
     },
     children: [
