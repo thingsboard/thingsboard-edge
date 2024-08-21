@@ -205,7 +205,7 @@ public class TbSimpleAggMsgNode implements TbNode {
         log.trace("Reporting interval: [{}][{}]", ts, interval);
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("ts", Long.toString(ts));
-        metaData.putValue("replaceValue", "true");
+        metaData.putValue("overwriteValue", "true");
         ctx.enqueueForTellNext(TbMsg.newMsg(queueName, outMsgType, entityId, metaData,
                 interval.toValueJson(gson, config.getOutputValueKey())), TbNodeConnectionType.SUCCESS);
     }

@@ -119,12 +119,12 @@ public class TbMsgTimeseriesNode implements TbNode {
         if (ttl == 0L) {
             ttl = tenantProfileDefaultStorageTtl;
         }
-        String replaceValueStr = msg.getMetaData().getValue("replaceValue");
-        boolean replaceValue = "true".equalsIgnoreCase(replaceValueStr);
+        String overwriteValueStr = msg.getMetaData().getValue("overwriteValue");
+        boolean overwriteValue = Boolean.parseBoolean(overwriteValueStr);
         if (config.isSkipLatestPersistence()) {
-            ctx.getTelemetryService().saveWithoutLatestAndNotify(ctx.getTenantId(), msg.getCustomerId(), msg.getOriginator(), tsKvEntryList, ttl, new TelemetryNodeCallback(ctx, msg), replaceValue);
+            ctx.getTelemetryService().saveWithoutLatestAndNotify(ctx.getTenantId(), msg.getCustomerId(), msg.getOriginator(), tsKvEntryList, ttl, new TelemetryNodeCallback(ctx, msg), overwriteValue);
         } else {
-            ctx.getTelemetryService().saveAndNotify(ctx.getTenantId(), msg.getCustomerId(), msg.getOriginator(), tsKvEntryList, ttl, new TelemetryNodeCallback(ctx, msg), replaceValue);
+            ctx.getTelemetryService().saveAndNotify(ctx.getTenantId(), msg.getCustomerId(), msg.getOriginator(), tsKvEntryList, ttl, new TelemetryNodeCallback(ctx, msg), overwriteValue);
         }
     }
 

@@ -49,7 +49,7 @@ public interface TimeseriesDao {
 
     ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry, long ttl);
 
-    default ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry, long ttl, boolean replaceValue) {
+    default ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry, long ttl, boolean overwriteValue) {
         return save(tenantId, entityId, tsKvEntry, ttl);
     }
 

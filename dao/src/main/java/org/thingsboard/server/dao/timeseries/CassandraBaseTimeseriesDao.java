@@ -203,11 +203,11 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
     }
 
     @Override
-    public ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry, long ttl, boolean replaceValue) {
+    public ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry, long ttl, boolean overwriteValue) {
         List<ListenableFuture<Void>> futures = new ArrayList<>();
         ttl = computeTtl(ttl);
         int dataPoints = tsKvEntry.getDataPoints();
-        if (replaceValue) { //TODO: remove all changes related to the 'replaceValue' after release.
+        if (overwriteValue && !setNullValuesEnabled) { //TODO: remove all changes related to the 'overwriteValue' after release.
             dataPoints += 4;
         }
         int dataPointDays = dataPoints * Math.max(1, (int) (ttl / SECONDS_IN_DAY));
@@ -218,7 +218,7 @@ public class CassandraBaseTimeseriesDao extends AbstractCassandraBaseTimeseriesD
         long ts = tsKvEntry.getTs();
         DataType type = tsKvEntry.getDataType();
         BoundStatementBuilder stmtBuilder;
-        if (setNullValuesEnabled || replaceValue) {
+        if (setNullValuesEnabled || overwriteValue) {
             stmtBuilder = new BoundStatementBuilder((ttl == 0 ? getSaveWithNullStmt() : getSaveWithNullWithTtlStmt()).bind());
             stmtBuilder.setString(0, entityType)
                     .setUuid(1, entityIdId)

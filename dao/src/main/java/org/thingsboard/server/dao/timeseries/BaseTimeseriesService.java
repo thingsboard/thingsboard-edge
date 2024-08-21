@@ -190,8 +190,8 @@ public class BaseTimeseriesService implements TimeseriesService {
     }
 
     @Override
-    public ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl, boolean replaceValue) {
-        return doSave(tenantId, entityId, tsKvEntries, ttl, true, replaceValue);
+    public ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl, boolean overwriteValue) {
+        return doSave(tenantId, entityId, tsKvEntries, ttl, true, overwriteValue);
     }
 
     @Override
@@ -200,18 +200,18 @@ public class BaseTimeseriesService implements TimeseriesService {
     }
 
     @Override
-    public ListenableFuture<Integer> saveWithoutLatest(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl, boolean replaceValue) {
-        return doSave(tenantId, entityId, tsKvEntries, ttl, false, replaceValue);
+    public ListenableFuture<Integer> saveWithoutLatest(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl, boolean overwriteValue) {
+        return doSave(tenantId, entityId, tsKvEntries, ttl, false, overwriteValue);
     }
 
-    private ListenableFuture<Integer> doSave(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl, boolean saveLatest, boolean replaceValue) {
+    private ListenableFuture<Integer> doSave(TenantId tenantId, EntityId entityId, List<TsKvEntry> tsKvEntries, long ttl, boolean saveLatest, boolean overwriteValue) {
         int inserts = saveLatest ? INSERTS_PER_ENTRY : INSERTS_PER_ENTRY_WITHOUT_LATEST;
         List<ListenableFuture<Integer>> futures = new ArrayList<>(tsKvEntries.size() * inserts);
         for (TsKvEntry tsKvEntry : tsKvEntries) {
             if (saveLatest) {
-                saveAndRegisterFutures(tenantId, futures, entityId, tsKvEntry, ttl, replaceValue);
+                saveAndRegisterFutures(tenantId, futures, entityId, tsKvEntry, ttl, overwriteValue);
             } else {
-                saveWithoutLatestAndRegisterFutures(tenantId, futures, entityId, tsKvEntry, ttl, replaceValue);
+                saveWithoutLatestAndRegisterFutures(tenantId, futures, entityId, tsKvEntry, ttl, overwriteValue);
             }
         }
         return Futures.transform(Futures.allAsList(futures), SUM_ALL_INTEGERS, MoreExecutors.directExecutor());
@@ -226,21 +226,21 @@ public class BaseTimeseriesService implements TimeseriesService {
         return Futures.allAsList(futures);
     }
 
-    private void saveAndRegisterFutures(TenantId tenantId, List<ListenableFuture<Integer>> futures, EntityId entityId, TsKvEntry tsKvEntry, long ttl, boolean replaceValue) {
-        doSaveAndRegisterFuturesFor(tenantId, futures, entityId, tsKvEntry, ttl, replaceValue);
+    private void saveAndRegisterFutures(TenantId tenantId, List<ListenableFuture<Integer>> futures, EntityId entityId, TsKvEntry tsKvEntry, long ttl, boolean overwriteValue) {
+        doSaveAndRegisterFuturesFor(tenantId, futures, entityId, tsKvEntry, ttl, overwriteValue);
         futures.add(Futures.transform(timeseriesLatestDao.saveLatest(tenantId, entityId, tsKvEntry), v -> 0, MoreExecutors.directExecutor()));
     }
 
-    private void saveWithoutLatestAndRegisterFutures(TenantId tenantId, List<ListenableFuture<Integer>> futures, EntityId entityId, TsKvEntry tsKvEntry, long ttl, boolean replaceValue) {
-        doSaveAndRegisterFuturesFor(tenantId, futures, entityId, tsKvEntry, ttl, replaceValue);
+    private void saveWithoutLatestAndRegisterFutures(TenantId tenantId, List<ListenableFuture<Integer>> futures, EntityId entityId, TsKvEntry tsKvEntry, long ttl, boolean overwriteValue) {
+        doSaveAndRegisterFuturesFor(tenantId, futures, entityId, tsKvEntry, ttl, overwriteValue);
     }
 
-    private void doSaveAndRegisterFuturesFor(TenantId tenantId, List<ListenableFuture<Integer>> futures, EntityId entityId, TsKvEntry tsKvEntry, long ttl, boolean replaceValue) {
+    private void doSaveAndRegisterFuturesFor(TenantId tenantId, List<ListenableFuture<Integer>> futures, EntityId entityId, TsKvEntry tsKvEntry, long ttl, boolean overwriteValue) {
         if (entityId.getEntityType().equals(EntityType.ENTITY_VIEW)) {
             throw new IncorrectParameterException("Telemetry data can't be stored for entity view. Read only");
         }
         futures.add(timeseriesDao.savePartition(tenantId, entityId, tsKvEntry.getTs(), tsKvEntry.getKey()));
-        futures.add(timeseriesDao.save(tenantId, entityId, tsKvEntry, ttl, replaceValue));
+        futures.add(timeseriesDao.save(tenantId, entityId, tsKvEntry, ttl, overwriteValue));
     }
 
     private List<ReadTsKvQuery> updateQueriesForEntityView(EntityView entityView, List<ReadTsKvQuery> queries) {
