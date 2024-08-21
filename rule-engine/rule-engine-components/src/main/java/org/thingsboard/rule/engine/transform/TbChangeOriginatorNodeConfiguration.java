@@ -34,13 +34,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.rule.engine.api.NodeConfiguration;
 
-import static org.thingsboard.rule.engine.transform.ChangeOriginatorSource.CUSTOMER;
+import static org.thingsboard.rule.engine.transform.OriginatorSource.CUSTOMER;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class TbChangeOriginatorNodeConfiguration extends TbAbstractTransformNodeConfigurationWithRelationQuery implements NodeConfiguration<TbChangeOriginatorNodeConfiguration> {
 
-    private ChangeOriginatorSource originatorSource;
+    private OriginatorSource originatorSource;
     private String entityType;
     private String entityNamePattern;
     private boolean preserveOriginatorIfCustomer;

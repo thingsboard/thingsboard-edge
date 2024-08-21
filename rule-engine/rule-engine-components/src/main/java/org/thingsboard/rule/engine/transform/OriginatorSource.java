@@ -30,7 +30,7 @@
  */
 package org.thingsboard.rule.engine.transform;
 
-public enum ChangeOriginatorSource {
+public enum OriginatorSource {
     CUSTOMER,
     TENANT,
     RELATED,
