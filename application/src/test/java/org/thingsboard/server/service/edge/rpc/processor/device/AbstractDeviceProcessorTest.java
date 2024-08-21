@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessorTest;
@@ -76,6 +77,9 @@ public abstract class AbstractDeviceProcessorTest extends BaseEdgeProcessorTest 
         deviceProfile.setProfileData(deviceProfileData);
         deviceProfile.setTransportType(DeviceTransportType.DEFAULT);
 
+        DeviceCredentials deviceCredentials = new DeviceCredentials();
+        deviceCredentials.setDeviceId(deviceId);
+
         Device device = new Device();
         device.setDeviceProfileId(deviceProfileId);
         device.setId(deviceId);
@@ -86,9 +90,9 @@ public abstract class AbstractDeviceProcessorTest extends BaseEdgeProcessorTest 
         edgeEvent.setTenantId(tenantId);
         edgeEvent.setAction(EdgeEventActionType.ADDED);
 
-
         willReturn(device).given(deviceService).findDeviceById(tenantId, deviceId);
         willReturn(deviceProfile).given(deviceProfileService).findDeviceProfileById(tenantId, deviceProfileId);
+        willReturn(deviceCredentials).given(deviceCredentialsService).findDeviceCredentialsByDeviceId(tenantId, deviceId);
     }
 
     protected void updateDeviceProfileDefaultFields(long expectedDashboardIdMSB, long expectedDashboardIdLSB,

@@ -32,9 +32,7 @@ package org.thingsboard.server.common.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.Nullable;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.ApiUsageStateValue;
@@ -44,6 +42,7 @@ import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ResourceSubType;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.Tenant;
@@ -186,6 +185,7 @@ public class ProtoUtils {
                 .setEdgeIdMSB(response.getEdgeId().getId().getMostSignificantBits())
                 .setEdgeIdLSB(response.getEdgeId().getId().getLeastSignificantBits())
                 .setSuccess(response.isSuccess())
+                .setError(response.getError())
                 .build();
     }
 
@@ -194,7 +194,8 @@ public class ProtoUtils {
                 new UUID(proto.getResponseIdMSB(), proto.getResponseIdLSB()),
                 TenantId.fromUUID(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB())),
                 new EdgeId(new UUID(proto.getEdgeIdMSB(), proto.getEdgeIdLSB())),
-                proto.getSuccess()
+                proto.getSuccess(),
+                proto.getError()
         );
     }
 
@@ -592,6 +593,9 @@ public class ProtoUtils {
         if (isNotNull(device.getDeviceDataBytes())) {
             builder.setDeviceData(ByteString.copyFrom(device.getDeviceDataBytes()));
         }
+        if (isNotNull(device.getVersion())) {
+            builder.setVersion(device.getVersion());
+        }
         return builder.build();
     }
 
@@ -622,6 +626,9 @@ public class ProtoUtils {
         }
         if (proto.hasDeviceData()) {
             device.setDeviceDataBytes(proto.getDeviceData().toByteArray());
+        }
+        if (proto.hasVersion()) {
+            device.setVersion(proto.getVersion());
         }
         return device;
     }
@@ -678,6 +685,9 @@ public class ProtoUtils {
             builder.setDefaultEdgeRuleChainIdMSB(getMsb(deviceProfile.getDefaultEdgeRuleChainId()))
                     .setDefaultEdgeRuleChainIdLSB(getLsb(deviceProfile.getDefaultEdgeRuleChainId()));
         }
+        if (isNotNull(deviceProfile.getVersion())) {
+            builder.setVersion(deviceProfile.getVersion());
+        }
         return builder.build();
     }
 
@@ -723,6 +733,9 @@ public class ProtoUtils {
         if (proto.hasDefaultEdgeRuleChainIdMSB() && proto.hasDefaultEdgeRuleChainIdLSB()) {
             deviceProfile.setDefaultEdgeRuleChainId(getEntityId(proto.getDefaultEdgeRuleChainIdMSB(), proto.getDefaultEdgeRuleChainIdLSB(), RuleChainId::new));
         }
+        if (proto.hasVersion()) {
+            deviceProfile.setVersion(proto.getVersion());
+        }
         return deviceProfile;
     }
 
@@ -765,6 +778,9 @@ public class ProtoUtils {
         if (isNotNull(tenant.getAdditionalInfo())) {
             builder.setAdditionalInfo(JacksonUtil.toString(tenant.getAdditionalInfo()));
         }
+        if (isNotNull(tenant.getVersion())) {
+            builder.setVersion(tenant.getVersion());
+        }
         return builder.build();
     }
 
@@ -803,6 +819,9 @@ public class ProtoUtils {
         }
         if (proto.hasAdditionalInfo()) {
             tenant.setAdditionalInfo(JacksonUtil.toJsonNode(proto.getAdditionalInfo()));
+        }
+        if (proto.hasVersion()) {
+            tenant.setVersion(proto.getVersion());
         }
         return tenant;
     }
@@ -876,6 +895,9 @@ public class ProtoUtils {
             builder.setCustomerIdMSB(getMsb(resource.getCustomerId()))
                     .setCustomerIdLSB(getLsb(resource.getCustomerId()));
         }
+        if (isNotNull(resource.getResourceSubType())) {
+            builder.setResourceSubType(resource.getResourceSubType().name());
+        }
         return builder.build();
     }
 
@@ -909,6 +931,9 @@ public class ProtoUtils {
         }
         if (proto.hasCustomerIdMSB() && proto.hasCustomerIdLSB()) {
             resource.setCustomerId(getEntityId(proto.getCustomerIdMSB(), proto.getCustomerIdLSB(), CustomerId::new));
+        }
+        if (proto.hasResourceSubType()) {
+            resource.setResourceSubType(ResourceSubType.valueOf(proto.getResourceSubType()));
         }
         return resource;
     }
@@ -1019,6 +1044,9 @@ public class ProtoUtils {
         if (deviceCredentials.getCredentialsValue() != null) {
             builder.setCredentialsValue(deviceCredentials.getCredentialsValue());
         }
+        if (deviceCredentials.getVersion() != null) {
+            builder.setVersion(deviceCredentials.getVersion());
+        }
         return builder.build();
     }
 
@@ -1030,6 +1058,7 @@ public class ProtoUtils {
         deviceCredentials.setCredentialsId(proto.getCredentialsId());
         deviceCredentials.setCredentialsType(DeviceCredentialsType.valueOf(proto.getCredentialsType().name()));
         deviceCredentials.setCredentialsValue(proto.hasCredentialsValue() ? proto.getCredentialsValue() : null);
+        deviceCredentials.setVersion(proto.hasVersion() ? proto.getVersion() : null);
         return deviceCredentials;
     }
 
@@ -1149,6 +1178,9 @@ public class ProtoUtils {
             builder.setExternalIdMSB(getMsb(integration.getExternalId()))
                     .setExternalIdLSB(getLsb(integration.getExternalId()));
         }
+        if (isNotNull(integration.getVersion())) {
+            builder.setVersion(integration.getVersion());
+        }
 
         return builder.build();
     }
@@ -1181,6 +1213,9 @@ public class ProtoUtils {
         if (proto.hasExternalIdMSB() && proto.hasExternalIdLSB()) {
             integration.setExternalId(getEntityId(proto.getExternalIdMSB(), proto.getExternalIdLSB(), IntegrationId::new));
         }
+        if (proto.hasVersion()) {
+            integration.setVersion(proto.getVersion());
+        }
 
         return integration;
     }
@@ -1205,6 +1240,9 @@ public class ProtoUtils {
             builder.setExternalIdMSB(getMsb(converter.getExternalId()))
                     .setExternalIdLSB(getLsb(converter.getExternalId()));
         }
+        if (isNotNull(converter.getVersion())) {
+            builder.setVersion(converter.getVersion());
+        }
 
         return builder.build();
     }
@@ -1224,6 +1262,9 @@ public class ProtoUtils {
         }
         if (proto.hasExternalIdMSB() && proto.hasExternalIdLSB()) {
             converter.setExternalId(getEntityId(proto.getExternalIdMSB(), proto.getExternalIdLSB(), ConverterId::new));
+        }
+        if (proto.hasVersion()) {
+            converter.setVersion(proto.getVersion());
         }
 
         return converter;

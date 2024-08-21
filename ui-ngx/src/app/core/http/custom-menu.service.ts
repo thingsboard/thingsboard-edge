@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { CustomMenu } from '@shared/models/custom-menu.models';
+import { CustomMenu, CustomMenuConfig } from '@shared/models/custom-menu.models';
 import { Observable, Subject } from 'rxjs';
 import { mergeMap, tap } from 'rxjs/operators';
 
@@ -55,26 +55,25 @@ export class CustomMenuService {
   }
 
   public loadCustomMenu(): Observable<CustomMenu> {
-    return this.http.get<CustomMenu>('/api/customMenu/customMenu').pipe(
+    return this.http.get<CustomMenu>('/api/customMenu/customMenu')
+    .pipe(
       tap((customMenu) => {
         this.customMenu = customMenu;
       })
     );
   }
 
-  public getCurrentCustomMenu(): Observable<CustomMenu> {
-    return this.http.get<CustomMenu>('/api/customMenu/currentCustomMenu');
+  public getCurrentCustomMenu(): Observable<CustomMenuConfig> {
+    return this.http.get<CustomMenuConfig>('/api/customMenu/currentCustomMenu');
   }
 
-  public saveCustomMenu(customMenu: CustomMenu): Observable<any> {
-    return this.http.post<CustomMenu>('/api/customMenu/customMenu', customMenu).pipe(
-      mergeMap(() => {
-        return this.loadCustomMenu().pipe(
+  public saveCustomMenu(customMenu: CustomMenuConfig): Observable<any> {
+    return this.http.post<CustomMenuConfig>('/api/customMenu/customMenu', customMenu).pipe(
+      mergeMap(() => this.loadCustomMenu().pipe(
           tap((loaded) => {
-            this.customMenuChanged.next(customMenu);
+            this.customMenuChanged.next(loaded);
           }
-        ))
-      })
+        )))
     );
   }
 }

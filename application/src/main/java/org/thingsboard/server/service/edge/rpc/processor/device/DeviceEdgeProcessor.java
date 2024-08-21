@@ -63,7 +63,6 @@ import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponseActorMsg;
 import org.thingsboard.server.exception.DataValidationException;
-import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceGroupOtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
@@ -91,7 +90,7 @@ public abstract class DeviceEdgeProcessor extends BaseDeviceProcessor implements
                 case ENTITY_CREATED_RPC_MESSAGE:
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     saveOrUpdateDevice(tenantId, deviceId, deviceUpdateMsg, edge);
-                    return saveEdgeEvent(tenantId, edge.getId(), EdgeEventType.DEVICE, EdgeEventActionType.CREDENTIALS_REQUEST, deviceId, null);
+                    return Futures.immediateFuture(null);
                 case ENTITY_DELETED_RPC_MESSAGE:
                     if (deviceUpdateMsg.hasEntityGroupIdMSB() && deviceUpdateMsg.hasEntityGroupIdLSB()) {
                         EntityGroupId entityGroupId = new EntityGroupId(
@@ -283,6 +282,12 @@ public abstract class DeviceEdgeProcessor extends BaseDeviceProcessor implements
                     DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceUpdateMsg(deviceUpdateMsg);
+                    DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(edgeEvent.getTenantId(), deviceId);
+                    if (deviceCredentials != null) {
+                        DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = ((DeviceMsgConstructor)
+                                deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDeviceCredentialsUpdatedMsg(deviceCredentials);
+                        builder.addDeviceCredentialsUpdateMsg(deviceCredentialsUpdateMsg).build();
+                    }
                     if (UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE.equals(msgType)) {
                         DeviceProfile deviceProfile = deviceProfileService.findDeviceProfileById(edgeEvent.getTenantId(), device.getDeviceProfileId());
                         deviceProfile = checkIfDeviceProfileDefaultFieldsAssignedToEdge(edgeEvent.getTenantId(), edgeId, deviceProfile, edgeVersion);
@@ -323,22 +328,8 @@ public abstract class DeviceEdgeProcessor extends BaseDeviceProcessor implements
                                 deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
                                 .constructDeviceRpcCallMsg(edgeEvent.getEntityId(), edgeEvent.getBody()))
                         .build();
-            case CREDENTIALS_REQUEST:
-                return convertCredentialsRequestEventToDownlink(edgeEvent);
         }
         return downlinkMsg;
-    }
-
-    private DownlinkMsg convertCredentialsRequestEventToDownlink(EdgeEvent edgeEvent) {
-        DeviceId deviceId = new DeviceId(edgeEvent.getEntityId());
-        DeviceCredentialsRequestMsg deviceCredentialsRequestMsg = DeviceCredentialsRequestMsg.newBuilder()
-                .setDeviceIdMSB(deviceId.getId().getMostSignificantBits())
-                .setDeviceIdLSB(deviceId.getId().getLeastSignificantBits())
-                .build();
-        DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
-                .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                .addDeviceCredentialsRequestMsg(deviceCredentialsRequestMsg);
-        return builder.build();
     }
 
     @Override

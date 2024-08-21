@@ -46,7 +46,7 @@ import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @EqualsAndHashCode(callSuper = true)
-public class Customer extends ContactBased<CustomerId> implements HasTenantId, HasTitle, GroupEntity<CustomerId>, ExportableEntity<CustomerId> {
+public class Customer extends ContactBased<CustomerId> implements HasTenantId, HasTitle, GroupEntity<CustomerId>, ExportableEntity<CustomerId>, HasVersion {
 
     private static final long serialVersionUID = -1599722990298929275L;
 
@@ -62,6 +62,8 @@ public class Customer extends ContactBased<CustomerId> implements HasTenantId, H
     @Getter
     @Setter
     private CustomerId externalId;
+    @Getter @Setter
+    private Long version;
 
     @Getter @Setter
     private CustomMenuId customMenuId;
@@ -80,6 +82,7 @@ public class Customer extends ContactBased<CustomerId> implements HasTenantId, H
         this.parentCustomerId = customer.getParentCustomerId();
         this.title = customer.getTitle();
         this.externalId = customer.getExternalId();
+        this.version = customer.getVersion();
     }
 
     public TenantId getTenantId() {

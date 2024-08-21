@@ -156,6 +156,10 @@ import {
 import {
   TypeValuePanelComponent
 } from '@home/components/widget/lib/gateway/connectors-configuration/type-value-panel/type-value-panel.component';
+import {
+  ModbusRpcParametersComponent
+} from '@home/components/widget/lib/gateway/connectors-configuration/modbus/modbus-rpc-parameters/modbus-rpc-parameters.component';
+import { ScadaSymbolWidgetComponent } from '@home/components/widget/lib/scada/scada-symbol-widget.component';
 
 @NgModule({
   declarations: [
@@ -223,7 +227,8 @@ import {
     LabelCardWidgetComponent,
     LabelValueCardWidgetComponent,
     UnreadNotificationWidgetComponent,
-    NotificationTypeFilterPanelComponent
+    NotificationTypeFilterPanelComponent,
+    ScadaSymbolWidgetComponent
   ],
   imports: [
     CommonModule,
@@ -242,6 +247,7 @@ import {
     KeyValueIsNotEmptyPipe,
     ModbusBasicConfigComponent,
     EllipsisChipListDirective,
+    ModbusRpcParametersComponent,
   ],
   exports: [
     EntitiesTableWidgetComponent,
@@ -307,7 +313,8 @@ import {
     LabelCardWidgetComponent,
     LabelValueCardWidgetComponent,
     UnreadNotificationWidgetComponent,
-    NotificationTypeFilterPanelComponent
+    NotificationTypeFilterPanelComponent,
+    ScadaSymbolWidgetComponent
   ],
   providers: [
     {provide: WIDGET_COMPONENTS_MODULE_TOKEN, useValue: WidgetComponentsModule}

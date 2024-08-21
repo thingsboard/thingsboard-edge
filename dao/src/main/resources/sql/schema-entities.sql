@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS converter (
     type varchar(255),
     external_id uuid,
     is_edge_template boolean DEFAULT false,
+    version BIGINT DEFAULT 1,
     CONSTRAINT converter_external_id_unq_key UNIQUE (tenant_id, external_id)
 );
 
@@ -134,6 +135,7 @@ CREATE TABLE IF NOT EXISTS integration (
     type varchar(255),
     external_id uuid,
     is_edge_template boolean DEFAULT false,
+    version BIGINT DEFAULT 1,
     CONSTRAINT integration_external_id_unq_key UNIQUE (tenant_id, external_id),
     CONSTRAINT fk_integration_converter FOREIGN KEY (converter_id) REFERENCES converter(id),
     CONSTRAINT fk_integration_downlink_converter FOREIGN KEY (downlink_converter_id) REFERENCES converter(id)
@@ -202,6 +204,7 @@ CREATE TABLE IF NOT EXISTS customer (
     zip varchar(255),
     external_id uuid,
     is_public boolean,
+    version BIGINT DEFAULT 1,
     custom_menu_id uuid,
     CONSTRAINT customer_title_unq_key UNIQUE (tenant_id, title),
     CONSTRAINT customer_external_id_unq_key UNIQUE (tenant_id, external_id)
@@ -219,6 +222,7 @@ CREATE TABLE IF NOT EXISTS dashboard (
     mobile_order int,
     image varchar(1000000),
     external_id uuid,
+    version BIGINT DEFAULT 1,
     CONSTRAINT dashboard_external_id_unq_key UNIQUE (tenant_id, external_id)
 );
 
@@ -234,6 +238,7 @@ CREATE TABLE IF NOT EXISTS rule_chain (
     debug_mode boolean,
     tenant_id uuid,
     external_id uuid,
+    version BIGINT DEFAULT 1,
     CONSTRAINT rule_chain_external_id_unq_key UNIQUE (tenant_id, external_id)
 );
 
@@ -311,6 +316,7 @@ CREATE TABLE IF NOT EXISTS asset_profile (
     default_queue_name varchar(255),
     default_edge_rule_chain_id uuid,
     external_id uuid,
+    version BIGINT DEFAULT 1,
     CONSTRAINT asset_profile_name_unq_key UNIQUE (tenant_id, name),
     CONSTRAINT asset_profile_external_id_unq_key UNIQUE (tenant_id, external_id),
     CONSTRAINT fk_default_rule_chain_asset_profile FOREIGN KEY (default_rule_chain_id) REFERENCES rule_chain(id),
@@ -329,6 +335,7 @@ CREATE TABLE IF NOT EXISTS asset (
     tenant_id uuid,
     type varchar(255),
     external_id uuid,
+    version BIGINT DEFAULT 1,
     CONSTRAINT asset_name_unq_key UNIQUE (tenant_id, name),
     CONSTRAINT asset_external_id_unq_key UNIQUE (tenant_id, external_id),
     CONSTRAINT fk_asset_profile FOREIGN KEY (asset_profile_id) REFERENCES asset_profile(id)
@@ -354,6 +361,7 @@ CREATE TABLE IF NOT EXISTS device_profile (
     provision_device_key varchar,
     default_edge_rule_chain_id uuid,
     external_id uuid,
+    version BIGINT DEFAULT 1,
     CONSTRAINT device_profile_name_unq_key UNIQUE (tenant_id, name),
     CONSTRAINT device_provision_key_unq_key UNIQUE (provision_device_key),
     CONSTRAINT device_profile_external_id_unq_key UNIQUE (tenant_id, external_id),
@@ -399,6 +407,7 @@ CREATE TABLE IF NOT EXISTS device (
     firmware_id uuid,
     software_id uuid,
     external_id uuid,
+    version BIGINT DEFAULT 1,
     CONSTRAINT device_name_unq_key UNIQUE (tenant_id, name),
     CONSTRAINT device_external_id_unq_key UNIQUE (tenant_id, external_id),
     CONSTRAINT fk_device_profile FOREIGN KEY (device_profile_id) REFERENCES device_profile(id),
@@ -413,6 +422,7 @@ CREATE TABLE IF NOT EXISTS device_credentials (
     credentials_type varchar(255),
     credentials_value varchar,
     device_id uuid,
+    version BIGINT DEFAULT 1,
     CONSTRAINT device_credentials_id_unq_key UNIQUE (credentials_id),
     CONSTRAINT device_credentials_device_id_unq_key UNIQUE (device_id)
 );
@@ -540,6 +550,7 @@ CREATE TABLE IF NOT EXISTS tb_user (
     last_name varchar(255),
     phone varchar(255),
     tenant_id uuid,
+    version BIGINT DEFAULT 1,
     custom_menu_id uuid
 );
 
@@ -570,6 +581,7 @@ CREATE TABLE IF NOT EXISTS tenant (
     state varchar(255),
     title varchar(255),
     zip varchar(255),
+    version BIGINT DEFAULT 1,
     CONSTRAINT fk_tenant_profile FOREIGN KEY (tenant_profile_id) REFERENCES tenant_profile(id)
 );
 
@@ -592,10 +604,12 @@ CREATE TABLE IF NOT EXISTS widget_type (
     name varchar(255),
     tenant_id uuid,
     image varchar(1000000),
+    scada boolean NOT NULL DEFAULT false,
     deprecated boolean NOT NULL DEFAULT false,
     description varchar(1024),
     tags text[],
     external_id uuid,
+    version BIGINT DEFAULT 1,
     CONSTRAINT uq_widget_type_fqn UNIQUE (tenant_id, fqn),
     CONSTRAINT widget_type_external_id_unq_key UNIQUE (tenant_id, external_id)
 );
@@ -607,9 +621,11 @@ CREATE TABLE IF NOT EXISTS widgets_bundle (
     tenant_id uuid,
     title varchar(255),
     image varchar(1000000),
+    scada boolean NOT NULL DEFAULT false,
     description varchar(1024),
     widgets_bundle_order int,
     external_id uuid,
+    version BIGINT DEFAULT 1,
     CONSTRAINT uq_widgets_bundle_alias UNIQUE (tenant_id, alias),
     CONSTRAINT widgets_bundle_external_id_unq_key UNIQUE (tenant_id, external_id)
 );
@@ -633,6 +649,7 @@ CREATE TABLE IF NOT EXISTS entity_group (
     additional_info varchar,
     configuration varchar(10000000),
     external_id uuid,
+    version BIGINT DEFAULT 1,
     CONSTRAINT group_name_per_owner_unq_key UNIQUE (owner_id, owner_type, type, name)
 );
 
@@ -648,7 +665,8 @@ CREATE TABLE IF NOT EXISTS scheduler_event (
     type varchar(255),
     schedule varchar,
     configuration varchar(10000000),
-    enabled boolean
+    enabled boolean,
+    version BIGINT DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS blob_entity (
@@ -677,6 +695,7 @@ CREATE TABLE IF NOT EXISTS entity_view (
     end_ts bigint,
     additional_info varchar,
     external_id uuid,
+    version BIGINT DEFAULT 1,
     CONSTRAINT entity_view_external_id_unq_key UNIQUE (tenant_id, external_id)
 );
 
@@ -690,6 +709,7 @@ CREATE TABLE IF NOT EXISTS role (
     permissions varchar(10000000),
     additional_info varchar,
     external_id uuid,
+    version BIGINT DEFAULT 1,
     CONSTRAINT role_external_id_unq_key UNIQUE (tenant_id, external_id)
 );
 
@@ -891,6 +911,7 @@ CREATE TABLE IF NOT EXISTS resource (
     customer_id uuid,
     title varchar(255) NOT NULL,
     resource_type varchar(32) NOT NULL,
+    resource_sub_type varchar(32),
     resource_key varchar(255) NOT NULL,
     search_text varchar(255),
     file_name varchar(255) NOT NULL,
@@ -918,6 +939,7 @@ CREATE TABLE IF NOT EXISTS edge (
     edge_license_key varchar(30),
     cloud_endpoint varchar(255),
     tenant_id uuid,
+    version BIGINT DEFAULT 1,
     CONSTRAINT edge_name_unq_key UNIQUE (tenant_id, name),
     CONSTRAINT edge_routing_key_unq_key UNIQUE (routing_key)
 );

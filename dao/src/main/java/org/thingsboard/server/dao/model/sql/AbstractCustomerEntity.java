@@ -40,8 +40,7 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.dao.model.BaseEntity;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.dao.model.BaseVersionedEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
@@ -52,7 +51,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
-public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSqlEntity<T> implements BaseEntity<T> {
+public abstract class AbstractCustomerEntity<T extends Customer> extends BaseVersionedEntity<T> {
 
     public static final Map<String, String> customerColumnMap = new HashMap<>();
 
@@ -110,11 +109,8 @@ public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSql
         super();
     }
 
-    public AbstractCustomerEntity(Customer customer) {
-        if (customer.getId() != null) {
-            this.setUuid(customer.getId().getId());
-        }
-        this.setCreatedTime(customer.getCreatedTime());
+    public AbstractCustomerEntity(T customer) {
+        super(customer);
         this.tenantId = customer.getTenantId().getId();
         if (customer.getParentCustomerId() != null) {
             this.parentCustomerId = customer.getParentCustomerId().getId();
@@ -139,8 +135,7 @@ public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSql
     }
 
     public AbstractCustomerEntity(CustomerEntity customerEntity) {
-        this.setId(customerEntity.getId());
-        this.setCreatedTime(customerEntity.getCreatedTime());
+        super(customerEntity);
         this.tenantId = customerEntity.getTenantId();
         this.parentCustomerId = customerEntity.getParentCustomerId();
         this.title = customerEntity.getTitle();
@@ -161,6 +156,7 @@ public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSql
     protected Customer toCustomer() {
         Customer customer = new Customer(new CustomerId(this.getUuid()));
         customer.setCreatedTime(createdTime);
+        customer.setVersion(version);
         customer.setTenantId(TenantId.fromUUID(tenantId));
         if (parentCustomerId != null) {
             customer.setParentCustomerId(new CustomerId(parentCustomerId));
@@ -183,4 +179,5 @@ public abstract class AbstractCustomerEntity<T extends Customer> extends BaseSql
         }
         return customer;
     }
+
 }

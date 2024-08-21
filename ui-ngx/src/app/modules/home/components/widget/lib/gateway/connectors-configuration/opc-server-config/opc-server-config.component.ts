@@ -50,10 +50,10 @@ import { SharedModule } from '@shared/shared.module';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { TruncateWithTooltipDirective } from '@shared/directives/truncate-with-tooltip.directive';
 import {
   SecurityConfigComponent
 } from '@home/components/widget/lib/gateway/connectors-configuration/security-config/security-config.component';
+import { HOUR } from '@shared/models/time/time.models';
 
 @Component({
   selector: 'tb-opc-server-config',
@@ -77,7 +77,6 @@ import {
     CommonModule,
     SharedModule,
     SecurityConfigComponent,
-    TruncateWithTooltipDirective,
   ]
 })
 export class OpcServerConfigComponent implements ControlValueAccessor, Validator, OnDestroy {
@@ -95,12 +94,13 @@ export class OpcServerConfigComponent implements ControlValueAccessor, Validator
       name: ['', []],
       url: ['', [Validators.required, Validators.pattern(noLeadTrailSpacesRegex)]],
       timeoutInMillis: [1000, [Validators.required, Validators.min(1000)]],
-      scanPeriodInMillis: [1000, [Validators.required, Validators.min(1000)]],
+      scanPeriodInMillis: [HOUR, [Validators.required, Validators.min(1000)]],
+      pollPeriodInMillis: [5000, [Validators.required, Validators.min(50)]],
       enableSubscriptions: [true, []],
-      subCheckPeriodInMillis: [10, [Validators.required, Validators.min(10)]],
+      subCheckPeriodInMillis: [100, [Validators.required, Validators.min(100)]],
       showMap: [false, []],
       security: [SecurityPolicy.BASIC128, []],
-      identity: [{}, [Validators.required]]
+      identity: []
     });
 
     this.serverConfigFormGroup.valueChanges.pipe(
@@ -131,16 +131,27 @@ export class OpcServerConfigComponent implements ControlValueAccessor, Validator
   }
 
   writeValue(serverConfig: ServerConfig): void {
-    const { timeoutInMillis, scanPeriodInMillis, enableSubscriptions, subCheckPeriodInMillis, showMap, security } = serverConfig;
-    const serverConfigState = {
+    const {
+      timeoutInMillis = 1000,
+      scanPeriodInMillis = HOUR,
+      pollPeriodInMillis = 5000,
+      enableSubscriptions = true,
+      subCheckPeriodInMillis = 100,
+      showMap = false,
+      security = SecurityPolicy.BASIC128,
+      identity = {},
+    } = serverConfig;
+
+    this.serverConfigFormGroup.reset({
       ...serverConfig,
-      timeoutInMillis: timeoutInMillis || 1000,
-      scanPeriodInMillis: scanPeriodInMillis || 1000,
-      enableSubscriptions: enableSubscriptions || true,
-      subCheckPeriodInMillis: subCheckPeriodInMillis || 10,
-      showMap: showMap || false,
-      security: security || SecurityPolicy.BASIC128,
-    };
-    this.serverConfigFormGroup.reset(serverConfigState, {emitEvent: false});
+      timeoutInMillis,
+      scanPeriodInMillis,
+      pollPeriodInMillis,
+      enableSubscriptions,
+      subCheckPeriodInMillis,
+      showMap,
+      security,
+      identity,
+    }, { emitEvent: false });
   }
 }

@@ -35,6 +35,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -49,7 +51,7 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 @Schema
 @EqualsAndHashCode(callSuper = true)
-public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEntity<UserId>, NotificationRecipient {
+public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEntity<UserId>, NotificationRecipient, HasVersion {
 
     private static final long serialVersionUID = 8250339805336035966L;
 
@@ -66,6 +68,9 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
     @NoXss
     private String phone;
     private CustomMenuId customMenuId;
+
+    @Getter @Setter
+    private Long version;
 
     public User() {
         super();
@@ -84,6 +89,7 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
         this.firstName = user.getFirstName();
         this.lastName = user.getLastName();
         this.phone = user.getPhone();
+        this.version = user.getVersion();
         this.customMenuId = user.getCustomMenuId();
     }
 
