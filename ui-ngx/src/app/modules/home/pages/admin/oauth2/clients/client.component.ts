@@ -225,10 +225,10 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
     return item;
   }
 
-  addScope(event: MatChipInputEvent, control: AbstractControl): void {
+  addChipValue(event: MatChipInputEvent, control: AbstractControl, fieldName: string): void {
     const input = event.chipInput.inputElement;
     const value = event.value;
-    const controller = control.get('scope') as UntypedFormArray;
+    const controller = control.get(fieldName) as UntypedFormArray;
     if ((value.trim() !== '')) {
       controller.push(this.fb.control(value.trim()));
       controller.markAsDirty();
@@ -239,8 +239,8 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
     }
   }
 
-  removeScope(i: number, control: AbstractControl): void {
-    const controller = control.get('scope') as UntypedFormArray;
+  removeChipValue(i: number, control: AbstractControl, fieldName: string): void {
+    const controller = control.get(fieldName) as UntypedFormArray;
     controller.removeAt(i);
     controller.markAsTouched();
     controller.markAsDirty();
@@ -278,6 +278,7 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
 
     this.subscriptions.push(this.entityForm.get('additionalInfo.providerName').valueChanges.subscribe((provider) => {
       (this.entityForm.get('scope') as UntypedFormArray).clear();
+      (this.entityForm.get('mapperConfig.basic.userGroupsNamePattern') as UntypedFormArray).clear();
       this.setProviderDefaultValue(provider, this.entityForm);
     }));
   }
@@ -340,7 +341,9 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
         Validators.maxLength(255)],
       defaultDashboardName: [mapperConfigBasic?.defaultDashboardName ? mapperConfigBasic.defaultDashboardName : null,
         Validators.maxLength(255)],
-      alwaysFullScreen: [isDefinedAndNotNull(mapperConfigBasic?.alwaysFullScreen) ? mapperConfigBasic.alwaysFullScreen : false]
+      alwaysFullScreen: [isDefinedAndNotNull(mapperConfigBasic?.alwaysFullScreen) ? mapperConfigBasic.alwaysFullScreen : false],
+      parentCustomerNamePattern: [mapperConfigBasic?.parentCustomerNamePattern ? mapperConfigBasic.parentCustomerNamePattern : null],
+      userGroupsNamePattern: this.fb.array(mapperConfigBasic?.userGroupsNamePattern ? mapperConfigBasic.userGroupsNamePattern : [])
     });
 
     if (!this.createNewDialog && !(this.isEdit || this.isAdd)) {
@@ -368,6 +371,11 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
       template.scope.forEach(() => {
         (clientRegistration.get('scope') as UntypedFormArray).push(this.fb.control(''));
       });
+      if (template.mapperConfig && template.mapperConfig.basic && isDefinedAndNotNull(template.mapperConfig.basic.userGroupsNamePattern)) {
+        template.mapperConfig.basic.userGroupsNamePattern.forEach(() => {
+          (clientRegistration.get('mapperConfig.basic.userGroupsNamePattern') as UntypedFormArray).push(this.fb.control(''));
+        });
+      }
       clientRegistration.patchValue(template);
     }
   }
