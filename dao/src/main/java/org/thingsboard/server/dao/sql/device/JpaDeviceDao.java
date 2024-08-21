@@ -253,9 +253,9 @@ public class JpaDeviceDao extends JpaAbstractDao<DeviceEntity, Device> implement
                                                                                 PageLink pageLink) {
         Page<DeviceEntity> page = OtaPackageUtil.getByOtaPackageType(
                 () -> deviceRepository.findByEntityGroupIdAndDeviceProfileIdAndFirmwareIdIsNull(
-                        groupId, deviceProfileId, pageLink.getTextSearch(), DaoUtil.toPageable(pageLink)),
+                        groupId, deviceProfileId, DaoUtil.toPageable(pageLink)),
                 () -> deviceRepository.findByEntityGroupIdAndDeviceProfileIdAndSoftwareIdIsNull(
-                        groupId, deviceProfileId, pageLink.getTextSearch(), DaoUtil.toPageable(pageLink)),
+                        groupId, deviceProfileId, DaoUtil.toPageable(pageLink)),
                 type);
         return DaoUtil.toPageData(page);
     }
