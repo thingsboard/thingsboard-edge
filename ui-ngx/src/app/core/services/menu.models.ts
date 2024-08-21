@@ -36,8 +36,10 @@ import { deepClone, isNotEmptyStr } from '@core/utils';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import {
-  CustomMenuItem,
   CustomMenu,
+  CustomMenuItem,
+  CustomMenuItemLinkType,
+  CustomMenuItemType,
   HomeMenuItemType,
   isCustomMenuItem,
   isDefaultMenuItem,
@@ -122,7 +124,7 @@ export enum MenuId {
   mobile_app_settings = 'mobile_app_settings',
   security_settings = 'security_settings',
   security_settings_general = 'security_settings_general',
-  two_fa = '2fa',
+  two_fa = 'two_fa',
   oauth2 = 'oauth2',
   audit_log = 'audit_log',
   alarms = 'alarms',
@@ -1114,7 +1116,8 @@ const menuFilters = new Map<MenuId, MenuFilter>([
           userPermissionsService.hasSharedReadGroupsPermission(EntityType.DASHBOARD)
   ],
   [
-    MenuId.solution_templates, (_authState, userPermissionsService) =>
+    MenuId.solution_templates, (authState, userPermissionsService) =>
+          authState.authUser.authority === Authority.TENANT_ADMIN &&
           userPermissionsService.hasGenericPermission(Resource.ALL, Operation.ALL)
   ],
   [
@@ -1154,12 +1157,13 @@ const menuFilters = new Map<MenuId, MenuFilter>([
           userPermissionsService.hasSharedReadGroupsPermission(EntityType.ENTITY_VIEW)
   ],
   [
-    MenuId.device_profiles, (_authState, userPermissionsService) =>
+    MenuId.device_profiles, (authState, userPermissionsService) =>
+          authState.authUser.authority === Authority.TENANT_ADMIN &&
           userPermissionsService.hasReadGenericPermission(Resource.DEVICE_PROFILE)
   ],
   [
-    MenuId.asset_profiles, (_authState, userPermissionsService) =>
-          userPermissionsService.hasReadGenericPermission(Resource.ASSET_PROFILE)
+    MenuId.asset_profiles, (authState, userPermissionsService) =>
+          authState.authUser.authority === Authority.TENANT_ADMIN && userPermissionsService.hasReadGenericPermission(Resource.ASSET_PROFILE)
   ],
   [
     MenuId.customer_all, (_authState, userPermissionsService) =>
@@ -1186,16 +1190,16 @@ const menuFilters = new Map<MenuId, MenuFilter>([
           userPermissionsService.hasGenericReadGroupsPermission(EntityType.USER)
   ],
   [
-    MenuId.integrations, (_authState, userPermissionsService) =>
-          userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)
+    MenuId.integrations, (authState, userPermissionsService) =>
+          authState.authUser.authority === Authority.TENANT_ADMIN && userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)
   ],
   [
-    MenuId.converters, (_authState, userPermissionsService) =>
-          userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)
+    MenuId.converters, (authState, userPermissionsService) =>
+          authState.authUser.authority === Authority.TENANT_ADMIN && userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)
   ],
   [
-    MenuId.rule_chains, (_authState, userPermissionsService) =>
-          userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)
+    MenuId.rule_chains, (authState, userPermissionsService) =>
+          authState.authUser.authority === Authority.TENANT_ADMIN && userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)
   ],
   [
     MenuId.edge_all, (authState, userPermissionsService) =>
@@ -1211,58 +1215,69 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.rulechain_templates, (authState, userPermissionsService) =>
-           authState.edgesSupportEnabled && userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)
+      authState.edgesSupportEnabled && authState.authUser.authority === Authority.TENANT_ADMIN &&
+      userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)
   ],
   [
     MenuId.integration_templates, (authState, userPermissionsService) =>
-           authState.edgesSupportEnabled && userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)
+      authState.edgesSupportEnabled && authState.authUser.authority === Authority.TENANT_ADMIN &&
+      userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)
   ],
   [
     MenuId.converter_templates, (authState, userPermissionsService) =>
-           authState.edgesSupportEnabled && userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)
+           authState.edgesSupportEnabled && authState.authUser.authority === Authority.TENANT_ADMIN &&
+           userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)
   ],
   [
-    MenuId.otaUpdates, (_authState, userPermissionsService) =>
-            userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)
+    MenuId.otaUpdates, (authState, userPermissionsService) =>
+           authState.authUser.authority === Authority.TENANT_ADMIN && userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)
   ],
   [
-    MenuId.version_control, (_authState, userPermissionsService) =>
-            userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)
+    MenuId.version_control, (authState, userPermissionsService) =>
+           authState.authUser.authority === Authority.TENANT_ADMIN &&
+           userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)
   ],
   [
     MenuId.scheduler, (_authState, userPermissionsService) =>
             userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)
   ],
   [
-    MenuId.widget_types, (_authState, userPermissionsService) =>
-            userPermissionsService.hasReadGenericPermission(Resource.WIDGET_TYPE)
+    MenuId.widget_types, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN && userPermissionsService.hasReadGenericPermission(Resource.WIDGET_TYPE)
   ],
   [
-    MenuId.widgets_bundles, (_authState, userPermissionsService) =>
+    MenuId.widgets_bundles, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)
   ],
   [
-    MenuId.resources_library, (_authState, userPermissionsService) =>
+    MenuId.resources_library, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)
   ],
   [
-    MenuId.notification_sent, (_authState, userPermissionsService) =>
+    MenuId.notification_sent, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)
   ],
   [
-    MenuId.notification_recipients, (_authState, userPermissionsService) =>
+    MenuId.notification_recipients, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)
   ],
   [
-    MenuId.notification_templates, (_authState, userPermissionsService) =>
+    MenuId.notification_templates, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)
   ],
   [
-    MenuId.notification_rules, (_authState, userPermissionsService) =>
+    MenuId.notification_rules, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)
   ],
   [
-    MenuId.api_usage, (_authState, userPermissionsService) =>
+    MenuId.api_usage, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
             userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)
   ],
@@ -1280,6 +1295,7 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.mail_templates, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             authState.whiteLabelingAllowed && userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)
   ],
   [
@@ -1296,26 +1312,32 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.mail_server, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             authState.whiteLabelingAllowed && userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)
   ],
   [
     MenuId.notification_settings, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             authState.whiteLabelingAllowed && userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)
   ],
   [
-    MenuId.repository_settings, (_authState, userPermissionsService) =>
+    MenuId.repository_settings, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)
   ],
   [
-    MenuId.auto_commit_settings, (_authState, userPermissionsService) =>
+    MenuId.auto_commit_settings, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)
   ],
   [
-    MenuId.mobile_app_settings, (_authState, userPermissionsService) =>
+    MenuId.mobile_app_settings, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.MOBILE_APP_SETTINGS)
   ],
   [
     MenuId.two_fa, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             authState.whiteLabelingAllowed && userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)
   ],
   [
@@ -1324,6 +1346,7 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.self_registration, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             authState.whiteLabelingAllowed && userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)
   ],
   [
@@ -1332,7 +1355,7 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ]
 ]);
 
-const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
+export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
   [
     Authority.SYS_ADMIN,
     [
@@ -1833,12 +1856,24 @@ const defaultHomeSectionMap = new Map<Authority, HomeSectionReference[]>([
   ]
 ]);
 
+const referencesToMenuIdList = (references: MenuReference[]): Array<MenuId | string> => {
+  const result: Array<MenuId | string> = [];
+  for (const ref of references) {
+    result.push(ref.id);
+    if (ref.pages?.length) {
+      result.push(...referencesToMenuIdList(ref.pages));
+    }
+  }
+  return result;
+};
+
 export const buildUserMenu = (authState: AuthState, userPermissionsService: UserPermissionsService,
                               customMenu: CustomMenu): Array<MenuSection> => {
   if (customMenu?.items?.length) {
     const customStateIds: {[stateId: string]: boolean} = {};
+    const allowedMenuIds = referencesToMenuIdList(defaultUserMenuMap.get(authState.authUser.authority));
     return customMenu.items.map(item =>
-      menuItemToMenuSection(authState, userPermissionsService, customStateIds, item)).filter(section => !!section);
+      menuItemToMenuSection(authState, userPermissionsService, allowedMenuIds, customStateIds, item)).filter(section => !!section);
   } else {
     const references = defaultUserMenuMap.get(authState.authUser.authority);
     return (references || []).map(ref =>
@@ -1854,10 +1889,11 @@ export const buildUserHome = (authState: AuthState, availableMenuSections: MenuS
 
 export const menuItemToMenuSection = (authState: AuthState,
                                       userPermissionsService: UserPermissionsService,
+                                      allowedMenuIds: Array<MenuId | string>,
                                       customStateIds: {[stateId: string]: boolean},
                                       item: MenuItem): MenuSection | undefined => {
   if (isDefaultMenuItem(item)) {
-    if (!filterMenuReference(authState, userPermissionsService, item)) {
+    if (!filterMenuReference(authState, userPermissionsService, allowedMenuIds, item)) {
       return undefined;
     }
     const section = menuSectionMap.get(item.id);
@@ -1882,7 +1918,7 @@ export const menuItemToMenuSection = (authState: AuthState,
     }
     if (item.pages?.length) {
       result.pages = item.pages.map(page =>
-        menuItemToMenuSection(authState, userPermissionsService, customStateIds, page)).filter(page => !!page);
+        menuItemToMenuSection(authState, userPermissionsService, allowedMenuIds, customStateIds, page)).filter(page => !!page);
     }
     return result;
   } else if (isCustomMenuItem(item)) {
@@ -1892,7 +1928,7 @@ export const menuItemToMenuSection = (authState: AuthState,
 
 const referenceToMenuSection = (authState: AuthState, userPermissionsService: UserPermissionsService,
                                 reference: MenuReference): MenuSection | undefined => {
-  if (filterMenuReference(authState, userPermissionsService, reference)) {
+  if (filterMenuReference(authState, userPermissionsService, [], reference)) {
     const section = menuSectionMap.get(MenuId[reference.id]);
     if (section) {
       const result = deepClone(section);
@@ -1909,7 +1945,12 @@ const referenceToMenuSection = (authState: AuthState, userPermissionsService: Us
   }
 };
 
-const filterMenuReference = (authState: AuthState, userPermissionsService: UserPermissionsService, reference: MenuReference): boolean => {
+const filterMenuReference = (authState: AuthState, userPermissionsService: UserPermissionsService,
+                             allowedMenuIds: Array<MenuId | string>,
+                             reference: MenuReference): boolean => {
+  if (allowedMenuIds?.length && !allowedMenuIds.includes(reference.id)) {
+    return false;
+  }
   if (authState.authUser.authority === Authority.SYS_ADMIN) {
     return true;
   }
@@ -1920,7 +1961,7 @@ const filterMenuReference = (authState: AuthState, userPermissionsService: UserP
     }
   }
   if (reference.pages?.length) {
-    if (reference.pages.every(page => !filterMenuReference(authState, userPermissionsService, page))) {
+    if (reference.pages.every(page => !filterMenuReference(authState, userPermissionsService, allowedMenuIds, page))) {
       return false;
     }
   }
@@ -1928,6 +1969,10 @@ const filterMenuReference = (authState: AuthState, userPermissionsService: UserP
 };
 
 const buildCustomMenuSection = (stateIds: {[stateId: string]: boolean}, customMenuItem: CustomMenuItem): MenuSection => {
+  if (customMenuItem.type === CustomMenuItemType.section &&
+      !customMenuItem.pages?.length) {
+    return undefined;
+  }
   const stateId = getCustomMenuStateId(customMenuItem.name, stateIds);
   const customMenuSection = {
     id: stateId,
@@ -1935,10 +1980,9 @@ const buildCustomMenuSection = (stateIds: {[stateId: string]: boolean}, customMe
     customTranslate: true,
     stateId,
     name: customMenuItem.name,
-    icon: customMenuItem.icon,
-    path: '/iframeView'
+    icon: customMenuItem.icon
   } as MenuSection;
-  if (customMenuItem.pages?.length) {
+  if (customMenuItem.type === CustomMenuItemType.section) {
     customMenuSection.type = 'toggle';
     const pages: MenuSection[] = [];
     const childStateIds: {[stateId: string]: boolean} = {};
@@ -1955,16 +1999,8 @@ const buildCustomMenuSection = (stateIds: {[stateId: string]: boolean}, customMe
         path: '/iframeView/child'
       };
       customMenuChildSection.queryParams = {
-        stateId,
-        iframeUrl: customMenuItem.url,
-        dashboardId: customMenuItem.dashboardId,
-        hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
-        setAccessToken: customMenuItem.setAccessToken,
-        childStateId,
-        childIframeUrl: customMenuChildItem.url,
-        childDashboardId: customMenuChildItem.dashboardId,
-        childHideDashboardToolbar: customMenuChildItem.hideDashboardToolbar,
-        childSetAccessToken: customMenuChildItem.setAccessToken
+        ...customMenuItemQueryParams(customMenuItem, stateId),
+        ...customMenuItemQueryParams(customMenuChildItem, childStateId, true)
       };
       pages.push(customMenuChildSection);
       childStateIds[childStateId] = true;
@@ -1972,16 +2008,38 @@ const buildCustomMenuSection = (stateIds: {[stateId: string]: boolean}, customMe
     customMenuSection.pages = pages;
     customMenuSection.childStateIds = childStateIds;
   } else {
+    customMenuSection.path = '/iframeView';
     customMenuSection.type = 'link';
-    customMenuSection.queryParams = {
-      stateId,
-      iframeUrl: customMenuItem.url,
-      dashboardId: customMenuItem.dashboardId,
-      hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
-      setAccessToken: customMenuItem.setAccessToken
-    };
+    customMenuSection.queryParams = customMenuItemQueryParams(customMenuItem, stateId);
   }
   return customMenuSection;
+};
+
+const customMenuItemQueryParams = (item: CustomMenuItem, stateId: string, child = false):  {[k: string]: any} => {
+  const queryParams: {[k: string]: any} = {};
+  if (child) {
+    queryParams.childStateId = stateId;
+  } else {
+    queryParams.stateId = stateId;
+  }
+  if (item.linkType === CustomMenuItemLinkType.url) {
+    if (child) {
+      queryParams.childIframeUrl = item.url;
+      queryParams.childSetAccessToken = item.setAccessToken;
+    } else {
+      queryParams.iframeUrl = item.url;
+      queryParams.setAccessToken = item.setAccessToken;
+    }
+  } else if (item.linkType === CustomMenuItemLinkType.dashboard) {
+    if (child) {
+      queryParams.childDashboardId = item.dashboardId;
+      queryParams.childHideDashboardToolbar = item.hideDashboardToolbar;
+    } else {
+      queryParams.dashboardId = item.dashboardId;
+      queryParams.hideDashboardToolbar = item.hideDashboardToolbar;
+    }
+  }
+  return queryParams;
 };
 
 const getCustomMenuStateId = (name: string, stateIds: {[stateId: string]: boolean}): string => {
