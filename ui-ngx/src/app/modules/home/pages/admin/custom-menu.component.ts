@@ -41,7 +41,7 @@ import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { ContentType } from '@shared/models/constants';
-import { CustomMenu } from '@shared/models/custom-menu.models';
+import { CustomMenuConfig } from '@shared/models/custom-menu.models';
 import { CustomMenuService } from '@core/http/custom-menu.service';
 import { Observable } from 'rxjs';
 import { mergeMap, tap } from 'rxjs/operators';
@@ -59,7 +59,7 @@ export class CustomMenuComponent extends PageComponent implements OnInit, HasDir
 
   contentType = ContentType;
 
-  customMenu: CustomMenu;
+  customMenu: CustomMenuConfig;
   customMenuJson: string;
 
   menuPlaceholder =
@@ -156,7 +156,7 @@ export class CustomMenuComponent extends PageComponent implements OnInit, HasDir
         setTimeout(() => {
           this.isDirty = false;
         }, 0);
-      })
+      });
     }
   }
 

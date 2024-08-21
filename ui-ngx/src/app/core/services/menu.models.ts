@@ -32,14 +32,27 @@
 import { EntityType } from '@shared/models/entity-type.models';
 import { AuthState } from '@core/auth/auth.models';
 import { Authority } from '@shared/models/authority.enum';
-import { deepClone } from '@core/utils';
+import { deepClone, isNotEmptyStr } from '@core/utils';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { CustomMenu, CustomMenuItem } from '@shared/models/custom-menu.models';
+import {
+  CustomMenuItem,
+  CustomMenu,
+  HomeMenuItemType,
+  isCustomMenuItem,
+  isDefaultMenuItem,
+  isHomeMenuItem,
+  MenuItem
+} from '@shared/models/custom-menu.models';
 
 export declare type MenuSectionType = 'link' | 'toggle';
 
-export interface MenuSection {
+export interface MenuReference {
+  id: MenuId  | string;
+  pages?: Array<MenuReference>;
+}
+
+export interface MenuSection extends MenuReference {
   id: MenuId | string;
   name: string;
   fullName?: string;
@@ -47,7 +60,6 @@ export interface MenuSection {
   path: string;
   queryParams?: {[k: string]: any};
   icon: string;
-  iconUrl?: string;
   pages?: Array<MenuSection>;
   opened?: boolean;
   rootOnly?: boolean;
@@ -56,6 +68,8 @@ export interface MenuSection {
   stateId?: string;
   childStateIds?: {[stateId: string]: boolean};
   customTranslate?: boolean;
+  homeDashboardId?: string;
+  homeHideDashboardToolbar?: boolean;
 }
 
 export const sectionPath = (section: MenuSection): string => {
@@ -69,11 +83,6 @@ export const sectionPath = (section: MenuSection): string => {
 export const filterOpenedMenuSection = (section: MenuSection, url: string, openedMenuSections: string[]): boolean =>
   section.type === 'toggle' &&
     ((!section.isCustom && url.startsWith(section.path)) || openedMenuSections.includes(sectionPath(section)));
-
-export interface MenuReference {
-  id: MenuId;
-  pages?: Array<MenuReference>;
-}
 
 export interface HomeSectionReference {
   name: string;
@@ -1826,23 +1835,15 @@ const defaultHomeSectionMap = new Map<Authority, HomeSectionReference[]>([
 
 export const buildUserMenu = (authState: AuthState, userPermissionsService: UserPermissionsService,
                               customMenu: CustomMenu): Array<MenuSection> => {
-  const references = defaultUserMenuMap.get(authState.authUser.authority);
-  let disabledItems: MenuId[] = [];
-  if (customMenu && customMenu.disabledMenuItems) {
-    disabledItems = customMenu.disabledMenuItems;
+  if (customMenu?.items?.length) {
+    const customStateIds: {[stateId: string]: boolean} = {};
+    return customMenu.items.map(item =>
+      menuItemToMenuSection(authState, userPermissionsService, customStateIds, item)).filter(section => !!section);
+  } else {
+    const references = defaultUserMenuMap.get(authState.authUser.authority);
+    return (references || []).map(ref =>
+      referenceToMenuSection(authState, userPermissionsService, ref)).filter(section => !!section);
   }
-  const index = disabledItems.indexOf('sms_provider' as MenuId);
-  if (index !== -1) {
-    disabledItems[index] = MenuId.notification_settings;
-  }
-  const menuSections = (references || []).map(ref =>
-    referenceToMenuSection(authState, userPermissionsService, disabledItems, ref)).filter(section => !!section);
-  let customMenuItems: CustomMenuItem[] = [];
-  if (customMenu && customMenu.menuItems) {
-    customMenuItems = customMenu.menuItems;
-  }
-  menuSections.push(...buildCustomMenu(customMenuItems));
-  return menuSections;
 };
 
 export const buildUserHome = (authState: AuthState, availableMenuSections: MenuSection[]): Array<HomeSection> => {
@@ -1851,15 +1852,53 @@ export const buildUserHome = (authState: AuthState, availableMenuSections: MenuS
     homeReferenceToHomeSection(availableMenuSections, ref)).filter(section => !!section);
 };
 
+export const menuItemToMenuSection = (authState: AuthState,
+                                      userPermissionsService: UserPermissionsService,
+                                      customStateIds: {[stateId: string]: boolean},
+                                      item: MenuItem): MenuSection | undefined => {
+  if (isDefaultMenuItem(item)) {
+    if (!filterMenuReference(authState, userPermissionsService, item)) {
+      return undefined;
+    }
+    const section = menuSectionMap.get(item.id);
+    const result = deepClone(section);
+    if (isNotEmptyStr(item.icon)) {
+      result.icon = item.icon;
+    }
+    if (isNotEmptyStr(item.name)) {
+      result.name = item.name;
+      result.customTranslate = true;
+    }
+    if (isHomeMenuItem(item)) {
+      const type = item.type;
+      switch (type) {
+        case HomeMenuItemType.default:
+          break;
+        case HomeMenuItemType.dashboard:
+          result.homeDashboardId = item.dashboardId;
+          result.homeHideDashboardToolbar = item.hideDashboardToolbar;
+          break;
+      }
+    }
+    if (item.pages?.length) {
+      result.pages = item.pages.map(page =>
+        menuItemToMenuSection(authState, userPermissionsService, customStateIds, page)).filter(page => !!page);
+    }
+    return result;
+  } else if (isCustomMenuItem(item)) {
+    return buildCustomMenuSection(customStateIds, item);
+  }
+};
+
 const referenceToMenuSection = (authState: AuthState, userPermissionsService: UserPermissionsService,
-                                disabledItems: MenuId[], reference: MenuReference): MenuSection | undefined => {
-  if (filterMenuReference(authState, userPermissionsService, disabledItems, reference)) {
-    const section = menuSectionMap.get(reference.id);
+                                reference: MenuReference): MenuSection | undefined => {
+  if (filterMenuReference(authState, userPermissionsService, reference)) {
+    const section = menuSectionMap.get(MenuId[reference.id]);
     if (section) {
       const result = deepClone(section);
       if (reference.pages?.length) {
         result.pages = reference.pages.map(page =>
-          referenceToMenuSection(authState, userPermissionsService, disabledItems, page)).filter(page => !!page);
+          referenceToMenuSection(authState, userPermissionsService, page)).filter(page => !!page);
       }
       return result;
     } else {
@@ -1870,92 +1909,79 @@ const referenceToMenuSection = (authState: AuthState, userPermissionsService: Us
   }
 };
 
-const filterMenuReference = (authState: AuthState, userPermissionsService: UserPermissionsService, disabledItems: MenuId[],
-                             reference: MenuReference): boolean => {
-  if (disabledItems.includes(reference.id)) {
-    return false;
-  }
+const filterMenuReference = (authState: AuthState, userPermissionsService: UserPermissionsService, reference: MenuReference): boolean => {
   if (authState.authUser.authority === Authority.SYS_ADMIN) {
     return true;
   }
-  const filter = menuFilters.get(reference.id);
+  const filter = menuFilters.get(MenuId[reference.id]);
   if (filter) {
-    if (filter(authState, userPermissionsService)) {
-      if (reference.pages?.length) {
-        if (reference.pages.every(page => !filterMenuReference(authState, userPermissionsService, disabledItems, page))) {
-          return false;
-        }
-      }
-      return true;
+    if (!filter(authState, userPermissionsService)) {
+      return false;
     }
-    return false;
-  } else {
-    return true;
   }
+  if (reference.pages?.length) {
+    if (reference.pages.every(page => !filterMenuReference(authState, userPermissionsService, page))) {
+      return false;
+    }
+  }
+  return true;
 };
 
-const buildCustomMenu = (customMenuItems: CustomMenuItem[]): MenuSection[] => {
-  const menuSections: MenuSection[] = [];
-  const stateIds: {[stateId: string]: boolean} = {};
-  for (const customMenuItem of customMenuItems) {
-    const stateId = getCustomMenuStateId(customMenuItem.name, stateIds);
-    const customMenuSection = {
-      id: stateId,
-      isCustom: true,
-      customTranslate: true,
-      stateId,
-      name: customMenuItem.name,
-      icon: customMenuItem.materialIcon,
-      iconUrl: customMenuItem.iconUrl,
-      path: '/iframeView'
-    } as MenuSection;
-    if (customMenuItem.childMenuItems && customMenuItem.childMenuItems.length) {
-      customMenuSection.type = 'toggle';
-      const pages: MenuSection[] = [];
-      const childStateIds: {[stateId: string]: boolean} = {};
-      for (const customMenuChildItem of customMenuItem.childMenuItems) {
-        const childStateId = getCustomMenuStateId(customMenuChildItem.name, stateIds);
-        const customMenuChildSection: MenuSection = {
-          id: childStateId,
-          isCustom: true,
-          customTranslate: true,
-          stateId: childStateId,
-          name: customMenuChildItem.name,
-          type: 'link',
-          icon: customMenuChildItem.materialIcon,
-          iconUrl: customMenuChildItem.iconUrl,
-          path: '/iframeView/child'
-        };
-        customMenuChildSection.queryParams = {
-          stateId,
-          iframeUrl: customMenuItem.iframeUrl,
-          dashboardId: customMenuItem.dashboardId,
-          hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
-          setAccessToken: customMenuItem.setAccessToken,
-          childStateId,
-          childIframeUrl: customMenuChildItem.iframeUrl,
-          childDashboardId: customMenuChildItem.dashboardId,
-          childHideDashboardToolbar: customMenuChildItem.hideDashboardToolbar,
-          childSetAccessToken: customMenuChildItem.setAccessToken
-        };
-        pages.push(customMenuChildSection);
-        childStateIds[childStateId] = true;
-      }
-      customMenuSection.pages = pages;
-      customMenuSection.childStateIds = childStateIds;
-    } else {
-      customMenuSection.type = 'link';
-      customMenuSection.queryParams = {
+const buildCustomMenuSection = (stateIds: {[stateId: string]: boolean}, customMenuItem: CustomMenuItem): MenuSection => {
+  const stateId = getCustomMenuStateId(customMenuItem.name, stateIds);
+  const customMenuSection = {
+    id: stateId,
+    isCustom: true,
+    customTranslate: true,
+    stateId,
+    name: customMenuItem.name,
+    icon: customMenuItem.icon,
+    path: '/iframeView'
+  } as MenuSection;
+  if (customMenuItem.pages?.length) {
+    customMenuSection.type = 'toggle';
+    const pages: MenuSection[] = [];
+    const childStateIds: {[stateId: string]: boolean} = {};
+    for (const customMenuChildItem of customMenuItem.pages) {
+      const childStateId = getCustomMenuStateId(customMenuChildItem.name, stateIds);
+      const customMenuChildSection: MenuSection = {
+        id: childStateId,
+        isCustom: true,
+        customTranslate: true,
+        stateId: childStateId,
+        name: customMenuChildItem.name,
+        type: 'link',
+        icon: customMenuChildItem.icon,
+        path: '/iframeView/child'
+      };
+      customMenuChildSection.queryParams = {
         stateId,
-        iframeUrl: customMenuItem.iframeUrl,
+        iframeUrl: customMenuItem.url,
         dashboardId: customMenuItem.dashboardId,
         hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
-        setAccessToken: customMenuItem.setAccessToken
+        setAccessToken: customMenuItem.setAccessToken,
+        childStateId,
+        childIframeUrl: customMenuChildItem.url,
+        childDashboardId: customMenuChildItem.dashboardId,
+        childHideDashboardToolbar: customMenuChildItem.hideDashboardToolbar,
+        childSetAccessToken: customMenuChildItem.setAccessToken
       };
+      pages.push(customMenuChildSection);
+      childStateIds[childStateId] = true;
     }
-    menuSections.push(customMenuSection);
+    customMenuSection.pages = pages;
+    customMenuSection.childStateIds = childStateIds;
+  } else {
+    customMenuSection.type = 'link';
+    customMenuSection.queryParams = {
+      stateId,
+      iframeUrl: customMenuItem.url,
+      dashboardId: customMenuItem.dashboardId,
+      hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
+      setAccessToken: customMenuItem.setAccessToken
+    };
   }
-  return menuSections;
+  return customMenuSection;
 };
 
 const getCustomMenuStateId = (name: string, stateIds: {[stateId: string]: boolean}): string => {

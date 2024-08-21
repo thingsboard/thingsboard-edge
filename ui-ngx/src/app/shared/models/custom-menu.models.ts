@@ -30,23 +30,8 @@
 ///
 
 
-import { MenuId } from '@core/services/menu.models';
-
-export interface CustomMenuItem {
-  name: string;
-  iconUrl: string;
-  materialIcon: string;
-  iframeUrl: string;
-  dashboardId: string;
-  hideDashboardToolbar: boolean;
-  setAccessToken: boolean;
-  childMenuItems: CustomMenuItem[];
-}
-
-export interface CustomMenu {
-  disabledMenuItems: MenuId[];
-  menuItems: CustomMenuItem[];
-}
+import { MenuId, MenuReference } from '@core/services/menu.models';
+import { isNotEmptyStr } from '@core/utils';
 
 export enum CustomMenuItemType {
   link = 'link',
@@ -58,7 +43,7 @@ export enum CustomMenuItemLinkType {
   dashboard = 'dashboard'
 }
 
-export interface CustomMenuItemV2 {
+export interface CustomMenuItem {
   name: string;
   icon: string;
   type: CustomMenuItemType;
@@ -67,10 +52,10 @@ export interface CustomMenuItemV2 {
   hideDashboardToolbar?: boolean;
   url?: string;
   setAccessToken?: boolean;
-  pages?: CustomMenuItemV2[];
+  pages?: CustomMenuItem[];
 }
 
-export interface DefaultMenuItem {
+export interface DefaultMenuItem extends MenuReference {
   id: MenuId;
   name?: string;
   icon?: string;
@@ -89,18 +74,32 @@ export interface HomeMenuItem extends DefaultMenuItem {
   hideDashboardToolbar?: boolean;
 }
 
-export type MenuItem = DefaultMenuItem | HomeMenuItem | CustomMenuItemV2;
+export type MenuItem = DefaultMenuItem | HomeMenuItem | CustomMenuItem;
 
-export interface CustomMenuV2 {
+export interface CustomMenu {
   items: MenuItem[];
 }
+
+export const isDefaultMenuItem = (item: MenuItem): item is DefaultMenuItem => {
+  const id = (item as DefaultMenuItem).id;
+  return isNotEmptyStr(id) && !!MenuId[id];
+};
+
+export const isHomeMenuItem = (item: MenuItem): item is HomeMenuItem =>
+  (item as DefaultMenuItem).id === MenuId.home;
+
+export const isCustomMenuItem = (item: MenuItem): item is CustomMenuItem => {
+  const customItem = item as CustomMenuItem;
+  return isNotEmptyStr(customItem.name) && isNotEmptyStr(customItem.icon)
+    && isNotEmptyStr(customItem.type) && !!CustomMenuItemType[customItem.type];
+};
 
 export interface DefaultMenuItemConfig extends DefaultMenuItem {
   visible: boolean;
   pages?: DefaultMenuItemConfig[];
 }
 
-export interface CustomMenuItemConfig extends CustomMenuItemV2 {
+export interface CustomMenuItemConfig extends CustomMenuItem {
   visible: boolean;
   pages?: CustomMenuItemConfig[];
 }
@@ -110,4 +109,3 @@ export type MenuItemConfig = DefaultMenuItemConfig | HomeMenuItem | CustomMenuIt
 export interface CustomMenuConfig {
   items: MenuItemConfig[];
 }
-

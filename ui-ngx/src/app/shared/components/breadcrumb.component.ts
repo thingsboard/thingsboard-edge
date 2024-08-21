@@ -131,7 +131,6 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
         let customTranslate: boolean;
         let labelFunction: () => string;
         let icon: string;
-        let iconUrl: string;
         let link: any[] | string;
         let queryParams: {[k: string]: any};
         let customSection: MenuSection = null;
@@ -143,7 +142,6 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
           label = customSection.name;
           customTranslate = true;
           icon = customSection.icon;
-          iconUrl = customSection.iconUrl;
           link = customSection.path;
           queryParams = customSection.queryParams;
         } else {
@@ -170,7 +168,6 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
           customTranslate,
           labelFunction,
           icon,
-          iconUrl,
           link,
           queryParams
         };
