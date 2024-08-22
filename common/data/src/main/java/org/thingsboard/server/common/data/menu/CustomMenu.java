@@ -32,11 +32,8 @@ package org.thingsboard.server.common.data.menu;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
@@ -50,6 +47,7 @@ import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Schema
 @Data
@@ -80,14 +78,9 @@ public class CustomMenu extends BaseData<CustomMenuId> implements HasTenantId, H
             "So possible values are: All (means all users of specified scope), Tenant (specified tenants), Customer (specified customers)," +
             " User list (specified list of users)", example = "ALL")
     private CMAssigneeType assigneeType;
-    @Schema(description = "Used to mark the default menu. Default menu is applied to all users of tenant/customer if any other is applied on user level.",
-            accessMode = Schema.AccessMode.READ_ONLY)
-    public boolean isDefault(){
-        return assigneeType == CMAssigneeType.ALL;
-    }
 
     @Schema(description = "List of custom menu items", requiredMode = Schema.RequiredMode.REQUIRED)
-    private ArrayList<CustomMenuItem> menuItems = new ArrayList<>();
+    private List<MenuItem> menuItems = new ArrayList<>();
 
     @Schema(description = "JSON object with Customer or Tenant Id", accessMode = Schema.AccessMode.READ_ONLY)
     @Override

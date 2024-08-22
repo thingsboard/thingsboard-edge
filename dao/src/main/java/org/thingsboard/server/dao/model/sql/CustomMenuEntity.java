@@ -48,14 +48,13 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
-import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.menu.CMScope;
+import org.thingsboard.server.common.data.menu.MenuItem;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -96,10 +95,7 @@ public class CustomMenuEntity extends BaseSqlEntity<CustomMenu> {
     private JsonNode settings;
 
     public CustomMenuEntity(CustomMenu customMenu) {
-        if (customMenu.getId() != null) {
-            this.setUuid(customMenu.getId().getId());
-        }
-        this.setCreatedTime(customMenu.getCreatedTime());
+        super(customMenu);
         this.tenantId = customMenu.getTenantId().getId();
         if (customMenu.getCustomerId() != null) {
             this.customerId = customMenu.getCustomerId().getId();
@@ -125,7 +121,7 @@ public class CustomMenuEntity extends BaseSqlEntity<CustomMenu> {
         customMenu.setAssigneeType(assigneeType);
         if (settings != null) {
             try {
-                customMenu.setMenuItems(new ArrayList<>(List.of(JacksonUtil.treeToValue(settings, CustomMenuItem[].class))));
+                customMenu.setMenuItems(List.of(JacksonUtil.treeToValue(settings, MenuItem[].class)));
             } catch (IllegalArgumentException e) {
                 log.error("Unable to read custom menu from JSON!", e);
                 throw new IncorrectParameterException("Unable to read custom menu from JSON!");

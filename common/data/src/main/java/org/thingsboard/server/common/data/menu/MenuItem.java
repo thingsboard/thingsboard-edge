@@ -28,41 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.menu;
+package org.thingsboard.server.common.data.menu;
 
-import org.thingsboard.server.common.data.id.CustomMenuId;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.menu.CMScope;
-import org.thingsboard.server.common.data.menu.CustomMenu;
-import org.thingsboard.server.common.data.menu.CustomMenuInfo;
-import org.thingsboard.server.common.data.menu.MenuItem;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
-import java.util.List;
+import java.io.Serializable;
 
-public interface CustomMenuService {
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = HomeMenuItem.class, name = "HOME"),
+        @JsonSubTypes.Type(value = DefaultMenuItem.class, name = "DEFAULT"),
+        @JsonSubTypes.Type(value = CustomMenuItem.class, name = "CUSTOM")
+})
+public interface MenuItem extends Serializable {
 
-    CustomMenu saveCustomMenu(CustomMenu customMenu, List<EntityId> assignToList);
+    MenuItemType getType();
 
-    void updateCustomMenuAssignToList(CustomMenu savedCustomMenu, List<EntityId> assignToList);
+    boolean isVisible();
 
-    CustomMenu findCustomMenuById(TenantId tenantId, CustomMenuId customMenuId);
-
-    PageData<CustomMenuInfo> getCustomMenuInfos(TenantId tenantId, CustomerId customerId, PageLink pageLink);
-
-    List<MenuItem> getSystemAdminCustomMenu();
-
-    List<MenuItem> getTenantUserCustomMenu(TenantId tenantId, UserId id);
-
-    List<MenuItem> getCustomerUserCustomMenu(TenantId tenantId, CustomerId customerId, UserId userId);
-
-    void deleteCustomMenu(TenantId tenantId, CustomMenuId customMenuId);
-
-    CustomMenuInfo findCustomMenuInfoById(TenantId tenantId, CustomMenuId customMenuId);
-
-    CustomMenu findDefaultCustomMenuByScope(TenantId tenantId, CustomerId customerId, CMScope scope);
 }

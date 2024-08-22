@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.menu.CMScope;
+import org.thingsboard.server.common.data.menu.MenuItem;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -108,7 +109,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
 
     @Override
     public void updateCustomMenuAssignToList(CustomMenu customMenu, List<EntityId> assignToList) {
-        List<EntityId> existingEntityIds = findCustomMenuInfoById(customMenu.getTenantId(), customMenu.getId()).getAssigners()
+        List<EntityId> existingEntityIds = findCustomMenuInfoById(customMenu.getTenantId(), customMenu.getId()).getAssigneeList()
                 .stream()
                 .map(EntityInfo::getId)
                 .toList();
@@ -161,13 +162,14 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     }
 
     @Override
-    public CustomMenu getSystemAdminCustomMenu() {
+    public List<MenuItem> getSystemAdminCustomMenu() {
         log.trace("Executing getSystemAdminCustomMenu");
-        return findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, null, CMScope.SYSTEM);
+        CustomMenu customMenu = findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, null, CMScope.SYSTEM);
+        return getVisibleMenuItems(customMenu);
     }
 
     @Override
-    public CustomMenu getTenantUserCustomMenu(TenantId tenantId, UserId userId) {
+    public List<MenuItem> getTenantUserCustomMenu(TenantId tenantId, UserId userId) {
         log.trace("Executing getTenantUserCustomMenu [{}] ", userId);
         Validator.validateId(userId, id -> INCORRECT_USER_ID + id);
         CustomMenu result = findCustomMenuByUserId(tenantId, userId);
@@ -177,11 +179,11 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
                 result = findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, null, CMScope.TENANT);
             }
         }
-        return result;
+        return getVisibleMenuItems(result);
     }
 
     @Override
-    public CustomMenu getCustomerUserCustomMenu(TenantId tenantId, CustomerId customerId, UserId userId) {
+    public List<MenuItem> getCustomerUserCustomMenu(TenantId tenantId, CustomerId customerId, UserId userId) {
         log.trace("Executing getCustomerUserCustomMenu [{}] ", userId);
         Validator.validateId(userId, id -> INCORRECT_USER_ID + id);
         CustomMenu result = findCustomMenuByUserId(tenantId, userId);
@@ -194,7 +196,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
                 result = findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, null, CMScope.CUSTOMER);
             }
         }
-        return result;
+        return getVisibleMenuItems(result);
     }
 
     @Override
@@ -232,6 +234,13 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
         log.trace("Executing findDefaultCustomMenuByScope [{}] [{}] [{}]", tenantId, customerId, scope);
         checkNotNull(scope, "Scope could not be null");
         return customMenuDao.findDefaultMenuByScope(tenantId, customerId, scope);
+    }
+
+    private static List<MenuItem> getVisibleMenuItems(CustomMenu customMenu) {
+        return customMenu.getMenuItems().stream()
+                .filter(MenuItem::isVisible)
+                .map(MenuItem.class::cast)
+                .collect(Collectors.toList());
     }
 
     private List<EntityInfo> getMenuAssigners(CustomMenu customMenu) {

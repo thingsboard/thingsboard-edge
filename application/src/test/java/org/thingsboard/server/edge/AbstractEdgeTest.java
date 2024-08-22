@@ -87,6 +87,7 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuItem;
+import org.thingsboard.server.common.data.menu.CustomMenuItemConfig;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -171,7 +172,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // create custom menu
         CustomMenu sysMenu = new CustomMenu();
 
-        CustomMenuItem sysItem = new CustomMenuItem();
+        CustomMenuItemConfig sysItem = new CustomMenuItemConfig();
         sysItem.setName("System Menu");
         sysMenu.setMenuItems(new ArrayList<>(List.of(sysItem)));
 

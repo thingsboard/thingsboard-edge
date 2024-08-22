@@ -60,15 +60,9 @@ public class CustomMenuInfo extends BaseData<CustomMenuId> {
             " User list (specified list of users)", example = "ALL")
     private CMAssigneeType assigneeType;
 
-    @Schema(description = "Used to mark the default menu. Default menu is applied to all users of tenant/customer if any other is applied on user level.",
-            accessMode = Schema.AccessMode.READ_ONLY)
-    public boolean isDefault(){
-        return assigneeType == CMAssigneeType.ALL;
-    }
-
     @Valid
-    @Schema(description = "Groups", accessMode = Schema.AccessMode.READ_ONLY)
-    private List<EntityInfo> assigners;
+    @Schema(description = "Assignee list", accessMode = Schema.AccessMode.READ_ONLY)
+    private List<EntityInfo> assigneeList;
 
     public CustomMenuInfo() {
         super();
@@ -78,11 +72,11 @@ public class CustomMenuInfo extends BaseData<CustomMenuId> {
         this(customMenu, Collections.emptyList());
     }
 
-    public CustomMenuInfo(CustomMenu customMenu, List<EntityInfo> assigners) {
+    public CustomMenuInfo(CustomMenu customMenu, List<EntityInfo> assigneeList) {
         super(customMenu);
         this.name = customMenu.getName();
         this.scope = customMenu.getScope();
         this.assigneeType = customMenu.getAssigneeType();
-        this.assigners = assigners;
+        this.assigneeList = assigneeList;
     }
 }

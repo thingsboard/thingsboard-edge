@@ -31,36 +31,49 @@
 package org.thingsboard.server.common.data.menu;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.thingsboard.server.common.data.menu.MenuItemType.CUSTOM;
+
 @Schema
 @Data
 @EqualsAndHashCode
-public class CustomMenuItem {
+@NoArgsConstructor
+public class CustomMenuItem implements MenuItem {
 
-    @Schema(description = "Unique identifier for predefined menu items", example = "home",  accessMode = Schema.AccessMode.READ_ONLY)
-    private String id;
     @Schema(description = "Name of the menu item", example = "My Custom Menu", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
     private String name;
     @Schema(description = "URL of the menu item icon. Overrides 'materialIcon'", example = "My Custom Menu")
-    private String iconUrl;
-    @Schema(description = "Material icon name. See [Material Icons](https://fonts.google.com/icons?selected=Material+Icons) for examples", example = "Info")
-    private String materialIcon;
-    @Schema(description = "URL to open in the iframe, when user clicks the menu item", example = "https://myexternalurl.com")
-    private String iframeUrl;
+    @NotNull
+    private String icon;
+    @Schema(description = "Type of menu item (LINK or SECTION). LINK type means item has no child items, SECTION type should have at least one child", example = "LINK")
+    @NotNull
+    private CMSectionType sectionType;
+    @Schema(description = "Type of menu item. LINK type means item without child items, SECTION type should have at least one child", example = "LINK")
+    private CMItemLinkType linkType;
     @Schema(description = "Id of the Dashboard to open, when user clicks the menu item", example = "https://mycompany.com")
     private String dashboardId;
     @Schema(description = "Hide the dashboard toolbar")
     private Boolean hideDashboardToolbar;
+    @Schema(description = "URL to open in the iframe, when user clicks the menu item", example = "https://myexternalurl.com")
+    private String url;
     @Schema(description = "Set the access token of the current user to a new dashboard")
     private boolean setAccessToken;
     @Schema(description = "Mark if menu item is visible for user")
-    private boolean enabled = true;
+    private boolean visible;
     @Schema(description = "List of child menu items")
-    private List<CustomMenuItem> childMenuItems = new ArrayList<>();
+    private List<CustomMenuItem> pages = new ArrayList<>();
+
+    @Override
+    public MenuItemType getType() {
+        return CUSTOM;
+    }
 
 }

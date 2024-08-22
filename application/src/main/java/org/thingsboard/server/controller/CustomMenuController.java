@@ -54,7 +54,7 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
-import org.thingsboard.server.common.data.menu.CustomMenuItem;
+import org.thingsboard.server.common.data.menu.MenuItem;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -84,11 +84,11 @@ public class CustomMenuController extends BaseController {
     @Autowired
     private CustomMenuService customMenuService;
 
-    @ApiOperation(value = "Get All Custom menus for current user (getCustomMenus)",
+    @ApiOperation(value = "Get All Custom menus for authorized user (getCustomMenuInfos)",
             notes = "Returns a page of custom menu info objects owned by the tenant or the customer of a current user. ")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @GetMapping(value = "/customMenus")
-    public PageData<CustomMenuInfo> getCustomMenus(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+    @GetMapping(value = "/customMenu/infos")
+    public PageData<CustomMenuInfo> getCustomMenuInfos(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
                                                @RequestParam int pageSize,
                                                @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
                                                @RequestParam int page,
@@ -110,18 +110,18 @@ public class CustomMenuController extends BaseController {
                     "If no custom menu configured on user/customer/tenant level default customer/tenant hierarchy will be applied")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/customMenu")
-    public List<CustomMenuItem> getCustomMenu() throws ThingsboardException {
+    public List<MenuItem> getCustomMenu() throws ThingsboardException {
         SecurityUser currentUser = getCurrentUser();
         Authority authority = currentUser.getAuthority();
-        CustomMenu menu = null;
+        List<MenuItem> menuItems = new ArrayList<>();
         if (Authority.SYS_ADMIN.equals(authority)) {
-            menu = customMenuService.getSystemAdminCustomMenu();
+            menuItems = customMenuService.getSystemAdminCustomMenu();
         }  else if (Authority.TENANT_ADMIN.equals(authority)) {
-            menu = customMenuService.getTenantUserCustomMenu(currentUser.getTenantId(), currentUser.getId());
+            menuItems = customMenuService.getTenantUserCustomMenu(currentUser.getTenantId(), currentUser.getId());
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            menu = customMenuService.getCustomerUserCustomMenu(currentUser.getTenantId(), currentUser.getCustomerId(), currentUser.getId());
+            menuItems = customMenuService.getCustomerUserCustomMenu(currentUser.getTenantId(), currentUser.getCustomerId(), currentUser.getId());
         }
-        return checkNotNull(menu).getMenuItems();
+        return menuItems;
     }
 
     @ApiOperation(value = "Get Custom Menu configuration by id (getCustomMenuById)",

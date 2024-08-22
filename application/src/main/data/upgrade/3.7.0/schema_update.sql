@@ -162,17 +162,17 @@ DECLARE
 BEGIN
     -- Check if the element has an "id" and if it's in the disabled_ids array
     IF json_element ? 'id' AND (json_element ->> 'id') = ANY (disabled_ids) THEN
-        updated_element := jsonb_set(json_element, '{enabled}', 'false'::jsonb);
+        updated_element := jsonb_set(json_element, '{visible}', 'false'::jsonb);
     ELSE
         updated_element := json_element;
     END IF;
     -- If the element has 'childMenuItems', recursively apply the function
-    IF json_element ? 'childMenuItems' AND jsonb_array_length(json_element #> '{childMenuItems}') != 0 THEN
+    IF json_element ? 'pages' AND jsonb_array_length(json_element #> '{pages}') != 0 THEN
         updated_element := jsonb_set(
                 updated_element,
-                '{childMenuItems}',
+                '{pages}',
                 (SELECT jsonb_agg(update_menu_item_if_disabled(child, disabled_ids))
-                 FROM jsonb_array_elements(json_element -> 'childMenuItems') AS child)
+                 FROM jsonb_array_elements(json_element -> 'pages') AS child)
             );
     END IF;
     RETURN updated_element;
@@ -183,38 +183,376 @@ DO
 $$
     BEGIN
         IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'fk_tb_user_custom_menu') THEN
+            -- rename childMenuItems -> pages, materialIcon -> icon, iframeUrl -> url
+            UPDATE custom_menu SET settings = replace(settings::TEXT, 'childMenuItems', 'pages')::jsonb;
+            UPDATE custom_menu SET settings = replace(settings::TEXT, 'materialIcon', 'icon')::jsonb;
+            UPDATE custom_menu SET settings = replace(settings::TEXT, 'iframeUrl', 'url')::jsonb;
+
             -- add predefined menu items to sys admin custom menu
             UPDATE custom_menu SET settings = jsonb_set(settings::jsonb, '{menuItems}',
-                '[{"id":"home","enabled":true},{"id":"tenants","enabled":true},{"id":"tenant_profiles","enabled":true},
-                  {"id":"resources","enabled":true,"childMenuItems":[{"id":"widget_library","enabled":true},{"id":"images","enabled":true},
-                  {"id":"resources_library","enabled":true}]}, {"id": "notifications_center","enabled":true}, {"id":"white_labeling","enabled":true},
-                  {"id": "settings","enabled":true}, {"id":"security_settings","enabled":true,
-                    "childMenuItems": [{"id":"security_settings_general","enabled":true},{"id":"2fa","enabled":true}, {"id":"oauth2","enabled":true}]}]'::jsonb
-                    || (settings::jsonb #> '{menuItems}'))
+                '[
+                  {"id": "home", "visible":true},
+                  {"id": "tenants", "visible":true},
+                  {"id": "tenant_profiles", "visible":true},
+                  {
+                    "id": "resources", "visible":true,
+                    "pages": [
+                      {
+                        "id": "widget_library", "visible":true,
+                        "pages": [
+                          {"id": "widget_types", "visible":true},
+                          {"id": "widgets_bundles", "visible":true}
+                        ]
+                      },
+                      {"id": "images", "visible":true},
+                      {"id": "scada_symbols", "visible":true},
+                      {"id": "resources_library", "visible":true}
+                    ]
+                  },
+                  {
+                    "id": "notifications_center", "visible":true,
+                    "pages": [
+                      {"id": "notification_inbox", "visible":true},
+                      {"id": "notification_sent", "visible":true},
+                      {"id": "notification_recipients", "visible":true},
+                      {"id": "notification_templates", "visible":true},
+                      {"id": "notification_rules", "visible":true}
+                    ]
+                  },
+                  {
+                    "id": "white_labeling", "visible":true,
+                    "pages": [
+                      {"id": "white_labeling_general", "visible":true},
+                      {"id": "login_white_labeling", "visible":true},
+                      {"id": "mail_templates", "visible":true},
+                      {"id": "custom_translation", "visible":true},
+                      {"id": "custom_menu", "visible":true}
+                    ]
+                  },
+                  {
+                    "id": "settings", "visible":true,
+                    "pages": [
+                      {"id": "general", "visible":true},
+                      {"id": "mail_server", "visible":true},
+                      {"id": "notification_settings", "visible":true},
+                      {"id": "queues", "visible":true},
+                      {"id": "mobile_app_settings", "visible":true}
+                    ]
+                  },
+                  {
+                    "id": "security_settings", "visible":true,
+                    "pages": [
+                      {"id": "security_settings_general", "visible":true},
+                      {"id": "two_fa", "visible":true},
+                      {"id": "oauth2", "visible":true}
+                    ]
+                  }
+                ]'::jsonb || (settings::jsonb #> '{menuItems}'))
             WHERE settings IS NOT NULL and tenant_id = '13814000-1dd2-11b2-8080-808080808080';
 
             -- add predefined menu items to tenant custom menus
             UPDATE custom_menu SET settings = jsonb_set(settings::jsonb, '{menuItems}',
-                 '[{ "id": "home","enabled":true},{"id": "alarms","enabled":true},{"id": "dashboards","enabled":true},
-                  {"id": "solution_templates","enabled":true},{"id": "entities", "enabled":true, "childMenuItems":[{"id": "devices"},{"id": "assets"},{"id": "entity_views"}]},
-                  {"id": "profiles", "childMenuItems":[{"id": "device_profiles"},{"id": "asset_profiles"}]},{"id": "customers"},{"id": "users"},
-                  {"id": "integrations_center","enabled":true, "childMenuItems": [{"id": "integrations"},{"id": "converters"}]},{"id": "rule_chains"},{"id": "rule_chains"},
-                  {"id": "edge_management", "enabled":true, "childMenuItems":[{"id": "edges"},{"id": "rulechain_templates"},{"id": "integration_templates"},
-                  {"id": "integration_templates","enabled":true},{"id":"converter_templates","enabled":true}]},{"id": "features","enabled":true, "childMenuItems":[{"id": "otaUpdates","enabled":true},{"id": "version_control","enabled":true},
-                  {"id": "scheduler","enabled":true}]},{"id": "resources","enabled":true, "childMenuItems":[{"id": "widget_library","enabled":true},{"id": "images","enabled":true},{"id": "resources_library","enabled":true}]},
-                  {"id": "notifications_center","enabled":true},{"id": "api_usage","enabled":true},{"id": "white_labeling","enabled":true},{"id": "settings","enabled":true},
-                  {"id": "security_settings","enabled":true,"childMenuItems": [{"id":"2fa","enabled":true},{"id":"roles","enabled":true},{"id":"self_registration","enabled":true}, {"id":"audit_log","enabled":true}]}]'::jsonb
-                     ||(settings::jsonb #> '{menuItems}'))
+                 '[
+                   {"id": "home", "visible":true},
+                   {"id": "alarms", "visible":true},
+                   {
+                     "id": "dashboards", "visible":true,
+                     "pages": [
+                       {"id": "dashboard_all", "visible":true},
+                       {"id": "dashboard_groups", "visible":true},
+                       {"id": "dashboard_shared", "visible":true}
+                     ]
+                   },
+                   {"id": "solution_templates", "visible":true},
+                   {
+                     "id": "entities", "visible":true,
+                     "pages": [
+                       {
+                         "id": "devices", "visible":true,
+                         "pages": [
+                           {"id": "device_all", "visible":true},
+                           {"id": "device_groups", "visible":true},
+                           {"id": "device_shared", "visible":true}
+                         ]
+                       },
+                       {
+                         "id": "assets", "visible":true,
+                         "pages": [
+                           {"id": "asset_all", "visible":true},
+                           {"id": "asset_groups", "visible":true},
+                           {"id": "asset_shared", "visible":true}
+                         ]
+                       },
+                       {
+                         "id": "entity_views", "visible":true,
+                         "pages": [
+                           {"id": "entity_view_all", "visible":true},
+                           {"id": "entity_view_groups", "visible":true},
+                           {"id": "entity_view_shared", "visible":true}
+                         ]
+                       }
+                     ]
+                   },
+                   {
+                     "id": "profiles", "visible":true,
+                     "pages": [
+                       {"id": "device_profiles", "visible":true},
+                       {"id": "asset_profiles", "visible":true}
+                     ]
+                   },
+                   {
+                     "id": "customers", "visible":true,
+                     "pages": [
+                       {"id": "customer_all", "visible":true},
+                       {"id": "customer_groups", "visible":true},
+                       {"id": "customer_shared", "visible":true},
+                       {"id": "customers_hierarchy", "visible":true}
+                     ]
+                   },
+                   {
+                     "id": "users", "visible":true,
+                     "pages": [
+                       {"id": "user_all", "visible":true},
+                       {"id": "user_groups", "visible":true}
+                     ]
+                   },
+                   {
+                     "id": "integrations_center", "visible":true,
+                     "pages": [
+                       {"id": "integrations", "visible":true},
+                       {"id": "converters", "visible":true}
+                     ]
+                   },
+                   {"id": "rule_chains", "visible":true},
+                   {
+                     "id": "edge_management", "visible":true,
+                     "pages": [
+                       {
+                         "id": "edges", "visible":true,
+                         "pages": [
+                           {"id": "edge_all", "visible":true},
+                           {"id": "edge_groups", "visible":true},
+                           {"id": "edge_shared", "visible":true}
+                         ]
+                       },
+                       {"id": "rulechain_templates", "visible":true},
+                       {"id": "integration_templates", "visible":true},
+                       {"id": "converter_templates", "visible":true}
+                     ]
+                   },
+                   {
+                     "id": "features", "visible":true,
+                     "pages": [
+                       {"id": "otaUpdates", "visible":true},
+                       {"id": "version_control", "visible":true},
+                       {"id": "scheduler", "visible":true}
+                     ]
+                   },
+                   {
+                     "id": "resources", "visible":true,
+                     "pages": [
+                       {
+                         "id": "widget_library", "visible":true,
+                         "pages": [
+                           {"id": "widget_types", "visible":true},
+                           {"id": "widgets_bundles", "visible":true}
+                         ]
+                       },
+                       {"id": "images", "visible":true},
+                       {"id": "scada_symbols", "visible":true},
+                       {"id": "resources_library", "visible":true}
+                     ]
+                   },
+                   {
+                     "id": "notifications_center", "visible":true,
+                     "pages": [
+                       {"id": "notification_inbox", "visible":true},
+                       {"id": "notification_sent", "visible":true},
+                       {"id": "notification_recipients", "visible":true},
+                       {"id": "notification_templates", "visible":true},
+                       {"id": "notification_rules", "visible":true}
+                     ]
+                   },
+                   {"id": "api_usage", "visible":true},
+                   {
+                     "id": "white_labeling", "visible":true,
+                     "pages": [
+                       {"id": "white_labeling_general", "visible":true},
+                       {"id": "login_white_labeling", "visible":true},
+                       {"id": "mail_templates", "visible":true},
+                       {"id": "custom_translation", "visible":true},
+                       {"id": "custom_menu", "visible":true}
+                     ]
+                   },
+                   {
+                     "id": "settings","visible":true,
+                     "pages": [
+                       {"id": "home_settings", "visible":true},
+                       {"id": "mail_server", "visible":true},
+                       {"id": "notification_settings", "visible":true},
+                       {"id": "repository_settings", "visible":true},
+                       {"id": "auto_commit_settings", "visible":true},
+                       {"id": "mobile_app_settings", "visible":true}
+                     ]
+                   },
+                   {
+                     "id": "security_settings", "visible":true,
+                     "pages": [
+                       {"id": "two_fa", "visible":true},
+                       {"id": "roles", "visible":true},
+                       {"id": "self_registration", "visible":true},
+                       {"id": "audit_log", "visible":true}
+                     ]
+                   }
+                 ]'::jsonb ||(settings::jsonb #> '{menuItems}'))
             WHERE settings IS NOT NULL and customer_id = '13814000-1dd2-11b2-8080-808080808080' and tenant_id != '13814000-1dd2-11b2-8080-808080808080';
 
             -- add predefined menu items to customer custom menus
             UPDATE custom_menu SET settings = jsonb_set(settings::jsonb, '{menuItems}',
-                 '[{ "id": "home","enabled":true},{"id": "alarms","enabled":true},{"id": "dashboards","enabled":true},
-                  {"id": "entities", "enabled":true, "childMenuItems":[{"id": "devices"},{"id": "assets"},{"id": "entity_views"}]},
-                  {"id": "customers"},{"id": "users"}, {"id": "edges"},{"id": "resources","enabled":true, "childMenuItems":[{"id": "images","enabled":true}]},
-                  {"id": "notifications_center","enabled":true},{"id": "scheduler","enabled":true},{"id": "white_labeling","enabled":true},{"id": "settings","enabled":true},
-                  {"id": "security_settings","enabled":true,"childMenuItems": [{"id":"roles","enabled":true}, {"id":"audit_log","enabled":true}]}]'::jsonb
-                     || (settings::jsonb #> '{menuItems}'))
+                 '[
+                   {"id": "home", "visible":true},
+                   {"id": "alarms", "visible":true},
+                   {
+                     "id": "dashboards", "visible":true,
+                     "pages": [
+                       {"id": "dashboard_all", "visible":true},
+                       {"id": "dashboard_groups", "visible":true},
+                       {"id": "dashboard_shared", "visible":true}
+                     ]
+                   },
+                   {"id": "solution_templates", "visible":true},
+                   {
+                     "id": "entities", "visible":true,
+                     "pages": [
+                       {
+                         "id": "devices", "visible":true,
+                         "pages": [
+                           {"id": "device_all", "visible":true},
+                           {"id": "device_groups", "visible":true},
+                           {"id": "device_shared", "visible":true}
+                         ]
+                       },
+                       {
+                         "id": "assets", "visible":true,
+                         "pages": [
+                           {"id": "asset_all", "visible":true},
+                           {"id": "asset_groups", "visible":true},
+                           {"id": "asset_shared", "visible":true}
+                         ]
+                       },
+                       {
+                         "id": "entity_views", "visible":true,
+                         "pages": [
+                           {"id": "entity_view_all", "visible":true},
+                           {"id": "entity_view_groups", "visible":true},
+                           {"id": "entity_view_shared", "visible":true}
+                         ]
+                       }
+                     ]
+                   },
+                   {
+                   [
+                     {"id": "home", "visible":true},
+                     {"id": "alarms", "visible":true},
+                     {
+                       "id": "dashboards", "visible":true,
+                       "pages": [
+                         {"id": "dashboard_all", "visible":true},
+                         {"id": "dashboard_groups", "visible":true},
+                         {"id": "dashboard_shared", "visible":true}
+                       ]
+                     },
+                     {
+                       "id": "entities", "visible":true,
+                       "pages": [
+                         {
+                           "id": "devices", "visible":true,
+                           "pages": [
+                             {"id": "device_all", "visible":true},
+                             {"id": "device_groups", "visible":true},
+                             {"id": "device_shared", "visible":true}
+                           ]
+                         },
+                         {
+                           "id": "assets", "visible":true,
+                           "pages": [
+                             {"id": "asset_all", "visible":true},
+                             {"id": "asset_groups", "visible":true},
+                             {"id": "asset_shared", "visible":true}
+                           ]
+                         },
+                         {
+                           "id": "entity_views", "visible":true,
+                           "pages": [
+                             {"id": "entity_view_all", "visible":true},
+                             {"id": "entity_view_groups", "visible":true},
+                             {"id": "entity_view_shared", "visible":true}
+                           ]
+                         }
+                       ]
+                     },
+                     {
+                       "id": "customers", "visible":true,
+                       "pages": [
+                         {"id": "customer_all", "visible":true},
+                         {"id": "customer_groups", "visible":true},
+                         {"id": "customer_shared", "visible":true},
+                         {"id": "customers_hierarchy", "visible":true}
+                       ]
+                     },
+                     {
+                       "id": "users", "visible":true,
+                       "pages": [
+                         {"id": "user_all", "visible":true},
+                         {"id": "user_groups", "visible":true}
+                       ]
+                     },
+                     {
+                       "id": "edge_instances", "visible":true,
+                       "pages": [
+                         {"id": "edge_all", "visible":true},
+                         {"id": "edge_groups", "visible":true},
+                         {"id": "edge_shared", "visible":true},
+                       ]
+                     },
+                     {
+                       "id": "resources", "visible":true,
+                       "pages": [
+                         {"id": "images", "visible":true},
+                         {"id": "scada_symbols", "visible":true}
+                       ]
+                     },
+                     {
+                       "id": "notifications_center", "visible":true,
+                       "pages": [
+                         {"id": "notification_inbox", "visible":true}
+                       ]
+                     },
+                     {"id": "scheduler", "visible":true},
+                     {
+                       "id": "white_labeling", "visible":true,
+                       "pages": [
+                         {"id": "white_labeling_general", "visible":true},
+                         {"id": "login_white_labeling", "visible":true},
+                         {"id": "custom_translation", "visible":true},
+                         {"id": "custom_menu", "visible":true}
+                       ]
+                     },
+                     {
+                       "id": "settings", "visible":true,
+                       "pages": [
+                         {"id": "home_settings", "visible":true}
+                       ]
+                     },
+                     {
+                       "id": "security_settings", "visible":true,
+                       "pages": [
+                         {"id": "roles", "visible":true},
+                         {"id": "audit_log", "visible":true}
+                       ]
+                     }
+                   ]
+                 ]'::jsonb || (settings::jsonb #> '{menuItems}'))
             WHERE settings IS NOT NULL and customer_id != '13814000-1dd2-11b2-8080-808080808080';
 
             -- mark disabled elements
@@ -232,39 +570,21 @@ $$
 $$;
 
 -- create default system menu
-INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
+INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
 VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
-        'Default system menu', 'SYSTEM', 'ALL',
-        '[{"id":"home","enabled":true},{"id":"tenants","enabled":true},{"id":"tenant_profiles","enabled":true},
-        {"id":"resources","enabled":true,"childMenuItems":[{"id":"widget_library","enabled":true},{"id":"images","enabled":true},{"id":"resources_library","enabled":true}]},
-        {"id": "notifications_center","enabled":true},{"id":"white_labeling","enabled":true},{"id": "settings","enabled":true},{"id":"security_settings","enabled":true,
-        "childMenuItems": [{"id":"security_settings_general","enabled":true},{"id":"2fa","enabled":true},{"id":"oauth2","enabled":true}]}]')
+        'Default system menu', 'SYSTEM', 'ALL')
 ON CONFLICT DO NOTHING;
 
 -- create default menu for tenant admins
-INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
+INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
 VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
-        'Default tenant menu', 'TENANT', 'ALL',
-        '[{ "id": "home","enabled":true},{"id": "alarms","enabled":true},{"id": "dashboards","enabled":true},
-        {"id": "solution_templates","enabled":true},{"id": "entities", "enabled":true, "childMenuItems":[{"id": "devices"},{"id": "assets"},{"id": "entity_views"}]},
-        {"id": "profiles", "childMenuItems":[{"id": "device_profiles"},{"id": "asset_profiles"}]},{"id": "customers"},{"id": "users"},
-        {"id": "integrations_center","enabled":true, "childMenuItems": [{"id": "integrations"},{"id": "converters"}]},{"id": "rule_chains"},{"id": "rule_chains"},
-        {"id": "edge_management", "enabled":true, "childMenuItems":[{"id": "edges"},{"id": "rulechain_templates"},{"id": "integration_templates"},
-        {"id": "integration_templates","enabled":true},{"id":"converter_templates","enabled":true}]},{"id": "features","enabled":true, "childMenuItems":[{"id": "otaUpdates","enabled":true},{"id": "version_control","enabled":true},
-        {"id": "scheduler","enabled":true}]},{"id": "resources","enabled":true, "childMenuItems":[{"id": "widget_library","enabled":true},{"id": "images","enabled":true},{"id": "resources_library","enabled":true}]},
-        {"id": "notifications_center","enabled":true},{"id": "api_usage","enabled":true},{"id": "white_labeling","enabled":true},{"id": "settings","enabled":true},
-        {"id": "security_settings","enabled":true,"childMenuItems": [{"id":"2fa","enabled":true},{"id":"roles","enabled":true},{"id":"self_registration","enabled":true}, {"id":"audit_log","enabled":true}]}]')
+        'Default tenant menu', 'TENANT', 'ALL')
 ON CONFLICT DO NOTHING;
 
 -- create default menu for customer users
-INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
+INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
 VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
-        'Default customer menu', 'CUSTOMER', 'ALL',
-        '[{ "id": "home","enabled":true},{"id": "alarms","enabled":true},{"id": "dashboards","enabled":true},
-        {"id": "entities", "enabled":true, "childMenuItems":[{"id": "devices"},{"id": "assets"},{"id": "entity_views"}]},
-        {"id": "customers"},{"id": "users"}, {"id": "edges"},{"id": "resources","enabled":true, "childMenuItems":[{"id": "images","enabled":true}]},
-        {"id": "notifications_center","enabled":true},{"id": "scheduler","enabled":true},{"id": "white_labeling","enabled":true},{"id": "settings","enabled":true},
-        {"id": "security_settings","enabled":true,"childMenuItems": [{"id":"roles","enabled":true}, {"id":"audit_log","enabled":true}]}]')
+        'Default customer menu', 'CUSTOMER', 'ALL')
 ON CONFLICT DO NOTHING;
 
 -- clear
