@@ -455,17 +455,5 @@ public class CustomerUserPermissions extends AbstractPermissions {
                 return ownersCacheService.getOwners(user.getTenantId(), customMenu.getCustomerId(), customMenu).contains(user.getOwnerId());
             }
         }
-
-        @Override
-        public boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenuInfo customMenuInfo) {
-            if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), null)) {
-                return false;
-            }
-            if (operation == Operation.CREATE) {
-                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation);
-            } else {
-                return customMenuInfo.getTenantId() == null || user.getTenantId().equals(customMenuInfo.getTenantId());
-            }
-        }
     };
 }

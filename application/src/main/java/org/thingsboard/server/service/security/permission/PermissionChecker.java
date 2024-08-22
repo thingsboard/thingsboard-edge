@@ -72,10 +72,6 @@ public interface PermissionChecker<I extends EntityId, T extends TenantEntity> {
         return false;
     }
 
-    default boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenuInfo customMenuInfo) throws ThingsboardException {
-        return false;
-    }
-
     public class GenericPermissionChecker<I extends EntityId, T extends TenantEntity> implements PermissionChecker<I, T> {
 
         private final Set<Operation> allowedOperations;

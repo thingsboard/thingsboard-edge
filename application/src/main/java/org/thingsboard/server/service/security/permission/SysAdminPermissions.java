@@ -104,7 +104,7 @@ public class SysAdminPermissions extends AbstractPermissions {
     private static final PermissionChecker customMenuPermissionChecker = new PermissionChecker() {
         @Override
         public boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenu customMenu) {
-            return customMenu.getCustomerId() == null || customMenu.getCustomerId().isNullUid();
+            return customMenu.getTenantId().isSysTenantId();
         }
     };
 

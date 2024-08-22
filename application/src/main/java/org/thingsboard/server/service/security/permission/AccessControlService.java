@@ -60,8 +60,6 @@ public interface AccessControlService {
 
     void checkCustomMenuPermission(SecurityUser user, Operation operation, CustomMenu customMenu) throws ThingsboardException;
 
-    void checkCustomMenuPermission(SecurityUser user, Operation operation, CustomMenuInfo customMenuInfo) throws ThingsboardException;
-
     boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException;
 
     boolean hasEntityGroupInfoPermission(SecurityUser user, Operation operation, EntityGroupInfo entityGroup) throws ThingsboardException;

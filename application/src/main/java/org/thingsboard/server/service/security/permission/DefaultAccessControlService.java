@@ -141,14 +141,6 @@ public class DefaultAccessControlService implements AccessControlService {
     }
 
     @Override
-    public void checkCustomMenuPermission(SecurityUser user, Operation operation, CustomMenuInfo customMenuInfo) throws ThingsboardException {
-        PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), Resource.CUSTOM_MENU, true);
-        if (!permissionChecker.hasCustomMenuPermission(user, operation, customMenuInfo)) {
-            customMenuOperationPermissionDenied(operation, customMenuInfo);
-        }
-    }
-
-    @Override
     public boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException {
         PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), Resource.groupResourceFromGroupType(entityGroup.getType()), false);
         if (permissionChecker != null) {

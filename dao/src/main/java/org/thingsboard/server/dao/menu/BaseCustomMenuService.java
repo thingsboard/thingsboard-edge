@@ -93,25 +93,27 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
 
     @Override
     @Transactional
-    public CustomMenu saveCustomMenuInfo(CustomMenuInfo customMenuInfo, List<EntityId> assignToList) {
+    public CustomMenu createCustomMenuInfo(CustomMenuInfo customMenuInfo, List<EntityId> assignToList, boolean force) {
         log.trace("Executing saveCustomMenu [{}]", customMenuInfo);
         customMenuInfoValidator.validate(customMenuInfo, CustomMenuInfo::getTenantId);
-        try {
-            CustomMenu savedCustomMenu = customMenuDao.save(customMenuInfo.getTenantId(), new CustomMenu(customMenuInfo));
-            if (!CollectionUtils.isEmpty(assignToList)) {
-                updateCustomMenuAssignToList(savedCustomMenu, assignToList);
-            }
-            publishEvictEvent(new CustomMenuCacheEvictEvent(savedCustomMenu.getId()));
-            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(savedCustomMenu.getTenantId()).entityId(getEntityIdForEvent(customMenuInfo.getTenantId(), customMenuInfo.getCustomerId()))
-                    .edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.UPDATED).build());
-            return savedCustomMenu;
-        } catch (Exception t) {
-            throw t;
-        }
+        return saveCustomMenu(new CustomMenu(customMenuInfo), assignToList);
     }
 
     @Override
-    public void updateCustomMenuAssignToList(CustomMenuInfo customMenuInfo, List<EntityId> assignToList) {
+    public boolean updateCustomMenuName(CustomMenuId customMenuId, String name) {
+        log.trace("Executing updateCustomMenuName [{}] [{}] ", customMenuId, name);
+        return customMenuDao.updateCustomMenuName(customMenuId, name);
+    }
+
+    @Override
+    public CustomMenu updateCustomMenu(CustomMenu customMenu) {
+        log.trace("Executing updateCustomMenu [{}] ", customMenu);
+        customMenuInfoValidator.validate(customMenu, CustomMenuInfo::getTenantId);
+        return saveCustomMenu(customMenu, null);
+    }
+
+    @Override
+    public void assignCustomMenu(CustomMenuInfo customMenuInfo, List<EntityId> assignToList) {
         List<EntityId> existingEntityIds = findCustomMenuAssigneeInfoById(customMenuInfo.getTenantId(), customMenuInfo.getId()).getAssigneeList()
                 .stream()
                 .map(EntityInfo::getId)
@@ -159,14 +161,14 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     }
 
     @Override
-    public CustomMenuConfig getSystemAdminCustomMenu() {
+    public CustomMenuConfig getSystemAdminCustomMenuConfig() {
         log.trace("Executing getSystemAdminCustomMenu");
         CustomMenu customMenu = findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, null, CMScope.SYSTEM);
         return getVisibleMenuItems(customMenu);
     }
 
     @Override
-    public CustomMenuConfig getTenantUserCustomMenu(TenantId tenantId, UserId userId) {
+    public CustomMenuConfig getTenantUserCustomMenuConfig(TenantId tenantId, UserId userId) {
         log.trace("Executing getTenantUserCustomMenu [{}] ", userId);
         Validator.validateId(userId, id -> INCORRECT_USER_ID + id);
         CustomMenu result = findCustomMenuByUserId(tenantId, userId);
@@ -180,7 +182,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     }
 
     @Override
-    public CustomMenuConfig getCustomerUserCustomMenu(TenantId tenantId, CustomerId customerId, UserId userId) {
+    public CustomMenuConfig getCustomerUserCustomMenuConfig(TenantId tenantId, CustomerId customerId, UserId userId) {
         log.trace("Executing getCustomerUserCustomMenu [{}] ", userId);
         Validator.validateId(userId, id -> INCORRECT_USER_ID + id);
         CustomMenu result = findCustomMenuByUserId(tenantId, userId);
@@ -197,7 +199,6 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     }
 
     @Override
-    @Transactional
     public CustomMenuDeleteResult deleteCustomMenu(TenantId tenantId, CustomMenuId customMenuId, boolean force) {
         log.trace("Executing deleteCustomMenu [{}]", customMenuId);
         CustomMenuAssigneeInfo customMenuAssigneeInfo = findCustomMenuAssigneeInfoById(tenantId, customMenuId);
@@ -211,7 +212,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
         if (success) {
             //delete assignee list
             if (!customMenuAssigneeInfo.getAssigneeList().isEmpty() && force) {
-                updateCustomMenuAssignToList(customMenuAssigneeInfo, Collections.emptyList());
+                assignCustomMenu(customMenuAssigneeInfo, Collections.emptyList());
             }
             deleteCustomMenu(tenantId, customMenuAssigneeInfo);
         }
@@ -249,20 +250,23 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
         return customMenuDao.findDefaultMenuByScope(tenantId, customerId, scope);
     }
 
-    @Override
-    public boolean updateCustomMenuName(CustomMenuId customMenuId, String name) {
-        log.trace("Executing updateCustomMenuName [{}] [{}] ", customMenuId, name);
-        return customMenuDao.updateCustomMenuName(customMenuId, name);
-    }
-
-    @Override
-    public CustomMenu updateCustomMenu(CustomMenu customMenu) {
-        log.trace("Executing updateCustomMenuConfig [{}] ", customMenu);
-        return customMenuDao.save(customMenu.getTenantId(), customMenu);
+    private CustomMenu saveCustomMenu(CustomMenu customMenu, List<EntityId> assignToList) {
+        try {
+            CustomMenu savedCustomMenu = customMenuDao.save(customMenu.getTenantId(), customMenu);
+            if (!CollectionUtils.isEmpty(assignToList)) {
+                assignCustomMenu(savedCustomMenu, assignToList);
+            }
+            publishEvictEvent(new CustomMenuCacheEvictEvent(savedCustomMenu.getId()));
+            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(savedCustomMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
+                    .edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.UPDATED).build());
+            return savedCustomMenu;
+        } catch (Exception t) {
+            throw t;
+        }
     }
 
     private static CustomMenuConfig getVisibleMenuItems(CustomMenu customMenu) {
-        if (customMenu == null) {
+        if (customMenu == null || customMenu.getConfig() == null) {
             return null;
         }
         return new CustomMenuConfig(customMenu.getConfig().getItems().stream()

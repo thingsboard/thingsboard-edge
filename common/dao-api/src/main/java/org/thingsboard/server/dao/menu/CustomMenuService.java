@@ -48,19 +48,23 @@ import java.util.List;
 
 public interface CustomMenuService {
 
-    CustomMenu saveCustomMenuInfo(CustomMenuInfo customMenuInfo, List<EntityId> assignToList);
+    CustomMenu createCustomMenuInfo(CustomMenuInfo customMenuInfo, List<EntityId> assignToList, boolean force);
 
-    void updateCustomMenuAssignToList(CustomMenuInfo customMenuInfo, List<EntityId> assignToList);
+    boolean updateCustomMenuName(CustomMenuId customMenuId, String name);
+
+    CustomMenu updateCustomMenu(CustomMenu customMenu);
+
+    void assignCustomMenu(CustomMenuInfo customMenuInfo, List<EntityId> assignToList);
 
     CustomMenu findCustomMenuById(TenantId tenantId, CustomMenuId customMenuId);
 
     PageData<CustomMenuInfo> getCustomMenuInfos(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
-    CustomMenuConfig getSystemAdminCustomMenu();
+    CustomMenuConfig getSystemAdminCustomMenuConfig();
 
-    CustomMenuConfig getTenantUserCustomMenu(TenantId tenantId, UserId id);
+    CustomMenuConfig getTenantUserCustomMenuConfig(TenantId tenantId, UserId id);
 
-    CustomMenuConfig getCustomerUserCustomMenu(TenantId tenantId, CustomerId customerId, UserId userId);
+    CustomMenuConfig getCustomerUserCustomMenuConfig(TenantId tenantId, CustomerId customerId, UserId userId);
 
     CustomMenuDeleteResult deleteCustomMenu(TenantId tenantId, CustomMenuId customMenuId, boolean force);
 
@@ -68,7 +72,4 @@ public interface CustomMenuService {
 
     CustomMenuInfo findDefaultCustomMenuByScope(TenantId tenantId, CustomerId customerId, CMScope scope);
 
-    boolean updateCustomMenuName(CustomMenuId customMenuId, String na);
-
-    CustomMenu updateCustomMenu(CustomMenu customMenu);
 }

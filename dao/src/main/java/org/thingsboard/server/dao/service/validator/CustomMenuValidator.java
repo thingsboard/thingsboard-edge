@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMScope;
+import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.service.DataValidator;
@@ -66,5 +67,17 @@ public class CustomMenuValidator extends DataValidator<CustomMenuInfo> {
                 throw new DataValidationException("There is already default menu for scope " + customMenuInfo.getScope());
             }
         }
+    }
+
+    @Override
+    protected CustomMenuInfo validateUpdate(TenantId tenantId, CustomMenuInfo customMenuInfo) {
+        CustomMenu old =  customMenuService.findCustomMenuById(tenantId, customMenuInfo.getId());
+        if (old == null) {
+            throw new DataValidationException("Can't update non existing custom menu!");
+        }
+        if (!old.getScope().equals(customMenuInfo.getScope())) {
+            throw new DataValidationException("Can't update custom menu scope!");
+        }
+        return old;
     }
 }
