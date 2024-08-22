@@ -317,6 +317,7 @@ message TbResourceProto {
   optional bytes preview = 18;
   optional int64 customerIdMSB = 19;
   optional int64 customerIdLSB = 20;
+  optional string resourceSubType = 21;
 }
 
 message ApiUsageStateProto {

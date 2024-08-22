@@ -52,6 +52,8 @@ export interface AddWidgetDialogData {
   stateController: IStateController;
   widget: Widget;
   widgetInfo: WidgetInfo;
+  showLayoutConfig: boolean;
+  isDefaultBreakpoint: boolean;
 }
 
 @Component({
@@ -73,6 +75,9 @@ export class AddWidgetDialogComponent extends DialogComponent<AddWidgetDialogCom
   aliasController: IAliasController;
   stateController: IStateController;
   widget: Widget;
+
+  showLayoutConfig = true;
+  isDefaultBreakpoint = true;
 
   widgetConfig: WidgetConfigComponentData;
 
@@ -106,6 +111,8 @@ export class AddWidgetDialogComponent extends DialogComponent<AddWidgetDialogCom
     this.aliasController = this.data.aliasController;
     this.stateController = this.data.stateController;
     this.widget = this.data.widget;
+    this.showLayoutConfig = this.data.showLayoutConfig;
+    this.isDefaultBreakpoint = this.data.isDefaultBreakpoint;
 
     const widgetInfo = this.data.widgetInfo;
 

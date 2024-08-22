@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.service.validator.RuleChainDataValidator;
@@ -88,6 +89,8 @@ class InstallScriptsTest {
     ResourceService resourceService;
     @MockBean
     WhiteLabelingService whiteLabelingService;
+    @MockBean
+    ImageService imageService;
     @MockBean
     ImagesUpdater imagesUpdater;
 
