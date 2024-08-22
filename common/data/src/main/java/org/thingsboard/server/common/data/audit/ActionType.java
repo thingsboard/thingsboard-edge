@@ -44,13 +44,13 @@ public enum ActionType {
     ATTRIBUTES_DELETED(TbMsgType.ATTRIBUTES_DELETED), // log attributes
     TIMESERIES_UPDATED(TbMsgType.TIMESERIES_UPDATED), // log timeseries update
     TIMESERIES_DELETED(TbMsgType.TIMESERIES_DELETED), // log timeseries
-    RPC_CALL(), // log method and params
-    CREDENTIALS_UPDATED(), // log new credentials
+    RPC_CALL, // log method and params
+    CREDENTIALS_UPDATED, // log new credentials
     ASSIGNED_TO_CUSTOMER(TbMsgType.ENTITY_ASSIGNED), // log customer name
     UNASSIGNED_FROM_CUSTOMER(TbMsgType.ENTITY_UNASSIGNED), // log customer name
     CHANGE_OWNER(TbMsgType.OWNER_CHANGED), // log customer name
-    ACTIVATED(), // log string id
-    SUSPENDED(), // log string id
+    ACTIVATED, // log string id
+    SUSPENDED, // log string id
     CREDENTIALS_READ(true), // log device id
     ATTRIBUTES_READ(true), // log attributes
     RELATION_ADD_OR_UPDATE(TbMsgType.RELATION_ADD_OR_UPDATE),
@@ -63,12 +63,12 @@ public enum ActionType {
     ALARM_UNASSIGNED(TbMsgType.ALARM_UNASSIGNED, true),
     ADDED_TO_ENTITY_GROUP(TbMsgType.ADDED_TO_ENTITY_GROUP), // log entity group name
     REMOVED_FROM_ENTITY_GROUP(TbMsgType.REMOVED_FROM_ENTITY_GROUP), // log entity group name
-    REST_API_RULE_ENGINE_CALL(), // log call to rule engine from REST API
-    MADE_PUBLIC(), // log entity group name
-    MADE_PRIVATE(), // log entity group name
-    LOGIN(),
-    LOGOUT(),
-    LOCKOUT(),
+    REST_API_RULE_ENGINE_CALL, // log call to rule engine from REST API
+    MADE_PUBLIC, // log entity group name
+    MADE_PRIVATE, // log entity group name
+    LOGIN,
+    LOGOUT,
+    LOCKOUT,
     ASSIGNED_FROM_TENANT(TbMsgType.ENTITY_ASSIGNED_FROM_TENANT),
     ASSIGNED_TO_TENANT(TbMsgType.ENTITY_ASSIGNED_TO_TENANT),
     PROVISION_SUCCESS(TbMsgType.PROVISION_SUCCESS),
@@ -77,8 +77,8 @@ public enum ActionType {
     UNASSIGNED_FROM_EDGE(TbMsgType.ENTITY_UNASSIGNED_FROM_EDGE),
     ADDED_COMMENT(TbMsgType.COMMENT_CREATED),
     UPDATED_COMMENT(TbMsgType.COMMENT_UPDATED),
-    DELETED_COMMENT(),
-    SMS_SENT();
+    DELETED_COMMENT,
+    SMS_SENT;
 
     @Getter
     private final boolean read;
