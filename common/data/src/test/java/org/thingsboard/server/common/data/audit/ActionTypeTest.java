@@ -36,6 +36,11 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.thingsboard.server.common.data.audit.ActionType.ACTIVATED;
+import static org.thingsboard.server.common.data.audit.ActionType.ALARM_ACK;
+import static org.thingsboard.server.common.data.audit.ActionType.ALARM_ASSIGNED;
+import static org.thingsboard.server.common.data.audit.ActionType.ALARM_CLEAR;
+import static org.thingsboard.server.common.data.audit.ActionType.ALARM_DELETE;
+import static org.thingsboard.server.common.data.audit.ActionType.ALARM_UNASSIGNED;
 import static org.thingsboard.server.common.data.audit.ActionType.ATTRIBUTES_READ;
 import static org.thingsboard.server.common.data.audit.ActionType.CREDENTIALS_READ;
 import static org.thingsboard.server.common.data.audit.ActionType.CREDENTIALS_UPDATED;
@@ -52,7 +57,7 @@ import static org.thingsboard.server.common.data.audit.ActionType.SUSPENDED;
 
 class ActionTypeTest {
 
-    private static final List<ActionType> typesWithNullRuleEngineMsgType = List.of(
+    private final List<ActionType> typesWithNullRuleEngineMsgType = List.of(
             RPC_CALL,
             CREDENTIALS_UPDATED,
             ACTIVATED,
@@ -69,6 +74,10 @@ class ActionTypeTest {
             MADE_PRIVATE
     );
 
+    private final List<ActionType> alarmActionTypes = List.of(
+            ALARM_ACK, ALARM_CLEAR, ALARM_DELETE, ALARM_ASSIGNED, ALARM_UNASSIGNED
+    );
+
     // backward-compatibility tests
 
     @Test
@@ -79,6 +88,18 @@ class ActionTypeTest {
                 assertThat(type.getRuleEngineMsgType()).isEmpty();
             } else {
                 assertThat(type.getRuleEngineMsgType()).isPresent();
+            }
+        }
+    }
+
+    @Test
+    void isAlarmActionTest() {
+        var types = ActionType.values();
+        for (var type : types) {
+            if (alarmActionTypes.contains(type)) {
+                assertThat(type.isAlarmAction()).isTrue();
+            } else {
+                assertThat(type.isAlarmAction()).isFalse();
             }
         }
     }

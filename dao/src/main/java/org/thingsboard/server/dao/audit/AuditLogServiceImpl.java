@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.alarm.AlarmComment;
+import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.audit.ActionStatus;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.audit.AuditLog;
@@ -139,12 +140,16 @@ public class AuditLogServiceImpl implements AuditLogService {
             String failureDetails = "";
             String entityName = "N/A";
             if (entity != null) {
-                entityName = entity.getName();
-            } else {
-                try {
-                    entityName = entityService.fetchEntityName(tenantId, entityId).orElse(entityName);
-                } catch (Exception ignored) {
+                if (actionType.isAlarmAction()) {
+                    entityName = (entity instanceof AlarmInfo alarmInfo)
+                            ? alarmInfo.getOriginatorName()
+                            : entityService.fetchEntityName(tenantId, entityId).orElse(entityName);
+                } else {
+                    entityName = entity.getName();
                 }
+            } else try {
+                entityName = entityService.fetchEntityName(tenantId, entityId).orElse(entityName);
+            } catch (Exception ignored) {
             }
             if (e != null) {
                 actionStatus = ActionStatus.FAILURE;
@@ -207,6 +212,10 @@ public class AuditLogServiceImpl implements AuditLogService {
                 actionData.set("comment", comment.getComment());
                 break;
             case ALARM_DELETE:
+                EntityId alarmId = extractParameter(EntityId.class, additionalInfo);
+                actionData.put("alarmId", alarmId != null ? alarmId.toString() : null);
+                actionData.put("originatorId", entityId.toString());
+                break;
             case DELETED:
             case ACTIVATED:
             case SUSPENDED:
