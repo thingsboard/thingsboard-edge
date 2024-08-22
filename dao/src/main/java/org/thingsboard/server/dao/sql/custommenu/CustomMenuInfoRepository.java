@@ -28,39 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.menu;
+package org.thingsboard.server.dao.sql.custommenu;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.thingsboard.server.dao.model.sql.CustomMenuInfoEntity;
 
-import static org.thingsboard.server.common.data.menu.MenuItemType.HOME;
+import java.util.UUID;
 
-@Schema
-@Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class HomeMenuItem implements MenuItem {
 
-    @Schema(description = "Unique identifier for predefined menu items", example = "home",  accessMode = Schema.AccessMode.READ_ONLY)
-    private String id;
-    @Schema(description = "DEFAULT or DASHBOARD. DASHBOARD means default home page presentation changed to refer to dashboard")
-    private HomeMenuItemType homeType;
-    @Schema(description = "Id of the Dashboard to open, when user clicks the menu item")
-    private String dashboardId;
-    @Schema(description = "Hide the dashboard toolbar")
-    private boolean hideDashboardToolbar;
+public interface CustomMenuInfoRepository extends JpaRepository<CustomMenuInfoEntity, UUID> {
 
-    @Override
-    public MenuItemType getType() {
-        return HOME;
-    }
+    @Query("SELECT m FROM CustomMenuInfoEntity m WHERE m.tenantId = :tenantId AND m.customerId = :customerId " +
+            "AND (:searchText IS NULL OR ilike(m.name, CONCAT('%', :searchText, '%')) = true )")
+    Page<CustomMenuInfoEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                                           @Param("customerId") UUID customerId,
+                                                           @Param("searchText") String searchText,
+                                                           Pageable pageable);
 
-    @Override
-    public boolean isVisible() {
-        return true;
-    }
 }

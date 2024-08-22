@@ -30,8 +30,6 @@
  */
 package org.thingsboard.server.dao.sql.custommenu;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -45,20 +43,16 @@ import java.util.UUID;
 
 public interface CustomMenuRepository extends JpaRepository<CustomMenuEntity, UUID> {
 
-
-    @Query("SELECT m FROM CustomMenuEntity m WHERE m.tenantId = :tenantId AND " +
-            "m.customerId = :customerId AND " +
-            "(:searchText is NULL OR ilike(m.name, concat('%', :searchText, '%')) = true)")
-    Page<CustomMenuEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
-                                                       @Param("customerId") UUID customerId,
-                                                       @Param("searchText") String searchText,
-                                                       Pageable pageable);
-
     @Query("SELECT m FROM CustomMenuEntity m " +
             "WHERE m.tenantId = :tenantId AND m.customerId = :customerId AND m.scope = :scope AND m.assigneeType = 'ALL'")
     CustomMenuEntity findDefaultByTenantIdAndCustomerIdAndScope(@Param("tenantId") UUID tenantId,
                                                                 @Param("customerId") UUID customerId,
                                                                 @Param("scope") CMScope scope);
+    @Modifying
+    @Transactional
+    @Query("UPDATE CustomMenuEntity m SET m.name = :name WHERE m.id = :id")
+    int updateCustomMenuName(@Param("id") UUID id, @Param("name") String menuName);
+
 
     @Transactional
     @Modifying

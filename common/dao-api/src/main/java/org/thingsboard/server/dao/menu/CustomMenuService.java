@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.menu;
 
+import org.thingsboard.server.common.data.CustomMenuDeleteResult;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -37,8 +38,9 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuAssigneeInfo;
+import org.thingsboard.server.common.data.menu.CustomMenuConfig;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
-import org.thingsboard.server.common.data.menu.MenuItem;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 
@@ -46,23 +48,27 @@ import java.util.List;
 
 public interface CustomMenuService {
 
-    CustomMenu saveCustomMenu(CustomMenu customMenu, List<EntityId> assignToList);
+    CustomMenu saveCustomMenuInfo(CustomMenuInfo customMenuInfo, List<EntityId> assignToList);
 
-    void updateCustomMenuAssignToList(CustomMenu savedCustomMenu, List<EntityId> assignToList);
+    void updateCustomMenuAssignToList(CustomMenuInfo customMenuInfo, List<EntityId> assignToList);
 
     CustomMenu findCustomMenuById(TenantId tenantId, CustomMenuId customMenuId);
 
     PageData<CustomMenuInfo> getCustomMenuInfos(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
-    List<MenuItem> getSystemAdminCustomMenu();
+    CustomMenuConfig getSystemAdminCustomMenu();
 
-    List<MenuItem> getTenantUserCustomMenu(TenantId tenantId, UserId id);
+    CustomMenuConfig getTenantUserCustomMenu(TenantId tenantId, UserId id);
 
-    List<MenuItem> getCustomerUserCustomMenu(TenantId tenantId, CustomerId customerId, UserId userId);
+    CustomMenuConfig getCustomerUserCustomMenu(TenantId tenantId, CustomerId customerId, UserId userId);
 
-    void deleteCustomMenu(TenantId tenantId, CustomMenuId customMenuId);
+    CustomMenuDeleteResult deleteCustomMenu(TenantId tenantId, CustomMenuId customMenuId, boolean force);
 
-    CustomMenuInfo findCustomMenuInfoById(TenantId tenantId, CustomMenuId customMenuId);
+    CustomMenuAssigneeInfo findCustomMenuAssigneeInfoById(TenantId tenantId, CustomMenuId customMenuId);
 
-    CustomMenu findDefaultCustomMenuByScope(TenantId tenantId, CustomerId customerId, CMScope scope);
+    CustomMenuInfo findDefaultCustomMenuByScope(TenantId tenantId, CustomerId customerId, CMScope scope);
+
+    boolean updateCustomMenuName(CustomMenuId customMenuId, String na);
+
+    CustomMenu updateCustomMenu(CustomMenu customMenu);
 }

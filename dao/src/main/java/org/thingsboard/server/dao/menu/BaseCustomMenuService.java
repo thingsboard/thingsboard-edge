@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.util.CollectionUtils;
+import org.thingsboard.server.common.data.CustomMenuDeleteResult;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.User;
@@ -48,9 +49,11 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.menu.CustomMenu;
-import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.menu.CMScope;
+import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuAssigneeInfo;
+import org.thingsboard.server.common.data.menu.CustomMenuConfig;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.menu.MenuItem;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -65,12 +68,12 @@ import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.service.Validator.checkNotNull;
 import static org.thingsboard.server.dao.service.Validator.validateId;
-import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service
 @Slf4j
@@ -86,20 +89,20 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     private final UserService userService;
     private final ApplicationEventPublisher eventPublisher;
     private final CustomMenuDao customMenuDao;
-    private final DataValidator<CustomMenu> customMenuValidator;
+    private final DataValidator<CustomMenuInfo> customMenuInfoValidator;
 
     @Override
     @Transactional
-    public CustomMenu saveCustomMenu(CustomMenu customMenu, List<EntityId> assignToList) {
-        log.trace("Executing saveCustomMenu [{}]", customMenu);
-        customMenuValidator.validate(customMenu, CustomMenu::getTenantId);
+    public CustomMenu saveCustomMenuInfo(CustomMenuInfo customMenuInfo, List<EntityId> assignToList) {
+        log.trace("Executing saveCustomMenu [{}]", customMenuInfo);
+        customMenuInfoValidator.validate(customMenuInfo, CustomMenuInfo::getTenantId);
         try {
-            CustomMenu savedCustomMenu = customMenuDao.save(customMenu.getTenantId(), customMenu);
+            CustomMenu savedCustomMenu = customMenuDao.save(customMenuInfo.getTenantId(), new CustomMenu(customMenuInfo));
             if (!CollectionUtils.isEmpty(assignToList)) {
                 updateCustomMenuAssignToList(savedCustomMenu, assignToList);
             }
             publishEvictEvent(new CustomMenuCacheEvictEvent(savedCustomMenu.getId()));
-            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(savedCustomMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
+            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(savedCustomMenu.getTenantId()).entityId(getEntityIdForEvent(customMenuInfo.getTenantId(), customMenuInfo.getCustomerId()))
                     .edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.UPDATED).build());
             return savedCustomMenu;
         } catch (Exception t) {
@@ -108,8 +111,8 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     }
 
     @Override
-    public void updateCustomMenuAssignToList(CustomMenu customMenu, List<EntityId> assignToList) {
-        List<EntityId> existingEntityIds = findCustomMenuInfoById(customMenu.getTenantId(), customMenu.getId()).getAssigneeList()
+    public void updateCustomMenuAssignToList(CustomMenuInfo customMenuInfo, List<EntityId> assignToList) {
+        List<EntityId> existingEntityIds = findCustomMenuAssigneeInfoById(customMenuInfo.getTenantId(), customMenuInfo.getId()).getAssigneeList()
                 .stream()
                 .map(EntityInfo::getId)
                 .toList();
@@ -118,10 +121,10 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
                 .filter(entityId -> assignToList.stream().noneMatch(id -> id.equals(entityId)))
                 .toList();
 
-        switch (customMenu.getAssigneeType()) {
+        switch (customMenuInfo.getAssigneeType()) {
             case CUSTOMERS:
                 List<CustomerId> customerIds = assignToList.stream().map(CustomerId.class::cast).collect(Collectors.toList());
-                customerService.updateCustomersCustomMenuId(customerIds, customMenu.getId().getId());
+                customerService.updateCustomersCustomMenuId(customerIds, customMenuInfo.getId().getId());
                 if (!CollectionUtils.isEmpty(toRemoveEntityIds)) {
                     List<CustomerId> toRemoveCustomerIds = toRemoveEntityIds.stream().map(CustomerId.class::cast).collect(Collectors.toList());
                     customerService.updateCustomersCustomMenuId(toRemoveCustomerIds, null);
@@ -129,7 +132,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
                 break;
             case USERS:
                 List<UserId> userIds = assignToList.stream().map(UserId.class::cast).collect(Collectors.toList());
-                userService.updateUsersCustomMenuId(userIds, customMenu.getId().getId());
+                userService.updateUsersCustomMenuId(userIds, customMenuInfo.getId().getId());
                 if (!CollectionUtils.isEmpty(toRemoveEntityIds)) {
                     List<UserId> toRemoveUserIds = toRemoveEntityIds.stream().map(UserId.class::cast).collect(Collectors.toList());
                     userService.updateUsersCustomMenuId(toRemoveUserIds, null);
@@ -152,24 +155,18 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
         log.trace("Executing getCustomerUserCustomMenus [{}] [{}]", tenantId, customerId);
         Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         Validator.validateId(tenantId, id -> INCORRECT_CUSTOMER_ID + id);
-        PageData<CustomMenu> customMenus = customMenuDao.findByTenantIdAndCustomerId(tenantId, customerId, pageLink);
-        List<CustomMenuInfo> customMenuInfos = new ArrayList<>();
-        for (CustomMenu customMenu : customMenus.getData()) {
-            CustomMenuInfo customMenuInfo = new CustomMenuInfo(customMenu, getMenuAssigners(customMenu));
-            customMenuInfos.add(customMenuInfo);
-        }
-        return new PageData<>(customMenuInfos, customMenus.getTotalPages(), customMenus.getTotalPages(), customMenus.hasNext());
+        return customMenuDao.findByTenantIdAndCustomerId(tenantId, customerId, pageLink);
     }
 
     @Override
-    public List<MenuItem> getSystemAdminCustomMenu() {
+    public CustomMenuConfig getSystemAdminCustomMenu() {
         log.trace("Executing getSystemAdminCustomMenu");
         CustomMenu customMenu = findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, null, CMScope.SYSTEM);
         return getVisibleMenuItems(customMenu);
     }
 
     @Override
-    public List<MenuItem> getTenantUserCustomMenu(TenantId tenantId, UserId userId) {
+    public CustomMenuConfig getTenantUserCustomMenu(TenantId tenantId, UserId userId) {
         log.trace("Executing getTenantUserCustomMenu [{}] ", userId);
         Validator.validateId(userId, id -> INCORRECT_USER_ID + id);
         CustomMenu result = findCustomMenuByUserId(tenantId, userId);
@@ -183,7 +180,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     }
 
     @Override
-    public List<MenuItem> getCustomerUserCustomMenu(TenantId tenantId, CustomerId customerId, UserId userId) {
+    public CustomMenuConfig getCustomerUserCustomMenu(TenantId tenantId, CustomerId customerId, UserId userId) {
         log.trace("Executing getCustomerUserCustomMenu [{}] ", userId);
         Validator.validateId(userId, id -> INCORRECT_USER_ID + id);
         CustomMenu result = findCustomMenuByUserId(tenantId, userId);
@@ -201,14 +198,31 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
 
     @Override
     @Transactional
-    public void deleteCustomMenu(TenantId tenantId, CustomMenuId customMenuId) {
+    public CustomMenuDeleteResult deleteCustomMenu(TenantId tenantId, CustomMenuId customMenuId, boolean force) {
         log.trace("Executing deleteCustomMenu [{}]", customMenuId);
-        CustomMenu customMenu = findCustomMenuById(tenantId, customMenuId);
-        if (customMenu == null) {
-            return;
+        CustomMenuAssigneeInfo customMenuAssigneeInfo = findCustomMenuAssigneeInfoById(tenantId, customMenuId);
+        CustomMenuDeleteResult.CustomMenuDeleteResultBuilder result = CustomMenuDeleteResult.builder()
+                .assigneeType(customMenuAssigneeInfo.getAssigneeType());
+        boolean success = true;
+        if (!force && !customMenuAssigneeInfo.getAssigneeList().isEmpty()) {
+            success = false;
+            result.assigneeList(customMenuAssigneeInfo.getAssigneeList());
         }
+        if (success) {
+            //delete assignee list
+            if (!customMenuAssigneeInfo.getAssigneeList().isEmpty() && force) {
+                updateCustomMenuAssignToList(customMenuAssigneeInfo, Collections.emptyList());
+            }
+            deleteCustomMenu(tenantId, customMenuAssigneeInfo);
+        }
+        return result.success(success).build();
+    }
+
+    private void deleteCustomMenu(TenantId tenantId, CustomMenuInfo customMenuInfo) {
         try {
-            customMenuDao.removeById(tenantId, customMenuId.getId());
+            customMenuDao.removeById(tenantId, customMenuInfo.getId().getId());
+            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entity(customMenuInfo)
+                    .edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.DELETED).build());
         } catch (Exception t) {
             ConstraintViolationException e = DaoUtil.extractConstraintViolationException(t).orElse(null);
             if (e != null && e.getConstraintName() != null && e.getConstraintName().equalsIgnoreCase("fk_user_custom_menu")) {
@@ -217,16 +231,15 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
                 throw t;
             }
         }
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
-                .edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.DELETED).build());
     }
 
+
     @Override
-    public CustomMenuInfo findCustomMenuInfoById(TenantId tenantId, CustomMenuId customMenuId) {
+    public CustomMenuAssigneeInfo findCustomMenuAssigneeInfoById(TenantId tenantId, CustomMenuId customMenuId) {
         log.trace("Executing findCustomMenuById [{}]", customMenuId);
         validateId(customMenuId, id -> INCORRECT_CUSTOM_MENU_ID + id);
         CustomMenu customMenu = cache.getAndPutInTransaction(customMenuId, () -> customMenuDao.findById(tenantId, customMenuId.getId()), true);
-        return new CustomMenuInfo(customMenu, getMenuAssigners(customMenu));
+        return new CustomMenuAssigneeInfo(customMenu, getMenuAssigners(customMenu));
     }
 
     @Override
@@ -236,11 +249,26 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
         return customMenuDao.findDefaultMenuByScope(tenantId, customerId, scope);
     }
 
-    private static List<MenuItem> getVisibleMenuItems(CustomMenu customMenu) {
-        return customMenu.getMenuItems().stream()
+    @Override
+    public boolean updateCustomMenuName(CustomMenuId customMenuId, String name) {
+        log.trace("Executing updateCustomMenuName [{}] [{}] ", customMenuId, name);
+        return customMenuDao.updateCustomMenuName(customMenuId, name);
+    }
+
+    @Override
+    public CustomMenu updateCustomMenu(CustomMenu customMenu) {
+        log.trace("Executing updateCustomMenuConfig [{}] ", customMenu);
+        return customMenuDao.save(customMenu.getTenantId(), customMenu);
+    }
+
+    private static CustomMenuConfig getVisibleMenuItems(CustomMenu customMenu) {
+        if (customMenu == null) {
+            return null;
+        }
+        return new CustomMenuConfig(customMenu.getConfig().getItems().stream()
                 .filter(MenuItem::isVisible)
                 .map(MenuItem.class::cast)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()));
     }
 
     private List<EntityInfo> getMenuAssigners(CustomMenu customMenu) {

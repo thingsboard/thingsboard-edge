@@ -30,10 +30,12 @@
  */
 package org.thingsboard.server.dao.menu;
 
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CMScope;
+import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.Dao;
@@ -41,7 +43,9 @@ import org.thingsboard.server.dao.Dao;
 
 public interface CustomMenuDao extends Dao<CustomMenu> {
 
-    PageData<CustomMenu> findByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+    boolean updateCustomMenuName(CustomMenuId customMenuId, String name);
+
+    PageData<CustomMenuInfo> findByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
     CustomMenu findDefaultMenuByScope(TenantId tenantId, CustomerId customerId, CMScope scope);
 

@@ -30,37 +30,37 @@
  */
 package org.thingsboard.server.common.data.menu;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.EntityInfo;
 
-import static org.thingsboard.server.common.data.menu.MenuItemType.HOME;
+import java.util.List;
 
 @Schema
 @Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class HomeMenuItem implements MenuItem {
+@EqualsAndHashCode(callSuper = true)
+@Slf4j
+public class CustomMenuAssigneeInfo extends CustomMenuInfo {
 
-    @Schema(description = "Unique identifier for predefined menu items", example = "home",  accessMode = Schema.AccessMode.READ_ONLY)
-    private String id;
-    @Schema(description = "DEFAULT or DASHBOARD. DASHBOARD means default home page presentation changed to refer to dashboard")
-    private HomeMenuItemType homeType;
-    @Schema(description = "Id of the Dashboard to open, when user clicks the menu item")
-    private String dashboardId;
-    @Schema(description = "Hide the dashboard toolbar")
-    private boolean hideDashboardToolbar;
+    @Valid
+    @Schema(description = "Assignee list", accessMode = Schema.AccessMode.READ_ONLY)
+    private List<EntityInfo> assigneeList;
 
-    @Override
-    public MenuItemType getType() {
-        return HOME;
+    public CustomMenuAssigneeInfo() {
+        super();
     }
 
-    @Override
-    public boolean isVisible() {
-        return true;
+    public CustomMenuAssigneeInfo(List<EntityInfo> assigneeList) {
+        super();
+        this.assigneeList = assigneeList;
     }
+
+    public CustomMenuAssigneeInfo(CustomMenu customMenu, List<EntityInfo> assigneeList) {
+        super(customMenu);
+        this.assigneeList = assigneeList;
+    }
+
 }

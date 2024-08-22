@@ -30,37 +30,21 @@
  */
 package org.thingsboard.server.common.data.menu;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import static org.thingsboard.server.common.data.menu.MenuItemType.HOME;
+import java.util.ArrayList;
+import java.util.List;
 
 @Schema
 @Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class HomeMenuItem implements MenuItem {
+@Slf4j
+@AllArgsConstructor
+public class CustomMenuConfig {
 
-    @Schema(description = "Unique identifier for predefined menu items", example = "home",  accessMode = Schema.AccessMode.READ_ONLY)
-    private String id;
-    @Schema(description = "DEFAULT or DASHBOARD. DASHBOARD means default home page presentation changed to refer to dashboard")
-    private HomeMenuItemType homeType;
-    @Schema(description = "Id of the Dashboard to open, when user clicks the menu item")
-    private String dashboardId;
-    @Schema(description = "Hide the dashboard toolbar")
-    private boolean hideDashboardToolbar;
+    @Schema(description = "List of custom menu items", requiredMode = Schema.RequiredMode.REQUIRED)
+    private List<MenuItem> items = new ArrayList<>();
 
-    @Override
-    public MenuItemType getType() {
-        return HOME;
-    }
-
-    @Override
-    public boolean isVisible() {
-        return true;
-    }
 }

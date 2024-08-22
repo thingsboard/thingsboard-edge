@@ -55,8 +55,8 @@ public class CustomMenuItem implements MenuItem {
     private String icon;
     @Schema(description = "Type of menu item (LINK or SECTION). LINK type means item has no child items, SECTION type should have at least one child", example = "LINK")
     @NotNull
-    private CMSectionType sectionType;
-    @Schema(description = "Type of menu item. LINK type means item without child items, SECTION type should have at least one child", example = "LINK")
+    private CMItemType menuItemType;
+    @Schema(description = "Type of menu item (URL or DASHBOARD)", example = "URL")
     private CMItemLinkType linkType;
     @Schema(description = "Id of the Dashboard to open, when user clicks the menu item", example = "https://mycompany.com")
     private String dashboardId;

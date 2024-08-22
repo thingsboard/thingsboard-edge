@@ -34,61 +34,24 @@ import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.Immutable;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.id.CustomMenuId;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
-import org.thingsboard.server.common.data.menu.CMAssigneeType;
-import org.thingsboard.server.common.data.menu.CMScope;
-import org.thingsboard.server.common.data.menu.MenuItem;
-import org.thingsboard.server.dao.exception.IncorrectParameterException;
-import org.thingsboard.server.dao.model.BaseSqlEntity;
+import org.thingsboard.server.common.data.menu.CustomMenuConfig;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
-import java.util.List;
-import java.util.UUID;
-
-import static org.thingsboard.server.dao.model.ModelConstants.CUSTOMER_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.CUSTOM_MENU_ASSIGNEE_TYPE;
-import static org.thingsboard.server.dao.model.ModelConstants.CUSTOM_MENU_NAME;
-import static org.thingsboard.server.dao.model.ModelConstants.CUSTOM_MENU_SCOPE;
-import static org.thingsboard.server.dao.model.ModelConstants.TENANT_ID_COLUMN;
-
-
 @Data
+@Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Slf4j
-@NoArgsConstructor
+@Immutable
 @Table(name = ModelConstants.CUSTOM_MENU_TABLE_NAME)
-public class CustomMenuEntity extends BaseSqlEntity<CustomMenu> {
-
-    @Column(name = TENANT_ID_COLUMN, columnDefinition = "uuid")
-    private UUID tenantId;
-
-    @Column(name = CUSTOMER_ID_PROPERTY, columnDefinition = "uuid")
-    private UUID customerId;
-
-    @Column(name = CUSTOM_MENU_NAME)
-    private String name;
-
-    @Column(name = CUSTOM_MENU_SCOPE)
-    @Enumerated(EnumType.STRING)
-    private CMScope scope;
-
-    @Column(name = CUSTOM_MENU_ASSIGNEE_TYPE)
-    @Enumerated(EnumType.STRING)
-    private CMAssigneeType assigneeType;
+public class CustomMenuEntity extends AbstractCustomMenuEntity<CustomMenu> {
 
     @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.CUSTOM_MENU_SETTINGS)
@@ -96,37 +59,16 @@ public class CustomMenuEntity extends BaseSqlEntity<CustomMenu> {
 
     public CustomMenuEntity(CustomMenu customMenu) {
         super(customMenu);
-        this.tenantId = customMenu.getTenantId().getId();
-        if (customMenu.getCustomerId() != null) {
-            this.customerId = customMenu.getCustomerId().getId();
-        } else {
-            this.customerId = EntityId.NULL_UUID;
-        }
-        this.name = customMenu.getName();
-        this.scope = customMenu.getScope();
-        this.assigneeType = customMenu.getAssigneeType();
-        this.settings = JacksonUtil.valueToTree(customMenu.getMenuItems());
+        this.settings = JacksonUtil.valueToTree(customMenu.getConfig());
+    }
+
+    public CustomMenuEntity() {
+        super();
     }
 
     @Override
     public CustomMenu toData() {
-        CustomMenu customMenu = new CustomMenu(new CustomMenuId(id));
-        customMenu.setCreatedTime(createdTime);
-        customMenu.setTenantId(TenantId.fromUUID(tenantId));
-        if (!EntityId.NULL_UUID.equals(customerId)) {
-            customMenu.setCustomerId(new CustomerId(customerId));
-        }
-        customMenu.setName(name);
-        customMenu.setScope(scope);
-        customMenu.setAssigneeType(assigneeType);
-        if (settings != null) {
-            try {
-                customMenu.setMenuItems(List.of(JacksonUtil.treeToValue(settings, MenuItem[].class)));
-            } catch (IllegalArgumentException e) {
-                log.error("Unable to read custom menu from JSON!", e);
-                throw new IncorrectParameterException("Unable to read custom menu from JSON!");
-            }
-        }
-       return customMenu;
+        return new CustomMenu(super.toCustomMenu(), JacksonUtil.treeToValue(settings, CustomMenuConfig.class));
     }
+
 }

@@ -34,11 +34,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CMScope;
+import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
@@ -58,9 +60,17 @@ public class JpaCustomMenuDao extends JpaAbstractDao<CustomMenuEntity, CustomMen
     @Autowired
     private CustomMenuRepository customMenuRepository;
 
+    @Autowired
+    private CustomMenuInfoRepository customMenuInfoRepository;
+
     @Override
-    public PageData<CustomMenu> findByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
-        return DaoUtil.toPageData(customMenuRepository.findByTenantIdAndCustomerId(tenantId.getId(),
+    public boolean updateCustomMenuName(CustomMenuId customMenuId, String name) {
+        return customMenuRepository.updateCustomMenuName(customMenuId.getId(), name) != 0;
+    }
+
+    @Override
+    public PageData<CustomMenuInfo> findByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+        return DaoUtil.toPageData(customMenuInfoRepository.findByTenantIdAndCustomerId(tenantId.getId(),
                 customerId == null ? EntityId.NULL_UUID : customerId.getId(), pageLink.getTextSearch(), DaoUtil.toPageable(pageLink)));
     }
 
@@ -79,4 +89,5 @@ public class JpaCustomMenuDao extends JpaAbstractDao<CustomMenuEntity, CustomMen
     protected JpaRepository<CustomMenuEntity, UUID> getRepository() {
         return customMenuRepository;
     }
+
 }

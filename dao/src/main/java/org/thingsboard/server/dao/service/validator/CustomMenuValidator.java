@@ -35,35 +35,35 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
-import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CMScope;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.exception.DataValidationException;
 
 @Component
-public class CustomMenuValidator extends DataValidator<CustomMenu> {
+public class CustomMenuValidator extends DataValidator<CustomMenuInfo> {
 
     @Autowired
     @Lazy
     private CustomMenuService customMenuService;
 
     @Override
-    protected void validateDataImpl(TenantId tenantId, CustomMenu customMenu) {
-        if (!customMenu.getTenantId().isSysTenantId() && customMenu.getScope() == CMScope.SYSTEM) {
+    protected void validateDataImpl(TenantId tenantId, CustomMenuInfo customMenuInfo) {
+        if (!customMenuInfo.getTenantId().isSysTenantId() && customMenuInfo.getScope() == CMScope.SYSTEM) {
             throw new DataValidationException("Tenant custom menu can not have SYSTEM scope! Only TENANT and CUSTOMER are available for tenant");
         }
-        if (!customMenu.getTenantId().isSysTenantId() && customMenu.getCustomerId() != null && !customMenu.getCustomerId().isNullUid()
-                && customMenu.getScope() == CMScope.SYSTEM) {
+        if (!customMenuInfo.getTenantId().isSysTenantId() && customMenuInfo.getCustomerId() != null && !customMenuInfo.getCustomerId().isNullUid()
+                && customMenuInfo.getScope() == CMScope.SYSTEM) {
             throw new DataValidationException("Customer custom menu can have CUSTOMER scope only!");
         }
-        if (customMenu.getTenantId() == null) {
+        if (customMenuInfo.getTenantId() == null) {
             throw new DataValidationException("Custom menu should be assigned to tenant!");
         }
-        if (customMenu.getAssigneeType() == CMAssigneeType.ALL) {
-            CustomMenu defaultCustomMenu = customMenuService.findDefaultCustomMenuByScope(tenantId, customMenu.getCustomerId(), customMenu.getScope());
-            if (defaultCustomMenu != null && !defaultCustomMenu.getId().equals(customMenu.getId())) {
-                throw new DataValidationException("There is already default menu for scope " + customMenu.getScope());
+        if (customMenuInfo.getAssigneeType() == CMAssigneeType.ALL) {
+            CustomMenuInfo defaultCustomMenu = customMenuService.findDefaultCustomMenuByScope(tenantId, customMenuInfo.getCustomerId(), customMenuInfo.getScope());
+            if (defaultCustomMenu != null && !defaultCustomMenu.getId().equals(customMenuInfo.getId())) {
+                throw new DataValidationException("There is already default menu for scope " + customMenuInfo.getScope());
             }
         }
     }

@@ -28,39 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.menu;
+package org.thingsboard.server.dao.model.sql;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 
-import static org.thingsboard.server.common.data.menu.MenuItemType.HOME;
+import static org.thingsboard.server.dao.model.ModelConstants.CUSTOM_MENU_TABLE_NAME;
 
-@Schema
+
 @Data
-@EqualsAndHashCode
-@NoArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class HomeMenuItem implements MenuItem {
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Table(name = CUSTOM_MENU_TABLE_NAME)
+public final class CustomMenuInfoEntity extends AbstractCustomMenuEntity<CustomMenuInfo> {
 
-    @Schema(description = "Unique identifier for predefined menu items", example = "home",  accessMode = Schema.AccessMode.READ_ONLY)
-    private String id;
-    @Schema(description = "DEFAULT or DASHBOARD. DASHBOARD means default home page presentation changed to refer to dashboard")
-    private HomeMenuItemType homeType;
-    @Schema(description = "Id of the Dashboard to open, when user clicks the menu item")
-    private String dashboardId;
-    @Schema(description = "Hide the dashboard toolbar")
-    private boolean hideDashboardToolbar;
+    public CustomMenuInfoEntity() {
+        super();
+    }
 
-    @Override
-    public MenuItemType getType() {
-        return HOME;
+    public CustomMenuInfoEntity(CustomMenuInfo customMenuInfo) {
+        super(customMenuInfo);
     }
 
     @Override
-    public boolean isVisible() {
-        return true;
+    public CustomMenuInfo toData() {
+        return super.toCustomMenu();
     }
+
 }

@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -58,6 +59,8 @@ public interface AccessControlService {
     void checkEntityGroupInfoPermission(SecurityUser user, Operation operation, EntityGroupInfo entityGroup) throws ThingsboardException;
 
     void checkCustomMenuPermission(SecurityUser user, Operation operation, CustomMenu customMenu) throws ThingsboardException;
+
+    void checkCustomMenuPermission(SecurityUser user, Operation operation, CustomMenuInfo customMenuInfo) throws ThingsboardException;
 
     boolean hasEntityGroupPermission(SecurityUser user, Operation operation, EntityGroup entityGroup) throws ThingsboardException;
 
