@@ -33,8 +33,10 @@ package org.thingsboard.server.dao.sql.customer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.dao.ExportableEntityRepository;
 import org.thingsboard.server.dao.model.sql.CustomerEntity;
 
@@ -108,5 +110,14 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>,
             "ORDER BY c.tenant_id, c.title, c.id",
             nativeQuery = true)
     Page<CustomerEntity> findCustomersWithTheSameTitle(Pageable pageable);
+
+    @Query("SELECT c FROM CustomerEntity c WHERE c.customMenuId = :customMenuId")
+    List<CustomerEntity> findByCustomMenuId(@Param("customMenuId") UUID customMenuId);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE CustomerEntity c SET c.customMenuId = :customMenuId " +
+            "WHERE c.id IN :ids")
+    void updateCustomMenuId(@Param("ids") List<UUID> ids, @Param("customMenuId") UUID customMenuId);
 
 }

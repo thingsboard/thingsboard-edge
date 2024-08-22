@@ -28,38 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.menu;
+package org.thingsboard.server.common.data;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.id.CustomMenuId;
+import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.menu.CMAssigneeType;
 
-@Schema
+import java.util.List;
+import java.util.Map;
+
 @Data
-@EqualsAndHashCode(callSuper = true)
-@Slf4j
-public class CustomMenu extends CustomMenuInfo {
+@Builder
+public class CustomMenuDeleteResult {
 
-    @Schema(description = "Custom menu configuration", requiredMode = Schema.RequiredMode.REQUIRED)
-    private CustomMenuConfig config;
-
-    public CustomMenu() {
-        super();
-    }
-
-    public CustomMenu(CustomMenuInfo customMenuInfo) {
-        super(customMenuInfo);
-    }
-
-    public CustomMenu(CustomMenuId id) {
-        super(id);
-    }
-
-    public CustomMenu(CustomMenuInfo customMenuInfo, CustomMenuConfig config) {
-        super(customMenuInfo);
-        this.config = config;
-    }
+    private boolean success;
+    private CMAssigneeType assigneeType;
+    private List<EntityInfo> assigneeList;
 
 }

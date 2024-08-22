@@ -28,38 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.menu;
+package org.thingsboard.server.dao.menu;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
+import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.id.CustomMenuId;
+import org.thingsboard.server.common.data.menu.CustomMenu;
 
-@Schema
-@Data
-@EqualsAndHashCode(callSuper = true)
-@Slf4j
-public class CustomMenu extends CustomMenuInfo {
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("CustomMenuCache")
+public class CustomMenuCaffeineCache extends CaffeineTbTransactionalCache<CustomMenuId, CustomMenu> {
 
-    @Schema(description = "Custom menu configuration", requiredMode = Schema.RequiredMode.REQUIRED)
-    private CustomMenuConfig config;
-
-    public CustomMenu() {
-        super();
-    }
-
-    public CustomMenu(CustomMenuInfo customMenuInfo) {
-        super(customMenuInfo);
-    }
-
-    public CustomMenu(CustomMenuId id) {
-        super(id);
-    }
-
-    public CustomMenu(CustomMenuInfo customMenuInfo, CustomMenuConfig config) {
-        super(customMenuInfo);
-        this.config = config;
+    public CustomMenuCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.INTEGRATIONS_CACHE);
     }
 
 }

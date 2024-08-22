@@ -31,35 +31,31 @@
 package org.thingsboard.server.common.data.menu;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.id.CustomMenuId;
+import lombok.NoArgsConstructor;
+
+import static org.thingsboard.server.common.data.menu.MenuItemType.DEFAULT;
 
 @Schema
 @Data
-@EqualsAndHashCode(callSuper = true)
-@Slf4j
-public class CustomMenu extends CustomMenuInfo {
+@NoArgsConstructor
+public class DefaultMenuItem implements MenuItem {
 
-    @Schema(description = "Custom menu configuration", requiredMode = Schema.RequiredMode.REQUIRED)
-    private CustomMenuConfig config;
+    @Schema(description = "Unique identifier for predefined menu items", example = "home",  accessMode = Schema.AccessMode.READ_ONLY)
+    private String id;
+    @Schema(description = "Name of the menu item", example = "My Custom Menu", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull
+    private String name;
+    @Schema(description = "URL of the menu item icon. Overrides 'materialIcon'", example = "My Custom Menu")
+    @NotNull
+    private String icon;
+    @Schema(description = "Mark if menu item is visible for user")
+    private boolean visible;
 
-    public CustomMenu() {
-        super();
-    }
-
-    public CustomMenu(CustomMenuInfo customMenuInfo) {
-        super(customMenuInfo);
-    }
-
-    public CustomMenu(CustomMenuId id) {
-        super(id);
-    }
-
-    public CustomMenu(CustomMenuInfo customMenuInfo, CustomMenuConfig config) {
-        super(customMenuInfo);
-        this.config = config;
+    @Override
+    public MenuItemType getType() {
+        return DEFAULT;
     }
 
 }

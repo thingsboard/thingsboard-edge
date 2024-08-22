@@ -28,38 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.menu;
+package org.thingsboard.server.dao.model.sql;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.id.CustomMenuId;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 
-@Schema
+import static org.thingsboard.server.dao.model.ModelConstants.CUSTOM_MENU_TABLE_NAME;
+
+
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Slf4j
-public class CustomMenu extends CustomMenuInfo {
+@Entity
+@Table(name = CUSTOM_MENU_TABLE_NAME)
+public final class CustomMenuInfoEntity extends AbstractCustomMenuEntity<CustomMenuInfo> {
 
-    @Schema(description = "Custom menu configuration", requiredMode = Schema.RequiredMode.REQUIRED)
-    private CustomMenuConfig config;
-
-    public CustomMenu() {
+    public CustomMenuInfoEntity() {
         super();
     }
 
-    public CustomMenu(CustomMenuInfo customMenuInfo) {
+    public CustomMenuInfoEntity(CustomMenuInfo customMenuInfo) {
         super(customMenuInfo);
     }
 
-    public CustomMenu(CustomMenuId id) {
-        super(id);
-    }
-
-    public CustomMenu(CustomMenuInfo customMenuInfo, CustomMenuConfig config) {
-        super(customMenuInfo);
-        this.config = config;
+    @Override
+    public CustomMenuInfo toData() {
+        return super.toCustomMenu();
     }
 
 }

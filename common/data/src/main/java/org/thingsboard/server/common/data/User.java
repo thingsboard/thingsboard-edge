@@ -37,6 +37,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -66,6 +67,7 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
     private String lastName;
     @NoXss
     private String phone;
+    private CustomMenuId customMenuId;
 
     @Getter @Setter
     private Long version;
@@ -88,8 +90,8 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
         this.lastName = user.getLastName();
         this.phone = user.getPhone();
         this.version = user.getVersion();
+        this.customMenuId = user.getCustomMenuId();
     }
-
 
     @Schema(description = "JSON object with the User Id. " +
             "Specify this field to update the device. " +
@@ -217,6 +219,14 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
             title = email;
         }
         return title;
+    }
+
+    public CustomMenuId getCustomMenuId() {
+        return customMenuId;
+    }
+
+    public void setCustomMenuId(CustomMenuId customMenuId) {
+        this.customMenuId = customMenuId;
     }
 
     @Override

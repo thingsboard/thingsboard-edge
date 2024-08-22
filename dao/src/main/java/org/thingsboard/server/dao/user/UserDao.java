@@ -151,4 +151,8 @@ public interface UserDao extends Dao<User>, TenantEntityDao {
 
     PageData<User> findByAuthorityAndTenantProfilesIds(Authority authority, List<TenantProfileId> tenantProfilesIds, PageLink pageLink);
 
+    List<User> findUsersByCustomMenuId(UUID id);
+
+    void updateCustomersCustomMenuId(List<UUID> ids, UUID customMenuId);
+
 }

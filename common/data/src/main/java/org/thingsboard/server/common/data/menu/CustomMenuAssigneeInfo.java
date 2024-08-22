@@ -31,35 +31,36 @@
 package org.thingsboard.server.common.data.menu;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.id.CustomMenuId;
+import org.thingsboard.server.common.data.EntityInfo;
+
+import java.util.List;
 
 @Schema
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class CustomMenu extends CustomMenuInfo {
+public class CustomMenuAssigneeInfo extends CustomMenuInfo {
 
-    @Schema(description = "Custom menu configuration", requiredMode = Schema.RequiredMode.REQUIRED)
-    private CustomMenuConfig config;
+    @Valid
+    @Schema(description = "Assignee list", accessMode = Schema.AccessMode.READ_ONLY)
+    private List<EntityInfo> assigneeList;
 
-    public CustomMenu() {
+    public CustomMenuAssigneeInfo() {
         super();
     }
 
-    public CustomMenu(CustomMenuInfo customMenuInfo) {
-        super(customMenuInfo);
+    public CustomMenuAssigneeInfo(List<EntityInfo> assigneeList) {
+        super();
+        this.assigneeList = assigneeList;
     }
 
-    public CustomMenu(CustomMenuId id) {
-        super(id);
-    }
-
-    public CustomMenu(CustomMenuInfo customMenuInfo, CustomMenuConfig config) {
-        super(customMenuInfo);
-        this.config = config;
+    public CustomMenuAssigneeInfo(CustomMenu customMenu, List<EntityInfo> assigneeList) {
+        super(customMenu);
+        this.assigneeList = assigneeList;
     }
 
 }

@@ -31,35 +31,20 @@
 package org.thingsboard.server.common.data.menu;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.id.CustomMenuId;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Schema
 @Data
-@EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class CustomMenu extends CustomMenuInfo {
+@AllArgsConstructor
+public class CustomMenuConfig {
 
-    @Schema(description = "Custom menu configuration", requiredMode = Schema.RequiredMode.REQUIRED)
-    private CustomMenuConfig config;
-
-    public CustomMenu() {
-        super();
-    }
-
-    public CustomMenu(CustomMenuInfo customMenuInfo) {
-        super(customMenuInfo);
-    }
-
-    public CustomMenu(CustomMenuId id) {
-        super(id);
-    }
-
-    public CustomMenu(CustomMenuInfo customMenuInfo, CustomMenuConfig config) {
-        super(customMenuInfo);
-        this.config = config;
-    }
+    @Schema(description = "List of custom menu items", requiredMode = Schema.RequiredMode.REQUIRED)
+    private List<MenuItem> items = new ArrayList<>();
 
 }

@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuItem;
+import org.thingsboard.server.common.data.menu.MenuItem;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
@@ -324,16 +325,16 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
 
         CustomMenuItem customMenuItemChild1 = new CustomMenuItem();
         customMenuItemChild1.setName("Waste Management Administration");
-        customMenuItemChild1.setMaterialIcon("dashboard");
+        customMenuItemChild1.setIcon("dashboard");
 
         CustomMenuItem customMenuItemChild2 = new CustomMenuItem();
         customMenuItemChild2.setName("Assisted Living Administration");
-        customMenuItemChild2.setMaterialIcon("tablet_dashboard");
+        customMenuItemChild2.setIcon("tablet_dashboard");
 
         CustomMenuItem customMenuItem = new CustomMenuItem();
         customMenuItem.setName(customMenuName);
-        customMenuItem.setMaterialIcon("grid_view");
-        customMenuItem.setChildMenuItems(Arrays.asList(customMenuItemChild1, customMenuItemChild2));
+        customMenuItem.setIcon("grid_view");
+        customMenuItem.setPages(Arrays.asList(customMenuItemChild1, customMenuItemChild2));
 
         customMenu.setMenuItems(new ArrayList<>(List.of(customMenuItem)));
         doPost("/api/customMenu/customMenu", customMenu, CustomMenu.class);
@@ -343,10 +344,10 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         CustomMenuProto customMenuProto = (CustomMenuProto) latestMessage;
         CustomMenu cm = JacksonUtil.fromString(customMenuProto.getEntity(), CustomMenu.class, true);
         Assert.assertNotNull(cm);
-        ArrayList<CustomMenuItem> menuItems = cm.getMenuItems();
+        List<MenuItem> menuItems = cm.getMenuItems();
         Assert.assertEquals(1, menuItems.size());
         Assert.assertEquals(menuItems, customMenu.getMenuItems());
-        Assert.assertEquals(customMenuName, menuItems.get(0).getName());
+        Assert.assertEquals(customMenuName, ((CustomMenuItem)menuItems.get(0)).getName());
     }
 
 }

@@ -30,36 +30,8 @@
  */
 package org.thingsboard.server.common.data.menu;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.id.CustomMenuId;
+public enum CMItemLinkType {
 
-@Schema
-@Data
-@EqualsAndHashCode(callSuper = true)
-@Slf4j
-public class CustomMenu extends CustomMenuInfo {
-
-    @Schema(description = "Custom menu configuration", requiredMode = Schema.RequiredMode.REQUIRED)
-    private CustomMenuConfig config;
-
-    public CustomMenu() {
-        super();
-    }
-
-    public CustomMenu(CustomMenuInfo customMenuInfo) {
-        super(customMenuInfo);
-    }
-
-    public CustomMenu(CustomMenuId id) {
-        super(id);
-    }
-
-    public CustomMenu(CustomMenuInfo customMenuInfo, CustomMenuConfig config) {
-        super(customMenuInfo);
-        this.config = config;
-    }
+    URL, DASHBOARD;
 
 }

@@ -92,6 +92,7 @@ public class ModelConstants {
     public static final String USER_FIRST_NAME_PROPERTY = "first_name";
     public static final String USER_LAST_NAME_PROPERTY = "last_name";
     public static final String USER_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
+    public static final String USER_CUSTOM_MENU_ID_PROPERTY = "custom_menu_id";
 
     public static final String USER_INFO_VIEW_TABLE_NAME = "user_info_view";
 
@@ -121,6 +122,15 @@ public class ModelConstants {
     public static final String WHITE_LABELING_SETTINGS_TYPE = "type";
     public static final String WHITE_LABELING_SETTINGS = "settings";
     public static final String WHITE_LABELING_DOMAIN = "domain_name";
+
+    /**
+     * Custom menu settings constants.
+     */
+    public static final String CUSTOM_MENU_TABLE_NAME = "custom_menu";
+    public static final String CUSTOM_MENU_NAME = "menu_name";
+    public static final String CUSTOM_MENU_SCOPE = "scope";
+    public static final String CUSTOM_MENU_ASSIGNEE_TYPE = "assignee_type";
+    public static final String CUSTOM_MENU_SETTINGS = "settings";
 
     /**
      * Custom translation constants.
@@ -753,6 +763,7 @@ public class ModelConstants {
     public static final String EDGE_EVENT_ENTITY_GROUP_ID_PROPERTY = "entity_group_id";
 
     public static final String EXTERNAL_ID_PROPERTY = "external_id";
+    public static final String CUSTOM_MENU_ID_PROPERTY = "custom_menu_id";
 
     /**
      * User auth settings constants.

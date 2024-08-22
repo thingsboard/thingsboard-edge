@@ -28,38 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.menu;
+package org.thingsboard.server.dao.sql.custommenu;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.id.CustomMenuId;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.server.common.data.menu.CMScope;
+import org.thingsboard.server.dao.model.sql.CustomMenuEntity;
 
-@Schema
-@Data
-@EqualsAndHashCode(callSuper = true)
-@Slf4j
-public class CustomMenu extends CustomMenuInfo {
+import java.util.UUID;
 
-    @Schema(description = "Custom menu configuration", requiredMode = Schema.RequiredMode.REQUIRED)
-    private CustomMenuConfig config;
 
-    public CustomMenu() {
-        super();
-    }
+public interface CustomMenuRepository extends JpaRepository<CustomMenuEntity, UUID> {
 
-    public CustomMenu(CustomMenuInfo customMenuInfo) {
-        super(customMenuInfo);
-    }
+    @Query("SELECT m FROM CustomMenuEntity m " +
+            "WHERE m.tenantId = :tenantId AND m.customerId = :customerId AND m.scope = :scope AND m.assigneeType = 'ALL'")
+    CustomMenuEntity findDefaultByTenantIdAndCustomerIdAndScope(@Param("tenantId") UUID tenantId,
+                                                                @Param("customerId") UUID customerId,
+                                                                @Param("scope") CMScope scope);
+    @Modifying
+    @Transactional
+    @Query("UPDATE CustomMenuEntity m SET m.name = :name WHERE m.id = :id")
+    int updateCustomMenuName(@Param("id") UUID id, @Param("name") String menuName);
 
-    public CustomMenu(CustomMenuId id) {
-        super(id);
-    }
 
-    public CustomMenu(CustomMenuInfo customMenuInfo, CustomMenuConfig config) {
-        super(customMenuInfo);
-        this.config = config;
-    }
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM CustomMenuEntity r WHERE r.tenantId = :tenantId")
+    void deleteByTenantId(@Param("tenantId") UUID tenantId);
 
 }

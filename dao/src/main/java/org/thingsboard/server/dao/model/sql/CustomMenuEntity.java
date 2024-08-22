@@ -28,38 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.menu;
+package org.thingsboard.server.dao.model.sql;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.server.common.data.id.CustomMenuId;
+import org.hibernate.annotations.Immutable;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuConfig;
+import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
-@Schema
 @Data
-@EqualsAndHashCode(callSuper = true)
 @Slf4j
-public class CustomMenu extends CustomMenuInfo {
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Immutable
+@Table(name = ModelConstants.CUSTOM_MENU_TABLE_NAME)
+public class CustomMenuEntity extends AbstractCustomMenuEntity<CustomMenu> {
 
-    @Schema(description = "Custom menu configuration", requiredMode = Schema.RequiredMode.REQUIRED)
-    private CustomMenuConfig config;
+    @Convert(converter = JsonConverter.class)
+    @Column(name = ModelConstants.CUSTOM_MENU_SETTINGS)
+    private JsonNode settings;
 
-    public CustomMenu() {
+    public CustomMenuEntity(CustomMenu customMenu) {
+        super(customMenu);
+        this.settings = JacksonUtil.valueToTree(customMenu.getConfig());
+    }
+
+    public CustomMenuEntity() {
         super();
     }
 
-    public CustomMenu(CustomMenuInfo customMenuInfo) {
-        super(customMenuInfo);
-    }
-
-    public CustomMenu(CustomMenuId id) {
-        super(id);
-    }
-
-    public CustomMenu(CustomMenuInfo customMenuInfo, CustomMenuConfig config) {
-        super(customMenuInfo);
-        this.config = config;
+    @Override
+    public CustomMenu toData() {
+        return new CustomMenu(super.toCustomMenu(), JacksonUtil.treeToValue(settings, CustomMenuConfig.class));
     }
 
 }

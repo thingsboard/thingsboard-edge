@@ -109,4 +109,8 @@ public interface CustomerDao extends Dao<Customer>, TenantEntityDao, ExportableC
      */
     PageData<Customer> findCustomersWithTheSameTitle(PageLink pageLink);
 
+    List<Customer> findCustomersByCustomMenuId(UUID id);
+
+    void updateCustomersCustomMenuId(List<UUID> ids, UUID customMenuId);
+
 }
