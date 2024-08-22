@@ -34,19 +34,19 @@ import { MenuId, MenuReference } from '@core/services/menu.models';
 import { isNotEmptyStr } from '@core/utils';
 
 export enum CustomMenuItemType {
-  link = 'link',
-  section = 'section'
+  LINK = 'LINK',
+  SECTION = 'SECTION'
 }
 
 export enum CustomMenuItemLinkType {
-  url = 'url',
-  dashboard = 'dashboard'
+  URL = 'URL',
+  DASHBOARD = 'DASHBOARD'
 }
 
 export interface CustomMenuItem {
   name: string;
   icon: string;
-  type: CustomMenuItemType;
+  menuItemType: CustomMenuItemType;
   linkType?: CustomMenuItemLinkType;
   dashboardId?: string;
   hideDashboardToolbar?: boolean;
@@ -63,13 +63,13 @@ export interface DefaultMenuItem extends MenuReference {
 }
 
 export enum HomeMenuItemType {
-  default = 'default',
-  dashboard = 'dashboard'
+  DEFAULT = 'DEFAULT',
+  DASHBOARD = 'DASHBOARD'
 }
 
 export interface HomeMenuItem extends DefaultMenuItem {
   id: MenuId.home;
-  type: HomeMenuItemType;
+  homeType: HomeMenuItemType;
   dashboardId?: string;
   hideDashboardToolbar?: boolean;
 }
@@ -91,7 +91,7 @@ export const isHomeMenuItem = (item: MenuItem): item is HomeMenuItem =>
 export const isCustomMenuItem = (item: MenuItem): item is CustomMenuItem => {
   const customItem = item as CustomMenuItem;
   return isNotEmptyStr(customItem.name) && isNotEmptyStr(customItem.icon)
-    && isNotEmptyStr(customItem.type) && !!CustomMenuItemType[customItem.type];
+    && isNotEmptyStr(customItem.menuItemType) && !!CustomMenuItemType[customItem.menuItemType];
 };
 
 export interface DefaultMenuItemConfig extends DefaultMenuItem {

@@ -1906,11 +1906,11 @@ export const menuItemToMenuSection = (authState: AuthState,
       result.customTranslate = true;
     }
     if (isHomeMenuItem(item)) {
-      const type = item.type;
+      const type = item.homeType;
       switch (type) {
-        case HomeMenuItemType.default:
+        case HomeMenuItemType.DEFAULT:
           break;
-        case HomeMenuItemType.dashboard:
+        case HomeMenuItemType.DASHBOARD:
           result.homeDashboardId = item.dashboardId;
           result.homeHideDashboardToolbar = item.hideDashboardToolbar;
           break;
@@ -1969,7 +1969,7 @@ const filterMenuReference = (authState: AuthState, userPermissionsService: UserP
 };
 
 const buildCustomMenuSection = (stateIds: {[stateId: string]: boolean}, customMenuItem: CustomMenuItem): MenuSection => {
-  if (customMenuItem.type === CustomMenuItemType.section &&
+  if (customMenuItem.menuItemType === CustomMenuItemType.SECTION &&
       !customMenuItem.pages?.length) {
     return undefined;
   }
@@ -1982,7 +1982,7 @@ const buildCustomMenuSection = (stateIds: {[stateId: string]: boolean}, customMe
     name: customMenuItem.name,
     icon: customMenuItem.icon
   } as MenuSection;
-  if (customMenuItem.type === CustomMenuItemType.section) {
+  if (customMenuItem.menuItemType === CustomMenuItemType.SECTION) {
     customMenuSection.type = 'toggle';
     const pages: MenuSection[] = [];
     const childStateIds: {[stateId: string]: boolean} = {};
@@ -2022,7 +2022,7 @@ const customMenuItemQueryParams = (item: CustomMenuItem, stateId: string, child 
   } else {
     queryParams.stateId = stateId;
   }
-  if (item.linkType === CustomMenuItemLinkType.url) {
+  if (item.linkType === CustomMenuItemLinkType.URL) {
     if (child) {
       queryParams.childIframeUrl = item.url;
       queryParams.childSetAccessToken = item.setAccessToken;
@@ -2030,7 +2030,7 @@ const customMenuItemQueryParams = (item: CustomMenuItem, stateId: string, child 
       queryParams.iframeUrl = item.url;
       queryParams.setAccessToken = item.setAccessToken;
     }
-  } else if (item.linkType === CustomMenuItemLinkType.dashboard) {
+  } else if (item.linkType === CustomMenuItemLinkType.DASHBOARD) {
     if (child) {
       queryParams.childDashboardId = item.dashboardId;
       queryParams.childHideDashboardToolbar = item.hideDashboardToolbar;
