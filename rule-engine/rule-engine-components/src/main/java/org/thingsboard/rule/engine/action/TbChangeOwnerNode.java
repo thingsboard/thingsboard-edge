@@ -110,14 +110,14 @@ public class TbChangeOwnerNode implements TbNode {
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
         EntityId originator = msg.getOriginator();
         ListenableFuture<Void> changeOwnerFuture;
-        AtomicBoolean newOwnerCreated = new AtomicBoolean(false);
         switch (ownerType) {
-            case TENANT -> changeOwnerFuture = changeOwnerAsync(ctx, originator, ctx.getTenantId(), newOwnerCreated);
+            case TENANT -> changeOwnerFuture = changeOwnerAsync(ctx, originator, ctx.getTenantId(), false);
             case CUSTOMER -> {
                 String ownerName = TbNodeUtils.processPattern(config.getOwnerNamePattern(), msg);
+                AtomicBoolean newOwnerCreated = new AtomicBoolean();
                 ListenableFuture<CustomerId> customerIdFuture = findOrCreateCustomerAsync(ctx, msg, ownerName, newOwnerCreated);
                 changeOwnerFuture = Futures.transformAsync(customerIdFuture, customerId ->
-                        changeOwnerAsync(ctx, originator, customerId, newOwnerCreated), MoreExecutors.directExecutor());
+                        changeOwnerAsync(ctx, originator, customerId, newOwnerCreated.get()), MoreExecutors.directExecutor());
             }
             default -> throw new IllegalArgumentException(unsupportedOwnerTypeErrorMessage());
         }
@@ -167,10 +167,10 @@ public class TbChangeOwnerNode implements TbNode {
         }, MoreExecutors.directExecutor());
     }
 
-    private ListenableFuture<Void> changeOwnerAsync(TbContext ctx, EntityId originator, EntityId targetOwnerId, AtomicBoolean newOwnerCreated) {
+    private ListenableFuture<Void> changeOwnerAsync(TbContext ctx, EntityId originator, EntityId targetOwnerId, boolean newOwnerCreated) {
         TenantId tenantId = ctx.getTenantId();
         return ctx.getDbCallbackExecutor().executeAsync(() -> {
-            if (newOwnerCreated.get() || !ctx.getPeContext().getOwner(tenantId, originator).equals(targetOwnerId)) {
+            if (newOwnerCreated || !ctx.getPeContext().getOwner(tenantId, originator).equals(targetOwnerId)) {
                 ctx.getPeContext().changeEntityOwner(tenantId, targetOwnerId, originator);
             }
             return null;
