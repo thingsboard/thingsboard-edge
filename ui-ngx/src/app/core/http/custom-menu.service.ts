@@ -31,49 +31,98 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { CustomMenu, CustomMenuConfig } from '@shared/models/custom-menu.models';
-import { Observable, Subject } from 'rxjs';
-import { mergeMap, tap } from 'rxjs/operators';
+import {
+  CustomMenu,
+  CustomMenuConfig,
+  CustomMenuDeleteResult,
+  CustomMenuInfo
+} from '@shared/models/custom-menu.models';
+import { mergeMap, Observable, of, Subject } from 'rxjs';
+import { map, tap } from 'rxjs/operators';
+import { PageLink } from '@shared/models/page/page-link';
+import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
+import { PageData } from '@shared/models/page/page-data';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CustomMenuService {
 
-  private customMenu: CustomMenu = null;
+  private customMenuConfig: CustomMenuConfig = null;
 
-  private customMenuChanged: Subject<CustomMenu> = new Subject<CustomMenu>();
+  private customMenuConfigChanged: Subject<CustomMenuConfig> = new Subject<CustomMenuConfig>();
 
-  public customMenuChanged$: Observable<CustomMenu> = this.customMenuChanged.asObservable();
+  public customMenuConfigChanged$: Observable<CustomMenuConfig> = this.customMenuConfigChanged.asObservable();
 
   constructor(
     private http: HttpClient
   ) {}
 
-  public getCustomMenu(): CustomMenu {
-    return this.customMenu;
+  public getCustomMenu(): CustomMenuConfig {
+    return this.customMenuConfig;
   }
 
-  public loadCustomMenu(): Observable<CustomMenu> {
-    return this.http.get<CustomMenu>('/api/customMenu/customMenu')
+  public loadCustomMenu(notify = false): Observable<CustomMenuConfig> {
+    return this.http.get<CustomMenuConfig>('/api/customMenu')
     .pipe(
-      tap((customMenu) => {
-        this.customMenu = customMenu;
+      tap((customMenuConfig) => {
+        this.customMenuConfig = customMenuConfig;
+        if (notify) {
+          this.customMenuConfigChanged.next(customMenuConfig);
+        }
       })
     );
   }
 
-  public getCurrentCustomMenu(): Observable<CustomMenuConfig> {
-    return this.http.get<CustomMenuConfig>('/api/customMenu/currentCustomMenu');
+  public getCustomMenuInfos(pageLink: PageLink, config?: RequestConfig): Observable<PageData<CustomMenuInfo>> {
+    return this.http.get<PageData<CustomMenuInfo>>(`/api/customMenu/infos${pageLink.toQuery()}`,
+      defaultHttpOptionsFromConfig(config));
   }
 
-  public saveCustomMenu(customMenu: CustomMenuConfig): Observable<any> {
-    return this.http.post<CustomMenuConfig>('/api/customMenu/customMenu', customMenu).pipe(
-      mergeMap(() => this.loadCustomMenu().pipe(
-          tap((loaded) => {
-            this.customMenuChanged.next(loaded);
-          }
-        )))
+  public getCustomMenuInfo(customMenuId: string, config?: RequestConfig): Observable<CustomMenuInfo> {
+    return this.http.get<CustomMenuInfo>(`/api/customMenu/${customMenuId}/info`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public getCustomMenuConfig(customMenuId: string, config?: RequestConfig): Observable<CustomMenuConfig> {
+    return this.http.get<CustomMenuConfig>(`/api/customMenu/${customMenuId}/config`, defaultHttpOptionsFromConfig(config));
+  }
+
+  public updateCustomMenuConfig(customMenuId: string, customMenuConfig: CustomMenuConfig, config?: RequestConfig): Observable<CustomMenu> {
+    return this.http.put<CustomMenu>(`/api/customMenu/${customMenuId}/config`, customMenuConfig,
+      defaultHttpOptionsFromConfig(config)).pipe(
+        mergeMap((res) => this.loadCustomMenu(true).pipe( map(() => res) ))
     );
   }
+
+  public updateCustomMenuName(customMenuId: string, name: string, config?: RequestConfig): Observable<void> {
+    return this.http.put<void>(`/api/customMenu/${customMenuId}/name`, name,
+      defaultHttpOptionsFromConfig(config));
+  }
+
+  public assignCustomMenu(customMenuId: string, entityIds: string[], config?: RequestConfig): Observable<void> {
+    return this.http.put<void>(`/api/customMenu/${customMenuId}/assign`, entityIds,
+      defaultHttpOptionsFromConfig(config)).pipe(
+        mergeMap((res) => this.loadCustomMenu(true).pipe( map(() => res) ))
+    );
+  }
+
+  public saveCustomMenu(customMenuInfo: CustomMenuInfo, assignToList?: string[],
+                        force = false, config?: RequestConfig): Observable<CustomMenu> {
+    let url = `/api/customMenu?force=${force}`;
+    if (assignToList && Array.isArray(assignToList)) {
+        url += `?assignToList=${assignToList.join(',')}`;
+    }
+    return this.http.post<CustomMenu>(url, customMenuInfo,
+      defaultHttpOptionsFromConfig(config)).pipe(
+        mergeMap((res) => this.loadCustomMenu(true).pipe( map(() => res) ))
+    );
+  }
+
+  public deleteCustomMenu(customMenuId: string, force = false, config?: RequestConfig): Observable<CustomMenuDeleteResult> {
+    return this.http.delete<CustomMenuDeleteResult>(`/api/customMenu/${customMenuId}?force=${force}`,
+      defaultHttpOptionsFromConfig(config)).pipe(
+        mergeMap((res) => (res.success ? this.loadCustomMenu(true) : of(null)).pipe( map(() => res) ))
+    );
+  }
+
 }

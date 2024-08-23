@@ -1221,7 +1221,25 @@
     },
     "custom-menu": {
         "custom-menu": "Custom menu",
-        "custom-menu-hint": "Define custom menu JSON below. This JSON contains list of custom menu items."
+        "custom-menu-config": "Custom menu config",
+        "no-custom-menus-prompt": "No custom menus found",
+        "search": "Search custom menus",
+        "add": "Add custom menu",
+        "delete-custom-menu-title": "Are you sure you want to delete the custom menu '{{customMenuName}}'?",
+        "delete-custom-menu-text": "Be careful, after the confirmation the custom menu and all related data will become unrecoverable.",
+        "name": "Name",
+        "scope": "Scope",
+        "scope-system": "System",
+        "scope-tenant": "Tenant",
+        "scope-customer": "Customer",
+        "assignee-type": "Assignee type",
+        "assignee-no-assign": "Not assigned",
+        "assignee-all": "All users (Default)",
+        "assignee-customers": "Customers list",
+        "assignee-users": "Users list",
+        "manage-assignees": "Manage assignees",
+        "manage-config": "Manage custom menu config",
+        "show-hidden-items": "Show hidden items"
     },
     "custom-translation": {
         "add-new-key": "Add new key",

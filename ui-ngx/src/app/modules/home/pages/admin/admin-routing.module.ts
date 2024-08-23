@@ -40,9 +40,6 @@ import { SecuritySettingsComponent } from '@modules/home/pages/admin/security-se
 import { MailTemplatesComponent } from '@home/pages/admin/mail-templates.component';
 import { forkJoin, Observable } from 'rxjs';
 import { MailTemplatesSettings } from '@shared/models/settings.models';
-import { CustomMenuComponent } from '@home/pages/admin/custom-menu.component';
-import { CustomMenu } from '@shared/models/custom-menu.models';
-import { CustomMenuService } from '@core/http/custom-menu.service';
 import { WhiteLabelingComponent } from '@home/pages/admin/white-labeling.component';
 import { SelfRegistrationComponent } from '@home/pages/admin/self-registration.component';
 import { OAuth2SettingsComponent } from '@home/pages/admin/oauth2-settings.component';
@@ -70,23 +67,13 @@ import { ScadaSymbolComponent } from '@home/pages/scada-symbol/scada-symbol.comp
 import { ImageService } from '@core/http/image.service';
 import { ScadaSymbolData } from '@home/pages/scada-symbol/scada-symbol-editor.models';
 import { MenuId } from '@core/services/menu.models';
+import { CustomMenuRoutes } from '@home/pages/custom-menu/custom-menu-routing.module';
 
 export const mailTemplateSettingsResolver: ResolveFn<MailTemplatesSettings> = (
   route: ActivatedRouteSnapshot,
   state: RouterStateSnapshot,
   wl = inject(WhiteLabelingService)
 ): Observable<MailTemplatesSettings> => wl.getMailTemplates(true);
-
-@Injectable()
-export class CustomMenuResolver implements Resolve<CustomMenu> {
-
-  constructor(private customMenuService: CustomMenuService) {
-  }
-
-  resolve(route: ActivatedRouteSnapshot): Observable<CustomMenu> {
-    return this.customMenuService.getCurrentCustomMenu();
-  }
-}
 
 @Injectable()
 export class OAuth2LoginProcessingUrlResolver implements Resolve<string> {
@@ -547,21 +534,7 @@ const routes: Routes = [
         }
       },
       ...CustomTranslationRoutes,
-      {
-        path: 'customMenu',
-        component: CustomMenuComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          title: 'custom-menu.custom-menu',
-          breadcrumb: {
-            menuId: MenuId.custom_menu
-          }
-        },
-        resolve: {
-          customMenu: CustomMenuResolver
-        }
-      },
+      ...CustomMenuRoutes,
       {
         path: 'selfRegistration',
         redirectTo: '/security-settings/selfRegistration'
@@ -574,7 +547,6 @@ const routes: Routes = [
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule],
   providers: [
-    CustomMenuResolver,
     OAuth2LoginProcessingUrlResolver,
     ResourcesLibraryTableConfigResolver,
     QueuesTableConfigResolver

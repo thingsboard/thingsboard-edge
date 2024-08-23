@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuConfig;
 import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.menu.MenuItem;
 import org.thingsboard.server.common.data.security.Authority;
@@ -336,7 +337,8 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         customMenuItem.setIcon("grid_view");
         customMenuItem.setPages(Arrays.asList(customMenuItemChild1, customMenuItemChild2));
 
-        customMenu.setMenuItems(new ArrayList<>(List.of(customMenuItem)));
+        customMenu.setConfig(new CustomMenuConfig(new ArrayList<>(List.of(customMenuItem))));
+
         doPost("/api/customMenu/customMenu", customMenu, CustomMenu.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
@@ -344,9 +346,9 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         CustomMenuProto customMenuProto = (CustomMenuProto) latestMessage;
         CustomMenu cm = JacksonUtil.fromString(customMenuProto.getEntity(), CustomMenu.class, true);
         Assert.assertNotNull(cm);
-        List<MenuItem> menuItems = cm.getMenuItems();
+        List<MenuItem> menuItems = cm.getConfig().getItems();
         Assert.assertEquals(1, menuItems.size());
-        Assert.assertEquals(menuItems, customMenu.getMenuItems());
+        Assert.assertEquals(menuItems, customMenu.getConfig().getItems());
         Assert.assertEquals(customMenuName, ((CustomMenuItem)menuItems.get(0)).getName());
     }
 

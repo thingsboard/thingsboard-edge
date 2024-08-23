@@ -56,6 +56,8 @@ public interface CustomMenuService {
 
     void assignCustomMenu(CustomMenuInfo customMenuInfo, List<EntityId> assignToList);
 
+    CustomMenuInfo findCustomMenuInfoById(TenantId tenantId, CustomMenuId customMenuId);
+
     CustomMenu findCustomMenuById(TenantId tenantId, CustomMenuId customMenuId);
 
     PageData<CustomMenuInfo> getCustomMenuInfos(TenantId tenantId, CustomerId customerId, PageLink pageLink);

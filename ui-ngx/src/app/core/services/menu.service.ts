@@ -74,7 +74,7 @@ export class MenuService {
         }
       }
     );
-    this.customMenuService.customMenuChanged$.subscribe(() => {
+    this.customMenuService.customMenuConfigChanged$.subscribe(() => {
       this.buildMenu();
     });
     this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(
@@ -108,9 +108,11 @@ export class MenuService {
   private updateOpenedMenuSections() {
     const url = this.router.url;
     const openedMenuSections = getCurrentOpenedMenuSections(this.store);
-    this.currentMenuSections.filter(section => filterOpenedMenuSection(section, url, openedMenuSections)).forEach(
-      section => section.opened = true
-    );
+    if (this.currentMenuSections?.length) {
+      this.currentMenuSections.filter(section => filterOpenedMenuSection(section, url, openedMenuSections)).forEach(
+        section => section.opened = true
+      );
+    }
   }
 
   private allMenuLinks(sections: Array<MenuSection>): Array<MenuSection> {

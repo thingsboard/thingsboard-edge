@@ -29,24 +29,25 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { HomeComponentsModule } from '@home/components/home-components.module';
-import { CustomMenuRoutingModule } from '@home/pages/custom-menu/custom-menu-routing.module';
-import { CustomMenuTableHeaderComponent } from '@home/pages/custom-menu/custom-menu-table-header.component';
-import { CustomMenuConfigComponent } from '@home/pages/custom-menu/custom-menu-config.component';
+import { Component, OnInit } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { EntityTableHeaderComponent } from '../../components/entity/entity-table-header.component';
+import { CustomMenuInfo } from '@shared/models/custom-menu.models';
 
-@NgModule({
-  declarations: [
-    CustomMenuTableHeaderComponent,
-    CustomMenuConfigComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    CustomMenuRoutingModule
-  ]
+@Component({
+  selector: 'tb-custom-menu-table-header',
+  templateUrl: './custom-menu-table-header.component.html',
+  styleUrls: ['./custom-menu-table-header.component.scss']
 })
-export class CustomMenuModule { }
+export class CustomMenuTableHeaderComponent extends EntityTableHeaderComponent<CustomMenuInfo> implements OnInit {
+
+  constructor(protected store: Store<AppState>) {
+    super(store);
+  }
+
+  ngOnInit() {
+    super.ngOnInit();
+  }
+
+}

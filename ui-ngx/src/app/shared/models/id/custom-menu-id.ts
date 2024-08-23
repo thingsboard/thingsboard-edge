@@ -29,24 +29,11 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { HomeComponentsModule } from '@home/components/home-components.module';
-import { CustomMenuRoutingModule } from '@home/pages/custom-menu/custom-menu-routing.module';
-import { CustomMenuTableHeaderComponent } from '@home/pages/custom-menu/custom-menu-table-header.component';
-import { CustomMenuConfigComponent } from '@home/pages/custom-menu/custom-menu-config.component';
+import { HasUUID } from '@shared/models/id/has-uuid';
 
-@NgModule({
-  declarations: [
-    CustomMenuTableHeaderComponent,
-    CustomMenuConfigComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    CustomMenuRoutingModule
-  ]
-})
-export class CustomMenuModule { }
+export class CustomMenuId implements HasUUID {
+  id: string;
+  constructor(id: string) {
+    this.id = id;
+  }
+}

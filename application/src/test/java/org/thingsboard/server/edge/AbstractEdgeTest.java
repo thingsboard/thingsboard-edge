@@ -85,9 +85,10 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.menu.CMItemType;
 import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuConfig;
 import org.thingsboard.server.common.data.menu.CustomMenuItem;
-import org.thingsboard.server.common.data.menu.CustomMenuItemConfig;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -171,10 +172,16 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
         // create custom menu
         CustomMenu sysMenu = new CustomMenu();
+        sysMenu.setName("System Menu");
 
-        CustomMenuItemConfig sysItem = new CustomMenuItemConfig();
+        CustomMenuItem sysItem = new CustomMenuItem();
         sysItem.setName("System Menu");
-        sysMenu.setMenuItems(new ArrayList<>(List.of(sysItem)));
+        sysItem.setUrl("/system/menu");
+        sysItem.setMenuItemType(CMItemType.LINK);
+
+        CustomMenuConfig sysMenuConfig = new CustomMenuConfig(List.of(sysItem));
+
+        sysMenu.setConfig(sysMenuConfig);
 
         doPost("/api/customMenu/customMenu", sysMenu);
 

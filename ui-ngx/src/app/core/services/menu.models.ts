@@ -36,10 +36,10 @@ import { deepClone, isNotEmptyStr } from '@core/utils';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import {
-  CustomMenu,
+  CMItemLinkType,
+  CMItemType,
+  CustomMenuConfig,
   CustomMenuItem,
-  CustomMenuItemLinkType,
-  CustomMenuItemType,
   HomeMenuItemType,
   isCustomMenuItem,
   isDefaultMenuItem,
@@ -1868,11 +1868,11 @@ const referencesToMenuIdList = (references: MenuReference[]): Array<MenuId | str
 };
 
 export const buildUserMenu = (authState: AuthState, userPermissionsService: UserPermissionsService,
-                              customMenu: CustomMenu): Array<MenuSection> => {
-  if (customMenu?.items?.length) {
+                              customMenuConfig: CustomMenuConfig): Array<MenuSection> => {
+  if (customMenuConfig?.items?.length) {
     const customStateIds: {[stateId: string]: boolean} = {};
     const allowedMenuIds = referencesToMenuIdList(defaultUserMenuMap.get(authState.authUser.authority));
-    return customMenu.items.map(item =>
+    return customMenuConfig.items.map(item =>
       menuItemToMenuSection(authState, userPermissionsService, allowedMenuIds, customStateIds, item)).filter(section => !!section);
   } else {
     const references = defaultUserMenuMap.get(authState.authUser.authority);
@@ -1969,7 +1969,7 @@ const filterMenuReference = (authState: AuthState, userPermissionsService: UserP
 };
 
 const buildCustomMenuSection = (stateIds: {[stateId: string]: boolean}, customMenuItem: CustomMenuItem): MenuSection => {
-  if (customMenuItem.menuItemType === CustomMenuItemType.SECTION &&
+  if (customMenuItem.menuItemType === CMItemType.SECTION &&
       !customMenuItem.pages?.length) {
     return undefined;
   }
@@ -1982,7 +1982,7 @@ const buildCustomMenuSection = (stateIds: {[stateId: string]: boolean}, customMe
     name: customMenuItem.name,
     icon: customMenuItem.icon
   } as MenuSection;
-  if (customMenuItem.menuItemType === CustomMenuItemType.SECTION) {
+  if (customMenuItem.menuItemType === CMItemType.SECTION) {
     customMenuSection.type = 'toggle';
     const pages: MenuSection[] = [];
     const childStateIds: {[stateId: string]: boolean} = {};
@@ -2022,7 +2022,7 @@ const customMenuItemQueryParams = (item: CustomMenuItem, stateId: string, child 
   } else {
     queryParams.stateId = stateId;
   }
-  if (item.linkType === CustomMenuItemLinkType.URL) {
+  if (item.linkType === CMItemLinkType.URL) {
     if (child) {
       queryParams.childIframeUrl = item.url;
       queryParams.childSetAccessToken = item.setAccessToken;
@@ -2030,7 +2030,7 @@ const customMenuItemQueryParams = (item: CustomMenuItem, stateId: string, child 
       queryParams.iframeUrl = item.url;
       queryParams.setAccessToken = item.setAccessToken;
     }
-  } else if (item.linkType === CustomMenuItemLinkType.DASHBOARD) {
+  } else if (item.linkType === CMItemLinkType.DASHBOARD) {
     if (child) {
       queryParams.childDashboardId = item.dashboardId;
       queryParams.childHideDashboardToolbar = item.hideDashboardToolbar;

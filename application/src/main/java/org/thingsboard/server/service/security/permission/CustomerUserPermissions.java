@@ -48,7 +48,6 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TbResourceId;
-import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -445,7 +444,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
 
     private final PermissionChecker customMenuPermissionChecker = new PermissionChecker() {
         @Override
-        public boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenu customMenu) {
+        public boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenuInfo customMenu) {
             if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getCustomerId())) {
                 return false;
             }

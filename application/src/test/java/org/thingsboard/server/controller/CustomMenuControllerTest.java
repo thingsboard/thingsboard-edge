@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuConfig;
 import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.role.Role;
@@ -115,7 +116,7 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
 
         CustomMenuItem sysItem = new CustomMenuItem();
         sysItem.setName("System Menu");
-        sysMenu.setMenuItems(new ArrayList<>(List.of(sysItem)));
+        sysMenu.setConfig(new CustomMenuConfig(new ArrayList<>(List.of(sysItem))));
 
         doPost("/api/customMenu/customMenu", sysMenu);
 
@@ -136,7 +137,7 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
 
         CustomMenuItem tenantItem = new CustomMenuItem();
         tenantItem.setName("Tenant Menu");
-        tenantMenu.setMenuItems(new ArrayList<>(List.of(tenantItem)));
+        tenantMenu.setConfig(new CustomMenuConfig(new ArrayList<>(List.of(tenantItem))));
 
         doPost("/api/customMenu/customMenu", tenantMenu);
 
@@ -157,7 +158,7 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
 
         CustomMenuItem customerItem = new CustomMenuItem();
         customerItem.setName("Customer Menu");
-        customerMenu.setMenuItems(new ArrayList<>(List.of(customerItem)));
+        customerMenu.setConfig(new CustomMenuConfig(new ArrayList<>(List.of(customerItem))));
 
         doPost("/api/customMenu/customMenu", customerMenu);
 
@@ -190,7 +191,7 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
 
         CustomMenuItem subCustomerItem = new CustomMenuItem();
         subCustomerItem.setName("Customer Menu");
-        subCustomerMenu.setMenuItems(new ArrayList<>(List.of(subCustomerItem)));
+        subCustomerMenu.setConfig(new CustomMenuConfig(new ArrayList<>(List.of(subCustomerItem))));
 
         doPost("/api/customMenu/customMenu", subCustomerMenu);
 

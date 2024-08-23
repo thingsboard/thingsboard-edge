@@ -80,6 +80,7 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuConfig;
 import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -1422,7 +1423,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         CustomMenuItem sysItem = new CustomMenuItem();
         sysItem.setName("System Menu");
-        sysMenu.setMenuItems(new ArrayList<>(List.of(sysItem)));
+        sysMenu.setConfig(new CustomMenuConfig(new ArrayList<>(List.of(sysItem))));
 
         doPost("/api/customMenu/customMenu", sysMenu);
 

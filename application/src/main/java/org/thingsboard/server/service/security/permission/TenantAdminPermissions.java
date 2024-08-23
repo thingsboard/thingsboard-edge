@@ -40,7 +40,6 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -329,7 +328,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
 
     private final PermissionChecker customMenuPermissionChecker = new PermissionChecker() {
         @Override
-        public boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenu customMenu) {
+        public boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenuInfo customMenu) {
             if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), null)) {
                 return false;
             }

@@ -131,6 +131,7 @@ import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
@@ -720,6 +721,14 @@ public abstract class BaseController {
         checkNotNull(customMenu, "Custom menu not found");
         accessControlService.checkCustomMenuPermission(currentUser, operation, customMenu);
         return customMenu;
+    }
+
+    CustomMenuInfo checkCustomMenuInfoId(CustomMenuId customMenuId, Operation operation) throws ThingsboardException {
+        SecurityUser currentUser = getCurrentUser();
+        CustomMenuInfo customMenuInfo = customMenuService.findCustomMenuInfoById(currentUser.getTenantId(), customMenuId);
+        checkNotNull(customMenuInfo, "Custom menu not found");
+        accessControlService.checkCustomMenuPermission(currentUser, operation, customMenuInfo);
+        return customMenuInfo;
     }
 
     User checkUserId(UserId userId, Operation operation) throws ThingsboardException {

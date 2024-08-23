@@ -133,7 +133,7 @@ public class DefaultAccessControlService implements AccessControlService {
     }
 
     @Override
-    public void checkCustomMenuPermission(SecurityUser user, Operation operation, CustomMenu customMenu) throws ThingsboardException {
+    public void checkCustomMenuPermission(SecurityUser user, Operation operation, CustomMenuInfo customMenu) throws ThingsboardException {
         PermissionChecker permissionChecker = getPermissionChecker(user.getAuthority(), Resource.CUSTOM_MENU, true);
         if (!permissionChecker.hasCustomMenuPermission(user, operation, customMenu)) {
             customMenuOperationPermissionDenied(operation, customMenu);

@@ -39,7 +39,6 @@ import { GeneralSettingsComponent } from '@modules/home/pages/admin/general-sett
 import { SecuritySettingsComponent } from '@modules/home/pages/admin/security-settings.component';
 import { HomeComponentsModule } from '@modules/home/components/home-components.module';
 import { MailTemplatesComponent } from '@home/pages/admin/mail-templates.component';
-import { CustomMenuComponent } from '@home/pages/admin/custom-menu.component';
 import { WhiteLabelingComponent } from '@home/pages/admin/white-labeling.component';
 import { PaletteComponent } from '@home/pages/admin/palette.component';
 import { PaletteDialogComponent } from '@home/pages/admin/palette-dialog.component';
@@ -66,7 +65,6 @@ import { WidgetComponentsModule } from '@home/components/widget/widget-component
       MailTemplatesComponent,
       SmsProviderComponent,
       SendTestSmsDialogComponent,
-      CustomMenuComponent,
       WhiteLabelingComponent,
       SecuritySettingsComponent,
       PaletteComponent,

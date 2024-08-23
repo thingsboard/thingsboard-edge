@@ -146,6 +146,13 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     }
 
     @Override
+    public CustomMenuInfo findCustomMenuInfoById(TenantId tenantId, CustomMenuId customMenuId) {
+        log.trace("Executing findCustomMenuInfoById [{}]", customMenuId);
+        validateId(customMenuId, id -> INCORRECT_CUSTOM_MENU_ID + id);
+        return new CustomMenuInfo(cache.getAndPutInTransaction(customMenuId, () -> customMenuDao.findById(tenantId, customMenuId.getId()), true));
+    }
+
+    @Override
     public CustomMenu findCustomMenuById(TenantId tenantId, CustomMenuId customMenuId) {
         log.trace("Executing findCustomMenuById [{}]", customMenuId);
         validateId(customMenuId, id -> INCORRECT_CUSTOM_MENU_ID + id);
