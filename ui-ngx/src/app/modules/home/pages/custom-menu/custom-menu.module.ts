@@ -36,10 +36,12 @@ import { HomeComponentsModule } from '@home/components/home-components.module';
 import { CustomMenuRoutingModule } from '@home/pages/custom-menu/custom-menu-routing.module';
 import { CustomMenuTableHeaderComponent } from '@home/pages/custom-menu/custom-menu-table-header.component';
 import { CustomMenuConfigComponent } from '@home/pages/custom-menu/custom-menu-config.component';
+import { CustomMenuTableComponent } from '@home/pages/custom-menu/custom-menu-table.component';
 
 @NgModule({
   declarations: [
     CustomMenuTableHeaderComponent,
+    CustomMenuTableComponent,
     CustomMenuConfigComponent
   ],
   imports: [

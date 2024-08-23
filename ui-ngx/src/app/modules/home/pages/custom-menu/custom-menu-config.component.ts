@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -41,13 +41,25 @@ import { CustomMenuService } from '@core/http/custom-menu.service';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
+import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
 
 @Component({
   selector: 'tb-custom-menu-config',
   templateUrl: './custom-menu-config.component.html',
-  styleUrls: ['./custom-menu-config.component.scss']
+  styleUrls: ['./custom-menu-config.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
-export class CustomMenuConfigComponent extends PageComponent implements OnInit {
+export class CustomMenuConfigComponent extends PageComponent implements OnInit, HasDirtyFlag {
+
+  private forcePristine = false;
+
+  get isDirty(): boolean {
+    return this.customMenuFormGroup.dirty && !this.forcePristine;
+  }
+
+  set isDirty(value: boolean) {
+    this.forcePristine = !value;
+  }
 
   customMenu: CustomMenuInfo;
   customMenuConfig: CustomMenuConfig;

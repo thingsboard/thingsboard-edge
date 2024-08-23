@@ -33,8 +33,6 @@ import { ActivatedRouteSnapshot, ResolveFn, RouterStateSnapshot, Routes } from '
 import { Authority } from '@shared/models/authority.enum';
 import { inject, NgModule } from '@angular/core';
 import { defaultUserMenuMap, MenuId } from '@core/services/menu.models';
-import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
-import { CustomMenuTableConfigResolver } from '@home/pages/custom-menu/custom-menu-table-config.resolver';
 import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { CustomMenuConfig, CustomMenuInfo, referenceToMenuItem } from '@shared/models/custom-menu.models';
@@ -44,6 +42,7 @@ import { map } from 'rxjs/operators';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { CustomMenuTableComponent } from '@home/pages/custom-menu/custom-menu-table.component';
 
 const customMenuConfigBreadcrumbLabelFunction: BreadCrumbLabelFunction<any> = ((route) =>
   route.data.customMenu.name);
@@ -83,13 +82,10 @@ export const CustomMenuRoutes: Routes = [
     children: [
       {
         path: '',
-        component: EntitiesTableComponent,
+        component: CustomMenuTableComponent,
         data: {
           auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           title: 'custom-menu.custom-menu'
-        },
-        resolve: {
-          entitiesTableConfig: CustomMenuTableConfigResolver
         }
       },
       {
@@ -122,9 +118,5 @@ export const CustomMenuRoutes: Routes = [
   }
 ];
 
-@NgModule({
-  providers: [
-    CustomMenuTableConfigResolver
-  ]
-})
+@NgModule({})
 export class CustomMenuRoutingModule { }

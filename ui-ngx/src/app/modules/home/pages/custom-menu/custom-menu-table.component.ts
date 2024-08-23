@@ -29,76 +29,73 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable } from '@angular/core';
-
-import { Resolve, Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { TranslateService } from '@ngx-translate/core';
+import { DatePipe } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { Router } from '@angular/router';
 import {
   DateEntityTableColumn,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
-import { TranslateService } from '@ngx-translate/core';
-import { DatePipe } from '@angular/common';
-import { EntityTypeResource } from '@shared/models/entity-type.models';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { getCurrentAuthUser } from '@app/core/auth/auth.selectors';
-import { Authority } from '@shared/models/authority.enum';
-import { DialogService } from '@core/services/dialog.service';
-import { ImportExportService } from '@shared/import-export/import-export.service';
-import { Direction } from '@shared/models/page/sort-order';
-import { UtilsService } from '@core/services/utils.service';
-import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { Operation, Resource } from '@shared/models/security.models';
 import { cmAssigneeTypeTranslations, cmScopeTranslations, CustomMenuInfo } from '@shared/models/custom-menu.models';
-import { CustomMenuService } from '@core/http/custom-menu.service';
 import { CustomMenuTableHeaderComponent } from '@home/pages/custom-menu/custom-menu-table-header.component';
+import { EntityTypeResource } from '@shared/models/entity-type.models';
+import { Direction } from '@shared/models/page/sort-order';
+import { CustomMenuService } from '@core/http/custom-menu.service';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { Authority } from '@shared/models/authority.enum';
 
-@Injectable()
-export class CustomMenuTableConfigResolver implements Resolve<EntityTableConfig<CustomMenuInfo>> {
+@Component({
+  selector: 'tb-custom-menu-table',
+  templateUrl: './custom-menu-table.component.html',
+  styleUrls: ['./custom-menu-table.component.scss']
+})
+export class CustomMenuTableComponent implements OnInit {
 
-  private readonly config: EntityTableConfig<CustomMenuInfo> = new EntityTableConfig<CustomMenuInfo>();
+  readonly customMenuTableConfig = new EntityTableConfig<CustomMenuInfo>();
 
-  constructor(private store: Store<AppState>,
-              private dialogService: DialogService,
-              private customMenuService: CustomMenuService,
+  constructor(private customMenuService: CustomMenuService,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
-              private importExport: ImportExportService,
               private datePipe: DatePipe,
-              private router: Router,
-              private utils: UtilsService) {
+              private dialog: MatDialog,
+              private store: Store<AppState>,
+              private router: Router,) {
+  }
 
-    this.config.tableTitle = '';
-    this.config.headerComponent = CustomMenuTableHeaderComponent;
-    this.config.detailsPanelEnabled = false;
-    this.config.searchEnabled = true;
-    this.config.entityTranslations = {
+  ngOnInit() {
+    this.customMenuTableConfig.tableTitle = '';
+    this.customMenuTableConfig.headerComponent = CustomMenuTableHeaderComponent;
+    this.customMenuTableConfig.detailsPanelEnabled = false;
+    this.customMenuTableConfig.searchEnabled = true;
+    this.customMenuTableConfig.entityTranslations = {
       add: 'custom-menu.add',
       noEntities: 'custom-menu.no-custom-menus-prompt',
       search: 'custom-menu.search'
     };
-    this.config.entityResources = {
-     } as EntityTypeResource<CustomMenuInfo>;
-    this.config.entitiesFetchFunction = pageLink => this.customMenuService.getCustomMenuInfos(pageLink);
-    this.config.defaultSortOrder = {property: 'createdTime', direction: Direction.ASC};
+    this.customMenuTableConfig.entityResources = {
+    } as EntityTypeResource<CustomMenuInfo>;
+    this.customMenuTableConfig.entitiesFetchFunction = pageLink => this.customMenuService.getCustomMenuInfos(pageLink);
+    this.customMenuTableConfig.defaultSortOrder = {property: 'createdTime', direction: Direction.ASC};
 
-    this.config.deleteEntityTitle = customMenu => this.translate.instant('custom-menu.delete-custom-menu-title',
+    this.customMenuTableConfig.deleteEntityTitle = customMenu => this.translate.instant('custom-menu.delete-custom-menu-title',
       { customMenuName: customMenu.name });
-    this.config.deleteEntityContent = () => this.translate.instant('custom-menu.delete-custom-menu-text');
+    this.customMenuTableConfig.deleteEntityContent = () => this.translate.instant('custom-menu.delete-custom-menu-text');
 
-    this.config.saveEntity = customMenu => this.customMenuService.saveCustomMenu(customMenu);
-    this.config.deleteEntity = id => this.customMenuService.deleteCustomMenu(id.id);
-  }
+    this.customMenuTableConfig.saveEntity = customMenu => this.customMenuService.saveCustomMenu(customMenu);
+    this.customMenuTableConfig.deleteEntity = id => this.customMenuService.deleteCustomMenu(id.id);
 
-  resolve(): EntityTableConfig<CustomMenuInfo> {
     const authUser = getCurrentAuthUser(this.store);
     const readonly = !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
-    this.config.addEnabled = !readonly && authUser.authority !== Authority.SYS_ADMIN;
-    this.config.entitiesDeleteEnabled = false;
-    this.config.deleteEnabled = () => !readonly && authUser.authority !== Authority.SYS_ADMIN;
-
-    this.config.columns.length = 0;
+    this.customMenuTableConfig.addEnabled = !readonly && authUser.authority !== Authority.SYS_ADMIN;
+    this.customMenuTableConfig.entitiesDeleteEnabled = false;
+    this.customMenuTableConfig.deleteEnabled = () => !readonly && authUser.authority !== Authority.SYS_ADMIN;
 
     let mainColumnsWidth: string;
     switch (authUser.authority) {
@@ -113,22 +110,21 @@ export class CustomMenuTableConfigResolver implements Resolve<EntityTableConfig<
         break;
     }
 
-    this.config.columns.push(
+    this.customMenuTableConfig.columns.push(
       new DateEntityTableColumn<CustomMenuInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<CustomMenuInfo>('name', 'custom-menu.name', mainColumnsWidth)
     );
     if (authUser.authority !== Authority.CUSTOMER_USER) {
-      this.config.columns.push(new EntityTableColumn<CustomMenuInfo>('scope', 'custom-menu.scope', mainColumnsWidth,
+      this.customMenuTableConfig.columns.push(new EntityTableColumn<CustomMenuInfo>('scope', 'custom-menu.scope', mainColumnsWidth,
         (menu) => this.translate.instant(cmScopeTranslations.get(menu.scope))));
     }
     if (authUser.authority !== Authority.SYS_ADMIN) {
-      this.config.columns.push(new EntityTableColumn<CustomMenuInfo>('assigneeType', 'custom-menu.assignee-type', mainColumnsWidth,
+      this.customMenuTableConfig.columns.push(new EntityTableColumn<CustomMenuInfo>('assigneeType',
+        'custom-menu.assignee-type', mainColumnsWidth,
         (menu) => this.translate.instant(cmAssigneeTypeTranslations.get(menu.assigneeType))));
     }
-
-    this.config.cellActionDescriptors.length = 0;
     if (authUser.authority !== Authority.SYS_ADMIN) {
-      this.config.cellActionDescriptors.push(
+      this.customMenuTableConfig.cellActionDescriptors.push(
         {
           name: this.translate.instant('custom-menu.manage-assignees'),
           icon: 'file_download',
@@ -137,7 +133,7 @@ export class CustomMenuTableConfigResolver implements Resolve<EntityTableConfig<
         }
       );
     }
-    this.config.cellActionDescriptors.push(
+    this.customMenuTableConfig.cellActionDescriptors.push(
       {
         name: this.translate.instant('custom-menu.manage-config'),
         icon: 'edit',
@@ -145,8 +141,6 @@ export class CustomMenuTableConfigResolver implements Resolve<EntityTableConfig<
         onAction: ($event, entity) => this.openCustomMenuConfig($event, entity)
       }
     );
-
-    return this.config;
   }
 
   updateCustomMenuName($event: Event, customMenu: CustomMenuInfo) {
