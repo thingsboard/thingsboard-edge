@@ -554,6 +554,8 @@ integrations:
     # - 'FIRST_AND_LAST': Both the first and last activity events in the reporting period are reported.
     # - 'ALL': All activity events in the reporting period are reported.
     reporting_strategy: "${INTEGRATIONS_ACTIVITY_REPORTING_STRATEGY:LAST}"
+  converters:
+    repo_url: "${TB_INTEGRATIONS_CONVERTERS_REPO_URL:https://api.github.com/repos/thingsboard/data-converters}"
 
 # Reports parameters
 reports:
@@ -1959,11 +1961,6 @@ service:
     pubsub:
       # Thread pool size for pubsub rule node executor provider. If not set - default pubsub executor provider value will be used (5 * number of available processors)
       executor_thread_pool_size: "${TB_RULE_ENGINE_PUBSUB_EXECUTOR_THREAD_POOL_SIZE:0}"
-  converter:
-    repo:
-      owner: "${CONVERTER_GIT_HUB_OWNER:thingsboard}"
-      name: "${CONVERTER_GIT_HUB_NAME:data-converters}"
-      token: "${CONVERTER_GIT_HUB_TOKEN:}"
 
 # Metrics parameters
 metrics:

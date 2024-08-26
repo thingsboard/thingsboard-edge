@@ -61,28 +61,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TbConverterRepoService {
 
-    @Value("${service.converter.repo.owner}")
-    private String repoOwner;
-
-    @Value("${service.converter.repo.name}")
-    private String repoName;
-
-    @Value("${service.converter.repo.token}")
-    private String repoToken;
-
-    private static final String githubApiUrl = "https://api.github.com";
-
-    private String converterGitHubUrl;
-
+    @Value("${integrations.converters.repo_url}")
+    private String converterRepoUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();
     private final String rootPath = "VENDORS";
-
-
-    @PostConstruct
-    public void init() {
-        converterGitHubUrl = String.format("%s/repos/%s/%s", githubApiUrl, repoOwner, repoName);
-    }
 
     public ArrayNode getVendorsByIntegrationType(String integrationType) throws ThingsboardException {
         try {
@@ -210,19 +193,16 @@ public class TbConverterRepoService {
 
     private HttpEntity<String> createHeaders() {
         HttpHeaders headers = new HttpHeaders();
-        if (repoToken != null && !repoToken.isEmpty()) {
-            headers.set("Authorization", "token " + repoToken);
-        }
         return new HttpEntity<>(headers);
 
     }
 
     private UriComponentsBuilder createUriBuilderTree() {
-        return UriComponentsBuilder.fromHttpUrl(converterGitHubUrl + "/git/trees/master?recursive=1");
+        return UriComponentsBuilder.fromHttpUrl(converterRepoUrl + "/git/trees/master?recursive=1");
     }
 
     private UriComponentsBuilder createUriBuilderContent(String pathDir) {
-        return UriComponentsBuilder.fromHttpUrl(converterGitHubUrl + "/contents/" + pathDir);
+        return UriComponentsBuilder.fromHttpUrl(converterRepoUrl + "/contents/" + pathDir);
     }
 }
 
