@@ -50,7 +50,6 @@ import { CommonModule } from '@angular/common';
 import { WorkersConfig } from '@home/components/widget/lib/gateway/gateway-widget.models';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
-import { TruncateWithTooltipDirective } from '@shared/directives/truncate-with-tooltip.directive';
 
 @Component({
   selector: 'tb-workers-config-control',
@@ -60,7 +59,6 @@ import { TruncateWithTooltipDirective } from '@shared/directives/truncate-with-t
   imports: [
     CommonModule,
     SharedModule,
-    TruncateWithTooltipDirective,
   ],
   providers: [
     {

@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.DeviceProfileProvisionType;
 import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.ResourceSubType;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.Tenant;
@@ -894,6 +895,9 @@ public class ProtoUtils {
             builder.setCustomerIdMSB(getMsb(resource.getCustomerId()))
                     .setCustomerIdLSB(getLsb(resource.getCustomerId()));
         }
+        if (isNotNull(resource.getResourceSubType())) {
+            builder.setResourceSubType(resource.getResourceSubType().name());
+        }
         return builder.build();
     }
 
@@ -927,6 +931,9 @@ public class ProtoUtils {
         }
         if (proto.hasCustomerIdMSB() && proto.hasCustomerIdLSB()) {
             resource.setCustomerId(getEntityId(proto.getCustomerIdMSB(), proto.getCustomerIdLSB(), CustomerId::new));
+        }
+        if (proto.hasResourceSubType()) {
+            resource.setResourceSubType(ResourceSubType.valueOf(proto.getResourceSubType()));
         }
         return resource;
     }

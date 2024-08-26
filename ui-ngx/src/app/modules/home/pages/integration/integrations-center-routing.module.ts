@@ -34,14 +34,14 @@ import { Authority } from '@shared/models/authority.enum';
 import { NgModule } from '@angular/core';
 import { integrationsRoute } from '@home/pages/integration/integration-routing.module';
 import { convertersRoute } from '@home/pages/converter/converter-routing.module';
+import { MenuId } from '@core/services/menu.models';
 
 export const integrationsCenterRoute = (): Route => ({
   path: 'integrationsCenter',
   data: {
     auth: [Authority.TENANT_ADMIN],
     breadcrumb: {
-      label: 'integration.integrations-center',
-      icon: 'integration_instructions'
+      menuId: MenuId.integrations_center
     }
   },
   children: [

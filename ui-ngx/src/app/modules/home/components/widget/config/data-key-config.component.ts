@@ -37,17 +37,18 @@ import {
   ComparisonResultType,
   comparisonResultTypeTranslationMap,
   DataKey,
-  dataKeyAggregationTypeHintTranslationMap, DataKeyConfigMode,
+  dataKeyAggregationTypeHintTranslationMap,
+  DataKeyConfigMode,
   Widget,
   widgetType
 } from '@shared/models/widget.models';
 import {
   ControlValueAccessor,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
   UntypedFormBuilder,
   UntypedFormControl,
   UntypedFormGroup,
-  NG_VALIDATORS,
-  NG_VALUE_ACCESSOR,
   Validator,
   Validators
 } from '@angular/forms';
@@ -55,7 +56,7 @@ import { UtilsService } from '@core/services/utils.service';
 import { TranslateService } from '@ngx-translate/core';
 import { MatDialog } from '@angular/material/dialog';
 import { EntityService } from '@core/http/entity.service';
-import { DataKeysCallbacks, DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
+import { DataKeySettingsFunction } from '@home/components/widget/config/data-keys.component.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { Observable, of } from 'rxjs';
 import { map, mergeMap, publishReplay, refCount, tap } from 'rxjs/operators';
@@ -70,6 +71,7 @@ import { genNextLabel, isDefinedAndNotNull } from '@core/utils';
 import { coerceBoolean } from '@shared/decorators/coercion';
 import { WidgetConfigComponentData } from '@home/models/widget-component.models';
 import { WidgetComponentService } from '@home/components/widget/widget-component.service';
+import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
 
 @Component({
   selector: 'tb-data-key-config',
@@ -120,7 +122,7 @@ export class DataKeyConfigComponent extends PageComponent implements OnInit, Con
   entityAliasId: string;
 
   @Input()
-  callbacks: DataKeysCallbacks;
+  callbacks: WidgetConfigCallbacks;
 
   @Input()
   dashboard: Dashboard;
