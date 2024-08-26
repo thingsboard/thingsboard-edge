@@ -171,8 +171,8 @@ public class CustomMenuController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PutMapping(value = "/customMenu/{customMenuId}/name")
     public void updateCustomMenuName(@Parameter(description = CUSTOM_MENU_ID_PARAM_DESCRIPTION)
-                                  @PathVariable(CUSTOM_MENU_ID) UUID id,
-                                  String name) throws ThingsboardException {
+                                     @PathVariable(CUSTOM_MENU_ID) UUID id,
+                                     @RequestBody String name) throws ThingsboardException {
         CustomMenuId customMenuId = new CustomMenuId(id);
         checkNotNull(checkCustomMenuId(customMenuId, Operation.WRITE));
         customMenuService.updateCustomMenuName(customMenuId, name);

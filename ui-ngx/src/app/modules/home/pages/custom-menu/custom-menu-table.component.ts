@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Renderer2, ViewContainerRef } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
@@ -57,6 +57,8 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Authority } from '@shared/models/authority.enum';
 import { Observable } from 'rxjs';
 import { AddCustomMenuDialogComponent } from '@home/pages/custom-menu/add-custom-menu-dialog.component';
+import { TbPopoverService } from '@shared/components/popover.service';
+import { EditCustomMenuNamePanelComponent } from '@home/pages/custom-menu/edit-custom-menu-name-panel.component';
 
 @Component({
   selector: 'tb-custom-menu-table',
@@ -73,7 +75,10 @@ export class CustomMenuTableComponent implements OnInit {
               private datePipe: DatePipe,
               private dialog: MatDialog,
               private store: Store<AppState>,
-              private router: Router,) {
+              private router: Router,
+              private popoverService: TbPopoverService,
+              private renderer: Renderer2,
+              private viewContainerRef: ViewContainerRef) {
   }
 
   ngOnInit() {
@@ -120,7 +125,14 @@ export class CustomMenuTableComponent implements OnInit {
 
     this.customMenuTableConfig.columns.push(
       new DateEntityTableColumn<CustomMenuInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<CustomMenuInfo>('name', 'custom-menu.name', mainColumnsWidth)
+      new EntityTableColumn<CustomMenuInfo>('name', 'custom-menu.name', mainColumnsWidth,
+          entity => entity.name, _entity => ({}), true, () => ({}), () => undefined, false,
+        {
+          name: this.translate.instant('custom-menu.edit-name'),
+          icon: 'edit',
+          isEnabled: () => !readonly && authUser.authority !== Authority.SYS_ADMIN,
+          onAction: ($event, entity) => this.updateCustomMenuName($event, entity)
+        })
     );
     if (authUser.authority !== Authority.CUSTOMER_USER) {
       this.customMenuTableConfig.columns.push(new EntityTableColumn<CustomMenuInfo>('scope', 'custom-menu.scope', mainColumnsWidth,
@@ -135,7 +147,7 @@ export class CustomMenuTableComponent implements OnInit {
       this.customMenuTableConfig.cellActionDescriptors.push(
         {
           name: this.translate.instant('custom-menu.manage-assignees'),
-          icon: 'file_download',
+          icon: 'mdi:account-group-outline',
           isEnabled: () => true,
           onAction: ($event, entity) => this.manageCustomMenuAssignees($event, entity)
         }
@@ -162,6 +174,26 @@ export class CustomMenuTableComponent implements OnInit {
   private updateCustomMenuName($event: Event, customMenu: CustomMenuInfo) {
     if ($event) {
       $event.stopPropagation();
+      const trigger = ($event.target || $event.srcElement || $event.currentTarget) as Element;
+      if (this.popoverService.hasPopover(trigger)) {
+        this.popoverService.hidePopover(trigger);
+      } else {
+        const ctx = {
+          customMenuId: customMenu.id.id,
+          name: customMenu.name
+        };
+        const editCustomMenuNamePanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
+          this.viewContainerRef, EditCustomMenuNamePanelComponent,
+          ['right', 'bottom', 'top'], true, null,
+          ctx,
+          {},
+          {}, {}, true);
+        editCustomMenuNamePanelPopover.tbComponentRef.instance.popover = editCustomMenuNamePanelPopover;
+        editCustomMenuNamePanelPopover.tbComponentRef.instance.nameApplied.subscribe(() => {
+          editCustomMenuNamePanelPopover.hide();
+          this.customMenuTableConfig.updateData();
+        });
+      }
     }
   }
 

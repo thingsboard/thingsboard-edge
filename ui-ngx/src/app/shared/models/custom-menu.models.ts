@@ -36,6 +36,7 @@ import { CustomMenuId } from '@shared/models/id/custom-menu-id';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { EntityInfo, HasTenantId } from '@shared/models/entity.models';
+import { Authority } from '@shared/models/authority.enum';
 
 export enum CMScope {
   SYSTEM = 'SYSTEM',
@@ -50,6 +51,17 @@ export const cmScopeTranslations = new Map<CMScope, string>(
     [CMScope.CUSTOMER, 'custom-menu.scope-customer']
   ]
 );
+
+export const cmScopeToAuthority = (scope: CMScope): Authority => {
+  switch (scope) {
+    case CMScope.SYSTEM:
+      return Authority.SYS_ADMIN;
+    case CMScope.TENANT:
+      return Authority.TENANT_ADMIN;
+    case CMScope.CUSTOMER:
+      return Authority.CUSTOMER_USER;
+  }
+};
 
 export enum CMAssigneeType {
   NO_ASSIGN = 'NO_ASSIGN',

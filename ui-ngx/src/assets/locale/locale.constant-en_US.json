@@ -1229,6 +1229,7 @@
         "delete-custom-menu-text": "Be careful, after the confirmation the custom menu and all related data will become unrecoverable.",
         "name": "Name",
         "name-required": "Name is required",
+        "edit-name": "Edit name",
         "scope": "Scope",
         "scope-system": "System",
         "scope-tenant": "Tenant",

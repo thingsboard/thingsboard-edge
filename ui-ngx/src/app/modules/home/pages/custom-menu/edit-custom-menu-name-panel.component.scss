@@ -29,28 +29,24 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-@import "../../../../../scss/constants";
-@import '../../../../../scss/mixins';
-
-:host {
-  position: relative;
-  height: 100%;
-
-  @media #{$mat-gt-md} {
-    width: 60%;
+.tb-edit-custom-menu-name-panel {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  .tb-edit-custom-menu-name-title {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    letter-spacing: 0.25px;
+    color: rgba(0, 0, 0, 0.87);
   }
-}
-
-:host ::ng-deep {
-  mat-cell.mat-column-name {
-    white-space: nowrap;
-    .mat-mdc-icon-button {
-      vertical-align: middle;
-      margin-left: 8px;
-      @include tb-mat-icon-button-size(32);
-      .mat-icon {
-        @include tb-mat-icon-size(20);
-      }
-    }
+  .tb-edit-custom-menu-name-panel-buttons {
+    height: 40px;
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    justify-content: flex-end;
+    align-items: flex-end;
   }
 }

@@ -45,21 +45,21 @@
   </mat-progress-bar>
   <div style="height: 4px;" *ngIf="(isLoading$ | async) === false"></div>
   <div mat-dialog-content [formGroup]="customMenuFormGroup" fxLayout="column">
-    <mat-form-field appearance="fill">
+    <mat-form-field appearance="outline">
       <mat-label translate>custom-menu.name</mat-label>
       <input matInput formControlName="name" required>
       <mat-error *ngIf="customMenuFormGroup.get('name').hasError('required')">
         {{ 'custom-menu.name-required' | translate }}
       </mat-error>
     </mat-form-field>
-    <mat-form-field appearance="fill" *ngIf="authUser.authority === Authority.TENANT_ADMIN">
+    <mat-form-field appearance="outline" *ngIf="authUser.authority === Authority.TENANT_ADMIN">
       <mat-select formControlName="scope">
         <mat-option *ngFor="let scope of customMenuScopes" [value]="scope">
           {{ cmScopeTranslations.get(scope) | translate }}
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <mat-form-field appearance="fill">
+    <mat-form-field appearance="outline">
       <mat-select formControlName="assigneeType">
         <mat-option *ngFor="let assigneeType of assigneeTypes" [value]="assigneeType">
           {{ cmAssigneeTypeTranslations.get(assigneeType) | translate }}

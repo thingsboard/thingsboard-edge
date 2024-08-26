@@ -35,13 +35,15 @@ import { inject, NgModule } from '@angular/core';
 import { defaultUserMenuMap, MenuId } from '@core/services/menu.models';
 import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
-import { CustomMenuConfig, CustomMenuInfo, referenceToMenuItem } from '@shared/models/custom-menu.models';
+import {
+  cmScopeToAuthority,
+  CustomMenuConfig,
+  CustomMenuInfo,
+  referenceToMenuItem
+} from '@shared/models/custom-menu.models';
 import { CustomMenuService } from '@core/http/custom-menu.service';
 import { CustomMenuConfigComponent } from '@home/pages/custom-menu/custom-menu-config.component';
 import { map } from 'rxjs/operators';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
 import { CustomMenuTableComponent } from '@home/pages/custom-menu/custom-menu-table.component';
 
 const customMenuConfigBreadcrumbLabelFunction: BreadCrumbLabelFunction<any> = ((route) =>
@@ -54,19 +56,21 @@ const customMenuResolver: ResolveFn<CustomMenuInfo> = (route: ActivatedRouteSnap
 
 const customMenuConfigResolver: ResolveFn<CustomMenuConfig> = (route: ActivatedRouteSnapshot,
                                                                _state: RouterStateSnapshot,
-                                                               customMenuService = inject(CustomMenuService),
-                                                               store: Store<AppState> = inject(Store<AppState>)) => {
+                                                               customMenuService = inject(CustomMenuService)) => {
   const customMenuId = route.params.customMenuId;
   return customMenuService.getCustomMenuConfig(customMenuId).pipe(
     map((config) => {
       if (!config?.items?.length) {
-        const authority = getCurrentAuthUser(store).authority;
+        const customMenu: CustomMenuInfo = route.parent.data.customMenu;
+        const scope = customMenu.scope;
+        const authority = cmScopeToAuthority(scope);
         const references = defaultUserMenuMap.get(authority);
         return {
           items: (references || []).map(r => referenceToMenuItem(r))
         };
+      } else {
+        return config;
       }
-      return config;
     })
   );
 };

@@ -29,30 +29,49 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { SharedModule } from '@shared/shared.module';
-import { HomeComponentsModule } from '@home/components/home-components.module';
-import { CustomMenuRoutingModule } from '@home/pages/custom-menu/custom-menu-routing.module';
-import { CustomMenuTableHeaderComponent } from '@home/pages/custom-menu/custom-menu-table-header.component';
-import { CustomMenuConfigComponent } from '@home/pages/custom-menu/custom-menu-config.component';
-import { CustomMenuTableComponent } from '@home/pages/custom-menu/custom-menu-table.component';
-import { AddCustomMenuDialogComponent } from '@home/pages/custom-menu/add-custom-menu-dialog.component';
-import { EditCustomMenuNamePanelComponent } from '@home/pages/custom-menu/edit-custom-menu-name-panel.component';
+import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { UntypedFormBuilder, Validators } from '@angular/forms';
+import { TbPopoverComponent } from '@shared/components/popover.component';
+import { CustomMenuService } from '@core/http/custom-menu.service';
 
-@NgModule({
-  declarations: [
-    CustomMenuTableHeaderComponent,
-    CustomMenuTableComponent,
-    AddCustomMenuDialogComponent,
-    EditCustomMenuNamePanelComponent,
-    CustomMenuConfigComponent
-  ],
-  imports: [
-    CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    CustomMenuRoutingModule
-  ]
+@Component({
+  selector: 'tb-edit-custom-menu-name-panel',
+  templateUrl: './edit-custom-menu-name-panel.component.html',
+  styleUrls: ['./edit-custom-menu-name-panel.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
-export class CustomMenuModule { }
+export class EditCustomMenuNamePanelComponent implements OnInit {
+
+  @Input()
+  customMenuId: string;
+
+  @Input()
+  name: string;
+
+  @Input()
+  popover: TbPopoverComponent<EditCustomMenuNamePanelComponent>;
+
+  @Output()
+  nameApplied = new EventEmitter<string>();
+
+  nameFormControl = this.fb.control(null, [Validators.required]);
+
+  constructor(private fb: UntypedFormBuilder,
+              private customMenuService: CustomMenuService) {}
+
+  ngOnInit(): void {
+    this.nameFormControl.setValue(this.name, {emitEvent: false});
+  }
+
+  cancel() {
+    this.popover?.hide();
+  }
+
+  applyName() {
+    const name = this.nameFormControl.value;
+    this.customMenuService.updateCustomMenuName(this.customMenuId, name).subscribe(() => {
+      this.nameApplied.emit(name);
+    });
+  }
+
+}
