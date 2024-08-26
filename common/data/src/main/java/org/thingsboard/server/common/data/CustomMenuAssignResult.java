@@ -28,47 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
+package org.thingsboard.server.common.data;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.Immutable;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.menu.CustomMenu;
-import org.thingsboard.server.common.data.menu.CustomMenuConfig;
-import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.util.mapping.JsonConverter;
+import org.thingsboard.server.common.data.menu.CMAssigneeType;
+
+import java.util.List;
 
 @Data
-@Slf4j
-@EqualsAndHashCode(callSuper = true)
-@Entity
-@Immutable
-@Table(name = ModelConstants.CUSTOM_MENU_TABLE_NAME)
-public class CustomMenuEntity extends AbstractCustomMenuEntity<CustomMenu> {
+@Builder
+public class CustomMenuAssignResult {
 
-    @Convert(converter = JsonConverter.class)
-    @Column(name = ModelConstants.CUSTOM_MENU_SETTINGS)
-    private JsonNode settings;
-
-    public CustomMenuEntity(CustomMenu customMenu) {
-        super(customMenu);
-        this.settings = JacksonUtil.valueToTree(customMenu.getConfig());
-    }
-
-    public CustomMenuEntity() {
-        super();
-    }
-
-    @Override
-    public CustomMenu toData() {
-        return new CustomMenu(super.toCustomMenuInfo(), JacksonUtil.treeToValue(settings, CustomMenuConfig.class));
-    }
+    private boolean success;
+    private CMAssigneeType oldAssigneeType;
+    private List<EntityInfo> oldAsigneeList;
 
 }

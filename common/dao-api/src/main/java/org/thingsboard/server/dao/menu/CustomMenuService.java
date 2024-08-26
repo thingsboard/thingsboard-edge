@@ -30,12 +30,15 @@
  */
 package org.thingsboard.server.dao.menu;
 
+import org.thingsboard.server.common.data.CustomMenuAssignResult;
 import org.thingsboard.server.common.data.CustomMenuDeleteResult;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuAssigneeInfo;
@@ -48,13 +51,13 @@ import java.util.List;
 
 public interface CustomMenuService {
 
-    CustomMenu createCustomMenuInfo(CustomMenuInfo customMenuInfo, List<EntityId> assignToList, boolean force);
+    CustomMenu createCustomMenu(CustomMenuInfo customMenuInfo, List<EntityId> assignToList);
 
     boolean updateCustomMenuName(CustomMenuId customMenuId, String name);
 
     CustomMenu updateCustomMenu(CustomMenu customMenu);
 
-    void assignCustomMenu(CustomMenuInfo customMenuInfo, List<EntityId> assignToList);
+    CustomMenuAssignResult assignCustomMenu(TenantId tenantId, CustomMenuId customMenuId, CMAssigneeType newAssigneeType, List<EntityId> newAssignToList, boolean force);
 
     CustomMenuInfo findCustomMenuInfoById(TenantId tenantId, CustomMenuId customMenuId);
 
@@ -74,4 +77,5 @@ public interface CustomMenuService {
 
     CustomMenuInfo findDefaultCustomMenuByScope(TenantId tenantId, CustomerId customerId, CMScope scope);
 
+    List<EntityInfo> getMenuAssigners(CustomMenuInfo customMenuInfo);
 }

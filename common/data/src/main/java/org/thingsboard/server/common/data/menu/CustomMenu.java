@@ -62,4 +62,8 @@ public class CustomMenu extends CustomMenuInfo {
         this.config = config;
     }
 
+    public CustomMenu(CustomMenuAssigneeInfo customMenuAssigneeInfo) {
+        super(customMenuAssigneeInfo);
+    }
+
 }

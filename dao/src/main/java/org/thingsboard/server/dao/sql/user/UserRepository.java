@@ -167,4 +167,9 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
             "WHERE u.id IN :ids")
     void updateCustomMenuId(@Param("ids") List<UUID> ids, @Param("customMenuId") UUID customMenuId);
 
+    @Modifying
+    @Transactional
+    @Query("UPDATE UserEntity u SET u.customMenuId = NULL WHERE u.id IN :ids")
+    void updateCustomMenuIdToNull(@Param("ids") List<UUID> ids);
+
 }

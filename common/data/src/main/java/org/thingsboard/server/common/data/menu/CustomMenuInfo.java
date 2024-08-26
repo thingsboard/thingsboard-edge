@@ -69,9 +69,9 @@ public class CustomMenuInfo  extends BaseData<CustomMenuId> implements HasTenant
 
     @NoXss
     @NotNull
-    @Schema(description = "Custom menu could be applied to whole tenant/customer or separete list of users. " +
-            "So possible values are: All (means all users of specified scope), Tenant (specified tenants), Customer (specified customers)," +
-            " User list (specified list of users)", example = "ALL")
+    @Schema(description = "Custom menu could be applied to whole tenant/customer/separate list of users or no assigned " +
+            "Possible values are: All (means all users of specified scope), TENANTS (specified tenants), CUSTOMES (specified customers)," +
+            " USER_LIST (specified list of users), NO_ASSING (no assignee)", example = "ALL")
     private CMAssigneeType assigneeType;
 
     @Schema(description = "JSON object with Customer or Tenant Id", accessMode = Schema.AccessMode.READ_ONLY)

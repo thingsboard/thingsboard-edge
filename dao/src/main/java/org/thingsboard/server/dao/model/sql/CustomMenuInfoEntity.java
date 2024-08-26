@@ -55,7 +55,7 @@ public final class CustomMenuInfoEntity extends AbstractCustomMenuEntity<CustomM
 
     @Override
     public CustomMenuInfo toData() {
-        return super.toCustomMenu();
+        return super.toCustomMenuInfo();
     }
 
 }

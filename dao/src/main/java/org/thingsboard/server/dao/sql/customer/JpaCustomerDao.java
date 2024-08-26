@@ -170,7 +170,11 @@ public class JpaCustomerDao extends JpaAbstractDao<CustomerEntity, Customer> imp
 
     @Override
     public void updateCustomersCustomMenuId(List<UUID> customerIds, UUID customMenuId) {
-        customerRepository.updateCustomMenuId(customerIds, customMenuId);
+        if (customMenuId == null) {
+            customerRepository.updateCustomMenuIdToNull(customerIds);
+        } else {
+            customerRepository.updateCustomMenuId(customerIds, customMenuId);
+        }
     }
 
     @Override

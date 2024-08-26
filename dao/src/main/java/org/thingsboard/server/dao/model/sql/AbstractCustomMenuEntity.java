@@ -102,18 +102,18 @@ public abstract class AbstractCustomMenuEntity<T extends CustomMenuInfo> extends
         this.assigneeType = customMenuInfoEntity.getAssigneeType();
     }
 
-    protected CustomMenu toCustomMenu() {
-        CustomMenu customMenu = new CustomMenu(new CustomMenuId(id));
-        customMenu.setCreatedTime(createdTime);
+    protected CustomMenuInfo toCustomMenuInfo() {
+        CustomMenuInfo customMenuInfo = new CustomMenuInfo(new CustomMenuId(id));
+        customMenuInfo.setCreatedTime(createdTime);
         if (tenantId != null) {
-            customMenu.setTenantId(TenantId.fromUUID(tenantId));
+            customMenuInfo.setTenantId(TenantId.fromUUID(tenantId));
         }
         if (customerId != null) {
-            customMenu.setCustomerId(new CustomerId(customerId));
+            customMenuInfo.setCustomerId(new CustomerId(customerId));
         }
-        customMenu.setName(name);
-        customMenu.setScope(scope);
-        customMenu.setAssigneeType(assigneeType);
-        return customMenu;
+        customMenuInfo.setName(name);
+        customMenuInfo.setScope(scope);
+        customMenuInfo.setAssigneeType(assigneeType);
+        return customMenuInfo;
     }
 }
