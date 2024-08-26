@@ -257,6 +257,10 @@ public class GroupPermissionController extends BaseController {
         checkEntityGroupId(entityGroupId, Operation.READ);
         accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
         List<GroupPermissionInfo> groupPermissions = groupPermissionService.findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(tenantId, entityGroupId).get();
+        if (getCurrentUser().isCustomerUser()) {
+            var customerId = getCurrentUser().getCustomerId();
+            groupPermissions = groupPermissions.stream().filter(gp -> gp.getUserGroupOwnerId().equals(customerId)).toList();
+        }
         return applyPermissionInfo(groupPermissions);
     }
 
