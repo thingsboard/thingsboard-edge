@@ -55,7 +55,6 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CustomMenu;
-import org.thingsboard.server.common.data.menu.CustomMenuAssigneeInfo;
 import org.thingsboard.server.common.data.menu.CustomMenuConfig;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.page.PageData;
@@ -145,15 +144,14 @@ public class CustomMenuController extends BaseController {
 
     @ApiOperation(value = "Get Custom Menu Info (getCustomMenuInfoById)",
             notes = "Fetch the Custom Menu Assignee Info object and assignee list for USERS and CUSTOMERS assignee type based on the provided Custom Menu Id" +
-                    ControllerConstants.CUSTOM_MENU_READ_CHECK
-    )
+                    ControllerConstants.CUSTOM_MENU_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/customMenu/{customMenuId}/assigneeList")
     public List<EntityInfo> getCustomMenuAssigneeList(@Parameter(description = CUSTOM_MENU_ID_PARAM_DESCRIPTION)
                                                         @PathVariable(CUSTOM_MENU_ID) UUID id) throws ThingsboardException {
         CustomMenuId customMenuId = new CustomMenuId(id);
         CustomMenuInfo customMenuInfo = checkCustomMenuInfoId(customMenuId, Operation.READ);
-        return customMenuService.getMenuAssigners(customMenuInfo);
+        return customMenuService.getCustomMenuAssigneeList(customMenuInfo);
     }
 
     @ApiOperation(value = "Get Custom Menu configuration by id (getCustomMenuConfig)",

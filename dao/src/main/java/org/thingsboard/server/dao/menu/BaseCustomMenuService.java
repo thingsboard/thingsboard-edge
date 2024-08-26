@@ -286,7 +286,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
         log.trace("Executing findCustomMenuById [{}]", customMenuId);
         validateId(customMenuId, id -> INCORRECT_CUSTOM_MENU_ID + id);
         CustomMenu customMenu = cache.getAndPutInTransaction(customMenuId, () -> customMenuDao.findById(tenantId, customMenuId.getId()), true);
-        return customMenu == null ? null : new CustomMenuAssigneeInfo(customMenu, getMenuAssigners(customMenu));
+        return customMenu == null ? null : new CustomMenuAssigneeInfo(customMenu, getCustomMenuAssigneeList(customMenu));
     }
 
     @Override
@@ -298,7 +298,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
 
     private CustomMenu saveCustomMenu(CustomMenu customMenu, List<EntityId> assignToList) {
         try {
-            CustomMenu savedCustomMenu = customMenuDao.saveAndFlush(customMenu.getTenantId(), customMenu);
+            CustomMenu savedCustomMenu = customMenuDao.save(customMenu.getTenantId(), customMenu);
             if (CollectionUtils.isNotEmpty(assignToList)) {
                 assignCustomMenu(savedCustomMenu.getId(), customMenu.getAssigneeType(), assignToList);
             }
@@ -322,7 +322,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     }
 
     @Override
-    public List<EntityInfo> getMenuAssigners(CustomMenuInfo customMenuInfo) {
+    public List<EntityInfo> getCustomMenuAssigneeList(CustomMenuInfo customMenuInfo) {
         List<EntityInfo> assigners = new ArrayList<>();
         switch (customMenuInfo.getAssigneeType()) {
             case NO_ASSIGN:

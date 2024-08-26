@@ -77,5 +77,5 @@ public interface CustomMenuService {
 
     CustomMenuInfo findDefaultCustomMenuByScope(TenantId tenantId, CustomerId customerId, CMScope scope);
 
-    List<EntityInfo> getMenuAssigners(CustomMenuInfo customMenuInfo);
+    List<EntityInfo> getCustomMenuAssigneeList(CustomMenuInfo customMenuInfo);
 }
