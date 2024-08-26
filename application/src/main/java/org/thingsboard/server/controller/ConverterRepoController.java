@@ -49,7 +49,7 @@ import org.thingsboard.server.service.converter.TbConverterRepoService;
 @RestController
 @TbCoreComponent
 @RequiredArgsConstructor
-@RequestMapping("/api/converter")
+@RequestMapping("/api/converter/repo")
 @Slf4j
 public class ConverterRepoController {
 
