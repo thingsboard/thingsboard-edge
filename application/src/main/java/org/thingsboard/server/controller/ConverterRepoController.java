@@ -31,27 +31,20 @@
 package org.thingsboard.server.controller;
 
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.TbConverterRepoService;
-import org.thingsboard.server.service.converter.TbFileNode;
-import org.thingsboard.server.service.converter.TbGitHubContent;
-
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @TbCoreComponent
@@ -67,10 +60,9 @@ public class ConverterRepoController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/{integrationType}/vendors", method = RequestMethod.GET)
     @ResponseBody
-    public TbGitHubContent[] getVendors(@RequestParam(required = false) String pathDir,
-                                                   @PathVariable String integrationType)
+    public ArrayNode getVendors(@PathVariable String integrationType)
                                                    throws ThingsboardException {
-        return converterRepoService.getIntegrationVendors(pathDir, integrationType);
+        return converterRepoService.getVendorsByIntegrationType(integrationType);
     }
 
     @ApiOperation(value = "Get Arrays from GitHub (getVendorModels)",
@@ -78,145 +70,82 @@ public class ConverterRepoController {
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/{integrationType}/{vendorName}/models", method = RequestMethod.GET)
     @ResponseBody
-    public TbGitHubContent[] getVendorModels(@RequestParam(required = false) String pathDir,
-                                                 @PathVariable String integrationType,
-                                                 @PathVariable String vendorName)
+    public ArrayNode ThingsStackIndustries(@PathVariable String integrationType,
+                                           @PathVariable String vendorName)
                                                  throws ThingsboardException {
-        return converterRepoService.getVendorModels(pathDir, integrationType, vendorName);
+        return converterRepoService.getVendorModelsByIntegrationType(integrationType, vendorName);
     }
 
     @ApiOperation(value = "Get One File json from GitHub (getConverter)",
-            notes = "Returns converter.json file from Converters GitHub format: Json")
+            notes = "Returns uplink converter.json file from Converters GitHub format: Json")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/{integrationType}/{vendorName}/{model}/uplink", method = RequestMethod.GET, produces = "text/plain")
     @ResponseBody
-    public ResponseEntity<String> getConverterUplink(@RequestParam String filePath,
-                                               @PathVariable String integrationType,
-                                               @PathVariable String model,
-                                               @PathVariable String vendorName) throws ThingsboardException {
-        String content = converterRepoService.getConverterUplink(filePath, integrationType, model, vendorName);
-        return ResponseEntity.ok(content);
-    }
-
-    @ApiOperation(value = "Get One File json from GitHub (getMetadata)",
-            notes = "Returns metadata.json file from Converters GitHub format: Json")
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/{integrationType}/{vendorName}/{model}/uplink/metadata", method = RequestMethod.GET, produces = "text/plain")
-    @ResponseBody
-    public ResponseEntity<String> getMetadataUplink(@RequestParam String filePath,
-                                               @PathVariable String integrationType,
-                                               @PathVariable String model,
-                                               @PathVariable String vendorName) throws ThingsboardException {
-        String content = converterRepoService.getMetadataUplink(filePath, integrationType, model, vendorName);
-        return ResponseEntity.ok(content);
-    }
-    @ApiOperation(value = "Get One File json from GitHub (getPayload)",
-            notes = "Returns payload.json file from Converters GitHub format: Json")
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = " /api/converter/{integrationType}/{vendorName}/{model}/uplink/payload", method = RequestMethod.GET, produces = "text/plain")
-    @ResponseBody
-    public ResponseEntity<String> getPayloadDownlink(@RequestParam String filePath,
-                                               @PathVariable String integrationType,
-                                               @PathVariable String model,
-                                               @PathVariable String vendorName) throws ThingsboardException {
-        String content = converterRepoService.getPayloadUplink(filePath, integrationType, model, vendorName);
+    public ResponseEntity<String> getConverterUplink(@PathVariable String integrationType,
+                                                     @PathVariable String vendorName,
+                                                     @PathVariable String model) throws ThingsboardException {
+        String content = converterRepoService.getFileString(integrationType, vendorName, model, "uplink", "converter.json");;
         return ResponseEntity.ok(content);
     }
 
     @ApiOperation(value = "Get One File json from GitHub (getConverter)",
-            notes = "Returns converter.json file from Converters GitHub format: Json")
+            notes = "Returns uplink metadata.json file from Converters GitHub format: Json")
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/{integrationType}/{vendorName}/{model}/uplink/metadata", method = RequestMethod.GET, produces = "text/plain")
+    @ResponseBody
+    public ResponseEntity<String> getMetadataUplink(@PathVariable String integrationType,
+                                                    @PathVariable String vendorName,
+                                                    @PathVariable String model) throws ThingsboardException {
+        String content = converterRepoService.getFileString(integrationType, vendorName, model, "uplink", "metadata.json");;
+        return ResponseEntity.ok(content);
+    }
+
+    @ApiOperation(value = "Get One File json from GitHub (getConverter)",
+            notes = "Returns uplink Payload.json file from Converters GitHub format: Json")
+    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
+    @RequestMapping(value = "/{integrationType}/{vendorName}/{model}/uplink/payload", method = RequestMethod.GET, produces = "text/plain")
+    @ResponseBody
+    public ResponseEntity<String> getPayloadUplink(@PathVariable String integrationType,
+                                                   @PathVariable String vendorName,
+                                                   @PathVariable String model) throws ThingsboardException {
+        String content = converterRepoService.getFileString(integrationType, vendorName, model, "uplink", "payload.json");;
+        return ResponseEntity.ok(content);
+    }
+
+    @ApiOperation(value = "Get One File json from GitHub (getConverter)",
+            notes = "Returns downlink converter.json file from Converters GitHub format: Json")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/{integrationType}/{vendorName}/{model}/downlink", method = RequestMethod.GET, produces = "text/plain")
     @ResponseBody
-    public ResponseEntity<String> getConverterDownlink(@RequestParam String filePath,
-                                               @PathVariable String integrationType,
-                                               @PathVariable String model,
-                                               @PathVariable String vendorName) throws ThingsboardException {
-        String content = converterRepoService.getConverterDownlink(filePath, integrationType, model, vendorName);
+    public ResponseEntity<String> getConverterDownlink(@PathVariable String integrationType,
+                                                       @PathVariable String vendorName,
+                                                       @PathVariable String model) throws ThingsboardException {
+        String content = converterRepoService.getFileString(integrationType, vendorName, model, "downlink", "converter.json");;
         return ResponseEntity.ok(content);
     }
 
-    @ApiOperation(value = "Get One File json from GitHub (getMetadata)",
-            notes = "Returns metadata.json file from Converters GitHub format: Json")
+    @ApiOperation(value = "Get One File json from GitHub (getConverter)",
+            notes = "Returns downlink metadata.json file from Converters GitHub format: Json")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/{integrationType}/{vendorName}/{model}/downlink/metadata", method = RequestMethod.GET, produces = "text/plain")
     @ResponseBody
-    public ResponseEntity<String> getMetadataDownlink(@RequestParam String filePath,
-                                               @PathVariable String integrationType,
-                                               @PathVariable String model,
-                                               @PathVariable String vendorName) throws ThingsboardException {
-        String content = converterRepoService.getMetadataDownlink(filePath, integrationType, model, vendorName);
-        return ResponseEntity.ok(content);
-    }
-    @ApiOperation(value = "Get One File json from GitHub (getPayload)",
-            notes = "Returns payload.json file from Converters GitHub format: Json")
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = " /api/converter/{integrationType}/{vendorName}/{model}/downlink/payload", method = RequestMethod.GET, produces = "text/plain")
-    @ResponseBody
-    public ResponseEntity<String> getPayloadUplink(@RequestParam String filePath,
-                                               @PathVariable String integrationType,
-                                               @PathVariable String model,
-                                               @PathVariable String vendorName) throws ThingsboardException {
-        String content = converterRepoService.getPayloadDownlink(filePath, integrationType, model, vendorName);
+    public ResponseEntity<String> getMetadataDownlink(@PathVariable String integrationType,
+                                                      @PathVariable String vendorName,
+                                                      @PathVariable String model) throws ThingsboardException {
+        String content = converterRepoService.getFileString(integrationType, vendorName, model, "downlink", "metadata.json");;
         return ResponseEntity.ok(content);
     }
 
-
-    @ApiOperation(value = "Get Converters from GitHub (getListFiles)",
-            notes = "Returns list of all files from one Node Converters GitHub")
+    @ApiOperation(value = "Get One File json from GitHub (getConverter)",
+            notes = "Returns downlink Payload.json file from Converters GitHub format: Json")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/node", method = RequestMethod.GET)
+    @RequestMapping(value = "/{integrationType}/{vendorName}/{model}/downlink/payload", method = RequestMethod.GET, produces = "text/plain")
     @ResponseBody
-    public TbGitHubContent[] getListFiles(@RequestParam(required = false) String pathDir) throws ThingsboardException {
-        return converterRepoService.listFiles(pathDir);
-    }
-
-    @ApiOperation(value = "Get Converters from GitHub (getListFiles)",
-            notes = "Returns list of all files from Node Converters GitHub including child nodes.")
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/node/list", method = RequestMethod.GET)
-    @ResponseBody
-    public List<Map<String, Object>> getListFilesNode(@RequestParam(required = false) String pathDir) throws ThingsboardException {
-        return converterRepoService.getAllFilesFromDirectory(pathDir);
-    }
-
-    @ApiOperation(value = "Get Converters from GitHub (getListFiles)",
-            notes = "Returns tree of all files from Node Converters GitHub including child nodes.")
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/node/tree", method = RequestMethod.GET)
-    @ResponseBody
-    public TbFileNode buildFileTree(@RequestParam(required = false) String pathDir) throws ThingsboardException {
-        return converterRepoService.buildFileTree(pathDir);
-    }
-
-    @ApiOperation(value = "Get One Converter from GitHub (getFileContent)",
-            notes = "Returns one file from Converters GitHub format: String (Json, base64, md))")
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/filecontent", method = RequestMethod.GET, produces = "text/plain")
-    @ResponseBody
-    public ResponseEntity<String> getFileContentString(@RequestParam String filePath) throws ThingsboardException {
-        String content = converterRepoService.getFileContentJson(filePath);
+    public ResponseEntity<String> getPayloadDownlink(@PathVariable String integrationType,
+                                                     @PathVariable String vendorName,
+                                                     @PathVariable String model) throws ThingsboardException {
+        String content = converterRepoService.getFileString(integrationType, vendorName, model, "downlink", "payload.json");;
         return ResponseEntity.ok(content);
-    }
-
-    @ApiOperation(value = "Get One Converter from GitHub (getFileContent)",
-            notes = "Returns one file from Converters GitHub format: PNG")
-    @PreAuthorize("hasAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/filecontent/png", method = RequestMethod.GET)
-    @ResponseBody
-    public ResponseEntity<byte[]> getFileContentPng(@RequestParam String filePath) throws ThingsboardException {
-        try {
-            byte[] content = converterRepoService.getFileContentPng(filePath);
-            if (content != null) {
-                return ResponseEntity.ok()
-                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                        .body(content);
-            } else {
-                return ResponseEntity.notFound().build();
-            }
-        } catch (Exception e) {
-            log.error("Error occurred: [{}]", e.getMessage(), e);
-            throw new ThingsboardException(e, ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-        }
     }
 }
+
