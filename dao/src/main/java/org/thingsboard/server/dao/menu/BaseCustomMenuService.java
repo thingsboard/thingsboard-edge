@@ -285,6 +285,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     private List<EntityInfo> getMenuAssigners(CustomMenu customMenu) {
         List<EntityInfo> assigners = new ArrayList<>();
         switch (customMenu.getAssigneeType()) {
+            case NO_ASSIGN:
             case ALL:
                 break;
             case CUSTOMERS:

@@ -37,11 +37,13 @@ import { CustomMenuRoutingModule } from '@home/pages/custom-menu/custom-menu-rou
 import { CustomMenuTableHeaderComponent } from '@home/pages/custom-menu/custom-menu-table-header.component';
 import { CustomMenuConfigComponent } from '@home/pages/custom-menu/custom-menu-config.component';
 import { CustomMenuTableComponent } from '@home/pages/custom-menu/custom-menu-table.component';
+import { AddCustomMenuDialogComponent } from '@home/pages/custom-menu/add-custom-menu-dialog.component';
 
 @NgModule({
   declarations: [
     CustomMenuTableHeaderComponent,
     CustomMenuTableComponent,
+    AddCustomMenuDialogComponent,
     CustomMenuConfigComponent
   ],
   imports: [

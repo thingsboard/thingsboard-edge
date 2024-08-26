@@ -41,7 +41,12 @@ import {
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
-import { cmAssigneeTypeTranslations, cmScopeTranslations, CustomMenuInfo } from '@shared/models/custom-menu.models';
+import {
+  cmAssigneeTypeTranslations,
+  cmScopeTranslations,
+  CustomMenu,
+  CustomMenuInfo
+} from '@shared/models/custom-menu.models';
 import { CustomMenuTableHeaderComponent } from '@home/pages/custom-menu/custom-menu-table-header.component';
 import { EntityTypeResource } from '@shared/models/entity-type.models';
 import { Direction } from '@shared/models/page/sort-order';
@@ -50,6 +55,8 @@ import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Authority } from '@shared/models/authority.enum';
+import { Observable } from 'rxjs';
+import { AddCustomMenuDialogComponent } from '@home/pages/custom-menu/add-custom-menu-dialog.component';
 
 @Component({
   selector: 'tb-custom-menu-table',
@@ -74,6 +81,7 @@ export class CustomMenuTableComponent implements OnInit {
     this.customMenuTableConfig.headerComponent = CustomMenuTableHeaderComponent;
     this.customMenuTableConfig.detailsPanelEnabled = false;
     this.customMenuTableConfig.searchEnabled = true;
+    this.customMenuTableConfig.selectionEnabled = false;
     this.customMenuTableConfig.entityTranslations = {
       add: 'custom-menu.add',
       noEntities: 'custom-menu.no-custom-menus-prompt',
@@ -94,8 +102,8 @@ export class CustomMenuTableComponent implements OnInit {
     const authUser = getCurrentAuthUser(this.store);
     const readonly = !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
     this.customMenuTableConfig.addEnabled = !readonly && authUser.authority !== Authority.SYS_ADMIN;
-    this.customMenuTableConfig.entitiesDeleteEnabled = false;
-    this.customMenuTableConfig.deleteEnabled = () => !readonly && authUser.authority !== Authority.SYS_ADMIN;
+    this.customMenuTableConfig.entitiesDeleteEnabled = !readonly && authUser.authority !== Authority.SYS_ADMIN;
+    this.customMenuTableConfig.addEntity = () => this.addCustomMenu();
 
     let mainColumnsWidth: string;
     switch (authUser.authority) {
@@ -143,19 +151,27 @@ export class CustomMenuTableComponent implements OnInit {
     );
   }
 
-  updateCustomMenuName($event: Event, customMenu: CustomMenuInfo) {
+  private addCustomMenu(): Observable<CustomMenu> {
+    return this.dialog.open<AddCustomMenuDialogComponent, any,
+      CustomMenu>(AddCustomMenuDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog']
+    }).afterClosed();
+  }
+
+  private updateCustomMenuName($event: Event, customMenu: CustomMenuInfo) {
     if ($event) {
       $event.stopPropagation();
     }
   }
 
-  manageCustomMenuAssignees($event: Event, customMenu: CustomMenuInfo) {
+  private manageCustomMenuAssignees($event: Event, customMenu: CustomMenuInfo) {
     if ($event) {
       $event.stopPropagation();
     }
   }
 
-  openCustomMenuConfig($event: Event, customMenu: CustomMenuInfo) {
+  private openCustomMenuConfig($event: Event, customMenu: CustomMenuInfo) {
     if ($event) {
       $event.stopPropagation();
     }
