@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.alarm.EntityAlarm;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -55,7 +56,6 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
-import org.thingsboard.server.common.data.oauth2.OAuth2Client;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.rule.RuleChain;
@@ -254,11 +254,12 @@ public class EdgeEventSourcingListener {
                     break;
                 case API_USAGE_STATE, EDGE:
                     return false;
+                case DOMAIN:
+                    if (entity instanceof Domain domain) {
+                        return domain.isPropagateToEdge();
+                    }
             }
         }
-//        if (entity instanceof OAuth2Info oAuth2Info) {
-//            return oAuth2Info.isEdgeEnabled();
-//        }
         // Default: If the entity doesn't match any of the conditions, consider it as valid.
         return true;
     }
@@ -283,8 +284,6 @@ public class EdgeEventSourcingListener {
     private EdgeEventType getEdgeEventTypeForEntityEvent(Object entity) {
         if (entity instanceof AlarmComment) {
             return EdgeEventType.ALARM_COMMENT;
-        } else if (entity instanceof OAuth2Client) {
-            return EdgeEventType.OAUTH2_CLIENT;
         } else if (entity instanceof DeviceGroupOtaPackage) {
             return EdgeEventType.DEVICE_GROUP_OTA;
         }
@@ -293,8 +292,6 @@ public class EdgeEventSourcingListener {
 
     private String getBodyMsgForEntityEvent(Object entity) {
         if (entity instanceof AlarmComment || entity instanceof DeviceGroupOtaPackage) {
-            return JacksonUtil.toString(entity);
-        } else if (entity instanceof OAuth2Client) {
             return JacksonUtil.toString(entity);
         }
         return null;

@@ -72,7 +72,8 @@ public enum EdgeEventType {
     NOTIFICATION_TEMPLATE (true, EntityType.NOTIFICATION_TEMPLATE),
     TB_RESOURCE(true, EntityType.TB_RESOURCE),
     DEVICE_GROUP_OTA(false, null),
-    OAUTH2_CLIENT(true, EntityType.OAUTH2_CLIENT);
+    OAUTH2_CLIENT(true, EntityType.OAUTH2_CLIENT),
+    DOMAIN(true, EntityType.DOMAIN);
 
     private final boolean allEdgesRelated;
 
