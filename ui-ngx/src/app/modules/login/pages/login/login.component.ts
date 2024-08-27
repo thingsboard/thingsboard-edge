@@ -44,6 +44,7 @@ import { combineLatest, Observable } from 'rxjs';
 import { mergeMap, share } from 'rxjs/operators';
 import { SelfRegistrationService } from '@core/http/self-register.service';
 import { OAuth2ClientInfo } from '@shared/models/oauth2.models';
+import { OAuth2ClientLoginInfo } from '@shared/models/oauth2.models';
 
 @Component({
   selector: 'tb-login',
@@ -58,7 +59,7 @@ export class LoginComponent extends PageComponent implements OnInit {
     username: '',
     password: ''
   });
-  oauth2Clients: Array<OAuth2ClientInfo> = null;
+  oauth2Clients: Array<OAuth2ClientLoginInfo> = null;
 
   @HostBinding('class') class = 'tb-custom-css';
 
@@ -107,7 +108,7 @@ export class LoginComponent extends PageComponent implements OnInit {
     );
   }
 
-  getOAuth2Uri(oauth2Client: OAuth2ClientInfo): string {
+  getOAuth2Uri(oauth2Client: OAuth2ClientLoginInfo): string {
     let result = "";
     if (this.authService.redirectUrl) {
       result += "?prevUri=" + this.authService.redirectUrl;
