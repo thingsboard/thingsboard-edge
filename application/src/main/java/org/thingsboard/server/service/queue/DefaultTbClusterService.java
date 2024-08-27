@@ -690,21 +690,18 @@ public class DefaultTbClusterService implements TbClusterService {
             case ENTITY_GROUP:
                 if (EntityType.DEVICE.equals(entityGroupType)) {
                     switch (action) {
-                        case ASSIGNED_TO_EDGE:
-                        case UNASSIGNED_FROM_EDGE:
-                            pushDeviceUpdateMessageByEntityGroupId(tenantId, new EntityGroupId(entityId.getId()), edgeId, action);
-                            break;
+                        case ASSIGNED_TO_EDGE, UNASSIGNED_FROM_EDGE ->
+                                pushDeviceUpdateMessageByEntityGroupId(tenantId, new EntityGroupId(entityId.getId()), edgeId, action);
                     }
                 }
                 break;
             case DEVICE:
                 switch (action) {
-                    case ADDED_TO_ENTITY_GROUP:
-                    case REMOVED_FROM_ENTITY_GROUP:
+                    case ADDED_TO_ENTITY_GROUP, REMOVED_FROM_ENTITY_GROUP -> {
                         EdgeId relatedEdgeId = findRelatedEdgeIdIfAny(tenantId, entityId);
                         log.trace("{} Going to send edge update notification for device actor, device id {}, edge id {}", tenantId, entityId, relatedEdgeId);
                         pushMsgToCore(new DeviceEdgeUpdateMsg(tenantId, new DeviceId(entityId.getId()), relatedEdgeId), null);
-                        break;
+                    }
                 }
         }
     }

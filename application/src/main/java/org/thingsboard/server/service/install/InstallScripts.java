@@ -44,8 +44,12 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.ImageDescriptor;
+import org.thingsboard.server.common.data.ResourceSubType;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
+import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -63,8 +67,10 @@ import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
+import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.rule.RuleChainService;
+import org.thingsboard.server.dao.util.ImageUtils;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
@@ -111,6 +117,7 @@ public class InstallScripts {
     public static final String ROOT_RULE_CHAIN_JSON = "root_rule_chain.json";
     public static final String WIDGET_TYPES_DIR = "widget_types";
     public static final String WIDGET_BUNDLES_DIR = "widget_bundles";
+    public static final String SCADA_SYMBOLS_DIR = "scada_symbols";
     public static final String OAUTH2_CONFIG_TEMPLATES_DIR = "oauth2_config_templates";
     public static final String DASHBOARDS_DIR = "dashboards";
     public static final String MAIL_TEMPLATES_DIR = "mail_templates";
@@ -119,6 +126,7 @@ public class InstallScripts {
     public static final String SOLUTIONS_DIR = "solutions";
 
     public static final String JSON_EXT = ".json";
+    public static final String SVG_EXT = ".svg";
     public static final String XML_EXT = ".xml";
 
     private static final Pattern velocityVarPattern = Pattern.compile("\\$([a-zA-Z]+)");
@@ -155,6 +163,9 @@ public class InstallScripts {
     private ImagesUpdater imagesUpdater;
     @Getter @Setter
     private boolean updateImages = false;
+
+    @Autowired
+    private ImageService imageService;
 
     Path getTenantRuleChainsDir() {
         return Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, RULE_CHAINS_DIR);
@@ -293,6 +304,7 @@ public class InstallScripts {
                 );
             }
         }
+        this.loadSystemScadaSymbols();
         for (var widgetsBundleDescriptorEntry : widgetsBundlesMap.entrySet()) {
             Path path = widgetsBundleDescriptorEntry.getKey();
             try {
@@ -328,6 +340,94 @@ public class InstallScripts {
                 throw new RuntimeException("Unable to load widgets bundle from json", e);
             }
         }
+    }
+
+    private void loadSystemScadaSymbols() throws Exception {
+        log.info("Loading system SCADA symbols");
+        Path scadaSymbolsDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, SCADA_SYMBOLS_DIR);
+        if (Files.exists(scadaSymbolsDir)) {
+            WidgetTypeDetails scadaSymbolWidgetTemplate = widgetTypeService.findWidgetTypeDetailsByTenantIdAndFqn(TenantId.SYS_TENANT_ID, "scada_symbol");
+            try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(scadaSymbolsDir, path -> path.toString().endsWith(SVG_EXT))) {
+                dirStream.forEach(
+                        path -> {
+                            try {
+                                var fileName = path.getFileName().toString();
+                                var scadaSymbolData = Files.readAllBytes(path);
+                                var metadata = ImageUtils.processScadaSymbolMetadata(fileName, scadaSymbolData);
+                                TbResourceInfo savedScadaSymbol = saveScadaSymbol(metadata, fileName, scadaSymbolData);
+                                if (scadaSymbolWidgetTemplate != null) {
+                                    saveScadaSymbolWidget(scadaSymbolWidgetTemplate, savedScadaSymbol, metadata);
+                                }
+                            } catch (Exception e) {
+                                log.error("Unable to load SCADA symbol from file: [{}]", path.toString());
+                                throw new RuntimeException("Unable to load SCADA symbol from file", e);
+                            }
+                        }
+                );
+            }
+        }
+    }
+
+    private TbResourceInfo saveScadaSymbol(ImageUtils.ScadaSymbolMetadataInfo metadata, String fileName, byte[] scadaSymbolData) {
+        String etag = imageService.calculateImageEtag(scadaSymbolData);
+        var existingImage = imageService.findSystemOrTenantImageByEtag(TenantId.SYS_TENANT_ID, etag);
+        if (existingImage != null && ResourceSubType.SCADA_SYMBOL.equals(existingImage.getResourceSubType())) {
+            return existingImage;
+        } else {
+            var existing = imageService.getImageInfoByTenantIdAndKey(TenantId.SYS_TENANT_ID, fileName);
+            if (existing != null && ResourceSubType.SCADA_SYMBOL.equals(existing.getResourceSubType())) {
+                imageService.deleteImage(existing, true);
+            }
+            TbResource image = new TbResource();
+            image.setTenantId(TenantId.SYS_TENANT_ID);
+            image.setFileName(fileName);
+            image.setTitle(metadata.getTitle());
+            image.setResourceSubType(ResourceSubType.SCADA_SYMBOL);
+            image.setResourceType(ResourceType.IMAGE);
+            image.setPublic(true);
+            ImageDescriptor descriptor = new ImageDescriptor();
+            descriptor.setMediaType("image/svg+xml");
+            image.setDescriptorValue(descriptor);
+            image.setData(scadaSymbolData);
+            return imageService.saveImage(image);
+        }
+    }
+
+    private WidgetTypeDetails saveScadaSymbolWidget(WidgetTypeDetails template, TbResourceInfo scadaSymbol,
+                                         ImageUtils.ScadaSymbolMetadataInfo metadata) {
+        String symbolUrl = DataConstants.TB_IMAGE_PREFIX + scadaSymbol.getLink();
+        WidgetTypeDetails scadaSymbolWidget = new WidgetTypeDetails();
+        JsonNode descriptor = JacksonUtil.clone(template.getDescriptor());
+        scadaSymbolWidget.setDescriptor(descriptor);
+        scadaSymbolWidget.setName(metadata.getTitle());
+        scadaSymbolWidget.setImage(symbolUrl);
+        scadaSymbolWidget.setDescription(metadata.getDescription());
+        scadaSymbolWidget.setTags(metadata.getSearchTags());
+        scadaSymbolWidget.setScada(true);
+        ObjectNode defaultConfig = null;
+        if (descriptor.has("defaultConfig")) {
+            defaultConfig = JacksonUtil.fromString(descriptor.get("defaultConfig").asText(), ObjectNode.class);
+        }
+        if (defaultConfig == null) {
+            defaultConfig = JacksonUtil.newObjectNode();
+        }
+        defaultConfig.put("title", metadata.getTitle());
+        ObjectNode settings;
+        if (defaultConfig.has("settings")) {
+            settings = (ObjectNode)defaultConfig.get("settings");
+        } else {
+            settings = JacksonUtil.newObjectNode();
+            defaultConfig.set("settings", settings);
+        }
+        settings.put("scadaSymbolUrl", symbolUrl);
+        ((ObjectNode)descriptor).put("defaultConfig", JacksonUtil.toString(defaultConfig));
+        ((ObjectNode)descriptor).put("sizeX", metadata.getWidgetSizeX());
+        ((ObjectNode)descriptor).put("sizeY", metadata.getWidgetSizeY());
+        String controllerScript = descriptor.get("controllerScript").asText();
+        controllerScript = controllerScript.replaceAll("previewWidth: '\\d*px'", "previewWidth: '" + (metadata.getWidgetSizeX() * 100) + "px'");
+        controllerScript = controllerScript.replaceAll("previewHeight: '\\d*px'", "previewHeight: '" + (metadata.getWidgetSizeY() * 100 + 20) + "px'");
+        ((ObjectNode)descriptor).put("controllerScript", controllerScript);
+        return widgetTypeService.saveWidgetType(scadaSymbolWidget);
     }
 
     private void deleteSystemWidgetBundle(String bundleAlias) {

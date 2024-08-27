@@ -52,6 +52,7 @@ import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasAdditionalInfo;
+import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.TenantProfile;
@@ -136,6 +137,9 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
                     if (entity.getId() != null) {
                         importedEntityInfo.setOldEntity((E) entity.getClass().getConstructor(entity.getClass()).newInstance(entity));
                         importedEntityInfo.setUpdated(true);
+                        if (entity instanceof HasVersion versionedEntity) {
+                            versionedEntity.setVersion(null); // to overwrite the entity regardless of concurrent changes
+                        }
                     } else {
                         setOwners(entity, user.getTenantId(), request.getCustomerId() != null ? request.getCustomerId() : user.getCustomerId());
                     }
@@ -313,6 +317,7 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
         private final Map<BulkImportColumnType, String> fields = new LinkedHashMap<>();
         private final Map<BulkImportRequest.ColumnMapping, ParsedValue> kvs = new LinkedHashMap<>();
         private int lineNumber;
+
     }
 
     @Data

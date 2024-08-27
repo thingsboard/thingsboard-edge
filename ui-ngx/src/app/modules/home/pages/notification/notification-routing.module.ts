@@ -34,6 +34,12 @@ import { Authority } from '@shared/models/authority.enum';
 import { NgModule } from '@angular/core';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { InboxTableConfigResolver } from '@home/pages/notification/inbox/inbox-table-config.resolver';
+import { SentTableConfigResolver } from '@home/pages/notification/sent/sent-table-config.resolver';
+import { RecipientTableConfigResolver } from '@home/pages/notification/recipient/recipient-table-config.resolver';
+import { TemplateTableConfigResolver } from '@home/pages/notification/template/template-table-config.resolver';
+import { RuleTableConfigResolver } from '@home/pages/notification/rule/rule-table-config.resolver';
+import { SendNotificationButtonComponent } from '@home/components/notification/send-notification-button.component';
+import { MenuId } from '@core/services/menu.models';
 
 const routes: Routes = [
   {
@@ -44,12 +50,8 @@ const routes: Routes = [
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER, Authority.SYS_ADMIN],
       breadcrumb: {
-        label: 'notification.notification-center',
-        icon: 'mdi:message-badge'
-      }
-      /** edge-only: Edge's notification center contains only Inbox
-      routerTabsHeaderComponent: SendNotificationButtonComponent
-       */
+        menuId: MenuId.notifications_center
+      },
     },
     children: [
       {
@@ -67,8 +69,7 @@ const routes: Routes = [
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER, Authority.SYS_ADMIN],
           title: 'notification.inbox',
           breadcrumb: {
-            label: 'notification.inbox',
-            icon: 'inbox'
+            menuId: MenuId.notification_inbox
           }
         },
         resolve: {
@@ -83,8 +84,7 @@ const routes: Routes = [
           auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
           title: 'notification.sent',
           breadcrumb: {
-            label: 'notification.sent',
-            icon: 'outbox'
+            menuId: MenuId.notification_sent
           }
         },
         resolve: {
@@ -98,8 +98,7 @@ const routes: Routes = [
           auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
           title: 'notification.templates',
           breadcrumb: {
-            label: 'notification.templates',
-            icon: 'mdi:message-draw'
+            menuId: MenuId.notification_templates
           }
         },
         resolve: {
@@ -113,8 +112,7 @@ const routes: Routes = [
           auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
           title: 'notification.recipients',
           breadcrumb: {
-            label: 'notification.recipients',
-            icon: 'contacts'
+            menuId: MenuId.notification_recipients
           },
         },
         resolve: {
@@ -128,8 +126,7 @@ const routes: Routes = [
           auth: [Authority.TENANT_ADMIN, Authority.SYS_ADMIN],
           title: 'notification.rules',
           breadcrumb: {
-            label: 'notification.rules',
-            icon: 'mdi:message-cog'
+            menuId: MenuId.notification_rules
           }
         },
         resolve: {

@@ -164,4 +164,5 @@ public class AuditLogEntity extends BaseSqlEntity<AuditLog> implements BaseEntit
         auditLog.setActionFailureDetails(this.actionFailureDetails);
         return auditLog;
     }
+
 }

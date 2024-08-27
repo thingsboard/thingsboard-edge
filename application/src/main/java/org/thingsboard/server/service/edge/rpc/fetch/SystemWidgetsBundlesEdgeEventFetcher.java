@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
+import org.thingsboard.server.common.data.widget.WidgetsBundleFilter;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 
 @Slf4j
@@ -46,6 +47,6 @@ public class SystemWidgetsBundlesEdgeEventFetcher extends BaseWidgetsBundlesEdge
 
     @Override
     protected PageData<WidgetsBundle> findWidgetsBundles(TenantId tenantId, PageLink pageLink) {
-        return widgetsBundleService.findSystemWidgetsBundlesByPageLink(tenantId, false, pageLink);
+        return widgetsBundleService.findSystemWidgetsBundlesByPageLink(WidgetsBundleFilter.fromTenantId(tenantId), pageLink);
     }
 }

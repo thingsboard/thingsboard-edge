@@ -33,8 +33,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@
 import { MenuService } from '@core/services/menu.service';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
-import { HomeSection, HomeSectionPlace } from '@core/services/menu.models';
-import { map } from 'rxjs/operators';
+import { HomeSection } from '@core/services/menu.models';
 import { ActivatedRoute } from '@angular/router';
 import { HomeDashboard } from '@shared/models/dashboard.models';
 
@@ -47,11 +46,7 @@ import { HomeDashboard } from '@shared/models/dashboard.models';
 export class HomeLinksComponent implements OnInit {
 
   homeSections$ = this.menuService.homeSections();
-  showHomeSections$ = this.homeSections$.pipe(
-    map((sections) => {
-      return sections.filter((section) => this.sectionPlaces(section).length > 0);
-    })
-  );
+
   cols = 2;
 
   homeDashboard: HomeDashboard = this.route.snapshot.data.homeDashboard;
@@ -82,16 +77,11 @@ export class HomeLinksComponent implements OnInit {
     this.cd.detectChanges();
   }
 
-  sectionPlaces(section: HomeSection): HomeSectionPlace[] {
-    return section && section.places ? section.places.filter((place) => !place.disabled) : [];
-  }
-
   sectionColspan(section: HomeSection): number {
     if (this.breakpointObserver.isMatched(MediaBreakpoints['gt-sm'])) {
       let colspan = this.cols;
-      const places = this.sectionPlaces(section);
-      if (places.length <= colspan) {
-        colspan = places.length;
+      if (section && section.places && section.places.length <= colspan) {
+        colspan = section.places.length;
       }
       return colspan;
     } else {

@@ -45,7 +45,6 @@ import { PaletteComponent } from '@home/pages/admin/palette.component';
 import { PaletteDialogComponent } from '@home/pages/admin/palette-dialog.component';
 import { CustomCssDialogComponent } from '@home/pages/admin/custom-css-dialog.component';
 import { SelfRegistrationComponent } from '@home/pages/admin/self-registration.component';
-import { OAuth2SettingsComponent } from '@modules/home/pages/admin/oauth2-settings.component';
 import { SmsProviderComponent } from '@home/pages/admin/sms-provider.component';
 import { SendTestSmsDialogComponent } from '@home/pages/admin/send-test-sms-dialog.component';
 import { HomeSettingsComponent } from '@home/pages/admin/home-settings.component';
@@ -57,6 +56,7 @@ import { AutoCommitAdminSettingsComponent } from '@home/pages/admin/auto-commit-
 import { TwoFactorAuthSettingsComponent } from '@home/pages/admin/two-factor-auth-settings.component';
 import { MobileAppSettingsComponent } from '@home/pages/admin/mobile-app-settings.component';
 import { WidgetComponentsModule } from '@home/components/widget/widget-components.module';
+import { OAuth2Module } from '@home/pages/admin/oauth2/oauth2.module';
 
 @NgModule({
   declarations:
@@ -74,7 +74,6 @@ import { WidgetComponentsModule } from '@home/components/widget/widget-component
       CustomCssDialogComponent,
       SelfRegistrationComponent,
       SecuritySettingsComponent,
-      OAuth2SettingsComponent,
       HomeSettingsComponent,
       ResourcesLibraryComponent,
       ResourcesTableHeaderComponent,
@@ -89,7 +88,8 @@ import { WidgetComponentsModule } from '@home/components/widget/widget-component
         SharedModule,
         HomeComponentsModule,
         AdminRoutingModule,
-        WidgetComponentsModule
+        WidgetComponentsModule,
+        OAuth2Module
     ]
 })
 export class AdminModule { }

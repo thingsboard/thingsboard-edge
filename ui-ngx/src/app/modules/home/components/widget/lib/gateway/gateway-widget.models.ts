@@ -31,9 +31,11 @@
 
 import { ResourcesService } from '@core/services/resources.service';
 import { Observable } from 'rxjs';
-import { ValueTypeData } from '@shared/models/constants';
+import { helpBaseUrl, ValueTypeData } from '@shared/models/constants';
+import { AttributeData } from '@shared/models/telemetry/telemetry.models';
 
 export const noLeadTrailSpacesRegex = /^\S+(?: \S+)*$/;
+export const integerRegex = /^[-+]?\d+$/;
 
 export enum StorageTypes {
   MEMORY = 'memory',
@@ -123,6 +125,10 @@ export const GecurityTypesTranslationsMap = new Map<SecurityTypes, string>(
   ]
 );
 
+export interface GatewayAttributeData extends AttributeData {
+  skipSync?: boolean;
+}
+
 export interface GatewayConnector {
   name: string;
   type: ConnectorType;
@@ -160,6 +166,7 @@ export interface ServerConfig {
   url: string;
   timeoutInMillis: number;
   scanPeriodInMillis: number;
+  pollPeriodInMillis: number;
   enableSubscriptions: boolean;
   subCheckPeriodInMillis: number;
   showMap: boolean;
@@ -568,9 +575,9 @@ export const MappingHintTranslationsMap = new Map<MappingType, string>(
 
 export const HelpLinkByMappingTypeMap = new Map<MappingType, string>(
   [
-    [MappingType.DATA, 'https://thingsboard.io/docs/iot-gateway/config/mqtt/#section-mapping'],
-    [MappingType.OPCUA, 'https://thingsboard.io/docs/iot-gateway/config/opc-ua/#section-mapping'],
-    [MappingType.REQUESTS, 'https://thingsboard.io/docs/iot-gateway/config/mqtt/#section-mapping']
+    [MappingType.DATA, helpBaseUrl + '/docs/iot-gateway/config/mqtt/#section-mapping'],
+    [MappingType.OPCUA, helpBaseUrl + '/docs/iot-gateway/config/opc-ua/#section-mapping'],
+    [MappingType.REQUESTS, helpBaseUrl + '/docs/iot-gateway/config/mqtt/#section-mapping']
   ]
 );
 

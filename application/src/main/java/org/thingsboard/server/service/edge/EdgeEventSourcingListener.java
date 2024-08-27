@@ -48,13 +48,13 @@ import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.alarm.EntityAlarm;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.oauth2.OAuth2Info;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
@@ -214,7 +214,8 @@ public class EdgeEventSourcingListener {
                             return false;
                         }
                         if (oldEntity != null) {
-                            User oldUser = (User) oldEntity;
+                            user = JacksonUtil.clone(user);
+                            User oldUser = JacksonUtil.clone((User) oldEntity);
                             cleanUpUserAdditionalInfo(oldUser);
                             cleanUpUserAdditionalInfo(user);
                             return !user.equals(oldUser);
@@ -253,10 +254,11 @@ public class EdgeEventSourcingListener {
                     break;
                 case API_USAGE_STATE, EDGE:
                     return false;
+                case DOMAIN:
+                    if (entity instanceof Domain domain) {
+                        return domain.isPropagateToEdge();
+                    }
             }
-        }
-        if (entity instanceof OAuth2Info oAuth2Info) {
-            return oAuth2Info.isEdgeEnabled();
         }
         // Default: If the entity doesn't match any of the conditions, consider it as valid.
         return true;
@@ -276,13 +278,12 @@ public class EdgeEventSourcingListener {
                 user.setAdditionalInfo(additionalInfo);
             }
         }
+        user.setVersion(null);
     }
 
     private EdgeEventType getEdgeEventTypeForEntityEvent(Object entity) {
         if (entity instanceof AlarmComment) {
             return EdgeEventType.ALARM_COMMENT;
-        } else if (entity instanceof OAuth2Info) {
-            return EdgeEventType.OAUTH2;
         } else if (entity instanceof DeviceGroupOtaPackage) {
             return EdgeEventType.DEVICE_GROUP_OTA;
         }
@@ -291,8 +292,6 @@ public class EdgeEventSourcingListener {
 
     private String getBodyMsgForEntityEvent(Object entity) {
         if (entity instanceof AlarmComment || entity instanceof DeviceGroupOtaPackage) {
-            return JacksonUtil.toString(entity);
-        } else if (entity instanceof OAuth2Info) {
             return JacksonUtil.toString(entity);
         }
         return null;

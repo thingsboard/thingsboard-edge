@@ -71,7 +71,7 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID>, Exp
     String COUNT_QUERY_BY_DEVICE_PROFILE_AND_SOFTWARE_IS_NULL = "SELECT count(d.*) FROM device d " +
             "WHERE d.device_profile_id = :deviceProfileId " +
             "AND d.tenant_id = :tenantId " +
-            "AND d.firmware_id is null " +
+            "AND d.software_id is null " +
             "AND d.id NOT IN ( " +
             "SELECT r.to_id " +
             "FROM relation r " +
@@ -80,7 +80,7 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID>, Exp
             "FROM device d " +
             "WHERE d.device_profile_id = :deviceProfileId " +
             "AND d.tenant_id = :tenantId " +
-            "AND d.firmware_id is null) " +
+            "AND d.software_id is null) " +
             "AND r.to_type = 'DEVICE' " +
             "AND r.relation_type_group = 'FROM_ENTITY_GROUP' " +
             "AND r.from_id IN (" +
@@ -222,12 +222,9 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID>, Exp
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
             "AND d.deviceProfileId = :deviceProfileId " +
-            "AND d.firmwareId = null " +
-            "AND (:textSearch IS NULL OR ilike(d.name, CONCAT('%', :textSearch, '%')) = true " +
-            "OR ilike(d.label, CONCAT('%', :textSearch, '%')) = true)")
+            "AND d.firmwareId IS NULL")
     Page<DeviceEntity> findByEntityGroupIdAndDeviceProfileIdAndFirmwareIdIsNull(@Param("groupId") UUID groupId,
                                                                                 @Param("deviceProfileId") UUID deviceProfileId,
-                                                                                @Param("textSearch") String textSearch,
                                                                                 Pageable pageable);
 
     @Query("SELECT d FROM DeviceEntity d, " +
@@ -237,12 +234,9 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID>, Exp
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
             "AND d.deviceProfileId = :deviceProfileId " +
-            "AND d.softwareId = null " +
-            "AND (:textSearch IS NULL OR ilike(d.name, CONCAT('%', :textSearch, '%')) = true " +
-            "OR ilike(d.label, CONCAT('%', :textSearch, '%')) = true)")
+            "AND d.softwareId IS NULL")
     Page<DeviceEntity> findByEntityGroupIdAndDeviceProfileIdAndSoftwareIdIsNull(@Param("groupId") UUID groupId,
                                                                                 @Param("deviceProfileId") UUID deviceProfileId,
-                                                                                @Param("textSearch") String textSearch,
                                                                                 Pageable pageable);
 
     @Query(value = "SELECT d.* FROM device d " +
@@ -308,7 +302,7 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID>, Exp
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
             "AND d.deviceProfileId = (SELECT op.deviceProfileId FROM OtaPackageInfoEntity op WHERE op.id = :otaPackageId) " +
-            "AND d.firmwareId = null")
+            "AND d.firmwareId IS NULL")
     Long countByEntityGroupIdAndFirmwareIdIsNull(@Param("groupId") UUID groupId,
                                                  @Param("otaPackageId") UUID otaPackageId);
 
@@ -319,7 +313,7 @@ public interface DeviceRepository extends JpaRepository<DeviceEntity, UUID>, Exp
             "AND re.relationType = 'Contains' " +
             "AND re.fromId = :groupId AND re.fromType = 'ENTITY_GROUP' " +
             "AND d.deviceProfileId = (SELECT op.deviceProfileId FROM OtaPackageInfoEntity op WHERE op.id = :otaPackageId) " +
-            "AND d.softwareId = null")
+            "AND d.softwareId IS NULL")
     Long countByEntityGroupIdAndSoftwareIdIsNull(@Param("groupId") UUID groupId,
                                                  @Param("otaPackageId") UUID otaPackageId);
 

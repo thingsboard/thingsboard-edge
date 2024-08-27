@@ -29,6 +29,7 @@
 -- OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 --
 
+DROP VIEW IF EXISTS integration_info CASCADE;
 CREATE OR REPLACE VIEW integration_info as
 SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
        allow_create_devices_or_assets, is_edge_template,
@@ -51,6 +52,7 @@ SELECT created_time, id, tenant_id, name, type, debug_mode, enabled, is_remote,
                  LIMIT 1) END) as status
 FROM integration i;
 
+DROP VIEW IF EXISTS dashboard_info_view CASCADE;
 CREATE OR REPLACE VIEW dashboard_info_view as
 SELECT d.*, c.title as owner_name,
        array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
@@ -66,6 +68,7 @@ SELECT d.*, c.title as owner_name,
 FROM dashboard d
          LEFT JOIN customer c ON c.id = d.customer_id;
 
+DROP VIEW IF EXISTS asset_info_view CASCADE;
 CREATE OR REPLACE VIEW asset_info_view as
 SELECT a.*,
        c.title as owner_name,
@@ -121,6 +124,7 @@ FROM device d
 DROP VIEW IF EXISTS device_info_view CASCADE;
 CREATE OR REPLACE VIEW device_info_view AS SELECT * FROM device_info_active_attribute_view;
 
+DROP VIEW IF EXISTS entity_view_info_view CASCADE;
 CREATE OR REPLACE VIEW entity_view_info_view as
 SELECT e.*, c.title as owner_name,
        array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
@@ -152,6 +156,7 @@ SELECT c.*, c2.title as owner_name,
 FROM customer c
          LEFT JOIN customer c2 ON c2.id = c.parent_customer_id;
 
+DROP VIEW IF EXISTS user_info_view CASCADE;
 CREATE OR REPLACE VIEW user_info_view as
 SELECT u.*, c.title as owner_name,
        array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
@@ -167,6 +172,7 @@ SELECT u.*, c.title as owner_name,
 FROM tb_user u
          LEFT JOIN customer c ON c.id = u.customer_id;
 
+DROP VIEW IF EXISTS edge_info_view CASCADE;
 CREATE OR REPLACE VIEW edge_info_view as
 SELECT e.*, c.title as owner_name,
        array_to_json(ARRAY(select json_build_object('id', from_id, 'name', eg.name)
@@ -182,6 +188,7 @@ SELECT e.*, c.title as owner_name,
 FROM edge e
          LEFT JOIN customer c ON c.id = e.customer_id;
 
+DROP VIEW IF EXISTS entity_group_info_view CASCADE;
 CREATE OR REPLACE VIEW entity_group_info_view as
 SELECT eg.*,
        array_to_json(ARRAY(WITH RECURSIVE owner_ids(id, type, lvl) AS

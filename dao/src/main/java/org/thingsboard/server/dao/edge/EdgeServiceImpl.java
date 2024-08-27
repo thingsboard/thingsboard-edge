@@ -262,11 +262,11 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         }
         edgeDao.removeById(tenantId, edgeId.getId());
 
+        publishEvictEvent(new EdgeCacheEvictEvent(edge.getTenantId(), edge.getName(), null));
         // edge-only: event should be published on the Cloud
         if (edgesEnabled) {
             eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(edgeId).build());
         }
-        publishEvictEvent(new EdgeCacheEvictEvent(edge.getTenantId(), edge.getName(), null));
     }
 
     @Override

@@ -78,4 +78,5 @@ public class PostgreSqlInitializer {
             throw new RuntimeException("Unable to clean up the Postgres database. Reason: " + e.getMessage(), e);
         }
     }
+
 }

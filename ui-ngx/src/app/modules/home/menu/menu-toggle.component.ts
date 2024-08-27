@@ -29,10 +29,8 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectionStrategy, Component, Input, OnChanges, OnInit, SimpleChanges } from '@angular/core';
-import { MenuSection } from '@core/services/menu.models';
-import { MenuService } from '@core/services/menu.service';
-import { UtilsService } from '@core/services/utils.service';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
+import { MenuSection, sectionPath } from '@core/services/menu.models';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -44,40 +42,20 @@ import { ActionPreferencesUpdateOpenedMenuSection } from '@core/auth/auth.action
   styleUrls: ['./menu-toggle.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MenuToggleComponent implements OnInit, OnChanges {
+export class MenuToggleComponent implements OnInit {
 
   @Input() section: MenuSection;
 
-  sectionPages: Array<MenuSection>;
-
-  constructor(public utils: UtilsService,
-              private menuService: MenuService,
-              private router: Router,
+  constructor(private router: Router,
               private store: Store<AppState>) {
   }
 
   ngOnInit() {
-    this.sectionPages = this.section.pages.filter((page) => !page.disabled);
-  }
-
-  ngOnChanges(changes: SimpleChanges) {
-    for (const propName of Object.keys(changes)) {
-      const change = changes[propName];
-      if (!change.firstChange && change.currentValue !== change.previousValue) {
-        if (propName === 'section') {
-          this.sectionPages = this.section.pages.filter((page) => !page.disabled);
-        }
-      }
-    }
-  }
-
-  sectionActive(): boolean {
-    return this.menuService.sectionActive(this.section);
   }
 
   sectionHeight(): string {
-    if (this.sectionActive()) {
-      return this.sectionPages.length * 40 + 'px';
+    if (this.section.opened) {
+      return this.section.pages.length * 40 + 'px';
     } else {
       return '0px';
     }
@@ -86,7 +64,7 @@ export class MenuToggleComponent implements OnInit, OnChanges {
   toggleSection(event: MouseEvent) {
     event.stopPropagation();
     this.section.opened = !this.section.opened;
-    this.store.dispatch(new ActionPreferencesUpdateOpenedMenuSection({path: this.section.path, opened: this.section.opened}));
+    this.store.dispatch(new ActionPreferencesUpdateOpenedMenuSection({path: sectionPath(this.section), opened: this.section.opened}));
   }
 
   trackBySectionPages(index: number, section: MenuSection){

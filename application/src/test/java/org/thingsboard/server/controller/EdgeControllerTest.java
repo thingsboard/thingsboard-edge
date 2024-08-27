@@ -110,7 +110,8 @@ import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.OAuth2UpdateMsg;
+import org.thingsboard.server.gen.edge.v1.OAuth2ClientUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.OAuth2DomainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
@@ -966,7 +967,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
-        edgeImitator.ignoreType(OAuth2UpdateMsg.class);
+        edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
+        edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
 
         edgeImitator.expectMessageAmount(27);
         edgeImitator.connect();
@@ -1412,9 +1414,10 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
-        edgeImitator.ignoreType(OAuth2UpdateMsg.class);
+        edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
+        edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(33);
+        edgeImitator.expectMessageAmount(34);
         edgeImitator.connect();
         waitForMessages(edgeImitator);
 
@@ -1425,7 +1428,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "AssetGroup", EntityType.ASSET, EntityType.TENANT));
         Assert.assertTrue("There are some messages: " + edgeImitator.getDownlinkMsgs(), edgeImitator.getDownlinkMsgs().isEmpty());
 
-        edgeImitator.expectMessageAmount(30);
+        edgeImitator.expectMessageAmount(31);
         doPost("/api/edge/sync/" + edge.getId());
         waitForMessages(edgeImitator);
 
@@ -1564,9 +1567,10 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
-        edgeImitator.ignoreType(OAuth2UpdateMsg.class);
+        edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
+        edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(43);
+        edgeImitator.expectMessageAmount(44);
         edgeImitator.connect();
         waitForMessages(edgeImitator);
 
@@ -1581,7 +1585,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "test"));
         Assert.assertTrue("There are some messages: " + edgeImitator.getDownlinkMsgs(), edgeImitator.getDownlinkMsgs().isEmpty());
 
-        edgeImitator.expectMessageAmount(36);
+        edgeImitator.expectMessageAmount(37);
         doPost("/api/edge/sync/" + edge.getId());
         waitForMessages(edgeImitator);
 

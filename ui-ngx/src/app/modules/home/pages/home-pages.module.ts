@@ -67,6 +67,7 @@ import { NotificationModule } from '@home/pages/notification/notification.module
 import { AccountModule } from '@home/pages/account/account.module';
 import { IntegrationsCenterModule } from '@home/pages/integration/integrations-center.module';
 import { CustomTranslationModule } from '@home/pages/custom-translation/custom-translation.module';
+import { ScadaSymbolModule } from '@home/pages/scada-symbol/scada-symbol.module';
 import {CloudEventModule} from '@home/pages/cloud-event/cloud-event.module';
 import {EdgeStatusModule} from '@home/pages/edge-status/edge-status.module';
 
@@ -108,6 +109,7 @@ import {EdgeStatusModule} from '@home/pages/edge-status/edge-status.module';
     SolutionTemplatesModule,
     VcModule,
     AccountModule,
+    ScadaSymbolModule,
     CustomTranslationModule,
     CloudEventModule,
     EdgeStatusModule
