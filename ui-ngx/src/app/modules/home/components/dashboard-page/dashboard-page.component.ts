@@ -1316,7 +1316,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
           };
           this.init(dashboardPageInitData);
         } else {
-          this.dashboard = dashboard;
+          this.dashboard.version = dashboard.version;
           this.setEditMode(false, false);
         }
       });

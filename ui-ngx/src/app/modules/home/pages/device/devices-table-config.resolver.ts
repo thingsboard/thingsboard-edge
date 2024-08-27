@@ -36,11 +36,11 @@ import {
   CellActionDescriptor,
   checkBoxCell,
   DateEntityTableColumn,
+  EntityChipsEntityTableColumn,
   EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
-  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -223,7 +223,7 @@ export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<Dev
       columns.push(new EntityTableColumn<DeviceInfo>('ownerName', title, '20%'));
     }
     columns.push(
-      new GroupChipsEntityTableColumn<DeviceInfo>( 'groups', 'entity.groups', '25%')
+      new EntityChipsEntityTableColumn<DeviceInfo>( 'groups', 'entity.groups', '25%')
     );
     columns.push(
       new EntityTableColumn<DeviceInfo>('gateway', 'device.is-gateway', '60px',

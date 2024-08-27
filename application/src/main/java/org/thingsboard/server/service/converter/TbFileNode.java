@@ -28,36 +28,44 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.objects;
+package org.thingsboard.server.service.converter;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by Victor Basanets on 9/05/2017.
- */
-@Schema
-@Data
-@NoArgsConstructor
-public class TelemetryEntityView implements Serializable {
+public class TbFileNode {
+    private String name;
+    private String path;
+    private boolean isDirectory;
+    private List<TbFileNode> children;
 
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "List of time-series data keys to expose", example = "[\"temperature\", \"humidity\"]")
-    private List<String> timeseries;
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "JSON object with attributes to expose")
-    private AttributesEntityView attributes;
-
-    public TelemetryEntityView(List<String> timeseries, AttributesEntityView attributes) {
-
-        this.timeseries = new ArrayList<>(timeseries);
-        this.attributes = attributes;
+    public TbFileNode(String name, String path, boolean isDirectory) {
+        this.name = name;
+        this.path = path;
+        this.isDirectory = isDirectory;
+        this.children = new ArrayList<>();
     }
 
-    public TelemetryEntityView(TelemetryEntityView obj) {
-        this(obj.getTimeseries(), obj.getAttributes());
+    // Getters and setters...
+
+    public void addChild(TbFileNode child) {
+        this.children.add(child);
+    }
+
+    public List<TbFileNode> getChildren() {
+        return children;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public boolean isDirectory() {
+        return isDirectory;
     }
 }
+

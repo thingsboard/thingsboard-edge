@@ -28,36 +28,12 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.objects;
+package org.thingsboard.rule.engine.transform;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-/**
- * Created by Victor Basanets on 9/05/2017.
- */
-@Schema
-@Data
-@NoArgsConstructor
-public class TelemetryEntityView implements Serializable {
-
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "List of time-series data keys to expose", example = "[\"temperature\", \"humidity\"]")
-    private List<String> timeseries;
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "JSON object with attributes to expose")
-    private AttributesEntityView attributes;
-
-    public TelemetryEntityView(List<String> timeseries, AttributesEntityView attributes) {
-
-        this.timeseries = new ArrayList<>(timeseries);
-        this.attributes = attributes;
-    }
-
-    public TelemetryEntityView(TelemetryEntityView obj) {
-        this(obj.getTimeseries(), obj.getAttributes());
-    }
+public enum OriginatorSource {
+    CUSTOMER,
+    TENANT,
+    RELATED,
+    ALARM_ORIGINATOR,
+    ENTITY
 }

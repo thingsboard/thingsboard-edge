@@ -35,17 +35,17 @@ import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
+  EntityChipsEntityTableColumn,
   EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
-  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
-import { AuthUser, User, UserInfo } from '@shared/models/user.model';
+import { AuthUser, UserInfo } from '@shared/models/user.model';
 import { UserService } from '@core/http/user.service';
 import { UserComponent } from '@modules/home/pages/user/user.component';
 import { CustomerService } from '@core/http/customer.service';
@@ -195,7 +195,7 @@ export class UsersTableConfigResolver implements Resolve<EntityTableConfig<UserI
         columns[3].width = '35%';
       }
       columns.push(
-        new GroupChipsEntityTableColumn<UserInfo>('groups', 'entity.groups', groupsColumnSize)
+        new EntityChipsEntityTableColumn<UserInfo>('groups', 'entity.groups', groupsColumnSize)
       );
     }
     return columns;

@@ -28,21 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin: 4px 0;
-  a.tb-group-chip {
-    padding: 4px 8px;
-    border-radius: 12px;
-    line-height: 16px;
-    background: #e0e0e0;
-    color: #212121;
-    white-space: nowrap;
-    border: none;
-    &:hover {
-      background: #b7b7b7;
-    }
-  }
+package org.thingsboard.server.service.converter;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+import java.util.List;
+import java.util.Set;
+
+@Data
+@AllArgsConstructor
+public class TbVendorsIntegration {
+    private JsonNode treeNodes;
+    private List treeList;
+    private Set filtersSet;
 }
