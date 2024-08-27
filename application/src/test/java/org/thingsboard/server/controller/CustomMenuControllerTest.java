@@ -35,211 +35,109 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Customer;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.group.EntityGroup;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
+import org.thingsboard.server.common.data.menu.CMAssigneeType;
+import org.thingsboard.server.common.data.menu.CMItemLinkType;
+import org.thingsboard.server.common.data.menu.CMItemType;
+import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuConfig;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.menu.CustomMenuItem;
-import org.thingsboard.server.common.data.permission.GroupPermission;
-import org.thingsboard.server.common.data.role.Role;
-import org.thingsboard.server.common.data.role.RoleType;
-import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.menu.DefaultMenuItem;
+import org.thingsboard.server.common.data.menu.HomeMenuItem;
+import org.thingsboard.server.common.data.menu.HomeMenuItemType;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
 @DaoSqlTest
 public class CustomMenuControllerTest extends AbstractControllerTest {
 
-    protected final String CUSTOMER_ADMIN_EMAIL = "testadmincustomer@thingsboard.org";
-    protected final String CUSTOMER_ADMIN_PASSWORD = "admincustomer";
-
-    protected final String SUB_CUSTOMER_ADMIN_EMAIL = "subcustomer@thingsboard.org";
-    protected final String SUB_CUSTOMER_ADMIN_PASSWORD = "subcustomer";
-
-    private Role role;
-    private EntityGroup entityGroup;
-    private GroupPermission groupPermission;
-
     @Before
     public void setup() throws Exception {
-        loginTenantAdmin();
+        loginSysAdmin();
+        // create system default menu
+        CustomMenuInfo systemMenu = new CustomMenuInfo();
+        systemMenu.setName("System Menu");
+        systemMenu.setScope(CMScope.SYSTEM);
+        systemMenu.setAssigneeType(CMAssigneeType.ALL);
 
-        Role role = new Role();
-        role.setTenantId(tenantId);
-        role.setCustomerId(customerId);
-        role.setType(RoleType.GENERIC);
-        role.setName("Test customer administrator");
-        role.setPermissions(JacksonUtil.toJsonNode("{\"ALL\":[\"ALL\"]}"));
+        doPost("/api/customMenu", systemMenu);
 
-        this.role = doPost("/api/role", role, Role.class);
+        // create tenant default menu
+        CustomMenuInfo tenantMenu = new CustomMenuInfo();
+        tenantMenu.setName("Tenant Menu");
+        tenantMenu.setScope(CMScope.TENANT);
+        tenantMenu.setAssigneeType(CMAssigneeType.ALL);
 
-        EntityGroup entityGroup = new EntityGroup();
-        entityGroup.setName("Test customer administrators");
-        entityGroup.setType(EntityType.USER);
-        entityGroup.setOwnerId(customerId);
-        this.entityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
+        doPost("/api/customMenu", tenantMenu);
 
-        GroupPermission groupPermission = new GroupPermission(
-                tenantId,
-                this.entityGroup.getId(),
-                this.role.getId(),
-                null,
-                null,
-                false
-        );
-        this.groupPermission =
-                doPost("/api/groupPermission", groupPermission, GroupPermission.class);
+        // create customer default menu
+        CustomMenuInfo customerMenu = new CustomMenuInfo();
+        customerMenu.setName("Tenant Menu");
+        customerMenu.setScope(CMScope.CUSTOMER);
+        customerMenu.setAssigneeType(CMAssigneeType.ALL);
+
+        doPost("/api/customMenu", tenantMenu);
     }
 
     @After
     public void teardown() throws Exception {
-        loginSysAdmin();
-        clearCustomerAdminPermissionGroup();
     }
 
     @Test
-    public void testGetCustomMenuByHierarchy() throws Exception {
-        //SysAdmin
-        loginSysAdmin();
-
-        CustomMenu sysMenu = new CustomMenu();
-
-        CustomMenuItem sysItem = new CustomMenuItem();
-        sysItem.setName("System Menu");
-        sysMenu.setConfig(new CustomMenuConfig(new ArrayList<>(List.of(sysItem))));
-
-        doPost("/api/customMenu/customMenu", sysMenu);
-
-        CustomMenu foundSysMenu = doGet("/api/customMenu/customMenu", CustomMenu.class);
-
-        Assert.assertNotNull(foundSysMenu);
-        Assert.assertEquals(sysMenu, foundSysMenu);
-
-        //TenantAdmin
+    public void testDefaultMenu() throws Exception {
         loginTenantAdmin();
+        checkDefaultMenu(CMScope.TENANT, "myHomeDashboard" + RandomStringUtils.randomAlphabetic(5),
+                "my tenants " + RandomStringUtils.randomAlphabetic(5),
+                "testUrl"+ RandomStringUtils.randomAlphabetic(5));
 
-        foundSysMenu = doGet("/api/customMenu/customMenu", CustomMenu.class);
+        loginCustomerAdminUser();
+        checkDefaultMenu(CMScope.CUSTOMER, "myHomeDashboard" + RandomStringUtils.randomAlphabetic(5),
+                "my tenants " + RandomStringUtils.randomAlphabetic(5),
+                "my new item "+ RandomStringUtils.randomAlphabetic(5));
 
-        Assert.assertNotNull(foundSysMenu);
-        Assert.assertEquals(sysMenu, foundSysMenu);
-
-        CustomMenu tenantMenu = new CustomMenu();
-
-        CustomMenuItem tenantItem = new CustomMenuItem();
-        tenantItem.setName("Tenant Menu");
-        tenantMenu.setConfig(new CustomMenuConfig(new ArrayList<>(List.of(tenantItem))));
-
-        doPost("/api/customMenu/customMenu", tenantMenu);
-
-        CustomMenu foundTenantMenu = doGet("/api/customMenu/customMenu", CustomMenu.class);
-
-        Assert.assertNotNull(foundTenantMenu);
-        Assert.assertEquals(tenantMenu, foundTenantMenu);
-
-        //CustomerAdmin
-        loginCustomerAdministrator();
-
-        foundTenantMenu = doGet("/api/customMenu/customMenu", CustomMenu.class);
-
-        Assert.assertNotNull(foundTenantMenu);
-        Assert.assertEquals(tenantMenu, foundTenantMenu);
-
-        CustomMenu customerMenu = new CustomMenu();
-
-        CustomMenuItem customerItem = new CustomMenuItem();
-        customerItem.setName("Customer Menu");
-        customerMenu.setConfig(new CustomMenuConfig(new ArrayList<>(List.of(customerItem))));
-
-        doPost("/api/customMenu/customMenu", customerMenu);
-
-        CustomMenu foundCustomerMenu = doGet("/api/customMenu/customMenu", CustomMenu.class);
-
-        Assert.assertNotNull(foundCustomerMenu);
-        Assert.assertEquals(customerMenu, foundCustomerMenu);
-
-        Customer subCustomer = new Customer();
-        subCustomer.setParentCustomerId(customerId);
-        subCustomer.setTitle("Sub Customer");
-
-        Customer savedSubCustomer = doPost("/api/customer", subCustomer, Customer.class);
-        createCustomerAdministrator(
-                savedCustomerAdministrator.getTenantId(),
-                savedSubCustomer.getId(),
-                SUB_CUSTOMER_ADMIN_EMAIL,
-                SUB_CUSTOMER_ADMIN_PASSWORD
-        );
-
-        //SubCustomer
-        login(SUB_CUSTOMER_ADMIN_EMAIL, SUB_CUSTOMER_ADMIN_PASSWORD);
-
-        foundCustomerMenu = doGet("/api/customMenu/customMenu", CustomMenu.class);
-
-        Assert.assertNotNull(foundCustomerMenu);
-        Assert.assertEquals(customerMenu, foundCustomerMenu);
-
-        CustomMenu subCustomerMenu = new CustomMenu();
-
-        CustomMenuItem subCustomerItem = new CustomMenuItem();
-        subCustomerItem.setName("Customer Menu");
-        subCustomerMenu.setConfig(new CustomMenuConfig(new ArrayList<>(List.of(subCustomerItem))));
-
-        doPost("/api/customMenu/customMenu", subCustomerMenu);
-
-        CustomMenu foundSubCustomerMenu = doGet("/api/customMenu/customMenu", CustomMenu.class);
-
-        Assert.assertNotNull(foundSubCustomerMenu);
-        Assert.assertEquals(subCustomerMenu, foundSubCustomerMenu);
+        loginSubCustomerAdminUser();
+        checkDefaultMenu(CMScope.CUSTOMER, "myHomeDashboard" + RandomStringUtils.randomAlphabetic(5),
+                "my tenants " + RandomStringUtils.randomAlphabetic(5),
+                "my new item "+ RandomStringUtils.randomAlphabetic(5));
     }
 
-    private void clearCustomerAdminPermissionGroup() throws Exception {
-        loginTenantAdmin();
-        doDelete("/api/groupPermission/" + groupPermission.getUuidId())
-                .andExpect(status().isOk());
-        doDelete("/api/entityGroup/" + entityGroup.getUuidId())
-                .andExpect(status().isOk());
-        doDelete("/api/role/" + role.getUuidId())
-                .andExpect(status().isOk());
+    private void checkDefaultMenu(CMScope scope, String homeMenuItemDashboard, String defaultMenuItemName, String customMenuItemUrl) throws Exception {
+        CustomMenuInfo customMenu = new CustomMenuInfo();
+        customMenu.setName("Tenant Menu");
+        customMenu.setScope(scope);
+        customMenu.setAssigneeType(CMAssigneeType.ALL);
+        CustomMenu savedMenu = doPost("/api/customMenu", customMenu, CustomMenu.class);
+
+        //put configuration
+        HomeMenuItem homeMenuItem = new HomeMenuItem();
+        homeMenuItem.setId("home");
+        homeMenuItem.setHomeType(HomeMenuItemType.DASHBOARD);
+        homeMenuItem.setDashboardId(homeMenuItemDashboard);
+
+        DefaultMenuItem defaultMenuItem = new DefaultMenuItem();
+        defaultMenuItem.setId("tenants");
+        defaultMenuItem.setName(defaultMenuItemName);
+        defaultMenuItem.setVisible(true);
+
+        CustomMenuItem customMenuItem = new CustomMenuItem();
+        customMenuItem.setName("Mu new menu item");
+        customMenuItem.setMenuItemType(CMItemType.LINK);
+        customMenuItem.setLinkType(CMItemLinkType.URL);
+        customMenuItem.setUrl(customMenuItemUrl);
+        customMenuItem.setIcon("icon");
+        customMenuItem.setVisible(true);
+
+        CustomMenuConfig customMenuConfig = new CustomMenuConfig();
+        customMenuConfig.setItems(List.of(homeMenuItem, defaultMenuItem, customMenuItem));
+
+        doPut("/api/customMenu/" + savedMenu.getId() + "/config", customMenuConfig);
+
+        CustomMenuConfig currentTenantMenu = doGet("/api/customMenu", CustomMenuConfig.class);
+        Assert.assertEquals(customMenuConfig, currentTenantMenu);
     }
 
-    private User savedCustomerAdministrator;
-
-    private void loginCustomerAdministrator() throws Exception {
-        if (savedCustomerAdministrator == null) {
-            savedCustomerAdministrator = createCustomerAdministrator(
-                    tenantId,
-                    customerId,
-                    CUSTOMER_ADMIN_EMAIL,
-                    CUSTOMER_ADMIN_PASSWORD
-            );
-        }
-        login(savedCustomerAdministrator.getEmail(), CUSTOMER_ADMIN_PASSWORD);
-    }
-
-    private User createCustomerAdministrator(TenantId tenantId, CustomerId customerId, String email, String pass) throws Exception {
-        loginTenantAdmin();
-
-        User user = new User();
-        user.setEmail(email);
-        user.setTenantId(tenantId);
-        user.setCustomerId(customerId);
-        user.setFirstName("customer");
-        user.setLastName("admin");
-        user.setAuthority(Authority.CUSTOMER_USER);
-
-        user = createUser(user, pass, entityGroup.getId());
-        customerAdminUserId = user.getId();
-        resetTokens();
-
-        return user;
-    }
 }

@@ -35,6 +35,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.thingsboard.server.common.data.menu.MenuItemType.DEFAULT;
 
 @Schema
@@ -52,6 +55,8 @@ public class DefaultMenuItem implements MenuItem {
     private String icon;
     @Schema(description = "Mark if menu item is visible for user")
     private boolean visible;
+    @Schema(description = "List of child menu items")
+    private List<DefaultMenuItem> pages = new ArrayList<>();
 
     @Override
     public MenuItemType getType() {
