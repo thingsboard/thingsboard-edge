@@ -36,6 +36,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 @Getter
@@ -43,6 +44,9 @@ import java.io.Serializable;
 @RequiredArgsConstructor
 @Builder
 public class OtaPackageCacheKey implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 6733960018642945642L;
 
     private final OtaPackageId id;
 

@@ -827,9 +827,11 @@ public class DeviceEdgeTest extends AbstractEdgeTest {
         // unassign entity group from edge
         doDelete("/api/edge/" + edge.getUuidId()
                 + "/entityGroup/" + entityGroup.getUuidId().toString() + "/" + entityGroup.getType().name(), EntityGroup.class);
-        relatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, device.getId());
-        Assert.assertEquals(1, relatedEdgeIds.size());
-        Assert.assertEquals(tmpEdge.getId(), relatedEdgeIds.get(0));
+        Awaitility.await().atMost(5, TimeUnit.SECONDS).untilAsserted(() -> {
+            List<EdgeId> allRelatedEdgeIds = edgeService.findAllRelatedEdgeIds(tenantId, device.getId());
+            Assert.assertEquals(1, allRelatedEdgeIds.size());
+            Assert.assertEquals(tmpEdge.getId(), allRelatedEdgeIds.get(0));
+        });
 
         // clean up stored edge events
         edgeEventService.cleanupEvents(1);

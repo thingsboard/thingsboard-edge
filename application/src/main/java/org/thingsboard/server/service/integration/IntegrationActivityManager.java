@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.integration;
 
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,8 +51,6 @@ import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.discovery.PartitionService;
 import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
-
-import javax.annotation.PostConstruct;
 
 @Slf4j
 public abstract class IntegrationActivityManager extends AbstractActivityManager<IntegrationActivityKey, Void> {

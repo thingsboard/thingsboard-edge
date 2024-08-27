@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.queue.kafka;
 
+import jakarta.annotation.PreDestroy;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +51,6 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.TbProperty;
 import org.thingsboard.server.queue.util.PropertyUtils;
 
-import javax.annotation.PreDestroy;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;

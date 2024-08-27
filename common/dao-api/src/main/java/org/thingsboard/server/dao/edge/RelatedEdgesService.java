@@ -28,28 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.asset;
+package org.thingsboard.server.dao.edge;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 
-@SpringBootTest(classes = {AssetEdgeProcessorV1.class})
-class AssetProfileEdgeProcessorTest extends AbstractAssetProcessorTest{
+public interface RelatedEdgesService {
 
-    @ParameterizedTest
-    @MethodSource("provideParameters")
-    public void testAssetProfileDefaultFields_notSendToEdgeOlder3_6_0IfNotAssigned(EdgeVersion edgeVersion, long expectedDashboardIdMSB, long expectedDashboardIdLSB,
-                                                                                   long expectedRuleChainIdMSB, long expectedRuleChainIdLSB) {
+    PageData<EdgeId> findEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink);
 
-        updateAssetProfileDefaultFields(expectedDashboardIdMSB, expectedDashboardIdLSB, expectedRuleChainIdMSB, expectedRuleChainIdLSB);
+    PageData<EdgeId> findEdgeIdsByTenantIdAndGroupEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink);
 
-        edgeEvent.setEntityId(assetProfileId.getId());
+    PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, PageLink pageLink);
 
-        DownlinkMsg downlinkMsg = assetProfileProcessorV1.convertAssetProfileEventToDownlink(edgeEvent, edgeId, edgeVersion);
+    void publishRelatedEdgeIdsEvictEvent(TenantId tenantId, EntityId entityId);
 
-        verify(downlinkMsg, expectedDashboardIdMSB, expectedDashboardIdLSB, expectedRuleChainIdMSB, expectedRuleChainIdLSB);
-    }
+    void publishEdgeIdsEvictEventByTenantId(TenantId tenantId);
+
 }

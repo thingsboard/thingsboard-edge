@@ -32,6 +32,8 @@ package org.thingsboard.integration.service.context;
 
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -46,9 +48,6 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.service.integration.downlink.DownlinkCacheService;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;

@@ -28,23 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.edge;
+package org.thingsboard.server.cache.edge;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
-import org.thingsboard.server.cache.CacheSpecsMap;
-import org.thingsboard.server.cache.RedisTbTransactionalCache;
-import org.thingsboard.server.cache.TBRedisCacheConfiguration;
-import org.thingsboard.server.cache.TbJsonRedisSerializer;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
 import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.edge.Edge;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
 @Service("EdgeCache")
-public class EdgeRedisCache extends RedisTbTransactionalCache<EdgeCacheKey, Edge> {
+public class EdgeCaffeineCache extends CaffeineTbTransactionalCache<EdgeCacheKey, Edge> {
 
-    public EdgeRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
-        super(CacheConstants.EDGE_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbJsonRedisSerializer<>(Edge.class));
+    public EdgeCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.EDGE_CACHE);
     }
+
 }
