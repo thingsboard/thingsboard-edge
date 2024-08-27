@@ -14,8 +14,54 @@
 -- limitations under the License.
 --
 
-CREATE INDEX IF NOT EXISTS idx_cloud_event_tenant_id_entity_id_event_type_event_action_crt ON cloud_event
-    (tenant_id, entity_id, cloud_event_type, cloud_event_action, created_time DESC);
+-- UPDATE RESOURCE SUB TYPE START
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT FROM information_schema.columns
+            WHERE table_name = 'resource' AND column_name = 'resource_sub_type'
+        ) THEN
+            ALTER TABLE resource ADD COLUMN resource_sub_type varchar(32);
+            UPDATE resource SET resource_sub_type = 'IMAGE' WHERE resource_type = 'IMAGE';
+        END IF;
+    END;
+$$;
+
+-- UPDATE RESOURCE SUB TYPE END
+
+-- UPDATE WIDGETS BUNDLE START
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT FROM information_schema.columns
+            WHERE table_name = 'widgets_bundle' AND column_name = 'scada'
+        ) THEN
+            ALTER TABLE widgets_bundle ADD COLUMN scada boolean NOT NULL DEFAULT false;
+        END IF;
+    END;
+$$;
+
+-- UPDATE WIDGETS BUNDLE END
+
+-- UPDATE WIDGET TYPE START
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT FROM information_schema.columns
+            WHERE table_name = 'widget_type' AND column_name = 'scada'
+        ) THEN
+            ALTER TABLE widget_type ADD COLUMN scada boolean NOT NULL DEFAULT false;
+        END IF;
+    END;
+$$;
+
+-- UPDATE WIDGET TYPE END
 
 -- KV VERSIONING UPDATE START
 
@@ -53,3 +99,11 @@ ALTER TABLE widgets_bundle ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 1;
 ALTER TABLE tenant ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 1;
 
 -- ENTITIES VERSIONING UPDATE END
+
+-- EDGE RELATED
+
+CREATE INDEX IF NOT EXISTS idx_cloud_event_tenant_id_entity_id_event_type_event_action_crt ON cloud_event
+    (tenant_id, entity_id, cloud_event_type, cloud_event_action, created_time DESC);
+
+-- EDGE RELATED END
+

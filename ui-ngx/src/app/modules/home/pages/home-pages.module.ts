@@ -45,6 +45,7 @@ import { EntitiesModule } from '@home/pages/entities/entities.module';
 import { FeaturesModule } from '@home/pages/features/features.module';
 import { NotificationModule } from '@home/pages/notification/notification.module';
 import { AccountModule } from '@home/pages/account/account.module';
+import { ScadaSymbolModule } from '@home/pages/scada-symbol/scada-symbol.module';
 
 @NgModule({
   exports: [
@@ -75,6 +76,7 @@ import { AccountModule } from '@home/pages/account/account.module';
     UserModule,
     VcModule,
     AccountModule,
+    ScadaSymbolModule,
     CloudEventModule,
     EdgeStatusModule
   ]
