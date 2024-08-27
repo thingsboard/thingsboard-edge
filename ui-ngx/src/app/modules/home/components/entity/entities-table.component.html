@@ -200,6 +200,9 @@
                        [routerLink]="detailsPageURL" [innerHTML]="cellContent(entity, column, row)"
                        (click)="$event.stopPropagation();"></a>
                   </ng-template>
+                  <ng-template [ngSwitchCase]="'entityChips'">
+                    <tb-entity-chips [entity]="entity"></tb-entity-chips>
+                  </ng-template>
                   <ng-template #defaultContent ngSwitchDefault>
                     <span [innerHTML]="cellContent(entity, column, row)"></span>
                   </ng-template>
@@ -242,7 +245,7 @@
                         matTooltipPosition="above"
                         (click)="column.actionDescriptor.onAction($event, entity)">
                   <tb-icon [ngStyle]="column.actionDescriptor.style">
-                    {{column.actionDescriptor.icon}}
+                    {{column.actionDescriptor.iconFunction ? column.actionDescriptor.iconFunction(entity) : column.actionDescriptor.icon}}
                   </tb-icon>
                 </button>
               </mat-cell>
