@@ -183,6 +183,7 @@ import { MoveWidgetsDialogComponent } from '@home/components/dashboard-page/layo
 import {
   SelectDashboardBreakpointComponent
 } from '@home/components/dashboard-page/layout/select-dashboard-breakpoint.component';
+import { EntityChipsComponent } from '@home/components/entity/entity-chips.component';
 
 @NgModule({
   declarations:
@@ -326,7 +327,8 @@ import {
       RateLimitsComponent,
       RateLimitsTextComponent,
       RateLimitsDetailsDialogComponent,
-      SendNotificationButtonComponent
+      SendNotificationButtonComponent,
+      EntityChipsComponent
     ],
   imports: [
     CommonModule,
@@ -463,7 +465,8 @@ import {
     RateLimitsComponent,
     RateLimitsTextComponent,
     RateLimitsDetailsDialogComponent,
-    SendNotificationButtonComponent
+    SendNotificationButtonComponent,
+    EntityChipsComponent
   ],
   providers: [
     WidgetComponentService,
