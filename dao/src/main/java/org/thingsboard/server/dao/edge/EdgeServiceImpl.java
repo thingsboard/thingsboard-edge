@@ -730,7 +730,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
         PageData<EdgeId> pageData;
         do {
-            pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, integrationId, pageLink);
+            pageData = findRelatedEdgeIdsByEntityId(tenantId, integrationId, pageLink);
             if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
                 for (EdgeId relatedEdgeId : pageData.getData()) {
                     ArrayNode array = addMissingEdgeAttributes(tenantId, relatedEdgeId, attributesKeys);
