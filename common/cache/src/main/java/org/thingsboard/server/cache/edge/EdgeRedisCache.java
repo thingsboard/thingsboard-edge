@@ -28,27 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.asset;
+package org.thingsboard.server.cache.edge;
 
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CacheSpecsMap;
+import org.thingsboard.server.cache.RedisTbTransactionalCache;
+import org.thingsboard.server.cache.TBRedisCacheConfiguration;
+import org.thingsboard.server.cache.TbJsonRedisSerializer;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.edge.Edge;
 
-@SpringBootTest(classes = {AssetEdgeProcessorV1.class})
-class AssetEdgeProcessorTest extends AbstractAssetProcessorTest {
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
+@Service("EdgeCache")
+public class EdgeRedisCache extends RedisTbTransactionalCache<EdgeCacheKey, Edge> {
 
-    @ParameterizedTest
-    @MethodSource("provideParameters")
-    public void testAssetProfileDefaultFields_notSendToEdgeOlder3_6_0IfNotAssigned(EdgeVersion edgeVersion, long expectedDashboardIdMSB, long expectedDashboardIdLSB,
-                                                                                   long expectedRuleChainIdMSB, long expectedRuleChainIdLSB) {
-        updateAssetProfileDefaultFields(expectedDashboardIdMSB, expectedDashboardIdLSB, expectedRuleChainIdMSB, expectedRuleChainIdLSB);
-
-        edgeEvent.setEntityId(assetId.getId());
-
-        DownlinkMsg downlinkMsg = assetProcessorV1.convertAssetEventToDownlink(edgeEvent, edgeId, edgeVersion);
-
-        verify(downlinkMsg, expectedDashboardIdMSB, expectedDashboardIdLSB, expectedRuleChainIdMSB, expectedRuleChainIdLSB);
+    public EdgeRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
+        super(CacheConstants.EDGE_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbJsonRedisSerializer<>(Edge.class));
     }
+
 }

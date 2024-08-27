@@ -28,28 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.edge;
+package org.thingsboard.server.cache.edge;
 
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.Data;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.common.data.page.PageData;
 
+import java.io.Serial;
 import java.io.Serializable;
 
-@Getter
-@EqualsAndHashCode
-@RequiredArgsConstructor
-@Builder
-public class EdgeCacheKey implements Serializable {
+@Data
+public class RelatedEdgesCacheValue implements Serializable {
 
-    private final TenantId tenantId;
-    private final String name;
+    @Serial
+    private static final long serialVersionUID = -2765080094748518572L;
 
-    @Override
-    public String toString() {
-        return tenantId + "_" + name;
+    private final PageData<EdgeId> pageData;
+
+    public RelatedEdgesCacheValue(PageData<EdgeId> pageData) {
+        this.pageData = pageData;
     }
 
 }

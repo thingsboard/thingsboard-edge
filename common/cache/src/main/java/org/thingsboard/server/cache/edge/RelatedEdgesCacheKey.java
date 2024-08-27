@@ -28,21 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.edge;
+package org.thingsboard.server.cache.edge;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
-import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.common.data.edge.Edge;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
-@Service("EdgeCache")
-public class EdgeCaffeineCache extends CaffeineTbTransactionalCache<EdgeCacheKey, Edge> {
+import java.io.Serial;
+import java.io.Serializable;
 
-    public EdgeCaffeineCache(CacheManager cacheManager) {
-        super(cacheManager, CacheConstants.EDGE_CACHE);
+@Getter
+@EqualsAndHashCode
+@RequiredArgsConstructor
+@Builder
+public class RelatedEdgesCacheKey implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 5118170671697650121L;
+
+    private final TenantId tenantId;
+    private final EntityId entityId;
+
+    @Override
+    public String toString() {
+        return tenantId + "_" + entityId;
     }
 
 }

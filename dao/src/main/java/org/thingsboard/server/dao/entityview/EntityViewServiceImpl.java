@@ -449,7 +449,7 @@ public class EntityViewServiceImpl extends CachedVersionedEntityService<EntityVi
         return entityViewInfoDao.findEntityViewsByTenantIdAndCustomerIdAndTypeIncludingSubCustomers(tenantId.getId(), customerId.getId(), type, pageLink);
     }
 
-    private PaginatedRemover<TenantId, EntityView> tenantEntityViewRemover = new PaginatedRemover<TenantId, EntityView>() {
+    private final PaginatedRemover<TenantId, EntityView> tenantEntityViewRemover = new PaginatedRemover<>() {
         @Override
         protected PageData<EntityView> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
             return entityViewDao.findEntityViewsByTenantId(id.getId(), pageLink);
@@ -461,7 +461,7 @@ public class EntityViewServiceImpl extends CachedVersionedEntityService<EntityVi
         }
     };
 
-    private PaginatedRemover<CustomerId, EntityView> customerEntityViewsRemover = new PaginatedRemover<CustomerId, EntityView>() {
+    private final PaginatedRemover<CustomerId, EntityView> customerEntityViewsRemover = new PaginatedRemover<>() {
         @Override
         protected PageData<EntityView> findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {
             return entityViewDao.findEntityViewsByTenantIdAndCustomerId(tenantId.getId(), id.getId(), pageLink);
