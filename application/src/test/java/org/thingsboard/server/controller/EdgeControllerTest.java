@@ -112,7 +112,6 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.OAuth2ClientUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.OAuth2DomainUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.OAuth2UpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataUpdateMsg;
@@ -1380,7 +1379,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
-        edgeImitator.ignoreType(OAuth2UpdateMsg.class);
+        edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
+        edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
 
         edgeImitator.expectMessageAmount(34);
         edgeImitator.connect();
@@ -1529,7 +1529,8 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         EdgeImitator edgeImitator = new EdgeImitator(EDGE_HOST, EDGE_PORT, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(UserCredentialsUpdateMsg.class);
-        edgeImitator.ignoreType(OAuth2UpdateMsg.class);
+        edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
+        edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
 
         edgeImitator.expectMessageAmount(44);
         edgeImitator.connect();
