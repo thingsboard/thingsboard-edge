@@ -29,6 +29,7 @@ import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.validation.Length;
 
 import java.util.List;
 
@@ -41,41 +42,54 @@ public class OAuth2Client extends BaseDataWithAdditionalInfo<OAuth2ClientId> imp
     private TenantId tenantId;
     @Schema(description = "Oauth2 client title")
     @NotBlank
+    @Length(fieldName = "title", max = 100, message = "cannot be longer than 100 chars")
     private String title;
     @Schema(description = "Config for mapping OAuth2 log in response to platform entities", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull
     private OAuth2MapperConfig mapperConfig;
     @Schema(description = "OAuth2 client ID. Cannot be empty", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank
+    @Length(fieldName = "clientId")
     private String clientId;
     @Schema(description = "OAuth2 client secret. Cannot be empty", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank
+    @Length(fieldName = "clientSecret", max = 2048)
     private String clientSecret;
     @Schema(description = "Authorization URI of the OAuth2 provider. Cannot be empty", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank
+    @Length(fieldName = "authorizationUri")
     private String authorizationUri;
     @Schema(description = "Access token URI of the OAuth2 provider. Cannot be empty", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank
+    @Length(fieldName = "accessTokenUri")
     private String accessTokenUri;
     @Schema(description = "OAuth scopes that will be requested from OAuth2 platform. Cannot be empty", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotEmpty
+    @Length(fieldName = "scope")
     private List<String> scope;
     @Schema(description = "User info URI of the OAuth2 provider")
+    @Length(fieldName = "userInfoUri")
     private String userInfoUri;
     @Schema(description = "Name of the username attribute in OAuth2 provider response. Cannot be empty")
     @NotBlank
+    @Length(fieldName = "userNameAttributeName")
     private String userNameAttributeName;
     @Schema(description = "JSON Web Key URI of the OAuth2 provider")
+    @Length(fieldName = "jwkSetUri")
     private String jwkSetUri;
     @Schema(description = "Client authentication method to use: 'BASIC' or 'POST'. Cannot be empty", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank
+    @Length(fieldName = "clientAuthenticationMethod")
     private String clientAuthenticationMethod;
     @Schema(description = "OAuth2 provider label. Cannot be empty", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank
+    @Length(fieldName = "loginButtonLabel")
     private String loginButtonLabel;
     @Schema(description = "Log in button icon for OAuth2 provider")
+    @Length(fieldName = "loginButtonIcon")
     private String loginButtonIcon;
     @Schema(description = "List of platforms for which usage of the OAuth2 client is allowed (empty for all allowed)")
+    @Length(fieldName = "platforms")
     private List<PlatformType> platforms;
     @Schema(description = "Additional info of OAuth2 client (e.g. providerName)", requiredMode = Schema.RequiredMode.REQUIRED)
     private JsonNode additionalInfo;
@@ -110,6 +124,6 @@ public class OAuth2Client extends BaseDataWithAdditionalInfo<OAuth2ClientId> imp
     @Override
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     public String getName() {
-        return loginButtonLabel;
+        return title;
     }
 }

@@ -32,17 +32,17 @@ public interface OAuth2ClientDao extends Dao<OAuth2Client> {
 
     List<OAuth2Client> findEnabledByDomainName(String domainName);
 
-    List<OAuth2Client> findEnabledByPckNameAndPlatformType(String pkgName, PlatformType platformType);
+    List<OAuth2Client> findEnabledByPkgNameAndPlatformType(String pkgName, PlatformType platformType);
 
     List<OAuth2Client> findByDomainId(UUID domainId);
 
-    List<OAuth2Client> findByMobileAppId(UUID domainId);
+    List<OAuth2Client> findByMobileAppId(UUID mobileAppId);
 
     String findAppSecret(UUID id, String pkgName);
 
-    void deleteByTenantId(TenantId tenantId);
+    void deleteByTenantId(UUID tenantId);
 
-    List<OAuth2Client> findByIds(TenantId tenantId, List<OAuth2ClientId> oAuth2ClientIds);
+    List<OAuth2Client> findByIds(UUID tenantId, List<OAuth2ClientId> oAuth2ClientIds);
 
     boolean isPropagateToEdge(TenantId tenantId, UUID oAuth2ClientId);
 

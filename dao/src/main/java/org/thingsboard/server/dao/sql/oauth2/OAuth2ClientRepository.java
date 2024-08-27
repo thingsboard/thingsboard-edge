@@ -39,8 +39,8 @@ public interface OAuth2ClientRepository extends JpaRepository<OAuth2ClientEntity
             "FROM OAuth2ClientEntity c " +
             "LEFT JOIN DomainOauth2ClientEntity dc on c.id = dc.oauth2ClientId " +
             "LEFT JOIN DomainEntity domain on dc.domainId = domain.id " +
-            "WHERE domain.name = :domainName " +
-            "AND (:platformFilter IS NULL OR c.platforms IS NULL OR c.platforms = '' OR c.platforms LIKE :platformFilter)")
+            "WHERE domain.name = :domainName AND domain.oauth2Enabled = true " +
+            "AND (:platformFilter IS NULL OR c.platforms IS NULL OR c.platforms = '' OR ilike(c.platforms, CONCAT('%', :platformFilter, '%')) = true)")
     List<OAuth2ClientEntity> findEnabledByDomainNameAndPlatformType(@Param("domainName") String domainName,
                                                                     @Param("platformFilter") String platformFilter);
 
@@ -48,8 +48,8 @@ public interface OAuth2ClientRepository extends JpaRepository<OAuth2ClientEntity
             "FROM OAuth2ClientEntity c " +
             "LEFT JOIN MobileAppOauth2ClientEntity mc on c.id = mc.oauth2ClientId " +
             "LEFT JOIN MobileAppEntity app on mc.mobileAppId = app.id " +
-            "WHERE app.pkgName = :pkgName " +
-            "AND (:platformFilter IS NULL OR c.platforms IS NULL OR c.platforms = '' OR c.platforms LIKE :platformFilter)")
+            "WHERE app.pkgName = :pkgName AND app.oauth2Enabled = true " +
+            "AND (:platformFilter IS NULL OR c.platforms IS NULL OR c.platforms = '' OR ilike(c.platforms, CONCAT('%', :platformFilter, '%')) = true)")
     List<OAuth2ClientEntity> findEnabledByPkgNameAndPlatformType(@Param("pkgName") String pkgName,
                                                                  @Param("platformFilter") String platformFilter);
 
@@ -57,13 +57,13 @@ public interface OAuth2ClientRepository extends JpaRepository<OAuth2ClientEntity
             "FROM OAuth2ClientEntity c " +
             "LEFT JOIN DomainOauth2ClientEntity dc on dc.oauth2ClientId = c.id " +
             "WHERE dc.domainId = :domainId ")
-    List<OAuth2ClientEntity> findByDomainId(UUID domainId);
+    List<OAuth2ClientEntity> findByDomainId(@Param("domainId") UUID domainId);
 
     @Query("SELECT c " +
             "FROM OAuth2ClientEntity c " +
             "LEFT JOIN MobileAppOauth2ClientEntity mc on mc.oauth2ClientId = c.id " +
             "WHERE mc.mobileAppId = :mobileAppId ")
-    List<OAuth2ClientEntity> findByMobileAppId(UUID mobileAppId);
+    List<OAuth2ClientEntity> findByMobileAppId(@Param("mobileAppId") UUID mobileAppId);
 
     @Query("SELECT m.appSecret " +
             "FROM MobileAppEntity m " +
@@ -79,7 +79,12 @@ public interface OAuth2ClientRepository extends JpaRepository<OAuth2ClientEntity
     @Query("DELETE FROM OAuth2ClientEntity t WHERE t.tenantId = :tenantId")
     void deleteByTenantId(@Param("tenantId") UUID tenantId);
 
-    List<OAuth2ClientEntity> findByTenantIdAndIdIn(UUID tenantId, List<UUID> queueStatsIds);
+    List<OAuth2ClientEntity> findByTenantIdAndIdIn(UUID tenantId, List<UUID> uuids);
+
+    @Query("SELECT COUNT(d) > 0 FROM DomainEntity d " +
+            "JOIN DomainOauth2ClientEntity doc ON d.id = doc.domainId " +
+            "WHERE d.tenantId = :tenantId AND doc.oauth2ClientId = :oAuth2ClientId AND d.propagateToEdge = true")
+    boolean isPropagateToEdge(@Param("tenantId") UUID tenantId, @Param("oAuth2ClientId") UUID oAuth2ClientId);
 
     @Query("SELECT COUNT(d) > 0 FROM DomainEntity d " +
             "JOIN DomainOauth2ClientEntity doc ON d.id = doc.domainId " +

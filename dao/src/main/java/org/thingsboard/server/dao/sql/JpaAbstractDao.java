@@ -55,13 +55,13 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
     @PersistenceContext
     private EntityManager entityManager;
 
-    protected abstract Class<E> getEntityClass();
-
-    protected abstract JpaRepository<E, UUID> getRepository();
-
     @Override
     @Transactional
     public D save(TenantId tenantId, D domain) {
+        return save(tenantId, domain, false);
+    }
+
+    private D save(TenantId tenantId, D domain, boolean flush) {
         E entity;
         try {
             entity = getEntityClass().getConstructor(domain.getClass()).newInstance(domain);
@@ -77,14 +77,14 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
             entity.setCreatedTime(Uuids.unixTimestamp(uuid));
         }
         try {
-            entity = doSave(entity, isNew);
+            entity = doSave(entity, isNew, flush);
         } catch (OptimisticLockException e) {
             throw new EntityVersionMismatchException((getEntityType() != null ? getEntityType().getNormalName() : "Entity") + " was already changed by someone else", e);
         }
         return DaoUtil.getData(entity);
     }
 
-    protected E doSave(E entity, boolean isNew) {
+    protected E doSave(E entity, boolean isNew, boolean flush) {
         // edge-only: we set version to null on Edge, not using optimistic locking
         if (entity instanceof HasVersion versionedEntity) {
             versionedEntity.setVersion(null);
@@ -97,9 +97,7 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
     @Override
     @Transactional
     public D saveAndFlush(TenantId tenantId, D domain) {
-        D d = save(tenantId, domain);
-        getRepository().flush();
-        return d;
+        return save(tenantId, domain, true);
     }
 
     @Override
@@ -161,11 +159,23 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
         }
         query += " ORDER BY id LIMIT ?";
 
-        return jdbcTemplate.queryForList(query, UUID.class, params);
+        return getJdbcTemplate().queryForList(query, UUID.class, params);
     }
 
     protected String getTenantIdColumn() {
         return ModelConstants.TENANT_ID_COLUMN;
     }
+
+    protected EntityManager getEntityManager() {
+        return entityManager;
+    }
+
+    protected JdbcTemplate getJdbcTemplate() {
+        return jdbcTemplate;
+    }
+
+    protected abstract Class<E> getEntityClass();
+
+    protected abstract JpaRepository<E, UUID> getRepository();
 
 }

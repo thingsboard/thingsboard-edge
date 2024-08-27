@@ -92,7 +92,7 @@ public class MobileAppControllerTest extends AbstractControllerTest {
         mobileApp.setAppSecret("short");
         doPost("/api/mobileApp", mobileApp)
                 .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("appSecret must be at least 16 characters")));
+                .andExpect(statusReason(containsString("appSecret must be at least 16 and max 2048 characters")));
     }
 
     @Test
@@ -100,10 +100,10 @@ public class MobileAppControllerTest extends AbstractControllerTest {
         MobileApp mobileApp = validMobileApp(TenantId.SYS_TENANT_ID, "my.test.package", true);
         MobileApp savedMobileApp = doPost("/api/mobileApp", mobileApp, MobileApp.class);
 
-        OAuth2Client oAuth2Client = validClientInfo(TenantId.SYS_TENANT_ID, "test google client");
+        OAuth2Client oAuth2Client = createOauth2Client(TenantId.SYS_TENANT_ID, "test google client");
         OAuth2Client savedOAuth2Client = doPost("/api/oauth2/client", oAuth2Client, OAuth2Client.class);
 
-        OAuth2Client oAuth2Client2 = validClientInfo(TenantId.SYS_TENANT_ID, "test facebook client");
+        OAuth2Client oAuth2Client2 = createOauth2Client(TenantId.SYS_TENANT_ID, "test facebook client");
         OAuth2Client savedOAuth2Client2 = doPost("/api/oauth2/client", oAuth2Client2, OAuth2Client.class);
 
         doPut("/api/mobileApp/" + savedMobileApp.getId() + "/oauth2Clients", List.of(savedOAuth2Client.getId().getId(), savedOAuth2Client2.getId().getId()));
@@ -119,7 +119,7 @@ public class MobileAppControllerTest extends AbstractControllerTest {
 
     @Test
     public void testCreateMobileAppWithOauth2Clients() throws Exception {
-        OAuth2Client oAuth2Client = validClientInfo(TenantId.SYS_TENANT_ID, "test google client");
+        OAuth2Client oAuth2Client = createOauth2Client(TenantId.SYS_TENANT_ID, "test google client");
         OAuth2Client savedOAuth2Client = doPost("/api/oauth2/client", oAuth2Client, OAuth2Client.class);
 
         MobileApp mobileApp = validMobileApp(TenantId.SYS_TENANT_ID, "my.test.package", true);

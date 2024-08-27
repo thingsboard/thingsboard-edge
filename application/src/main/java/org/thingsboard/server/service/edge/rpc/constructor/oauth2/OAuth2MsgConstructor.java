@@ -17,7 +17,7 @@ package org.thingsboard.server.service.edge.rpc.constructor.oauth2;
 
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.domain.Domain;
+import org.thingsboard.server.common.data.domain.DomainInfo;
 import org.thingsboard.server.common.data.id.DomainId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
@@ -43,10 +43,10 @@ public class OAuth2MsgConstructor {
                 .setIdLSB(oAuth2ClientId.getId().getLeastSignificantBits()).build();
     }
 
-    public OAuth2DomainUpdateMsg constructOAuth2DomainUpdateMsg(UpdateMsgType msgType, Domain domain) {
-        return OAuth2DomainUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(domain))
-                .setIdMSB(domain.getId().getId().getMostSignificantBits())
-                .setIdLSB(domain.getId().getId().getLeastSignificantBits()).build();
+    public OAuth2DomainUpdateMsg constructOAuth2DomainUpdateMsg(UpdateMsgType msgType, DomainInfo domainInfo) {
+        return OAuth2DomainUpdateMsg.newBuilder().setMsgType(msgType).setEntity(JacksonUtil.toString(domainInfo))
+                .setIdMSB(domainInfo.getId().getId().getMostSignificantBits())
+                .setIdLSB(domainInfo.getId().getId().getLeastSignificantBits()).build();
     }
 
     public OAuth2DomainUpdateMsg constructOAuth2DomainDeleteMsg(DomainId domainId) {

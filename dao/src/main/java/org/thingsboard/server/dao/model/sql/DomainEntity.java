@@ -39,7 +39,7 @@ public class DomainEntity extends BaseSqlEntity<Domain> {
     @Column(name = TENANT_ID_COLUMN)
     private UUID tenantId;
 
-    @Column(name = ModelConstants.DOMAIN_DOMAIN_NAME_PROPERTY)
+    @Column(name = ModelConstants.DOMAIN_NAME_PROPERTY)
     private String name;
 
     @Column(name = ModelConstants.DOMAIN_OAUTH2_ENABLED_PROPERTY)
@@ -49,13 +49,10 @@ public class DomainEntity extends BaseSqlEntity<Domain> {
     private Boolean propagateToEdge;
 
     public DomainEntity(Domain domain) {
-        if (domain.getId() != null) {
-            this.setUuid(domain.getId().getId());
-        }
+        super(domain);
         if (domain.getTenantId() != null) {
             this.tenantId = domain.getTenantId().getId();
         }
-        this.setCreatedTime(domain.getCreatedTime());
         this.name = domain.getName();
         this.oauth2Enabled = domain.isOauth2Enabled();
         this.propagateToEdge = domain.isPropagateToEdge();

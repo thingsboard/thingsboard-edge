@@ -14,8 +14,54 @@
 -- limitations under the License.
 --
 
-CREATE INDEX IF NOT EXISTS idx_cloud_event_tenant_id_entity_id_event_type_event_action_crt ON cloud_event
-    (tenant_id, entity_id, cloud_event_type, cloud_event_action, created_time DESC);
+-- UPDATE RESOURCE SUB TYPE START
+
+DO
+$$
+BEGIN
+        IF NOT EXISTS (
+            SELECT FROM information_schema.columns
+            WHERE table_name = 'resource' AND column_name = 'resource_sub_type'
+        ) THEN
+ALTER TABLE resource ADD COLUMN resource_sub_type varchar(32);
+UPDATE resource SET resource_sub_type = 'IMAGE' WHERE resource_type = 'IMAGE';
+END IF;
+END;
+$$;
+
+-- UPDATE RESOURCE SUB TYPE END
+
+-- UPDATE WIDGETS BUNDLE START
+
+DO
+$$
+BEGIN
+        IF NOT EXISTS (
+            SELECT FROM information_schema.columns
+            WHERE table_name = 'widgets_bundle' AND column_name = 'scada'
+        ) THEN
+ALTER TABLE widgets_bundle ADD COLUMN scada boolean NOT NULL DEFAULT false;
+END IF;
+END;
+$$;
+
+-- UPDATE WIDGETS BUNDLE END
+
+-- UPDATE WIDGET TYPE START
+
+DO
+$$
+BEGIN
+        IF NOT EXISTS (
+            SELECT FROM information_schema.columns
+            WHERE table_name = 'widget_type' AND column_name = 'scada'
+        ) THEN
+ALTER TABLE widget_type ADD COLUMN scada boolean NOT NULL DEFAULT false;
+END IF;
+END;
+$$;
+
+-- UPDATE WIDGET TYPE END
 
 -- KV VERSIONING UPDATE START
 
@@ -65,14 +111,32 @@ ALTER TABLE domain ADD COLUMN IF NOT EXISTS oauth2_enabled boolean,
     ADD COLUMN IF NOT EXISTS tenant_id uuid DEFAULT '13814000-1dd2-11b2-8080-808080808080',
 DROP COLUMN IF EXISTS domain_scheme;
 
+-- rename column domain_name to name
+DO
+$$
+BEGIN
+        IF EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name='domain' and column_name='domain_name') THEN
+ALTER TABLE domain RENAME COLUMN domain_name TO name;
+END IF;
+END
+$$;
+
 -- delete duplicated domains
-DELETE FROM domain d1 USING domain d2 WHERE d1.created_time < d2.created_time AND d1.domain_name = d2.domain_name;
+DELETE FROM domain d1 USING (
+    SELECT MIN(ctid) as ctid, name
+    FROM domain
+    GROUP BY name HAVING COUNT(*) > 1
+) d2 WHERE d1.name = d2.name AND d1.ctid <> d2.ctid;
 
 ALTER TABLE mobile_app ADD COLUMN IF NOT EXISTS oauth2_enabled boolean,
     ADD COLUMN IF NOT EXISTS tenant_id uuid DEFAULT '13814000-1dd2-11b2-8080-808080808080';
 
 -- delete duplicated apps
-DELETE FROM mobile_app m1 USING mobile_app m2 WHERE m1.created_time < m2.created_time AND m1.pkg_name = m2.pkg_name;
+DELETE FROM mobile_app m1 USING (
+    SELECT MIN(ctid) as ctid, pkg_name
+    FROM mobile_app
+    GROUP BY pkg_name HAVING COUNT(*) > 1
+) m2 WHERE m1.pkg_name = m2.pkg_name AND m1.ctid <> m2.ctid;
 
 ALTER TABLE oauth2_client ADD COLUMN IF NOT EXISTS tenant_id uuid DEFAULT '13814000-1dd2-11b2-8080-808080808080',
     ADD COLUMN IF NOT EXISTS title varchar(100);
@@ -121,11 +185,21 @@ ALTER TABLE mobile_app DROP COLUMN oauth2_params_id;
 ALTER TABLE oauth2_client DROP COLUMN oauth2_params_id;
 
 ALTER TABLE mobile_app ADD CONSTRAINT mobile_app_unq_key UNIQUE (pkg_name);
-ALTER TABLE domain ADD CONSTRAINT domain_unq_key UNIQUE (domain_name);
+ALTER TABLE domain ADD CONSTRAINT domain_unq_key UNIQUE (name);
 
 DROP TABLE IF EXISTS oauth2_params;
+-- drop deprecated tables
+DROP TABLE IF EXISTS oauth2_client_registration_info;
+DROP TABLE IF EXISTS oauth2_client_registration;
 END IF;
 END
 $$;
 
 -- OAUTH2 UPDATE END
+
+-- EDGE RELATED
+
+CREATE INDEX IF NOT EXISTS idx_cloud_event_tenant_id_entity_id_event_type_event_action_crt ON cloud_event
+    (tenant_id, entity_id, cloud_event_type, cloud_event_action, created_time DESC);
+
+-- EDGE RELATED END

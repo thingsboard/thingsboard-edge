@@ -49,6 +49,7 @@ public class MobileAppServiceTest extends AbstractServiceTest {
     @After
     public void after() {
         mobileAppService.deleteByTenantId(TenantId.SYS_TENANT_ID);
+        oAuth2ClientService.deleteByTenantId(TenantId.SYS_TENANT_ID);
     }
 
     @Test
@@ -88,7 +89,7 @@ public class MobileAppServiceTest extends AbstractServiceTest {
     public void tesGetMobileAppInfo() {
         OAuth2Client oAuth2Client = validClientInfo(TenantId.SYS_TENANT_ID, "Test google client");
         OAuth2Client savedOauth2Client = oAuth2ClientService.saveOAuth2Client(SYSTEM_TENANT_ID, oAuth2Client);
-        PageData<OAuth2ClientInfo> infos = oAuth2ClientService.findOAuth2ClientInfosByTenantId(TenantId.SYS_TENANT_ID, new PageLink(10));
+        List<OAuth2ClientInfo> oAuth2ClientInfosByIds = oAuth2ClientService.findOAuth2ClientInfosByIds(TenantId.SYS_TENANT_ID, List.of(savedOauth2Client.getId()));
 
         MobileApp MobileApp = validMobileApp(TenantId.SYS_TENANT_ID, "my.app", true);
         MobileApp savedMobileApp = mobileAppService.saveMobileApp(SYSTEM_TENANT_ID, MobileApp);
@@ -97,11 +98,11 @@ public class MobileAppServiceTest extends AbstractServiceTest {
 
         // check MobileApp info
         MobileAppInfo retrievedInfo = mobileAppService.findMobileAppInfoById(SYSTEM_TENANT_ID, savedMobileApp.getId());
-        assertThat(retrievedInfo).isEqualTo(new MobileAppInfo(savedMobileApp, infos.getData()));
+        assertThat(retrievedInfo).isEqualTo(new MobileAppInfo(savedMobileApp, oAuth2ClientInfosByIds));
 
         //find clients by MobileApp name
         List<OAuth2ClientLoginInfo> oauth2LoginInfo = oAuth2ClientService.findOAuth2ClientLoginInfosByMobilePkgNameAndPlatformType(savedMobileApp.getName(), null);
-        assertThat(oauth2LoginInfo).containsOnly(new OAuth2ClientLoginInfo(savedOauth2Client.getName(), savedOauth2Client.getLoginButtonIcon(), String.format(OAUTH2_AUTHORIZATION_PATH_TEMPLATE, savedOauth2Client.getUuidId().toString())));
+        assertThat(oauth2LoginInfo).containsOnly(new OAuth2ClientLoginInfo(savedOauth2Client.getLoginButtonLabel(), savedOauth2Client.getLoginButtonIcon(), String.format(OAUTH2_AUTHORIZATION_PATH_TEMPLATE, savedOauth2Client.getUuidId().toString())));
     }
 
     private MobileApp validMobileApp(TenantId tenantId, String mobileAppName, boolean oauth2Enabled) {
