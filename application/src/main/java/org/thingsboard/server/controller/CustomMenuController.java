@@ -47,6 +47,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.CustomMenuDeleteResult;
 import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -177,7 +178,7 @@ public class CustomMenuController extends BaseController {
         CustomMenuId customMenuId = new CustomMenuId(id);
         CustomMenu customMenu = checkNotNull(checkCustomMenuId(customMenuId, Operation.WRITE));
         customMenu.setConfig(customMenuConfig);
-        return customMenuService.updateCustomMenu(customMenu, null, false);
+        return customMenuService.updateCustomMenu(customMenu, false);
     }
 
     @ApiOperation(value = "Update Custom Menu name (updateCustomMenuName)",
@@ -191,8 +192,9 @@ public class CustomMenuController extends BaseController {
                                      @RequestBody String name) throws ThingsboardException {
         CustomMenuId customMenuId = new CustomMenuId(id);
         CustomMenu customMenu = checkNotNull(checkCustomMenuId(customMenuId, Operation.WRITE));
-        customMenu.setName(name);
-        customMenuService.updateCustomMenu(customMenu, null, false);
+        CustomMenu newCustomMenu = new CustomMenu(customMenu);
+        newCustomMenu.setName(name);
+        customMenuService.updateCustomMenu(newCustomMenu, false);
     }
 
     @ApiOperation(value = "Create Custom Menu (saveCustomMenu)",
@@ -212,15 +214,12 @@ public class CustomMenuController extends BaseController {
         customMenuInfo.setCustomerId(currentUser.getCustomerId());
         List<EntityId> assignToList = getAssignToList(customMenuInfo.getAssigneeType(), ids);
 
-        CustomMenu customMenu;
         if (customMenuInfo.getId() == null) {
             checkWhiteLabelingPermissions(Operation.WRITE);
-            customMenu = customMenuService.createCustomMenu(customMenuInfo, assignToList, force);
+            return customMenuService.createCustomMenu(customMenuInfo, assignToList, force);
         } else {
-            customMenu = checkCustomMenuId(customMenuInfo.getId(), Operation.WRITE);
-            customMenu = customMenuService.updateCustomMenu(customMenu, assignToList, force);
+            throw new ThingsboardException("Update is unsupported.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         }
-        return customMenu;
     }
 
     @ApiOperation(value = "Update custom menu assignee list (assignCustomMenu)",
@@ -256,7 +255,7 @@ public class CustomMenuController extends BaseController {
     }
 
     private List<EntityId> getAssignToList(CMAssigneeType type, UUID[] ids) throws ThingsboardException {
-        if (ids == null || type == CMAssigneeType.NO_ASSIGN) {
+        if (ids == null || type == CMAssigneeType.NO_ASSIGN || type == CMAssigneeType.ALL) {
             return List.of();
         }
         List<EntityId> assignToList = new ArrayList<>();

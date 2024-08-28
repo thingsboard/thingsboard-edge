@@ -52,7 +52,7 @@ public interface CustomMenuService {
 
     CustomMenu createCustomMenu(CustomMenuInfo customMenuInfo, List<EntityId> assignToList, boolean force) throws ThingsboardException;
 
-    CustomMenu updateCustomMenu(CustomMenu customMenu, List<EntityId> assignToList, boolean force) throws ThingsboardException;
+    CustomMenu updateCustomMenu(CustomMenu customMenu, boolean force) throws ThingsboardException;
 
     void updateAssigneeList(CustomMenu oldCustomMenu, CMAssigneeType newAssigneeType, List<EntityId> newAssignToList, boolean force) throws ThingsboardException;
 

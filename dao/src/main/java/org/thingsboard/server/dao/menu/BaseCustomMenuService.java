@@ -92,9 +92,9 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     }
 
     @Override
-    public CustomMenu updateCustomMenu(CustomMenu customMenu, List<EntityId> assignToList, boolean force) throws ThingsboardException {
+    public CustomMenu updateCustomMenu(CustomMenu customMenu, boolean force) throws ThingsboardException {
         log.trace("Executing updateCustomMenu [{}] ", customMenu);
-        return saveCustomMenu(customMenu, assignToList, force);
+        return saveCustomMenu(customMenu, null, force);
     }
 
     @Override
@@ -114,8 +114,9 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
 
         CMAssigneeType oldAssigneeType = customMenu.getAssigneeType();
         if (oldAssigneeType != newAssigneeType) {
-            customMenu.setAssigneeType(newAssigneeType);
-            updateCustomMenu(customMenu, null, force);
+            CustomMenu newCustomMenu = new CustomMenu(customMenu);
+            newCustomMenu.setAssigneeType(newAssigneeType);
+            updateCustomMenu(newCustomMenu, force);
         }
         assignCustomMenu(customMenu.getId(), newAssigneeType, toAddEntityIds);
         unassignCustomMenu(oldAssigneeType, toRemoveEntityIds);
@@ -242,7 +243,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
             if (existingDefaultCustomMenu != null && !existingDefaultCustomMenu.getId().equals(customMenu.getId())) {
                 if (force) {
                     existingDefaultCustomMenu.setAssigneeType(CMAssigneeType.NO_ASSIGN);
-                    updateCustomMenu(existingDefaultCustomMenu, null, true);
+                    updateCustomMenu(existingDefaultCustomMenu,  true);
                 } else {
                     throw new ThingsboardException("There is already default menu for scope " + customMenu.getScope(), ThingsboardErrorCode.DATA_CONFLICT);
                 }

@@ -322,6 +322,13 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
     public void testAssignTenantMenu() throws Exception {
         loginTenantAdmin();
 
+        CustomMenu defaultTenantMenu = new CustomMenu();
+        defaultTenantMenu.setName(RandomStringUtils.randomAlphabetic(10));
+        defaultTenantMenu.setScope(CMScope.TENANT);
+        defaultTenantMenu.setAssigneeType(CMAssigneeType.ALL);
+        defaultTenantMenu = doPost("/api/customMenu", defaultTenantMenu, CustomMenu.class);
+        idsToRemove.add(defaultTenantMenu.getUuidId());
+
         CustomMenu tenantMenu = new CustomMenu();
         tenantMenu.setName(RandomStringUtils.randomAlphabetic(10));
         tenantMenu.setScope(CMScope.TENANT);
@@ -339,11 +346,31 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         doPut("/api/customMenu/" + tenantMenu.getId() + "/assign/NO_ASSIGN", List.of());
         String currentMenuAfterUpdate = doGet("/api/customMenu", String.class);
         assertThat(currentMenuAfterUpdate).isEmpty();
+
+        //change assignee to ALL
+        String errorMessage = getErrorMessage(doPut("/api/customMenu/" + tenantMenu.getId() + "/assign/ALL", List.of())
+                .andExpect(status().isConflict()));
+        assertThat(errorMessage).isEqualTo("There is already default menu for scope TENANT");
+
+        //force change assignee to ALL
+        doPut("/api/customMenu/" + tenantMenu.getId() + "/assign/ALL?force=true", List.of());
+        CustomMenuConfig currentMenuAfterUpdateToALL = doGet("/api/customMenu", CustomMenuConfig.class);
+        assertThat(currentMenuAfterUpdateToALL).isEqualTo(tenantMenuConfig);
+
+        CustomMenu updatedDefaultMenu = doGet("/api/customMenu/" + defaultTenantMenu.getId() + "/info", CustomMenu.class);
+        assertThat(updatedDefaultMenu.getAssigneeType()).isEqualTo(CMAssigneeType.NO_ASSIGN);
     }
 
     @Test
     public void testAssignCustomerMenu() throws Exception {
         loginTenantAdmin();
+
+        CustomMenu defaultCustomerMenu = new CustomMenu();
+        defaultCustomerMenu.setName(RandomStringUtils.randomAlphabetic(10));
+        defaultCustomerMenu.setScope(CMScope.CUSTOMER);
+        defaultCustomerMenu.setAssigneeType(CMAssigneeType.ALL);
+        defaultCustomerMenu = doPost("/api/customMenu", defaultCustomerMenu, CustomMenu.class);
+        idsToRemove.add(defaultCustomerMenu.getUuidId());
 
         CustomMenu customerMenu = new CustomMenu();
         customerMenu.setName(RandomStringUtils.randomAlphabetic(10));
@@ -352,12 +379,12 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
 
         customerMenu = doPost("/api/customMenu", customerMenu, CustomMenu.class);
         idsToRemove.add(customerMenu.getUuidId());
-        CustomMenuConfig tenantMenuConfig = putRandomMenuConfig(customerMenu.getId());
+        CustomMenuConfig customerMenuConfig = putRandomMenuConfig(customerMenu.getId());
 
         doPut("/api/customMenu/" + customerMenu.getId() + "/assign/USERS", List.of(customerUserId.getId()));
         loginCustomerUser();
         CustomMenuConfig currentMenu = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(currentMenu).isEqualTo(tenantMenuConfig);
+        assertThat(currentMenu).isEqualTo(customerMenuConfig);
 
         //change assignee to CUSTOMERS
         loginTenantAdmin();
@@ -366,6 +393,21 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         loginCustomerUser();
         String currentMenuAfterUpdate = doGet("/api/customMenu", String.class);
         assertThat(currentMenuAfterUpdate).isEmpty();
+
+        //change assignee to ALL
+        loginTenantAdmin();
+        String errorMessage = getErrorMessage(doPut("/api/customMenu/" + customerMenu.getId() + "/assign/ALL", List.of())
+                .andExpect(status().isConflict()));
+        assertThat(errorMessage).isEqualTo("There is already default menu for scope CUSTOMER");
+
+        //force change assignee to ALL
+        doPut("/api/customMenu/" + customerMenu.getId() + "/assign/ALL?force=true", List.of());
+        CustomMenu updatedDefaultMenu = doGet("/api/customMenu/" + defaultCustomerMenu.getId() + "/info", CustomMenu.class);
+        assertThat(updatedDefaultMenu.getAssigneeType()).isEqualTo(CMAssigneeType.NO_ASSIGN);
+
+        loginCustomerUser();
+        CustomMenuConfig currentMenuAfterUpdateToALL = doGet("/api/customMenu", CustomMenuConfig.class);
+        assertThat(currentMenuAfterUpdateToALL).isEqualTo(customerMenuConfig);
     }
 
     private CustomMenuConfig putRandomMenuConfig(CustomMenuId customMenuId) throws Exception {
