@@ -33,6 +33,7 @@ package org.thingsboard.server.common.data.menu;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -41,6 +42,7 @@ import java.util.List;
 @Schema
 @Data
 @Slf4j
+@NoArgsConstructor
 @AllArgsConstructor
 public class CustomMenuConfig {
 

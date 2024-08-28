@@ -37,9 +37,8 @@ import {
   CMScope,
   cmScopeTranslations,
   CustomMenu,
-  CustomMenuAssignResult,
   CustomMenuInfo,
-  toCustomMenuAssignResult
+  isDefaultCustomMenuConflict
 } from '@shared/models/custom-menu.models';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -204,14 +203,20 @@ export class ManageCustomMenuDialogComponent
       const assignToList: string[] = this.customMenuFormGroup.get('assignToList').value;
       this.customMenuService.assignCustomMenu(this.data.customMenu.id.id, assigneeType, assignToList, false,
         {ignoreErrors: true}).pipe(
-        map(() => ({success: true} as CustomMenuAssignResult)),
-        catchError((err) => of(toCustomMenuAssignResult(err))),
+        map(() => ({success: true, error: null})),
+        catchError((err) => {
+          if (isDefaultCustomMenuConflict(err)) {
+            return of({success: false, error: null});
+          } else {
+            return of({success: false, error: err});
+          }
+        }),
       ).subscribe(
         (assignResult) => {
           if (assignResult.success) {
             this.dialogRef.close({assigneeType, assignToList});
           } else if (!assignResult.error) {
-            // TODO:
+            // TODO: Show dialog
           } else {
             const errorMessageWithTimeout = parseHttpErrorMessage(assignResult.error, this.translate);
             setTimeout(() => {

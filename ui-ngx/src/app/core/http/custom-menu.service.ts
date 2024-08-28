@@ -33,7 +33,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
   CMAssigneeType,
-  CustomMenu, CustomMenuAssignResult,
+  CustomMenu,
   CustomMenuConfig,
   CustomMenuDeleteResult,
   CustomMenuInfo
@@ -106,8 +106,8 @@ export class CustomMenuService {
   }
 
   public assignCustomMenu(customMenuId: string, assigneeType: CMAssigneeType,
-                          entityIds: string[], force = false, config?: RequestConfig): Observable<CustomMenuAssignResult> {
-    return this.http.put<CustomMenuAssignResult>(`/api/customMenu/${customMenuId}/assign/${assigneeType}?force=${force}`, entityIds,
+                          entityIds: string[], force = false, config?: RequestConfig): Observable<void> {
+    return this.http.put<void>(`/api/customMenu/${customMenuId}/assign/${assigneeType}?force=${force}`, entityIds,
       defaultHttpOptionsFromConfig(config)).pipe(
         mergeMap((res) => this.loadCustomMenu(true).pipe( map(() => res) ))
     );

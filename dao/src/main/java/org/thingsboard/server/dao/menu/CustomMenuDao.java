@@ -43,7 +43,7 @@ import org.thingsboard.server.dao.Dao;
 
 public interface CustomMenuDao extends Dao<CustomMenu> {
 
-    boolean updateCustomMenuName(CustomMenuId customMenuId, String name);
+    CustomMenuInfo findInfoById(CustomMenuId customMenuId);
 
     PageData<CustomMenuInfo> findByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 

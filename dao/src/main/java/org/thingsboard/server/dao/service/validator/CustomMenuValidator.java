@@ -51,27 +51,23 @@ public class CustomMenuValidator extends DataValidator<CustomMenuInfo> {
 
     @Override
     protected void validateDataImpl(TenantId tenantId, CustomMenuInfo customMenuInfo) {
+        if (customMenuInfo.getScope() == CMScope.TENANT && customMenuInfo.getAssigneeType() == CMAssigneeType.CUSTOMERS) {
+            throw new DataValidationException("Tenant custom menu can not be assigned to customers");
+        }
         if (!customMenuInfo.getTenantId().isSysTenantId() && customMenuInfo.getScope() == CMScope.SYSTEM) {
             throw new DataValidationException("Tenant custom menu can not have SYSTEM scope! Only TENANT and CUSTOMER are available for tenant");
         }
-        if (!customMenuInfo.getTenantId().isSysTenantId() && customMenuInfo.getCustomerId() != null && !customMenuInfo.getCustomerId().isNullUid()
-                && customMenuInfo.getScope() == CMScope.SYSTEM) {
-            throw new DataValidationException("Customer custom menu can have CUSTOMER scope only!");
+        if (customMenuInfo.getCustomerId() != null && !customMenuInfo.getCustomerId().isNullUid() && customMenuInfo.getScope() != CMScope.CUSTOMER) {
+            throw new DataValidationException("Customer custom menu can have CUSTOMER scope only");
         }
         if (customMenuInfo.getTenantId() == null) {
-            throw new DataValidationException("Custom menu should be assigned to tenant!");
-        }
-        if (customMenuInfo.getAssigneeType() == CMAssigneeType.ALL) {
-            CustomMenuInfo defaultCustomMenu = customMenuService.findDefaultCustomMenuByScope(tenantId, customMenuInfo.getCustomerId(), customMenuInfo.getScope());
-            if (defaultCustomMenu != null && !defaultCustomMenu.getId().equals(customMenuInfo.getId())) {
-                throw new DataValidationException("There is already default menu for scope " + customMenuInfo.getScope());
-            }
+            throw new DataValidationException("Custom menu should be assigned to tenant");
         }
     }
 
     @Override
     protected CustomMenuInfo validateUpdate(TenantId tenantId, CustomMenuInfo customMenuInfo) {
-        CustomMenu old =  customMenuService.findCustomMenuById(tenantId, customMenuInfo.getId());
+        CustomMenu old = customMenuService.findCustomMenuById(tenantId, customMenuInfo.getId());
         if (old == null) {
             throw new DataValidationException("Can't update non existing custom menu!");
         }

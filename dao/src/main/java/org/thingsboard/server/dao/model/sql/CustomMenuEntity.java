@@ -38,7 +38,6 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.annotations.Immutable;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuConfig;
@@ -49,7 +48,6 @@ import org.thingsboard.server.dao.util.mapping.JsonConverter;
 @Slf4j
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Immutable
 @Table(name = ModelConstants.CUSTOM_MENU_TABLE_NAME)
 public class CustomMenuEntity extends AbstractCustomMenuEntity<CustomMenu> {
 

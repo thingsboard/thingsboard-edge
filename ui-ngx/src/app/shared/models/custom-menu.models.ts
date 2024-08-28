@@ -168,25 +168,8 @@ export const toCustomMenuDeleteResult = (e?: any): CustomMenuDeleteResult => {
   return result;
 };
 
-export interface CustomMenuAssignResult {
-  success: boolean;
-  oldAssigneeType: CMAssigneeType;
-  oldAssigneeList: EntityInfoData[];
-  error?: any;
-}
-
-export const toCustomMenuAssignResult = (e?: any): CustomMenuAssignResult => {
-  const result = {success: true} as CustomMenuAssignResult;
-  if (e?.status === 400 && e?.error?.success === false && (e?.error?.oldAssigneeType)) {
-    result.success = false;
-    result.oldAssigneeType = e?.error?.oldAssigneeType;
-    result.oldAssigneeList = e?.error?.oldAssigneeList;
-  } else if (e) {
-    result.success = false;
-    result.error = e;
-  }
-  return result;
-};
+export const isDefaultCustomMenuConflict = (e?: any): boolean =>
+  e?.status === 400 && typeof e?.error?.message === 'string' && e?.error?.message.startsWith('There is already default menu for scope');
 
 export const isDefaultMenuItem = (item: MenuItem): item is DefaultMenuItem => {
   const id = (item as DefaultMenuItem).id;

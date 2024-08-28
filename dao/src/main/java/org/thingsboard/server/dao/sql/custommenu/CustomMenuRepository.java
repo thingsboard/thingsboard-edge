@@ -48,11 +48,6 @@ public interface CustomMenuRepository extends JpaRepository<CustomMenuEntity, UU
     CustomMenuEntity findDefaultByTenantIdAndCustomerIdAndScope(@Param("tenantId") UUID tenantId,
                                                                 @Param("customerId") UUID customerId,
                                                                 @Param("scope") CMScope scope);
-    @Modifying
-    @Transactional
-    @Query("UPDATE CustomMenuEntity m SET m.name = :name WHERE m.id = :id")
-    int updateCustomMenuName(@Param("id") UUID id, @Param("name") String menuName);
-
 
     @Transactional
     @Modifying

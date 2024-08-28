@@ -40,13 +40,11 @@ import static org.thingsboard.server.common.data.menu.MenuItemType.HOME;
 
 @Schema
 @Data
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class HomeMenuItem implements MenuItem {
+public class HomeMenuItem extends DefaultMenuItem {
 
-    @Schema(description = "Unique identifier for predefined menu items", example = "home",  accessMode = Schema.AccessMode.READ_ONLY)
-    private String id;
     @Schema(description = "DEFAULT or DASHBOARD. DASHBOARD means default home page presentation changed to refer to dashboard")
     private HomeMenuItemType homeType;
     @Schema(description = "Id of the Dashboard to open, when user clicks the menu item")

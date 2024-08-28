@@ -64,8 +64,8 @@ public class JpaCustomMenuDao extends JpaAbstractDao<CustomMenuEntity, CustomMen
     private CustomMenuInfoRepository customMenuInfoRepository;
 
     @Override
-    public boolean updateCustomMenuName(CustomMenuId customMenuId, String name) {
-        return customMenuRepository.updateCustomMenuName(customMenuId.getId(), name) != 0;
+    public CustomMenuInfo findInfoById(CustomMenuId customMenuId) {
+        return DaoUtil.getData(customMenuInfoRepository.findById(customMenuId.getId()));
     }
 
     @Override

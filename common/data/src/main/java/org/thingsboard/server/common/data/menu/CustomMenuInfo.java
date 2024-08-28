@@ -98,7 +98,7 @@ public class CustomMenuInfo  extends BaseData<CustomMenuId> implements HasTenant
     }
 
     public CustomMenuInfo(CustomMenuInfo customMenuInfo) {
-        super(customMenuInfo.getId());
+        super(customMenuInfo);
         this.tenantId = customMenuInfo.getTenantId();
         this.customerId = customMenuInfo.getCustomerId();
         this.name = customMenuInfo.getName();
