@@ -90,9 +90,7 @@ public class DefaultNotificationSchedulerService extends AbstractPartitionBasedS
 
     @Override
     protected Map<TopicPartitionInfo, List<ListenableFuture<?>>> onAddedPartitions(Set<TopicPartitionInfo> addedPartitions) {
-        PageDataIterable<NotificationRequest> notificationRequests = new PageDataIterable<>(pageLink -> {
-            return notificationRequestService.findScheduledNotificationRequests(pageLink);
-        }, 1000);
+        PageDataIterable<NotificationRequest> notificationRequests = new PageDataIterable<>(notificationRequestService::findScheduledNotificationRequests, 1000);
         for (NotificationRequest notificationRequest : notificationRequests) {
             TopicPartitionInfo requestPartition = partitionService.resolve(ServiceType.TB_CORE, notificationRequest.getTenantId(), notificationRequest.getId());
             if (addedPartitions.contains(requestPartition)) {

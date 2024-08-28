@@ -52,16 +52,14 @@ public class ConverterEdgeProcessor extends BaseEdgeProcessor {
         ConverterId converterId = new ConverterId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-        switch (msgType) {
-            case ENTITY_UPDATED_RPC_MESSAGE:
-                Converter converter = converterService.findConverterById(edgeEvent.getTenantId(), converterId);
-                if (converter != null) {
-                    return DownlinkMsg.newBuilder()
-                            .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addConverterMsg(((ConverterMsgConstructor) converterMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructConverterUpdateMsg(msgType, converter))
-                            .build();
-                }
-                break;
+        if (msgType == UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE) {
+            Converter converter = converterService.findConverterById(edgeEvent.getTenantId(), converterId);
+            if (converter != null) {
+                return DownlinkMsg.newBuilder()
+                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                        .addConverterMsg(((ConverterMsgConstructor) converterMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructConverterUpdateMsg(msgType, converter))
+                        .build();
+            }
         }
         return downlinkMsg;
     }

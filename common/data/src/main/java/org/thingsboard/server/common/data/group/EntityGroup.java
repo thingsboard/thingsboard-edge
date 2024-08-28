@@ -51,6 +51,8 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
+import java.io.Serial;
+
 @Schema
 @Data
 @NoArgsConstructor
@@ -58,6 +60,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class EntityGroup extends BaseData<EntityGroupId> implements HasName, HasOwnerId, ExportableNoTenantIdEntity<EntityGroupId>, HasVersion {
 
+    @Serial
     private static final long serialVersionUID = 2807349040519543363L;
 
     public static final EntityType[] groupTypes = new EntityType[]{

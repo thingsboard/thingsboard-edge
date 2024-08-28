@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.cache;
 
+import org.thingsboard.server.common.data.id.TenantId;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -53,6 +55,8 @@ public interface TbTransactionalCache<K extends Serializable, V extends Serializ
     void evict(Collection<K> keys);
 
     void evictOrPut(K key, V value);
+
+    void evictByPrefix(String prefix);
 
     TbCacheTransaction<K, V> newTransactionForKey(K key);
 
