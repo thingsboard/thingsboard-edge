@@ -217,7 +217,7 @@ const menuItemsIsEqualToReferences = (items: MenuItem[], references: MenuReferen
 };
 
 const menuItemIsEqualToReference = (item: MenuItem, reference: MenuReference): boolean => {
-  if (isDefaultMenuItem(item)) {
+  if (isDefaultMenuItem(item) && item.visible) {
     if (item.id !== reference.id || !!item.name || !!item.icon) {
       return false;
     } else {

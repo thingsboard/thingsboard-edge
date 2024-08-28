@@ -32,7 +32,7 @@
 import { EntityType } from '@shared/models/entity-type.models';
 import { AuthState } from '@core/auth/auth.models';
 import { Authority } from '@shared/models/authority.enum';
-import { deepClone, isNotEmptyStr } from '@core/utils';
+import { deepClone, isDefinedAndNotNull, isNotEmptyStr } from '@core/utils';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import {
@@ -1896,6 +1896,9 @@ export const menuItemToMenuSection = (authState: AuthState,
     if (!filterMenuReference(authState, userPermissionsService, allowedMenuIds, item)) {
       return undefined;
     }
+    if (isDefinedAndNotNull(item.visible) && !item.visible) {
+      return undefined;
+    }
     const section = menuSectionMap.get(item.id);
     const result = deepClone(section);
     if (isNotEmptyStr(item.icon)) {
@@ -1919,6 +1922,9 @@ export const menuItemToMenuSection = (authState: AuthState,
     if (item.pages?.length) {
       result.pages = item.pages.map(page =>
         menuItemToMenuSection(authState, userPermissionsService, allowedMenuIds, customStateIds, page)).filter(page => !!page);
+    }
+    if (result.type === 'toggle' && !result.pages?.length) {
+      return undefined;
     }
     return result;
   } else if (isCustomMenuItem(item)) {
@@ -1968,7 +1974,10 @@ const filterMenuReference = (authState: AuthState, userPermissionsService: UserP
   return true;
 };
 
-const buildCustomMenuSection = (stateIds: {[stateId: string]: boolean}, customMenuItem: CustomMenuItem): MenuSection => {
+const buildCustomMenuSection = (stateIds: {[stateId: string]: boolean}, customMenuItem: CustomMenuItem): MenuSection | undefined => {
+  if (isDefinedAndNotNull(customMenuItem.visible) && !customMenuItem.visible) {
+    return undefined;
+  }
   if (customMenuItem.menuItemType === CMItemType.SECTION &&
       !customMenuItem.pages?.length) {
     return undefined;
@@ -1987,6 +1996,9 @@ const buildCustomMenuSection = (stateIds: {[stateId: string]: boolean}, customMe
     const pages: MenuSection[] = [];
     const childStateIds: {[stateId: string]: boolean} = {};
     for (const customMenuChildItem of customMenuItem.pages) {
+      if (isDefinedAndNotNull(customMenuChildItem.visible) && !customMenuChildItem.visible) {
+        continue;
+      }
       const childStateId = getCustomMenuStateId(customMenuChildItem.name, stateIds);
       const customMenuChildSection: MenuSection = {
         id: childStateId,
@@ -2004,6 +2016,9 @@ const buildCustomMenuSection = (stateIds: {[stateId: string]: boolean}, customMe
       };
       pages.push(customMenuChildSection);
       childStateIds[childStateId] = true;
+    }
+    if (!pages.length) {
+      return undefined;
     }
     customMenuSection.pages = pages;
     customMenuSection.childStateIds = childStateIds;
