@@ -129,7 +129,7 @@ CREATE TABLE IF NOT EXISTS custom_menu (
     created_time bigint NOT NULL,
     tenant_id UUID NOT NULL,
     customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
-    menu_name varchar(255) NOT NULL UNIQUE,
+    menu_name varchar(255) NOT NULL,
     scope VARCHAR(16),
     assignee_type VARCHAR(16),
     settings VARCHAR(10000000)

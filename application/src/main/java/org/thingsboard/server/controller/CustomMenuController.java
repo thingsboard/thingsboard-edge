@@ -45,7 +45,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.server.common.data.CustomMenuAssignResult;
 import org.thingsboard.server.common.data.CustomMenuDeleteResult;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -105,7 +104,7 @@ public class CustomMenuController extends BaseController {
         SecurityUser currentUser = getCurrentUser();
         checkWhiteLabelingPermissions(Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-        return customMenuService.getCustomMenuInfos(currentUser.getTenantId(), getCurrentUser().getCustomerId(), pageLink);
+        return customMenuService.findCustomMenuInfos(currentUser.getTenantId(), getCurrentUser().getCustomerId(), pageLink);
     }
 
     @ApiOperation(value = "Get end-user Custom Menu configuration (getCustomMenu)",
@@ -121,11 +120,11 @@ public class CustomMenuController extends BaseController {
         Authority authority = currentUser.getAuthority();
         CustomMenuConfig customMenuConfig = null;
         if (Authority.SYS_ADMIN.equals(authority)) {
-            customMenuConfig = customMenuService.getSystemAdminCustomMenuConfig();
+            customMenuConfig = customMenuService.findSystemAdminCustomMenuConfig();
         } else if (Authority.TENANT_ADMIN.equals(authority)) {
-            customMenuConfig = customMenuService.getTenantUserCustomMenuConfig(currentUser.getTenantId(), currentUser.getId());
+            customMenuConfig = customMenuService.findTenantUserCustomMenuConfig(currentUser.getTenantId(), currentUser.getId());
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
-            customMenuConfig = customMenuService.getCustomerUserCustomMenuConfig(currentUser.getTenantId(), currentUser.getCustomerId(), currentUser.getId());
+            customMenuConfig = customMenuService.findCustomerUserCustomMenuConfig(currentUser.getTenantId(), currentUser.getCustomerId(), currentUser.getId());
         }
         return customMenuConfig;
     }
@@ -148,10 +147,10 @@ public class CustomMenuController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/customMenu/{customMenuId}/assigneeList")
     public List<EntityInfo> getCustomMenuAssigneeList(@Parameter(description = CUSTOM_MENU_ID_PARAM_DESCRIPTION)
-                                                        @PathVariable(CUSTOM_MENU_ID) UUID id) throws ThingsboardException {
+                                                      @PathVariable(CUSTOM_MENU_ID) UUID id) throws ThingsboardException {
         CustomMenuId customMenuId = new CustomMenuId(id);
         CustomMenuInfo customMenuInfo = checkCustomMenuInfoId(customMenuId, Operation.READ);
-        return customMenuService.getCustomMenuAssigneeList(customMenuInfo);
+        return customMenuService.findCustomMenuAssigneeList(customMenuInfo);
     }
 
     @ApiOperation(value = "Get Custom Menu configuration by id (getCustomMenuConfig)",
@@ -171,14 +170,14 @@ public class CustomMenuController extends BaseController {
     )
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PutMapping(value = "/customMenu/{customMenuId}/config")
-    public CustomMenu updateCustomMenuConfig(@Parameter(description = "A JSON value representing the custom menu configuration")
-                                             @RequestBody CustomMenuConfig customMenuConfig,
-                                             @Parameter(description = CUSTOM_MENU_ID_PARAM_DESCRIPTION)
-                                             @PathVariable(CUSTOM_MENU_ID) UUID id) throws ThingsboardException {
+    public CustomMenu updateCustomMenuConfig(@Parameter(description = CUSTOM_MENU_ID_PARAM_DESCRIPTION)
+                                             @PathVariable(CUSTOM_MENU_ID) UUID id,
+                                             @Parameter(description = "A JSON value representing the custom menu configuration")
+                                             @RequestBody CustomMenuConfig customMenuConfig) throws ThingsboardException {
         CustomMenuId customMenuId = new CustomMenuId(id);
         CustomMenu customMenu = checkNotNull(checkCustomMenuId(customMenuId, Operation.WRITE));
         customMenu.setConfig(customMenuConfig);
-        return customMenuService.updateCustomMenu(customMenu);
+        return customMenuService.updateCustomMenu(customMenu, null, false);
     }
 
     @ApiOperation(value = "Update Custom Menu name (updateCustomMenuName)",
@@ -188,10 +187,12 @@ public class CustomMenuController extends BaseController {
     @PutMapping(value = "/customMenu/{customMenuId}/name")
     public void updateCustomMenuName(@Parameter(description = CUSTOM_MENU_ID_PARAM_DESCRIPTION)
                                      @PathVariable(CUSTOM_MENU_ID) UUID id,
+                                     @Parameter(description = "New name of custom menu")
                                      @RequestBody String name) throws ThingsboardException {
         CustomMenuId customMenuId = new CustomMenuId(id);
-        checkNotNull(checkCustomMenuId(customMenuId, Operation.WRITE));
-        customMenuService.updateCustomMenuName(customMenuId, name);
+        CustomMenu customMenu = checkNotNull(checkCustomMenuId(customMenuId, Operation.WRITE));
+        customMenu.setName(name);
+        customMenuService.updateCustomMenu(customMenu, null, false);
     }
 
     @ApiOperation(value = "Create Custom Menu (saveCustomMenu)",
@@ -200,19 +201,26 @@ public class CustomMenuController extends BaseController {
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping(value = "/customMenu")
     public CustomMenu saveCustomMenu(
-            @Parameter(description = "A JSON value representing the custom menu basic info fields")
-            @RequestBody CustomMenuInfo customMenuInfo,
             @Parameter(description = "A list of entity ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
-            @RequestParam(name = "assignToList", required = false) UUID[] ids) throws ThingsboardException {
+            @RequestParam(name = "assignToList", required = false) UUID[] ids,
+            @Parameter(description = "Use force if you want to override existing default menu with new one (old one will be update NO_ASSIGN assignee type)")
+            @RequestParam(name = "force", required = false) boolean force,
+            @Parameter(description = "A JSON value representing the custom menu basic info fields")
+            @RequestBody CustomMenuInfo customMenuInfo) throws ThingsboardException {
         SecurityUser currentUser = getCurrentUser();
-        if (customMenuInfo.getId() != null) {
-            throw new IllegalArgumentException("Update is unsupported");
-        }
-        checkWhiteLabelingPermissions(Operation.WRITE);
         customMenuInfo.setTenantId(currentUser.getTenantId());
         customMenuInfo.setCustomerId(currentUser.getCustomerId());
         List<EntityId> assignToList = getAssignToList(customMenuInfo.getAssigneeType(), ids);
-        return customMenuService.createCustomMenu(customMenuInfo, assignToList);
+
+        CustomMenu customMenu;
+        if (customMenuInfo.getId() == null) {
+            checkWhiteLabelingPermissions(Operation.WRITE);
+            customMenu = customMenuService.createCustomMenu(customMenuInfo, assignToList, force);
+        } else {
+            customMenu = checkCustomMenuId(customMenuInfo.getId(), Operation.WRITE);
+            customMenu = customMenuService.updateCustomMenu(customMenu, assignToList, force);
+        }
+        return customMenu;
     }
 
     @ApiOperation(value = "Update custom menu assignee list (assignCustomMenu)",
@@ -220,15 +228,15 @@ public class CustomMenuController extends BaseController {
                     ControllerConstants.CUSTOM_MENU_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PutMapping(value = "/customMenu/{id}/assign/{assigneeType}")
-    public ResponseEntity<CustomMenuAssignResult> assignCustomMenu(@PathVariable("id") UUID id,
-                                                                   @PathVariable("assigneeType") CMAssigneeType assigneeType,
-                                                                   @RequestBody(required = false) UUID[] entityIds,
-                                                                   @RequestParam(name = "force", required = false) boolean force) throws ThingsboardException {
+    public void assignCustomMenu(@PathVariable("id") UUID id,
+                                                             @PathVariable("assigneeType") CMAssigneeType assigneeType,
+                                                             @Parameter(description = "Use force if you want to change assignee type and cleanup old assignees")
+                                                                   @RequestParam(name = "force", required = false) boolean force,
+                                                             @RequestBody(required = false) UUID[] entityIds) throws ThingsboardException {
         CustomMenuId customMenuId = new CustomMenuId(id);
-        checkCustomMenuInfoId(customMenuId, Operation.WRITE);
+        CustomMenu customMenu = checkCustomMenuId(customMenuId, Operation.WRITE);
         List<EntityId> assignToList = getAssignToList(assigneeType, entityIds);
-        CustomMenuAssignResult result = customMenuService.assignCustomMenu(getTenantId(), customMenuId, assigneeType, assignToList, force);
-        return (result.isSuccess() ? ResponseEntity.ok() : ResponseEntity.status(CONFLICT)).body(result);
+        customMenuService.updateAssigneeList(customMenu, assigneeType, assignToList, force);
     }
 
     @ApiOperation(value = "Delete custom menu (deleteCustomMenu)",
@@ -239,10 +247,11 @@ public class CustomMenuController extends BaseController {
     @DeleteMapping(value = "/customMenu/{customMenuId}")
     public ResponseEntity<CustomMenuDeleteResult> deleteCustomMenu(@Parameter(required = true, description = CUSTOM_MENU_ID_PARAM_DESCRIPTION)
                                                                    @PathVariable(CUSTOM_MENU_ID) UUID id,
+                                                                   @Parameter(description = "Force set to true will unassign menu before deletion")
                                                                    @RequestParam(name = "force", required = false) boolean force) throws ThingsboardException {
         CustomMenuId customMenuId = new CustomMenuId(id);
-        checkCustomMenuId(customMenuId, Operation.DELETE);
-        CustomMenuDeleteResult result = customMenuService.deleteCustomMenu(getTenantId(), customMenuId, force);
+        CustomMenu customMenu = checkNotNull(checkCustomMenuId(customMenuId, Operation.DELETE));
+        CustomMenuDeleteResult result = customMenuService.deleteCustomMenu(customMenu, force);
         return (result.isSuccess() ? ResponseEntity.ok() : ResponseEntity.status(CONFLICT)).body(result);
     }
 

@@ -32,10 +32,13 @@ package org.thingsboard.server.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMItemLinkType;
 import org.thingsboard.server.common.data.menu.CMItemType;
@@ -47,97 +50,356 @@ import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.menu.DefaultMenuItem;
 import org.thingsboard.server.common.data.menu.HomeMenuItem;
 import org.thingsboard.server.common.data.menu.HomeMenuItemType;
+import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.dao.menu.CustomMenuDao;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
 @DaoSqlTest
 public class CustomMenuControllerTest extends AbstractControllerTest {
 
+    @Autowired
+    private CustomMenuDao customMenuDao;
+
+    protected static final String SECOND_TENANT_ADMIN_EMAIL = "secondtesttenant@thingsboard.org";
+    protected static final String CUSTOMER_B_USER_EMAIL = "testcustomerB@thingsboard.org";
+    protected static final String CUSTOMER_B_USER_PASSWORD = "customerB";
+
+    private static CustomMenu systemSystemMenu;
+    private static CustomMenu systemTenantMenu;
+    private static CustomMenu systemCustomerMenu;
+    private static List<UUID> idsToRemove = new ArrayList<>();
+    protected User secondTenantAdminUser;
+
     @Before
     public void setup() throws Exception {
         loginSysAdmin();
-        // create system default menu
-        CustomMenuInfo systemMenu = new CustomMenuInfo();
-        systemMenu.setName("System Menu");
-        systemMenu.setScope(CMScope.SYSTEM);
-        systemMenu.setAssigneeType(CMAssigneeType.ALL);
+        systemSystemMenu = doPost("/api/customMenu", createDefaultCustomMenu("System Menu", CMScope.SYSTEM), CustomMenu.class);
+        idsToRemove.add(systemSystemMenu.getUuidId());
+        systemTenantMenu = doPost("/api/customMenu", createDefaultCustomMenu("Tenant Menu", CMScope.TENANT), CustomMenu.class);
+        idsToRemove.add(systemTenantMenu.getUuidId());
+        systemCustomerMenu = doPost("/api/customMenu", createDefaultCustomMenu("Customer Menu", CMScope.CUSTOMER), CustomMenu.class);
+        idsToRemove.add(systemCustomerMenu.getUuidId());
 
-        doPost("/api/customMenu", systemMenu);
+        loginTenantAdmin();
+        secondTenantAdminUser = new User();
+        secondTenantAdminUser.setAuthority(Authority.TENANT_ADMIN);
+        secondTenantAdminUser.setTenantId(tenantId);
+        secondTenantAdminUser.setEmail(SECOND_TENANT_ADMIN_EMAIL);
+        secondTenantAdminUser = createUser(secondTenantAdminUser, TENANT_ADMIN_PASSWORD);
 
-        // create tenant default menu
-        CustomMenuInfo tenantMenu = new CustomMenuInfo();
-        tenantMenu.setName("Tenant Menu");
-        tenantMenu.setScope(CMScope.TENANT);
-        tenantMenu.setAssigneeType(CMAssigneeType.ALL);
+        Customer customerB = new Customer();
+        customerB.setTitle("Customer B");
+        customerB.setTenantId(tenantId);
+        Customer savedCustomer = doPost("/api/customer", customerB, Customer.class);
 
-        doPost("/api/customMenu", tenantMenu);
-
-        // create customer default menu
-        CustomMenuInfo customerMenu = new CustomMenuInfo();
-        customerMenu.setName("Tenant Menu");
-        customerMenu.setScope(CMScope.CUSTOMER);
-        customerMenu.setAssigneeType(CMAssigneeType.ALL);
-
-        doPost("/api/customMenu", tenantMenu);
+        User customerUser = new User();
+        customerUser.setAuthority(Authority.CUSTOMER_USER);
+        customerUser.setTenantId(tenantId);
+        customerUser.setCustomerId(savedCustomer.getId());
+        customerUser.setEmail(CUSTOMER_B_USER_EMAIL);
+        createUser(customerUser, CUSTOMER_B_USER_PASSWORD);
     }
 
     @After
     public void teardown() throws Exception {
+        customMenuDao.removeAllByIds(idsToRemove);
+        idsToRemove = new ArrayList<>();
     }
 
     @Test
-    public void testDefaultMenu() throws Exception {
+    public void testCreateAndUpdateTenantMenu() throws Exception {
         loginTenantAdmin();
-        checkDefaultMenu(CMScope.TENANT, "myHomeDashboard" + RandomStringUtils.randomAlphabetic(5),
-                "my tenants " + RandomStringUtils.randomAlphabetic(5),
-                "testUrl"+ RandomStringUtils.randomAlphabetic(5));
 
-        loginCustomerAdminUser();
-        checkDefaultMenu(CMScope.CUSTOMER, "myHomeDashboard" + RandomStringUtils.randomAlphabetic(5),
-                "my tenants " + RandomStringUtils.randomAlphabetic(5),
-                "my new item "+ RandomStringUtils.randomAlphabetic(5));
+        CustomMenu tenantMenu = new CustomMenu();
+        tenantMenu.setName(RandomStringUtils.randomAlphabetic(10));
+        tenantMenu.setScope(CMScope.TENANT);
+        tenantMenu.setAssigneeType(CMAssigneeType.USERS);
+        tenantMenu = doPost("/api/customMenu", tenantMenu, CustomMenu.class);
+        idsToRemove.add(tenantMenu.getUuidId());
 
-        loginSubCustomerAdminUser();
-        checkDefaultMenu(CMScope.CUSTOMER, "myHomeDashboard" + RandomStringUtils.randomAlphabetic(5),
-                "my tenants " + RandomStringUtils.randomAlphabetic(5),
-                "my new item "+ RandomStringUtils.randomAlphabetic(5));
+        // get by id
+        CustomMenuInfo retrieved = doGet("/api/customMenu/" + tenantMenu.getId() + "/info", CustomMenuInfo.class);
+        assertThat(retrieved).isEqualTo(new CustomMenuInfo(tenantMenu));
+
+        //update name
+        String newName = "new custom menu name";
+        doPut("/api/customMenu/" + tenantMenu.getId() + "/name", newName);
+        CustomMenuInfo retrievedAfterUpdate = doGet("/api/customMenu/" + tenantMenu.getId() + "/info", CustomMenuInfo.class);
+        tenantMenu.setName(newName);
+        assertThat(retrievedAfterUpdate).isEqualTo(new CustomMenuInfo(tenantMenu));
     }
 
-    private void checkDefaultMenu(CMScope scope, String homeMenuItemDashboard, String defaultMenuItemName, String customMenuItemUrl) throws Exception {
-        CustomMenuInfo customMenu = new CustomMenuInfo();
-        customMenu.setName("Tenant Menu");
-        customMenu.setScope(scope);
-        customMenu.setAssigneeType(CMAssigneeType.ALL);
-        CustomMenu savedMenu = doPost("/api/customMenu", customMenu, CustomMenu.class);
+    @Test
+    public void testDefaultCustomerMenuHierarchy() throws Exception {
+        loginTenantAdmin();
+        CustomMenuInfo tenantDefaultMenu = createDefaultCustomMenu("Tenant level customer menu ", CMScope.CUSTOMER);
+        tenantDefaultMenu = doPost("/api/customMenu", tenantDefaultMenu, CustomMenu.class);
 
-        //put configuration
+        CustomMenuConfig tenantMenuConfig = putRandomMenuConfig(tenantDefaultMenu.getId());
+
+        loginCustomerAdminUser();
+        CustomMenuInfo customerDefaultMenu = createDefaultCustomMenu("Test customer menu", CMScope.CUSTOMER);
+        customerDefaultMenu = doPost("/api/customMenu", customerDefaultMenu, CustomMenu.class);
+
+        CustomMenuConfig customerDefaultConfig = putRandomMenuConfig(customerDefaultMenu.getId());
+        CustomMenuConfig currentCustomerMenu = doGet("/api/customMenu", CustomMenuConfig.class);
+        assertThat(currentCustomerMenu).isEqualTo(customerDefaultConfig);
+
+        loginSubCustomerAdminUser();
+        CustomMenuInfo subCustomerMenu = createDefaultCustomMenu("Test subcustomer menu", CMScope.CUSTOMER);
+        subCustomerMenu = doPost("/api/customMenu", subCustomerMenu, CustomMenu.class);
+
+        CustomMenuConfig subCustomerDefaultConfig = putRandomMenuConfig(subCustomerMenu.getId());
+        CustomMenuConfig currentSubCustomerMenu = doGet("/api/customMenu", CustomMenuConfig.class);
+        assertThat(currentSubCustomerMenu).isEqualTo(subCustomerDefaultConfig);
+
+        // delete subcustomer default menu
+        doDelete("/api/customMenu/" + subCustomerMenu.getId());
+        CustomMenuConfig currentSubCustomerMenu2 = doGet("/api/customMenu", CustomMenuConfig.class);
+        assertThat(currentSubCustomerMenu2).isEqualTo(customerDefaultConfig);
+
+        loginCustomerAdminUser();
+        // delete customer default menu
+        doDelete("/api/customMenu/" + customerDefaultMenu.getId());
+
+        CustomMenuConfig currentCustomerMenu2 = doGet("/api/customMenu", CustomMenuConfig.class);
+        assertThat(currentCustomerMenu2).isEqualTo(tenantMenuConfig);
+
+        loginTenantAdmin();
+        // delete tenant default menu
+        doDelete("/api/customMenu/" + tenantDefaultMenu.getId());
+        String currentTenantMenu2 = doGet("/api/customMenu", String.class);
+        assertThat(currentTenantMenu2).isEmpty();
+    }
+
+    @Test
+    public void testOverrideTenantDefaultMenu() throws Exception {
+        loginTenantAdmin();
+        CustomMenuInfo tenantDefaultMenu = createDefaultCustomMenu("Test tenant menu", CMScope.TENANT);
+        tenantDefaultMenu = doPost("/api/customMenu", tenantDefaultMenu, CustomMenu.class);
+        idsToRemove.add(tenantDefaultMenu.getUuidId());
+
+        CustomMenuInfo newTenantDefaultMenu = createDefaultCustomMenu("Test tenant menu2", CMScope.TENANT);
+        String errorMessage = getErrorMessage(doPost("/api/customMenu", newTenantDefaultMenu)
+                .andExpect(status().isConflict()));
+        assertThat(errorMessage).isEqualTo("There is already default menu for scope TENANT");
+
+        CustomMenu newDefaultCustomMenu = doPost("/api/customMenu?force=true", newTenantDefaultMenu, CustomMenu.class);
+        assertThat(newDefaultCustomMenu.getAssigneeType()).isEqualTo(CMAssigneeType.ALL);
+
+        CustomMenu updatedMenu = doGet("/api/customMenu/" + tenantDefaultMenu.getId() + "/info", CustomMenu.class);
+        assertThat(updatedMenu.getAssigneeType()).isEqualTo(CMAssigneeType.NO_ASSIGN);
+    }
+
+    @Test
+    public void testShouldNotDeleteSystemDefaultMenu() throws Exception {
+        loginSysAdmin();
+        String errorMessage = getErrorMessage(doDelete("/api/customMenu/" + systemSystemMenu.getId())
+                .andExpect(status().isBadRequest()));
+        assertThat(errorMessage).isEqualTo("System default menu can not be deleted");
+
+        errorMessage = getErrorMessage(doDelete("/api/customMenu/" + systemTenantMenu.getId())
+                .andExpect(status().isBadRequest()));
+        assertThat(errorMessage).isEqualTo("System default menu can not be deleted");
+
+        errorMessage = getErrorMessage(doDelete("/api/customMenu/" + systemCustomerMenu.getId())
+                .andExpect(status().isBadRequest()));
+        assertThat(errorMessage).isEqualTo("System default menu can not be deleted");
+    }
+
+    @Test
+    public void testCreateTenantMenuWithUserList() throws Exception {
+        loginTenantAdmin();
+
+        CustomMenu defaultTenantMenu = new CustomMenu();
+        defaultTenantMenu.setName(RandomStringUtils.randomAlphabetic(10));
+        defaultTenantMenu.setScope(CMScope.TENANT);
+        defaultTenantMenu.setAssigneeType(CMAssigneeType.ALL);
+        defaultTenantMenu = doPost("/api/customMenu", defaultTenantMenu, CustomMenu.class);
+        idsToRemove.add(defaultTenantMenu.getUuidId());
+
+        CustomMenuConfig defaultTenantMenuConfig = putRandomMenuConfig(defaultTenantMenu.getId());
+
+        CustomMenu menuForSpecificUsers = new CustomMenu();
+        menuForSpecificUsers.setName(RandomStringUtils.randomAlphabetic(10));
+        menuForSpecificUsers.setScope(CMScope.TENANT);
+        menuForSpecificUsers.setAssigneeType(CMAssigneeType.USERS);
+
+        menuForSpecificUsers = doPost("/api/customMenu?assignToList=" + tenantAdminUserId, menuForSpecificUsers, CustomMenu.class);
+        idsToRemove.add(menuForSpecificUsers.getUuidId());
+        CustomMenuConfig tenantMenuConfig = putRandomMenuConfig(menuForSpecificUsers.getId());
+
+        CustomMenuConfig currentMenu = doGet("/api/customMenu", CustomMenuConfig.class);
+        assertThat(currentMenu).isEqualTo(tenantMenuConfig);
+
+        loginUser(SECOND_TENANT_ADMIN_EMAIL, TENANT_ADMIN_PASSWORD);
+        CustomMenuConfig secondTenantAdminCurrentMenu = doGet("/api/customMenu", CustomMenuConfig.class);
+        assertThat(secondTenantAdminCurrentMenu).isEqualTo(defaultTenantMenuConfig);
+    }
+
+    @Test
+    public void testShouldNotCreateTenantMenuWithCustomersAssigneeType() throws Exception {
+        loginTenantAdmin();
+
+        CustomMenu tenantMenu = new CustomMenu();
+        tenantMenu.setName(RandomStringUtils.randomAlphabetic(10));
+        tenantMenu.setScope(CMScope.TENANT);
+        tenantMenu.setAssigneeType(CMAssigneeType.CUSTOMERS);
+        String errorMessage = getErrorMessage(doPost("/api/customMenu", tenantMenu)
+                .andExpect(status().isBadRequest()));
+        assertThat(errorMessage).isEqualTo("Tenant custom menu can not be assigned to customers");
+    }
+
+    @Test
+    public void testCreateCustomerMenuWithUserList() throws Exception {
+        loginTenantAdmin();
+
+        CustomMenu defaultCustomerMenu = new CustomMenu();
+        defaultCustomerMenu.setName(RandomStringUtils.randomAlphabetic(10));
+        defaultCustomerMenu.setScope(CMScope.CUSTOMER);
+        defaultCustomerMenu.setAssigneeType(CMAssigneeType.ALL);
+        defaultCustomerMenu = doPost("/api/customMenu", defaultCustomerMenu, CustomMenu.class);
+        idsToRemove.add(defaultCustomerMenu.getUuidId());
+        CustomMenuConfig defaultCustomerMenuConfig = putRandomMenuConfig(defaultCustomerMenu.getId());
+
+        CustomMenu menuForSpecificUsers = new CustomMenu();
+        menuForSpecificUsers.setName(RandomStringUtils.randomAlphabetic(10));
+        menuForSpecificUsers.setScope(CMScope.CUSTOMER);
+        menuForSpecificUsers.setAssigneeType(CMAssigneeType.USERS);
+
+        menuForSpecificUsers = doPost("/api/customMenu?assignToList=" + customerUserId, menuForSpecificUsers, CustomMenu.class);
+        idsToRemove.add(menuForSpecificUsers.getUuidId());
+        CustomMenuConfig customerMenuConfig = putRandomMenuConfig(menuForSpecificUsers.getId());
+
+        loginCustomerUser();
+        CustomMenuConfig customerUserMenu = doGet("/api/customMenu", CustomMenuConfig.class);
+        assertThat(customerUserMenu).isEqualTo(customerMenuConfig);
+
+        loginCustomerAdminUser();
+        CustomMenuConfig currentMenu = doGet("/api/customMenu", CustomMenuConfig.class);
+        assertThat(currentMenu).isEqualTo(defaultCustomerMenuConfig);
+    }
+
+    @Test
+    public void testCreateCustomerMenuWithCustomerList() throws Exception {
+        loginTenantAdmin();
+
+        CustomMenu defaultCustomerMenu = new CustomMenu();
+        defaultCustomerMenu.setName(RandomStringUtils.randomAlphabetic(10));
+        defaultCustomerMenu.setScope(CMScope.CUSTOMER);
+        defaultCustomerMenu.setAssigneeType(CMAssigneeType.ALL);
+        defaultCustomerMenu = doPost("/api/customMenu", defaultCustomerMenu, CustomMenu.class);
+        idsToRemove.add(defaultCustomerMenu.getUuidId());
+        CustomMenuConfig defaultCustomerMenuConfig = putRandomMenuConfig(defaultCustomerMenu.getId());
+
+        CustomMenu menuForSpecificCustomer = new CustomMenu();
+        menuForSpecificCustomer.setName(RandomStringUtils.randomAlphabetic(10));
+        menuForSpecificCustomer.setScope(CMScope.CUSTOMER);
+        menuForSpecificCustomer.setAssigneeType(CMAssigneeType.CUSTOMERS);
+
+        menuForSpecificCustomer = doPost("/api/customMenu?assignToList=" + customerId, menuForSpecificCustomer, CustomMenu.class);
+        idsToRemove.add(menuForSpecificCustomer.getUuidId());
+        CustomMenuConfig customerMenuConfig = putRandomMenuConfig(menuForSpecificCustomer.getId());
+
+        loginCustomerUser();
+        CustomMenuConfig customerUserMenu = doGet("/api/customMenu", CustomMenuConfig.class);
+        assertThat(customerUserMenu).isEqualTo(customerMenuConfig);
+
+        login(CUSTOMER_B_USER_EMAIL, CUSTOMER_B_USER_PASSWORD);
+        CustomMenuConfig currentMenu = doGet("/api/customMenu", CustomMenuConfig.class);
+        assertThat(currentMenu).isEqualTo(defaultCustomerMenuConfig);
+    }
+
+    @Test
+    public void testAssignTenantMenu() throws Exception {
+        loginTenantAdmin();
+
+        CustomMenu tenantMenu = new CustomMenu();
+        tenantMenu.setName(RandomStringUtils.randomAlphabetic(10));
+        tenantMenu.setScope(CMScope.TENANT);
+        tenantMenu.setAssigneeType(CMAssigneeType.USERS);
+
+        tenantMenu = doPost("/api/customMenu", tenantMenu, CustomMenu.class);
+        idsToRemove.add(tenantMenu.getUuidId());
+        CustomMenuConfig tenantMenuConfig = putRandomMenuConfig(tenantMenu.getId());
+
+        doPut("/api/customMenu/" + tenantMenu.getId() + "/assign/USERS", List.of(tenantAdminUserId.getId()));
+        CustomMenuConfig currentMenu = doGet("/api/customMenu", CustomMenuConfig.class);
+        assertThat(currentMenu).isEqualTo(tenantMenuConfig);
+
+        //change assignee to CUSTOMERS
+        doPut("/api/customMenu/" + tenantMenu.getId() + "/assign/NO_ASSIGN", List.of());
+        String currentMenuAfterUpdate = doGet("/api/customMenu", String.class);
+        assertThat(currentMenuAfterUpdate).isEmpty();
+    }
+
+    @Test
+    public void testAssignCustomerMenu() throws Exception {
+        loginTenantAdmin();
+
+        CustomMenu customerMenu = new CustomMenu();
+        customerMenu.setName(RandomStringUtils.randomAlphabetic(10));
+        customerMenu.setScope(CMScope.CUSTOMER);
+        customerMenu.setAssigneeType(CMAssigneeType.USERS);
+
+        customerMenu = doPost("/api/customMenu", customerMenu, CustomMenu.class);
+        idsToRemove.add(customerMenu.getUuidId());
+        CustomMenuConfig tenantMenuConfig = putRandomMenuConfig(customerMenu.getId());
+
+        doPut("/api/customMenu/" + customerMenu.getId() + "/assign/USERS", List.of(customerUserId.getId()));
+        loginCustomerUser();
+        CustomMenuConfig currentMenu = doGet("/api/customMenu", CustomMenuConfig.class);
+        assertThat(currentMenu).isEqualTo(tenantMenuConfig);
+
+        //change assignee to CUSTOMERS
+        loginTenantAdmin();
+        doPut("/api/customMenu/" + customerMenu.getId() + "/assign/NO_ASSIGN", List.of());
+
+        loginCustomerUser();
+        String currentMenuAfterUpdate = doGet("/api/customMenu", String.class);
+        assertThat(currentMenuAfterUpdate).isEmpty();
+    }
+
+    private CustomMenuConfig putRandomMenuConfig(CustomMenuId customMenuId) throws Exception {
         HomeMenuItem homeMenuItem = new HomeMenuItem();
         homeMenuItem.setId("home");
         homeMenuItem.setHomeType(HomeMenuItemType.DASHBOARD);
-        homeMenuItem.setDashboardId(homeMenuItemDashboard);
+        homeMenuItem.setDashboardId(RandomStringUtils.randomAlphabetic(10));
 
         DefaultMenuItem defaultMenuItem = new DefaultMenuItem();
-        defaultMenuItem.setId("tenants");
-        defaultMenuItem.setName(defaultMenuItemName);
+        defaultMenuItem.setId("users");
+        defaultMenuItem.setName(RandomStringUtils.randomAlphabetic(10));
         defaultMenuItem.setVisible(true);
 
         CustomMenuItem customMenuItem = new CustomMenuItem();
         customMenuItem.setName("Mu new menu item");
         customMenuItem.setMenuItemType(CMItemType.LINK);
         customMenuItem.setLinkType(CMItemLinkType.URL);
-        customMenuItem.setUrl(customMenuItemUrl);
+        customMenuItem.setUrl(RandomStringUtils.randomAlphabetic(10));
         customMenuItem.setIcon("icon");
         customMenuItem.setVisible(true);
 
         CustomMenuConfig customMenuConfig = new CustomMenuConfig();
         customMenuConfig.setItems(List.of(homeMenuItem, defaultMenuItem, customMenuItem));
 
-        doPut("/api/customMenu/" + savedMenu.getId() + "/config", customMenuConfig);
+        doPut("/api/customMenu/" + customMenuId.getId() + "/config", customMenuConfig);
+        return customMenuConfig;
+    }
 
-        CustomMenuConfig currentTenantMenu = doGet("/api/customMenu", CustomMenuConfig.class);
-        Assert.assertEquals(customMenuConfig, currentTenantMenu);
+    private static CustomMenu createDefaultCustomMenu(String name, CMScope scope) {
+        CustomMenu customMenu = new CustomMenu();
+        customMenu.setName(name);
+        customMenu.setScope(scope);
+        customMenu.setAssigneeType(CMAssigneeType.ALL);
+        return customMenu;
     }
 
 }
