@@ -31,16 +31,5 @@
 package org.thingsboard.server.service.converter;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
-import java.util.List;
-import java.util.Set;
-
-@Data
-@AllArgsConstructor
-public class TbVendorsIntegration {
-    private JsonNode treeNodes;
-    private List treeList;
-    private Set filtersSet;
-}
+public record Model(String name, JsonNode info, String photo) {}

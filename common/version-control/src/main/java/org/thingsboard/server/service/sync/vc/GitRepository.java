@@ -36,6 +36,7 @@ import com.google.common.collect.Streams;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -248,34 +249,46 @@ public class GitRepository {
         return iterableToPageData(commits, this::toCommit, pageLink, revCommitComparatorFunction);
     }
 
-    public List<String> listFilesAtCommit(String commitId) throws IOException {
-        return listFilesAtCommit(commitId, null);
+    public List<String> listAllFilesAtCommit(String commitId) {
+        return listAllFilesAtCommit(commitId, null);
     }
 
-    public List<String> listFilesAtCommit(String commitId, String path) throws IOException {
+    public List<String> listAllFilesAtCommit(String commitId, String path) {
+        log.debug("Executing listAllFilesAtCommit [{}][{}][{}]", settings.getRepositoryUri(), commitId, path);
+        return listFilesAtCommit(commitId, path, -1).stream().map(RepoFile::path).toList();
+    }
+
+    @SneakyThrows
+    public List<RepoFile> listFilesAtCommit(String commitId, String path, int depth) {
         log.debug("Executing listFilesAtCommit [{}][{}][{}]", settings.getRepositoryUri(), commitId, path);
-        List<String> files = new ArrayList<>();
+        List<RepoFile> files = new ArrayList<>();
         RevCommit revCommit = resolveCommit(commitId);
         try (TreeWalk treeWalk = new TreeWalk(git.getRepository())) {
             treeWalk.reset(revCommit.getTree().getId());
             if (StringUtils.isNotEmpty(path)) {
                 treeWalk.setFilter(PathFilter.create(path));
             }
-            treeWalk.setRecursive(true);
+            boolean fixedDepth = depth != -1;
+            treeWalk.setRecursive(!fixedDepth);
             while (treeWalk.next()) {
-                files.add(treeWalk.getPathString());
+                if (!fixedDepth || treeWalk.getDepth() == depth) {
+                    files.add(new RepoFile(treeWalk.getPathString(), treeWalk.getNameString(), treeWalk.isSubtree()));
+                }
+                if (fixedDepth && treeWalk.getDepth() < depth) {
+                    treeWalk.enterSubtree();
+                }
             }
         }
         return files;
     }
 
-
-    public String getFileContentAtCommit(String file, String commitId) throws IOException {
+    @SneakyThrows
+    public String getFileContentAtCommit(String file, String commitId) {
         log.debug("Executing getFileContentAtCommit [{}][{}][{}]", settings.getRepositoryUri(), commitId, file);
         RevCommit revCommit = resolveCommit(commitId);
         try (TreeWalk treeWalk = TreeWalk.forPath(git.getRepository(), file, revCommit.getTree())) {
             if (treeWalk == null) {
-                throw new IllegalArgumentException("File not found");
+                throw new IllegalArgumentException("File " + file + " not found");
             }
             ObjectId blobId = treeWalk.getObjectId(0);
             try (ObjectReader objectReader = git.getRepository().newObjectReader()) {
@@ -598,5 +611,7 @@ public class GitRepository {
         private String fileContentAtCommit2;
         private String diffStringValue;
     }
+
+    public record RepoFile(String path, String name, boolean isDirectory) {}
 
 }
