@@ -14,9 +14,6 @@
 -- limitations under the License.
 --
 
-CREATE INDEX IF NOT EXISTS idx_cloud_event_tenant_id_entity_id_event_type_event_action_crt ON cloud_event
-    (tenant_id, entity_id, cloud_event_type, cloud_event_action, created_time DESC);
-
 -- KV VERSIONING UPDATE START
 
 CREATE SEQUENCE IF NOT EXISTS attribute_kv_version_seq cache 1;
@@ -54,7 +51,7 @@ ALTER TABLE tenant ADD COLUMN IF NOT EXISTS version BIGINT DEFAULT 1;
 
 -- ENTITIES VERSIONING UPDATE END
 
--- edge-only: create new ts_kv_cloud_event table schema
+-- EDGE RELATED
 
 CREATE TABLE IF NOT EXISTS ts_kv_cloud_event (
     seq_id INT GENERATED ALWAYS AS IDENTITY,
@@ -75,4 +72,7 @@ CREATE INDEX IF NOT EXISTS idx_ts_kv_cloud_event_tenant_id_and_created_time ON t
 CREATE INDEX IF NOT EXISTS idx_ts_kv_cloud_event_tenant_id_entity_id_event_type_event_action_crt ON ts_kv_cloud_event
     (tenant_id, entity_id, cloud_event_type, cloud_event_action, created_time DESC);
 
--- edge-only: create new ts_kv_cloud_event table schema end
+CREATE INDEX IF NOT EXISTS idx_cloud_event_tenant_id_entity_id_event_type_event_action_crt ON cloud_event
+    (tenant_id, entity_id, cloud_event_type, cloud_event_action, created_time DESC);
+
+-- EDGE RELATED END
