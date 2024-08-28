@@ -30,42 +30,18 @@
  */
 package org.thingsboard.server.service.converter;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class TbFileNode {
-    private String name;
-    private String path;
-    private boolean isDirectory;
-    private List<TbFileNode> children;
+public interface ConverterLibraryService {
 
-    public TbFileNode(String name, String path, boolean isDirectory) {
-        this.name = name;
-        this.path = path;
-        this.isDirectory = isDirectory;
-        this.children = new ArrayList<>();
-    }
+    List<Vendor> getVendors(String integrationType);
 
-    // Getters and setters...
+    List<Model> getVendorModels(String integrationType, String vendorName);
 
-    public void addChild(TbFileNode child) {
-        this.children.add(child);
-    }
+    String getConverter(String integrationType, String converterType, String vendorName, String model);
 
-    public List<TbFileNode> getChildren() {
-        return children;
-    }
+    String getConverterMetadata(String integrationType, String converterType, String vendorName, String model);
 
-    public String getName() {
-        return name;
-    }
+    String getPayload(String integrationType, String converterType, String vendorName, String model);
 
-    public String getPath() {
-        return path;
-    }
-
-    public boolean isDirectory() {
-        return isDirectory;
-    }
 }
-

@@ -555,8 +555,13 @@ integrations:
     # - 'ALL': All activity events in the reporting period are reported.
     reporting_strategy: "${INTEGRATIONS_ACTIVITY_REPORTING_STRATEGY:LAST}"
   converters:
-    # The URL for the repository containing data converters.
-    repo_url: "${TB_INTEGRATIONS_CONVERTERS_REPO_URL:https://api.github.com/repos/thingsboard/data-converters}"
+    library:
+      # Enable/disable data converters library
+      enabled: "${TB_INTEGRATIONS_CONVERTERS_LIBRARY_ENABLED:true}"
+      # URL of the data converters repository
+      url: "${TB_INTEGRATIONS_CONVERTERS_LIBRARY_REPO_URL:https://github.com/thingsboard/data-converters.git}"
+      # Fetch frequency in hours for data converters repository
+      fetch_frequency: "${TB_INTEGRATIONS_CONVERTERS_LIBRARY_REPO_FETCH_FREQUENCY:24}"
 
 # Reports parameters
 reports:
