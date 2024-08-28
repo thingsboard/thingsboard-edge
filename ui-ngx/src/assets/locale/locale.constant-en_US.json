@@ -1253,7 +1253,8 @@
         "menu-item-name": "Menu item name",
         "menu-item-name-is-required": "Menu item name is required",
         "reset-to-menu-item-defaults": "Reset to menu item defaults",
-        "delete-menu-item": "Delete menu item"
+        "delete-menu-item": "Delete menu item",
+        "add-subitem": "Add subitem"
     },
     "custom-translation": {
         "add-new-key": "Add new key",

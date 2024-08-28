@@ -40,7 +40,7 @@ import {
   CMItemType,
   CustomMenuConfig,
   CustomMenuInfo,
-  CustomMenuItem,
+  CustomMenuItem, defaultCustomMenuConfig, isDefaultMenuConfig,
   MenuItem
 } from '@shared/models/custom-menu.models';
 import { AbstractControl, FormControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -81,7 +81,7 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
   customMenuFormGroup: UntypedFormGroup;
 
   get dragEnabled(): boolean {
-    return !this.readonly && this.menuItemsFormArray().controls.length > 1;
+    return !this.readonly && this.visibleMenuItemsControls().length > 1;
   }
 
   constructor(protected store: Store<AppState>,
@@ -109,6 +109,19 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
 
   goBack() {
     this.router.navigate(['..'], { relativeTo: this.route });
+  }
+
+  decline() {
+    this.customMenuFormGroup.setControl('items', this.prepareMenuItemsFormArray(this.customMenuConfig.items), {emitEvent: false});
+    this.customMenuFormGroup.markAsPristine();
+  }
+
+  resetToDefault() {
+    if (!isDefaultMenuConfig(this.customMenuFormGroup.value, this.customMenu.scope)) {
+      const config = defaultCustomMenuConfig(this.customMenu.scope);
+      this.customMenuFormGroup.setControl('items', this.prepareMenuItemsFormArray(config.items), {emitEvent: false});
+      this.customMenuFormGroup.markAsDirty();
+    }
   }
 
   save() {
@@ -152,7 +165,7 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
       visible: true,
       name: 'Test custom item',
       icon: 'star',
-      menuItemType: CMItemType.LINK
+      menuItemType: CMItemType.SECTION
     };
     const menuItemsArray = this.menuItemsFormArray();
     const menuItemControl = this.fb.control(menuItem, []);

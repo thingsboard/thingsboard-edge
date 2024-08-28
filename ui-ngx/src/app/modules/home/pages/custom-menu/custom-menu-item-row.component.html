@@ -30,39 +30,81 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-custom-menu-item-row-component">
-  <div class="tb-form-row" [formGroup]="menuItemRowFormGroup">
-    <div class="tb-custom-menu-item-icon-name-block">
-      <mat-slide-toggle *ngIf="!isHomeMenuItem" formControlName="visible"></mat-slide-toggle>
-      <div *ngIf="isHomeMenuItem" style="width: 40px;"></div>
-      <tb-material-icon-select asBoxInput
-                               formControlName="icon">
-      </tb-material-icon-select>
-      <div> {{ itemName }} </div>
+<div class="tb-custom-menu-item-row-component-container">
+  <div class="tb-custom-menu-item-row-component">
+    <div class="tb-form-row" [class.tb-no-padding-left]="childDrag" [formGroup]="menuItemRowFormGroup">
+      <div class="tb-custom-menu-item-start-block">
+        <ng-content select=".tb-custom-menu-item-row-prefix"></ng-content>
+        <div class="tb-custom-menu-item-icon-name-block" [style.width]="iconNameBlockWidth">
+          <mat-slide-toggle *ngIf="!isHomeMenuItem" formControlName="visible"></mat-slide-toggle>
+          <div *ngIf="isHomeMenuItem" style="width: 40px;"></div>
+          <tb-material-icon-select asBoxInput
+                                   formControlName="icon">
+          </tb-material-icon-select>
+          <div> {{ itemName }} </div>
+        </div>
+      </div>
+      <div class="tb-custom-menu-item-input-block">
+        <mat-form-field fxFlex class="tb-inline-field" appearance="outline" subscriptSizing="dynamic">
+          <input matInput [required]="isCustomMenuItem" formControlName="name" placeholder="{{ itemNamePlaceholder }}">
+        </mat-form-field>
+        <mat-form-field *ngIf="isHomeMenuItem" fxFlex class="tb-inline-field" appearance="outline" subscriptSizing="dynamic">
+          <input matInput readonly placeholder="Default">
+        </mat-form-field>
+      </div>
     </div>
-    <div class="tb-custom-menu-item-input-block">
-      <mat-form-field fxFlex class="tb-inline-field" appearance="outline" subscriptSizing="dynamic">
-        <input matInput [required]="isCustomMenuItem" formControlName="name" placeholder="{{ itemNamePlaceholder }}">
-      </mat-form-field>
-      <mat-form-field *ngIf="isHomeMenuItem" fxFlex class="tb-inline-field" appearance="outline" subscriptSizing="dynamic">
-        <input matInput readonly placeholder="Default">
-      </mat-form-field>
+    <button mat-icon-button *ngIf="!disabled">
+      <mat-icon>edit</mat-icon>
+    </button>
+    <button mat-icon-button *ngIf="!disabled && isDefaultMenuItem"
+       [disabled]="!isCleanupEnabled"
+       matTooltip="{{ 'custom-menu.reset-to-menu-item-defaults' | translate }}"
+       matTooltipPosition="above"
+       (click)="cleanup()">
+      <tb-icon>mdi:broom</tb-icon>
+    </button>
+    <button mat-icon-button *ngIf="!disabled && isCustomMenuItem"
+      matTooltip="{{ 'custom-menu.delete-menu-item' | translate }}"
+      matTooltipPosition="above"
+      (click)="delete()">
+      <mat-icon>delete</mat-icon>
+    </button>
+  </div>
+  <div *ngIf="visiblePagesControls().length" class="tb-custom-menu-item-pages-container">
+    <div class="tb-custom-menu-item-pages-left"></div>
+    <div class="tb-custom-menu-item-pages-right">
+      <div *ngIf="visiblePagesControls().length" class="tb-drop-list tb-custom-menu-item-pages-list"
+           cdkDropList
+           cdkDropListOrientation="vertical"
+           (cdkDropListDropped)="pageDrop($event)"
+           [cdkDropListDisabled]="!pagesDragEnabled">
+        <div *ngFor="let pageControl of visiblePagesControls(); trackBy: trackByPage;
+               let $index = index;" class="tb-custom-menu-item-page-item">
+          <div class="tb-custom-menu-item-page-line"></div>
+          <tb-custom-menu-item-row cdkDrag
+                                   [cdkDragDisabled]="!pagesDragEnabled"
+                                   class="tb-draggable tb-custom-menu-item-page"
+                                   fxFlex [formControl]="pageControl"
+                                   [showHidden]="showHidden"
+                                   [childDrag]="pagesDragEnabled"
+                                   [level]="level + 1"
+                                   (menuItemRemoved)="removeCustomPage($index)">
+            <button cdkDragHandle *ngIf="pagesDragEnabled"
+                    class="tb-mat-40 tb-drag-handle tb-custom-menu-item-row-prefix"
+                    mat-icon-button
+                    matTooltip="{{ 'action.drag' | translate }}"
+                    matTooltipPosition="above">
+              <tb-icon>drag_indicator</tb-icon>
+            </button>
+          </tb-custom-menu-item-row>
+        </div>
+      </div>
     </div>
   </div>
-  <button mat-icon-button *ngIf="!disabled">
-    <mat-icon>edit</mat-icon>
-  </button>
-  <button mat-icon-button *ngIf="!disabled && isDefaultMenuItem"
-     [disabled]="!isCleanupEnabled"
-     matTooltip="{{ 'custom-menu.reset-to-menu-item-defaults' | translate }}"
-     matTooltipPosition="above"
-     (click)="cleanup()">
-    <tb-icon>mdi:broom</tb-icon>
-  </button>
-  <button mat-icon-button *ngIf="!disabled && isCustomMenuItem"
-    matTooltip="{{ 'custom-menu.delete-menu-item' | translate }}"
-    matTooltipPosition="above"
-    (click)="delete()">
-    <mat-icon>delete</mat-icon>
+  <button *ngIf="isCustomSection && !disabled"
+          (click)="addCustomPage()"
+          mat-button color="primary" class="tb-add-custom-menu-subitem-button tb-primary-fill">
+    <mat-icon color="primary">add</mat-icon>
+    <span translate>custom-menu.add-subitem</span>
   </button>
 </div>

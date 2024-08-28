@@ -28,6 +28,13 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
+
+.tb-custom-menu-item-row-component-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 .tb-custom-menu-item-row-component {
   display: flex;
   gap: 8px;
@@ -46,11 +53,18 @@
   }
   .tb-form-row {
     flex: 1;
+    &.tb-no-padding-left {
+      padding-left: 0;
+    }
+    .tb-custom-menu-item-start-block {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
     .tb-custom-menu-item-icon-name-block {
       display: flex;
       align-items: center;
       gap: 12px;
-      width: 256px;
     }
     .tb-custom-menu-item-input-block {
       display: flex;
@@ -58,4 +72,50 @@
       flex: 1;
     }
   }
+}
+
+.tb-custom-menu-item-pages-container {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+}
+
+.tb-custom-menu-item-pages-left {
+  border-left: 1px solid rgba(0,0,0,0.12);
+  margin-left: 8px;
+  margin-bottom: 28px;
+}
+
+.tb-custom-menu-item-pages-right {
+  margin-top: 8px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  .tb-custom-menu-item-pages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    .tb-custom-menu-item-page-item {
+      display: flex;
+      flex-direction: row;
+      gap: 0;
+      .tb-custom-menu-item-page-line {
+        width: 8px;
+        border-top: 1px solid rgba(0, 0, 0, 0.12);
+        margin-top: 28px;
+      }
+    }
+  }
+}
+
+.tb-custom-menu-item-page {
+  background: #fff;
+}
+
+.tb-add-custom-menu-subitem-button {
+  min-height: 36px;
+  margin-left: 16px;
+  margin-top: 8px;
+  margin-right: 112px;
 }

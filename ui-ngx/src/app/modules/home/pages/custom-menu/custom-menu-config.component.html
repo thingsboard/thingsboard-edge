@@ -45,6 +45,10 @@
           <mat-slide-toggle [formControl]="showHiddenItems">{{ 'custom-menu.show-hidden-items' | translate }}</mat-slide-toggle>
         </div>
         <span fxFlex></span>
+        <button mat-stroked-button color="primary"
+                (click)="resetToDefault()">
+          {{'action.reset' | translate}}
+        </button>
         <div tb-help="customMenu"></div>
       </div>
     </mat-card-title>
@@ -69,7 +73,7 @@
                   mat-icon-button
                   matTooltip="{{ 'action.drag' | translate }}"
                   matTooltipPosition="above"
-                  class="tb-drag-handle">
+                  class="tb-mat-40 tb-drag-handle">
             <tb-icon>drag_indicator</tb-icon>
           </button>
           <tb-custom-menu-item-row fxFlex [formControl]="menuItemControl"
@@ -98,6 +102,11 @@
     </button>
   </mat-card-content>
   <mat-card-actions>
+    <button mat-stroked-button color="primary" *ngIf="!readonly"
+            [disabled]="(isLoading$ | async) || !customMenuFormGroup.dirty"
+            (click)="decline()">
+      {{'action.decline' | translate}}
+    </button>
     <button mat-raised-button color="primary" *ngIf="!readonly"
             [disabled]="(isLoading$ | async) || !customMenuFormGroup.dirty || customMenuFormGroup.invalid"
             (click)="save()">{{'action.save' | translate}}

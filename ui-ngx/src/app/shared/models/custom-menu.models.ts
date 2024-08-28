@@ -232,7 +232,7 @@ const menuItemIsEqualToReference = (item: MenuItem, reference: MenuReference): b
   }
 };
 
-const isDefaultMenuConfig = (config: CustomMenuConfig, scope: CMScope): boolean => {
+export const isDefaultMenuConfig = (config: CustomMenuConfig, scope: CMScope): boolean => {
   const authority = cmScopeToAuthority(scope);
   const references = defaultUserMenuMap.get(authority);
   return menuItemsIsEqualToReferences(config?.items, references);
@@ -250,13 +250,17 @@ const afterLoadMenuItems = (items: MenuItem[]): MenuItem[] => {
   return items;
 };
 
+export const defaultCustomMenuConfig = (scope: CMScope): CustomMenuConfig => {
+  const authority = cmScopeToAuthority(scope);
+  const references = defaultUserMenuMap.get(authority);
+  return {
+    items: (references || []).map(r => referenceToMenuItem(r))
+  };
+};
+
 export const afterLoadCustomMenuConfig = (config: CustomMenuConfig, scope: CMScope): CustomMenuConfig => {
   if (!config?.items?.length) {
-    const authority = cmScopeToAuthority(scope);
-    const references = defaultUserMenuMap.get(authority);
-    return {
-      items: (references || []).map(r => referenceToMenuItem(r))
-    };
+    return defaultCustomMenuConfig(scope);
   } else {
     config.items = afterLoadMenuItems(config.items);
     return config;

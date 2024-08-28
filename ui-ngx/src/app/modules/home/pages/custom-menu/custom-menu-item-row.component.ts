@@ -34,17 +34,19 @@ import {
   Component,
   EventEmitter,
   forwardRef,
-  Input,
+  Input, OnChanges,
   OnInit,
   Output,
-  Renderer2,
+  Renderer2, SimpleChanges,
   ViewContainerRef,
   ViewEncapsulation
 } from '@angular/core';
 import {
+  AbstractControl,
   ControlValueAccessor,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
+  UntypedFormArray,
   UntypedFormBuilder,
   UntypedFormControl,
   UntypedFormGroup,
@@ -52,6 +54,8 @@ import {
   Validators
 } from '@angular/forms';
 import {
+  CMItemType,
+  CustomMenuItem,
   HomeMenuItem,
   HomeMenuItemType,
   isCustomMenuItem,
@@ -64,6 +68,7 @@ import { TranslateService } from '@ngx-translate/core';
 import { MenuSection, menuSectionMap } from '@core/services/menu.models';
 import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'tb-custom-menu-item-row',
@@ -83,7 +88,7 @@ import { coerceBoolean } from '@shared/decorators/coercion';
   ],
   encapsulation: ViewEncapsulation.None
 })
-export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit, Validator {
+export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit, Validator, OnChanges {
 
   @Input()
   disabled: boolean;
@@ -91,6 +96,13 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
   @Input()
   @coerceBoolean()
   showHidden = true;
+
+  @Input()
+  @coerceBoolean()
+  childDrag = false;
+
+  @Input()
+  level = 0;
 
   @Output()
   menuItemRemoved = new EventEmitter();
@@ -105,7 +117,11 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
 
   isCustomMenuItem = false;
 
+  isCustomSection = false;
+
   isCleanupEnabled = false;
+
+  iconNameBlockWidth = '256px';
 
   private defaultItemName: string;
 
@@ -117,6 +133,10 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
 
   get itemNamePlaceholder(): string {
     return this.isDefaultMenuItem ? this.defaultItemName : this.translate.instant('custom-menu.menu-item-name');
+  }
+
+  get pagesDragEnabled(): boolean {
+    return !this.disabled && this.visiblePagesControls().length > 1;
   }
 
   private propagateChange = (_val: any) => {};
@@ -134,11 +154,24 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
     this.menuItemRowFormGroup = this.fb.group({
       visible: [true, []],
       icon: [null, []],
-      name: [null, []]
+      name: [null, []],
+      pages: this.fb.array([])
     });
     this.menuItemRowFormGroup.valueChanges.subscribe(
       () => this.updateModel()
     );
+    this.updateIconNameBlockWidth();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (!change.firstChange && change.currentValue !== change.previousValue) {
+        if (['level', 'childDrag'].includes(propName)) {
+          this.updateIconNameBlockWidth();
+        }
+      }
+    }
   }
 
   registerOnChange(fn: any): void {
@@ -166,6 +199,9 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
         name: value.name
       }, {emitEvent: false}
     );
+    if (value.pages?.length) {
+      this.menuItemRowFormGroup.setControl('pages', this.preparePagesFormArray(value.pages), {emitEvent: false});
+    }
     if (isDefaultMenuItem(this.modelValue)) {
       this.defaultMenuSection = menuSectionMap.get(this.modelValue.id);
       this.defaultItemName = this.translate.instant(this.defaultMenuSection.name);
@@ -181,6 +217,9 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
     } else if (isCustomMenuItem(this.modelValue)) {
       this.isCustomMenuItem = true;
       this.menuItemRowFormGroup.get('name').setValidators([Validators.required]);
+      if (this.modelValue.menuItemType === CMItemType.SECTION) {
+        this.isCustomSection = true;
+      }
     }
     this.updateCleanupState();
     this.cd.markForCheck();
@@ -218,6 +257,48 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
     this.menuItemRemoved.emit();
   }
 
+  pageDrop(event: CdkDragDrop<string[]>) {
+    const pagesArray = this.pagesFormArray();
+    const page = this.visiblePagesControls()[event.previousIndex];
+    const previousIndex = this.actualPageIndex(event.previousIndex);
+    const currentIndex = this.actualPageIndex(event.currentIndex);
+    pagesArray.removeAt(previousIndex);
+    pagesArray.insert(currentIndex, page);
+  }
+
+  visiblePagesControls(): Array<AbstractControl> {
+    return this.pagesFormArray().controls.filter(c => this.showHidden || c.value.visible);
+  }
+
+  trackByPage(_index: number, pageControl: AbstractControl): any {
+    return pageControl;
+  }
+
+  removeCustomPage(index: number) {
+    this.pagesFormArray().removeAt(this.actualPageIndex(index));
+  }
+
+  addCustomPage() {
+    const page: CustomMenuItem = {
+      visible: true,
+      name: 'Test custom sub item',
+      icon: 'star',
+      menuItemType: CMItemType.LINK
+    };
+    const pagesArray = this.pagesFormArray();
+    const pageControl = this.fb.control(page, []);
+    pagesArray.push(pageControl);
+  }
+
+  private updateIconNameBlockWidth() {
+    let width = 256;
+    if (this.childDrag) {
+      width -= 32;
+    }
+    width -= this.level * 16;
+    this.iconNameBlockWidth = width + 'px';
+  }
+
   private updateCleanupState() {
     if (this.isDefaultMenuItem) {
       this.isCleanupEnabled = !this.modelValue.visible ||
@@ -246,8 +327,31 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
     } else {
       delete this.modelValue.icon;
     }
+    const pages: MenuItem[] = this.menuItemRowFormGroup.get('pages').value;
+    if (pages?.length) {
+      this.modelValue.pages = pages;
+    } else {
+      delete this.modelValue.pages;
+    }
     this.updateCleanupState();
     this.propagateChange(this.modelValue);
+  }
+
+  private pagesFormArray(): UntypedFormArray {
+    return this.menuItemRowFormGroup.get('pages') as UntypedFormArray;
+  }
+
+  private actualPageIndex(index: number): number {
+    const page = this.visiblePagesControls()[index];
+    return this.pagesFormArray().controls.indexOf(page);
+  }
+
+  private preparePagesFormArray(pages: MenuItem[]): UntypedFormArray {
+    const pagesControls: Array<AbstractControl> = [];
+    pages.forEach((page) => {
+      pagesControls.push(this.fb.control(page, []));
+    });
+    return this.fb.array(pagesControls);
   }
 
 }
