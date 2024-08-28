@@ -204,6 +204,7 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
     public EntityGroup saveEntityGroup(TenantId tenantId, EntityId parentEntityId, EntityGroup entityGroup) {
         log.trace("Executing saveEntityGroup [{}]", entityGroup);
         validateEntityId(parentEntityId, id -> INCORRECT_PARENT_ENTITY_ID + id);
+        entityGroup = new EntityGroup(entityGroup);
         if (entityGroup.getId() == null) {
             entityGroup.setOwnerId(parentEntityId);
         }
@@ -441,28 +442,27 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
             description += "Public ";
         }
         switch (groupType) {
-            case DEVICE:
+            case DEVICE -> {
                 groupName += " Devices";
                 description += "Device";
-                break;
-            case ASSET:
+            }
+            case ASSET -> {
                 groupName += " Assets";
                 description += "Asset";
-                break;
-            case ENTITY_VIEW:
+            }
+            case ENTITY_VIEW -> {
                 groupName += " Entity Views";
                 description += "Entity View";
-                break;
-            case EDGE:
+            }
+            case EDGE -> {
                 groupName += " Edges";
                 description += "Edge";
-                break;
-            case DASHBOARD:
+            }
+            case DASHBOARD -> {
                 groupName += " Dashboards";
                 description += "Dashboard";
-                break;
-            default:
-                throw new RuntimeException("Invalid entity group type '" + groupType + "' specified for read-only entity group for customer!");
+            }
+            default -> throw new RuntimeException("Invalid entity group type '" + groupType + "' specified for read-only entity group for customer!");
         }
         if (customer.isPublic()) {
             description += " group";
@@ -920,25 +920,18 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
         entityData.getLatest().forEach((type, map) -> map.forEach((k, v) -> {
             String key;
             switch (type) {
-                case ENTITY_FIELD:
+                case ENTITY_FIELD -> {
                     EntityType entityType = entityData.getEntityId().getEntityType();
                     if (k.equals("type") && (entityType.equals(EntityType.DEVICE) || entityType.equals(EntityType.ASSET))) {
                         key = getProfileColumnKeyByType(entityType);
                     } else {
                         key = entityDataKeyToShortEntityViewKeyMap.getOrDefault(k, k);
                     }
-                    break;
-                case CLIENT_ATTRIBUTE:
-                    key = "client_" + k;
-                    break;
-                case SHARED_ATTRIBUTE:
-                    key = "shared_" + k;
-                    break;
-                case SERVER_ATTRIBUTE:
-                    key = "server_" + k;
-                    break;
-                default:
-                    key = k;
+                }
+                case CLIENT_ATTRIBUTE -> key = "client_" + k;
+                case SHARED_ATTRIBUTE -> key = "shared_" + k;
+                case SERVER_ATTRIBUTE -> key = "server_" + k;
+                default -> key = k;
             }
             entityView.put(key, v.getValue());
         }));
@@ -1220,29 +1213,25 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
         }
     }
 
-    private PaginatedRemover<EntityId, EntityGroup> entityGroupsRemover =
-            new PaginatedRemover<>() {
+    private final PaginatedRemover<EntityId, EntityGroup> entityGroupsRemover = new PaginatedRemover<>() {
 
-                @Override
-                protected PageData<EntityGroup> findEntities(TenantId tenantId, EntityId id, PageLink pageLink) {
-                    return entityGroupDao.findAllEntityGroups(tenantId.getId(), id.getId(), id.getEntityType(), pageLink);
-                }
+        @Override
+        protected PageData<EntityGroup> findEntities(TenantId tenantId, EntityId id, PageLink pageLink) {
+            return entityGroupDao.findAllEntityGroups(tenantId.getId(), id.getId(), id.getEntityType(), pageLink);
+        }
 
-                @Override
-                protected void removeEntity(TenantId tenantId, EntityGroup entity) {
-                    deleteEntityGroup(tenantId, new EntityGroupId(entity.getId().getId()));
-                }
-            };
+        @Override
+        protected void removeEntity(TenantId tenantId, EntityGroup entity) {
+            deleteEntityGroup(tenantId, new EntityGroupId(entity.getId().getId()));
+        }
+    };
 
     private String getProfileColumnKeyByType(EntityType entityType) {
-        switch (entityType) {
-            case ASSET:
-                return "asset_profile";
-            case DEVICE:
-                return "device_profile";
-            default:
-                throw new IllegalArgumentException("Wrong entity type: " + entityType);
-        }
+        return switch (entityType) {
+            case ASSET -> "asset_profile";
+            case DEVICE -> "device_profile";
+            default -> throw new IllegalArgumentException("Wrong entity type: " + entityType);
+        };
     }
 
     @Override

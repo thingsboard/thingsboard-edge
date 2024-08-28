@@ -73,7 +73,10 @@ enum EntityTypeProto {
   NOTIFICATION_REQUEST  = 31;
   NOTIFICATION          = 32;
   NOTIFICATION_RULE     = 33;
-  QUEUE_STATS     = 34;
+  QUEUE_STATS           = 34;
+  OAUTH2_CLIENT         = 35;
+  DOMAIN                = 36;
+  MOBILE_APP            = 37;
 }
 
 /**
@@ -317,6 +320,7 @@ message TbResourceProto {
   optional bytes preview = 18;
   optional int64 customerIdMSB = 19;
   optional int64 customerIdLSB = 20;
+  optional string resourceSubType = 21;
 }
 
 message ApiUsageStateProto {

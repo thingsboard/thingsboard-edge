@@ -118,7 +118,7 @@ public class EdgeSyncCursor {
             fetchers.add(new OtaPackagesEdgeEventFetcher(ctx.getOtaPackageService()));
             fetchers.add(new TenantResourcesEdgeEventFetcher(ctx.getResourceService()));
             fetchers.add(new DeviceGroupOtaPackageEdgeEventFetcher(ctx.getDeviceGroupOtaPackageService(), ctx.getEntityGroupService()));
-            fetchers.add(new OAuth2EdgeEventFetcher(ctx.getOAuth2Service()));
+            fetchers.add(new OAuth2EdgeEventFetcher(ctx.getDomainService()));
             fetchers.add(new CustomTranslationEdgeEventFetcher(ctx.getCustomerService(), ctx.getCustomTranslationService()));
         }
     }

@@ -34,14 +34,14 @@ import { Authority } from '@shared/models/authority.enum';
 import { NgModule } from '@angular/core';
 import { TranslationTableComponent } from '@home/pages/custom-translation/translation-table.component';
 import { CustomTranslationComponent } from '@home/pages/custom-translation/custom-translation.component';
+import { MenuId } from '@core/services/menu.models';
 
 export const CustomTranslationRoutes: Routes = [
   {
     path: 'customTranslation',
     data: {
       breadcrumb: {
-        label: 'custom-translation.custom-translation',
-        icon: 'language'
+        menuId: MenuId.custom_translation
       }
     },
     children: [

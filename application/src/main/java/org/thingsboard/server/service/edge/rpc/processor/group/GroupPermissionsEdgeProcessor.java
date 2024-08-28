@@ -68,8 +68,7 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         switch (msgType) {
-            case ENTITY_CREATED_RPC_MESSAGE:
-            case ENTITY_UPDATED_RPC_MESSAGE:
+            case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
                 GroupPermission groupPermission = groupPermissionService.findGroupPermissionById(edgeEvent.getTenantId(), groupPermissionId);
                 if (groupPermission != null) {
                     downlinkMsg = DownlinkMsg.newBuilder()
@@ -78,14 +77,12 @@ public class GroupPermissionsEdgeProcessor extends BaseEdgeProcessor {
                                     groupMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructGroupPermissionProto(msgType, groupPermission))
                             .build();
                 }
-                break;
-            case ENTITY_DELETED_RPC_MESSAGE:
-                downlinkMsg = DownlinkMsg.newBuilder()
-                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addGroupPermissionMsg(((GroupMsgConstructor)
-                                groupMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructGroupPermissionDeleteMsg(groupPermissionId))
-                        .build();
-                break;
+            }
+            case ENTITY_DELETED_RPC_MESSAGE -> downlinkMsg = DownlinkMsg.newBuilder()
+                    .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                    .addGroupPermissionMsg(((GroupMsgConstructor)
+                            groupMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructGroupPermissionDeleteMsg(groupPermissionId))
+                    .build();
         }
         return downlinkMsg;
     }

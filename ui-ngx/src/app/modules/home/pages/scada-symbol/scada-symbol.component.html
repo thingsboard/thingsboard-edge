@@ -1,0 +1,166 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-scada-symbol-editor mat-content" fxLayout="column">
+  <section class="tb-scada-symbol-editor-container" fxFlex fxLayout="column">
+    <div class="tb-scada-symbol-editor-layout" fxFlex fxLayout="row">
+      <mat-drawer-container style="width: 100%; height: 100%;">
+        <mat-drawer class="tb-scada-symbol-editor-details-drawer mat-elevation-z4"
+                    disableClose="true"
+                    mode="side"
+                    opened
+                    position="end">
+          <tb-details-panel fxFlex
+                            [isReadOnly]="true"
+                            [showCloseDetails]="false"
+                            headerHeightPx="64"
+                            headerTitle="{{symbolData?.imageResource?.title}}">
+            <div class="details-buttons" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="16px">
+              <button mat-stroked-button
+                      [disabled]="scadaSymbolFormGroup.invalid"
+                      (click)="createWidget()">
+                {{ 'scada.create-widget' | translate }}
+              </button>
+            </div>
+            <div *ngIf="previewMode" class="tb-scada-symbol-editor-preview-content tb-absolute-fill">
+              <div class="tb-scada-symbol-editor-preview-header">
+                <button mat-button
+                        (click)="exitPreviewMode()">
+                  <mat-icon>chevron_left</mat-icon>
+                  {{ 'action.back' | translate }}
+                </button>
+                <span style="flex: 1;"></span>
+                <button [disabled]="!scadaPreviewFormGroup.dirty"
+                        mat-stroked-button color="primary"
+                        (click)="onRevertPreviewSettings()">
+                  <mat-icon>close</mat-icon>
+                  {{ 'action.decline' | translate }}
+                </button>
+                <button [disabled]="!scadaPreviewFormGroup.valid || !scadaPreviewFormGroup.dirty"
+                        mat-flat-button color="primary"
+                        (click)="onApplyPreviewSettings()">
+                  <mat-icon>done</mat-icon>
+                  {{ 'action.apply' | translate }}
+                </button>
+              </div>
+              <div [formGroup]="scadaPreviewFormGroup" class="tb-scada-symbol-editor-preview-settings">
+                <div class="mat-content">
+                  <div class="tb-form-panel">
+                    <div class="tb-form-panel-title" translate>scada.symbol.symbol</div>
+                    <tb-scada-symbol-input
+                      [scadaSymbolContent]="symbolData.scadaSymbolContent"
+                      [scadaSymbolMetadata]="previewMetadata">
+                    </tb-scada-symbol-input>
+                  </div>
+                  <tb-scada-symbol-object-settings
+                    formControlName="scadaSymbolObjectSettings"
+                    [scadaSymbolMetadata]="previewMetadata"
+                    [aliasController]="aliasController"
+                    [widgetType]="widgetType.rpc"
+                    [callbacks]="widgetActionCallbacks">
+                  </tb-scada-symbol-object-settings>
+                </div>
+              </div>
+            </div>
+            <div [fxShow]="!previewMode" [formGroup]="scadaSymbolFormGroup">
+              <tb-scada-symbol-metadata
+                #symbolMetadata
+                [tags]="tags"
+                [aliasController]="aliasController"
+                [callbacks]="widgetActionCallbacks"
+                formControlName="metadata">
+                <div class="tb-scada-symbol-metadata-header-prefix">
+                  <button fxHide.gt-sm
+                          [disabled]="scadaSymbolFormGroup.invalid"
+                          mat-button color="primary"
+                          (click)="enterPreviewMode()">
+                    <mat-icon>visibility</mat-icon>
+                    {{ 'scada.preview' | translate }}
+                  </button>
+                </div>
+                <div fxFlex.lt-md class="tb-scada-symbol-metadata-header-suffix" fxLayout="row" fxLayoutAlign="end center" fxLayoutGap="12px">
+                  <button fxHide.lt-md
+                          [disabled]="scadaSymbolFormGroup.invalid"
+                          mat-button color="primary"
+                          (click)="enterPreviewMode()">
+                    <mat-icon>visibility</mat-icon>
+                    {{ 'scada.preview' | translate }}
+                  </button>
+                  <div *ngIf="!readonly" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="12px">
+                    <button [disabled]="!(scadaSymbolFormGroup.dirty || symbolEditorDirty)"
+                            mat-stroked-button color="primary"
+                            (click)="onRevertScadaSymbolConfig()">
+                      <mat-icon>close</mat-icon>
+                      {{ 'action.decline' | translate }}
+                    </button>
+                    <button [disabled]="!scadaSymbolFormGroup.valid || !(scadaSymbolFormGroup.dirty || symbolEditorDirty)"
+                            mat-flat-button color="primary"
+                            (click)="onApplyScadaSymbolConfig()">
+                      <mat-icon>done</mat-icon>
+                      {{ 'action.apply' | translate }}
+                    </button>
+                  </div>
+                </div>
+              </tb-scada-symbol-metadata>
+            </div>
+          </tb-details-panel>
+        </mat-drawer>
+        <mat-drawer-content class="tb-scada-symbol-editor-content" [class.preview]="previewMode">
+          <tb-scada-symbol-editor *ngIf="!previewMode" #symbolEditor
+                                  [readonly]="readonly"
+                                  [(showHiddenElements)]="showHiddenElements"
+                                  [data]="symbolEditorData"
+                                  [editObjectCallbacks]="editObjectCallbacks"
+                                  (updateScadaSymbol)="updateScadaSymbol()"
+                                  (downloadScadaSymbol)="downloadScadaSymbol()"></tb-scada-symbol-editor>
+          <tb-dashboard *ngIf="previewMode"
+                        class="tb-absolute-fill"
+                        [aliasController]="aliasController"
+                        [widgets]="previewWidgets"
+                        [autofillHeight]="false"
+                        displayGrid="always"
+                        [gridType]="previewWidget.sizeX >= previewWidget.sizeY ? GridType.ScrollVertical : GridType.ScrollHorizontal"
+                        [columns]="previewWidget.sizeX"
+                        setGridSize
+                        [centerVertical]="previewWidget.sizeX >= previewWidget.sizeY"
+                        [centerHorizontal]="previewWidget.sizeX < previewWidget.sizeY"
+                        [margin]="0"
+                        [isEdit]="false"
+                        [isMobileDisabled]="true"
+                        [isEditActionEnabled]="false"
+                        [isRemoveActionEnabled]="false">
+          </tb-dashboard>
+        </mat-drawer-content>
+      </mat-drawer-container>
+    </div>
+  </section>
+</div>

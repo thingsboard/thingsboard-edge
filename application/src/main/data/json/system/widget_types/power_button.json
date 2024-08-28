@@ -11,7 +11,7 @@
     "resources": [],
     "templateHtml": "<tb-power-button-widget\n    [ctx]='ctx'\n    [widgetTitlePanel]=\"widgetTitlePanel\">\n</tb-power-button-widget>",
     "templateCss": "",
-    "controllerScript": "self.onInit = function() {\n    self.ctx.$scope.actionWidget.onInit();\n}\n\nself.typeParameters = function() {\n    return {\n        previewWidth: '280px',\n        previewHeight: '280px',\n        embedTitlePanel: true,\n        displayRpcMessageToast: false\n    };\n};\n\nself.onDestroy = function() {\n}\n",
+    "controllerScript": "self.onInit = function() {\n    self.ctx.$scope.actionWidget.onInit();\n}\n\nself.typeParameters = function() {\n    return {\n        previewWidth: '280px',\n        previewHeight: '280px',\n        embedTitlePanel: true,\n        overflowVisible: true,\n        displayRpcMessageToast: false\n    };\n};\n\nself.onDestroy = function() {\n}\n",
     "settingsSchema": "",
     "dataKeySettingsSchema": "{}\n",
     "settingsDirective": "tb-power-button-widget-settings",

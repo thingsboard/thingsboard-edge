@@ -67,6 +67,7 @@ import { SchedulerEventsComponent } from '@home/components/scheduler/scheduler-e
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { EdgeService } from '@core/http/edge.service';
+import { MenuId } from '@core/services/menu.models';
 
 @Injectable()
 export class EdgeTitleResolver implements Resolve<string> {
@@ -389,8 +390,7 @@ const edgeGroupsRoute = (root: boolean): Route => ({
   data: {
     groupType: EntityType.EDGE,
     breadcrumb: {
-      label: 'edge.groups',
-      icon: 'router'
+      menuId: MenuId.edge_groups
     }
   },
   children: edgeGroupsChildrenRoutesTemplate(root, false)
@@ -402,8 +402,7 @@ const edgeSharedGroupsRoute = (root: boolean): Route => ({
     groupType: EntityType.EDGE,
     shared: true,
     breadcrumb: {
-      label: 'edge.shared',
-      icon: 'router'
+      menuId: MenuId.edge_shared
     }
   },
   children: edgeGroupsChildrenRoutesTemplate(root, true)
@@ -413,8 +412,7 @@ const edgeRuleChainTemplatesRoute: Route = {
   path: 'ruleChains',
   data: {
     breadcrumb: {
-      label: 'edge.rulechain-templates',
-      icon: 'settings_ethernet'
+      menuId: MenuId.rulechain_templates
     }
   },
   children: [
@@ -478,8 +476,7 @@ const edgeConverterTemplatesRoute: Route = {
   path: 'converters',
   data: {
     breadcrumb: {
-      label: 'edge.converter-templates',
-      icon: 'transform'
+      menuId: MenuId.converter_templates
     }
   },
   children: [
@@ -518,8 +515,7 @@ const edgeIntegrationTemplatesRoute: Route = {
   path: 'integrations',
   data: {
     breadcrumb: {
-      label: 'edge.integration-templates',
-      icon: 'input'
+      menuId: MenuId.integration_templates
     }
   },
   children: [
@@ -560,8 +556,7 @@ export const edgesRoute = (root = false): Route => {
     path: 'edgeManagement',
     data: {
       breadcrumb: root ? {
-        label: 'edge.management',
-        icon: 'settings_input_antenna'
+        menuId: MenuId.edge_management
       } : { skip: true }
     },
     children: [
@@ -604,8 +599,7 @@ export const edgesRoute = (root = false): Route => {
       groupType: EntityType.EDGE,
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
-        label: 'edge.all',
-        icon: 'router'
+        menuId: MenuId.edge_all
       }
     },
     children: [

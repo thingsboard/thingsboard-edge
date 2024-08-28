@@ -662,7 +662,7 @@ public class DeviceServiceImpl extends CachedVersionedEntityService<DeviceCacheK
     }
 
     @Override
-    public Long countByEntityGroupAndEmptyOtaPackage(EntityGroupId groupId, OtaPackageId otaPackageId, OtaPackageType type) {
+    public long countByEntityGroupAndEmptyOtaPackage(EntityGroupId groupId, OtaPackageId otaPackageId, OtaPackageType type) {
         log.trace("Executing countByEntityGroupAndDeviceProfileAndEmptyOtaPackage, groupId [{}], otaPackageId [{}], firmwareType [{}]", groupId, otaPackageId, type);
         validateId(groupId, id -> "Incorrect groupId" + id);
         validateId(otaPackageId, id -> "Incorrect deviceProfileId" + id);
@@ -671,7 +671,7 @@ public class DeviceServiceImpl extends CachedVersionedEntityService<DeviceCacheK
     }
 
     @Override
-    public Long countByDeviceProfileAndEmptyOtaPackage(TenantId tenantId, DeviceProfileId deviceProfileId, OtaPackageType type) {
+    public long countByDeviceProfileAndEmptyOtaPackage(TenantId tenantId, DeviceProfileId deviceProfileId, OtaPackageType type) {
         log.trace("Executing countByDeviceProfileAndEmptyOtaPackage,  deviceProfileId [{}], firmwareType [{}]", deviceProfileId, type);
         validateId(deviceProfileId, id -> "Incorrect deviceProfileId" + id);
 

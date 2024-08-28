@@ -46,6 +46,7 @@ import { GroupEntitiesTableComponent } from '@home/components/group/group-entiti
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { CustomerTitleResolver } from '@home/pages/customer/customer.shared';
 import { entityGroupsTitle } from '@shared/models/entity-group.models';
+import { MenuId } from '@core/services/menu.models';
 
 const assetRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
   ({
@@ -115,8 +116,7 @@ export const assetGroupsRoute: Route = {
   data: {
     groupType: EntityType.ASSET,
     breadcrumb: {
-      label: 'asset.groups',
-      icon: 'domain'
+      menuId: MenuId.asset_groups
     }
   },
   children: assetGroupsChildrenRoutesTemplate(false)
@@ -128,8 +128,7 @@ const assetSharedGroupsRoute: Route = {
     groupType: EntityType.ASSET,
     shared: true,
     breadcrumb: {
-      label: 'asset.shared',
-      icon: 'domain'
+      menuId: MenuId.asset_shared
     }
   },
   children: assetGroupsChildrenRoutesTemplate(true)
@@ -165,8 +164,7 @@ export const assetsRoute = (root = false): Route => {
           groupType: EntityType.ASSET,
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           breadcrumb: {
-            label: 'asset.all',
-            icon: 'domain'
+            menuId: MenuId.asset_all
           }
         },
         children: [
