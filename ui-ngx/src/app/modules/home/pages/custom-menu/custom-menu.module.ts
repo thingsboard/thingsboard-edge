@@ -37,16 +37,20 @@ import { CustomMenuRoutingModule } from '@home/pages/custom-menu/custom-menu-rou
 import { CustomMenuTableHeaderComponent } from '@home/pages/custom-menu/custom-menu-table-header.component';
 import { CustomMenuConfigComponent } from '@home/pages/custom-menu/custom-menu-config.component';
 import { CustomMenuTableComponent } from '@home/pages/custom-menu/custom-menu-table.component';
-import { AddCustomMenuDialogComponent } from '@home/pages/custom-menu/add-custom-menu-dialog.component';
+import { ManageCustomMenuDialogComponent } from '@home/pages/custom-menu/manage-custom-menu-dialog.component';
 import { EditCustomMenuNamePanelComponent } from '@home/pages/custom-menu/edit-custom-menu-name-panel.component';
+import { CustomMenuIsAssignedDialogComponent } from '@home/pages/custom-menu/custom-menu-is-assigned.dialog.component';
+import { CustomMenuItemRowComponent } from '@home/pages/custom-menu/custom-menu-item-row.component';
 
 @NgModule({
   declarations: [
     CustomMenuTableHeaderComponent,
     CustomMenuTableComponent,
-    AddCustomMenuDialogComponent,
+    ManageCustomMenuDialogComponent,
+    CustomMenuIsAssignedDialogComponent,
     EditCustomMenuNamePanelComponent,
-    CustomMenuConfigComponent
+    CustomMenuConfigComponent,
+    CustomMenuItemRowComponent
   ],
   imports: [
     CommonModule,

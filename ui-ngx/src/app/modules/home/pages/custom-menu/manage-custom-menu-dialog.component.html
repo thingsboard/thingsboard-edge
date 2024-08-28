@@ -30,9 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form (ngSubmit)="add()" style="min-width: 400px;">
+<form (ngSubmit)="submit()" style="min-width: 600px;">
   <mat-toolbar color="primary">
-    <h2 translate>custom-menu.add</h2>
+    <h2>{{ title | translate }}</h2>
     <span fxFlex></span>
     <div [tb-help]="'customMenu'"></div>
     <button mat-icon-button
@@ -45,14 +45,14 @@
   </mat-progress-bar>
   <div style="height: 4px;" *ngIf="(isLoading$ | async) === false"></div>
   <div mat-dialog-content [formGroup]="customMenuFormGroup" fxLayout="column">
-    <mat-form-field appearance="outline">
+    <mat-form-field *ngIf="data.add" appearance="outline">
       <mat-label translate>custom-menu.name</mat-label>
       <input matInput formControlName="name" required>
       <mat-error *ngIf="customMenuFormGroup.get('name').hasError('required')">
         {{ 'custom-menu.name-required' | translate }}
       </mat-error>
     </mat-form-field>
-    <mat-form-field appearance="outline" *ngIf="authUser.authority === Authority.TENANT_ADMIN">
+    <mat-form-field appearance="outline" *ngIf="data.add && authUser.authority === Authority.TENANT_ADMIN">
       <mat-select formControlName="scope">
         <mat-option *ngFor="let scope of customMenuScopes" [value]="scope">
           {{ cmScopeTranslations.get(scope) | translate }}
@@ -66,6 +66,25 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
+    <tb-entity-list *ngIf="customMenuFormGroup.get('assigneeType').value === CMAssigneeType.USERS"
+                    required
+                    formControlName="assignToList"
+                    appearance="outline"
+                    [entityType]="EntityType.USER"
+                    [fetchEntitiesFunction]="fetchUsersFunction"
+                    labelText="{{ 'custom-menu.assign-to' | translate }}"
+                    placeholderText="{{ 'user.user' | translate }}"
+                    requiredText="{{ 'custom-menu.assignee-users-required' | translate }}">
+    </tb-entity-list>
+    <tb-entity-list *ngIf="customMenuFormGroup.get('assigneeType').value === CMAssigneeType.CUSTOMERS"
+                    required
+                    formControlName="assignToList"
+                    appearance="outline"
+                    [entityType]="EntityType.CUSTOMER"
+                    labelText="{{ 'custom-menu.assign-to' | translate }}"
+                    placeholderText="{{ 'customer.customer' | translate }}"
+                    requiredText="{{ 'custom-menu.assignee-customers-required' | translate }}">
+    </tb-entity-list>
   </div>
   <div mat-dialog-actions fxLayoutAlign="end center">
     <button mat-button color="primary"
@@ -77,7 +96,7 @@
     <button mat-raised-button color="primary"
             type="submit"
             [disabled]="(isLoading$ | async) || customMenuFormGroup.invalid || !customMenuFormGroup.dirty">
-      {{ 'action.add' | translate }}
+      {{ (data.add ? 'action.add' : 'action.save') | translate }}
     </button>
   </div>
 </form>

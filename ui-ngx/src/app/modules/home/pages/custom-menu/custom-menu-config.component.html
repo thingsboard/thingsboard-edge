@@ -53,7 +53,49 @@
   </mat-progress-bar>
   <div style="height: 4px;" *ngIf="(isLoading$ | async) === false"></div>
   <mat-card-content>
-      {{ customMenuConfig | json }}
+    <div #menuItemsContainer class="tb-drop-list tb-custom-menu-items-container"
+         cdkDropList
+         cdkDropListOrientation="vertical"
+         (cdkDropListDropped)="menuItemDrop($event)"
+         [cdkDropListDisabled]="!dragEnabled">
+      <div class="tb-custom-menu-item-row-container" *ngFor="let menuItemControl of visibleMenuItemsControls(); trackBy: trackByMenuItem;
+               let $index = index; last as isLast;">
+        <div cdkDrag [cdkDragDisabled]="!dragEnabled"
+             class="tb-draggable tb-custom-menu-item-row">
+          <div *ngIf="isCustom(menuItemControl)" class="tb-custom-menu-item-label">
+            {{ 'custom-menu.custom-item' | translate }}
+          </div>
+          <button cdkDragHandle *ngIf="dragEnabled"
+                  mat-icon-button
+                  matTooltip="{{ 'action.drag' | translate }}"
+                  matTooltipPosition="above"
+                  class="tb-drag-handle">
+            <tb-icon>drag_indicator</tb-icon>
+          </button>
+          <tb-custom-menu-item-row fxFlex [formControl]="menuItemControl"
+                                   [showHidden]="showHiddenItems.value"
+                                   (menuItemRemoved)="removeCustomMenuItem($index)">
+          </tb-custom-menu-item-row>
+        </div>
+        <button *ngIf="!isLast && !readonly"
+                (click)="addCustomMenuItem($index)"
+                class="tb-add-custom-menu-item-button"
+                mat-button
+                matTooltip="{{ 'custom-menu.add-custom-menu-item' | translate }}"
+                matTooltipPosition="above"
+                color="primary">
+          <div class="tb-add-custom-menu-icon-container tb-primary-fill">
+            <mat-icon class="tb-mat-18" color="primary">add</mat-icon>
+          </div>
+        </button>
+      </div>
+    </div>
+    <button *ngIf="!readonly"
+            (click)="addCustomMenuItem()"
+            mat-button color="primary" class="tb-primary-fill" style="min-height: 52px;">
+      <mat-icon color="primary">add</mat-icon>
+      <span translate>custom-menu.add-custom-menu-item</span>
+    </button>
   </mat-card-content>
   <mat-card-actions>
     <button mat-raised-button color="primary" *ngIf="!readonly"

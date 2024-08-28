@@ -55,7 +55,6 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CustomMenu;
-import org.thingsboard.server.common.data.menu.CustomMenuAssigneeInfo;
 import org.thingsboard.server.common.data.menu.CustomMenuConfig;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.page.PageData;
@@ -72,7 +71,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOM_MENU_ID;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOM_MENU_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOM_MENU_TEXT_SEARCH_DESCRIPTION;
@@ -230,7 +228,7 @@ public class CustomMenuController extends BaseController {
         checkCustomMenuInfoId(customMenuId, Operation.WRITE);
         List<EntityId> assignToList = getAssignToList(assigneeType, entityIds);
         CustomMenuAssignResult result = customMenuService.assignCustomMenu(getTenantId(), customMenuId, assigneeType, assignToList, force);
-        return (result.isSuccess() ? ResponseEntity.ok() : ResponseEntity.status(CONFLICT)).body(result);
+        return (result.isSuccess() ? ResponseEntity.ok() : ResponseEntity.badRequest()).body(result);
     }
 
     @ApiOperation(value = "Delete custom menu (deleteCustomMenu)",
@@ -245,7 +243,7 @@ public class CustomMenuController extends BaseController {
         CustomMenuId customMenuId = new CustomMenuId(id);
         checkCustomMenuId(customMenuId, Operation.DELETE);
         CustomMenuDeleteResult result = customMenuService.deleteCustomMenu(getTenantId(), customMenuId, force);
-        return (result.isSuccess() ? ResponseEntity.ok() : ResponseEntity.status(CONFLICT)).body(result);
+        return (result.isSuccess() ? ResponseEntity.ok() : ResponseEntity.badRequest()).body(result);
     }
 
     private List<EntityId> getAssignToList(CMAssigneeType type, UUID[] ids) throws ThingsboardException {

@@ -29,19 +29,26 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
-import { CustomMenuConfig, CustomMenuInfo } from '@shared/models/custom-menu.models';
-import { FormControl, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import {
+  beforeSaveCustomMenuConfig,
+  CMItemType,
+  CustomMenuConfig,
+  CustomMenuInfo,
+  CustomMenuItem,
+  MenuItem
+} from '@shared/models/custom-menu.models';
+import { AbstractControl, FormControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { CustomMenuService } from '@core/http/custom-menu.service';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
+import { CdkDragDrop } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'tb-custom-menu-config',
@@ -50,6 +57,9 @@ import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
   encapsulation: ViewEncapsulation.None
 })
 export class CustomMenuConfigComponent extends PageComponent implements OnInit, HasDirtyFlag {
+
+  @ViewChild('menuItemsContainer')
+  menuItemsContainer: ElementRef<HTMLElement>;
 
   private forcePristine = false;
 
@@ -70,6 +80,10 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
 
   customMenuFormGroup: UntypedFormGroup;
 
+  get dragEnabled(): boolean {
+    return !this.readonly && this.menuItemsFormArray().controls.length > 1;
+  }
+
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder,
               private router: Router,
@@ -85,9 +99,8 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
 
   ngOnInit(): void {
     this.customMenuFormGroup = this.fb.group({
-      items: []
+      items: this.prepareMenuItemsFormArray(this.customMenuConfig.items)
     });
-    const authUser = getCurrentAuthUser(this.store);
     this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.WHITE_LABELING, Operation.WRITE);
     if (this.readonly) {
       this.customMenuFormGroup.disable({emitEvent: false});
@@ -99,13 +112,77 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
   }
 
   save() {
-    // toto get value
-    const config = this.customMenuConfig;
+    const config: CustomMenuConfig = beforeSaveCustomMenuConfig(this.customMenuFormGroup.value, this.customMenu.scope);
     this.customMenuService.updateCustomMenuConfig(this.customMenu.id.id, config).subscribe(
       () => {
         this.customMenuFormGroup.markAsPristine();
       }
     );
+  }
+
+  menuItemDrop(event: CdkDragDrop<string[]>) {
+    const menuItemsArray = this.menuItemsFormArray();
+    const menuItem = this.visibleMenuItemsControls()[event.previousIndex];
+    const previousIndex = this.actualItemIndex(event.previousIndex);
+    const currentIndex = this.actualItemIndex(event.currentIndex);
+    menuItemsArray.removeAt(previousIndex);
+    menuItemsArray.insert(currentIndex, menuItem);
+    this.customMenuFormGroup.markAsDirty();
+  }
+
+  visibleMenuItemsControls(): Array<AbstractControl> {
+    return this.menuItemsFormArray().controls.filter(c => this.showHiddenItems.value || c.value.visible);
+  }
+
+  trackByMenuItem(_index: number, menuItemControl: AbstractControl): any {
+    return menuItemControl;
+  }
+
+  removeCustomMenuItem(index: number) {
+    this.menuItemsFormArray().removeAt(this.actualItemIndex(index));
+    this.customMenuFormGroup.markAsDirty();
+  }
+
+  isCustom(menuItemControl: AbstractControl): boolean {
+    return !menuItemControl.value.id;
+  }
+
+  addCustomMenuItem(index?: number) {
+    const menuItem: CustomMenuItem = {
+      visible: true,
+      name: 'Test custom item',
+      icon: 'star',
+      menuItemType: CMItemType.LINK
+    };
+    const menuItemsArray = this.menuItemsFormArray();
+    const menuItemControl = this.fb.control(menuItem, []);
+    if (index) {
+      const insertIndex = this.actualItemIndex(index) + 1;
+      menuItemsArray.insert(insertIndex, menuItemControl);
+    } else {
+      menuItemsArray.push(menuItemControl);
+      setTimeout(() => {
+        this.menuItemsContainer.nativeElement.scrollTop = this.menuItemsContainer.nativeElement.scrollHeight;
+      }, 0);
+    }
+    this.customMenuFormGroup.markAsDirty();
+  }
+
+  private menuItemsFormArray(): UntypedFormArray {
+    return this.customMenuFormGroup.get('items') as UntypedFormArray;
+  }
+
+  private actualItemIndex(index: number): number {
+    const menuItem = this.visibleMenuItemsControls()[index];
+    return this.menuItemsFormArray().controls.indexOf(menuItem);
+  }
+
+  private prepareMenuItemsFormArray(items: MenuItem[]): UntypedFormArray {
+    const menuItemsControls: Array<AbstractControl> = [];
+    items.forEach((item) => {
+      menuItemsControls.push(this.fb.control(item, []));
+    });
+    return this.fb.array(menuItemsControls);
   }
 
 }

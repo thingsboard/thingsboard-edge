@@ -32,7 +32,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
-  CustomMenu,
+  CMAssigneeType,
+  CustomMenu, CustomMenuAssignResult,
   CustomMenuConfig,
   CustomMenuDeleteResult,
   CustomMenuInfo
@@ -42,6 +43,7 @@ import { map, tap } from 'rxjs/operators';
 import { PageLink } from '@shared/models/page/page-link';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
 import { PageData } from '@shared/models/page/page-data';
+import { EntityInfoData } from '@shared/models/entity.models';
 
 @Injectable({
   providedIn: 'root'
@@ -87,6 +89,10 @@ export class CustomMenuService {
     return this.http.get<CustomMenuConfig>(`/api/customMenu/${customMenuId}/config`, defaultHttpOptionsFromConfig(config));
   }
 
+  public getCustomMenuAssigneeList(customMenuId: string, config?: RequestConfig): Observable<Array<EntityInfoData>> {
+    return this.http.get<Array<EntityInfoData>>(`/api/customMenu/${customMenuId}/assigneeList`, defaultHttpOptionsFromConfig(config));
+  }
+
   public updateCustomMenuConfig(customMenuId: string, customMenuConfig: CustomMenuConfig, config?: RequestConfig): Observable<CustomMenu> {
     return this.http.put<CustomMenu>(`/api/customMenu/${customMenuId}/config`, customMenuConfig,
       defaultHttpOptionsFromConfig(config)).pipe(
@@ -99,8 +105,9 @@ export class CustomMenuService {
       defaultHttpOptionsFromConfig(config));
   }
 
-  public assignCustomMenu(customMenuId: string, entityIds: string[], config?: RequestConfig): Observable<void> {
-    return this.http.put<void>(`/api/customMenu/${customMenuId}/assign`, entityIds,
+  public assignCustomMenu(customMenuId: string, assigneeType: CMAssigneeType,
+                          entityIds: string[], force = false, config?: RequestConfig): Observable<CustomMenuAssignResult> {
+    return this.http.put<CustomMenuAssignResult>(`/api/customMenu/${customMenuId}/assign/${assigneeType}?force=${force}`, entityIds,
       defaultHttpOptionsFromConfig(config)).pipe(
         mergeMap((res) => this.loadCustomMenu(true).pipe( map(() => res) ))
     );
@@ -110,7 +117,7 @@ export class CustomMenuService {
                         force = false, config?: RequestConfig): Observable<CustomMenu> {
     let url = `/api/customMenu?force=${force}`;
     if (assignToList && Array.isArray(assignToList)) {
-        url += `?assignToList=${assignToList.join(',')}`;
+        url += `&assignToList=${assignToList.join(',')}`;
     }
     return this.http.post<CustomMenu>(url, customMenuInfo,
       defaultHttpOptionsFromConfig(config)).pipe(

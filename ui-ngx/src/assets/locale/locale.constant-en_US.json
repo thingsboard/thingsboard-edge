@@ -1239,9 +1239,21 @@
         "assignee-all": "All users (Default)",
         "assignee-customers": "Customers list",
         "assignee-users": "Users list",
-        "manage-assignees": "Manage assignees",
+        "assign-to": "Assign to",
+        "assignee-users-required": "At least one user should be assigned",
+        "assignee-customers-required": "At least one customer should be assigned",
+        "manage-assignees": "Manage custom menu assignees",
         "manage-config": "Manage custom menu config",
-        "show-hidden-items": "Show hidden items"
+        "show-hidden-items": "Show hidden items",
+        "delete-custom-menu": "Delete custom menu",
+        "delete-custom-menu-user-list-text": "This menu is assigned to the <b>\"User list\"</b>. If you remove it, the default menu will be applied to the users listed below.",
+        "delete-custom-menu-customer-list-text": "This menu is assigned to the <b>\"Customer list\"</b>. If you remove it, the default menu will be applied to the customers listed below.",
+        "add-custom-menu-item": "Add custom menu item",
+        "custom-item": "Custom item",
+        "menu-item-name": "Menu item name",
+        "menu-item-name-is-required": "Menu item name is required",
+        "reset-to-menu-item-defaults": "Reset to menu item defaults",
+        "delete-menu-item": "Delete menu item"
     },
     "custom-translation": {
         "add-new-key": "Add new key",

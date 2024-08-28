@@ -29,13 +29,13 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { MenuId, MenuReference } from '@core/services/menu.models';
-import { isNotEmptyStr } from '@core/utils';
+import { defaultUserMenuMap, MenuId, MenuReference } from '@core/services/menu.models';
+import { deepClone, isNotEmptyStr } from '@core/utils';
 import { BaseData } from '@shared/models/base-data';
 import { CustomMenuId } from '@shared/models/id/custom-menu-id';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { CustomerId } from '@shared/models/id/customer-id';
-import { EntityInfo, HasTenantId } from '@shared/models/entity.models';
+import { EntityInfoData, HasTenantId } from '@shared/models/entity.models';
 import { Authority } from '@shared/models/authority.enum';
 
 export enum CMScope {
@@ -87,12 +87,23 @@ export interface CustomMenuInfo extends BaseData<CustomMenuId>, HasTenantId {
   assigneeType: CMAssigneeType;
 }
 
-export interface DefaultMenuItem extends MenuReference {
-  id: MenuId;
+export enum MenuItemType {
+  DEFAULT = 'DEFAULT',
+  HOME = 'HOME',
+  CUSTOM = 'CUSTOM'
+}
+
+export interface MenuItem {
+  type?: MenuItemType;
   name?: string;
   icon?: string;
-  pages?: DefaultMenuItem[];
   visible?: boolean;
+  pages?: MenuItem[];
+}
+
+export interface DefaultMenuItem extends MenuItem, MenuReference {
+  id: MenuId;
+  pages?: DefaultMenuItem[];
 }
 
 export enum HomeMenuItemType {
@@ -117,7 +128,7 @@ export enum CMItemLinkType {
   DASHBOARD = 'DASHBOARD'
 }
 
-export interface CustomMenuItem {
+export interface CustomMenuItem extends MenuItem {
   name: string;
   icon: string;
   menuItemType: CMItemType;
@@ -127,10 +138,7 @@ export interface CustomMenuItem {
   url?: string;
   setAccessToken?: boolean;
   pages?: CustomMenuItem[];
-  visible?: boolean;
 }
-
-export type MenuItem = DefaultMenuItem | HomeMenuItem | CustomMenuItem;
 
 export interface CustomMenuConfig {
   items: MenuItem[];
@@ -143,8 +151,42 @@ export interface CustomMenu extends CustomMenuInfo {
 export interface CustomMenuDeleteResult {
   success: boolean;
   assigneeType: CMAssigneeType;
-  assigneeList: EntityInfo[];
+  assigneeList: EntityInfoData[];
+  error?: any;
 }
+
+export const toCustomMenuDeleteResult = (e?: any): CustomMenuDeleteResult => {
+  const result = {success: true} as CustomMenuDeleteResult;
+  if (e?.status === 400 && e?.error?.success === false && (e?.error?.assigneeType && e?.error?.assigneeList)) {
+    result.success = false;
+    result.assigneeType = e?.error?.assigneeType;
+    result.assigneeList = e?.error?.assigneeList;
+  } else if (e) {
+    result.success = false;
+    result.error = e;
+  }
+  return result;
+};
+
+export interface CustomMenuAssignResult {
+  success: boolean;
+  oldAssigneeType: CMAssigneeType;
+  oldAssigneeList: EntityInfoData[];
+  error?: any;
+}
+
+export const toCustomMenuAssignResult = (e?: any): CustomMenuAssignResult => {
+  const result = {success: true} as CustomMenuAssignResult;
+  if (e?.status === 400 && e?.error?.success === false && (e?.error?.oldAssigneeType)) {
+    result.success = false;
+    result.oldAssigneeType = e?.error?.oldAssigneeType;
+    result.oldAssigneeList = e?.error?.oldAssigneeList;
+  } else if (e) {
+    result.success = false;
+    result.error = e;
+  }
+  return result;
+};
 
 export const isDefaultMenuItem = (item: MenuItem): item is DefaultMenuItem => {
   const id = (item as DefaultMenuItem).id;
@@ -161,7 +203,7 @@ export const isCustomMenuItem = (item: MenuItem): item is CustomMenuItem => {
 };
 
 export const referenceToMenuItem = (reference: MenuReference): DefaultMenuItem => {
-  const menuItem: MenuItem = {
+  const menuItem: DefaultMenuItem = {
     id: MenuId[reference.id],
     visible: true
   };
@@ -172,4 +214,98 @@ export const referenceToMenuItem = (reference: MenuReference): DefaultMenuItem =
       referenceToMenuItem(page));
   }
   return menuItem;
+};
+
+const menuItemsIsEqualToReferences = (items: MenuItem[], references: MenuReference[]): boolean => {
+  if (!items?.length && !references?.length) {
+    return true;
+  } else if (items.length !== references.length) {
+    return false;
+  } else {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const reference = references[i];
+      if (!menuItemIsEqualToReference(item, reference)) {
+        return false;
+      }
+    }
+    return true;
+  }
+};
+
+const menuItemIsEqualToReference = (item: MenuItem, reference: MenuReference): boolean => {
+  if (isDefaultMenuItem(item)) {
+    if (item.id !== reference.id || !!item.name || !!item.icon) {
+      return false;
+    } else {
+      if (isHomeMenuItem(item) && item.homeType !== HomeMenuItemType.DEFAULT) {
+        return false;
+      } else {
+        return menuItemsIsEqualToReferences(item.pages, reference.pages);
+      }
+    }
+  } else {
+    return false;
+  }
+};
+
+const isDefaultMenuConfig = (config: CustomMenuConfig, scope: CMScope): boolean => {
+  const authority = cmScopeToAuthority(scope);
+  const references = defaultUserMenuMap.get(authority);
+  return menuItemsIsEqualToReferences(config?.items, references);
+};
+
+const afterLoadMenuItems = (items: MenuItem[]): MenuItem[] => {
+  for (const item of items) {
+    if (item.type) {
+      delete item.type;
+    }
+    if (item.pages) {
+      item.pages = afterLoadMenuItems(item.pages);
+    }
+  }
+  return items;
+};
+
+export const afterLoadCustomMenuConfig = (config: CustomMenuConfig, scope: CMScope): CustomMenuConfig => {
+  if (!config?.items?.length) {
+    const authority = cmScopeToAuthority(scope);
+    const references = defaultUserMenuMap.get(authority);
+    return {
+      items: (references || []).map(r => referenceToMenuItem(r))
+    };
+  } else {
+    config.items = afterLoadMenuItems(config.items);
+    return config;
+  }
+};
+
+const beforeSaveMenuItems = (items: MenuItem[]): MenuItem[] => {
+  for (const item of items) {
+    let type: MenuItemType;
+    if (isDefaultMenuItem(item)) {
+      if (isHomeMenuItem(item)) {
+        type = MenuItemType.HOME;
+      } else {
+        type = MenuItemType.DEFAULT;
+      }
+    } else {
+      type = MenuItemType.CUSTOM;
+    }
+    item.type = type;
+    if (item.pages) {
+      item.pages = beforeSaveMenuItems(item.pages);
+    }
+  }
+  return items;
+};
+
+export const beforeSaveCustomMenuConfig = (config: CustomMenuConfig, scope: CMScope): CustomMenuConfig => {
+  if (isDefaultMenuConfig(config, scope)) {
+    return {items: []};
+  } else {
+    config = deepClone(config);
+    config.items = beforeSaveMenuItems(config.items);
+    return config;
+  }
 };

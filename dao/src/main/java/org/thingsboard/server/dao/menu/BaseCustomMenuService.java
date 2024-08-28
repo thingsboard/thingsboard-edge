@@ -133,7 +133,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
         if (!force && (oldAssigneeType != newAssigneeType)) {
             success = false;
             result.oldAssigneeType(oldAssigneeType);
-            result.oldAsigneeList(oldCMInfo.getAssigneeList());
+            result.oldAssigneeList(oldCMInfo.getAssigneeList());
         }
         if (success) {
             if (oldAssigneeType != newAssigneeType) {

@@ -36,6 +36,7 @@ import { defaultUserMenuMap, MenuId } from '@core/services/menu.models';
 import { BreadCrumbConfig, BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import {
+  afterLoadCustomMenuConfig,
   cmScopeToAuthority,
   CustomMenuConfig,
   CustomMenuInfo,
@@ -60,17 +61,9 @@ const customMenuConfigResolver: ResolveFn<CustomMenuConfig> = (route: ActivatedR
   const customMenuId = route.params.customMenuId;
   return customMenuService.getCustomMenuConfig(customMenuId).pipe(
     map((config) => {
-      if (!config?.items?.length) {
-        const customMenu: CustomMenuInfo = route.parent.data.customMenu;
-        const scope = customMenu.scope;
-        const authority = cmScopeToAuthority(scope);
-        const references = defaultUserMenuMap.get(authority);
-        return {
-          items: (references || []).map(r => referenceToMenuItem(r))
-        };
-      } else {
-        return config;
-      }
+      const customMenu: CustomMenuInfo = route.parent.data.customMenu;
+      const scope = customMenu.scope;
+      return afterLoadCustomMenuConfig(config, scope);
     })
   );
 };
