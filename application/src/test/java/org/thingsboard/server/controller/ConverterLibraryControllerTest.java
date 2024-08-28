@@ -31,11 +31,9 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.converter.Model;
 import org.thingsboard.server.service.converter.Vendor;
@@ -45,9 +43,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DaoSqlTest
-@TestPropertySource(properties = {
-        "integrations.converters.library.enabled=false"
-})
 public class ConverterLibraryControllerTest extends AbstractControllerTest {
 
     @Before
