@@ -62,9 +62,9 @@ export class ReportService {
   private currentDashboardId: string;
   private receiveWsData: Map<number, boolean> = new Map();
   private lastWsCommandTimeMs = 0;
-  private waitForMaps: Set<string> = new Set();
-  private lastWaitMapTimeMs = 0;
-  private waitForWidgets = 0;
+  private waitForWidgets: Set<string> = new Set();
+  private lastWaitWidgetTimeMs = 0;
+  private widgetsCount = 0;
   private lastWaitWidgetsTimeMs = 0;
 
   constructor(
@@ -121,19 +121,27 @@ export class ReportService {
   }
 
   public onDashboardLoaded(widgetsCount: number) {
-    this.waitForWidgets = widgetsCount;
+    this.widgetsCount = widgetsCount;
     this.lastWaitWidgetsTimeMs = this.utils.currentPerfTime();
+  }
+
+  public onWaitForWidget(): string {
+    return this.onWaitForMap();
   }
 
   public onWaitForMap(): string {
     const uuid = this.utils.guid();
-    this.waitForMaps.add(uuid);
-    this.lastWaitMapTimeMs = this.utils.currentPerfTime();
+    this.waitForWidgets.add(uuid);
+    this.lastWaitWidgetTimeMs = this.utils.currentPerfTime();
     return uuid;
   }
 
+  public onWidgetLoaded(uuid: string): void {
+    this.onMapLoaded(uuid);
+  }
+
   public onMapLoaded(uuid: string) {
-    this.waitForMaps.delete(uuid);
+    this.waitForWidgets.delete(uuid);
   }
 
   public downloadDashboardReport(dashboardId: string, reportType: ReportType, state?: string, timewindow?: Timewindow): Observable<any> {
@@ -220,12 +228,12 @@ export class ReportService {
               url += `?${params.join('&')}`;
             }
             this.openReportSubject.next();
-            this.waitForWidgets = 0;
+            this.widgetsCount = 0;
             this.receiveWsData.clear();
-            this.waitForMaps.clear();
+            this.waitForWidgets.clear();
             this.lastWaitWidgetsTimeMs = 0;
             this.lastWsCommandTimeMs = this.utils.currentPerfTime();
-            this.lastWaitMapTimeMs = this.utils.currentPerfTime();
+            this.lastWaitWidgetTimeMs = this.utils.currentPerfTime();
             return from(this.router.navigateByUrl(url, {replaceUrl: true})).pipe(
               mergeMap((result) => {
                 if (result) {
@@ -256,7 +264,7 @@ export class ReportService {
   private waitForReportReady(timeout = 3000): Observable<any> {
     return from(this.waitForReportPage(timeout)).pipe(
       mergeMap(() => from(this.waitForWebsocketData(timeout))),
-      mergeMap(() => from(this.waitForMapsLoaded(timeout)))
+      mergeMap(() => from(this.waitForWidgetsLoaded(timeout)))
     );
   }
 
@@ -302,12 +310,12 @@ export class ReportService {
     );
   }
 
-  private waitForMapsLoaded(timeout = 3000): Promise<void> {
+  private waitForWidgetsLoaded(timeout = 3000): Promise<void> {
     return new Promise<void>(
       (resolve, reject) => {
         let waitTime = 0;
         const waitInterval = setInterval(() => {
-          if (!this.waitForMaps.size && (this.utils.currentPerfTime() - this.lastWaitMapTimeMs >= 100)) {
+          if (!this.waitForWidgets.size && (this.utils.currentPerfTime() - this.lastWaitWidgetTimeMs >= 100)) {
             clearInterval(waitInterval);
             resolve();
           } else {
@@ -325,7 +333,7 @@ export class ReportService {
   private isReportPageDomReady(): boolean {
     if ($('section.tb-dashboard-container gridster#gridster-child').not('tb-widget-container gridster#gridster-child').length) {
       const widgets = Array.from($('tb-widget>div.tb-widget-loading'));
-      if (widgets.length >= this.waitForWidgets && widgets.every(item => item.style.display === 'none')) {
+      if (widgets.length >= this.widgetsCount && widgets.every(item => item.style.display === 'none')) {
         return true;
       }
     }
@@ -346,9 +354,7 @@ export class ReportService {
     if (publicId && publicId.length) {
       if (this.publicId !== publicId) {
         return this.authService.loadUserFromPublicId(publicId).pipe(
-          map((payload) => {
-            return payload !== null;
-          }),
+          map((payload) => payload !== null),
           tap((authenticated) => {
             if (authenticated) {
               this.publicId = publicId;
@@ -361,9 +367,7 @@ export class ReportService {
       }
     } else if (this.accessToken !== accessToken) {
       return this.authService.loadUserFromAccessToken(accessToken).pipe(
-        map((payload) => {
-          return payload !== null;
-        }),
+        map((payload) => payload !== null),
         tap((authenticated) => {
           if (authenticated) {
             this.accessToken = accessToken;
