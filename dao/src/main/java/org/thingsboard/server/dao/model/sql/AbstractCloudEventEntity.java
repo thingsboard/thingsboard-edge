@@ -34,35 +34,43 @@ import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_ACTION_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_ENTITY_BODY_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_ENTITY_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_SEQUENTIAL_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_TENANT_ID_PROPERTY;
+import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_TYPE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.EPOCH_DIFF;
+import static org.thingsboard.server.dao.model.ModelConstants.TS_COLUMN;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @MappedSuperclass
 public class AbstractCloudEventEntity extends BaseSqlEntity<CloudEvent> implements BaseEntity<CloudEvent> {
 
-    @Column(name = "seqId")
+    @Column(name = CLOUD_EVENT_SEQUENTIAL_ID_PROPERTY)
     protected long seqId;
 
-    @Column(name = "tenantId")
+    @Column(name = CLOUD_EVENT_TENANT_ID_PROPERTY)
     private UUID tenantId;
 
-    @Column(name = "entityId")
+    @Column(name = CLOUD_EVENT_ENTITY_ID_PROPERTY)
     private UUID entityId;
 
+
     @Enumerated(EnumType.STRING)
-    @Column(name = "cloudEventType")
+    @Column(name = CLOUD_EVENT_TYPE_PROPERTY)
     private CloudEventType cloudEventType;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "cloudEventAction")
+    @Column(name = CLOUD_EVENT_ACTION_PROPERTY)
     private EdgeEventActionType cloudEventAction;
 
     @Convert(converter = JsonConverter.class)
-    @Column(name = "entityBody")
+    @Column(name = CLOUD_EVENT_ENTITY_BODY_PROPERTY)
     private JsonNode entityBody;
 
-    @Column(name = "ts")
+    @Column(name = TS_COLUMN)
     private long ts;
 
     protected AbstractCloudEventEntity() {
