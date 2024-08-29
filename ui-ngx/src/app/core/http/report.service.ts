@@ -125,22 +125,22 @@ export class ReportService {
     this.lastWaitWidgetsTimeMs = this.utils.currentPerfTime();
   }
 
-  public onWaitForWidget(): string {
-    return this.onWaitForMap();
+  public onWaitForMap(): string {
+    return this.onWaitForWidget();
   }
 
-  public onWaitForMap(): string {
+  public onWaitForWidget(): string {
     const uuid = this.utils.guid();
     this.waitForWidgets.add(uuid);
     this.lastWaitWidgetTimeMs = this.utils.currentPerfTime();
     return uuid;
   }
 
-  public onWidgetLoaded(uuid: string): void {
-    this.onMapLoaded(uuid);
+  public onMapLoaded(uuid: string): void {
+    this.onWidgetLoaded(uuid);
   }
 
-  public onMapLoaded(uuid: string) {
+  public onWidgetLoaded(uuid: string): void {
     this.waitForWidgets.delete(uuid);
   }
 
