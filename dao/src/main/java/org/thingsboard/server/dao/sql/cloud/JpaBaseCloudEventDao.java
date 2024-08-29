@@ -15,74 +15,62 @@
  */
 package org.thingsboard.server.dao.sql.cloud;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.google.common.util.concurrent.ListenableFuture;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
-import org.thingsboard.server.common.data.id.CloudEventId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.SortOrder;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.stats.StatsFactory;
-import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.model.sql.CloudEventEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.sql.ScheduledLogExecutorComponent;
-import org.thingsboard.server.dao.sql.TbSqlBlockingQueueParams;
-import org.thingsboard.server.dao.sql.TbSqlBlockingQueueWrapper;
 import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-
-import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
-public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, CloudEvent> implements CloudEventDao {
-
-    private final UUID systemTenantId = NULL_UUID;
-
-    private final ScheduledLogExecutorComponent logExecutor;
-
-    private final StatsFactory statsFactory;
+public class JpaBaseCloudEventDao extends AbstractJpaCloudEventDao<CloudEventEntity> implements CloudEventDao {
 
     private final CloudEventRepository cloudEventRepository;
-
     private final BaseCloudEventInsertRepository<CloudEventEntity> cloudEventInsertRepository;
 
-    private final SqlPartitioningRepository partitioningRepository;
+    public JpaBaseCloudEventDao(ScheduledLogExecutorComponent logExecutor,
+                                StatsFactory statsFactory,
+                                SqlPartitioningRepository partitioningRepository,
+                                CloudEventRepository cloudEventRepository,
+                                BaseCloudEventInsertRepository<CloudEventEntity> cloudEventInsertRepository) {
+        super(logExecutor, statsFactory, partitioningRepository);
+        this.cloudEventRepository = cloudEventRepository;
+        this.cloudEventInsertRepository = cloudEventInsertRepository;
+    }
 
-    @Value("${sql.cloud_events.batch_size:10000}")
-    private int batchSize;
+    @Override
+    protected BaseCloudEventRepository<CloudEventEntity, UUID> getRepository() {
+        return cloudEventRepository;
+    }
 
-    @Value("${sql.cloud_events.batch_max_delay:100}")
-    private long maxDelay;
+    @Override
+    protected String getTableName() {
+        return ModelConstants.CLOUD_EVENT_COLUMN_FAMILY_NAME;
+    }
 
-    @Value("${sql.cloud_events.stats_print_interval_ms:10000}")
-    private long statsPrintIntervalMs;
+    @Override
+    protected String getLogName() {
+        return "Cloud Event";
+    }
 
-    @Value("${sql.cloud_events.partition_size:24}")
-    private int partitionSizeInHours;
+    @Override
+    protected String getStatsNamePrefix() {
+        return "cloud.events";
+    }
 
-    private static final String TABLE_NAME = ModelConstants.CLOUD_EVENT_COLUMN_FAMILY_NAME;
-
-    private TbSqlBlockingQueueWrapper<CloudEventEntity, Void> queue;
+    @Override
+    protected void saveEntities(List<CloudEventEntity> entities) {
+        cloudEventInsertRepository.save(entities, getTableName());
+    }
 
     @Override
     protected Class<CloudEventEntity> getEntityClass() {
@@ -90,116 +78,14 @@ public class JpaBaseCloudEventDao extends JpaAbstractDao<CloudEventEntity, Cloud
     }
 
     @Override
-    protected JpaRepository<CloudEventEntity, UUID> getRepository() {
-        return cloudEventRepository;
-    }
-
-    @PostConstruct
-    private void init() {
-        TbSqlBlockingQueueParams params = TbSqlBlockingQueueParams.builder()
-                .logName("Cloud Events")
-                .batchSize(batchSize)
-                .maxDelay(maxDelay)
-                .statsPrintIntervalMs(statsPrintIntervalMs)
-                .statsNamePrefix("cloud.events")
-                .batchSortEnabled(true)
-                .build();
-        Function<CloudEventEntity, Integer> hashcodeFunction = entity -> {
-            if (entity.getEntityId() != null) {
-                return entity.getEntityId().hashCode();
-            } else {
-                return NULL_UUID.hashCode();
-            }
-        };
-        queue = new TbSqlBlockingQueueWrapper<>(params, hashcodeFunction, 1, statsFactory);
-        queue.init(logExecutor, entities -> cloudEventInsertRepository.save(entities, TABLE_NAME),
-                Comparator.comparing(CloudEventEntity::getTs)
-        );
-    }
-
-    @PreDestroy
-    private void destroy() {
-        if (queue != null) {
-            queue.destroy();
-        }
+    protected CloudEventEntity createEntity(CloudEvent cloudEvent) {
+        return new CloudEventEntity(cloudEvent);
     }
 
     @Override
-    public ListenableFuture<Void> saveAsync(CloudEvent cloudEvent) {
-        log.debug("Save cloud event [{}] ", cloudEvent);
-        if (cloudEvent.getId() == null) {
-            UUID timeBased = Uuids.timeBased();
-            cloudEvent.setId(new CloudEventId(timeBased));
-            cloudEvent.setCreatedTime(Uuids.unixTimestamp(timeBased));
-        } else if (cloudEvent.getCreatedTime() == 0L) {
-            UUID eventId = cloudEvent.getId().getId();
-            if (eventId.version() == 1) {
-                cloudEvent.setCreatedTime(Uuids.unixTimestamp(eventId));
-            } else {
-                cloudEvent.setCreatedTime(System.currentTimeMillis());
-            }
-        }
-        partitioningRepository.createPartitionIfNotExists(TABLE_NAME, cloudEvent.getCreatedTime(), TimeUnit.HOURS.toMillis(partitionSizeInHours));
-        return save(new CloudEventEntity(cloudEvent));
-    }
-
-    private ListenableFuture<Void> save(CloudEventEntity entity) {
-        log.debug("Save cloud event [{}] ", entity);
-        if (entity.getTenantId() == null) {
-            log.trace("Save system cloud event with predefined id {}", systemTenantId);
-            entity.setTenantId(systemTenantId);
-        }
-        if (entity.getUuid() == null) {
-            entity.setUuid(Uuids.timeBased());
-        }
-
-        return addToQueue(entity);
-    }
-
-    private ListenableFuture<Void> addToQueue(CloudEventEntity entity) {
-        return queue.add(entity);
-    }
-
-    @Override
-    public PageData<CloudEvent> findCloudEvents(UUID tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
-        log.trace("Executing findCloudEvents [{}], [{}], [{}], [{}]", tenantId, seqIdStart, seqIdEnd, pageLink);
-        List<SortOrder> sortOrders = new ArrayList<>();
-        if (pageLink.getSortOrder() != null) {
-            sortOrders.add(pageLink.getSortOrder());
-        }
-        sortOrders.add(new SortOrder("seqId"));
-        return DaoUtil.toPageData(
-                cloudEventRepository
-                        .findEventsByTenantId(
-                                tenantId,
-                                pageLink.getStartTime(),
-                                pageLink.getEndTime(),
-                                seqIdStart,
-                                seqIdEnd,
-                                DaoUtil.toPageable(pageLink, sortOrders)));
-    }
-
-    @Override
-    public long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(UUID tenantId,
-                                                                                       UUID entityId,
-                                                                                       CloudEventType cloudEventType,
-                                                                                       EdgeEventActionType cloudEventAction,
-                                                                                       Long startTime,
-                                                                                       Long endTime) {
-        return cloudEventRepository
-                .countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(
-                        tenantId,
-                        entityId,
-                        cloudEventType,
-                        cloudEventAction,
-                        startTime,
-                        endTime);
-    }
-
-    @Override
-    public void cleanupEvents(long ttl) {
-        log.info("Going to cleanup old cloud events using debug events ttl: {}s", ttl);
-        partitioningRepository.dropPartitionsBefore(TABLE_NAME, ttl, TimeUnit.HOURS.toMillis(partitionSizeInHours));
+    public long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(UUID tenantId, UUID entityId, CloudEventType cloudEventType, EdgeEventActionType cloudEventAction, Long startTime, Long endTime) {
+        return cloudEventRepository.countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(
+                tenantId, entityId, cloudEventType, cloudEventAction, startTime, endTime);
     }
 
 }

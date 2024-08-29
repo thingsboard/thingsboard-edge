@@ -35,9 +35,6 @@ import org.thingsboard.server.common.msg.TbMsg;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_DELETED;
-import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_UPDATED;
-import static org.thingsboard.server.common.data.msg.TbMsgType.POST_ATTRIBUTES_REQUEST;
 import static org.thingsboard.server.common.data.msg.TbMsgType.POST_TELEMETRY_REQUEST;
 import static org.thingsboard.server.common.data.msg.TbMsgType.TIMESERIES_DELETED;
 import static org.thingsboard.server.common.data.msg.TbMsgType.TIMESERIES_UPDATED;

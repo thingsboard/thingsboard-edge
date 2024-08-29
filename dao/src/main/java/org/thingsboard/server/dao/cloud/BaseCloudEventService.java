@@ -64,7 +64,6 @@ public class BaseCloudEventService implements CloudEventService {
     @Override
     public void cleanupEvents(long ttl) {
         cloudEventDao.cleanupEvents(ttl);
-        tsKvCloudEventDao.cleanupEvents(ttl);
     }
 
     @Override
@@ -93,12 +92,6 @@ public class BaseCloudEventService implements CloudEventService {
     public ListenableFuture<Void> saveCloudEventAsync(TenantId tenantId, CloudEventType cloudEventType,
                                                       EdgeEventActionType cloudEventAction, EntityId entityId,
                                                       JsonNode entityBody, Long queueStartTs) {
-        return saveEventAsync(tenantId, cloudEventType, cloudEventAction, entityId, entityBody, queueStartTs);
-    }
-
-    private ListenableFuture<Void> saveEventAsync(TenantId tenantId, CloudEventType cloudEventType,
-                                                  EdgeEventActionType cloudEventAction, EntityId entityId,
-                                                  JsonNode entityBody, Long queueStartTs) {
         if (shouldAddEventToQueue(tenantId, cloudEventType, cloudEventAction, entityId, queueStartTs)) {
             CloudEvent cloudEvent = new CloudEvent();
             cloudEvent.setTenantId(tenantId);
@@ -138,7 +131,7 @@ public class BaseCloudEventService implements CloudEventService {
 
     @Override
     public PageData<CloudEvent> findTsKvCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
-        return tsKvCloudEventDao.findTsKvCloudEvents(tenantId.getId(), seqIdStart, seqIdEnd, pageLink);
+        return tsKvCloudEventDao.findCloudEvents(tenantId.getId(), seqIdStart, seqIdEnd, pageLink);
     }
 
     @Override
