@@ -49,6 +49,7 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { isDefined } from '@core/utils';
 
 @Component({
   selector: 'tb-custom-menu-config',
@@ -169,7 +170,7 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
     };
     const menuItemsArray = this.menuItemsFormArray();
     const menuItemControl = this.fb.control(menuItem, []);
-    if (index) {
+    if (isDefined(index)) {
       const insertIndex = this.actualItemIndex(index) + 1;
       menuItemsArray.insert(insertIndex, menuItemControl);
     } else {

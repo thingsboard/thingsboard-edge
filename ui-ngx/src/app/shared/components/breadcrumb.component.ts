@@ -30,7 +30,7 @@
 ///
 
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
-import { BehaviorSubject, Subject, Subscription } from 'rxjs';
+import { BehaviorSubject, merge, Subject, Subscription } from 'rxjs';
 import { BreadCrumb, BreadCrumbConfig } from './breadcrumb';
 import { ActivatedRoute, ActivatedRouteSnapshot, NavigationEnd, Router } from '@angular/router';
 import { distinctUntilChanged, filter, first, map, switchMap } from 'rxjs/operators';
@@ -70,12 +70,12 @@ export class BreadcrumbComponent implements OnInit, OnDestroy {
 
   breadcrumbs$: Subject<Array<BreadCrumb>> = new BehaviorSubject<Array<BreadCrumb>>([]);
 
-  routerEventsSubscription = this.router.events.pipe(
+  routerEventsSubscription = merge(this.router.events.pipe(
     filter((event) => event instanceof NavigationEnd ),
-    distinctUntilChanged(),
-    switchMap(() => this.menuService.availableMenuSections().pipe(first())),
-    map( (sections) => this.buildBreadCrumbs(this.activatedRoute.snapshot, sections) )
-  ).subscribe(breadcrumns => this.breadcrumbs$.next(breadcrumns) );
+    distinctUntilChanged()), this.menuService.availableMenuSections()).pipe(
+      switchMap(() => this.menuService.availableMenuSections().pipe(first())),
+      map( (sections) => this.buildBreadCrumbs(this.activatedRoute.snapshot, sections) )
+    ).subscribe(breadcrumns => this.breadcrumbs$.next(breadcrumns) );
 
   activeComponentSubscription = this.activeComponentService.onActiveComponentChanged().subscribe(comp => this.setActiveComponent(comp));
 

@@ -54,6 +54,8 @@ import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuConfig;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
+import org.thingsboard.server.common.data.menu.CustomMenuItem;
+import org.thingsboard.server.common.data.menu.DefaultMenuItem;
 import org.thingsboard.server.common.data.menu.MenuItem;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -316,10 +318,30 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
         if (customMenu == null || customMenu.getConfig() == null) {
             return null;
         }
-        return new CustomMenuConfig(customMenu.getConfig().getItems().stream()
-                .filter(MenuItem::isVisible)
-                .map(MenuItem.class::cast)
-                .collect(Collectors.toList()));
+        return new CustomMenuConfig(filterVisibleMenuItems(customMenu.getConfig().getItems()));
+    }
+
+    private static <T extends MenuItem> List<T> filterVisibleMenuItems(List<T> menuItems) {
+        return menuItems.stream().filter(MenuItem::isVisible).map(BaseCustomMenuService::filterVisiblePages).collect(Collectors.toList());
+    }
+
+    private static <T extends MenuItem> T filterVisiblePages(T item) {
+        switch (item.getType()) {
+            case HOME:
+            case DEFAULT:
+                var defaultItemPages = ((DefaultMenuItem)item).getPages();
+                if (defaultItemPages != null) {
+                    ((DefaultMenuItem)item).setPages(filterVisibleMenuItems(defaultItemPages));
+                }
+            break;
+            case CUSTOM:
+                var customItemPages = ((CustomMenuItem)item).getPages();
+                if (customItemPages != null) {
+                    ((CustomMenuItem)item).setPages(filterVisibleMenuItems(customItemPages));
+                }
+            break;
+        }
+        return item;
     }
 
     private CustomMenu findCustomMenuByUserId(TenantId tenantId, UserId userId) {
