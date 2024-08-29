@@ -49,6 +49,8 @@ public class OAuth2CloudProcessor extends BaseEdgeProcessor {
                     if (oAuth2Client == null) {
                         throw new RuntimeException("[{" + TenantId.SYS_TENANT_ID + "}] oAuth2ClientUpdateMsg {" + oAuth2ClientUpdateMsg + "} cannot be converted to OAuth2Client");
                     }
+                    oAuth2Client.getMapperConfig().setActivateUser(false);
+                    oAuth2Client.getMapperConfig().setAllowUserCreation(false);
                     oAuth2ClientService.saveOAuth2Client(oAuth2Client.getTenantId(), oAuth2Client);
                     return Futures.immediateFuture(null);
                 case ENTITY_DELETED_RPC_MESSAGE:

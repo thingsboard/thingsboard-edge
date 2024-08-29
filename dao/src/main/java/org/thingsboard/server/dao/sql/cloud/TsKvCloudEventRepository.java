@@ -15,8 +15,10 @@
  */
 package org.thingsboard.server.dao.sql.cloud;
 
-public interface CloudEventCleanupRepository {
+import org.thingsboard.server.dao.model.sql.TsKvCloudEventEntity;
 
-    void cleanupEvents(long eventsTtl);
+import java.util.UUID;
+
+public interface TsKvCloudEventRepository extends BaseCloudEventRepository<TsKvCloudEventEntity, UUID> {
 
 }

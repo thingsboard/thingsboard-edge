@@ -66,11 +66,9 @@ import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcesso
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.EntityCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.ResourceCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.RuleChainCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TenantCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.WidgetBundleCloudProcessor;
@@ -106,6 +104,8 @@ public class CloudManagerService {
 
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
     private static final String QUEUE_SEQ_ID_OFFSET_ATTR_KEY = "queueSeqIdOffset";
+    private static final String QUEUE_TS_KV_START_TS_ATTR_KEY = "queueTsKvStartTs";
+    private static final String QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY = "queueTsKvSeqIdOffset";
     private static final String RATE_LIMIT_REACHED = "Rate limit reached";
 
     @Value("${cloud.routingKey}")
@@ -160,9 +160,6 @@ public class CloudManagerService {
     private AlarmCloudProcessor alarmProcessor;
 
     @Autowired
-    private EntityCloudProcessor entityProcessor;
-
-    @Autowired
     private TelemetryCloudProcessor telemetryProcessor;
 
     @Autowired
@@ -179,9 +176,6 @@ public class CloudManagerService {
 
     @Autowired
     private AssetProfileCloudProcessor assetProfileProcessor;
-
-    @Autowired
-    private RuleChainCloudProcessor ruleChainProcessor;
 
     @Autowired
     private TenantCloudProcessor tenantProcessor;
@@ -203,6 +197,7 @@ public class CloudManagerService {
     private EdgeSettings currentEdgeSettings;
 
     private Long queueStartTs;
+    private Long queueTsKvStartTs;
 
     private ExecutorService executor;
     private ScheduledExecutorService reconnectScheduler;
@@ -274,41 +269,19 @@ public class CloudManagerService {
             while (!Thread.interrupted()) {
                 try {
                     if (initialized) {
-                        Long queueSeqIdStart = getQueueSeqIdStart().get();
-                        TimePageLink pageLink = newCloudEventsAvailable(queueSeqIdStart);
-                        if (pageLink != null) {
-                            PageData<CloudEvent> cloudEvents;
-                            boolean success = true;
-                            do {
-                                cloudEvents = cloudEventService.findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
-                                if (initialized) {
-                                    if (cloudEvents.getData().isEmpty()) {
-                                        log.info("seqId column of cloud_event table started new cycle");
-                                        cloudEvents = findCloudEventsFromBeginning(pageLink);
-                                    }
-                                    log.trace("[{}] event(s) are going to be converted.", cloudEvents.getData().size());
-                                    List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(cloudEvents.getData());
-                                    if (!uplinkMsgsPack.isEmpty()) {
-                                        success = sendUplinkMsgsPack(uplinkMsgsPack);
-                                    } else {
-                                        success = true;
-                                    }
-                                    if (success && cloudEvents.getTotalElements() > 0) {
-                                        CloudEvent latestCloudEvent = cloudEvents.getData().get(cloudEvents.getData().size() - 1);
-                                        try {
-                                            Long newStartTs = Uuids.unixTimestamp(latestCloudEvent.getUuidId());
-                                            updateQueueStartTsSeqIdOffset(newStartTs, latestCloudEvent.getSeqId());
-                                            log.debug("Queue offset was updated [{}][{}][{}]", latestCloudEvent.getUuidId(), newStartTs, latestCloudEvent.getSeqId());
-                                        } catch (Exception e) {
-                                            log.error("Failed to update queue offset [{}]", latestCloudEvent);
-                                        }
-                                    }
-                                    if (success) {
-                                        pageLink = pageLink.nextPageLink();
-                                    }
-                                }
-                            } while (initialized && (!success || cloudEvents.hasNext()));
+
+                        Long cloudEventsQueueSeqIdStart = getQueueSeqIdStart().get();
+                        TimePageLink cloudEventsPageLink = newCloudEventsAvailable(cloudEventsQueueSeqIdStart);
+                        if (cloudEventsPageLink != null) {
+                            processCloudEvents(cloudEventsQueueSeqIdStart, cloudEventsPageLink);
                         }
+
+                        Long tsKvCloudEventsQueueSeqIdStart = getQueueTsKvSeqIdStart().get();
+                        TimePageLink tsKvCloudEventsPageLink = newTsKvCloudEventsAvailable(tsKvCloudEventsQueueSeqIdStart);
+                        if (tsKvCloudEventsPageLink != null) {
+                            processTsKvCloudEvents(tsKvCloudEventsQueueSeqIdStart, tsKvCloudEventsPageLink);
+                        }
+
                         try {
                             Thread.sleep(cloudEventStorageSettings.getNoRecordsSleepInterval());
                         } catch (InterruptedException e) {
@@ -322,6 +295,79 @@ public class CloudManagerService {
                 }
             }
         });
+    }
+
+    private void processCloudEvents(Long queueSeqIdStart, TimePageLink pageLink) throws Exception {
+        PageData<CloudEvent> cloudEvents;
+        boolean success = true;
+        do {
+            cloudEvents = cloudEventService.findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
+            if (initialized) {
+                if (cloudEvents.getData().isEmpty()) {
+                    log.info("seqId column of cloud_event table started new cycle");
+                    cloudEvents = findCloudEventsFromBeginning(pageLink);
+                }
+                log.trace("[{}] event(s) are going to be converted.", cloudEvents.getData().size());
+                List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(cloudEvents.getData());
+                if (!uplinkMsgsPack.isEmpty()) {
+                    success = sendUplinkMsgsPack(uplinkMsgsPack);
+                } else {
+                    success = true;
+                }
+                if (success && cloudEvents.getTotalElements() > 0) {
+                    CloudEvent latestCloudEvent = cloudEvents.getData().get(cloudEvents.getData().size() - 1);
+                    try {
+                        Long newStartTs = Uuids.unixTimestamp(latestCloudEvent.getUuidId());
+                        updateQueueStartTsSeqIdOffset(QUEUE_START_TS_ATTR_KEY, QUEUE_SEQ_ID_OFFSET_ATTR_KEY, newStartTs, latestCloudEvent.getSeqId());
+                        log.debug("Queue offset was updated [{}][{}][{}]", latestCloudEvent.getUuidId(), newStartTs, latestCloudEvent.getSeqId());
+                    } catch (Exception e) {
+                        log.error("Failed to update queue offset [{}]", latestCloudEvent);
+                    }
+                }
+                if (success) {
+                    pageLink = pageLink.nextPageLink();
+                }
+            }
+        } while (initialized && (!success || cloudEvents.hasNext()));
+    }
+
+    private void processTsKvCloudEvents(Long queueSeqIdStart, TimePageLink pageLink) throws Exception {
+        PageData<CloudEvent> tsKvCloudEvents;
+        boolean success = true;
+        do {
+            tsKvCloudEvents = cloudEventService.findTsKvCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
+            if (initialized) {
+                if (tsKvCloudEvents.getData().isEmpty()) {
+                    log.info("seqId column of ts_kv_cloud_event table started new cycle");
+                    tsKvCloudEvents = findTsKvCloudEventsFromBeginning(pageLink);
+                }
+                log.trace("[{}] event(s) are going to be converted.", tsKvCloudEvents.getData().size());
+                List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(tsKvCloudEvents.getData());
+                if (!uplinkMsgsPack.isEmpty()) {
+                    success = sendUplinkMsgsPack(uplinkMsgsPack);
+                } else {
+                    success = true;
+                }
+                if (success && tsKvCloudEvents.getTotalElements() > 0) {
+                    CloudEvent latestTSKvCloudEvent = tsKvCloudEvents.getData().get(tsKvCloudEvents.getData().size() - 1);
+                    try {
+                        Long newStartTs = Uuids.unixTimestamp(latestTSKvCloudEvent.getUuidId());
+                        updateQueueStartTsSeqIdOffset(QUEUE_TS_KV_START_TS_ATTR_KEY, QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY, newStartTs, latestTSKvCloudEvent.getSeqId());
+                        log.debug("Queue offset was updated [{}][{}][{}]", latestTSKvCloudEvent.getUuidId(), newStartTs, latestTSKvCloudEvent.getSeqId());
+                    } catch (Exception e) {
+                        log.error("Failed to update queue offset [{}]", latestTSKvCloudEvent);
+                    }
+                }
+                if (success) {
+                    pageLink = pageLink.nextPageLink();
+                }
+                Long cloudEventsQueueSeqIdStart = getQueueSeqIdStart().get();
+                TimePageLink cloudEventsPageLink = newCloudEventsAvailable(cloudEventsQueueSeqIdStart);
+                if (cloudEventsPageLink != null) {
+                    return;
+                }
+            }
+        } while (initialized && (!success || tsKvCloudEvents.hasNext()));
     }
 
     private TimePageLink newCloudEventsAvailable(Long queueSeqIdStart) {
@@ -360,10 +406,52 @@ public class CloudManagerService {
         }
     }
 
+    private TimePageLink newTsKvCloudEventsAvailable(Long queueSeqIdStart) {
+        try {
+            queueTsKvStartTs = getQueueTsKvStartTs().get();
+            long queueEndTs = queueTsKvStartTs + TimeUnit.DAYS.toMillis(1);
+            TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
+                    0, null, null, queueTsKvStartTs, queueEndTs);
+            PageData<CloudEvent> cloudEvents = cloudEventService.findTsKvCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
+            if (cloudEvents.getData().isEmpty()) {
+                // check if new cycle started (seq_id starts from '1')
+                cloudEvents = findTsKvCloudEventsFromBeginning(pageLink);
+                if (cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() == 1)) {
+                    log.info("newTsKvCloudEventsAvailable: new cycle started (seq_id starts from '1')!");
+                    return pageLink;
+                } else {
+                    while (queueEndTs < System.currentTimeMillis()) {
+                        log.info("newTsKvCloudEventsAvailable: queueEndTs < System.currentTimeMillis() [{}] [{}]", queueEndTs, System.currentTimeMillis());
+                        queueTsKvStartTs = queueEndTs;
+                        queueEndTs = queueEndTs + TimeUnit.DAYS.toMillis(1);
+                        pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
+                                0, null, null, queueTsKvStartTs, queueEndTs);
+                        cloudEvents = cloudEventService.findTsKvCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
+                        if (!cloudEvents.getData().isEmpty()) {
+                            return pageLink;
+                        }
+                    }
+                    return null;
+                }
+            } else {
+                return pageLink;
+            }
+        } catch (Exception e) {
+            log.warn("Failed to check newTsKvCloudEventsAvailable!", e);
+            return null;
+        }
+    }
+
     private PageData<CloudEvent> findCloudEventsFromBeginning(TimePageLink pageLink) {
         long seqIdEnd = Integer.toUnsignedLong(cloudEventStorageSettings.getMaxReadRecordsCount());
         seqIdEnd = Math.max(seqIdEnd, 50L);
         return cloudEventService.findCloudEvents(tenantId, 0L, seqIdEnd, pageLink);
+    }
+
+    private PageData<CloudEvent> findTsKvCloudEventsFromBeginning(TimePageLink pageLink) {
+        long seqIdEnd = Integer.toUnsignedLong(cloudEventStorageSettings.getMaxReadRecordsCount());
+        seqIdEnd = Math.max(seqIdEnd, 50L);
+        return cloudEventService.findTsKvCloudEvents(tenantId, 0L, seqIdEnd, pageLink);
     }
 
     private boolean sendUplinkMsgsPack(List<UplinkMsg> uplinkMsgsPack) throws InterruptedException {
@@ -490,6 +578,14 @@ public class CloudManagerService {
         return getLongAttrByKey(QUEUE_SEQ_ID_OFFSET_ATTR_KEY);
     }
 
+    private ListenableFuture<Long> getQueueTsKvStartTs() {
+        return getLongAttrByKey(QUEUE_TS_KV_START_TS_ATTR_KEY);
+    }
+
+    private ListenableFuture<Long> getQueueTsKvSeqIdStart() {
+        return getLongAttrByKey(QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY);
+    }
+
     private ListenableFuture<Long> getLongAttrByKey(String attrKey) {
         ListenableFuture<Optional<AttributeKvEntry>> future =
                 attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attrKey);
@@ -503,11 +599,11 @@ public class CloudManagerService {
         }, dbCallbackExecutorService);
     }
 
-    private void updateQueueStartTsSeqIdOffset(Long startTs, Long seqIdOffset) {
+    private void updateQueueStartTsSeqIdOffset(String attrStartTsKey, String attrSeqIdKey, Long startTs, Long seqIdOffset) {
         log.trace("updateQueueStartTsSeqIdOffset [{}][{}]", startTs, seqIdOffset);
         List<AttributeKvEntry> attributes = Arrays.asList(
-                new BaseAttributeKvEntry(new LongDataEntry(QUEUE_START_TS_ATTR_KEY, startTs), System.currentTimeMillis()),
-                new BaseAttributeKvEntry(new LongDataEntry(QUEUE_SEQ_ID_OFFSET_ATTR_KEY, seqIdOffset), System.currentTimeMillis()));
+                new BaseAttributeKvEntry(new LongDataEntry(attrStartTsKey, startTs), System.currentTimeMillis()),
+                new BaseAttributeKvEntry(new LongDataEntry(attrSeqIdKey, seqIdOffset), System.currentTimeMillis()));
         attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes);
     }
 
@@ -562,12 +658,14 @@ public class CloudManagerService {
         if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSettings.getEdgeId())) {
             tenantProcessor.cleanUp();
             this.currentEdgeSettings = newEdgeSettings;
-            updateQueueStartTsSeqIdOffset(System.currentTimeMillis(), 0L);
+            updateQueueStartTsSeqIdOffset(QUEUE_START_TS_ATTR_KEY, QUEUE_SEQ_ID_OFFSET_ATTR_KEY, System.currentTimeMillis(), 0L);
+            updateQueueStartTsSeqIdOffset(QUEUE_TS_KV_START_TS_ATTR_KEY, QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY, System.currentTimeMillis(), 0L);
         } else {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
         }
 
         queueStartTs = getQueueStartTs().get();
+        queueTsKvStartTs = getQueueTsKvStartTs().get();
         tenantProcessor.createTenantIfNotExists(this.tenantId, queueStartTs);
         boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
         if (edgeCustomerIdUpdated) {
