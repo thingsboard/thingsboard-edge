@@ -276,7 +276,7 @@ public class CloudManagerService {
                             processCloudEvents(cloudEventsQueueSeqIdStart, cloudEventsPageLink);
                         }
 
-                        Long tsKvCloudEventsQueueSeqIdStart = getQueueTsKvStartTs().get();
+                        Long tsKvCloudEventsQueueSeqIdStart = getQueueTsKvSeqIdStart().get();
                         TimePageLink tsKvCloudEventsPageLink = newTsKvCloudEventsAvailable(tsKvCloudEventsQueueSeqIdStart);
                         if (tsKvCloudEventsPageLink != null) {
                             processTsKvCloudEvents(tsKvCloudEventsQueueSeqIdStart, tsKvCloudEventsPageLink);
@@ -665,6 +665,7 @@ public class CloudManagerService {
         }
 
         queueStartTs = getQueueStartTs().get();
+        queueTsKvStartTs = getQueueTsKvStartTs().get();
         tenantProcessor.createTenantIfNotExists(this.tenantId, queueStartTs);
         boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
         if (edgeCustomerIdUpdated) {
