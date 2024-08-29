@@ -64,6 +64,7 @@ public class BaseCloudEventService implements CloudEventService {
     @Override
     public void cleanupEvents(long ttl) {
         cloudEventDao.cleanupEvents(ttl);
+        tsKvCloudEventDao.cleanupEvents(ttl);
     }
 
     @Override
