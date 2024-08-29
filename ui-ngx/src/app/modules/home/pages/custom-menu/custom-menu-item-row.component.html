@@ -39,21 +39,37 @@
           <mat-slide-toggle *ngIf="!isHomeMenuItem" formControlName="visible"></mat-slide-toggle>
           <div *ngIf="isHomeMenuItem" style="width: 40px;"></div>
           <tb-material-icon-select asBoxInput
+                                   color="var(--tb-primary-500)"
                                    formControlName="icon">
           </tb-material-icon-select>
-          <div> {{ itemName }} </div>
+          <div class="tb-custom-menu-item-name"> {{ itemName }} </div>
         </div>
       </div>
       <div class="tb-custom-menu-item-input-block">
-        <mat-form-field fxFlex class="tb-inline-field" appearance="outline" subscriptSizing="dynamic">
+        <mat-form-field fxFlex class="tb-inline-field flex tb-suffix-absolute" appearance="outline" subscriptSizing="dynamic">
           <input matInput [required]="isCustomMenuItem" formControlName="name" placeholder="{{ itemNamePlaceholder }}">
+          <mat-icon matSuffix
+                    matTooltipPosition="above"
+                    matTooltipClass="tb-error-tooltip"
+                    matTooltip="{{ 'custom-menu.menu-item-name-is-required' | translate }}"
+                    *ngIf="menuItemRowFormGroup.get('name').hasError('required') && menuItemRowFormGroup.get('name').touched"
+                    class="tb-error">
+            warning
+          </mat-icon>
         </mat-form-field>
-        <mat-form-field *ngIf="isHomeMenuItem" fxFlex class="tb-inline-field" appearance="outline" subscriptSizing="dynamic">
-          <input matInput readonly placeholder="Default">
+        <mat-form-field *ngIf="isHomeMenuItem || isCustomMenuItem"
+                        fxFlex class="tb-inline-field tb-custom-menu-item-info" appearance="outline" subscriptSizing="dynamic">
+          <input matInput readonly [placeholder]="itemInfo">
         </mat-form-field>
       </div>
     </div>
-    <button mat-icon-button *ngIf="!disabled">
+    <button *ngIf="!disabled"
+            type="button"
+            mat-icon-button
+            #editButton
+            (click)="edit($event, editButton)"
+            matTooltip="{{ 'custom-menu.edit-menu-item' | translate }}"
+            matTooltipPosition="above">
       <mat-icon>edit</mat-icon>
     </button>
     <button mat-icon-button *ngIf="!disabled && isDefaultMenuItem"
@@ -85,6 +101,7 @@
                                    [cdkDragDisabled]="!pagesDragEnabled"
                                    class="tb-draggable tb-custom-menu-item-page"
                                    fxFlex [formControl]="pageControl"
+                                   [scope]="scope"
                                    [showHidden]="showHidden"
                                    [childDrag]="pagesDragEnabled"
                                    [level]="level + 1"

@@ -84,10 +84,10 @@
       </div>
     </mat-option>
   </mat-autocomplete>
-  <mat-error *ngIf="!inlineField">
+  <mat-error *ngIf="!inlineField && subscriptSizing !== 'dynamic'">
     <ng-content select="[tb-error]"></ng-content>
   </mat-error>
-  <mat-hint *ngIf="!inlineField">
+  <mat-hint *ngIf="!inlineField && subscriptSizing !== 'dynamic'">
     <ng-content select="[tb-hint]"></ng-content>
   </mat-hint>
 </mat-form-field>

@@ -111,6 +111,15 @@ export enum HomeMenuItemType {
   DASHBOARD = 'DASHBOARD'
 }
 
+export const homeMenuItemTypes = Object.keys(HomeMenuItemType) as HomeMenuItemType[];
+
+export const homeMenuItemTypeTranslations = new Map<HomeMenuItemType, string>(
+  [
+    [HomeMenuItemType.DEFAULT, 'custom-menu.home-menu-item-type-default'],
+    [HomeMenuItemType.DASHBOARD, 'custom-menu.home-menu-item-type-dashboard']
+  ]
+);
+
 export interface HomeMenuItem extends DefaultMenuItem {
   id: MenuId.home;
   homeType: HomeMenuItemType;
@@ -123,10 +132,28 @@ export enum CMItemType {
   SECTION = 'SECTION'
 }
 
+export const cmItemTypes = Object.keys(CMItemType) as CMItemType[];
+
+export const cmItemTypeTranslations = new Map<CMItemType, string>(
+  [
+    [CMItemType.LINK, 'custom-menu.item-type-link'],
+    [CMItemType.SECTION, 'custom-menu.item-type-section']
+  ]
+);
+
 export enum CMItemLinkType {
   URL = 'URL',
   DASHBOARD = 'DASHBOARD'
 }
+
+export const cmLinkTypes = Object.keys(CMItemLinkType) as CMItemLinkType[];
+
+export const cmLinkTypeTranslations = new Map<CMItemLinkType, string>(
+  [
+    [CMItemLinkType.URL, 'custom-menu.link-type-url'],
+    [CMItemLinkType.DASHBOARD, 'custom-menu.link-type-dashboard']
+  ]
+);
 
 export interface CustomMenuItem extends MenuItem {
   name: string;

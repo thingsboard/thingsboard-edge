@@ -34,10 +34,12 @@ import {
   Component,
   EventEmitter,
   forwardRef,
-  Input, OnChanges,
+  Input,
+  OnChanges,
   OnInit,
   Output,
-  Renderer2, SimpleChanges,
+  Renderer2,
+  SimpleChanges,
   ViewContainerRef,
   ViewEncapsulation
 } from '@angular/core';
@@ -54,10 +56,13 @@ import {
   Validators
 } from '@angular/forms';
 import {
-  CMItemType,
+  CMItemLinkType,
+  CMItemType, cmLinkTypeTranslations,
+  CMScope,
   CustomMenuItem,
   HomeMenuItem,
   HomeMenuItemType,
+  homeMenuItemTypeTranslations,
   isCustomMenuItem,
   isDefaultMenuItem,
   isHomeMenuItem,
@@ -69,6 +74,15 @@ import { MenuSection, menuSectionMap } from '@core/services/menu.models';
 import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 import { coerceBoolean } from '@shared/decorators/coercion';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { MatButton } from '@angular/material/button';
+import { deepClone } from '@core/utils';
+import { DefaultMenuItemPanelComponent } from '@home/pages/custom-menu/default-menu-item-panel.component';
+import {
+  AddCustomMenuItemDialogComponent,
+  AddCustomMenuItemDialogData
+} from '@home/pages/custom-menu/add-custom-menu-item.dialog.component';
+import { MatDialog } from '@angular/material/dialog';
+import { CustomMenuItemPanelComponent } from '@home/pages/custom-menu/custom-menu-item-panel.component';
 
 @Component({
   selector: 'tb-custom-menu-item-row',
@@ -90,8 +104,15 @@ import { CdkDragDrop } from '@angular/cdk/drag-drop';
 })
 export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit, Validator, OnChanges {
 
+  homeMenuItemTypeTranslations = homeMenuItemTypeTranslations;
+
+  cmLinkTypeTranslations = cmLinkTypeTranslations;
+
   @Input()
   disabled: boolean;
+
+  @Input()
+  scope: CMScope;
 
   @Input()
   @coerceBoolean()
@@ -123,6 +144,8 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
 
   iconNameBlockWidth = '256px';
 
+  itemInfo: string;
+
   private defaultItemName: string;
 
   private defaultMenuSection: MenuSection;
@@ -145,6 +168,7 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
               private cd: ChangeDetectorRef,
               private translate: TranslateService,
               private customTranslate: CustomTranslatePipe,
+              private dialog: MatDialog,
               private popoverService: TbPopoverService,
               private renderer: Renderer2,
               private viewContainerRef: ViewContainerRef) {
@@ -222,6 +246,7 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
       }
     }
     this.updateCleanupState();
+    this.updateItemInfo();
     this.cd.markForCheck();
   }
 
@@ -232,6 +257,46 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
       };
     }
     return null;
+  }
+
+  edit($event: Event, matButton: MatButton) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const trigger = matButton._elementRef.nativeElement;
+    if (this.popoverService.hasPopover(trigger)) {
+      this.popoverService.hidePopover(trigger);
+    } else {
+      const ctx: any = {
+        disabled: this.disabled,
+        scope: this.scope,
+        menuItem: deepClone(this.modelValue)
+      };
+      if (this.isDefaultMenuItem) {
+        const defaultMenuItemPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
+          this.viewContainerRef, DefaultMenuItemPanelComponent, ['right', 'bottom', 'top'], true, null,
+          ctx,
+          {},
+          {}, {}, false, () => {}, {padding: '16px 24px'});
+        defaultMenuItemPanelPopover.tbComponentRef.instance.popover = defaultMenuItemPanelPopover;
+        defaultMenuItemPanelPopover.tbComponentRef.instance.defaultMenuItemApplied.subscribe((menuItem) => {
+          defaultMenuItemPanelPopover.hide();
+          this.afterMenuItemEdit(menuItem);
+        });
+      } else {
+        ctx.subItem = this.level > 0;
+        const customMenuItemPanelPopover = this.popoverService.displayPopover(trigger, this.renderer,
+          this.viewContainerRef, CustomMenuItemPanelComponent, ['right', 'bottom', 'top'], true, null,
+          ctx,
+          {},
+          {}, {}, false, () => {}, {padding: '16px 24px'});
+        customMenuItemPanelPopover.tbComponentRef.instance.popover = customMenuItemPanelPopover;
+        customMenuItemPanelPopover.tbComponentRef.instance.customMenuItemApplied.subscribe((menuItem) => {
+          customMenuItemPanelPopover.hide();
+          this.afterMenuItemEdit(menuItem);
+        });
+      }
+    }
   }
 
   cleanup() {
@@ -279,21 +344,65 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
   }
 
   addCustomPage() {
-    const page: CustomMenuItem = {
-      visible: true,
-      name: 'Test custom sub item',
-      icon: 'star',
-      menuItemType: CMItemType.LINK
-    };
-    const pagesArray = this.pagesFormArray();
-    const pageControl = this.fb.control(page, []);
-    pagesArray.push(pageControl);
+    this.dialog.open<AddCustomMenuItemDialogComponent, AddCustomMenuItemDialogData,
+      CustomMenuItem>(AddCustomMenuItemDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        subItem: true,
+        scope: this.scope
+      }
+    }).afterClosed().subscribe((page) => {
+      if (page) {
+        const pagesArray = this.pagesFormArray();
+        const pageControl = this.fb.control(page, []);
+        pagesArray.push(pageControl);
+      }
+    });
+  }
+
+  private afterMenuItemEdit(menuItem: MenuItem) {
+    this.menuItemRowFormGroup.patchValue(
+      {
+        visible: menuItem.visible,
+        icon: menuItem.icon,
+        name: menuItem.name
+      }, {emitEvent: false}
+    );
+    if (this.isHomeMenuItem) {
+      const homeMenuItem = menuItem as HomeMenuItem;
+      (this.modelValue as HomeMenuItem).homeType = homeMenuItem.homeType;
+      if (homeMenuItem.homeType === HomeMenuItemType.DEFAULT) {
+        delete (this.modelValue as HomeMenuItem).dashboardId;
+        delete (this.modelValue as HomeMenuItem).hideDashboardToolbar;
+      } else {
+        (this.modelValue as HomeMenuItem).dashboardId = homeMenuItem.dashboardId;
+        (this.modelValue as HomeMenuItem).hideDashboardToolbar = homeMenuItem.hideDashboardToolbar;
+      }
+    } else if (this.isCustomMenuItem) {
+      const customMenuItem = menuItem as CustomMenuItem;
+      if (customMenuItem.menuItemType === CMItemType.LINK) {
+        (this.modelValue as CustomMenuItem).linkType = customMenuItem.linkType;
+        if (customMenuItem.linkType === CMItemLinkType.URL) {
+          (this.modelValue as CustomMenuItem).url = customMenuItem.url;
+          (this.modelValue as CustomMenuItem).setAccessToken = customMenuItem.setAccessToken;
+          delete (this.modelValue as CustomMenuItem).dashboardId;
+          delete (this.modelValue as CustomMenuItem).hideDashboardToolbar;
+        } else {
+          (this.modelValue as CustomMenuItem).dashboardId = customMenuItem.dashboardId;
+          (this.modelValue as CustomMenuItem).hideDashboardToolbar = customMenuItem.hideDashboardToolbar;
+          delete (this.modelValue as CustomMenuItem).url;
+          delete (this.modelValue as CustomMenuItem).setAccessToken;
+        }
+      }
+    }
+    this.updateModel();
   }
 
   private updateIconNameBlockWidth() {
     let width = 256;
     if (this.childDrag) {
-      width -= 32;
+      width -= 24;
     }
     width -= this.level * 16;
     this.iconNameBlockWidth = width + 'px';
@@ -305,6 +414,21 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
         !!this.modelValue.name ||
         !!this.modelValue.icon ||
         (this.isHomeMenuItem && (this.modelValue as HomeMenuItem).homeType !== HomeMenuItemType.DEFAULT);
+    }
+  }
+
+  private updateItemInfo() {
+    if (this.isHomeMenuItem) {
+      this.itemInfo = this.translate.instant(this.homeMenuItemTypeTranslations.get((this.modelValue as HomeMenuItem).homeType));
+    } else if (this.isCustomMenuItem) {
+      if ((this.modelValue as CustomMenuItem).menuItemType === CMItemType.SECTION) {
+        this.itemInfo = this.translate.instant('custom-menu.item-type-section');
+      } else {
+        this.itemInfo = this.translate.instant('custom-menu.item-type-link') + ': ' +
+          this.translate.instant(cmLinkTypeTranslations.get((this.modelValue as CustomMenuItem).linkType));
+      }
+    } else {
+      this.itemInfo = '';
     }
   }
 
@@ -334,6 +458,7 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
       delete this.modelValue.pages;
     }
     this.updateCleanupState();
+    this.updateItemInfo();
     this.propagateChange(this.modelValue);
   }
 

@@ -59,12 +59,19 @@
     .tb-custom-menu-item-start-block {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 0;
     }
     .tb-custom-menu-item-icon-name-block {
       display: flex;
       align-items: center;
       gap: 12px;
+      .tb-custom-menu-item-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+      }
     }
     .tb-custom-menu-item-input-block {
       display: flex;
@@ -113,9 +120,24 @@
   background: #fff;
 }
 
-.tb-add-custom-menu-subitem-button {
+.mdc-button.tb-add-custom-menu-subitem-button {
   min-height: 36px;
   margin-left: 16px;
   margin-top: 8px;
   margin-right: 112px;
+  font-weight: 400;
+}
+
+.tb-custom-menu-item-info {
+  .mdc-text-field:not(.mdc-text-field--disabled) {
+    input.mdc-text-field__input {
+      cursor: default;
+      &::placeholder {
+        color: var(--tb-primary-500);
+      }
+      &:-ms-input-placeholder {
+        color: var(--tb-primary-500);
+      }
+    }
+  }
 }

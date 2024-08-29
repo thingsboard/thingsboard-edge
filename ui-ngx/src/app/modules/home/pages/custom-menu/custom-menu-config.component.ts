@@ -37,10 +37,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog } from '@angular/material/dialog';
 import {
   beforeSaveCustomMenuConfig,
-  CMItemType,
   CustomMenuConfig,
   CustomMenuInfo,
-  CustomMenuItem, defaultCustomMenuConfig, isDefaultMenuConfig,
+  CustomMenuItem,
+  defaultCustomMenuConfig,
+  isDefaultMenuConfig,
   MenuItem
 } from '@shared/models/custom-menu.models';
 import { AbstractControl, FormControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -49,7 +50,11 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { isDefined } from '@core/utils';
+import { deepClone, isDefined } from '@core/utils';
+import {
+  AddCustomMenuItemDialogComponent,
+  AddCustomMenuItemDialogData
+} from '@home/pages/custom-menu/add-custom-menu-item.dialog.component';
 
 @Component({
   selector: 'tb-custom-menu-config',
@@ -112,7 +117,7 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
     this.router.navigate(['..'], { relativeTo: this.route });
   }
 
-  decline() {
+  cancel() {
     this.customMenuFormGroup.setControl('items', this.prepareMenuItemsFormArray(this.customMenuConfig.items), {emitEvent: false});
     this.customMenuFormGroup.markAsPristine();
   }
@@ -162,24 +167,30 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
   }
 
   addCustomMenuItem(index?: number) {
-    const menuItem: CustomMenuItem = {
-      visible: true,
-      name: 'Test custom item',
-      icon: 'star',
-      menuItemType: CMItemType.SECTION
-    };
-    const menuItemsArray = this.menuItemsFormArray();
-    const menuItemControl = this.fb.control(menuItem, []);
-    if (isDefined(index)) {
-      const insertIndex = this.actualItemIndex(index) + 1;
-      menuItemsArray.insert(insertIndex, menuItemControl);
-    } else {
-      menuItemsArray.push(menuItemControl);
-      setTimeout(() => {
-        this.menuItemsContainer.nativeElement.scrollTop = this.menuItemsContainer.nativeElement.scrollHeight;
-      }, 0);
-    }
-    this.customMenuFormGroup.markAsDirty();
+    this.dialog.open<AddCustomMenuItemDialogComponent, AddCustomMenuItemDialogData,
+      CustomMenuItem>(AddCustomMenuItemDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {
+        subItem: false,
+        scope: this.customMenu.scope
+      }
+    }).afterClosed().subscribe((menuItem) => {
+      if (menuItem) {
+        const menuItemsArray = this.menuItemsFormArray();
+        const menuItemControl = this.fb.control(menuItem, []);
+        if (isDefined(index)) {
+          const insertIndex = this.actualItemIndex(index) + 1;
+          menuItemsArray.insert(insertIndex, menuItemControl);
+        } else {
+          menuItemsArray.push(menuItemControl);
+          setTimeout(() => {
+            this.menuItemsContainer.nativeElement.scrollTop = this.menuItemsContainer.nativeElement.scrollHeight;
+          }, 0);
+        }
+        this.customMenuFormGroup.markAsDirty();
+      }
+    });
   }
 
   private menuItemsFormArray(): UntypedFormArray {
@@ -194,7 +205,7 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
   private prepareMenuItemsFormArray(items: MenuItem[]): UntypedFormArray {
     const menuItemsControls: Array<AbstractControl> = [];
     items.forEach((item) => {
-      menuItemsControls.push(this.fb.control(item, []));
+      menuItemsControls.push(this.fb.control(deepClone(item), []));
     });
     return this.fb.array(menuItemsControls);
   }

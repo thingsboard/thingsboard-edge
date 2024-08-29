@@ -47,7 +47,8 @@
         <span fxFlex></span>
         <button mat-stroked-button color="primary"
                 (click)="resetToDefault()">
-          {{'action.reset' | translate}}
+          <tb-icon matButtonIcon>mdi:broom</tb-icon>
+          {{'custom-menu.reset-to-default-menu' | translate}}
         </button>
         <div tb-help="customMenu"></div>
       </div>
@@ -77,6 +78,7 @@
             <tb-icon>drag_indicator</tb-icon>
           </button>
           <tb-custom-menu-item-row fxFlex [formControl]="menuItemControl"
+                                   [scope]="customMenu.scope"
                                    [showHidden]="showHiddenItems.value"
                                    (menuItemRemoved)="removeCustomMenuItem($index)">
           </tb-custom-menu-item-row>
@@ -102,10 +104,10 @@
     </button>
   </mat-card-content>
   <mat-card-actions>
-    <button mat-stroked-button color="primary" *ngIf="!readonly"
+    <button mat-button color="primary" *ngIf="!readonly"
             [disabled]="(isLoading$ | async) || !customMenuFormGroup.dirty"
-            (click)="decline()">
-      {{'action.decline' | translate}}
+            (click)="cancel()">
+      {{'action.cancel' | translate}}
     </button>
     <button mat-raised-button color="primary" *ngIf="!readonly"
             [disabled]="(isLoading$ | async) || !customMenuFormGroup.dirty || customMenuFormGroup.invalid"
