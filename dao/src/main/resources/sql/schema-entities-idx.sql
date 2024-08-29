@@ -78,9 +78,6 @@ CREATE INDEX IF NOT EXISTS idx_cloud_event_tenant_id_entity_id_event_type_event_
 
 CREATE INDEX IF NOT EXISTS idx_ts_kv_cloud_event_tenant_id_and_created_time ON ts_kv_cloud_event(tenant_id, created_time DESC);
 
-CREATE INDEX IF NOT EXISTS idx_ts_kv_cloud_event_tenant_id_entity_id_event_type_event_action_crt ON ts_kv_cloud_event
-    (tenant_id, entity_id, cloud_event_type, cloud_event_action, created_time DESC);
-
 CREATE INDEX IF NOT EXISTS idx_rpc_tenant_id_device_id ON rpc(tenant_id, device_id);
 
 CREATE INDEX IF NOT EXISTS idx_device_external_id ON device(tenant_id, external_id);
