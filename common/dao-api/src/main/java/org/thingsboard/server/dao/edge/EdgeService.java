@@ -31,6 +31,7 @@ import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface EdgeService extends EntityDaoService {
 
@@ -88,6 +89,8 @@ public interface EdgeService extends EntityDaoService {
 
     PageData<Edge> findEdgesByTenantIdAndEntityId(TenantId tenantId, EntityId ruleChainId, PageLink pageLink);
 
+    PageData<EdgeId> findEdgeIdsByTenantIdAndEntityId(TenantId tenantId, EntityId ruleChainId, PageLink pageLink);
+
     PageData<Edge> findEdgesByTenantProfileId(TenantProfileId tenantProfileId, PageLink pageLink);
 
     List<EdgeId> findAllRelatedEdgeIds(TenantId tenantId, EntityId entityId);
@@ -97,4 +100,5 @@ public interface EdgeService extends EntityDaoService {
     String findMissingToRelatedRuleChains(TenantId tenantId, EdgeId edgeId, String tbRuleChainInputNodeClassName);
 
     ListenableFuture<Boolean> isEdgeActiveAsync(TenantId tenantId, EdgeId edgeId, String activityState);
+
 }
