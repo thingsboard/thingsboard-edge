@@ -60,7 +60,7 @@ public class DefaultMenuItem implements MenuItem {
     private boolean visible;
     @Schema(description = "List of child menu items")
     @JsonView(Views.Public.class)
-    private List<DefaultMenuItem> pages = new ArrayList<>();
+    private List<DefaultMenuItem> pages;
 
     @Override
     @JsonView(Views.Private.class)

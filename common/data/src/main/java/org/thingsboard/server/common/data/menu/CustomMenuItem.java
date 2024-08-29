@@ -78,7 +78,7 @@ public class CustomMenuItem implements MenuItem {
     private boolean visible;
     @Schema(description = "List of child menu items")
     @JsonView(Views.Public.class)
-    private List<CustomMenuItem> pages = new ArrayList<>();
+    private List<CustomMenuItem> pages;
 
     @Override
     @JsonView(Views.Private.class)

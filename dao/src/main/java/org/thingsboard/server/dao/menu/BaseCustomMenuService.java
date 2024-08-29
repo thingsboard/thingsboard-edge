@@ -284,6 +284,9 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
 
     private void unassignCustomMenu(CMAssigneeType assigneeType, List<EntityId> toRemoveEntityIds) {
         switch (assigneeType) {
+            case ALL:
+            case NO_ASSIGN:
+                break;
             case CUSTOMERS:
                 if (!CollectionUtils.isEmpty(toRemoveEntityIds)) {
                     List<CustomerId> toRemoveCustomerIds = toRemoveEntityIds.stream().map(CustomerId.class::cast).collect(Collectors.toList());
