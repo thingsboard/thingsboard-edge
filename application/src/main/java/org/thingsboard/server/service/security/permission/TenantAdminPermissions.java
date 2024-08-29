@@ -335,7 +335,8 @@ public class TenantAdminPermissions extends AbstractPermissions {
             if (operation == Operation.CREATE) {
                 return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation);
             } else {
-                return customMenu.getTenantId() == null || user.getTenantId().equals(customMenu.getTenantId());
+                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation) &&
+                        user.getTenantId().equals(customMenu.getTenantId());
             }
         }
     };

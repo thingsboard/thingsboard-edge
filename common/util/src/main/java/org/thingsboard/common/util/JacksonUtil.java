@@ -30,6 +30,7 @@
  */
 package org.thingsboard.common.util;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
@@ -91,6 +92,10 @@ public class JacksonUtil {
     public static final ObjectMapper IGNORE_UNKNOWN_PROPERTIES_JSON_MAPPER = JsonMapper.builder()
             .addModule(new Jdk8Module())
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .build();
+
+    public static final ObjectMapper OBJECT_MAPPER_INCLUDE_NOT_NULL = JsonMapper.builder()
+            .serializationInclusion(JsonInclude.Include.NON_NULL)
             .build();
 
     public static ObjectMapper getObjectMapperWithJavaTimeModule() {

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
@@ -37,6 +38,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
@@ -189,7 +191,7 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
 
         CustomMenuInfo newTenantDefaultMenu = createDefaultCustomMenu("Test tenant menu2", CMScope.TENANT);
         String errorMessage = getErrorMessage(doPost("/api/customMenu", newTenantDefaultMenu)
-                .andExpect(status().isConflict()));
+                .andExpect(status().isBadRequest()));
         assertThat(errorMessage).isEqualTo("There is already default menu for scope TENANT");
 
         CustomMenu newDefaultCustomMenu = doPost("/api/customMenu?force=true", newTenantDefaultMenu, CustomMenu.class);
@@ -237,6 +239,13 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         idsToRemove.add(menuForSpecificUsers.getUuidId());
         CustomMenuConfig tenantMenuConfig = putRandomMenuConfig(menuForSpecificUsers.getId());
 
+        //check assignee list
+        List<EntityInfo> entityInfos = readResponse(doGet("/api/customMenu/" + menuForSpecificUsers.getId() + "/assigneeList")
+                .andExpect(status().isOk()), new TypeReference<List<EntityInfo>>() {
+        });
+        assertThat(entityInfos).hasSize(1);
+        assertThat(entityInfos.get(0).getId()).isEqualTo(tenantAdminUserId);
+
         CustomMenuConfig currentMenu = doGet("/api/customMenu", CustomMenuConfig.class);
         assertThat(currentMenu).isEqualTo(tenantMenuConfig);
 
@@ -278,6 +287,13 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         menuForSpecificUsers = doPost("/api/customMenu?assignToList=" + customerUserId, menuForSpecificUsers, CustomMenu.class);
         idsToRemove.add(menuForSpecificUsers.getUuidId());
         CustomMenuConfig customerMenuConfig = putRandomMenuConfig(menuForSpecificUsers.getId());
+
+        //check assignee list
+        List<EntityInfo> entityInfos = readResponse(doGet("/api/customMenu/" + menuForSpecificUsers.getId() + "/assigneeList")
+                .andExpect(status().isOk()), new TypeReference<List<EntityInfo>>() {
+        });
+        assertThat(entityInfos).hasSize(1);
+        assertThat(entityInfos.get(0).getId()).isEqualTo(customerUserId);
 
         loginCustomerUser();
         CustomMenuConfig customerUserMenu = doGet("/api/customMenu", CustomMenuConfig.class);
@@ -349,7 +365,7 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
 
         //change assignee to ALL
         String errorMessage = getErrorMessage(doPut("/api/customMenu/" + tenantMenu.getId() + "/assign/ALL", List.of())
-                .andExpect(status().isConflict()));
+                .andExpect(status().isBadRequest()));
         assertThat(errorMessage).isEqualTo("There is already default menu for scope TENANT");
 
         //force change assignee to ALL
@@ -397,7 +413,7 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         //change assignee to ALL
         loginTenantAdmin();
         String errorMessage = getErrorMessage(doPut("/api/customMenu/" + customerMenu.getId() + "/assign/ALL", List.of())
-                .andExpect(status().isConflict()));
+                .andExpect(status().isBadRequest()));
         assertThat(errorMessage).isEqualTo("There is already default menu for scope CUSTOMER");
 
         //force change assignee to ALL

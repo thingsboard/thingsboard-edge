@@ -35,12 +35,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.BaseData;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasOwnerId;
 import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
@@ -48,7 +45,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Schema
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CustomMenuInfo  extends BaseData<CustomMenuId> implements HasTenantId, HasOwnerId {
+public class CustomMenuInfo  extends BaseData<CustomMenuId> implements HasTenantId {
 
     @Schema(description = "JSON object with Tenant Id that owns the menu.", accessMode = Schema.AccessMode.READ_ONLY)
     private TenantId tenantId;
@@ -57,37 +54,19 @@ public class CustomMenuInfo  extends BaseData<CustomMenuId> implements HasTenant
     private CustomerId customerId;
 
     @NoXss
-    @NotNull
     @Length(fieldName = "name")
-    @Schema(description = "Menu name", example = "Customer A custom menu", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Custom menu name", example = "Customer A custom menu", requiredMode = Schema.RequiredMode.REQUIRED)
     private String name;
 
-    @NoXss
     @NotNull
-    @Schema(description = "User level custom menu is applied to", example = "TENANT")
+    @Schema(description = "Custom menu scope. Possible values: SYSTEM, TENANT, CUSTOMER", example = "TENANT", requiredMode = Schema.RequiredMode.REQUIRED)
     private CMScope scope;
 
-    @NoXss
     @NotNull
-    @Schema(description = "Custom menu could be applied to whole tenant/customer/separate list of users or no assigned " +
-            "Possible values are: All (means all users of specified scope), TENANTS (specified tenants), CUSTOMES (specified customers)," +
-            " USER_LIST (specified list of users), NO_ASSING (no assignee)", example = "ALL")
+    @Schema(description = "Custom menu assignee type. Possible values are: All (all users of specified scope), " +
+            "CUSTOMERS (specified customers), USERS (specified list of users), NO_ASSIGN (no assigned users)", example = "ALL",
+            requiredMode = Schema.RequiredMode.REQUIRED)
     private CMAssigneeType assigneeType;
-
-    @Schema(description = "JSON object with Customer or Tenant Id", accessMode = Schema.AccessMode.READ_ONLY)
-    @Override
-    public EntityId getOwnerId() {
-        return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
-    }
-
-    @Override
-    public void setOwnerId(EntityId entityId) {
-        if (EntityType.CUSTOMER.equals(entityId.getEntityType())) {
-            this.customerId = new CustomerId(entityId.getId());
-        } else {
-            this.customerId = new CustomerId(CustomerId.NULL_UUID);
-        }
-    }
 
     public CustomMenuInfo() {
         super();
