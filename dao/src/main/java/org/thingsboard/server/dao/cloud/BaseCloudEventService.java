@@ -93,35 +93,28 @@ public class BaseCloudEventService implements CloudEventService {
     public ListenableFuture<Void> saveCloudEventAsync(TenantId tenantId, CloudEventType cloudEventType,
                                                       EdgeEventActionType cloudEventAction, EntityId entityId,
                                                       JsonNode entityBody, Long queueStartTs) {
-        return saveEventAsync(tenantId, cloudEventType, cloudEventAction, entityId, entityBody, queueStartTs, false);
-    }
-
-    @Override
-    public ListenableFuture<Void> saveTsKvCloudEventAsync(TenantId tenantId, CloudEventType cloudEventType,
-                                                          EdgeEventActionType cloudEventAction, EntityId entityId,
-                                                          JsonNode entityBody, Long queueStartTs) {
-        return saveEventAsync(tenantId, cloudEventType, cloudEventAction, entityId, entityBody, queueStartTs, true);
+        return saveEventAsync(tenantId, cloudEventType, cloudEventAction, entityId, entityBody, queueStartTs);
     }
 
     private ListenableFuture<Void> saveEventAsync(TenantId tenantId, CloudEventType cloudEventType,
                                                   EdgeEventActionType cloudEventAction, EntityId entityId,
-                                                  JsonNode entityBody, Long queueStartTs, boolean isTsKvEvent) {
-        if (shouldAddEventToQueue(tenantId, cloudEventType, cloudEventAction, entityId, queueStartTs, isTsKvEvent)) {
+                                                  JsonNode entityBody, Long queueStartTs) {
+        if (shouldAddEventToQueue(tenantId, cloudEventType, cloudEventAction, entityId, queueStartTs)) {
             CloudEvent cloudEvent = new CloudEvent();
             cloudEvent.setTenantId(tenantId);
             cloudEvent.setType(cloudEventType);
             cloudEvent.setAction(cloudEventAction);
             cloudEvent.setEntityId(entityId != null ? entityId.getId() : null);
             cloudEvent.setEntityBody(entityBody);
-            return isTsKvEvent ? saveTsKvAsync(cloudEvent) : saveAsync(cloudEvent);
+            return saveAsync(cloudEvent);
         } else {
             return Futures.immediateFuture(null);
         }
     }
 
     private boolean shouldAddEventToQueue(TenantId tenantId, CloudEventType cloudEventType, EdgeEventActionType cloudEventAction,
-                                          EntityId entityId, Long queueStartTs, boolean isTsKvEvent) {
-        if (isTsKvEvent || queueStartTs == null || queueStartTs <= 0 || !CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES.contains(cloudEventAction)) {
+                                          EntityId entityId, Long queueStartTs) {
+        if (queueStartTs == null || queueStartTs <= 0 || !CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES.contains(cloudEventAction)) {
             return true;
         }
 

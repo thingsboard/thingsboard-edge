@@ -39,6 +39,7 @@ import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_DELETE
 import static org.thingsboard.server.common.data.msg.TbMsgType.ATTRIBUTES_UPDATED;
 import static org.thingsboard.server.common.data.msg.TbMsgType.POST_ATTRIBUTES_REQUEST;
 import static org.thingsboard.server.common.data.msg.TbMsgType.POST_TELEMETRY_REQUEST;
+import static org.thingsboard.server.common.data.msg.TbMsgType.TIMESERIES_DELETED;
 import static org.thingsboard.server.common.data.msg.TbMsgType.TIMESERIES_UPDATED;
 
 @Slf4j
@@ -121,7 +122,7 @@ public class TbMsgPushToCloudNode extends AbstractTbMsgPushNode<TbMsgPushToCloud
     }
 
     private boolean isTimeseriesCloudEvent(TbMsg msg) {
-        return msg.isTypeOneOf(POST_TELEMETRY_REQUEST, POST_ATTRIBUTES_REQUEST, ATTRIBUTES_UPDATED, ATTRIBUTES_DELETED, TIMESERIES_UPDATED);
+        return msg.isTypeOneOf(POST_TELEMETRY_REQUEST, TIMESERIES_UPDATED, TIMESERIES_DELETED);
     }
 
 }
