@@ -30,9 +30,11 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -57,6 +59,7 @@ import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuConfig;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
+import org.thingsboard.server.common.data.menu.Views;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -71,6 +74,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.thingsboard.common.util.JacksonUtil.OBJECT_MAPPER_INCLUDE_NOT_NULL;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOM_MENU_ID;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOM_MENU_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOM_MENU_TEXT_SEARCH_DESCRIPTION;
@@ -115,7 +119,7 @@ public class CustomMenuController extends BaseController {
                     "If no custom menu configured on user/customer/tenant level default customer/tenant hierarchy will be applied")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/customMenu")
-    public CustomMenuConfig getCustomMenu() throws ThingsboardException {
+    public String getCustomMenu() throws ThingsboardException, JsonProcessingException {
         SecurityUser currentUser = getCurrentUser();
         Authority authority = currentUser.getAuthority();
         CustomMenuConfig customMenuConfig = null;
@@ -126,7 +130,7 @@ public class CustomMenuController extends BaseController {
         } else if (Authority.CUSTOMER_USER.equals(authority)) {
             customMenuConfig = customMenuService.findCustomerUserCustomMenuConfig(currentUser.getTenantId(), currentUser.getCustomerId(), currentUser.getId());
         }
-        return customMenuConfig;
+        return OBJECT_MAPPER_INCLUDE_NOT_NULL.writerWithView(Views.Public.class).writeValueAsString(customMenuConfig);
     }
 
     @ApiOperation(value = "Get Custom Menu Info (getCustomMenuInfoById)",
@@ -173,7 +177,7 @@ public class CustomMenuController extends BaseController {
     public CustomMenu updateCustomMenuConfig(@Parameter(description = CUSTOM_MENU_ID_PARAM_DESCRIPTION)
                                              @PathVariable(CUSTOM_MENU_ID) UUID id,
                                              @Parameter(description = "A JSON value representing the custom menu configuration")
-                                             @RequestBody CustomMenuConfig customMenuConfig) throws ThingsboardException {
+                                             @RequestBody @Valid CustomMenuConfig customMenuConfig) throws ThingsboardException {
         CustomMenuId customMenuId = new CustomMenuId(id);
         CustomMenu customMenu = checkNotNull(checkCustomMenuId(customMenuId, Operation.WRITE));
         customMenu.setConfig(customMenuConfig);
@@ -207,7 +211,7 @@ public class CustomMenuController extends BaseController {
             @Parameter(description = "Use force if you want to override existing default menu with new one (old one will be update NO_ASSIGN assignee type)")
             @RequestParam(name = "force", required = false) boolean force,
             @Parameter(description = "A JSON value representing the custom menu basic info fields")
-            @RequestBody CustomMenuInfo customMenuInfo) throws ThingsboardException {
+            @RequestBody @Valid CustomMenuInfo customMenuInfo) throws ThingsboardException {
         SecurityUser currentUser = getCurrentUser();
         customMenuInfo.setTenantId(currentUser.getTenantId());
         customMenuInfo.setCustomerId(currentUser.getCustomerId());

@@ -30,7 +30,9 @@
  */
 package org.thingsboard.server.common.data.menu;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -47,6 +49,8 @@ import java.util.List;
 public class CustomMenuConfig {
 
     @Schema(description = "List of custom menu items", requiredMode = Schema.RequiredMode.REQUIRED)
+    @JsonView(Views.Public.class)
+    @Valid
     private List<MenuItem> items = new ArrayList<>();
 
 }

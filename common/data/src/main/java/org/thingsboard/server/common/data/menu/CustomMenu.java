@@ -31,6 +31,7 @@
 package org.thingsboard.server.common.data.menu;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
@@ -42,7 +43,8 @@ import org.thingsboard.server.common.data.id.CustomMenuId;
 @Slf4j
 public class CustomMenu extends CustomMenuInfo {
 
-    @Schema(description = "Custom menu configuration", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Custom menu configuration")
+    @Valid
     private CustomMenuConfig config;
 
     public CustomMenu() {

@@ -451,7 +451,8 @@ public class CustomerUserPermissions extends AbstractPermissions {
             if (operation == Operation.CREATE) {
                 return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation);
             } else {
-                return ownersCacheService.getOwners(user.getTenantId(), customMenu.getCustomerId(), customMenu).contains(user.getOwnerId());
+                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation) &&
+                        user.getTenantId().equals(customMenu.getTenantId()) && user.getCustomerId().equals(customMenu.getCustomerId());
             }
         }
     };
