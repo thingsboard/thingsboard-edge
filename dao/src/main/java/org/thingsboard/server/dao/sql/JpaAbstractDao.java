@@ -86,9 +86,8 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
 
     protected E doSave(E entity, boolean isNew, boolean flush) {
         // edge-only: we set version to null on Edge, not using optimistic locking
-        if (entity instanceof HasVersion versionedEntity) {
-            versionedEntity.setVersion(null);
-            entity = (E) versionedEntity;
+        if (entity instanceof HasVersion) {
+            ((HasVersion) entity).setVersion(null);
         }
         return getRepository().save(entity);
         // ... edge-only
@@ -97,7 +96,9 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
     @Override
     @Transactional
     public D saveAndFlush(TenantId tenantId, D domain) {
-        return save(tenantId, domain, true);
+        D d = save(tenantId, domain);
+        getRepository().flush();
+        return d;
     }
 
     @Override

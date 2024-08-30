@@ -50,13 +50,12 @@ public class BaseCloudEventService implements CloudEventService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
 
-    private static final List<EdgeEventActionType> CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES =
-            List.of(EdgeEventActionType.ATTRIBUTES_REQUEST,
-                    EdgeEventActionType.RELATION_REQUEST,
-                    EdgeEventActionType.WIDGET_BUNDLE_TYPES_REQUEST,
-                    EdgeEventActionType.ENTITY_VIEW_REQUEST);
+    private static final List<EdgeEventActionType> CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES = List.of(
+            EdgeEventActionType.ATTRIBUTES_REQUEST,
+            EdgeEventActionType.RELATION_REQUEST);
 
     public CloudEventDao cloudEventDao;
+    public TsKvCloudEventDao tsKvCloudEventDao;
 
     public AttributesService attributesService;
 
@@ -65,12 +64,19 @@ public class BaseCloudEventService implements CloudEventService {
     @Override
     public void cleanupEvents(long ttl) {
         cloudEventDao.cleanupEvents(ttl);
+        tsKvCloudEventDao.cleanupEvents(ttl);
     }
 
     @Override
     public ListenableFuture<Void> saveAsync(CloudEvent cloudEvent) {
         cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
         return cloudEventDao.saveAsync(cloudEvent);
+    }
+
+    @Override
+    public ListenableFuture<Void> saveTsKvAsync(CloudEvent cloudEvent) {
+        cloudEventValidator.validate(cloudEvent, CloudEvent::getTenantId);
+        return tsKvCloudEventDao.saveAsync(cloudEvent);
     }
 
     @Override
@@ -84,31 +90,15 @@ public class BaseCloudEventService implements CloudEventService {
     }
 
     @Override
-    public ListenableFuture<Void> saveCloudEventAsync(TenantId tenantId,
-                                                      CloudEventType cloudEventType,
-                                                      EdgeEventActionType cloudEventAction,
-                                                      EntityId entityId,
-                                                      JsonNode entityBody,
-                                                      Long queueStartTs) {
-        boolean addEventToQueue = true;
-        if (queueStartTs != null && queueStartTs > 0 && CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES.contains(cloudEventAction)) {
-            long countMsgsInQueue = countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(
-                    tenantId, entityId, cloudEventType, cloudEventAction, queueStartTs, System.currentTimeMillis());
-            if (countMsgsInQueue > 0) {
-                log.info("{} Skipping adding of {} event because it's already present in db {} {}", tenantId, cloudEventAction, entityId, cloudEventType);
-                addEventToQueue = false;
-            }
-        }
-        if (addEventToQueue) {
-            log.debug("Pushing event to cloud queue. tenantId [{}], cloudEventType [{}], cloudEventAction[{}], entityId [{}], entityBody [{}]",
-                    tenantId, cloudEventType, cloudEventAction, entityId, entityBody);
+    public ListenableFuture<Void> saveCloudEventAsync(TenantId tenantId, CloudEventType cloudEventType,
+                                                      EdgeEventActionType cloudEventAction, EntityId entityId,
+                                                      JsonNode entityBody, Long queueStartTs) {
+        if (shouldAddEventToQueue(tenantId, cloudEventType, cloudEventAction, entityId, queueStartTs)) {
             CloudEvent cloudEvent = new CloudEvent();
             cloudEvent.setTenantId(tenantId);
             cloudEvent.setType(cloudEventType);
             cloudEvent.setAction(cloudEventAction);
-            if (entityId != null) {
-                cloudEvent.setEntityId(entityId.getId());
-            }
+            cloudEvent.setEntityId(entityId != null ? entityId.getId() : null);
             cloudEvent.setEntityBody(entityBody);
             return saveAsync(cloudEvent);
         } else {
@@ -116,24 +106,33 @@ public class BaseCloudEventService implements CloudEventService {
         }
     }
 
+    private boolean shouldAddEventToQueue(TenantId tenantId, CloudEventType cloudEventType, EdgeEventActionType cloudEventAction,
+                                          EntityId entityId, Long queueStartTs) {
+        if (queueStartTs == null || queueStartTs <= 0 || !CLOUD_EVENT_ACTION_WITHOUT_DUPLICATES.contains(cloudEventAction)) {
+            return true;
+        }
+
+        long countMsgsInQueue = cloudEventDao.countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(
+                tenantId.getId(), entityId.getId(), cloudEventType, cloudEventAction, queueStartTs, System.currentTimeMillis()
+        );
+
+        if (countMsgsInQueue > 0) {
+            log.info("{} Skipping adding of {} event because it's already present in db {} {}",
+                    tenantId, cloudEventAction, entityId, cloudEventType);
+            return false;
+        }
+
+        return true;
+    }
+
     @Override
     public PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
         return cloudEventDao.findCloudEvents(tenantId.getId(), seqIdStart, seqIdEnd, pageLink);
     }
 
-    private long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(TenantId tenantId,
-                                                                                       EntityId entityId,
-                                                                                       CloudEventType cloudEventType,
-                                                                                       EdgeEventActionType cloudEventAction,
-                                                                                       Long startTime,
-                                                                                       Long endTime) {
-        return cloudEventDao.countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(
-                tenantId.getId(),
-                entityId.getId(),
-                cloudEventType,
-                cloudEventAction,
-                startTime,
-                endTime);
+    @Override
+    public PageData<CloudEvent> findTsKvCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
+        return tsKvCloudEventDao.findCloudEvents(tenantId.getId(), seqIdStart, seqIdEnd, pageLink);
     }
 
     @Override
@@ -167,4 +166,5 @@ public class BaseCloudEventService implements CloudEventService {
             throw new RuntimeException("Exception while saving edge settings", e);
         }
     }
+
 }

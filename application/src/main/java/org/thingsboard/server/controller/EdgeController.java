@@ -591,6 +591,25 @@ public class EdgeController extends BaseController {
         }
     }
 
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @GetMapping(value = "/edge/events/timeseries")
+    public PageData<CloudEvent> getTimeseriesCloudEvents(
+            @RequestParam int pageSize,
+            @RequestParam int page,
+            @RequestParam(required = false) String textSearch,
+            @RequestParam(required = false) String sortProperty,
+            @RequestParam(required = false) String sortOrder,
+            @RequestParam(required = false) Long startTime,
+            @RequestParam(required = false) Long endTime) throws ThingsboardException {
+        try {
+            TenantId tenantId = getCurrentUser().getTenantId();
+            TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
+            return checkNotNull(cloudEventService.findTsKvCloudEvents(tenantId, 0L, null, pageLink));
+        } catch (Exception e) {
+            throw handleException(e);
+        }
+    }
+
     @ApiOperation(value = "Is edge upgrade enabled (isEdgeUpgradeAvailable)",
             notes = "Returns 'true' if upgrade available for connected edge, 'false' - otherwise.")
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
