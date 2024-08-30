@@ -20,6 +20,7 @@ import org.awaitility.Awaitility;
 import org.junit.Test;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.msa.AbstractContainerTest;
 
@@ -38,17 +39,19 @@ public class UserClientTest extends AbstractContainerTest {
         user.setFirstName("Joe");
         user.setLastName("Downs");
         User savedUser = cloudRestClient.saveUser(user, false);
-        cloudRestClient.activateUser(savedUser.getId(), "tenant", false);
+        UserId savedUserId = savedUser.getId();
+        cloudRestClient.activateUser(savedUserId, "tenant", false);
         loginIntoEdgeWithRetries("edgeTenant@thingsboard.org", "tenant");
         cloudRestClient.login("edgeTenant@thingsboard.org", "tenant");
 
         // update user
+        savedUser = cloudRestClient.getUserById(savedUserId).get();
         savedUser.setFirstName("John");
         cloudRestClient.saveUser(savedUser, false);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> "John".equals(edgeRestClient.getUserById(savedUser.getId()).get().getFirstName()));
+                .until(() -> "John".equals(edgeRestClient.getUserById(savedUserId).get().getFirstName()));
 
         // update user credentials
         cloudRestClient.changePassword("tenant", "newTenant");
@@ -56,12 +59,12 @@ public class UserClientTest extends AbstractContainerTest {
 
         // delete user
         cloudRestClient.login("tenant@thingsboard.org", "tenant");
-        cloudRestClient.deleteUser(savedUser.getId());
+        cloudRestClient.deleteUser(savedUserId);
         loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getUserById(savedUser.getId()).isEmpty());
+                .until(() -> edgeRestClient.getUserById(savedUserId).isEmpty());
     }
 
     @Test
@@ -81,17 +84,19 @@ public class UserClientTest extends AbstractContainerTest {
         user.setFirstName("Phil");
         user.setLastName("Trace");
         User savedUser = cloudRestClient.saveUser(user, false);
-        cloudRestClient.activateUser(savedUser.getId(), "customer", false);
+        UserId savedUserId = savedUser.getId();
+        cloudRestClient.activateUser(savedUserId, "customer", false);
         loginIntoEdgeWithRetries("edgeCustomer@thingsboard.org", "customer");
         cloudRestClient.login("edgeCustomer@thingsboard.org", "customer");
 
         // update user
+        savedUser = cloudRestClient.getUserById(savedUserId).get();
         savedUser.setFirstName("Phillip");
         cloudRestClient.saveUser(savedUser, false);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> "Phillip".equals(edgeRestClient.getUserById(savedUser.getId()).get().getFirstName()));
+                .until(() -> "Phillip".equals(edgeRestClient.getUserById(savedUserId).get().getFirstName()));
 
         // update user credentials
         cloudRestClient.changePassword("customer", "newCustomer");
@@ -99,13 +104,13 @@ public class UserClientTest extends AbstractContainerTest {
 
         // delete user
         cloudRestClient.login("tenant@thingsboard.org", "tenant");
-        cloudRestClient.deleteUser(savedUser.getId());
+        cloudRestClient.deleteUser(savedUserId);
         cloudRestClient.deleteCustomer(savedCustomer.getId());
         loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
-                .until(() -> edgeRestClient.getUserById(savedUser.getId()).isEmpty());
+                .until(() -> edgeRestClient.getUserById(savedUserId).isEmpty());
     }
 
 }

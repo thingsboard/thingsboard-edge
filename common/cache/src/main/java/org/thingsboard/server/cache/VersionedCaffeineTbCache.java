@@ -50,7 +50,7 @@ public abstract class VersionedCaffeineTbCache<K extends Serializable, V extends
         lock.lock();
         try {
             TbPair<Long, V> versionValuePair = doGet(key);
-            if (versionValuePair == null || version > versionValuePair.getFirst()) {
+            if (versionValuePair == null || version >= versionValuePair.getFirst()) {
                 failAllTransactionsByKey(key);
                 cache.put(key, wrapValue(value, version));
             }
