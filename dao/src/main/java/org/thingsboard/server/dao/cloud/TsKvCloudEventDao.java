@@ -13,12 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.dao.sql.cloud;
+package org.thingsboard.server.dao.cloud;
 
-import org.thingsboard.server.dao.model.sql.CloudEventEntity;
+import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.dao.Dao;
 
 import java.util.UUID;
 
-public interface CloudEventRepository extends BaseCloudEventRepository<CloudEventEntity, UUID> {
+public interface TsKvCloudEventDao extends Dao<CloudEvent> {
+
+    ListenableFuture<Void> saveAsync(CloudEvent cloudEvent);
+
+    PageData<CloudEvent> findCloudEvents(UUID tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
+
+    void cleanupEvents(long eventsTtl);
 
 }

@@ -36,7 +36,8 @@ public class EntityViewCacheValue implements Serializable, HasVersion {
 
     @Override
     public Long getVersion() {
-        return entityView != null ? entityView.getVersion() : 0;
+        // edge-only: we set getVersion() as null, so in case of Edge we receive null pointer here, added check: entityView.getVersion() != null
+        return entityView != null && entityView.getVersion() != null ? entityView.getVersion() : 0;
     }
 
 }
