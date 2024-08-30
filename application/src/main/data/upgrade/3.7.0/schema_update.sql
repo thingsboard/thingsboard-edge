@@ -141,19 +141,23 @@ INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, sco
             'Default system menu', 'SYSTEM', 'ALL', trim('"' FROM s.json_value::json ->> 'value') FROM admin_settings s
      WHERE key = 'customMenu') ON CONFLICT DO NOTHING;
 
+DELETE FROM admin_settings WHERE key = 'customMenu';
+
 -- migrate tenant customMenu attributes
 INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
-    (SELECT uuid_generate_v4(), a.last_update_ts, entity_id, '13814000-1dd2-11b2-8080-808080808080', t.title || ' default menu','TENANT', 'ALL', str_v FROM tenant t
-        INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary  where key = 'customMenu'))
-ON CONFLICT DO NOTHING;
+    (SELECT uuid_generate_v4(), a.last_update_ts, a.entity_id, '13814000-1dd2-11b2-8080-808080808080', t.title || ' default menu','TENANT', 'ALL', COALESCE(a.str_v, a.json_v::text) FROM tenant t
+        INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary  where key = 'customMenu'));
 
 -- migrate customer customMenu attributes
 INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
-    (SELECT uuid_generate_v4(), a.last_update_ts, c.tenant_id, c.id, c.title || ' default menu', 'CUSTOMER', 'ALL', str_v FROM customer c
-        INNER JOIN attribute_kv a ON c.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary  where key = 'customMenu'))
-ON CONFLICT DO NOTHING;
+    (SELECT uuid_generate_v4(), a.last_update_ts, c.tenant_id, c.id, c.title || ' default menu', 'CUSTOMER', 'ALL', COALESCE(a.str_v, a.json_v::text) FROM customer c
+        INNER JOIN attribute_kv a ON c.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary  where key = 'customMenu'));
 
-CREATE OR REPLACE FUNCTION update_menu_item_if_disabled(json_element jsonb, disabled_ids text[])
+DELETE FROM attribute_kv WHERE attribute_key = (select key_id from key_dictionary where key LIKE 'customMenu');
+-- delete not valid records
+DELETE FROM custom_menu WHERE settings IS NULL OR settings = '';
+
+CREATE OR REPLACE FUNCTION update_menu_item_with_visible_and_type(json_element jsonb, disabled_ids text[])
     RETURNS jsonb
     LANGUAGE plpgsql AS
 $$
@@ -161,17 +165,25 @@ DECLARE
     updated_element jsonb;
 BEGIN
     -- Check if the element has an "id" and if it's in the disabled_ids array
-    IF json_element ? 'id' AND (json_element ->> 'id') = ANY (disabled_ids) THEN
-        updated_element := jsonb_set(json_element, '{visible}', 'false'::jsonb);
+    IF json_element ? 'id' THEN
+        IF (json_element ->> 'id') = 'home'THEN
+            updated_element := json_element::jsonb || '{"visible":true, "type":"HOME"}'::jsonb;
+        ELSE
+            IF (json_element ->> 'id') = ANY (disabled_ids) THEN
+            updated_element := json_element::jsonb || '{"visible":false, "type": "DEFAULT"}'::jsonb;
+            ELSE
+                updated_element := json_element::jsonb || '{"visible":true, "type": "DEFAULT"}'::jsonb;
+            END IF;
+        END IF;
     ELSE
-        updated_element := json_element;
+        updated_element := json_element::jsonb || '{"visible":true, "type": "CUSTOM"}'::jsonb;
     END IF;
     -- If the element has 'childMenuItems', recursively apply the function
     IF json_element ? 'pages' AND jsonb_array_length(json_element #> '{pages}') != 0 THEN
         updated_element := jsonb_set(
                 updated_element,
                 '{pages}',
-                (SELECT jsonb_agg(update_menu_item_if_disabled(child, disabled_ids))
+                (SELECT jsonb_agg(update_menu_item_with_visible_and_type(child, disabled_ids))
                  FROM jsonb_array_elements(json_element -> 'pages') AS child)
             );
     END IF;
@@ -182,7 +194,8 @@ $$;
 DO
 $$
     BEGIN
-        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'fk_tb_user_custom_menu') THEN
+        -- in case of running the upgrade script a second time
+        IF (SELECT settings::jsonb -> 'disabledMenuItems' FROM custom_menu LIMIT 1) IS NOT NULL THEN
             -- rename childMenuItems -> pages, materialIcon -> icon, iframeUrl -> url
             UPDATE custom_menu SET settings = replace(settings::TEXT, 'childMenuItems', 'pages')::jsonb;
             UPDATE custom_menu SET settings = replace(settings::TEXT, 'materialIcon', 'icon')::jsonb;
@@ -191,375 +204,341 @@ $$
             -- add predefined menu items to sys admin custom menu
             UPDATE custom_menu SET settings = jsonb_set(settings::jsonb, '{menuItems}',
                 '[
-                  {"id": "home", "visible":true},
-                  {"id": "tenants", "visible":true},
-                  {"id": "tenant_profiles", "visible":true},
+                  {"id": "home"},
+                  {"id": "tenants"},
+                  {"id": "tenant_profiles"},
                   {
-                    "id": "resources", "visible":true,
+                    "id": "resources",
                     "pages": [
                       {
-                        "id": "widget_library", "visible":true,
+                        "id": "widget_library",
                         "pages": [
-                          {"id": "widget_types", "visible":true},
-                          {"id": "widgets_bundles", "visible":true}
+                          {"id": "widget_types"},
+                          {"id": "widgets_bundles"}
                         ]
                       },
-                      {"id": "images", "visible":true},
-                      {"id": "scada_symbols", "visible":true},
-                      {"id": "resources_library", "visible":true}
+                      {"id": "images"},
+                      {"id": "scada_symbols"},
+                      {"id": "resources_library"}
                     ]
                   },
                   {
-                    "id": "notifications_center", "visible":true,
+                    "id": "notifications_center",
                     "pages": [
-                      {"id": "notification_inbox", "visible":true},
-                      {"id": "notification_sent", "visible":true},
-                      {"id": "notification_recipients", "visible":true},
-                      {"id": "notification_templates", "visible":true},
-                      {"id": "notification_rules", "visible":true}
+                      {"id": "notification_inbox"},
+                      {"id": "notification_sent"},
+                      {"id": "notification_recipients"},
+                      {"id": "notification_templates"},
+                      {"id": "notification_rules"}
                     ]
                   },
                   {
-                    "id": "white_labeling", "visible":true,
+                    "id": "white_labeling",
                     "pages": [
-                      {"id": "white_labeling_general", "visible":true},
-                      {"id": "login_white_labeling", "visible":true},
-                      {"id": "mail_templates", "visible":true},
-                      {"id": "custom_translation", "visible":true},
-                      {"id": "custom_menu", "visible":true}
+                      {"id": "white_labeling_general"},
+                      {"id": "login_white_labeling"},
+                      {"id": "mail_templates"},
+                      {"id": "custom_translation"},
+                      {"id": "custom_menu"}
                     ]
                   },
                   {
-                    "id": "settings", "visible":true,
+                    "id": "settings",
                     "pages": [
-                      {"id": "general", "visible":true},
-                      {"id": "mail_server", "visible":true},
-                      {"id": "notification_settings", "visible":true},
-                      {"id": "queues", "visible":true},
-                      {"id": "mobile_app_settings", "visible":true}
+                      {"id": "general"},
+                      {"id": "mail_server"},
+                      {"id": "notification_settings"},
+                      {"id": "queues"},
+                      {"id": "mobile_app_settings"}
                     ]
                   },
                   {
-                    "id": "security_settings", "visible":true,
+                    "id": "security_settings",
                     "pages": [
-                      {"id": "security_settings_general", "visible":true},
-                      {"id": "two_fa", "visible":true},
-                      {"id": "oauth2", "visible":true}
+                      {"id": "security_settings_general"},
+                      {"id": "two_fa"},
+                      {"id": "oauth2"}
                     ]
                   }
-                ]'::jsonb || (settings::jsonb #> '{menuItems}'))
+                ]'::jsonb || (coalesce(settings::jsonb #> '{menuItems}', '[]'::jsonb)))
             WHERE settings IS NOT NULL and tenant_id = '13814000-1dd2-11b2-8080-808080808080';
 
             -- add predefined menu items to tenant custom menus
             UPDATE custom_menu SET settings = jsonb_set(settings::jsonb, '{menuItems}',
                  '[
-                   {"id": "home", "visible":true},
-                   {"id": "alarms", "visible":true},
+                   {"id": "home"},
+                   {"id": "alarms"},
                    {
-                     "id": "dashboards", "visible":true,
+                     "id": "dashboards",
                      "pages": [
-                       {"id": "dashboard_all", "visible":true},
-                       {"id": "dashboard_groups", "visible":true},
-                       {"id": "dashboard_shared", "visible":true}
+                       {"id": "dashboard_all"},
+                       {"id": "dashboard_groups"},
+                       {"id": "dashboard_shared"}
                      ]
                    },
-                   {"id": "solution_templates", "visible":true},
+                   {"id": "solution_templates"},
                    {
-                     "id": "entities", "visible":true,
+                     "id": "entities",
                      "pages": [
                        {
-                         "id": "devices", "visible":true,
+                         "id": "devices",
                          "pages": [
-                           {"id": "device_all", "visible":true},
-                           {"id": "device_groups", "visible":true},
-                           {"id": "device_shared", "visible":true}
+                           {"id": "device_all"},
+                           {"id": "device_groups"},
+                           {"id": "device_shared"}
                          ]
                        },
                        {
-                         "id": "assets", "visible":true,
+                         "id": "assets",
                          "pages": [
-                           {"id": "asset_all", "visible":true},
-                           {"id": "asset_groups", "visible":true},
-                           {"id": "asset_shared", "visible":true}
+                           {"id": "asset_all"},
+                           {"id": "asset_groups"},
+                           {"id": "asset_shared"}
                          ]
                        },
                        {
-                         "id": "entity_views", "visible":true,
+                         "id": "entity_views",
                          "pages": [
-                           {"id": "entity_view_all", "visible":true},
-                           {"id": "entity_view_groups", "visible":true},
-                           {"id": "entity_view_shared", "visible":true}
+                           {"id": "entity_view_all"},
+                           {"id": "entity_view_groups"},
+                           {"id": "entity_view_shared"}
                          ]
                        }
                      ]
                    },
                    {
-                     "id": "profiles", "visible":true,
+                     "id": "profiles",
                      "pages": [
-                       {"id": "device_profiles", "visible":true},
-                       {"id": "asset_profiles", "visible":true}
+                       {"id": "device_profiles"},
+                       {"id": "asset_profiles"}
                      ]
                    },
                    {
-                     "id": "customers", "visible":true,
+                     "id": "customers",
                      "pages": [
-                       {"id": "customer_all", "visible":true},
-                       {"id": "customer_groups", "visible":true},
-                       {"id": "customer_shared", "visible":true},
-                       {"id": "customers_hierarchy", "visible":true}
+                       {"id": "customer_all"},
+                       {"id": "customer_groups"},
+                       {"id": "customer_shared"},
+                       {"id": "customers_hierarchy"}
                      ]
                    },
                    {
-                     "id": "users", "visible":true,
+                     "id": "users",
                      "pages": [
-                       {"id": "user_all", "visible":true},
-                       {"id": "user_groups", "visible":true}
+                       {"id": "user_all"},
+                       {"id": "user_groups"}
                      ]
                    },
                    {
-                     "id": "integrations_center", "visible":true,
+                     "id": "integrations_center",
                      "pages": [
-                       {"id": "integrations", "visible":true},
-                       {"id": "converters", "visible":true}
+                       {"id": "integrations"},
+                       {"id": "converters"}
                      ]
                    },
-                   {"id": "rule_chains", "visible":true},
+                   {"id": "rule_chains"},
                    {
-                     "id": "edge_management", "visible":true,
+                     "id": "edge_management",
                      "pages": [
                        {
-                         "id": "edges", "visible":true,
+                         "id": "edges",
                          "pages": [
-                           {"id": "edge_all", "visible":true},
-                           {"id": "edge_groups", "visible":true},
-                           {"id": "edge_shared", "visible":true}
+                           {"id": "edge_all"},
+                           {"id": "edge_groups"},
+                           {"id": "edge_shared"}
                          ]
                        },
-                       {"id": "rulechain_templates", "visible":true},
-                       {"id": "integration_templates", "visible":true},
-                       {"id": "converter_templates", "visible":true}
+                       {"id": "rulechain_templates"},
+                       {"id": "integration_templates"},
+                       {"id": "converter_templates"}
                      ]
                    },
                    {
-                     "id": "features", "visible":true,
+                     "id": "features",
                      "pages": [
-                       {"id": "otaUpdates", "visible":true},
-                       {"id": "version_control", "visible":true},
-                       {"id": "scheduler", "visible":true}
+                       {"id": "otaUpdates"},
+                       {"id": "version_control"},
+                       {"id": "scheduler"}
                      ]
                    },
                    {
-                     "id": "resources", "visible":true,
+                     "id": "resources",
                      "pages": [
                        {
-                         "id": "widget_library", "visible":true,
+                         "id": "widget_library",
                          "pages": [
-                           {"id": "widget_types", "visible":true},
-                           {"id": "widgets_bundles", "visible":true}
+                           {"id": "widget_types"},
+                           {"id": "widgets_bundles"}
                          ]
                        },
-                       {"id": "images", "visible":true},
-                       {"id": "scada_symbols", "visible":true},
-                       {"id": "resources_library", "visible":true}
+                       {"id": "images"},
+                       {"id": "scada_symbols"},
+                       {"id": "resources_library"}
                      ]
                    },
                    {
-                     "id": "notifications_center", "visible":true,
+                     "id": "notifications_center",
                      "pages": [
-                       {"id": "notification_inbox", "visible":true},
-                       {"id": "notification_sent", "visible":true},
-                       {"id": "notification_recipients", "visible":true},
-                       {"id": "notification_templates", "visible":true},
-                       {"id": "notification_rules", "visible":true}
+                       {"id": "notification_inbox"},
+                       {"id": "notification_sent"},
+                       {"id": "notification_recipients"},
+                       {"id": "notification_templates"},
+                       {"id": "notification_rules"}
                      ]
                    },
-                   {"id": "api_usage", "visible":true},
+                   {"id": "api_usage"},
                    {
-                     "id": "white_labeling", "visible":true,
+                     "id": "white_labeling",
                      "pages": [
-                       {"id": "white_labeling_general", "visible":true},
-                       {"id": "login_white_labeling", "visible":true},
-                       {"id": "mail_templates", "visible":true},
-                       {"id": "custom_translation", "visible":true},
-                       {"id": "custom_menu", "visible":true}
-                     ]
-                   },
-                   {
-                     "id": "settings","visible":true,
-                     "pages": [
-                       {"id": "home_settings", "visible":true},
-                       {"id": "mail_server", "visible":true},
-                       {"id": "notification_settings", "visible":true},
-                       {"id": "repository_settings", "visible":true},
-                       {"id": "auto_commit_settings", "visible":true},
-                       {"id": "mobile_app_settings", "visible":true}
+                       {"id": "white_labeling_general"},
+                       {"id": "login_white_labeling"},
+                       {"id": "mail_templates"},
+                       {"id": "custom_translation"},
+                       {"id": "custom_menu"}
                      ]
                    },
                    {
-                     "id": "security_settings", "visible":true,
+                     "id": "settings",
                      "pages": [
-                       {"id": "two_fa", "visible":true},
-                       {"id": "roles", "visible":true},
-                       {"id": "self_registration", "visible":true},
-                       {"id": "audit_log", "visible":true}
+                       {"id": "home_settings"},
+                       {"id": "mail_server"},
+                       {"id": "notification_settings"},
+                       {"id": "repository_settings"},
+                       {"id": "auto_commit_settings"},
+                       {"id": "mobile_app_settings"}
+                     ]
+                   },
+                   {
+                     "id": "security_settings",
+                     "pages": [
+                       {"id": "two_fa"},
+                       {"id": "roles"},
+                       {"id": "self_registration"},
+                       {"id": "audit_log"}
                      ]
                    }
-                 ]'::jsonb ||(settings::jsonb #> '{menuItems}'))
+                 ]'::jsonb ||(coalesce(settings::jsonb #> '{menuItems}', '[]'::jsonb)))
             WHERE settings IS NOT NULL and customer_id = '13814000-1dd2-11b2-8080-808080808080' and tenant_id != '13814000-1dd2-11b2-8080-808080808080';
 
             -- add predefined menu items to customer custom menus
             UPDATE custom_menu SET settings = jsonb_set(settings::jsonb, '{menuItems}',
                  '[
-                   {"id": "home", "visible":true},
-                   {"id": "alarms", "visible":true},
-                   {
-                     "id": "dashboards", "visible":true,
-                     "pages": [
-                       {"id": "dashboard_all", "visible":true},
-                       {"id": "dashboard_groups", "visible":true},
-                       {"id": "dashboard_shared", "visible":true}
-                     ]
-                   },
-                   {"id": "solution_templates", "visible":true},
-                   {
-                     "id": "entities", "visible":true,
-                     "pages": [
-                       {
-                         "id": "devices", "visible":true,
-                         "pages": [
-                           {"id": "device_all", "visible":true},
-                           {"id": "device_groups", "visible":true},
-                           {"id": "device_shared", "visible":true}
-                         ]
-                       },
-                       {
-                         "id": "assets", "visible":true,
-                         "pages": [
-                           {"id": "asset_all", "visible":true},
-                           {"id": "asset_groups", "visible":true},
-                           {"id": "asset_shared", "visible":true}
-                         ]
-                       },
-                       {
-                         "id": "entity_views", "visible":true,
-                         "pages": [
-                           {"id": "entity_view_all", "visible":true},
-                           {"id": "entity_view_groups", "visible":true},
-                           {"id": "entity_view_shared", "visible":true}
-                         ]
-                       }
-                     ]
-                   },
-                   {
-                   [
-                     {"id": "home", "visible":true},
-                     {"id": "alarms", "visible":true},
+                     {"id": "home"},
+                     {"id": "alarms"},
                      {
-                       "id": "dashboards", "visible":true,
+                       "id": "dashboards",
                        "pages": [
-                         {"id": "dashboard_all", "visible":true},
-                         {"id": "dashboard_groups", "visible":true},
-                         {"id": "dashboard_shared", "visible":true}
+                         {"id": "dashboard_all"},
+                         {"id": "dashboard_groups"},
+                         {"id": "dashboard_shared"}
                        ]
                      },
                      {
-                       "id": "entities", "visible":true,
+                       "id": "entities",
                        "pages": [
                          {
-                           "id": "devices", "visible":true,
+                           "id": "devices",
                            "pages": [
-                             {"id": "device_all", "visible":true},
-                             {"id": "device_groups", "visible":true},
-                             {"id": "device_shared", "visible":true}
+                             {"id": "device_all"},
+                             {"id": "device_groups"},
+                             {"id": "device_shared"}
                            ]
                          },
                          {
-                           "id": "assets", "visible":true,
+                           "id": "assets",
                            "pages": [
-                             {"id": "asset_all", "visible":true},
-                             {"id": "asset_groups", "visible":true},
-                             {"id": "asset_shared", "visible":true}
+                             {"id": "asset_all"},
+                             {"id": "asset_groups"},
+                             {"id": "asset_shared"}
                            ]
                          },
                          {
-                           "id": "entity_views", "visible":true,
+                           "id": "entity_views",
                            "pages": [
-                             {"id": "entity_view_all", "visible":true},
-                             {"id": "entity_view_groups", "visible":true},
-                             {"id": "entity_view_shared", "visible":true}
+                             {"id": "entity_view_all"},
+                             {"id": "entity_view_groups"},
+                             {"id": "entity_view_shared"}
                            ]
                          }
                        ]
                      },
                      {
-                       "id": "customers", "visible":true,
+                       "id": "customers",
                        "pages": [
-                         {"id": "customer_all", "visible":true},
-                         {"id": "customer_groups", "visible":true},
-                         {"id": "customer_shared", "visible":true},
-                         {"id": "customers_hierarchy", "visible":true}
+                         {"id": "customer_all"},
+                         {"id": "customer_groups"},
+                         {"id": "customer_shared"},
+                         {"id": "customers_hierarchy"}
                        ]
                      },
                      {
-                       "id": "users", "visible":true,
+                       "id": "users",
                        "pages": [
-                         {"id": "user_all", "visible":true},
-                         {"id": "user_groups", "visible":true}
+                         {"id": "user_all"},
+                         {"id": "user_groups"}
                        ]
                      },
                      {
-                       "id": "edge_instances", "visible":true,
+                       "id": "edge_instances",
                        "pages": [
-                         {"id": "edge_all", "visible":true},
-                         {"id": "edge_groups", "visible":true},
-                         {"id": "edge_shared", "visible":true},
+                         {"id": "edge_all"},
+                         {"id": "edge_groups"},
+                         {"id": "edge_shared"}
                        ]
                      },
                      {
-                       "id": "resources", "visible":true,
+                       "id": "resources",
                        "pages": [
-                         {"id": "images", "visible":true},
-                         {"id": "scada_symbols", "visible":true}
+                         {"id": "images"},
+                         {"id": "scada_symbols"}
                        ]
                      },
                      {
-                       "id": "notifications_center", "visible":true,
+                       "id": "notifications_center",
                        "pages": [
-                         {"id": "notification_inbox", "visible":true}
+                         {"id": "notification_inbox"}
                        ]
                      },
-                     {"id": "scheduler", "visible":true},
+                     {"id": "scheduler"},
                      {
-                       "id": "white_labeling", "visible":true,
+                       "id": "white_labeling",
                        "pages": [
-                         {"id": "white_labeling_general", "visible":true},
-                         {"id": "login_white_labeling", "visible":true},
-                         {"id": "custom_translation", "visible":true},
-                         {"id": "custom_menu", "visible":true}
-                       ]
-                     },
-                     {
-                       "id": "settings", "visible":true,
-                       "pages": [
-                         {"id": "home_settings", "visible":true}
+                         {"id": "white_labeling_general"},
+                         {"id": "login_white_labeling"},
+                         {"id": "custom_translation"},
+                         {"id": "custom_menu"}
                        ]
                      },
                      {
-                       "id": "security_settings", "visible":true,
+                       "id": "settings",
                        "pages": [
-                         {"id": "roles", "visible":true},
-                         {"id": "audit_log", "visible":true}
+                         {"id": "home_settings"}
+                       ]
+                     },
+                     {
+                       "id": "security_settings",
+                       "pages": [
+                         {"id": "roles"},
+                         {"id": "audit_log"}
                        ]
                      }
-                   ]
-                 ]'::jsonb || (settings::jsonb #> '{menuItems}'))
+                 ]'::jsonb || (coalesce(settings::jsonb #> '{menuItems}', '[]'::jsonb)))
             WHERE settings IS NOT NULL and customer_id != '13814000-1dd2-11b2-8080-808080808080';
 
-            -- mark disabled elements
-            UPDATE custom_menu SET settings = ( SELECT jsonb_agg(update_menu_item_if_disabled(elem,
+            -- for each item add visible/not visible, add type: home, default or custom
+            UPDATE custom_menu SET settings = json_build_object('items', (SELECT jsonb_agg(update_menu_item_with_visible_and_type(elem,
                 (SELECT array_agg(disableIds) FROM jsonb_array_elements_text(settings::jsonb #> '{disabledMenuItems}') AS disableIds)))
-                                                FROM jsonb_array_elements(settings::jsonb #> '{menuItems}') AS elem);
+                                                FROM jsonb_array_elements(settings::jsonb #> '{menuItems}') AS elem));
+        END IF;
+    END;
+$$;
 
+DROP FUNCTION update_menu_item_with_visible_and_type;
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'fk_tb_user_custom_menu') THEN
             ALTER TABLE tb_user ADD COLUMN IF NOT EXISTS custom_menu_id UUID;
             ALTER TABLE tb_user ADD CONSTRAINT fk_tb_user_custom_menu FOREIGN KEY (custom_menu_id) REFERENCES custom_menu(id);
 
@@ -569,27 +548,43 @@ $$
     END;
 $$;
 
--- create default system menu
-INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
-VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
-        'Default system menu', 'SYSTEM', 'ALL')
-ON CONFLICT DO NOTHING;
+-- create default system menu if not exists
+DO
+$$
+    BEGIN
+        -- in case of running the upgrade script a second time
+        IF NOT EXISTS(SELECT menu_name FROM custom_menu WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' AND scope = 'SYSTEM' AND assignee_type = 'ALL') THEN
+            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
+            VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
+                    'Default system menu', 'SYSTEM', 'ALL');
+        END IF;
+    END;
+$$;
 
 -- create default menu for tenant admins
-INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
-VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
-        'Default tenant menu', 'TENANT', 'ALL')
-ON CONFLICT DO NOTHING;
+DO
+$$
+    BEGIN
+        -- in case of running the upgrade script a second time
+        IF NOT EXISTS(SELECT menu_name FROM custom_menu WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' AND scope = 'TENANT' AND assignee_type = 'ALL') THEN
+            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
+            VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
+                    'Default tenant menu', 'TENANT', 'ALL');
+        END IF;
+    END;
+$$;
 
 -- create default menu for customer users
-INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
-VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
-        'Default customer menu', 'CUSTOMER', 'ALL')
-ON CONFLICT DO NOTHING;
-
--- clear
--- DELETE FROM admin_settings WHERE key = 'customMenu';
--- DELETE FROM attribute_kv WHERE attribute_key = (select key_id from key_dictionary where key LIKE 'customMenu');
--- DROP FUNCTION update_menu_item_if_disabled;
+DO
+$$
+    BEGIN
+        -- in case of running the upgrade script a second time
+        IF NOT EXISTS(SELECT menu_name FROM custom_menu WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' AND scope = 'CUSTOMER' AND assignee_type = 'ALL') THEN
+            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
+            VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
+                    'Default customer menu', 'CUSTOMER', 'ALL');
+        END IF;
+    END;
+$$;
 
 -- CUSTOM MENU MIGRATION END
