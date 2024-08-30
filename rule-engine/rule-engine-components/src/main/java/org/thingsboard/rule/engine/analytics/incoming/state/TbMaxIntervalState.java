@@ -65,7 +65,7 @@ public class TbMaxIntervalState extends TbBaseIntervalState {
     @Override
     public String toValueJson(Gson gson, String outputValueKey) {
         JsonObject json = new JsonObject();
-        json.addProperty(outputValueKey, max);
+        json.addProperty(outputValueKey, max.doubleValue());
         return gson.toJson(json);
     }
 

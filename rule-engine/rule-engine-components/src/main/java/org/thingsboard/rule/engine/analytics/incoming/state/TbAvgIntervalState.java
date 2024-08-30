@@ -68,7 +68,7 @@ public class TbAvgIntervalState extends TbBaseIntervalState {
     @Override
     public String toValueJson(Gson gson, String outputValueKey) {
         JsonObject json = new JsonObject();
-        json.addProperty(outputValueKey, sum.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP));
+        json.addProperty(outputValueKey, sum.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP).doubleValue());
         return gson.toJson(json);
     }
 
