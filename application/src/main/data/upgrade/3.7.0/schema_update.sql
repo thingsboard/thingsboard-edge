@@ -136,21 +136,38 @@ CREATE TABLE IF NOT EXISTS custom_menu (
 );
 
 -- migrate sys admin custom menu settings
-INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
-    (SELECT s.id, s.created_time, '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
-            'Default system menu', 'SYSTEM', 'ALL', trim('"' FROM s.json_value::json ->> 'value') FROM admin_settings s
-     WHERE key = 'customMenu') ON CONFLICT DO NOTHING;
-
-DELETE FROM admin_settings WHERE key = 'customMenu';
+DO
+$$
+    BEGIN
+        IF EXISTS(SELECT 1 FROM admin_settings WHERE key = 'customMenu') THEN
+            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
+                (SELECT uuid_generate_v4(), s.created_time, '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
+                        'System default menu', 'SYSTEM', 'ALL', trim('"' FROM s.json_value::json ->> 'value') FROM admin_settings s
+                 WHERE key = 'customMenu');
+            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
+                (SELECT uuid_generate_v4(), s.created_time, '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
+                        'Tenant default menu', 'TENANT', 'ALL', trim('"' FROM s.json_value::json ->> 'value') FROM admin_settings s
+                 WHERE key = 'customMenu');
+            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
+                (SELECT uuid_generate_v4(), s.created_time, '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
+                        'Customer default menu', 'CUSTOMER', 'ALL', trim('"' FROM s.json_value::json ->> 'value') FROM admin_settings s
+                 WHERE key = 'customMenu');
+            DELETE FROM admin_settings WHERE key = 'customMenu';
+        END IF;
+    END;
+$$;
 
 -- migrate tenant customMenu attributes
 INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
-    (SELECT uuid_generate_v4(), a.last_update_ts, a.entity_id, '13814000-1dd2-11b2-8080-808080808080', t.title || ' default menu','TENANT', 'ALL', COALESCE(a.str_v, a.json_v::text) FROM tenant t
+    (SELECT uuid_generate_v4(), a.last_update_ts, a.entity_id, '13814000-1dd2-11b2-8080-808080808080', 'Tenant default menu', 'TENANT', 'ALL', COALESCE(a.str_v, a.json_v::text) FROM tenant t
+        INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary  where key = 'customMenu'));
+INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
+    (SELECT uuid_generate_v4(), a.last_update_ts, a.entity_id, '13814000-1dd2-11b2-8080-808080808080', 'Customer default menu', 'CUSTOMER', 'ALL', COALESCE(a.str_v, a.json_v::text) FROM tenant t
         INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary  where key = 'customMenu'));
 
 -- migrate customer customMenu attributes
 INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
-    (SELECT uuid_generate_v4(), a.last_update_ts, c.tenant_id, c.id, c.title || ' default menu', 'CUSTOMER', 'ALL', COALESCE(a.str_v, a.json_v::text) FROM customer c
+    (SELECT uuid_generate_v4(), a.last_update_ts, c.tenant_id, c.id, 'Customer default menu', 'CUSTOMER', 'ALL' , COALESCE(a.str_v, a.json_v::text) FROM customer c
         INNER JOIN attribute_kv a ON c.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary  where key = 'customMenu'));
 
 DELETE FROM attribute_kv WHERE attribute_key = (select key_id from key_dictionary where key LIKE 'customMenu');
@@ -166,8 +183,8 @@ DECLARE
 BEGIN
     -- Check if the element has an "id" and if it's in the disabled_ids array
     IF json_element ? 'id' THEN
-        IF (json_element ->> 'id') = 'home'THEN
-            updated_element := json_element::jsonb || '{"visible":true, "type":"HOME"}'::jsonb;
+        IF (json_element ->> 'id') = 'home' THEN
+            updated_element := json_element::jsonb || '{"visible":true, "type":"HOME", "homeType":"DEFAULT"}'::jsonb;
         ELSE
             IF (json_element ->> 'id') = ANY (disabled_ids) THEN
             updated_element := json_element::jsonb || '{"visible":false, "type": "DEFAULT"}'::jsonb;
@@ -176,7 +193,15 @@ BEGIN
             END IF;
         END IF;
     ELSE
-        updated_element := json_element::jsonb || '{"visible":true, "type": "CUSTOM"}'::jsonb;
+        IF (json_element ? 'pages' AND jsonb_array_length(json_element #> '{pages}') != 0) THEN
+            updated_element := json_element::jsonb || '{"visible":true, "type": "CUSTOM", "menuItemType": "SECTION"}'::jsonb;
+        ELSE
+            IF (json_element->'dashboardId' IS NOT NULL AND json_element->>'dashboardId' <> '') THEN
+                updated_element := json_element::jsonb || '{"visible":true, "type": "CUSTOM", "menuItemType": "LINK", "linkType": "DASHBOARD"}'::jsonb;
+            ELSE
+                updated_element := json_element::jsonb || '{"visible":true, "type": "CUSTOM", "menuItemType": "LINK", "linkType": "URL"}'::jsonb;
+            END IF;
+        END IF;
     END IF;
     -- If the element has 'childMenuItems', recursively apply the function
     IF json_element ? 'pages' AND jsonb_array_length(json_element #> '{pages}') != 0 THEN
@@ -515,8 +540,8 @@ $$
                          {"id": "home_settings"}
                        ]
                      },
-                     {
-                       "id": "security_settings",
+                   {
+                     "id": "security_settings",
                        "pages": [
                          {"id": "roles"},
                          {"id": "audit_log"}
@@ -553,10 +578,10 @@ DO
 $$
     BEGIN
         -- in case of running the upgrade script a second time
-        IF NOT EXISTS(SELECT menu_name FROM custom_menu WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' AND scope = 'SYSTEM' AND assignee_type = 'ALL') THEN
+        IF NOT EXISTS(SELECT 1 FROM custom_menu WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' AND scope = 'SYSTEM' AND assignee_type = 'ALL') THEN
             INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
             VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
-                    'Default system menu', 'SYSTEM', 'ALL');
+                    'System default menu', 'SYSTEM', 'ALL');
         END IF;
     END;
 $$;
@@ -566,10 +591,10 @@ DO
 $$
     BEGIN
         -- in case of running the upgrade script a second time
-        IF NOT EXISTS(SELECT menu_name FROM custom_menu WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' AND scope = 'TENANT' AND assignee_type = 'ALL') THEN
+        IF NOT EXISTS(SELECT 1 FROM custom_menu WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' AND scope = 'TENANT' AND assignee_type = 'ALL') THEN
             INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
             VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
-                    'Default tenant menu', 'TENANT', 'ALL');
+                    'Tenant default menu', 'TENANT', 'ALL');
         END IF;
     END;
 $$;
@@ -579,10 +604,10 @@ DO
 $$
     BEGIN
         -- in case of running the upgrade script a second time
-        IF NOT EXISTS(SELECT menu_name FROM custom_menu WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' AND scope = 'CUSTOMER' AND assignee_type = 'ALL') THEN
+        IF NOT EXISTS(SELECT 1 FROM custom_menu WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' AND scope = 'CUSTOMER' AND assignee_type = 'ALL') THEN
             INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
             VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
-                    'Default customer menu', 'CUSTOMER', 'ALL');
+                    'Customer default menu', 'CUSTOMER', 'ALL');
         END IF;
     END;
 $$;
