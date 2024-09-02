@@ -29,113 +29,94 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectionStrategy, Component, forwardRef, Input, OnDestroy, TemplateRef } from '@angular/core';
+import { Component, forwardRef, Input, TemplateRef, ChangeDetectionStrategy } from '@angular/core';
+import { NG_VALUE_ACCESSOR, NG_VALIDATORS } from '@angular/forms';
 import {
-  ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
-  NG_VALIDATORS,
-  NG_VALUE_ACCESSOR,
-  ValidationErrors,
-  Validator,
-} from '@angular/forms';
-import {
-  ConnectorType,
-  MappingType,
-  OPCBasicConfig,
+  MQTTBasicConfig,
+  RequestMappingData,
+  RequestMappingValue,
+  RequestType
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
-import { SharedModule } from '@shared/shared.module';
+import {
+  AbstractMqttBasicConfigComponent
+} from '@home/components/widget/lib/gateway/connectors-configuration/mqtt/basic-config/mqtt-basic-config.abstract';
+import { isDefinedAndNotNull } from '@core/utils';
 import { CommonModule } from '@angular/common';
-import { takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { SharedModule } from '@shared/shared.module';
 import {
   SecurityConfigComponent
 } from '@home/components/widget/lib/gateway/connectors-configuration/security-config/security-config.component';
 import {
+  WorkersConfigControlComponent
+} from '@home/components/widget/lib/gateway/connectors-configuration/workers-config-control/workers-config-control.component';
+import {
+  BrokerConfigControlComponent
+} from '@home/components/widget/lib/gateway/connectors-configuration/mqtt/broker-config-control/broker-config-control.component';
+import {
   MappingTableComponent
 } from '@home/components/widget/lib/gateway/connectors-configuration/mapping-table/mapping-table.component';
-import {
-  OpcServerConfigComponent
-} from '@home/components/widget/lib/gateway/connectors-configuration/opc-server-config/opc-server-config.component';
 
 @Component({
-  selector: 'tb-opc-ua-basic-config',
-  templateUrl: './opc-ua-basic-config.component.html',
+  selector: 'tb-mqtt-basic-config',
+  templateUrl: './mqtt-basic-config.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => OpcUaBasicConfigComponent),
+      useExisting: forwardRef(() => MqttBasicConfigComponent),
       multi: true
     },
     {
       provide: NG_VALIDATORS,
-      useExisting: forwardRef(() => OpcUaBasicConfigComponent),
+      useExisting: forwardRef(() => MqttBasicConfigComponent),
       multi: true
     }
   ],
+  styleUrls: ['./mqtt-basic-config.component.scss'],
   standalone: true,
   imports: [
     CommonModule,
     SharedModule,
     SecurityConfigComponent,
+    WorkersConfigControlComponent,
+    BrokerConfigControlComponent,
     MappingTableComponent,
-    OpcServerConfigComponent,
   ],
-  styleUrls: ['./opc-ua-basic-config.component.scss']
 })
+export class MqttBasicConfigComponent extends AbstractMqttBasicConfigComponent {
 
-export class OpcUaBasicConfigComponent implements ControlValueAccessor, Validator, OnDestroy {
-  @Input() generalTabContent: TemplateRef<any>;
+  @Input()
+  generalTabContent: TemplateRef<any>;
 
-  mappingTypes = MappingType;
-  basicFormGroup: FormGroup;
-
-  onChange!: (value: string) => void;
-  onTouched!: () => void;
-
-  protected readonly connectorType = ConnectorType;
-  private destroy$ = new Subject<void>();
-
-  constructor(private fb: FormBuilder) {
-    this.basicFormGroup = this.fb.group({
-      mapping: [],
-      server: [],
-    });
-
-    this.basicFormGroup.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(value => {
-        this.onChange(value);
-        this.onTouched();
-      });
-  }
-
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  registerOnChange(fn: (value: string) => void): void {
-    this.onChange = fn;
-  }
-
-  registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
-  }
-
-  writeValue(basicConfig: OPCBasicConfig): void {
+  writeValue(basicConfig: MQTTBasicConfig): void {
+    const { broker, mapping = [], requestsMapping } = basicConfig;
     const editedBase = {
-      server: basicConfig.server || {},
-      mapping: basicConfig.mapping || [],
+      workers: broker && (broker.maxNumberOfWorkers || broker.maxMessageNumberPerWorker) ? {
+        maxNumberOfWorkers: broker.maxNumberOfWorkers,
+        maxMessageNumberPerWorker: broker.maxMessageNumberPerWorker,
+      } : {},
+      mapping: mapping || [],
+      broker: broker || {},
+      requestsMapping: this.getRequestDataArray(requestsMapping as Record<RequestType, RequestMappingData[]>),
     };
 
     this.basicFormGroup.setValue(editedBase, {emitEvent: false});
   }
 
-  validate(): ValidationErrors | null {
-    return this.basicFormGroup.valid ? null : {
-      basicFormGroup: {valid: false}
-    };
+  protected getMappedMQTTConfig(basicConfig: MQTTBasicConfig): MQTTBasicConfig {
+    let { broker, workers, mapping, requestsMapping  } = basicConfig || {};
+
+    if (isDefinedAndNotNull(workers.maxNumberOfWorkers) || isDefinedAndNotNull(workers.maxMessageNumberPerWorker)) {
+      broker = {
+        ...broker,
+        ...workers,
+      };
+    }
+
+    if ((requestsMapping as RequestMappingData[])?.length) {
+      requestsMapping = this.getRequestDataObject(requestsMapping as RequestMappingValue[]);
+    }
+
+    return { broker, mapping, requestsMapping };
   }
 }

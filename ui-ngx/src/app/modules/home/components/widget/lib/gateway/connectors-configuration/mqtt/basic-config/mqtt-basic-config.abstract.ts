@@ -29,84 +29,41 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectionStrategy, Component, forwardRef, Input, OnDestroy, TemplateRef } from '@angular/core';
-import {
-  ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
-  NG_VALIDATORS,
-  NG_VALUE_ACCESSOR,
-  ValidationErrors,
-  Validator,
-} from '@angular/forms';
-import {
-  ConnectorType,
-  MappingType,
-  OPCBasicConfig,
-} from '@home/components/widget/lib/gateway/gateway-widget.models';
-import { SharedModule } from '@shared/shared.module';
-import { CommonModule } from '@angular/common';
-import { takeUntil } from 'rxjs/operators';
+import { ControlValueAccessor, FormBuilder, FormGroup, ValidationErrors, Validator } from '@angular/forms';
 import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { isObject } from 'lodash';
 import {
-  SecurityConfigComponent
-} from '@home/components/widget/lib/gateway/connectors-configuration/security-config/security-config.component';
-import {
-  MappingTableComponent
-} from '@home/components/widget/lib/gateway/connectors-configuration/mapping-table/mapping-table.component';
-import {
-  OpcServerConfigComponent
-} from '@home/components/widget/lib/gateway/connectors-configuration/opc-server-config/opc-server-config.component';
+  MappingType,
+  MQTTBasicConfig,
+  MQTTLegacyBasicConfig,
+  RequestMappingData,
+  RequestMappingValue,
+  RequestType
+} from '@home/components/widget/lib/gateway/gateway-widget.models';
+import { Directive, OnDestroy } from '@angular/core';
 
-@Component({
-  selector: 'tb-opc-ua-basic-config',
-  templateUrl: './opc-ua-basic-config.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => OpcUaBasicConfigComponent),
-      multi: true
-    },
-    {
-      provide: NG_VALIDATORS,
-      useExisting: forwardRef(() => OpcUaBasicConfigComponent),
-      multi: true
-    }
-  ],
-  standalone: true,
-  imports: [
-    CommonModule,
-    SharedModule,
-    SecurityConfigComponent,
-    MappingTableComponent,
-    OpcServerConfigComponent,
-  ],
-  styleUrls: ['./opc-ua-basic-config.component.scss']
-})
+@Directive()
+export abstract class AbstractMqttBasicConfigComponent implements ControlValueAccessor, Validator, OnDestroy {
 
-export class OpcUaBasicConfigComponent implements ControlValueAccessor, Validator, OnDestroy {
-  @Input() generalTabContent: TemplateRef<any>;
-
-  mappingTypes = MappingType;
   basicFormGroup: FormGroup;
-
-  onChange!: (value: string) => void;
-  onTouched!: () => void;
-
-  protected readonly connectorType = ConnectorType;
+  mappingTypes = MappingType;
   private destroy$ = new Subject<void>();
+  private onChange: (value: MQTTBasicConfig | MQTTLegacyBasicConfig) => void;
+  private onTouched: () => void;
 
-  constructor(private fb: FormBuilder) {
+  constructor(protected fb: FormBuilder) {
     this.basicFormGroup = this.fb.group({
       mapping: [],
-      server: [],
+      requestsMapping: [],
+      broker: [],
+      workers: [],
     });
 
     this.basicFormGroup.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(value => {
-        this.onChange(value);
+        this.onChange(this.getMappedMQTTConfig(value));
         this.onTouched();
       });
   }
@@ -116,7 +73,7 @@ export class OpcUaBasicConfigComponent implements ControlValueAccessor, Validato
     this.destroy$.complete();
   }
 
-  registerOnChange(fn: (value: string) => void): void {
+  registerOnChange(fn: (value: MQTTBasicConfig | MQTTLegacyBasicConfig) => void): void {
     this.onChange = fn;
   }
 
@@ -124,18 +81,42 @@ export class OpcUaBasicConfigComponent implements ControlValueAccessor, Validato
     this.onTouched = fn;
   }
 
-  writeValue(basicConfig: OPCBasicConfig): void {
-    const editedBase = {
-      server: basicConfig.server || {},
-      mapping: basicConfig.mapping || [],
-    };
-
-    this.basicFormGroup.setValue(editedBase, {emitEvent: false});
-  }
-
   validate(): ValidationErrors | null {
     return this.basicFormGroup.valid ? null : {
       basicFormGroup: {valid: false}
     };
   }
+
+  protected getRequestDataArray(value: Record<RequestType, RequestMappingData[]>): RequestMappingData[] {
+    const mappingConfigs = [];
+
+    if (isObject(value)) {
+      Object.keys(value).forEach((configKey: string) => {
+        for (const mapping of value[configKey]) {
+          mappingConfigs.push({
+            requestType: configKey,
+            requestValue: mapping
+          });
+        }
+      });
+    }
+
+    return mappingConfigs;
+  }
+
+  protected getRequestDataObject(array: RequestMappingValue[]): Record<RequestType, RequestMappingValue[]> {
+    return array.reduce((result, { requestType, requestValue }) => {
+      result[requestType].push(requestValue);
+      return result;
+    }, {
+      connectRequests: [],
+      disconnectRequests: [],
+      attributeRequests: [],
+      attributeUpdates: [],
+      serverSideRpc: [],
+    });
+  }
+
+  abstract writeValue(basicConfig: MQTTBasicConfig | MQTTLegacyBasicConfig): void;
+  protected abstract getMappedMQTTConfig(basicConfig: MQTTBasicConfig): MQTTBasicConfig | MQTTLegacyBasicConfig;
 }

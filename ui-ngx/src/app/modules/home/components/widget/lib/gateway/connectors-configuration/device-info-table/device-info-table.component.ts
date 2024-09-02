@@ -57,8 +57,8 @@ import {
 import {
   DeviceInfoType,
   noLeadTrailSpacesRegex,
-  OPCUaSourceTypes,
-  SourceTypes,
+  OPCUaSourceType,
+  SourceType,
   SourceTypeTranslationsMap
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
 import { coerceBoolean } from '@shared/decorators/coercion';
@@ -96,7 +96,7 @@ export class DeviceInfoTableComponent extends PageComponent implements ControlVa
   required = false;
 
   @Input()
-  sourceTypes: Array<SourceTypes | OPCUaSourceTypes> = Object.values(SourceTypes);
+  sourceTypes: Array<SourceType | OPCUaSourceType> = Object.values(SourceType);
 
   deviceInfoTypeValue: any;
 

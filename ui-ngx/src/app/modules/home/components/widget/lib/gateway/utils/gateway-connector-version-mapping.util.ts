@@ -29,26 +29,53 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Pipe, PipeTransform } from '@angular/core';
 import {
-  MappingValueType,
-  OPCUaSourceType,
-  SourceType
+  ConnectorType,
+  GatewayConnector,
+  LegacyGatewayConnector,
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
+import { MqttVersionMappingUtil } from './mqtt-version-mapping.util';
 
-@Pipe({
-  name: 'getGatewayHelpLink',
-  standalone: true,
-})
-export class GatewayHelpLinkPipe implements PipeTransform {
-  transform(field: string, sourceType: SourceType | OPCUaSourceType, sourceTypes?: Array<SourceType | OPCUaSourceType | MappingValueType> ): string {
-    if (!sourceTypes || sourceTypes?.includes(OPCUaSourceType.PATH)) {
-      if (sourceType !== OPCUaSourceType.CONST) {
-        return `widget/lib/gateway/${field}-${sourceType}_fn`;
-      } else {
-        return;
-      }
+export class GatewayConnectorVersionMappingUtil {
+
+  static getMappedByVersion(connector: GatewayConnector, gatewayVersion: string): GatewayConnector {
+    switch (connector.type) {
+      case ConnectorType.MQTT:
+        return this.getMappedMQTTByVersion(connector, gatewayVersion);
+      default:
+        return connector;
     }
-    return 'widget/lib/gateway/expressions_fn';
+  }
+
+  private static getMappedMQTTByVersion(
+    connector: GatewayConnector | LegacyGatewayConnector,
+    gatewayVersion: string
+  ): GatewayConnector | LegacyGatewayConnector {
+    if (this.isVersionUpdateNeeded(gatewayVersion, connector.configVersion)) {
+      return this.isGatewayOutdated(gatewayVersion, connector.configVersion)
+        ? MqttVersionMappingUtil.getLegacyVersion(connector)
+        : MqttVersionMappingUtil.getNewestVersion(connector);
+    }
+    return connector;
+  }
+
+  private static isGatewayOutdated(gatewayVersion: string, configVersion: string): boolean {
+    if (!gatewayVersion || !configVersion) {
+      return false;
+    }
+
+    return this.parseVersion(configVersion) > this.parseVersion(gatewayVersion);
+  }
+
+  private static isVersionUpdateNeeded(configVersion: string, gatewayVersion: string): boolean {
+    if (!gatewayVersion || !configVersion) {
+      return false;
+    }
+
+    return this.parseVersion(configVersion) !== this.parseVersion(gatewayVersion);
+  }
+
+  private static parseVersion(version: string): number {
+    return Number(version?.replace(/\./g, ''));
   }
 }
