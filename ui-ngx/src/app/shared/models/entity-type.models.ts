@@ -76,8 +76,7 @@ export enum AliasEntityType {
   CURRENT_CUSTOMER = 'CURRENT_CUSTOMER',
   CURRENT_TENANT = 'CURRENT_TENANT',
   CURRENT_USER = 'CURRENT_USER',
-  CURRENT_USER_OWNER = 'CURRENT_USER_OWNER',
-  CURRENT_RULE_NODE = 'CURRENT_RULE_NODE'
+  CURRENT_USER_OWNER = 'CURRENT_USER_OWNER'
 }
 
 export interface EntityTypeTranslation {
@@ -472,13 +471,6 @@ export const entityTypeTranslations = new Map<EntityType | AliasEntityType, Enti
       {
         type: 'entity.type-current-user-owner',
         list: 'entity.type-current-user-owner'
-      }
-    ],
-    [
-      AliasEntityType.CURRENT_RULE_NODE,
-      {
-        type: 'entity.type-current-rule-node',
-        list: 'entity.type-current-rule-node'
       }
     ],
     [

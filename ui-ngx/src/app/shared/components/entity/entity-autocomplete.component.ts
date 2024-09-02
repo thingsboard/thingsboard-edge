@@ -459,8 +459,6 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
       } else {
         return EntityType.CUSTOMER;
       }
-    } else if (entityType === AliasEntityType.CURRENT_RULE_NODE) {
-      return EntityType.RULE_NODE;
     }
     return entityType;
   }
