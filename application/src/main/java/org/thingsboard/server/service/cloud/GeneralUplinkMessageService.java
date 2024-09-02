@@ -24,5 +24,5 @@ public interface GeneralUplinkMessageService extends UplinkMessageService {
     TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart);
 
     ListenableFuture<Long> getQueueStartTs(TenantId tenantId);
-}
 
+}

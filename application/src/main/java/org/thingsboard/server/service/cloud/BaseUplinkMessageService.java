@@ -127,7 +127,7 @@ public abstract class BaseUplinkMessageService {
 
     public void processCloudEvents(TenantId tenantId, Long queueSeqIdStart, TimePageLink pageLink) throws Exception {
         PageData<CloudEvent> cloudEvents;
-        boolean success = true;
+        boolean success;
         do {
             cloudEvents = findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
             if (cloudEvents.getData().isEmpty()) {
