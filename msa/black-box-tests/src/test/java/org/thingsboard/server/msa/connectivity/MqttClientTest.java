@@ -50,8 +50,8 @@ import org.awaitility.Awaitility;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.AbstractListeningExecutor;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.mqtt.MqttClient;
 import org.thingsboard.mqtt.MqttClientCallback;
@@ -76,7 +76,6 @@ import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.mapper.AttributesResponse;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;

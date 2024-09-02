@@ -100,6 +100,7 @@ export class DefaultTenantProfileConfigurationComponent implements ControlValueA
       transportGatewayDeviceTelemetryDataPointsRateLimit: [null, []],
       integrationMsgsPerTenantRateLimit: [null, []],
       integrationMsgsPerDeviceRateLimit: [null, []],
+      integrationMsgsPerAssetRateLimit: [null, []],
       tenantEntityExportRateLimit: [null, []],
       tenantEntityImportRateLimit: [null, []],
       tenantNotificationRequestsRateLimit: [null, []],

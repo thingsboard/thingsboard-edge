@@ -103,7 +103,7 @@ public class TbCaffeineCacheConfiguration {
     private Weigher<? super Object, ? super Object> collectionSafeWeigher() {
         return (Weigher<Object, Object>) (key, value) -> {
             if (value instanceof Collection) {
-                return ((Collection) value).size();
+                return ((Collection<?>) value).size();
             }
             return 1;
         };

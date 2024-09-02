@@ -153,29 +153,25 @@ public abstract class EntityViewEdgeProcessor extends BaseEntityViewProcessor im
 
     public DownlinkMsg convertEntityViewEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         EntityViewId entityViewId = new EntityViewId(edgeEvent.getEntityId());
-        DownlinkMsg downlinkMsg = null;
         EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
+        DownlinkMsg downlinkMsg = null;
+        var msgConstructor = (EntityViewMsgConstructor) entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion);
         switch (edgeEvent.getAction()) {
             case ADDED, ADDED_TO_ENTITY_GROUP, UPDATED, ASSIGNED_TO_EDGE -> {
                 EntityView entityView = entityViewService.findEntityViewById(edgeEvent.getTenantId(), entityViewId);
                 if (entityView != null) {
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-                    EntityViewUpdateMsg entityViewUpdateMsg = ((EntityViewMsgConstructor)
-                            entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId);
+                    EntityViewUpdateMsg entityViewUpdateMsg = msgConstructor.constructEntityViewUpdatedMsg(msgType, entityView, entityGroupId);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addEntityViewUpdateMsg(entityViewUpdateMsg)
                             .build();
                 }
             }
-            case DELETED, REMOVED_FROM_ENTITY_GROUP, UNASSIGNED_FROM_EDGE, CHANGE_OWNER -> {
-                EntityViewUpdateMsg entityViewUpdateMsg = ((EntityViewMsgConstructor)
-                        entityViewMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEntityViewDeleteMsg(entityViewId, entityGroupId);
-                downlinkMsg = DownlinkMsg.newBuilder()
-                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addEntityViewUpdateMsg(entityViewUpdateMsg)
-                        .build();
-            }
+            case DELETED, REMOVED_FROM_ENTITY_GROUP, UNASSIGNED_FROM_EDGE, CHANGE_OWNER -> downlinkMsg = DownlinkMsg.newBuilder()
+                    .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
+                    .addEntityViewUpdateMsg(msgConstructor.constructEntityViewDeleteMsg(entityViewId, entityGroupId))
+                    .build();
         }
         return downlinkMsg;
     }

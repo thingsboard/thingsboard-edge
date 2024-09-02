@@ -43,7 +43,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.AttributeScope;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.DeviceIdInfo;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;

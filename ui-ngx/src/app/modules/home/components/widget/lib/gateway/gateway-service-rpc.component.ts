@@ -37,6 +37,7 @@ import { ContentType } from '@shared/models/constants';
 import { jsonRequired } from '@shared/components/json-object-edit.component';
 import {
   ConnectorType,
+  GatewayConnectorDefaultTypesTranslatesMap,
   RPCCommand,
   RPCTemplate,
   RPCTemplateConfig,
@@ -85,6 +86,9 @@ export class GatewayServiceRPCComponent implements OnInit {
 
   public connectorType: ConnectorType;
   public templates: Array<RPCTemplate> = [];
+
+  readonly ConnectorType = ConnectorType;
+  readonly gatewayConnectorDefaultTypesTranslates = GatewayConnectorDefaultTypesTranslatesMap;
 
   private subscription: IWidgetSubscription;
   private subscriptionOptions: WidgetSubscriptionOptions = {
@@ -165,7 +169,6 @@ export class GatewayServiceRPCComponent implements OnInit {
       case ConnectorType.BACNET:
       case ConnectorType.CAN:
       case ConnectorType.OPCUA:
-      case ConnectorType.OPCUA_ASYNCIO:
         return params.method;
       case ConnectorType.BLE:
       case ConnectorType.OCPP:
@@ -222,9 +225,6 @@ export class GatewayServiceRPCComponent implements OnInit {
   private updateTemplates() {
     this.templates = this.subscription.data[0].data[0][1].length ?
       JSON.parse(this.subscription.data[0].data[0][1]) : [];
-    if (this.templates.length && this.commandForm.get('params').value == "{}") {
-      this.commandForm.get('params').patchValue(this.templates[0].config);
-    }
     this.cd.detectChanges();
   }
 

@@ -101,7 +101,6 @@ import org.thingsboard.server.dao.alarm.AlarmCommentService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.cassandra.CassandraCluster;
@@ -111,6 +110,7 @@ import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.domain.DomainService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entity.EntityService;
@@ -119,12 +119,14 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.nosql.TbResultSetFuture;
 import org.thingsboard.server.dao.notification.NotificationRequestService;
 import org.thingsboard.server.dao.notification.NotificationRuleService;
 import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
+import org.thingsboard.server.dao.oauth2.OAuth2ClientService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.queue.QueueStatsService;
@@ -140,10 +142,8 @@ import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
-import org.thingsboard.server.queue.TbQueueCallback;
-import org.thingsboard.server.queue.TbQueueMsgMetadata;
-import org.thingsboard.server.service.executors.PubSubRuleNodeExecutorProvider;
 import org.thingsboard.server.queue.common.SimpleTbQueueCallback;
+import org.thingsboard.server.service.executors.PubSubRuleNodeExecutorProvider;
 import org.thingsboard.server.service.script.RuleNodeJsScriptEngine;
 import org.thingsboard.server.service.script.RuleNodeTbelScriptEngine;
 
@@ -870,6 +870,21 @@ class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public NotificationRuleService getNotificationRuleService() {
         return mainCtx.getNotificationRuleService();
+    }
+
+    @Override
+    public OAuth2ClientService getOAuth2ClientService() {
+        return mainCtx.getOAuth2ClientService();
+    }
+
+    @Override
+    public DomainService getDomainService() {
+        return mainCtx.getDomainService();
+    }
+
+    @Override
+    public MobileAppService getMobileAppService() {
+        return mainCtx.getMobileAppService();
     }
 
     @Override

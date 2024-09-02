@@ -34,12 +34,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -200,7 +197,7 @@ public class CustomerController extends BaseController {
             if (customer.getId() != null) {
                 Customer prevCustomer = customerService.findCustomerById(getTenantId(), customer.getId());
                 JsonNode additionalInfo = prevCustomer.getAdditionalInfo();
-                if (additionalInfo != null && additionalInfo.has(HOME_DASHBOARD_ID)) {
+                if (additionalInfo != null && additionalInfo.hasNonNull(HOME_DASHBOARD_ID)) {
                     prevHomeDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();
                     if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {
                         prevHideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();

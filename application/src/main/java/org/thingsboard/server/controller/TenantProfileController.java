@@ -133,8 +133,8 @@ public class TenantProfileController extends BaseController {
                     "Let's review the example of tenant profile data below: " +
                     "\n\n" + MARKDOWN_CODE_BLOCK_START +
                     "{\n" +
-                    "  \"name\": \"Default\",\n" +
-                    "  \"description\": \"Default tenant profile\",\n" +
+                    "  \"name\": \"Your name\",\n" +
+                    "  \"description\": \"Your description\",\n" +
                     "  \"isolatedTbRuleEngine\": false,\n" +
                     "  \"profileData\": {\n" +
                     "    \"configuration\": {\n" +
@@ -160,6 +160,9 @@ public class TenantProfileController extends BaseController {
                     "      \"transportGatewayDeviceMsgRateLimit\": \"20:1,600:60\",\n" +
                     "      \"transportGatewayDeviceTelemetryMsgRateLimit\": \"20:1,600:60\",\n" +
                     "      \"transportGatewayDeviceTelemetryDataPointsRateLimit\": \"20:1,600:60\",\n" +
+                    "      \"integrationMsgsPerTenantRateLimit\": \"20:1,600:60\",\n" +
+                    "      \"integrationMsgsPerDeviceRateLimit\": \"20:1,600:60\",\n" +
+                    "      \"integrationMsgsPerAssetRateLimit\": \"20:1,600:60\",\n" +
                     "      \"maxTransportMessages\": 10000000,\n" +
                     "      \"maxTransportDataPoints\": 10000000,\n" +
                     "      \"maxREExecutions\": 4000000,\n" +
@@ -177,7 +180,7 @@ public class TenantProfileController extends BaseController {
                     "      \"warnThreshold\": 0\n" +
                     "    }\n" +
                     "  },\n" +
-                    "  \"default\": true\n" +
+                    "  \"default\": false\n" +
                     "}" +
                     MARKDOWN_CODE_BLOCK_END +
                     "Remove 'id', from the request body example (below) to create new Tenant Profile entity." +

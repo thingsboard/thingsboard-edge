@@ -619,6 +619,12 @@
                           [type]="rateLimitsType.INTEGRATION_MSGS_PER_DEVICE_RATE_LIMIT">
           </tb-rate-limits>
         </div>
+        <div fxFlex fxLayout="row"  fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
+          <div fxFlex></div>
+          <tb-rate-limits fxFlex formControlName="integrationMsgsPerAssetRateLimit"
+                          [type]="rateLimitsType.INTEGRATION_MSGS_PER_ASSET_RATE_LIMIT">
+          </tb-rate-limits>
+        </div>
         <div fxFlex fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="16px">
           <tb-rate-limits fxFlex formControlName="tenantServerRestLimitsConfiguration"
                           [type]="rateLimitsType.TENANT_SERVER_REST_LIMITS_CONFIGURATION">

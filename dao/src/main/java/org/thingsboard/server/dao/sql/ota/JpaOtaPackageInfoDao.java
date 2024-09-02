@@ -49,7 +49,6 @@ import org.thingsboard.server.dao.ota.OtaPackageInfoDao;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Slf4j

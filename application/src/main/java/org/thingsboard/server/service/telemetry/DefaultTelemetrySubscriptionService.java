@@ -35,6 +35,9 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
+import jakarta.annotation.Nullable;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
@@ -65,9 +68,6 @@ import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.entitiy.entityview.TbEntityViewService;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 
-import jakarta.annotation.Nullable;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -143,23 +143,33 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
 
     @Override
     public void saveAndNotify(TenantId tenantId, CustomerId customerId, EntityId entityId, List<TsKvEntry> ts, long ttl, FutureCallback<Void> callback) {
-        doSaveAndNotify(tenantId, customerId, entityId, ts, ttl, callback, true);
+        doSaveAndNotify(tenantId, customerId, entityId, ts, ttl, callback, true, false);
+    }
+
+    @Override
+    public void saveAndNotify(TenantId tenantId, CustomerId customerId, EntityId entityId, List<TsKvEntry> ts, long ttl, FutureCallback<Void> callback,  boolean overwriteValue) {
+        doSaveAndNotify(tenantId, customerId, entityId, ts, ttl, callback, true, overwriteValue);
     }
 
     @Override
     public void saveWithoutLatestAndNotify(TenantId tenantId, CustomerId customerId, EntityId entityId, List<TsKvEntry> ts, long ttl, FutureCallback<Void> callback) {
-        doSaveAndNotify(tenantId, customerId, entityId, ts, ttl, callback, false);
+        saveWithoutLatestAndNotify(tenantId, customerId, entityId, ts, ttl, callback, false);
     }
 
-    private void doSaveAndNotify(TenantId tenantId, CustomerId customerId, EntityId entityId, List<TsKvEntry> ts, long ttl, FutureCallback<Void> callback, boolean saveLatest) {
+    @Override
+    public void saveWithoutLatestAndNotify(TenantId tenantId, CustomerId customerId, EntityId entityId, List<TsKvEntry> ts, long ttl, FutureCallback<Void> callback, boolean overwriteValue) {
+        doSaveAndNotify(tenantId, customerId, entityId, ts, ttl, callback, false, overwriteValue);
+    }
+
+    private void doSaveAndNotify(TenantId tenantId, CustomerId customerId, EntityId entityId, List<TsKvEntry> ts, long ttl, FutureCallback<Void> callback, boolean saveLatest, boolean overwriteValue) {
         checkInternalEntity(entityId);
         boolean sysTenant = TenantId.SYS_TENANT_ID.equals(tenantId) || tenantId == null;
         if (sysTenant || apiUsageStateService.getApiUsageState(tenantId).isDbStorageEnabled()) {
             KvUtils.validate(ts, valueNoXssValidation);
             if (saveLatest) {
-                saveAndNotifyInternal(tenantId, entityId, ts, ttl, getCallback(tenantId, customerId, sysTenant, callback));
+                saveAndNotifyInternal(tenantId, entityId, ts, ttl, getCallback(tenantId, customerId, sysTenant, callback), overwriteValue);
             } else {
-                saveWithoutLatestAndNotifyInternal(tenantId, entityId, ts, ttl, getCallback(tenantId, customerId, sysTenant, callback));
+                saveWithoutLatestAndNotifyInternal(tenantId, entityId, ts, ttl, getCallback(tenantId, customerId, sysTenant, callback), overwriteValue);
             }
         } else {
             callback.onFailure(new RuntimeException("DB storage writes are disabled due to API limits!"));
@@ -190,14 +200,19 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
 
     @Override
     public void saveAndNotifyInternal(TenantId tenantId, EntityId entityId, List<TsKvEntry> ts, long ttl, FutureCallback<Integer> callback) {
-        ListenableFuture<Integer> saveFuture = tsService.save(tenantId, entityId, ts, ttl);
+        saveAndNotifyInternal(tenantId, entityId, ts, ttl, callback, false);
+    }
+
+    @Override
+    public void saveAndNotifyInternal(TenantId tenantId, EntityId entityId, List<TsKvEntry> ts, long ttl, FutureCallback<Integer> callback, boolean overwriteValue) {
+        ListenableFuture<Integer> saveFuture = tsService.save(tenantId, entityId, ts, ttl, overwriteValue);
         addMainCallback(saveFuture, callback);
         addWsCallback(saveFuture, success -> onTimeSeriesUpdate(tenantId, entityId, ts));
         addEntityViewCallback(tenantId, entityId, ts);
     }
 
-    private void saveWithoutLatestAndNotifyInternal(TenantId tenantId, EntityId entityId, List<TsKvEntry> ts, long ttl, FutureCallback<Integer> callback) {
-        ListenableFuture<Integer> saveFuture = tsService.saveWithoutLatest(tenantId, entityId, ts, ttl);
+    private void saveWithoutLatestAndNotifyInternal(TenantId tenantId, EntityId entityId, List<TsKvEntry> ts, long ttl, FutureCallback<Integer> callback, boolean overwriteValue) {
+        ListenableFuture<Integer> saveFuture = tsService.saveWithoutLatest(tenantId, entityId, ts, ttl, overwriteValue);
         addMainCallback(saveFuture, callback);
         addWsCallback(saveFuture, success -> onTimeSeriesUpdate(tenantId, entityId, ts));
     }
@@ -275,14 +290,14 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
 
     @Override
     public void saveAndNotifyInternal(TenantId tenantId, EntityId entityId, String scope, List<AttributeKvEntry> attributes, boolean notifyDevice, FutureCallback<Void> callback) {
-        ListenableFuture<List<String>> saveFuture = attrService.save(tenantId, entityId, scope, attributes);
+        ListenableFuture<List<Long>> saveFuture = attrService.save(tenantId, entityId, scope, attributes);
         addVoidCallback(saveFuture, callback);
         addWsCallback(saveFuture, success -> onAttributesUpdate(tenantId, entityId, scope, attributes, notifyDevice));
     }
 
     @Override
     public void saveAndNotifyInternal(TenantId tenantId, EntityId entityId, AttributeScope scope, List<AttributeKvEntry> attributes, boolean notifyDevice, FutureCallback<Void> callback) {
-        ListenableFuture<List<String>> saveFuture = attrService.save(tenantId, entityId, scope, attributes);
+        ListenableFuture<List<Long>> saveFuture = attrService.save(tenantId, entityId, scope, attributes);
         addVoidCallback(saveFuture, callback);
         addWsCallback(saveFuture, success -> onAttributesUpdate(tenantId, entityId, scope.name(), attributes, notifyDevice));
     }
@@ -295,7 +310,7 @@ public class DefaultTelemetrySubscriptionService extends AbstractSubscriptionSer
 
     @Override
     public void saveLatestAndNotifyInternal(TenantId tenantId, EntityId entityId, List<TsKvEntry> ts, FutureCallback<Void> callback) {
-        ListenableFuture<List<Void>> saveFuture = tsService.saveLatest(tenantId, entityId, ts);
+        ListenableFuture<List<Long>> saveFuture = tsService.saveLatest(tenantId, entityId, ts);
         addVoidCallback(saveFuture, callback);
         addWsCallback(saveFuture, success -> onTimeSeriesUpdate(tenantId, entityId, ts));
     }

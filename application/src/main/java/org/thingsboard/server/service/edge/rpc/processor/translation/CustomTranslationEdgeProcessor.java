@@ -97,7 +97,7 @@ public class CustomTranslationEdgeProcessor extends BaseEdgeProcessor {
             case TENANT -> {
                 List<ListenableFuture<Void>> futures = new ArrayList<>();
                 if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
-                    PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
+                    PageLink pageLink = new PageLink(1000);
                     PageData<TenantId> tenantsIds;
                     do {
                         tenantsIds = tenantService.findTenantsIds(pageLink);

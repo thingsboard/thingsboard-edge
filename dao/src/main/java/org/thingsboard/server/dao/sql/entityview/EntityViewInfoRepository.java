@@ -95,7 +95,7 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
             "FROM (select ev.id, ev.created_time, ev.entity_id, ev.entity_type, ev.tenant_id, ev.customer_id, " +
-            "ev.type, ev.name, ev.keys, ev.start_ts, ev.end_ts, ev.additional_info, ev.external_id, ev.groups, " +
+            "ev.type, ev.name, ev.keys, ev.start_ts, ev.end_ts, ev.additional_info, ev.external_id, ev.version, ev.groups, " +
             "c.title as owner_name from entity_view_info_view ev " +
             "LEFT JOIN customer c on c.id = ev.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +
@@ -114,7 +114,7 @@ public interface EntityViewInfoRepository extends JpaRepository<EntityViewInfoEn
 
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
             "FROM (select ev.id, ev.created_time, ev.entity_id, ev.entity_type, ev.tenant_id, ev.customer_id, " +
-            "ev.type, ev.name, ev.keys, ev.start_ts, ev.end_ts, ev.additional_info, ev.external_id, ev.groups, " +
+            "ev.type, ev.name, ev.keys, ev.start_ts, ev.end_ts, ev.additional_info, ev.external_id, ev.version, ev.groups, " +
             "c.title as owner_name from entity_view_info_view ev " +
             "LEFT JOIN customer c on c.id = ev.customer_id AND c.id != :customerId) e " +
             "WHERE" + SUB_CUSTOMERS_QUERY +

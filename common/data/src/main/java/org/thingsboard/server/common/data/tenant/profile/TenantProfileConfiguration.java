@@ -34,6 +34,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import io.swagger.v3.oas.annotations.media.DiscriminatorMapping;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.TenantProfileType;
 
@@ -46,6 +48,7 @@ import java.io.Serializable;
         property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = DefaultTenantProfileConfiguration.class, name = "DEFAULT")})
+@Schema(discriminatorProperty = "type", discriminatorMapping = {@DiscriminatorMapping(value = "DEFAULT", schema = DefaultTenantProfileConfiguration.class)})
 public interface TenantProfileConfiguration extends Serializable {
 
     @JsonIgnore

@@ -40,7 +40,6 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import {
   ATTRIBUTE,
   DEFAULT_EDRX_CYCLE,
@@ -62,7 +61,7 @@ import {
   ObjectIDVerTranslationMap
 } from './lwm2m-profile-config.models';
 import { DeviceProfileService } from '@core/http/device-profile.service';
-import { deepClone, isDefinedAndNotNull, isEmpty, isUndefined } from '@core/utils';
+import { deepClone, isDefinedAndNotNull, isEmpty } from '@core/utils';
 import { Direction } from '@shared/models/page/sort-order';
 import _ from 'lodash';
 import { Subject } from 'rxjs';
@@ -92,7 +91,6 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
   public disabled = false;
   public isTransportWasRunWithBootstrap = true;
   public isBootstrapServerUpdateEnable: boolean;
-  private requiredValue: boolean;
   private destroy$ = new Subject<void>();
 
   lwm2mDeviceProfileFormGroup: UntypedFormGroup;
@@ -102,15 +100,6 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
   objectIDVerTranslationMap = ObjectIDVerTranslationMap;
 
   sortFunction: (key: string, value: object) => object;
-
-  get required(): boolean {
-    return this.requiredValue;
-  }
-
-  @Input()
-  set required(value: boolean) {
-    this.requiredValue = coerceBooleanProperty(value);
-  }
 
   @Input()
   isAdd: boolean;
@@ -311,11 +300,7 @@ export class Lwm2mDeviceProfileTransportConfigurationComponent implements Contro
   }
 
   private updateModel = (): void => {
-    let configuration: Lwm2mProfileConfigModels = null;
-    if (this.lwm2mDeviceProfileFormGroup.valid) {
-      configuration = this.configurationValue;
-    }
-    this.propagateChange(configuration);
+    this.propagateChange(this.configurationValue);
   }
 
   private updateObserveAttrTelemetryObjectFormGroup = (objectsList: ObjectLwM2M[]): void => {

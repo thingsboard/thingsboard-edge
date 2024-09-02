@@ -44,16 +44,13 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -71,7 +68,6 @@ import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.rule.engine.api.SmsService;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.AttributeScope;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.FeaturesInfo;
 import org.thingsboard.server.common.data.LicenseInfo;
 import org.thingsboard.server.common.data.LicenseUsageInfo;
@@ -156,6 +152,9 @@ public class AdminController extends BaseController {
     protected static final String RESOURCE_WRITE_CHECK = "\n\nSecurity check is performed to verify that " +
             "the user has 'WRITE' permission for the 'ADMIN_SETTINGS' (for 'SYS_ADMIN' authority) or 'WHITE_LABELING' (for 'TENANT_ADMIN' authority) resource.";
 
+    @Value("${queue.vc.request-timeout:180000}")
+    private int vcRequestTimeout;
+
     @ApiOperation(value = "Get the Administration Settings object using key (getAdminSettings)",
             notes = "Get the Administration Settings object using specified string key. " +
                     "Referencing non-existing key will cause an error." + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH + RESOURCE_READ_CHECK)
@@ -183,7 +182,7 @@ public class AdminController extends BaseController {
         return adminSettings;
     }
 
-    @ApiOperation(value = "Get the Administration Settings object using key (getAdminSettings)",
+    @ApiOperation(value = "Creates or Updates the Administration Settings (saveAdminSettings)",
             notes = "Creates or Updates the Administration Settings. Platform generates random Administration Settings Id during settings creation. " +
                     "The Administration Settings Id will be present in the response. Specify the Administration Settings Id when you would like to update the Administration Settings. " +
                     "Referencing non-existing Administration Settings Id will cause an error." + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH + RESOURCE_WRITE_CHECK)
@@ -209,7 +208,7 @@ public class AdminController extends BaseController {
         return adminSettings;
     }
 
-    @ApiOperation(value = "Get the Security Settings object",
+    @ApiOperation(value = "Get the Security Settings object (getSecuritySettings)",
             notes = "Get the Security Settings object that contains password policy, etc." + SYSTEM_AUTHORITY_PARAGRAPH + RESOURCE_READ_CHECK)
     @PreAuthorize("hasAuthority('SYS_ADMIN')")
     @RequestMapping(value = "/securitySettings", method = RequestMethod.GET)
@@ -295,7 +294,7 @@ public class AdminController extends BaseController {
         }
     }
 
-    @ApiOperation(value = "Send test sms (sendTestMail)",
+    @ApiOperation(value = "Send test sms (sendTestSms)",
             notes = "Attempts to send test sms to the System Administrator User using SMS Settings and phone number provided as a parameters of the request. "
                     + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH + RESOURCE_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
@@ -367,13 +366,14 @@ public class AdminController extends BaseController {
     @PostMapping("/repositorySettings")
     public DeferredResult<RepositorySettings> saveRepositorySettings(@RequestBody RepositorySettings settings) throws ThingsboardException {
         accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.WRITE);
+        settings.setLocalOnly(false); // only to be used in tests
         ListenableFuture<RepositorySettings> future = versionControlService.saveVersionControlSettings(getTenantId(), settings);
         return wrapFuture(Futures.transform(future, savedSettings -> {
             savedSettings.setPassword(null);
             savedSettings.setPrivateKey(null);
             savedSettings.setPrivateKeyPassword(null);
             return savedSettings;
-        }, MoreExecutors.directExecutor()));
+        }, MoreExecutors.directExecutor()), vcRequestTimeout);
     }
 
     @ApiOperation(value = "Delete repository settings (deleteRepositorySettings)",
@@ -384,7 +384,7 @@ public class AdminController extends BaseController {
     @ResponseStatus(value = HttpStatus.OK)
     public DeferredResult<Void> deleteRepositorySettings() throws Exception {
         accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.DELETE);
-        return wrapFuture(versionControlService.deleteVersionControlSettings(getTenantId()));
+        return wrapFuture(versionControlService.deleteVersionControlSettings(getTenantId()), vcRequestTimeout);
     }
 
     @ApiOperation(value = "Check repository access (checkRepositoryAccess)",
@@ -395,8 +395,8 @@ public class AdminController extends BaseController {
             @Parameter(description = "A JSON value representing the Repository Settings.")
             @RequestBody RepositorySettings settings) throws Exception {
         accessControlService.checkPermission(getCurrentUser(), Resource.VERSION_CONTROL, Operation.READ);
-        settings = checkNotNull(settings);
-        return wrapFuture(versionControlService.checkVersionControlAccess(getTenantId(), settings));
+        settings.setLocalOnly(false); // only to be used in tests
+        return wrapFuture(versionControlService.checkVersionControlAccess(getTenantId(), settings), vcRequestTimeout);
     }
 
     @ApiOperation(value = "Get auto commit settings (getAutoCommitSettings)",
@@ -674,4 +674,5 @@ public class AdminController extends BaseController {
             }
         }
     }
+
 }

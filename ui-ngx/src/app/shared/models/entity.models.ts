@@ -220,3 +220,11 @@ export const entityFields: {[fieldName: string]: EntityField} = {
     value: 'ownerType'
   }
 };
+
+export interface HasTenantId {
+  tenantId?: TenantId;
+}
+
+export interface HasVersion {
+  version?: number;
+}

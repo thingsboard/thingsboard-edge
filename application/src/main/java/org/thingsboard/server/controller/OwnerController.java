@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.controller;
 
-import org.thingsboard.server.config.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -68,7 +67,7 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.permission.Operation;
-import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
+import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;

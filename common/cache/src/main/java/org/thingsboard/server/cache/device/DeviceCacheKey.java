@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.TenantId;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 @Getter
@@ -44,6 +45,9 @@ import java.io.Serializable;
 @RequiredArgsConstructor
 @Builder
 public class DeviceCacheKey implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 6366389552842340207L;
 
     private final TenantId tenantId;
     private final DeviceId deviceId;
@@ -71,4 +75,5 @@ public class DeviceCacheKey implements Serializable {
             return tenantId + "_" + deviceId;
         }
     }
+
 }

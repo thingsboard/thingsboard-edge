@@ -36,13 +36,14 @@ import com.google.common.collect.Streams;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sshd.common.util.security.SecurityUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.GitCommand;
-import org.eclipse.jgit.api.ListBranchCommand;
 import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.ResetCommand;
@@ -102,6 +103,9 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.eclipse.jgit.api.ListBranchCommand.ListMode;
+
+@Slf4j
 public class GitRepository {
 
     private final Git git;
@@ -121,7 +125,16 @@ public class GitRepository {
         this.directory = directory;
     }
 
+    public static GitRepository create(RepositorySettings settings, File directory) throws GitAPIException {
+        log.debug("Executing create [{}]", directory);
+        Git git = Git.init()
+                .setDirectory(directory)
+                .call();
+        return new GitRepository(git, settings, null, directory.getAbsolutePath());
+    }
+
     public static GitRepository clone(RepositorySettings settings, File directory) throws GitAPIException {
+        log.debug("Executing clone [{}]", settings.getRepositoryUri());
         CloneCommand cloneCommand = Git.cloneRepository()
                 .setURI(settings.getRepositoryUri())
                 .setDirectory(directory)
@@ -133,12 +146,17 @@ public class GitRepository {
     }
 
     public static GitRepository open(File directory, RepositorySettings settings) throws IOException {
+        log.debug("Executing open [{}][{}]", settings.getRepositoryUri(), directory);
         Git git = Git.open(directory);
         AuthHandler authHandler = AuthHandler.createFor(settings, directory);
         return new GitRepository(git, settings, authHandler, directory.getAbsolutePath());
     }
 
     public static void test(RepositorySettings settings, File directory) throws Exception {
+        if (settings.isLocalOnly()) {
+            return;
+        }
+        log.debug("Executing test [{}]", settings.getRepositoryUri());
         AuthHandler authHandler = AuthHandler.createFor(settings, directory);
         if (settings.isReadOnly()) {
             LsRemoteCommand lsRemoteCommand = Git.lsRemoteRepository().setRemote(settings.getRepositoryUri());
@@ -162,6 +180,10 @@ public class GitRepository {
     }
 
     public void fetch() throws GitAPIException {
+        if (settings.isLocalOnly()) {
+            return;
+        }
+        log.debug("Executing fetch [{}]", settings.getRepositoryUri());
         FetchResult result = execute(git.fetch()
                 .setRemoveDeletedRefs(true));
         Ref head = result.getAdvertisedRef(Constants.HEAD);
@@ -171,12 +193,14 @@ public class GitRepository {
     }
 
     public void deleteLocalBranchIfExists(String branch) throws GitAPIException {
+        log.debug("Executing deleteLocalBranchIfExists [{}][{}]", settings.getRepositoryUri(), branch);
         execute(git.branchDelete()
                 .setBranchNames(branch)
                 .setForce(true));
     }
 
     public void resetAndClean() throws GitAPIException {
+        log.debug("Executing resetAndClean [{}]", settings.getRepositoryUri());
         execute(git.reset()
                 .setMode(ResetCommand.ResetType.HARD));
         execute(git.clean()
@@ -185,6 +209,7 @@ public class GitRepository {
     }
 
     public void merge(String branch) throws IOException, GitAPIException {
+        log.debug("Executing merge [{}][{}]", settings.getRepositoryUri(), branch);
         ObjectId branchId = resolve("origin/" + branch);
         if (branchId == null) {
             throw new IllegalArgumentException("Branch not found");
@@ -193,9 +218,10 @@ public class GitRepository {
                 .include(branchId));
     }
 
-    public List<BranchInfo> listRemoteBranches() throws GitAPIException {
+    public List<BranchInfo> listBranches() throws GitAPIException {
+        log.debug("Executing listBranches [{}]", settings.getRepositoryUri());
         return execute(git.branchList()
-                .setListMode(ListBranchCommand.ListMode.REMOTE)).stream()
+                .setListMode(settings.isLocalOnly() ? ListMode.ALL : ListMode.REMOTE)).stream()
                 .filter(ref -> !ref.getName().equals(Constants.HEAD))
                 .map(this::toBranchInfo)
                 .distinct().collect(Collectors.toList());
@@ -206,6 +232,7 @@ public class GitRepository {
     }
 
     public PageData<Commit> listCommits(String branch, String path, PageLink pageLink) throws IOException, GitAPIException {
+        log.debug("Executing listCommits [{}][{}][{}]", settings.getRepositoryUri(), branch, path);
         ObjectId branchId = resolve("origin/" + branch);
         if (branchId == null) {
             return new PageData<>();
@@ -222,32 +249,46 @@ public class GitRepository {
         return iterableToPageData(commits, this::toCommit, pageLink, revCommitComparatorFunction);
     }
 
-    public List<String> listFilesAtCommit(String commitId) throws IOException {
-        return listFilesAtCommit(commitId, null);
+    public List<String> listAllFilesAtCommit(String commitId) {
+        return listAllFilesAtCommit(commitId, null);
     }
 
-    public List<String> listFilesAtCommit(String commitId, String path) throws IOException {
-        List<String> files = new ArrayList<>();
+    public List<String> listAllFilesAtCommit(String commitId, String path) {
+        log.debug("Executing listAllFilesAtCommit [{}][{}][{}]", settings.getRepositoryUri(), commitId, path);
+        return listFilesAtCommit(commitId, path, -1).stream().map(RepoFile::path).toList();
+    }
+
+    @SneakyThrows
+    public List<RepoFile> listFilesAtCommit(String commitId, String path, int depth) {
+        log.debug("Executing listFilesAtCommit [{}][{}][{}]", settings.getRepositoryUri(), commitId, path);
+        List<RepoFile> files = new ArrayList<>();
         RevCommit revCommit = resolveCommit(commitId);
         try (TreeWalk treeWalk = new TreeWalk(git.getRepository())) {
             treeWalk.reset(revCommit.getTree().getId());
             if (StringUtils.isNotEmpty(path)) {
                 treeWalk.setFilter(PathFilter.create(path));
             }
-            treeWalk.setRecursive(true);
+            boolean fixedDepth = depth != -1;
+            treeWalk.setRecursive(!fixedDepth);
             while (treeWalk.next()) {
-                files.add(treeWalk.getPathString());
+                if (!fixedDepth || treeWalk.getDepth() == depth) {
+                    files.add(new RepoFile(treeWalk.getPathString(), treeWalk.getNameString(), treeWalk.isSubtree()));
+                }
+                if (fixedDepth && treeWalk.getDepth() < depth) {
+                    treeWalk.enterSubtree();
+                }
             }
         }
         return files;
     }
 
-
-    public String getFileContentAtCommit(String file, String commitId) throws IOException {
+    @SneakyThrows
+    public String getFileContentAtCommit(String file, String commitId) {
+        log.debug("Executing getFileContentAtCommit [{}][{}][{}]", settings.getRepositoryUri(), commitId, file);
         RevCommit revCommit = resolveCommit(commitId);
         try (TreeWalk treeWalk = TreeWalk.forPath(git.getRepository(), file, revCommit.getTree())) {
             if (treeWalk == null) {
-                throw new IllegalArgumentException("File not found");
+                throw new IllegalArgumentException("File " + file + " not found");
             }
             ObjectId blobId = treeWalk.getObjectId(0);
             try (ObjectReader objectReader = git.getRepository().newObjectReader()) {
@@ -264,18 +305,29 @@ public class GitRepository {
 
 
     public void createAndCheckoutOrphanBranch(String name) throws GitAPIException {
+        log.debug("Executing createAndCheckoutOrphanBranch [{}][{}]", settings.getRepositoryUri(), name);
         execute(git.checkout()
                 .setOrphan(true)
                 .setForced(true)
                 .setName(name));
     }
 
+    public void checkoutBranch(String name) throws GitAPIException {
+        log.debug("Executing checkoutBranch [{}][{}]", settings.getRepositoryUri(), name);
+        git.checkout()
+                .setForced(true)
+                .setName(name)
+                .call();
+    }
+
     public void add(String filesPattern) throws GitAPIException {
+        log.debug("Executing add [{}][{}]", settings.getRepositoryUri(), filesPattern);
         execute(git.add().setUpdate(true).addFilepattern(filesPattern));
         execute(git.add().addFilepattern(filesPattern));
     }
 
     public Status status() throws GitAPIException {
+        log.debug("Executing status [{}]", settings.getRepositoryUri());
         org.eclipse.jgit.api.Status status = execute(git.status());
         Set<String> modified = new HashSet<>();
         modified.addAll(status.getModified());
@@ -284,6 +336,7 @@ public class GitRepository {
     }
 
     public Commit commit(String message, String authorName, String authorEmail) throws GitAPIException {
+        log.debug("Executing commit [{}][{}]", settings.getRepositoryUri(), message);
         RevCommit revCommit = execute(git.commit()
                 .setAuthor(authorName, authorEmail)
                 .setMessage(message));
@@ -292,6 +345,10 @@ public class GitRepository {
 
 
     public void push(String localBranch, String remoteBranch) throws GitAPIException {
+        if (settings.isLocalOnly()) {
+            return;
+        }
+        log.debug("Executing push [{}][{}]", settings.getRepositoryUri(), remoteBranch);
         execute(git.push()
                 .setRefSpecs(new RefSpec(localBranch + ":" + remoteBranch)));
     }
@@ -370,6 +427,9 @@ public class GitRepository {
     }
 
     private ObjectId resolve(String rev) throws IOException {
+        if (settings.isLocalOnly()) {
+            rev = StringUtils.removeStart(rev, "origin/");
+        }
         ObjectId result = git.getRepository().resolve(rev);
         if (result == null) {
             throw new IllegalArgumentException("Failed to parse git revision string: \"" + rev + "\"");
@@ -378,8 +438,8 @@ public class GitRepository {
     }
 
     private <C extends GitCommand<T>, T> T execute(C command) throws GitAPIException {
-        if (command instanceof TransportCommand) {
-            authHandler.configureCommand((TransportCommand) command);
+        if (command instanceof TransportCommand transportCommand && authHandler != null) {
+            authHandler.configureCommand(transportCommand);
         }
         return command.call();
     }
@@ -427,11 +487,17 @@ public class GitRepository {
         private final SshdSessionFactory sshSessionFactory;
 
         protected static AuthHandler createFor(RepositorySettings settings, File directory) {
+            if (settings.isLocalOnly()) {
+                return null;
+            }
             CredentialsProvider credentialsProvider = null;
             SshdSessionFactory sshSessionFactory = null;
             if (RepositoryAuthMethod.USERNAME_PASSWORD.equals(settings.getAuthMethod())) {
                 credentialsProvider = newCredentialsProvider(settings.getUsername(), settings.getPassword());
             } else if (RepositoryAuthMethod.PRIVATE_KEY.equals(settings.getAuthMethod())) {
+                if (StringUtils.startsWith(settings.getRepositoryUri(), "https://")) {
+                    throw new IllegalArgumentException("Invalid URI format for private key authentication");
+                }
                 sshSessionFactory = newSshdSessionFactory(settings.getPrivateKey(), settings.getPrivateKeyPassword(), directory);
             }
             return new AuthHandler(credentialsProvider, sshSessionFactory);
@@ -545,5 +611,7 @@ public class GitRepository {
         private String fileContentAtCommit2;
         private String diffStringValue;
     }
+
+    public record RepoFile(String path, String name, boolean isDirectory) {}
 
 }

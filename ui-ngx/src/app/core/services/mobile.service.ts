@@ -45,6 +45,7 @@ const dashboardLoadedHandler = 'tbMobileDashboardLoadedHandler';
 const dashboardLayoutHandler = 'tbMobileDashboardLayoutHandler';
 const navigationHandler = 'tbMobileNavigationHandler';
 const mobileHandler = 'tbMobileHandler';
+const mobileReadyHandler = 'tbMobileReadyHandler';
 const recaptchaHandler = 'tbMobileRecaptchaHandler';
 const recaptchaLoadedHandler = 'tbMobileRecaptchaLoadedHandler';
 
@@ -72,6 +73,7 @@ export class MobileService {
     this.mobileApp = isDefined(this.mobileChannel);
     if (this.mobileApp) {
       window.addEventListener('message', this.onWindowMessageListener);
+      this.mobileChannel.callHandler(mobileReadyHandler);
     }
   }
 

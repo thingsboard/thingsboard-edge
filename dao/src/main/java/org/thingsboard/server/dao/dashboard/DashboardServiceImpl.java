@@ -83,7 +83,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.DaoUtil.extractConstraintViolationException;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
@@ -409,19 +408,18 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         }
     };
 
-    private PaginatedRemover<CustomerId, DashboardInfo> customerDashboardsRemover =
-            new PaginatedRemover<CustomerId, DashboardInfo>() {
+    private final PaginatedRemover<CustomerId, DashboardInfo> customerDashboardsRemover = new PaginatedRemover<>() {
 
-                @Override
-                protected PageData<DashboardInfo> findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {
-                    return dashboardInfoDao.findDashboardsByTenantIdAndCustomerId(tenantId.getId(), id.getId(), pageLink);
-                }
+        @Override
+        protected PageData<DashboardInfo> findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {
+            return dashboardInfoDao.findDashboardsByTenantIdAndCustomerId(tenantId.getId(), id.getId(), pageLink);
+        }
 
-                @Override
-                protected void removeEntity(TenantId tenantId, DashboardInfo entity) {
-                    deleteDashboard(tenantId, new DashboardId(entity.getUuidId()));
-                }
-            };
+        @Override
+        protected void removeEntity(TenantId tenantId, DashboardInfo entity) {
+            deleteDashboard(tenantId, new DashboardId(entity.getUuidId()));
+        }
+    };
 
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {

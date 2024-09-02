@@ -30,8 +30,8 @@
  */
 package org.thingsboard.server.transport.lwm2m.server.store;
 
-import lombok.extern.slf4j.Slf4j;
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.core.SecurityMode;
 import org.eclipse.leshan.core.peer.OscoreIdentity;
 import org.eclipse.leshan.server.security.NonUniqueSecurityInfoException;
@@ -42,7 +42,9 @@ import org.springframework.integration.redis.util.RedisLockRegistry;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.transport.lwm2m.secure.TbLwM2MSecurityInfo;
+
 import java.util.concurrent.locks.Lock;
+
 import static org.thingsboard.server.transport.lwm2m.server.store.TbLwM2mRedisRegistrationStore.REG_EP;
 
 @Slf4j

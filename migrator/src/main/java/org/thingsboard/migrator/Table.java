@@ -48,7 +48,6 @@ public enum Table {
     RPC("rpc"),
     RULE_CHAIN("rule_chain"),
     OTA_PACKAGE("ota_package"), // TODO: drop constraint in ota_package for device_profile due to circular reference
-    DEVICE_PROFILE("device_profile"),
     RESOURCE("resource"),
     ROLE("role"),
     ENTITY_GROUP("entity_group", Pair.of(
@@ -87,6 +86,7 @@ public enum Table {
             "widgets_bundle_id", of(WIDGETS_BUNDLE)
     ), of("widget_type_id")),
     DASHBOARD("dashboard"),
+    DEVICE_PROFILE("device_profile"),
     DEVICE("device"),
     DEVICE_CREDENTIALS("device_credentials", Pair.of(
             "device_id", of(DEVICE)

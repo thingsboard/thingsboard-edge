@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.update;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,7 +52,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.instructions.EdgeInstallInstructionsService;
 import org.thingsboard.server.service.edge.instructions.EdgeUpgradeInstructionsService;
 
-import jakarta.annotation.PreDestroy;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

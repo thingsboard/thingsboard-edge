@@ -54,9 +54,16 @@
       <span [innerHTML]="owner.name | highlight:searchText"></span>
     </mat-option>
     <mat-option *ngIf="!(filteredOwners | async)?.length" [value]="null">
-      <span>
-          {{ notFoundText | translate: {owner: searchText, entity: searchText} }}
-      </span>
+      <div (click)="$event.stopPropagation()">
+        <div *ngIf="!textIsNotEmpty(searchText); else searchNotEmpty">
+          <span>{{ 'entity-group.no-owners-text' | translate }}</span>
+        </div>
+        <ng-template #searchNotEmpty>
+          <span>
+            {{ notFoundText | translate: {owner: searchText, entity: searchText} }}
+          </span>
+        </ng-template>
+      </div>
     </mat-option>
   </mat-autocomplete>
   <mat-error *ngIf="selectOwnerFormGroup.get('owner').hasError('required')">

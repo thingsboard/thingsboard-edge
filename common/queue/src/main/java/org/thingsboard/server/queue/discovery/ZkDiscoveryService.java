@@ -32,6 +32,8 @@ package org.thingsboard.server.queue.discovery;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.ProtocolStringList;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.curator.framework.CuratorFramework;
@@ -58,8 +60,6 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.discovery.event.OtherServiceShutdownEvent;
 import org.thingsboard.server.queue.util.AfterStartUp;
 
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;

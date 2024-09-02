@@ -41,4 +41,5 @@ public class MaxPayloadSizeExceededException extends RuntimeException {
         super("Payload size exceeds the limit of " + limit + " bytes");
         this.limit = limit;
     }
+
 }

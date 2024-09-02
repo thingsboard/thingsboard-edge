@@ -102,7 +102,7 @@ export interface HeaderActionDescriptor {
   onAction: ($event: MouseEvent, headerButton?: MatButton) => void;
 }
 
-export type EntityTableColumnType = 'content' | 'action' | 'link' | 'chart' | 'groups';
+export type EntityTableColumnType = 'content' | 'action' | 'link' | 'chart' | 'entityChips';
 
 export class BaseEntityTableColumn<T extends BaseData<HasId>> {
   constructor(public type: EntityTableColumnType,
@@ -176,19 +176,19 @@ export class ChartEntityTableColumn<T extends BaseData<HasId>> extends BaseEntit
   }
 }
 
-export class GroupChipsEntityTableColumn<T extends BaseData<HasId>> extends BaseEntityTableColumn<T> {
+export class EntityChipsEntityTableColumn<T extends BaseData<HasId>> extends BaseEntityTableColumn<T> {
   constructor(public key: string,
               public title: string,
               public width: string = '0px',
               public cellContentFunction: CellChartContentFunction<T> = (entity, property) => entity[property] ? entity[property] : [],
               public chartStyleFunction: CellStyleFunction<T> = () => ({}),
               public cellStyleFunction: CellStyleFunction<T> = () => ({})) {
-    super('groups', key, title, width, false);
+    super('entityChips', key, title, width, false);
   }
 }
 
 export type EntityColumn<T extends BaseData<HasId>> = EntityTableColumn<T> | EntityActionTableColumn<T> | EntityLinkTableColumn<T> |
-  ChartEntityTableColumn<T> | GroupChipsEntityTableColumn<T>;
+  ChartEntityTableColumn<T> | EntityChipsEntityTableColumn<T>;
 
 export class EntityTableConfig<T extends BaseData<HasId>, P extends PageLink = PageLink, L extends BaseData<HasId> = T> {
 

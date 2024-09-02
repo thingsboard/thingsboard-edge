@@ -37,7 +37,6 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import javax.net.ssl.SSLParameters;
-import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
