@@ -267,11 +267,11 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     private void assignCustomMenu(CustomMenuId customMenuId, CMAssigneeType assigneeType, List<EntityId> assignToList) {
         switch (assigneeType) {
             case CUSTOMERS:
-                List<CustomerId> customerIds = assignToList.stream().map(CustomerId.class::cast).collect(Collectors.toList());
+                List<CustomerId> customerIds = assignToList.stream().map(CustomerId.class::cast).toList();
                 customerService.updateCustomersCustomMenuId(customerIds, customMenuId.getId());
                 break;
             case USERS:
-                List<UserId> userIds = assignToList.stream().map(UserId.class::cast).collect(Collectors.toList());
+                List<UserId> userIds = assignToList.stream().map(UserId.class::cast).toList();
                 userService.updateUsersCustomMenuId(userIds, customMenuId.getId());
                 break;
             case NO_ASSIGN:
@@ -289,13 +289,13 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
                 break;
             case CUSTOMERS:
                 if (!CollectionUtils.isEmpty(toRemoveEntityIds)) {
-                    List<CustomerId> toRemoveCustomerIds = toRemoveEntityIds.stream().map(CustomerId.class::cast).collect(Collectors.toList());
+                    List<CustomerId> toRemoveCustomerIds = toRemoveEntityIds.stream().map(CustomerId.class::cast).toList();
                     customerService.updateCustomersCustomMenuId(toRemoveCustomerIds, null);
                 }
                 break;
             case USERS:
                 if (!CollectionUtils.isEmpty(toRemoveEntityIds)) {
-                    List<UserId> toRemoveUserIds = toRemoveEntityIds.stream().map(UserId.class::cast).collect(Collectors.toList());
+                    List<UserId> toRemoveUserIds = toRemoveEntityIds.stream().map(UserId.class::cast).toList();
                     userService.updateUsersCustomMenuId(toRemoveUserIds, null);
                 }
                 break;

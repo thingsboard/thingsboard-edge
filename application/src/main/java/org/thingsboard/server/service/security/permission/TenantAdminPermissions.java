@@ -332,12 +332,8 @@ public class TenantAdminPermissions extends AbstractPermissions {
             if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), null)) {
                 return false;
             }
-            if (operation == Operation.CREATE) {
-                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation);
-            } else {
-                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation) &&
-                        user.getTenantId().equals(customMenu.getTenantId());
-            }
+            return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation) &&
+                    user.getTenantId().equals(customMenu.getTenantId()) && user.getCustomerId().equals(customMenu.getCustomerId());
         }
     };
 

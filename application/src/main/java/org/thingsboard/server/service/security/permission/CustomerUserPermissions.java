@@ -448,12 +448,8 @@ public class CustomerUserPermissions extends AbstractPermissions {
             if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getCustomerId())) {
                 return false;
             }
-            if (operation == Operation.CREATE) {
-                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation);
-            } else {
-                return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation) &&
-                        user.getTenantId().equals(customMenu.getTenantId()) && user.getCustomerId().equals(customMenu.getCustomerId());
-            }
+            return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation) &&
+                    user.getTenantId().equals(customMenu.getTenantId()) && user.getCustomerId().equals(customMenu.getCustomerId());
         }
     };
 }

@@ -31,11 +31,15 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityInfo;
@@ -152,28 +156,28 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         customerDefaultMenu = doPost("/api/customMenu", customerDefaultMenu, CustomMenu.class);
 
         CustomMenuConfig customerDefaultConfig = putRandomMenuConfig(customerDefaultMenu.getId());
-        CustomMenuConfig currentCustomerMenu = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(currentCustomerMenu).isEqualTo(customerDefaultConfig);
+        JsonNode currentCustomerMenu = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(currentCustomerMenu, customerDefaultConfig);
 
         loginSubCustomerAdminUser();
         CustomMenuInfo subCustomerMenu = createDefaultCustomMenu("Test subcustomer menu", CMScope.CUSTOMER);
         subCustomerMenu = doPost("/api/customMenu", subCustomerMenu, CustomMenu.class);
 
         CustomMenuConfig subCustomerDefaultConfig = putRandomMenuConfig(subCustomerMenu.getId());
-        CustomMenuConfig currentSubCustomerMenu = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(currentSubCustomerMenu).isEqualTo(subCustomerDefaultConfig);
+        JsonNode currentSubCustomerMenu = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(currentSubCustomerMenu, subCustomerDefaultConfig);
 
         // delete subcustomer default menu
         doDelete("/api/customMenu/" + subCustomerMenu.getId());
-        CustomMenuConfig currentSubCustomerMenu2 = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(currentSubCustomerMenu2).isEqualTo(customerDefaultConfig);
-
+        JsonNode currentSubCustomerMenu2 = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(currentSubCustomerMenu2, customerDefaultConfig);
+        
         loginCustomerAdminUser();
         // delete customer default menu
         doDelete("/api/customMenu/" + customerDefaultMenu.getId());
 
-        CustomMenuConfig currentCustomerMenu2 = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(currentCustomerMenu2).isEqualTo(tenantMenuConfig);
+        JsonNode currentCustomerMenu2 = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(currentCustomerMenu2, tenantMenuConfig);
 
         loginTenantAdmin();
         // delete tenant default menu
@@ -246,12 +250,12 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         assertThat(entityInfos).hasSize(1);
         assertThat(entityInfos.get(0).getId()).isEqualTo(tenantAdminUserId);
 
-        CustomMenuConfig currentMenu = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(currentMenu).isEqualTo(tenantMenuConfig);
+        JsonNode currentMenu = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(currentMenu, tenantMenuConfig);
 
         loginUser(SECOND_TENANT_ADMIN_EMAIL, TENANT_ADMIN_PASSWORD);
-        CustomMenuConfig secondTenantAdminCurrentMenu = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(secondTenantAdminCurrentMenu).isEqualTo(defaultTenantMenuConfig);
+        JsonNode secondTenantAdminCurrentMenu = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(secondTenantAdminCurrentMenu, defaultTenantMenuConfig);
     }
 
     @Test
@@ -296,12 +300,12 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         assertThat(entityInfos.get(0).getId()).isEqualTo(customerUserId);
 
         loginCustomerUser();
-        CustomMenuConfig customerUserMenu = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(customerUserMenu).isEqualTo(customerMenuConfig);
+        JsonNode customerUserMenu = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(customerUserMenu, customerMenuConfig);
 
         loginCustomerAdminUser();
-        CustomMenuConfig currentMenu = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(currentMenu).isEqualTo(defaultCustomerMenuConfig);
+        JsonNode currentMenu = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(currentMenu, defaultCustomerMenuConfig);
     }
 
     @Test
@@ -326,12 +330,12 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         CustomMenuConfig customerMenuConfig = putRandomMenuConfig(menuForSpecificCustomer.getId());
 
         loginCustomerUser();
-        CustomMenuConfig customerUserMenu = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(customerUserMenu).isEqualTo(customerMenuConfig);
+        JsonNode customerUserMenu = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(customerUserMenu, customerMenuConfig);
 
         login(CUSTOMER_B_USER_EMAIL, CUSTOMER_B_USER_PASSWORD);
-        CustomMenuConfig currentMenu = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(currentMenu).isEqualTo(defaultCustomerMenuConfig);
+        JsonNode currentMenu = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(currentMenu, defaultCustomerMenuConfig);
     }
 
     @Test
@@ -355,8 +359,8 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         CustomMenuConfig tenantMenuConfig = putRandomMenuConfig(tenantMenu.getId());
 
         doPut("/api/customMenu/" + tenantMenu.getId() + "/assign/USERS", List.of(tenantAdminUserId.getId()));
-        CustomMenuConfig currentMenu = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(currentMenu).isEqualTo(tenantMenuConfig);
+        JsonNode currentMenu = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(currentMenu, tenantMenuConfig);
 
         //change assignee to CUSTOMERS
         doPut("/api/customMenu/" + tenantMenu.getId() + "/assign/NO_ASSIGN", List.of());
@@ -370,8 +374,8 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
 
         //force change assignee to ALL
         doPut("/api/customMenu/" + tenantMenu.getId() + "/assign/ALL?force=true", List.of());
-        CustomMenuConfig currentMenuAfterUpdateToALL = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(currentMenuAfterUpdateToALL).isEqualTo(tenantMenuConfig);
+        JsonNode currentMenuAfterUpdateToALL = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(currentMenuAfterUpdateToALL, tenantMenuConfig);
 
         CustomMenu updatedDefaultMenu = doGet("/api/customMenu/" + defaultTenantMenu.getId() + "/info", CustomMenu.class);
         assertThat(updatedDefaultMenu.getAssigneeType()).isEqualTo(CMAssigneeType.NO_ASSIGN);
@@ -399,8 +403,8 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
 
         doPut("/api/customMenu/" + customerMenu.getId() + "/assign/USERS", List.of(customerUserId.getId()));
         loginCustomerUser();
-        CustomMenuConfig currentMenu = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(currentMenu).isEqualTo(customerMenuConfig);
+        JsonNode currentMenu = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(currentMenu, customerMenuConfig);
 
         //change assignee to CUSTOMERS
         loginTenantAdmin();
@@ -422,8 +426,67 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         assertThat(updatedDefaultMenu.getAssigneeType()).isEqualTo(CMAssigneeType.NO_ASSIGN);
 
         loginCustomerUser();
-        CustomMenuConfig currentMenuAfterUpdateToALL = doGet("/api/customMenu", CustomMenuConfig.class);
-        assertThat(currentMenuAfterUpdateToALL).isEqualTo(customerMenuConfig);
+        JsonNode currentMenuAfterUpdateToALL = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(currentMenuAfterUpdateToALL, customerMenuConfig);
+    }
+
+    @Test
+    public void testCustomMenuEtag() throws Exception {
+        loginTenantAdmin();
+        CustomMenuInfo tenantDefaultMenu = createDefaultCustomMenu("Tenant level customer menu ", CMScope.CUSTOMER);
+        tenantDefaultMenu = doPost("/api/customMenu", tenantDefaultMenu, CustomMenu.class);
+        putRandomMenuConfig(tenantDefaultMenu.getId());
+
+        loginCustomerAdminUser();
+        CustomMenuInfo customerDefaultMenu = createDefaultCustomMenu("Test customer menu", CMScope.CUSTOMER);
+        customerDefaultMenu = doPost("/api/customMenu", customerDefaultMenu, CustomMenu.class);
+        CustomMenuConfig customerDefaultConfig = putRandomMenuConfig(customerDefaultMenu.getId());
+
+        loginSubCustomerAdminUser();
+        CustomMenuInfo subCustomerMenu = createDefaultCustomMenu("Test subcustomer menu", CMScope.CUSTOMER);
+        subCustomerMenu = doPost("/api/customMenu", subCustomerMenu, CustomMenu.class);
+        CustomMenuConfig subCustomerDefaultConfig = putRandomMenuConfig(subCustomerMenu.getId());
+
+        String etag = getUserCustomMenu().getResponse().getHeader("ETag");
+        assertThat(etag).isNotNull();
+        assertThat(getUserCustomMenu(etag).getResponse().getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+
+        //update menu on customer level
+        loginCustomerAdminUser();
+        putRandomMenuConfig(customerDefaultMenu.getId());
+
+        loginSubCustomerAdminUser();
+        MvcResult userMenuAfterUpdateOnCustomerLevel = getUserCustomMenu(etag);
+        String eTagAfterUpdate = userMenuAfterUpdateOnCustomerLevel.getResponse().getHeader("ETag");
+        assertThat(eTagAfterUpdate).isEqualTo(etag);
+
+        JsonNode userCustomMenu = readResponse(userMenuAfterUpdateOnCustomerLevel, JsonNode.class);
+        assertCustomMenuConfig(userCustomMenu, subCustomerDefaultConfig);
+
+        //update menu on tenant level
+        loginTenantAdmin();
+        putRandomMenuConfig(tenantDefaultMenu.getId());
+
+        loginSubCustomerAdminUser();
+        MvcResult userMenuAfterTenantUpdate = getUserCustomMenu(eTagAfterUpdate);
+        String eTagAfterTenantUpdate = userMenuAfterTenantUpdate.getResponse().getHeader("ETag");
+        assertThat(eTagAfterTenantUpdate).isEqualTo(eTagAfterUpdate);
+
+        JsonNode userCustomMenuAfterUpdateOnTenantLevel = readResponse(userMenuAfterTenantUpdate, JsonNode.class);
+        assertCustomMenuConfig(userCustomMenuAfterUpdateOnTenantLevel, subCustomerDefaultConfig);
+        assertThat(getUserCustomMenu(eTagAfterTenantUpdate).getResponse().getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
+    }
+
+    private MvcResult getUserCustomMenu() throws Exception {
+        return getUserCustomMenu(null);
+    }
+
+    private MvcResult getUserCustomMenu(String etag) throws Exception {
+        HttpHeaders headers = new HttpHeaders();
+        if (etag != null) {
+            headers.setIfNoneMatch(etag);
+        }
+        return doGet("/api/customMenu", headers).andReturn();
     }
 
     private CustomMenuConfig putRandomMenuConfig(CustomMenuId customMenuId) throws Exception {
@@ -458,6 +521,12 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         customMenu.setScope(scope);
         customMenu.setAssigneeType(CMAssigneeType.ALL);
         return customMenu;
+    }
+
+    private void assertCustomMenuConfig(JsonNode currentCustomerMenu, CustomMenuConfig customerDefaultConfig) {
+        assertThat(currentCustomerMenu.get("items").get(0).get("dashboardId").asText()).isEqualTo(((HomeMenuItem) customerDefaultConfig.getItems().get(0)).getDashboardId());
+        assertThat(currentCustomerMenu.get("items").get(1).get("name").asText()).isEqualTo(((DefaultMenuItem) customerDefaultConfig.getItems().get(1)).getName());
+        assertThat(currentCustomerMenu.get("items").get(2).get("url").asText()).isEqualTo(((CustomMenuItem) customerDefaultConfig.getItems().get(2)).getUrl());
     }
 
 }

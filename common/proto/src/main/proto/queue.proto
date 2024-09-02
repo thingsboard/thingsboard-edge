@@ -500,6 +500,11 @@ message TranslationCacheInvalidateMsg {
   int64 tenantIdLSB = 2;
 }
 
+message CustomMenuCacheInvalidateMsg {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+}
+
 message LwM2MRegistrationRequestMsg {
   string tenantId = 1;
   string endpoint = 2;
@@ -1609,6 +1614,7 @@ message ToCoreNotificationMsg {
   FromEdgeSyncResponseMsgProto fromEdgeSyncResponse = 15;
   ResourceCacheInvalidateMsg resourceCacheInvalidateMsg = 16;
   TranslationCacheInvalidateMsg translationCacheInvalidateMsg = 100;
+  CustomMenuCacheInvalidateMsg customMenuCacheInvalidateMsg = 101;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */

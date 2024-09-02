@@ -28,27 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.menu;
+package org.thingsboard.server.service.custommenu;
 
 import org.thingsboard.server.common.data.CustomMenuDeleteResult;
-import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.CustomMenuId;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
-import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
-import org.thingsboard.server.common.data.menu.CustomMenuConfig;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.menu.CustomMenuCacheKey;
 
 import java.util.List;
 
-public interface CustomMenuService {
+public interface TbCustomMenuService extends EtagCacheService<CustomMenuCacheKey> {
 
     CustomMenu createCustomMenu(CustomMenuInfo customMenuInfo, List<EntityId> assignToList, boolean force) throws ThingsboardException;
 
@@ -56,22 +48,5 @@ public interface CustomMenuService {
 
     void updateAssigneeList(CustomMenu oldCustomMenu, CMAssigneeType newAssigneeType, List<EntityId> newAssignToList, boolean force) throws ThingsboardException;
 
-    CustomMenuInfo findCustomMenuInfoById(TenantId tenantId, CustomMenuId customMenuId);
-
-    CustomMenu findCustomMenuById(TenantId tenantId, CustomMenuId customMenuId);
-
-    PageData<CustomMenuInfo> findCustomMenuInfos(TenantId tenantId, CustomerId customerId, PageLink pageLink);
-
-    CustomMenuConfig findSystemAdminCustomMenuConfig();
-
-    CustomMenuConfig findTenantUserCustomMenuConfig(TenantId tenantId, UserId id);
-
-    CustomMenuConfig findCustomerUserCustomMenuConfig(TenantId tenantId, CustomerId customerId, UserId userId);
-
-    CustomMenu findDefaultCustomMenuByScope(TenantId tenantId, CustomerId customerId, CMScope scope);
-
-    List<EntityInfo> findCustomMenuAssigneeList(CustomMenuInfo customMenuInfo);
-
     CustomMenuDeleteResult deleteCustomMenu(CustomMenu customMenu, boolean force);
-
 }

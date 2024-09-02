@@ -48,12 +48,12 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
+import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.translation.TranslationCacheKey;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -79,7 +79,7 @@ import static org.thingsboard.common.util.JacksonUtil.newObjectNode;
 @Service
 @Slf4j
 @TbCoreComponent
-public class DefaultTbTranslationService extends AbstractTbEntityService implements TbTranslationService {
+public class DefaultTbTranslationService implements TbTranslationService {
 
     public static final String LOCALE_FILES_DIRECTORY_PATH = "public/assets/locale";
     public static final Pattern LOCALE_FILE_PATTERN = Pattern.compile("locale\\.constant-(.*?)\\.json");
@@ -90,6 +90,7 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     private final Cache<TranslationCacheKey, String> etagCache;
     private final CustomTranslationService customTranslationService;
     private final WhiteLabelingService whiteLabelingService;
+    private final CustomerService customerService;
     private final TbClusterService clusterService;
 
     static {
@@ -105,12 +106,13 @@ public class DefaultTbTranslationService extends AbstractTbEntityService impleme
     }
 
     public DefaultTbTranslationService(TbClusterService clusterService, CustomTranslationService customTranslationService,
-                                       WhiteLabelingService whiteLabelingService,
+                                       WhiteLabelingService whiteLabelingService, CustomerService customerService,
                                        @Value("${cache.translation.etag.timeToLiveInMinutes:44640}") int cacheTtl,
                                        @Value("${cache.translation.etag.maxSize:1000000}") int cacheMaxSize) {
         this.clusterService = clusterService;
         this.customTranslationService = customTranslationService;
         this.whiteLabelingService = whiteLabelingService;
+        this.customerService = customerService;
         this.etagCache = Caffeine.newBuilder()
                 .expireAfterAccess(cacheTtl, TimeUnit.MINUTES)
                 .maximumSize(cacheMaxSize)

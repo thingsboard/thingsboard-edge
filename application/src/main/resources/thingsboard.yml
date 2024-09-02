@@ -735,6 +735,10 @@ cache:
     etag:
       timeToLiveInMinutes: "${CACHE_SPECS_TRANSLATION_ETAGS_TTL:44640}" # Translation ETags cache TTL in minutes (one month by default)
       maxSize: "${CACHE_SPECS_TRANSLATION_ETAGS_MAX_SIZE:1000000}" # 0 means the cache is disabled
+  customMenu:
+    etag:
+      timeToLiveInMinutes: "${CACHE_SPECS_CUSTOM_MENU_ETAGS_TTL:44640}" # Custom Menu ETags cache TTL in minutes (one month by default)
+      maxSize: "${CACHE_SPECS_CUSTOM_MENU_ETAGS_MAX_SIZE:1000000}" # 0 means the cache is disabled
 
 # Spring data parameters
 spring.data.redis.repositories.enabled: false # Disable this because it is not required.
