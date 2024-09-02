@@ -172,6 +172,9 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
             resourceValidator.validateDelete(tenantId, resourceId);
         }
         TbResource resource = findResourceById(tenantId, resourceId);
+        if (resource == null) {
+            return;
+        }
         resourceDao.removeById(tenantId, resourceId.getId());
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entity(resource).entityId(resourceId).build());
     }
@@ -202,7 +205,7 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
     public List<TbResource> findTenantResourcesByResourceTypeAndObjectIds(TenantId tenantId, ResourceType resourceType, String[] objectIds) {
         log.trace("Executing findTenantResourcesByResourceTypeAndObjectIds [{}][{}][{}]", tenantId, resourceType, objectIds);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        return resourceDao.findResourcesByTenantIdAndResourceType(tenantId, resourceType, objectIds, null);
+        return resourceDao.findResourcesByTenantIdAndResourceType(tenantId, resourceType, null, objectIds, null);
     }
 
     @Override
@@ -216,7 +219,7 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
     public PageData<TbResource> findTenantResourcesByResourceTypeAndPageLink(TenantId tenantId, ResourceType resourceType, PageLink pageLink) {
         log.trace("Executing findTenantResourcesByResourceTypeAndPageLink [{}][{}][{}]", tenantId, resourceType, pageLink);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
-        return resourceDao.findResourcesByTenantIdAndResourceType(tenantId, resourceType, pageLink);
+        return resourceDao.findResourcesByTenantIdAndResourceType(tenantId, resourceType, null, pageLink);
     }
 
     @Override

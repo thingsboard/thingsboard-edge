@@ -51,6 +51,7 @@ import { CustomerTitleResolver } from '@home/pages/customer/customer.shared';
 import { usersRoute } from '@home/pages/user/user-routing.module';
 import { entityGroupsTitle } from '@shared/models/entity-group.models';
 import { edgesRoute } from '@home/pages/edge/edge-routing.module';
+import { MenuId } from '@core/services/menu.models';
 
 const customerRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
   ({
@@ -207,8 +208,7 @@ const customerGroupsRoute = (root: boolean): Route => ({
   data: {
     groupType: EntityType.CUSTOMER,
     breadcrumb: {
-      label: 'customer.groups',
-      icon: 'supervisor_account'
+      menuId: MenuId.customer_groups
     }
   },
   children: customerGroupsChildrenRoutesTemplate(root, false)
@@ -220,8 +220,7 @@ const customerSharedGroupsRoute = (root: boolean): Route => ({
     groupType: EntityType.CUSTOMER,
     shared: true,
     breadcrumb: {
-      label: 'customer.shared',
-      icon: 'supervisor_account'
+      menuId: MenuId.customer_shared
     }
   },
   children: customerGroupsChildrenRoutesTemplate(root, true)
@@ -232,8 +231,7 @@ const customersHierarchyRoute: Route = {
   component: CustomersHierarchyComponent,
   data: {
     breadcrumb: {
-      label: 'customer.hierarchy',
-      icon: 'sort'
+      menuId: MenuId.customers_hierarchy
     },
     auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
     title: 'customers-hierarchy.customers-hierarchy'
@@ -247,8 +245,7 @@ export const customersRoute = (root = false): Route => {
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
-        label: 'customer.customers',
-        icon: 'supervisor_account'
+        menuId: MenuId.customers
       }
     },
     children: [
@@ -268,8 +265,7 @@ export const customersRoute = (root = false): Route => {
       groupType: EntityType.CUSTOMER,
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
-        label: 'customer.all',
-        icon: 'supervisor_account'
+        menuId: MenuId.customer_all
       }
     },
     children: [

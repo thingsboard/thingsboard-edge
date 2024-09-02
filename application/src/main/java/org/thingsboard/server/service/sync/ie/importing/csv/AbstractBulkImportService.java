@@ -34,6 +34,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import jakarta.annotation.Nullable;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -45,10 +48,11 @@ import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
-import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.adaptor.JsonConverter;
+import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasAdditionalInfo;
+import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.TenantProfile;
@@ -69,6 +73,7 @@ import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportColumn
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
+import org.thingsboard.server.common.data.util.TypeCastUtil;
 import org.thingsboard.server.controller.BaseController;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.service.action.EntityActionService;
@@ -77,11 +82,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 import org.thingsboard.server.utils.CsvUtils;
-import org.thingsboard.server.common.data.util.TypeCastUtil;
 
-import jakarta.annotation.Nullable;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -136,6 +137,9 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
                     if (entity.getId() != null) {
                         importedEntityInfo.setOldEntity((E) entity.getClass().getConstructor(entity.getClass()).newInstance(entity));
                         importedEntityInfo.setUpdated(true);
+                        if (entity instanceof HasVersion versionedEntity) {
+                            versionedEntity.setVersion(null); // to overwrite the entity regardless of concurrent changes
+                        }
                     } else {
                         setOwners(entity, user.getTenantId(), request.getCustomerId() != null ? request.getCustomerId() : user.getCustomerId());
                     }
@@ -313,6 +317,7 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
         private final Map<BulkImportColumnType, String> fields = new LinkedHashMap<>();
         private final Map<BulkImportRequest.ColumnMapping, ParsedValue> kvs = new LinkedHashMap<>();
         private int lineNumber;
+
     }
 
     @Data

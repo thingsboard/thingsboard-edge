@@ -33,6 +33,8 @@ package org.thingsboard.server.service.security.system;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
@@ -79,8 +81,6 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.utils.MiscUtils;
 import ua_parser.Client;
 
-import jakarta.annotation.Resource;
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -307,7 +307,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
         } else {
             return getBaseUrl(tenantId, customerId, httpServletRequest);
         }
-        return baseUrl;
+        return formatBaseUrl(baseUrl);
     }
 
     private boolean isBaseUrlSet(LoginWhiteLabelingParams loginWhiteLabelingParams) {
@@ -329,7 +329,7 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
             baseUrl = MiscUtils.constructBaseUrl(httpServletRequest);
         }
 
-        return baseUrl;
+        return formatBaseUrl(baseUrl);
     }
 
     @Override
@@ -390,5 +390,12 @@ public class DefaultSystemSecurityService implements SystemSecurityService {
 
     private static boolean isPositiveInteger(Integer val) {
         return val != null && val > 0;
+    }
+
+    private static String formatBaseUrl(String baseUrl) {
+        if (!org.apache.commons.lang3.StringUtils.startsWithAny(baseUrl, "http://", "https://")) {
+            baseUrl = "https://" + baseUrl;
+        }
+        return baseUrl;
     }
 }

@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
 import { MatDialogRef } from '@angular/material/dialog';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { PageLink } from '@shared/models/page/page-link';
@@ -45,7 +45,7 @@ import { GatewayLogData, GatewayStatus, LogLink } from './gateway-widget.models'
   templateUrl: './gateway-logs.component.html',
   styleUrls: ['./gateway-logs.component.scss']
 })
-export class GatewayLogsComponent implements AfterViewInit {
+export class GatewayLogsComponent implements OnInit, AfterViewInit {
 
   pageLink: PageLink;
 
@@ -96,6 +96,10 @@ export class GatewayLogsComponent implements AfterViewInit {
     this.dataSource = new MatTableDataSource<GatewayLogData>([]);
   }
 
+  ngOnInit(): void {
+    this.updateWidgetTitle();
+  }
+
   ngAfterViewInit() {
     this.dataSource.sort = this.sort;
     this.dataSource.paginator = this.paginator;
@@ -120,6 +124,17 @@ export class GatewayLogsComponent implements AfterViewInit {
     }
     this.activeLink = this.logLinks[0];
     this.changeSubscription();
+  }
+
+  private updateWidgetTitle(): void {
+    if (this.ctx.settings.isConnectorLog && this.ctx.settings.connectorLogState) {
+      const widgetTitle = this.ctx.widgetConfig.title;
+      const titlePlaceholder = '${connectorName}';
+      if (widgetTitle.includes(titlePlaceholder)) {
+        const connector = this.ctx.stateController.getStateParams()[this.ctx.settings.connectorLogState];
+        this.ctx.widgetTitle = widgetTitle.replace(titlePlaceholder, connector.key);
+      }
+    }
   }
 
 

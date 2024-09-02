@@ -68,7 +68,7 @@ public interface CustomerInfoRepository extends JpaRepository<CustomerInfoEntity
     @Query(value = "SELECT e.*, e.owner_name as ownername, e.created_time as createdtime " +
             "FROM (select ce.id, ce.created_time, ce.additional_info, ce.address, ce.address2, ce.city, " +
             "ce.country, ce.email, ce.phone, ce.state, ce.tenant_id, " +
-            "ce.parent_customer_id, ce.title, ce.zip, ce.external_id, ce.groups, ce.is_public, " +
+            "ce.parent_customer_id, ce.title, ce.zip, ce.external_id, ce.version, ce.groups, ce.is_public, " +
             "c.title as owner_name from customer_info_view ce " +
             "LEFT JOIN customer c on c.id = ce.parent_customer_id AND c.id != :customerId) e " +
             "WHERE" + CUSTOMERS_SUB_CUSTOMERS_QUERY +

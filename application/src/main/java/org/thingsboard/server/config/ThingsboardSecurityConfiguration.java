@@ -32,6 +32,7 @@ package org.thingsboard.server.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -46,7 +47,6 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.RequestCacheConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -72,6 +72,7 @@ import org.thingsboard.server.service.security.auth.oauth2.HttpCookieOAuth2Autho
 import org.thingsboard.server.service.security.auth.rest.RestAuthenticationProvider;
 import org.thingsboard.server.service.security.auth.rest.RestLoginProcessingFilter;
 import org.thingsboard.server.service.security.auth.rest.RestPublicLoginProcessingFilter;
+import org.thingsboard.server.transport.http.config.PayloadSizeFilter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,6 +98,9 @@ public class ThingsboardSecurityConfiguration {
     public static final String WS_ENTRY_POINT = "/api/ws/**";
     public static final String MAIL_OAUTH2_PROCESSING_ENTRY_POINT = "/api/admin/mail/oauth2/code";
     public static final String DEVICE_CONNECTIVITY_CERTIFICATE_DOWNLOAD_ENTRY_POINT = "/api/device-connectivity/mqtts/certificate/download";
+
+    @Value("${server.http.max_payload_size:/api/image*/**=52428800;/api/resource/**=52428800;/api/**=16777216}")
+    private String maxPayloadSizeConfig;
 
     @Autowired
     private ThingsboardErrorResponseHandler restAccessDeniedHandler;
@@ -139,6 +143,11 @@ public class ThingsboardSecurityConfiguration {
 
     @Autowired
     private RateLimitProcessingFilter rateLimitProcessingFilter;
+
+    @Bean
+    protected PayloadSizeFilter payloadSizeFilter() {
+        return new PayloadSizeFilter(maxPayloadSizeConfig);
+    }
 
     @Bean
     protected FilterRegistrationBean<ShallowEtagHeaderFilter> buildEtagFilter() throws Exception {
@@ -227,7 +236,6 @@ public class ThingsboardSecurityConfiguration {
                 .authorizeHttpRequests(config -> config
                         .requestMatchers(NON_TOKEN_BASED_AUTH_ENTRY_POINTS).permitAll() // static resources, user activation and password reset end-points (webjars included)
                         .requestMatchers(
-                                DEVICE_API_ENTRY_POINT, // Device HTTP Transport API
                                 FORM_BASED_LOGIN_ENTRY_POINT, // Login end-point
                                 PUBLIC_LOGIN_ENTRY_POINT, // Public login end-point
                                 TOKEN_REFRESH_ENTRY_POINT, // Token refresh end-point
@@ -241,6 +249,7 @@ public class ThingsboardSecurityConfiguration {
                 .addFilterBefore(buildRestPublicLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(buildRefreshTokenProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(payloadSizeFilter(), UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(rateLimitProcessingFilter, UsernamePasswordAuthenticationFilter.class);
         if (oauth2Configuration != null) {
             http.oauth2Login(login -> login

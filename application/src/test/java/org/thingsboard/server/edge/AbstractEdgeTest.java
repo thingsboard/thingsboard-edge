@@ -112,7 +112,8 @@ import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
 import org.thingsboard.server.gen.edge.v1.EntityGroupUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.OAuth2UpdateMsg;
+import org.thingsboard.server.gen.edge.v1.OAuth2ClientUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.OAuth2DomainUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.RoleProto;
 import org.thingsboard.server.gen.edge.v1.RuleChainMetadataRequestMsg;
@@ -182,8 +183,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         installation();
 
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
-        edgeImitator.ignoreType(OAuth2UpdateMsg.class);
-        edgeImitator.expectMessageAmount(27);
+        edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
+        edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
+        edgeImitator.expectMessageAmount(28);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -280,7 +282,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         UUID ruleChainUUID = validateRuleChains();
 
         // 1 from request message
-        validateMsgsCnt(RuleChainMetadataUpdateMsg.class, 1);
+        validateMsgsCnt(RuleChainMetadataUpdateMsg.class, 2);
         validateRuleChainMetadataUpdates(ruleChainUUID);
 
         // 5 messages ('general', 'mail', 'connectivity', 'jwt', 'customMenu')

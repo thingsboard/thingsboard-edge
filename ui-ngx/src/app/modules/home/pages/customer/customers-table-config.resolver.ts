@@ -36,11 +36,11 @@ import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
+  EntityChipsEntityTableColumn,
   EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
-  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -154,7 +154,7 @@ export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<C
       columns.push(new EntityTableColumn<CustomerInfo>('ownerName', title, '20%'));
     }
     columns.push(
-      new GroupChipsEntityTableColumn<CustomerInfo>( 'groups', 'entity.groups', '20%')
+      new EntityChipsEntityTableColumn<CustomerInfo>( 'groups', 'entity.groups', '20%')
     );
     return columns;
   }

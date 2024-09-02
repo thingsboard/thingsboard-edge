@@ -54,7 +54,7 @@ import {
 } from '@angular/core';
 import { DashboardWidget } from '@home/models/dashboard-component.models';
 import {
-  Widget,
+  Widget, WidgetAction,
   WidgetActionDescriptor,
   widgetActionSources,
   WidgetActionType,
@@ -73,7 +73,7 @@ import { WidgetService } from '@core/http/widget.service';
 import { UtilsService } from '@core/services/utils.service';
 import { forkJoin, isObservable, Observable, of, ReplaySubject, Subscription, throwError } from 'rxjs';
 import {
-  deepClone,
+  deepClone, guid,
   insertVariable,
   isDefined,
   isFunction,
@@ -275,6 +275,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       actionDescriptorsBySourceId,
       getActionDescriptors: this.getActionDescriptors.bind(this),
       handleWidgetAction: this.handleWidgetAction.bind(this),
+      onWidgetAction: this.onWidgetAction.bind(this),
       elementClick: this.elementClick.bind(this),
       cardClick: this.cardClick.bind(this),
       click: this.click.bind(this),
@@ -511,6 +512,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     }
     if (!this.widgetContext.inited && this.isReady()) {
       this.widgetContext.inited = true;
+      this.widgetContext.destroyed = false;
       this.dashboardWidget.updateWidgetParams();
       this.widgetContext.detectContainerChanges();
       if (this.cafs.init) {
@@ -1063,7 +1065,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
     return result;
   }
 
-  private handleWidgetAction($event: Event, descriptor: WidgetActionDescriptor,
+  private handleWidgetAction($event: Event, descriptor: WidgetAction,
                              entityId?: EntityId, entityName?: string, additionalParams?: any, entityLabel?: string): void {
     const type = descriptor.type;
     const targetEntityParamName = descriptor.stateEntityParamName;
@@ -1136,7 +1138,7 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
         const customHtml = descriptor.customHtml;
         const customCss = descriptor.customCss;
         const customResources = descriptor.customResources;
-        const actionNamespace = `custom-action-pretty-${descriptor.name.toLowerCase()}`;
+        const actionNamespace = `custom-action-pretty-${guid()}`;
         let htmlTemplate = '';
         if (isDefined(customHtml) && customHtml.length > 0) {
           htmlTemplate = customHtml;
@@ -1444,13 +1446,8 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
       const idsList = descriptors.map(descriptor => `#${descriptor.name}`).join(',');
       const targetElement = $(elementClicked).closest(idsList, this.widgetContext.$container[0]);
       if (targetElement.length && targetElement[0].id) {
-        $event.stopPropagation();
         const descriptor = descriptors.find(descriptorInfo => descriptorInfo.name === targetElement[0].id);
-        const entityInfo = this.getActiveEntityInfo();
-        const entityId = entityInfo ? entityInfo.entityId : null;
-        const entityName = entityInfo ? entityInfo.entityName : null;
-        const entityLabel = entityInfo && entityInfo.entityLabel ? entityInfo.entityLabel : null;
-        this.handleWidgetAction($event, descriptor, entityId, entityName, null, entityLabel);
+        this.onWidgetAction($event, descriptor);
       }
     }
   }
@@ -1466,18 +1463,23 @@ export class WidgetComponent extends PageComponent implements OnInit, AfterViewI
   private onClick($event: Event, sourceId: string) {
     const descriptors = this.getActionDescriptors(sourceId);
     if (descriptors.length) {
-      $event.stopPropagation();
-      const descriptor = descriptors[0];
-      const entityInfo = this.getActiveEntityInfo();
-      const entityId = entityInfo ? entityInfo.entityId : null;
-      const entityName = entityInfo ? entityInfo.entityName : null;
-      const entityLabel = entityInfo && entityInfo.entityLabel ? entityInfo.entityLabel : null;
-      this.handleWidgetAction($event, descriptor, entityId, entityName, null, entityLabel);
+      this.onWidgetAction($event, descriptors[0]);
     }
   }
 
+  private onWidgetAction($event: Event, action: WidgetAction) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const entityInfo = this.getActiveEntityInfo();
+    const entityId = entityInfo ? entityInfo.entityId : null;
+    const entityName = entityInfo ? entityInfo.entityName : null;
+    const entityLabel = entityInfo && entityInfo.entityLabel ? entityInfo.entityLabel : null;
+    this.handleWidgetAction($event, action, entityId, entityName, null, entityLabel);
+  }
+
   private loadCustomActionResources(actionNamespace: string, customCss: string, customResources: Array<WidgetResource>,
-                                    actionDescriptor: WidgetActionDescriptor): Observable<any> {
+                                    actionDescriptor: WidgetAction): Observable<any> {
     const resourceTasks: Observable<string>[] = [];
     const modulesTasks: Observable<ModulesWithFactories | string>[] = [];
 

@@ -31,11 +31,11 @@
 package org.thingsboard.server.common.data.edge;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.EntityInfo;
 
-import jakarta.validation.Valid;
 import java.util.List;
 
 @Schema

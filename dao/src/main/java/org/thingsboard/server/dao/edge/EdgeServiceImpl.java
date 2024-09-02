@@ -48,6 +48,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.cache.edge.EdgeCacheEvictEvent;
+import org.thingsboard.server.cache.edge.EdgeCacheKey;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntitySubtype;
@@ -106,6 +108,7 @@ import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.extractConstraintViolationException;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+import static org.thingsboard.server.dao.edge.BaseRelatedEdgesService.RELATED_EDGES_CACHE_ITEMS;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 import static org.thingsboard.server.dao.service.Validator.validatePageLink;
@@ -151,6 +154,10 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
     @Autowired
     private JpaExecutorService executor;
+
+    @Autowired
+    @Lazy
+    private RelatedEdgesService relatedEdgesService;
 
     @Value("${edges.enabled}")
     @Getter
@@ -249,8 +256,8 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         }
         edgeDao.removeById(tenantId, edgeId.getId());
 
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(edgeId).build());
         publishEvictEvent(new EdgeCacheEvictEvent(edge.getTenantId(), edge.getName(), null));
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(edgeId).build());
     }
 
     @Override
@@ -330,7 +337,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         log.trace("Executing deleteEdgesByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
-        customerEdgesRemover.removeEntities(tenantId, customerId);
+        customerEdgeRemover.removeEntities(tenantId, customerId);
     }
 
     @Override
@@ -458,6 +465,14 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     }
 
     @Override
+    public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
+        log.trace("Executing findEdgeIdsByTenantIdAndEntityId, tenantId [{}], entityId [{}], pageLink [{}]", tenantId, entityId, pageLink);
+        Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
+        validatePageLink(pageLink);
+        return edgeDao.findEdgeIdsByTenantIdAndEntityId(tenantId.getId(), entityId.getId(), entityId.getEntityType(), pageLink);
+    }
+
+    @Override
     public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityIds(TenantId tenantId, List<EntityId> entityIds, EntityType entityType, PageLink pageLink) {
         log.trace("Executing findEdgeIdsByTenantIdAndEntityIds, tenantId [{}], entityIds [{}], entityType [{}], pageLink [{}]", tenantId, entityIds, entityType, pageLink);
         Validator.validateId(tenantId, id -> "Incorrect tenantId " + id);
@@ -486,6 +501,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         return edgeDao.findEdgeIdsByTenantIdAndGroupEntityId(tenantId.getId(), entityId.getId(), entityId.getEntityType(), pageLink);
     }
 
+    @Override
     public PageData<Edge> findEdgesByTenantProfileId(TenantProfileId tenantProfileId, PageLink pageLink) {
         log.trace("Executing findEdgesByTenantProfileId, tenantProfileId [{}], pageLink [{}]", tenantProfileId, pageLink);
         Validator.validateId(tenantProfileId, id -> "Incorrect tenantProfileId " + id);
@@ -493,7 +509,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         return edgeDao.findEdgesByTenantProfileId(tenantProfileId.getId(), pageLink);
     }
 
-    private PaginatedRemover<TenantId, Edge> tenantEdgesRemover =
+    private final PaginatedRemover<TenantId, Edge> tenantEdgesRemover =
             new PaginatedRemover<>() {
 
                 @Override
@@ -507,7 +523,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                 }
             };
 
-    private PaginatedRemover<CustomerId, Edge> customerEdgesRemover = new PaginatedRemover<>() {
+    private final PaginatedRemover<CustomerId, Edge> customerEdgeRemover = new PaginatedRemover<>() {
 
         @Override
         protected PageData<Edge> findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {
@@ -529,7 +545,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             return Collections.singletonList(new EdgeId(entityId.getId()));
         }
         PageDataIterableByTenantIdEntityId<EdgeId> relatedEdgeIdsIterator =
-                new PageDataIterableByTenantIdEntityId<>(this::findRelatedEdgeIdsByEntityId, tenantId, entityId, DEFAULT_PAGE_SIZE);
+                new PageDataIterableByTenantIdEntityId<>(this::findRelatedEdgeIdsByEntityId, tenantId, entityId, RELATED_EDGES_CACHE_ITEMS);
         List<EdgeId> result = new ArrayList<>();
         for (EdgeId edgeId : relatedEdgeIdsIterator) {
             result.add(edgeId);
@@ -554,14 +570,13 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             case CUSTOMER:
                 return convertToEdgeIds(findEdgesByTenantIdAndCustomerId(tenantId, new CustomerId(entityId.getId()), pageLink));
             case EDGE:
-                List<EdgeId> edgeIds = Collections.singletonList(new EdgeId(entityId.getId()));
-                return new PageData<>(edgeIds, 1, 1, false);
+                return new PageData<>(List.of(new EdgeId(entityId.getId())), 1, 1, false);
             case USER:
             case DEVICE:
             case ASSET:
             case ENTITY_VIEW:
             case DASHBOARD:
-                return findEdgeIdsByTenantIdAndGroupEntityId(tenantId, entityId, pageLink);
+                return relatedEdgesService.findEdgeIdsByTenantIdAndGroupEntityId(tenantId, entityId, pageLink);
             case ENTITY_GROUP:
                 EntityGroupId entityGroupId = new EntityGroupId(entityId.getId());
                 if (groupType == null) {
@@ -572,11 +587,11 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                         return createEmptyEdgeIdPageData();
                     }
                 }
-                return findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, Collections.singletonList(entityGroupId), groupType, pageLink);
+                return relatedEdgesService.findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, entityGroupId, groupType, pageLink);
             case RULE_CHAIN:
             case SCHEDULER_EVENT:
             case INTEGRATION:
-                return convertToEdgeIds(findEdgesByTenantIdAndEntityId(tenantId, entityId, pageLink));
+                return relatedEdgesService.findEdgeIdsByEntityId(tenantId, entityId, pageLink);
             case CONVERTER:
                 List<Integration> integrationsByConverterId =
                         integrationService.findIntegrationsByConverterId(tenantId, new ConverterId(entityId.getId()));
@@ -586,7 +601,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
                 return convertToEdgeIds(findEdgesByTenantProfileId(new TenantProfileId(entityId.getId()), pageLink));
             default:
                 log.warn("[{}] Unsupported entity type {}", tenantId, entityId.getEntityType());
-                return createEmptyEdgeIdPageData();
+                return PageData.emptyPageData();
         }
     }
 
@@ -621,7 +636,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
 
     private PageData<EdgeId> convertToEdgeIds(PageData<Edge> pageData) {
         if (pageData == null) {
-            return createEmptyEdgeIdPageData();
+            return PageData.emptyPageData();
         }
         List<EdgeId> edgeIds = new ArrayList<>();
         if (pageData.getData() != null && !pageData.getData().isEmpty()) {
@@ -715,7 +730,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         PageLink pageLink = new PageLink(DEFAULT_PAGE_SIZE);
         PageData<EdgeId> pageData;
         do {
-            pageData = edgeService.findRelatedEdgeIdsByEntityId(tenantId, integrationId, pageLink);
+            pageData = findRelatedEdgeIdsByEntityId(tenantId, integrationId, pageLink);
             if (pageData != null && pageData.getData() != null && !pageData.getData().isEmpty()) {
                 for (EdgeId relatedEdgeId : pageData.getData()) {
                     ArrayNode array = addMissingEdgeAttributes(tenantId, relatedEdgeId, attributesKeys);

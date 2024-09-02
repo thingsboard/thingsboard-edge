@@ -386,6 +386,12 @@ import {
 import {
   LabelValueCardWidgetSettingsComponent
 } from '@home/components/widget/lib/settings/cards/label-value-card-widget-settings.component';
+import {
+  UnreadNotificationWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/cards/unread-notification-widget-settings.component';
+import {
+ScadaSymbolWidgetSettingsComponent
+} from '@home/components/widget/lib/settings/scada/scada-symbol-widget-settings.component';
 
 @NgModule({
   declarations: [
@@ -515,6 +521,8 @@ import {
     RadarChartWidgetSettingsComponent,
     LabelCardWidgetSettingsComponent,
     LabelValueCardWidgetSettingsComponent,
+    UnreadNotificationWidgetSettingsComponent,
+    ScadaSymbolWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -652,6 +660,8 @@ import {
     RadarChartWidgetSettingsComponent,
     LabelCardWidgetSettingsComponent,
     LabelValueCardWidgetSettingsComponent,
+    UnreadNotificationWidgetSettingsComponent,
+    ScadaSymbolWidgetSettingsComponent,
     BlobEntitiesWidgetSettingsComponent,
     CustomSchedulerEventTypeComponent,
     SchedulerEventsWidgetSettingsComponent
@@ -756,6 +766,8 @@ export const widgetSettingsComponentsMap: {[key: string]: Type<IWidgetSettingsCo
   'tb-radar-chart-widget-settings': RadarChartWidgetSettingsComponent,
   'tb-label-card-widget-settings': LabelCardWidgetSettingsComponent,
   'tb-label-value-card-widget-settings': LabelValueCardWidgetSettingsComponent,
+  'tb-unread-notification-widget-settings': UnreadNotificationWidgetSettingsComponent,
+  'tb-scada-symbol-widget-settings': ScadaSymbolWidgetSettingsComponent,
   'tb-blob-entities-widget-settings': BlobEntitiesWidgetSettingsComponent,
   'tb-scheduler-events-widget-settings': SchedulerEventsWidgetSettingsComponent
 };

@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
 import org.thingsboard.server.common.data.HasImage;
 import org.thingsboard.server.common.data.HasTitle;
+import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
@@ -49,7 +50,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 
 @Schema
 @EqualsAndHashCode(callSuper = true)
-public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEntity, ExportableEntity<WidgetsBundleId>, HasTitle, HasImage {
+public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEntity, ExportableEntity<WidgetsBundleId>, HasTitle, HasImage, HasVersion {
 
     private static final long serialVersionUID = -7627368878362410489L;
 
@@ -77,6 +78,11 @@ public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEn
     @Schema(description = "Relative or external image URL. Replaced with image data URL (Base64) in case of relative URL and 'inlineImages' option enabled.", accessMode = Schema.AccessMode.READ_ONLY)
     private String image;
 
+    @Getter
+    @Setter
+    @Schema(description = "Whether widgets bundle contains SCADA symbol widget types.", accessMode = Schema.AccessMode.READ_ONLY)
+    private boolean scada;
+
     @NoXss
     @Length(fieldName = "description", max = 1024)
     @Getter
@@ -92,6 +98,9 @@ public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEn
     @Getter
     @Setter
     private WidgetsBundleId externalId;
+    @Getter
+    @Setter
+    private Long version;
 
     public WidgetsBundle() {
         super();
@@ -107,15 +116,17 @@ public class WidgetsBundle extends BaseData<WidgetsBundleId> implements TenantEn
         this.alias = widgetsBundle.getAlias();
         this.title = widgetsBundle.getTitle();
         this.image = widgetsBundle.getImage();
+        this.scada = widgetsBundle.isScada();
         this.description = widgetsBundle.getDescription();
         this.order = widgetsBundle.getOrder();
         this.externalId = widgetsBundle.getExternalId();
+        this.version = widgetsBundle.getVersion();
     }
 
     @Schema(description = "JSON object with the Widget Bundle Id. " +
             "Specify this field to update the Widget Bundle. " +
             "Referencing non-existing Widget Bundle Id will cause error. " +
-            "Omit this field to create new Widget Bundle." )
+            "Omit this field to create new Widget Bundle.")
     @Override
     public WidgetsBundleId getId() {
         return super.getId();

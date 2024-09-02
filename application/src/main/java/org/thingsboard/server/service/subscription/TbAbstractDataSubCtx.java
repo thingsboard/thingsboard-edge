@@ -147,7 +147,7 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
             int subIdx = sessionRef.getSessionSubIdSeq().incrementAndGet();
             subToEntityIdMap.put(subIdx, entityData.getEntityId());
             localSubscriptionService.addSubscription(
-                    createTsSub(entityData, subIdx, false, startTs, endTs, keyStates, resultToLatestValues));
+                    createTsSub(entityData, subIdx, false, startTs, endTs, keyStates, resultToLatestValues), sessionRef);
         });
     }
 
@@ -155,7 +155,7 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
         Map<EntityKeyType, List<EntityKey>> keysByType = getEntityKeyByTypeMap(keys);
         for (EntityData entityData : data.getData()) {
             List<TbSubscription> entitySubscriptions = addSubscriptions(entityData, keysByType, latestValues, startTs, endTs);
-            entitySubscriptions.forEach(localSubscriptionService::addSubscription);
+            entitySubscriptions.forEach(subscription -> localSubscriptionService.addSubscription(subscription, sessionRef));
         }
     }
 
@@ -279,4 +279,5 @@ public abstract class TbAbstractDataSubCtx<T extends AbstractDataQuery<? extends
     abstract void sendWsMsg(String sessionId, TelemetrySubscriptionUpdate subscriptionUpdate, EntityKeyType keyType, boolean resultToLatestValues);
 
     protected abstract Aggregation getCurrentAggregation();
+
 }

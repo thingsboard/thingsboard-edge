@@ -30,6 +30,8 @@
 ///
 
 
+import { MenuId } from '@core/services/menu.models';
+
 export interface CustomMenuItem {
   name: string;
   iconUrl: string;
@@ -42,6 +44,6 @@ export interface CustomMenuItem {
 }
 
 export interface CustomMenu {
-  disabledMenuItems: string[];
+  disabledMenuItems: MenuId[];
   menuItems: CustomMenuItem[];
 }

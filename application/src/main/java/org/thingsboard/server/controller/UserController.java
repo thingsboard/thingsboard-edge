@@ -34,16 +34,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -324,7 +321,7 @@ public class UserController extends BaseController {
             if (user.getId() != null) {
                 User prevUser = userService.findUserById(getTenantId(), user.getId());
                 JsonNode additionalInfo = prevUser.getAdditionalInfo();
-                if (additionalInfo != null && additionalInfo.has(HOME_DASHBOARD_ID)) {
+                if (additionalInfo != null && additionalInfo.hasNonNull(HOME_DASHBOARD_ID)) {
                     prevHomeDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();
                     if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {
                         prevHideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();

@@ -48,12 +48,13 @@ import {
   ComparisonResultType,
   DataKey,
   DataKeyConfigMode,
-  DatasourceType, JsonSettingsSchema, Widget,
+  DatasourceType,
+  JsonSettingsSchema,
+  Widget,
   widgetType
 } from '@shared/models/widget.models';
 import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { AggregationType } from '@shared/models/time/time.models';
-import { DataKeysCallbacks } from '@home/components/widget/config/data-keys.component.models';
 import { TranslateService } from '@ngx-translate/core';
 import { TruncatePipe } from '@shared/pipe/truncate.pipe';
 import {
@@ -66,6 +67,7 @@ import {
   aggregatedValueCardKeyPositionTranslations,
   AggregatedValueCardKeySettings
 } from '@home/components/widget/lib/cards/aggregated-value-card.models';
+import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
 
 @Component({
   selector: 'tb-aggregated-data-key-row',
@@ -114,7 +116,7 @@ export class AggregatedDataKeyRowComponent implements ControlValueAccessor, OnIn
 
   valuePreviewFn = this._valuePreviewFn.bind(this);
 
-  get callbacks(): DataKeysCallbacks {
+  get callbacks(): WidgetConfigCallbacks {
     return this.widgetConfigComponent.widgetConfigCallbacks;
   }
 

@@ -199,6 +199,10 @@ export class WidgetContext {
     }
   }
 
+  get dashboardPageElement(): HTMLElement {
+    return this.dashboard?.stateController?.dashboardCtrl?.elRef?.nativeElement;
+  }
+
   authService: AuthService;
   deviceService: DeviceService;
   assetService: AssetService;
@@ -475,6 +479,8 @@ export class WidgetContext {
       labelPattern.destroy();
     }
     this.labelPatterns.clear();
+    this.width = undefined;
+    this.height = undefined;
     this.destroyed = true;
   }
 
@@ -557,6 +563,7 @@ export interface WidgetInfo extends WidgetTypeDescriptor, WidgetControllerDescri
   widgetName: string;
   fullFqn: string;
   deprecated: boolean;
+  scada: boolean;
   typeSettingsSchema?: string | any;
   typeDataKeySettingsSchema?: string | any;
   typeLatestDataKeySettingsSchema?: string | any;
@@ -591,6 +598,7 @@ export const MissingWidgetType: WidgetInfo = {
   widgetName: 'Widget type not found',
   fullFqn: 'undefined',
   deprecated: false,
+  scada: false,
   sizeX: 8,
   sizeY: 6,
   resources: [],
@@ -616,6 +624,7 @@ export const ErrorWidgetType: WidgetInfo = {
   widgetName: 'Error loading widget',
   fullFqn: 'error',
   deprecated: false,
+  scada: false,
   sizeX: 8,
   sizeY: 6,
   resources: [],
@@ -658,6 +667,7 @@ export const toWidgetInfo = (widgetTypeEntity: WidgetType): WidgetInfo => ({
   widgetName: widgetTypeEntity.name,
   fullFqn: fullWidgetTypeFqn(widgetTypeEntity),
   deprecated: widgetTypeEntity.deprecated,
+  scada: widgetTypeEntity.scada,
   type: widgetTypeEntity.descriptor.type,
   sizeX: widgetTypeEntity.descriptor.sizeX,
   sizeY: widgetTypeEntity.descriptor.sizeY,
@@ -685,7 +695,7 @@ export const detailsToWidgetInfo = (widgetTypeDetailsEntity: WidgetTypeDetails):
 };
 
 export const toWidgetType = (widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId: TenantId,
-                             createdTime: number): WidgetType => {
+                             createdTime: number, version: number): WidgetType => {
   const descriptor: WidgetTypeDescriptor = {
     type: widgetInfo.type,
     sizeX: widgetInfo.sizeX,
@@ -708,16 +718,18 @@ export const toWidgetType = (widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId:
     id,
     tenantId,
     createdTime,
+    version,
     fqn: widgetTypeFqn(widgetInfo.fullFqn),
     name: widgetInfo.widgetName,
     deprecated: widgetInfo.deprecated,
+    scada: widgetInfo.scada,
     descriptor
   };
 };
 
 export const toWidgetTypeDetails = (widgetInfo: WidgetInfo, id: WidgetTypeId, tenantId: TenantId,
-                                    createdTime: number): WidgetTypeDetails => {
-  const widgetTypeEntity = toWidgetType(widgetInfo, id, tenantId, createdTime);
+                                    createdTime: number, version: number): WidgetTypeDetails => {
+  const widgetTypeEntity = toWidgetType(widgetInfo, id, tenantId, createdTime, version);
   return {
     ...widgetTypeEntity,
     description: widgetInfo.description,

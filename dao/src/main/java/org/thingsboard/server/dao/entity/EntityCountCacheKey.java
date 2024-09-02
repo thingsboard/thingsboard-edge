@@ -36,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.TenantId;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 @Getter
@@ -43,6 +44,7 @@ import java.io.Serializable;
 @RequiredArgsConstructor
 public class EntityCountCacheKey implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -1992105662738434178L;
 
     private final TenantId tenantId;
