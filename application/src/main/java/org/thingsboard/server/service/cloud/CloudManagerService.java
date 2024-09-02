@@ -15,7 +15,6 @@
  */
 package org.thingsboard.server.service.cloud;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -35,7 +34,6 @@ import org.thingsboard.edge.rpc.EdgeRpcClient;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -46,67 +44,40 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
-import org.thingsboard.server.gen.edge.v1.EdgeVersion;
-import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
-import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.AssetProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.DeviceCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.DeviceProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.EdgeCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.EntityViewCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.RelationCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.ResourceCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.TelemetryCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.TenantCloudProcessor;
-import org.thingsboard.server.service.cloud.rpc.processor.WidgetBundleCloudProcessor;
-import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.state.DefaultDeviceStateService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import javax.annotation.PreDestroy;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @Slf4j
 public class CloudManagerService {
 
-    private static final ReentrantLock uplinkMsgsPackLock = new ReentrantLock();
-
-    private static final int MAX_UPLINK_ATTEMPTS = 10; // max number of attemps to send downlink message if edge connected
-
     private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
     private static final String QUEUE_SEQ_ID_OFFSET_ATTR_KEY = "queueSeqIdOffset";
     private static final String QUEUE_TS_KV_START_TS_ATTR_KEY = "queueTsKvStartTs";
     private static final String QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY = "queueTsKvSeqIdOffset";
-    private static final String RATE_LIMIT_REACHED = "Rate limit reached";
+
 
     @Value("${cloud.routingKey}")
     private String routingKey;
@@ -116,9 +87,6 @@ public class CloudManagerService {
 
     @Value("${cloud.reconnect_timeout}")
     private long reconnectTimeoutMs;
-
-    @Value("${cloud.uplink_pack_timeout_sec:60}")
-    private long uplinkPackTimeoutSec;
 
     @Autowired
     private EdgeService edgeService;
@@ -133,10 +101,13 @@ public class CloudManagerService {
     protected TbClusterService tbClusterService;
 
     @Autowired
-    private DbCallbackExecutorService dbCallbackExecutorService;
+    private CloudEventStorageSettings cloudEventStorageSettings;
 
     @Autowired
-    private CloudEventStorageSettings cloudEventStorageSettings;
+    private GeneralUplinkMessageService generalUplinkMessageService;
+
+    @Autowired
+    private TsUplinkMessageService tsUplinkMessageService;
 
     @Autowired
     private DownlinkMessageService downlinkMessageService;
@@ -147,35 +118,6 @@ public class CloudManagerService {
     @Autowired
     private EdgeCloudProcessor edgeCloudProcessor;
 
-    @Autowired
-    private RelationCloudProcessor relationProcessor;
-
-    @Autowired
-    private DeviceCloudProcessor deviceProcessor;
-
-    @Autowired
-    private DeviceProfileCloudProcessor deviceProfileProcessor;
-
-    @Autowired
-    private AlarmCloudProcessor alarmProcessor;
-
-    @Autowired
-    private TelemetryCloudProcessor telemetryProcessor;
-
-    @Autowired
-    private WidgetBundleCloudProcessor widgetBundleProcessor;
-
-    @Autowired
-    private EntityViewCloudProcessor entityViewProcessor;
-
-    @Autowired
-    private DashboardCloudProcessor dashboardProcessor;
-
-    @Autowired
-    private AssetCloudProcessor assetProcessor;
-
-    @Autowired
-    private AssetProfileCloudProcessor assetProfileProcessor;
 
     @Autowired
     private TenantCloudProcessor tenantProcessor;
@@ -183,8 +125,7 @@ public class CloudManagerService {
     @Autowired
     private CustomerCloudProcessor customerProcessor;
 
-    @Autowired
-    private ResourceCloudProcessor resourceCloudProcessor;
+
 
     @Autowired
     private CloudEventService cloudEventService;
@@ -192,22 +133,21 @@ public class CloudManagerService {
     @Autowired
     private ConfigurableApplicationContext context;
 
-    private CountDownLatch latch;
+
 
     private EdgeSettings currentEdgeSettings;
 
     private Long queueStartTs;
-    private Long queueTsKvStartTs;
+
 
     private ExecutorService executor;
     private ScheduledExecutorService reconnectScheduler;
     private ScheduledFuture<?> scheduledFuture;
     private ScheduledExecutorService shutdownExecutor;
-    private volatile boolean isRateLimitViolated = false;
+
     private volatile boolean initialized;
     private volatile boolean syncInProgress = false;
 
-    private final ConcurrentMap<Integer, UplinkMsg> pendingMsgsMap = new ConcurrentHashMap<>();
 
     private TenantId tenantId;
     private CustomerId customerId;
@@ -269,19 +209,8 @@ public class CloudManagerService {
             while (!Thread.interrupted()) {
                 try {
                     if (initialized) {
-
-                        Long cloudEventsQueueSeqIdStart = getQueueSeqIdStart().get();
-                        TimePageLink cloudEventsPageLink = newCloudEventsAvailable(cloudEventsQueueSeqIdStart);
-                        if (cloudEventsPageLink != null) {
-                            processCloudEvents(cloudEventsQueueSeqIdStart, cloudEventsPageLink);
-                        }
-
-                        Long tsKvCloudEventsQueueSeqIdStart = getQueueTsKvSeqIdStart().get();
-                        TimePageLink tsKvCloudEventsPageLink = newTsKvCloudEventsAvailable(tsKvCloudEventsQueueSeqIdStart);
-                        if (tsKvCloudEventsPageLink != null) {
-                            processTsKvCloudEvents(tsKvCloudEventsQueueSeqIdStart, tsKvCloudEventsPageLink);
-                        }
-
+                        generalUplinkMessageService.processHandleMessages(tenantId);
+                        tsUplinkMessageService.processHandleMessages(tenantId);
                         try {
                             Thread.sleep(cloudEventStorageSettings.getNoRecordsSleepInterval());
                         } catch (InterruptedException e) {
@@ -297,307 +226,6 @@ public class CloudManagerService {
         });
     }
 
-    private void processCloudEvents(Long queueSeqIdStart, TimePageLink pageLink) throws Exception {
-        PageData<CloudEvent> cloudEvents;
-        boolean success = true;
-        do {
-            cloudEvents = cloudEventService.findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
-            if (initialized) {
-                if (cloudEvents.getData().isEmpty()) {
-                    log.info("seqId column of cloud_event table started new cycle");
-                    cloudEvents = findCloudEventsFromBeginning(pageLink);
-                }
-                log.trace("[{}] event(s) are going to be converted.", cloudEvents.getData().size());
-                List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(cloudEvents.getData());
-                if (!uplinkMsgsPack.isEmpty()) {
-                    success = sendUplinkMsgsPack(uplinkMsgsPack);
-                } else {
-                    success = true;
-                }
-                if (success && cloudEvents.getTotalElements() > 0) {
-                    CloudEvent latestCloudEvent = cloudEvents.getData().get(cloudEvents.getData().size() - 1);
-                    try {
-                        Long newStartTs = Uuids.unixTimestamp(latestCloudEvent.getUuidId());
-                        updateQueueStartTsSeqIdOffset(QUEUE_START_TS_ATTR_KEY, QUEUE_SEQ_ID_OFFSET_ATTR_KEY, newStartTs, latestCloudEvent.getSeqId());
-                        log.debug("Queue offset was updated [{}][{}][{}]", latestCloudEvent.getUuidId(), newStartTs, latestCloudEvent.getSeqId());
-                    } catch (Exception e) {
-                        log.error("Failed to update queue offset [{}]", latestCloudEvent);
-                    }
-                }
-                if (success) {
-                    pageLink = pageLink.nextPageLink();
-                }
-            }
-        } while (initialized && (!success || cloudEvents.hasNext()));
-    }
-
-    private void processTsKvCloudEvents(Long queueSeqIdStart, TimePageLink pageLink) throws Exception {
-        PageData<CloudEvent> tsKvCloudEvents;
-        boolean success = true;
-        do {
-            tsKvCloudEvents = cloudEventService.findTsKvCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
-            if (initialized) {
-                if (tsKvCloudEvents.getData().isEmpty()) {
-                    log.info("seqId column of ts_kv_cloud_event table started new cycle");
-                    tsKvCloudEvents = findTsKvCloudEventsFromBeginning(pageLink);
-                }
-                log.trace("[{}] event(s) are going to be converted.", tsKvCloudEvents.getData().size());
-                List<UplinkMsg> uplinkMsgsPack = convertToUplinkMsgsPack(tsKvCloudEvents.getData());
-                if (!uplinkMsgsPack.isEmpty()) {
-                    success = sendUplinkMsgsPack(uplinkMsgsPack);
-                } else {
-                    success = true;
-                }
-                if (success && tsKvCloudEvents.getTotalElements() > 0) {
-                    CloudEvent latestTSKvCloudEvent = tsKvCloudEvents.getData().get(tsKvCloudEvents.getData().size() - 1);
-                    try {
-                        Long newStartTs = Uuids.unixTimestamp(latestTSKvCloudEvent.getUuidId());
-                        updateQueueStartTsSeqIdOffset(QUEUE_TS_KV_START_TS_ATTR_KEY, QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY, newStartTs, latestTSKvCloudEvent.getSeqId());
-                        log.debug("Queue offset was updated [{}][{}][{}]", latestTSKvCloudEvent.getUuidId(), newStartTs, latestTSKvCloudEvent.getSeqId());
-                    } catch (Exception e) {
-                        log.error("Failed to update queue offset [{}]", latestTSKvCloudEvent);
-                    }
-                }
-                if (success) {
-                    pageLink = pageLink.nextPageLink();
-                }
-                Long cloudEventsQueueSeqIdStart = getQueueSeqIdStart().get();
-                TimePageLink cloudEventsPageLink = newCloudEventsAvailable(cloudEventsQueueSeqIdStart);
-                if (cloudEventsPageLink != null) {
-                    return;
-                }
-            }
-        } while (initialized && (!success || tsKvCloudEvents.hasNext()));
-    }
-
-    private TimePageLink newCloudEventsAvailable(Long queueSeqIdStart) {
-        try {
-            queueStartTs = getQueueStartTs().get();
-            long queueEndTs = queueStartTs + TimeUnit.DAYS.toMillis(1);
-            TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
-                    0, null, null, queueStartTs, queueEndTs);
-            PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
-            if (cloudEvents.getData().isEmpty()) {
-                // check if new cycle started (seq_id starts from '1')
-                cloudEvents = findCloudEventsFromBeginning(pageLink);
-                if (cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() == 1)) {
-                    log.info("newCloudEventsAvailable: new cycle started (seq_id starts from '1')!");
-                    return pageLink;
-                } else {
-                    while (queueEndTs < System.currentTimeMillis()) {
-                        log.info("newCloudEventsAvailable: queueEndTs < System.currentTimeMillis() [{}] [{}]", queueEndTs, System.currentTimeMillis());
-                        queueStartTs = queueEndTs;
-                        queueEndTs = queueEndTs + TimeUnit.DAYS.toMillis(1);
-                        pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
-                                0, null, null, queueStartTs, queueEndTs);
-                        cloudEvents = cloudEventService.findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
-                        if (!cloudEvents.getData().isEmpty()) {
-                            return pageLink;
-                        }
-                    }
-                    return null;
-                }
-            } else {
-                return pageLink;
-            }
-        } catch (Exception e) {
-            log.warn("Failed to check newCloudEventsAvailable!", e);
-            return null;
-        }
-    }
-
-    private TimePageLink newTsKvCloudEventsAvailable(Long queueSeqIdStart) {
-        try {
-            queueTsKvStartTs = getQueueTsKvStartTs().get();
-            long queueEndTs = queueTsKvStartTs + TimeUnit.DAYS.toMillis(1);
-            TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
-                    0, null, null, queueTsKvStartTs, queueEndTs);
-            PageData<CloudEvent> cloudEvents = cloudEventService.findTsKvCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
-            if (cloudEvents.getData().isEmpty()) {
-                // check if new cycle started (seq_id starts from '1')
-                cloudEvents = findTsKvCloudEventsFromBeginning(pageLink);
-                if (cloudEvents.getData().stream().anyMatch(ce -> ce.getSeqId() == 1)) {
-                    log.info("newTsKvCloudEventsAvailable: new cycle started (seq_id starts from '1')!");
-                    return pageLink;
-                } else {
-                    while (queueEndTs < System.currentTimeMillis()) {
-                        log.info("newTsKvCloudEventsAvailable: queueEndTs < System.currentTimeMillis() [{}] [{}]", queueEndTs, System.currentTimeMillis());
-                        queueTsKvStartTs = queueEndTs;
-                        queueEndTs = queueEndTs + TimeUnit.DAYS.toMillis(1);
-                        pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
-                                0, null, null, queueTsKvStartTs, queueEndTs);
-                        cloudEvents = cloudEventService.findTsKvCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
-                        if (!cloudEvents.getData().isEmpty()) {
-                            return pageLink;
-                        }
-                    }
-                    return null;
-                }
-            } else {
-                return pageLink;
-            }
-        } catch (Exception e) {
-            log.warn("Failed to check newTsKvCloudEventsAvailable!", e);
-            return null;
-        }
-    }
-
-    private PageData<CloudEvent> findCloudEventsFromBeginning(TimePageLink pageLink) {
-        long seqIdEnd = Integer.toUnsignedLong(cloudEventStorageSettings.getMaxReadRecordsCount());
-        seqIdEnd = Math.max(seqIdEnd, 50L);
-        return cloudEventService.findCloudEvents(tenantId, 0L, seqIdEnd, pageLink);
-    }
-
-    private PageData<CloudEvent> findTsKvCloudEventsFromBeginning(TimePageLink pageLink) {
-        long seqIdEnd = Integer.toUnsignedLong(cloudEventStorageSettings.getMaxReadRecordsCount());
-        seqIdEnd = Math.max(seqIdEnd, 50L);
-        return cloudEventService.findTsKvCloudEvents(tenantId, 0L, seqIdEnd, pageLink);
-    }
-
-    private boolean sendUplinkMsgsPack(List<UplinkMsg> uplinkMsgsPack) throws InterruptedException {
-        uplinkMsgsPackLock.lock();
-        try {
-            int attempt = 1;
-            boolean success;
-            LinkedBlockingQueue<UplinkMsg> orderedPendingMsgsQueue = new LinkedBlockingQueue<>();
-            pendingMsgsMap.clear();
-            uplinkMsgsPack.forEach(msg -> {
-                pendingMsgsMap.put(msg.getUplinkMsgId(), msg);
-                orderedPendingMsgsQueue.add(msg);
-            });
-            do {
-                log.trace("[{}] uplink msg(s) are going to be send.", pendingMsgsMap.values().size());
-                latch = new CountDownLatch(pendingMsgsMap.values().size());
-                for (UplinkMsg uplinkMsg : orderedPendingMsgsQueue) {
-                    if (edgeRpcClient.getServerMaxInboundMessageSize() != 0 && uplinkMsg.getSerializedSize() > edgeRpcClient.getServerMaxInboundMessageSize()) {
-                        log.error("Uplink msg size [{}] exceeds server max inbound message size [{}]. Skipping this message. " +
-                                        "Please increase value of EDGES_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the server and restart it." +
-                                        "Message {}",
-                                uplinkMsg.getSerializedSize(), edgeRpcClient.getServerMaxInboundMessageSize(), uplinkMsg);
-                        pendingMsgsMap.remove(uplinkMsg.getUplinkMsgId());
-                        latch.countDown();
-                    } else {
-                        edgeRpcClient.sendUplinkMsg(uplinkMsg);
-                    }
-                }
-                success = latch.await(uplinkPackTimeoutSec, TimeUnit.SECONDS);
-                success = success && pendingMsgsMap.isEmpty();
-                if (!success) {
-                    log.warn("Failed to deliver the batch: {}, attempt: {}", pendingMsgsMap.values(), attempt);
-                }
-                if (initialized && !success) {
-                    try {
-                        Thread.sleep(cloudEventStorageSettings.getSleepIntervalBetweenBatches());
-                    } catch (InterruptedException e) {
-                        log.error("Error during sleep between batches", e);
-                    }
-                }
-                if (initialized && !success && isRateLimitViolated) {
-                    isRateLimitViolated = false;
-                    try {
-                        TimeUnit.SECONDS.sleep(60);
-                    } catch (InterruptedException e) {
-                        log.error("Error during sleep on rate limit violation", e);
-                    }
-                }
-                attempt++;
-                if (attempt > MAX_UPLINK_ATTEMPTS) {
-                    log.warn("Failed to deliver the batch after {} attempts. Next messages are going to be discarded {}",
-                            MAX_UPLINK_ATTEMPTS, pendingMsgsMap.values());
-                    return true;
-                }
-            } while (initialized && !success);
-            return success;
-        } finally {
-            uplinkMsgsPackLock.unlock();
-        }
-    }
-
-    private List<UplinkMsg> convertToUplinkMsgsPack(List<CloudEvent> cloudEvents) {
-        List<UplinkMsg> result = new ArrayList<>();
-        for (CloudEvent cloudEvent : cloudEvents) {
-            log.trace("Converting cloud event [{}]", cloudEvent);
-            UplinkMsg uplinkMsg = null;
-            try {
-                switch (cloudEvent.getAction()) {
-                    case UPDATED, ADDED, DELETED, ALARM_ACK, ALARM_CLEAR, ALARM_DELETE, CREDENTIALS_UPDATED, RELATION_ADD_OR_UPDATE, RELATION_DELETED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER, ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT ->
-                            uplinkMsg = convertEntityEventToUplink(this.tenantId, cloudEvent);
-                    case ATTRIBUTES_UPDATED, POST_ATTRIBUTES, ATTRIBUTES_DELETED, TIMESERIES_UPDATED ->
-                            uplinkMsg = telemetryProcessor.convertTelemetryEventToUplink(this.tenantId, cloudEvent);
-                    case ATTRIBUTES_REQUEST -> uplinkMsg = telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
-                    case RELATION_REQUEST -> uplinkMsg = relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
-                    case RPC_CALL -> uplinkMsg = deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
-                    case WIDGET_BUNDLE_TYPES_REQUEST -> uplinkMsg = widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
-                    case ENTITY_VIEW_REQUEST -> uplinkMsg = entityViewProcessor.convertEntityViewRequestEventToUplink(cloudEvent);
-                }
-            } catch (Exception e) {
-                log.error("Exception during converting events from queue, skipping event [{}]", cloudEvent, e);
-            }
-            if (uplinkMsg != null) {
-                result.add(uplinkMsg);
-            }
-        }
-        return result;
-    }
-
-    private UplinkMsg convertEntityEventToUplink(TenantId tenantId, CloudEvent cloudEvent) {
-        log.trace("Executing convertEntityEventToUplink, cloudEvent [{}], edgeEventAction [{}]", cloudEvent, cloudEvent.getAction());
-        EdgeVersion edgeVersion = EdgeVersion.V_LATEST;
-        switch (cloudEvent.getType()) {
-            case DEVICE:
-                return deviceProcessor.convertDeviceEventToUplink(tenantId, cloudEvent, edgeVersion);
-            case DEVICE_PROFILE:
-                return deviceProfileProcessor.convertDeviceProfileEventToUplink(cloudEvent, edgeVersion);
-            case ALARM:
-                return alarmProcessor.convertAlarmEventToUplink(cloudEvent, edgeVersion);
-            case ALARM_COMMENT:
-                return alarmProcessor.convertAlarmCommentEventToUplink(cloudEvent, edgeVersion);
-            case ASSET:
-                return assetProcessor.convertAssetEventToUplink(cloudEvent, edgeVersion);
-            case ASSET_PROFILE:
-                return assetProfileProcessor.convertAssetProfileEventToUplink(cloudEvent, edgeVersion);
-            case DASHBOARD:
-                return dashboardProcessor.convertDashboardEventToUplink(cloudEvent, edgeVersion);
-            case ENTITY_VIEW:
-                return entityViewProcessor.convertEntityViewEventToUplink(cloudEvent, edgeVersion);
-            case RELATION:
-                return relationProcessor.convertRelationEventToUplink(cloudEvent, edgeVersion);
-            case TB_RESOURCE:
-                return resourceCloudProcessor.convertResourceEventToUplink(cloudEvent, edgeVersion);
-            default:
-                log.warn("Unsupported cloud event type [{}]", cloudEvent);
-                return null;
-        }
-    }
-
-    private ListenableFuture<Long> getQueueStartTs() {
-        return getLongAttrByKey(QUEUE_START_TS_ATTR_KEY);
-    }
-
-    private ListenableFuture<Long> getQueueSeqIdStart() {
-        return getLongAttrByKey(QUEUE_SEQ_ID_OFFSET_ATTR_KEY);
-    }
-
-    private ListenableFuture<Long> getQueueTsKvStartTs() {
-        return getLongAttrByKey(QUEUE_TS_KV_START_TS_ATTR_KEY);
-    }
-
-    private ListenableFuture<Long> getQueueTsKvSeqIdStart() {
-        return getLongAttrByKey(QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY);
-    }
-
-    private ListenableFuture<Long> getLongAttrByKey(String attrKey) {
-        ListenableFuture<Optional<AttributeKvEntry>> future =
-                attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attrKey);
-        return Futures.transform(future, attributeKvEntryOpt -> {
-            if (attributeKvEntryOpt != null && attributeKvEntryOpt.isPresent()) {
-                AttributeKvEntry attributeKvEntry = attributeKvEntryOpt.get();
-                return attributeKvEntry.getLongValue().isPresent() ? attributeKvEntry.getLongValue().get() : 0L;
-            } else {
-                return 0L;
-            }
-        }, dbCallbackExecutorService);
-    }
 
     private void updateQueueStartTsSeqIdOffset(String attrStartTsKey, String attrSeqIdKey, Long startTs, Long seqIdOffset) {
         log.trace("updateQueueStartTsSeqIdOffset [{}][{}]", startTs, seqIdOffset);
@@ -608,20 +236,8 @@ public class CloudManagerService {
     }
 
     private void onUplinkResponse(UplinkResponseMsg msg) {
-        try {
-            if (msg.getSuccess()) {
-                pendingMsgsMap.remove(msg.getUplinkMsgId());
-                log.debug("[{}] Msg has been processed successfully! {}", routingKey, msg);
-            } else if (msg.getErrorMsg().contains(RATE_LIMIT_REACHED)) {
-                log.warn("[{}] Msg processing failed! {}", routingKey, RATE_LIMIT_REACHED);
-                isRateLimitViolated = true;
-            } else {
-                log.error("[{}] Msg processing failed! Error msg: {}", routingKey, msg.getErrorMsg());
-            }
-            latch.countDown();
-        } catch (Exception e) {
-            log.error("Can't process uplink response message [{}]", msg, e);
-        }
+        generalUplinkMessageService.onUplinkResponse(msg);
+        tsUplinkMessageService.onUplinkResponse(msg);
     }
 
     private void onEdgeUpdate(EdgeConfiguration edgeConfiguration) {
@@ -664,8 +280,7 @@ public class CloudManagerService {
             log.trace("Using edge settings from DB {}", this.currentEdgeSettings);
         }
 
-        queueStartTs = getQueueStartTs().get();
-        queueTsKvStartTs = getQueueTsKvStartTs().get();
+        queueStartTs = generalUplinkMessageService.getQueueStartTs(tenantId).get();
         tenantProcessor.createTenantIfNotExists(this.tenantId, queueStartTs);
         boolean edgeCustomerIdUpdated = setOrUpdateCustomerId(edgeConfiguration);
         if (edgeCustomerIdUpdated) {

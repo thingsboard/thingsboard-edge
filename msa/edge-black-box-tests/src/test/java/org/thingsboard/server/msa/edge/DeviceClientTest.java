@@ -349,6 +349,7 @@ public class DeviceClientTest extends AbstractContainerTest {
                     Optional<Device> sourceDevice = sourceRestClient.getDeviceById(device.getId());
                     Device expected = targetDevice.get();
                     Device actual = sourceDevice.get();
+                    cleanUpVersion(expected, actual);
                     return expected.equals(actual);
                 });
     }
@@ -377,6 +378,7 @@ public class DeviceClientTest extends AbstractContainerTest {
                     deviceCredentialsOnEdge.setId(null);
                     deviceCredentialsOnCloud.setCreatedTime(0);
                     deviceCredentialsOnEdge.setCreatedTime(0);
+                    cleanUpVersion(deviceCredentialsOnCloud, deviceCredentialsOnCloud);
                     return deviceCredentialsOnCloud.equals(deviceCredentialsOnEdge);
                 });
     }

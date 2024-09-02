@@ -181,7 +181,15 @@ public class AssetClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() -> {
                     Optional<Asset> assetOptional = cloudRestClient.getAssetById(savedAssetOnEdge.getId());
-                    return assetOptional.isPresent() && !assetOptional.get().getName().equals(savedAssetOnCloud.getName());
+                    return assetOptional.isPresent() && !assetOptional.get().getName().equals("Edge Asset 3");
+                });
+
+        Awaitility.await()
+                .pollInterval(500, TimeUnit.MILLISECONDS)
+                .atMost(30, TimeUnit.SECONDS)
+                .until(() -> {
+                    Optional<Asset> assetOptional = edgeRestClient.getAssetById(savedAssetOnEdge.getId());
+                    return assetOptional.isPresent() && !assetOptional.get().getName().equals("Edge Asset 3");
                 });
 
         // delete asset

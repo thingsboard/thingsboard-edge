@@ -1595,6 +1595,7 @@ public class DeviceControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("HasVersion check is ignored for Edge")
     public void testSaveDeviceWithOutdatedVersion() throws Exception {
         Device device = createDevice("Device v1.0");
         assertThat(device.getVersion()).isOne();
