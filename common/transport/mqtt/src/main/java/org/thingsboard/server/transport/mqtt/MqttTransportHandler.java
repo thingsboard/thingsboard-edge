@@ -75,6 +75,7 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.rpc.RpcStatus;
+import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
 import org.thingsboard.server.common.msg.EncryptionUtil;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
@@ -130,7 +131,9 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -164,6 +167,7 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
     private static final Pattern FW_REQUEST_PATTERN = Pattern.compile(MqttTopics.DEVICE_FIRMWARE_REQUEST_TOPIC_PATTERN);
     private static final Pattern SW_REQUEST_PATTERN = Pattern.compile(MqttTopics.DEVICE_SOFTWARE_REQUEST_TOPIC_PATTERN);
 
+    private static final String SESSION_LIMITS = "getSessionLimits";
 
     private static final String PAYLOAD_TOO_LARGE = "PAYLOAD_TOO_LARGE";
 
@@ -527,8 +531,12 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                 transportService.process(deviceSessionCtx.getSessionInfo(), rpcResponseMsg, getPubAckCallback(ctx, msgId, rpcResponseMsg));
             } else if (topicName.startsWith(MqttTopics.DEVICE_RPC_REQUESTS_TOPIC)) {
                 ToServerRpcRequestMsg rpcRequestMsg = payloadAdaptor.convertToServerRpcRequest(deviceSessionCtx, mqttMsg, MqttTopics.DEVICE_RPC_REQUESTS_TOPIC);
-                transportService.process(deviceSessionCtx.getSessionInfo(), rpcRequestMsg, getPubAckCallback(ctx, msgId, rpcRequestMsg));
                 toServerRpcSubTopicType = TopicType.V1;
+                if (SESSION_LIMITS.equals(rpcRequestMsg.getMethodName())) {
+                    onGetSessionLimitsRpc(deviceSessionCtx.getSessionInfo(), ctx, msgId, rpcRequestMsg);
+                } else {
+                    transportService.process(deviceSessionCtx.getSessionInfo(), rpcRequestMsg, getPubAckCallback(ctx, msgId, rpcRequestMsg));
+                }
             } else if (topicName.equals(MqttTopics.DEVICE_CLAIM_TOPIC)) {
                 ClaimDeviceMsg claimDeviceMsg = payloadAdaptor.convertToClaimDevice(deviceSessionCtx, mqttMsg);
                 transportService.process(deviceSessionCtx.getSessionInfo(), claimDeviceMsg, getPubAckCallback(ctx, msgId, claimDeviceMsg));
@@ -1362,6 +1370,39 @@ public class MqttTransportHandler extends ChannelInboundHandlerAdapter implement
                     ThingsboardErrorCode.INVALID_ARGUMENTS,
                     "Failed to convert device RPC command to MQTT msg: " + rpcRequest.getMethodName() + rpcRequest.getParams());
         }
+    }
+
+    private void onGetSessionLimitsRpc(TransportProtos.SessionInfoProto sessionInfo, ChannelHandlerContext ctx, int msgId, TransportProtos.ToServerRpcRequestMsg rpcRequestMsg) {
+        var tenantProfile = context.getTenantProfileCache().get(deviceSessionCtx.getTenantId());
+        DefaultTenantProfileConfiguration profile = tenantProfile.getDefaultProfileConfiguration();
+        Map<String, Object> sessionLimits = new HashMap<>();
+        Map<String, String> rateLimits = new HashMap<>();
+
+        if (sessionInfo.getIsGateway()) {
+            rateLimits.put("messages", profile.getTransportGatewayMsgRateLimit());
+            rateLimits.put("telemetryMessages", profile.getTransportGatewayTelemetryMsgRateLimit());
+            rateLimits.put("telemetryDataPoints", profile.getTransportGatewayTelemetryDataPointsRateLimit());
+            rateLimits.put("deviceMessages", profile.getTransportGatewayDeviceMsgRateLimit());
+            rateLimits.put("deviceTelemetryMessages", profile.getTransportGatewayDeviceTelemetryMsgRateLimit());
+            rateLimits.put("deviceTelemetryDataPoints", profile.getTransportGatewayDeviceTelemetryDataPointsRateLimit());
+        } else {
+            rateLimits.put("messages", profile.getTransportDeviceMsgRateLimit());
+            rateLimits.put("telemetryMessages", profile.getTransportDeviceTelemetryMsgRateLimit());
+            rateLimits.put("telemetryDataPoints", profile.getTransportDeviceTelemetryDataPointsRateLimit());
+        }
+        sessionLimits.put("rateLimits", rateLimits);
+        sessionLimits.put("maxPayloadSize", context.getMaxPayloadSize());
+        sessionLimits.put("maxInflightMessages", context.getMessageQueueSizePerDeviceLimit());
+        sessionLimits.put("payloadType", deviceSessionCtx.getPayloadType());
+
+        ack(ctx, msgId, MqttReasonCodes.PubAck.SUCCESS);
+
+        TransportProtos.ToServerRpcResponseMsg responseMsg = TransportProtos.ToServerRpcResponseMsg.newBuilder()
+                .setRequestId(rpcRequestMsg.getRequestId())
+                .setPayload(JacksonUtil.toString(sessionLimits))
+                .build();
+
+        onToServerRpcResponse(responseMsg);
     }
 
     private void handleToSparkplugDeviceRpcRequest(TransportProtos.ToDeviceRpcRequestMsg rpcRequest) throws ThingsboardException {
