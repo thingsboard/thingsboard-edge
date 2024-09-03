@@ -29,7 +29,14 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Browser, BrowserContextOptions, CDPSession, Page, PageScreenshotOptions } from 'playwright-core';
+import {
+  Browser,
+  BrowserContext,
+  BrowserContextOptions,
+  CDPSession,
+  Page,
+  PageScreenshotOptions
+} from 'playwright-core';
 import { performance } from 'perf_hooks';
 import { _logger } from '../../config/logger';
 import config from 'config';
@@ -56,17 +63,27 @@ export class TbWebReportPage {
 
     private logger: winston.Logger;
     private page: Page;
+    private context: BrowserContext;
     private session: CDPSession;
     private currentBaseUrl: string;
     private lastReportResult: ReportResultMessage | null;
     private pageHeight = 1080;
+
+    private crushed = false;
+    private failed = false;
+    private closed = false;
 
     constructor(private browser: Browser,
                 public id: number) {
         this.logger = _logger(`TbWebReportPage-${this.id}`)
     }
 
+    get hasAnyFailureOccurred(): boolean {
+        return this.crushed || this.failed || this.closed;
+    }
+
     async init(): Promise<void> {
+        this.logger.info('Init new page: %s', this.id);
         const config: BrowserContextOptions = {
             ignoreHTTPSErrors: true,
             deviceScaleFactor: 1,
@@ -76,18 +93,20 @@ export class TbWebReportPage {
                 height: this.pageHeight
             }
         }
-        const context = await this.browser.newContext(config);
-        this.page = await context.newPage();
+        this.context = await this.browser.newContext(config);
+        this.page = await this.context.newPage();
         this.page.on('response', msg => {
-            if (msg.status() > 400) {
+            if (msg.status() >= 400) {
                 this.currentBaseUrl = '';
             }
-            this.logger.debug('Response: URL: %s, Status %s, Headers: %s', msg.url(), msg.status(), JSON.stringify(msg.headers()));
+            this.logger.silly('Response: URL: %s, Status %s, Headers: %s', msg.url(), msg.status(), JSON.stringify(msg.headers()));
         });
-        if (this.logger.level === "debug") {
+        if (this.logger.level === "debug" || this.logger.level === "silly") {
             this.page.on('console', msg => this.logger.debug('Web page console message: %s', msg.text()));
+        }
+        if (this.logger.level === "silly") {
             this.page.on('request', msg => {
-                this.logger.debug('Request: URL: %s, Headers: %s, Post Data: %s, Failure: %s',
+                this.logger.silly('Request: URL: %s, Headers: %s, Post Data: %s, Failure: %s',
                   msg.url(), JSON.stringify(msg.headers()), msg.postData(), msg.failure()?.errorText);
             });
         }
@@ -95,12 +114,14 @@ export class TbWebReportPage {
             this.logger.error('Request failed: URL: %s, Error %s, Headers: %s', msg.url(), msg.failure()?.errorText, JSON.stringify(msg.headers()));
         });
         this.page.once('crash', () => {
+            this.crushed = true;
             this.logger.error('Web page crashed!');
         });
         this.page.once('close', () => {
+            this.closed = true;
             this.logger.debug('Web page closed!');
         });
-        this.session = await context.newCDPSession(this.page);
+        this.session = await this.context.newCDPSession(this.page);
         this.page.setDefaultNavigationTimeout(defaultPageNavigationTimeout);
         await this.page.emulateMedia({media: 'screen'});
         await this.page.exposeFunction('postWebReportResult', (result: ReportResultMessage) => {
@@ -109,13 +130,36 @@ export class TbWebReportPage {
     }
 
     async destroy(): Promise<void> {
+        this.logger.info('Destroy page');
         if (this.session) {
-            await this.session.detach();
+            this.logger.info('Detaching the CDPSession from the target');
+            try {
+                await this.session.detach();
+            } catch (e) {
+                this.logger.warn('Failed detaches the CDPSession from the target', e);
+            }
         }
         if (this.page) {
-            await this.page.close();
+            this.logger.info('Closing web page');
+            try {
+                await this.page.close();
+            } catch (e) {
+                this.logger.warn('Failed to close web page', e);
+            }
         }
-        this.logger.close();
+        if (this.context) {
+            this.logger.info('Closing browser context');
+            try {
+                await this.context.close();
+            } catch (e) {
+                this.logger.warn('Failed to close browser context', e);
+            }
+        }
+        try {
+            this.logger.close();
+        } catch (e) {
+            this.logger.warn('Failed to close the logger %s', this.logger, e);
+        }
     }
 
     async generateDashboardReport(request: GenerateReportRequest): Promise<Buffer> {
@@ -169,11 +213,14 @@ export class TbWebReportPage {
             if (!useNewPage) {
                 try {
                     await this.clearReport();
-                } catch (e) {}
+                } catch (e) {
+                    this.failed = true;
+                    this.logger.warn('Failed to clear report', e);
+                }
             }
         }
         const endTime = performance.now();
-        this.logger.info('Dashboard report generated in %sms.', endTime - startTime);
+        this.logger.info('Dashboard report generated in %s ms.', endTime - startTime);
         return buffer;
     }
 
@@ -194,6 +241,7 @@ export class TbWebReportPage {
     }
 
     async clearReport(): Promise<void> {
+        this.logger.debug('Clear web report');
         await this.postWindowMessage({type: 'clearReport'});
         const result = await this.waitForReportResult('clear report');
         if (!result.success) {
@@ -207,6 +255,7 @@ export class TbWebReportPage {
     }
 
     async waitForReportResult(operation: string, timeout = 3000): Promise<ReportResultMessage> {
+        this.logger.debug('waitForReportResult for %s ms, operation %s', timeout, operation);
         return new Promise<ReportResultMessage>(
             (resolve, reject) => {
                 if (this.lastReportResult) {
