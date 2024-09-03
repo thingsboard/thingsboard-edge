@@ -256,40 +256,29 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
         }
     }
 
-    private void assignCustomMenu(CustomMenuId customMenuId, CMAssigneeType assigneeType, List<EntityId> assignToList) {
-        switch (assigneeType) {
-            case ALL:
-            case NO_ASSIGN:
-                break;
-            case CUSTOMERS:
-                List<CustomerId> customerIds = assignToList.stream().map(CustomerId.class::cast).toList();
-                customerService.updateCustomersCustomMenuId(customerIds, customMenuId.getId());
-                break;
-            case USERS:
-                List<UserId> userIds = assignToList.stream().map(UserId.class::cast).toList();
-                userService.updateUsersCustomMenuId(userIds, customMenuId.getId());
-                break;
-            default:
-                throw new IncorrectParameterException("Unsupported assignee type!");
-        }
+    private void assignCustomMenu(CustomMenuId customMenuId, CMAssigneeType assigneeType, List<EntityId> entityIdsToAssign) {
+        processCustomMenuAssignment(customMenuId, assigneeType, entityIdsToAssign, false);
     }
 
-    private void unassignCustomMenu(CMAssigneeType assigneeType, List<EntityId> toRemoveEntityIds) {
+    private void unassignCustomMenu(CMAssigneeType assigneeType, List<EntityId> entityIdsToUnassign) {
+        processCustomMenuAssignment(null, assigneeType, entityIdsToUnassign, true);
+    }
+
+    private void processCustomMenuAssignment(CustomMenuId customMenuId, CMAssigneeType assigneeType, List<EntityId> entityIds, boolean isUnassign) {
+        if (CollectionUtils.isEmpty(entityIds)) {
+            return;
+        }
         switch (assigneeType) {
             case ALL:
             case NO_ASSIGN:
                 break;
             case CUSTOMERS:
-                if (CollectionUtils.isNotEmpty(toRemoveEntityIds)) {
-                    List<CustomerId> toRemoveCustomerIds = toRemoveEntityIds.stream().map(CustomerId.class::cast).toList();
-                    customerService.updateCustomersCustomMenuId(toRemoveCustomerIds, null);
-                }
+                List<CustomerId> customerIds = entityIds.stream().map(CustomerId.class::cast).toList();
+                customerService.updateCustomersCustomMenuId(customerIds, isUnassign ? null : customMenuId.getId());
                 break;
             case USERS:
-                if (CollectionUtils.isNotEmpty(toRemoveEntityIds)) {
-                    List<UserId> toRemoveUserIds = toRemoveEntityIds.stream().map(UserId.class::cast).toList();
-                    userService.updateUsersCustomMenuId(toRemoveUserIds, null);
-                }
+                List<UserId> userIds = entityIds.stream().map(UserId.class::cast).toList();
+                userService.updateUsersCustomMenuId(userIds, isUnassign ? null : customMenuId.getId());
                 break;
             default:
                 throw new IncorrectParameterException("Unsupported assignee type!");

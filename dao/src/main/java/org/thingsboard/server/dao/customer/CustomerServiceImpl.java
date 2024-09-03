@@ -474,7 +474,7 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
 
     @Override
     public void updateCustomersCustomMenuId(List<CustomerId> customerIds, UUID customMenuId) {
-        log.trace("Executing updateCustomMenuId, customMenuId [{}]", customMenuId);
+        log.trace("Executing updateCustomersCustomMenuId, customMenuId [{}]", customMenuId);
         customerDao.updateCustomersCustomMenuId(customerIds, customMenuId);
     }
 
