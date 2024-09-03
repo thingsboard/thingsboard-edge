@@ -99,7 +99,9 @@ export class TbWebReportPage {
             if (msg.status() >= 400) {
                 this.currentBaseUrl = '';
             }
-            this.logger.silly('Response: URL: %s, Status %s, Headers: %s', msg.url(), msg.status(), JSON.stringify(msg.headers()));
+            if (this.logger.level === "silly") {
+                this.logger.silly('Response: URL: %s, Status %s, Headers: %s', msg.url(), msg.status(), JSON.stringify(msg.headers()));
+            }
         });
         if (this.logger.level === "debug" || this.logger.level === "silly") {
             this.page.on('console', msg => this.logger.debug('Web page console message: %s', msg.text()));
