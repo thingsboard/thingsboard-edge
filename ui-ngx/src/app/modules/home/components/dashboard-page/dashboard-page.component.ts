@@ -1077,7 +1077,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     });
   }
 
-  private moveWidgets($event: Event, layoutId: DashboardLayoutId) {
+  private moveWidgets($event: Event, layoutId: DashboardLayoutId, breakpointId: BreakpointId) {
     if ($event) {
       $event.stopPropagation();
     }
@@ -1090,7 +1090,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
     }).afterClosed().subscribe((result) => {
       this.layouts[layoutId].layoutCtx.displayGrid = 'onDrag&Resize';
       if (result) {
-        const targetLayout = this.dashboardConfiguration.states[this.dashboardCtx.state].layouts[layoutId];
+        const dashboardLayout = this.dashboardConfiguration.states[this.dashboardCtx.state].layouts[layoutId];
+        const targetLayout = this.dashboardUtils.getDashboardLayoutConfig(dashboardLayout, breakpointId);
         this.dashboardUtils.moveWidgets(targetLayout, result.cols, result.rows);
         this.updateLayouts();
       } else {
@@ -1671,7 +1672,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       dashboardContextActions.push(
         {
           action: ($event) => {
-            this.moveWidgets($event, layoutCtx.id);
+            this.moveWidgets($event, layoutCtx.id, layoutCtx.breakpoint);
           },
           enabled: true,
           value: 'dashboard.move-all-widgets',
