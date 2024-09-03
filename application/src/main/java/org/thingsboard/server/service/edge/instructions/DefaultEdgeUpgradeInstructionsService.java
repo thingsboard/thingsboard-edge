@@ -89,8 +89,8 @@ public class DefaultEdgeUpgradeInstructionsService extends BaseEdgeInstallUpgrad
         Optional<AttributeKvEntry> attributeKvEntryOpt = attributesService.find(tenantId, edgeId, AttributeScope.SERVER_SCOPE, DataConstants.EDGE_VERSION_ATTR_KEY).get();
         if (attributeKvEntryOpt.isPresent()) {
             String edgeVersionFormatted = convertEdgeVersionToDocsFormat(attributeKvEntryOpt.get().getValueAsString());
-            String versionTag = appVersion.replace("PE", "");
-            return isVersionGreaterOrEqualsThan(edgeVersionFormatted, "3.6.0") && !isVersionGreaterOrEqualsThan(edgeVersionFormatted, versionTag);
+            String appVersionFormatted = appVersion.replace("-SNAPSHOT", "").replace("PE", "");
+            return isVersionGreaterOrEqualsThan(edgeVersionFormatted, "3.6.0") && !isVersionGreaterOrEqualsThan(edgeVersionFormatted, appVersionFormatted);
         }
         return false;
     }

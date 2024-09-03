@@ -28,23 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.instructions;
+package org.thingsboard.server.dao.edge;
 
-import org.thingsboard.server.common.data.EdgeUpgradeInfo;
-import org.thingsboard.server.common.data.edge.EdgeInstructions;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
+import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.TenantId;
 
-import java.util.Map;
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("EdgeSessionCache")
+public class EdgeSessionCaffeineCache extends CaffeineTbTransactionalCache<EdgeId, String> {
 
-public interface EdgeUpgradeInstructionsService {
-
-    EdgeInstructions getUpgradeInstructions(String edgeVersion, String upgradeMethod);
-
-    void updateInstructionMap(Map<String, EdgeUpgradeInfo> upgradeVersions);
-
-    void setAppVersion(String version);
-
-    boolean isUpgradeAvailable(TenantId tenantId, EdgeId edgeId) throws Exception;
+    public EdgeSessionCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.EDGE_SESSIONS_CACHE);
+    }
 
 }

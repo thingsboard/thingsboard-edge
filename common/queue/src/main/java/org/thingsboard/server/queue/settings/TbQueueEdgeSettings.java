@@ -28,23 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.instructions;
+package org.thingsboard.server.queue.settings;
 
-import org.thingsboard.server.common.data.EdgeUpgradeInfo;
-import org.thingsboard.server.common.data.edge.EdgeInstructions;
-import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.TenantId;
+import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
-import java.util.Map;
+@Lazy
+@Data
+@Component
+public class TbQueueEdgeSettings {
 
-public interface EdgeUpgradeInstructionsService {
-
-    EdgeInstructions getUpgradeInstructions(String edgeVersion, String upgradeMethod);
-
-    void updateInstructionMap(Map<String, EdgeUpgradeInfo> upgradeVersions);
-
-    void setAppVersion(String version);
-
-    boolean isUpgradeAvailable(TenantId tenantId, EdgeId edgeId) throws Exception;
+    @Value("${queue.edge.topic}")
+    private String topic;
 
 }
