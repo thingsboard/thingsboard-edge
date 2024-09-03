@@ -118,6 +118,7 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
   platformTypes = Object.values(PlatformType);
   platformTypeTranslations = platformTypeTranslations;
   generalSettingsMode = true;
+  advancedExpanded = false;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
@@ -141,7 +142,7 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
 
   buildForm(entity: OAuth2Client): UntypedFormGroup {
     return this.fb.group({
-      title: [entity?.title ? entity.title : '', [Validators.required]],
+      title: [entity?.title ? entity.title : '', [Validators.required, Validators.maxLength(100)]],
       additionalInfo: this.fb.group({
         providerName: [entity?.additionalInfo?.providerName ? entity?.additionalInfo?.providerName : '', Validators.required]
       }),
@@ -351,7 +352,7 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
     }
 
     this.subscriptions.push(basicGroup.get('tenantNameStrategy').valueChanges.subscribe((domain) => {
-      if (domain === 'CUSTOM') {
+      if (domain === 'CUSTOM' && (this.createNewDialog || this.isEdit || this.isAdd)) {
         basicGroup.get('tenantNamePattern').enable();
       } else {
         basicGroup.get('tenantNamePattern').disable();
@@ -363,7 +364,10 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
 
   private setProviderDefaultValue(provider: string, clientRegistration: UntypedFormGroup) {
     if (provider === 'Custom') {
+      const title = clientRegistration.get('title').value;
       clientRegistration.reset(this.defaultProvider, {emitEvent: false});
+      clientRegistration.patchValue({title}, {emitEvent: false});
+      this.advancedExpanded = true;
     } else {
       const template = this.templates.get(provider);
       template.clientId = '';
