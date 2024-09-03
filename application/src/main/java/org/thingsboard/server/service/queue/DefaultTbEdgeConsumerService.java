@@ -93,7 +93,7 @@ public class DefaultTbEdgeConsumerService extends AbstractConsumerService<ToEdge
     private int pollInterval;
     @Value("${queue.edge.pack-processing-timeout:10000}")
     private int packProcessingTimeout;
-    @Value("${queue.core.consumer-per-partition:true}")
+    @Value("${queue.edge.consumer-per-partition:false}")
     private boolean consumerPerPartition;
     @Value("${queue.edge.pack-processing-retries:3}")
     private int packProcessingRetries;
@@ -140,6 +140,13 @@ public class DefaultTbEdgeConsumerService extends AbstractConsumerService<ToEdge
         super.startConsumers();
     }
 
+    @Override
+    protected void onTbApplicationEvent(PartitionChangeEvent event) {
+        var partitions = event.getEdgePartitions();
+        log.debug("Subscribing to partitions: {}", partitions);
+        mainConsumer.update(partitions);
+    }
+
     private void processMsgs(List<TbProtoQueueMsg<ToEdgeMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToEdgeMsg>> consumer, EdgeQueueConfig edgeQueueConfig) throws InterruptedException {
         List<IdMsgPair<ToEdgeMsg>> orderedMsgList = msgs.stream().map(msg -> new IdMsgPair<>(UUID.randomUUID(), msg)).toList();
         ConcurrentMap<UUID, TbProtoQueueMsg<ToEdgeMsg>> pendingMap = orderedMsgList.stream().collect(
@@ -177,15 +184,6 @@ public class DefaultTbEdgeConsumerService extends AbstractConsumerService<ToEdge
             ctx.getFailedMap().forEach((id, msg) -> log.warn("[{}] Failed to process message: {}", id, msg.getValue()));
         }
         consumer.commit();
-    }
-
-    @Override
-    protected void onTbApplicationEvent(PartitionChangeEvent event) {
-        if (ServiceType.TB_CORE.equals(event.getServiceType())) {
-            var partitions = event.getEdgePartitions();
-            log.info("Subscribing to partitions: {}", partitions);
-            mainConsumer.update(partitions);
-        }
     }
 
     private static class PendingMsgHolder {
@@ -252,7 +250,7 @@ public class DefaultTbEdgeConsumerService extends AbstractConsumerService<ToEdge
                 callback.onSuccess();
             }
         } catch (Exception e) {
-            log.error("Error processing edge notification message: {}", e.getMessage(), e);
+            log.error("Error processing edge notification message", e);
             callback.onFailure(e);
         }
 
