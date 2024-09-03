@@ -53,7 +53,8 @@ export enum GatewayLogLevel {
   ERROR = 'ERROR',
   WARNING = 'WARNING',
   INFO = 'INFO',
-  DEBUG = 'DEBUG'
+  DEBUG = 'DEBUG',
+  TRACE = 'TRACE'
 }
 
 export enum PortLimits {
