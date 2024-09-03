@@ -42,7 +42,7 @@
     formControlName="entityType">
   </tb-entity-type-select>
   <tb-entity-autocomplete
-    *ngIf="modelValue.entityType && !entityTypeNullUid.has(modelValue.entityType)"
+    *ngIf="modelValue.entityType && !entityTypeNullUUID.has(modelValue.entityType)"
     [required]="required"
     [entityType]="modelValue.entityType"
     formControlName="entityId">
