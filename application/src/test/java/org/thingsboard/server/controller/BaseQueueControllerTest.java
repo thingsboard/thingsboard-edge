@@ -89,6 +89,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -314,7 +315,7 @@ public class BaseQueueControllerTest extends AbstractControllerTest {
 
         await().atMost(TIMEOUT, TimeUnit.SECONDS).untilAsserted(() -> {
             verify(timeseriesService, times(partitions)).save(eq(tenantId), eq(device.getId()),
-                    argThat(ts -> ts.size() == 1 && ts.get(0).getKey().equals("test")), anyLong());
+                    argThat(ts -> ts.size() == 1 && ts.get(0).getKey().equals("test")), anyLong(), anyBoolean());
 
             ArgumentCaptor<TbActorMsg> msgCaptor = ArgumentCaptor.forClass(TbActorMsg.class);
             verify(actorSystemContext, atLeastOnce()).tell(msgCaptor.capture());

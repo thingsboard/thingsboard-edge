@@ -93,7 +93,7 @@ public abstract class AbstractSubscriptionService extends TbApplicationEventList
     protected void onTbApplicationEvent(PartitionChangeEvent partitionChangeEvent) {
         if (ServiceType.TB_CORE.equals(partitionChangeEvent.getServiceType())) {
             currentPartitions.clear();
-            currentPartitions.addAll(partitionChangeEvent.getPartitions());
+            currentPartitions.addAll(partitionChangeEvent.getCorePartitions());
         }
     }
 

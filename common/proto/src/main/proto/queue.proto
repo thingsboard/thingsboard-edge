@@ -73,7 +73,10 @@ enum EntityTypeProto {
   NOTIFICATION_REQUEST  = 31;
   NOTIFICATION          = 32;
   NOTIFICATION_RULE     = 33;
-  QUEUE_STATS     = 34;
+  QUEUE_STATS           = 34;
+  OAUTH2_CLIENT         = 35;
+  DOMAIN                = 36;
+  MOBILE_APP            = 37;
 }
 
 /**
@@ -157,9 +160,9 @@ message KeyValueProto {
 }
 
 enum AttributeScopeProto {
-    CLIENT_SCOPE = 0;
-    SERVER_SCOPE = 1;
-    SHARED_SCOPE = 2;
+  CLIENT_SCOPE = 0;
+  SERVER_SCOPE = 1;
+  SHARED_SCOPE = 2;
 }
 
 message AttributeKey {
@@ -435,7 +438,7 @@ message GatewayDisconnectDeviceMsg {
 }
 
 enum TransportApiRequestErrorCode {
-  UNKNOWN_TRANSPORT_API_ERROR  = 0;
+  UNKNOWN_TRANSPORT_API_ERROR = 0;
   ENTITY_LIMIT = 1;
 }
 
@@ -910,6 +913,8 @@ message TbEntitySubEventCallbackProto {
   int32 seqNumber = 3;
   int64 attributesUpdateTs = 4;
   int64 timeSeriesUpdateTs = 5;
+  int64 tenantIdMSB = 6;
+  int64 tenantIdLSB = 7;
 }
 
 message TsValueProto {
@@ -1239,6 +1244,18 @@ message IntegrationValidationError {
   IntegrationValidationError cause = 4;
 }
 
+message EdgeHighPriorityMsgProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  optional int64 edgeIdMSB = 3;
+  optional int64 edgeIdLSB = 4;
+  string type = 5;
+  string action = 6;
+  optional string body = 7;
+  optional int64 entityIdMSB = 8;
+  optional int64 entityIdLSB = 9;
+}
+
 message EdgeEventUpdateMsgProto {
   int64 tenantIdMSB = 1;
   int64 tenantIdLSB = 2;
@@ -1253,6 +1270,7 @@ message ToEdgeSyncRequestMsgProto {
   int64 requestIdLSB = 4;
   int64 edgeIdMSB = 5;
   int64 edgeIdLSB = 6;
+  string serviceId = 7;
 }
 
 message FromEdgeSyncResponseMsgProto {
@@ -1583,7 +1601,7 @@ message ToCoreMsg {
   SubscriptionMgrMsgProto toSubscriptionMgrMsg = 3;
   bytes toDeviceActorNotificationMsg = 4 [deprecated = true];
   SchedulerServiceMsgProto schedulerServiceMsg = 5;
-  EdgeNotificationMsgProto edgeNotificationMsg = 7;
+  EdgeNotificationMsgProto edgeNotificationMsg = 7 [deprecated = true];
   DeviceActivityProto deviceActivityMsg = 8;
   NotificationSchedulerServiceMsg notificationSchedulerServiceMsg = 9;
   LifecycleEventProto lifecycleEventMsg = 10;
@@ -1609,12 +1627,26 @@ message ToCoreNotificationMsg {
   NotificationRuleProcessorMsg notificationRuleProcessorMsg = 10;
   ComponentLifecycleMsgProto componentLifecycle = 11;
   CoreStartupMsg coreStartupMsg = 12;
-  EdgeEventUpdateMsgProto edgeEventUpdate = 13;
-  ToEdgeSyncRequestMsgProto toEdgeSyncRequest = 14;
-  FromEdgeSyncResponseMsgProto fromEdgeSyncResponse = 15;
+  EdgeEventUpdateMsgProto edgeEventUpdate = 13 [deprecated = true];
+  ToEdgeSyncRequestMsgProto toEdgeSyncRequest = 14 [deprecated = true];
+  FromEdgeSyncResponseMsgProto fromEdgeSyncResponse = 15 [deprecated = true];
   ResourceCacheInvalidateMsg resourceCacheInvalidateMsg = 16;
   TranslationCacheInvalidateMsg translationCacheInvalidateMsg = 100;
   CustomMenuCacheInvalidateMsg customMenuCacheInvalidateMsg = 101;
+}
+
+
+/* Messages to Edge queue that are handled by ThingsBoard Core Service */
+message ToEdgeMsg {
+  EdgeNotificationMsgProto edgeNotificationMsg = 1;
+}
+
+message ToEdgeNotificationMsg {
+  EdgeHighPriorityMsgProto edgeHighPriority = 1;
+  EdgeEventUpdateMsgProto edgeEventUpdate = 2;
+  ToEdgeSyncRequestMsgProto toEdgeSyncRequest = 3;
+  FromEdgeSyncResponseMsgProto fromEdgeSyncResponse = 4;
+  ComponentLifecycleMsgProto componentLifecycle = 5;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */

@@ -38,7 +38,6 @@ import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.io.filefilter.NameFileFilter;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
@@ -54,6 +53,7 @@ import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
 import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
 import org.thingsboard.server.service.sync.vc.GitRepository.Diff;
+import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,7 +75,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 @Slf4j
-@ConditionalOnProperty(prefix = "vc", value = "git.service", havingValue = "local", matchIfMissing = true)
 @Service
 public class DefaultGitRepositoryService implements GitRepositoryService {
 
@@ -96,7 +95,9 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
 
     @Override
     public Set<TenantId> getActiveRepositoryTenants() {
-        return new HashSet<>(repositories.keySet());
+        HashSet<TenantId> tenants = new HashSet<>(repositories.keySet());
+        tenants.remove(TenantId.SYS_TENANT_ID);
+        return tenants;
     }
 
     @Override
@@ -205,7 +206,7 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     }
 
     @Override
-    public String getFileContentAtCommit(TenantId tenantId, String relativePath, String versionId) throws IOException {
+    public String getFileContentAtCommit(TenantId tenantId, String relativePath, String versionId) {
         GitRepository repository = checkRepository(tenantId);
         return repository.getFileContentAtCommit(relativePath, versionId);
     }
@@ -269,7 +270,7 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
             String path = recursive ? folder : StringUtils.emptyIfNull(folder) + entityType.name().toLowerCase();
             Pattern typePattern = buildPattern(entityType, false);
             Pattern groupPattern = buildPattern(entityType, true);
-            return repository.listFilesAtCommit(versionId, path).stream()
+            return repository.listAllFilesAtCommit(versionId, path).stream()
                     .filter(filePath -> typePattern.matcher(filePath).matches())
                     .filter(filePath -> groupPattern.matcher(filePath).matches() == isGroup)
                     .map(filePath -> {
@@ -289,7 +290,7 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
                 groupPatterns.put(et, buildPattern(et, true));
                 typePatterns.put(et, buildPattern(et, false));
             }
-            return repository.listFilesAtCommit(versionId, folder).stream()
+            return repository.listAllFilesAtCommit(versionId, folder).stream()
                     .map(filePath -> {
                         for (var pair : groupPatterns.entrySet()) {
                             if (pair.getValue().matcher(filePath).matches()) {
@@ -313,6 +314,12 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
                             .thenComparing(VersionedEntityInfo::getPath, String::compareTo));
 
         }
+    }
+
+    @Override
+    public List<RepoFile> listFiles(TenantId tenantId, String versionId, String path, int depth) {
+        GitRepository repository = checkRepository(tenantId);
+        return repository.listFilesAtCommit(versionId, path, depth);
     }
 
     @Override

@@ -41,6 +41,7 @@ import { GroupContactBasedComponent } from '@home/components/group/group-contact
 import { GroupEntityTableConfig } from '@home/models/group/group-entities-table-config.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
+import { CountryData } from '@shared/models/country.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
@@ -63,8 +64,9 @@ export class CustomerComponent extends GroupContactBasedComponent<CustomerInfo> 
               protected entitiesTableConfigValue: EntityTableConfig<CustomerInfo> | GroupEntityTableConfig<CustomerInfo>,
               protected fb: UntypedFormBuilder,
               protected cd: ChangeDetectorRef,
+              protected countryData: CountryData,
               protected userPermissionsService: UserPermissionsService) {
-    super(store, fb, entityValue, entitiesTableConfigValue, cd, userPermissionsService);
+    super(store, fb, entityValue, entitiesTableConfigValue, cd, countryData, userPermissionsService);
   }
 
   hideDelete() {

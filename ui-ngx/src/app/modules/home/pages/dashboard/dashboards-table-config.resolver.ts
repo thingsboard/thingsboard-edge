@@ -35,11 +35,11 @@ import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
+  EntityChipsEntityTableColumn,
   EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
-  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -61,7 +61,6 @@ import { ImportExportService } from '@shared/import-export/import-export.service
 import { UtilsService } from '@core/services/utils.service';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { DashboardFormComponent } from '@home/pages/dashboard/dashboard-form.component';
-import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { AuthUser } from '@shared/models/user.model';
@@ -178,7 +177,7 @@ export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<
       columns.push(new EntityTableColumn<DashboardInfo>('ownerName', title, '30%'));
     }
     columns.push(
-      new GroupChipsEntityTableColumn<DashboardInfo>( 'groups', 'entity.groups', '40%')
+      new EntityChipsEntityTableColumn<DashboardInfo>( 'groups', 'entity.groups', '40%')
     );
     return columns;
   }

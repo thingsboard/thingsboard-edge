@@ -91,7 +91,7 @@ import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
-import org.thingsboard.server.common.data.oauth2.OAuth2Mobile;
+import org.thingsboard.server.common.data.mobile.MobileApp;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.query.BooleanFilterPredicate;
@@ -123,7 +123,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.notification.NotificationTargetService;
-import org.thingsboard.server.dao.oauth2.OAuth2MobileDao;
+import org.thingsboard.server.dao.mobile.MobileAppDao;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -173,7 +173,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     private final DeviceConnectivityConfiguration connectivityConfiguration;
     private final QueueService queueService;
     private final JwtSettingsService jwtSettingsService;
-    private final OAuth2MobileDao oAuth2MobileDao;
+    private final MobileAppDao mobileAppDao;
     private final NotificationSettingsService notificationSettingsService;
     private final NotificationTargetService notificationTargetService;
     private final EntityGroupService entityGroupService;
@@ -346,17 +346,17 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
             jwtSettingsService.saveJwtSettings(jwtSettings);
         }
 
-        List<OAuth2Mobile> mobiles = oAuth2MobileDao.find(TenantId.SYS_TENANT_ID);
+        List<MobileApp> mobiles = mobileAppDao.findByTenantId(TenantId.SYS_TENANT_ID, new PageLink(Integer.MAX_VALUE,0)).getData();
         if (CollectionUtils.isNotEmpty(mobiles)) {
             mobiles.stream()
-                    .filter(config -> !validateKeyLength(config.getAppSecret()))
-                    .forEach(config -> {
+                    .filter(mobileApp -> !validateKeyLength(mobileApp.getAppSecret()))
+                    .forEach(mobileApp -> {
                         log.warn("WARNING: The App secret is shorter than 512 bits, which is a security risk. " +
                                 "A new Application Secret has been added automatically for Mobile Application [{}]. " +
                                 "You can change the Application Secret using the Web UI: " +
-                                "Navigate to \"Security settings -> OAuth2 -> Mobile applications\" while logged in as a System Administrator.", config.getPkgName());
-                        config.setAppSecret(generateRandomKey());
-                        oAuth2MobileDao.save(TenantId.SYS_TENANT_ID, config);
+                                "Navigate to \"Security settings -> OAuth2 -> Mobile applications\" while logged in as a System Administrator.", mobileApp.getPkgName());
+                        mobileApp.setAppSecret(generateRandomKey());
+                        mobileAppDao.save(TenantId.SYS_TENANT_ID, mobileApp);
                     });
         }
     }

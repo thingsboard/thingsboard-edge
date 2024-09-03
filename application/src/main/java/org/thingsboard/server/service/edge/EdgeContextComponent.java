@@ -45,6 +45,7 @@ import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.domain.DomainService;
 import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
@@ -53,7 +54,6 @@ import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.notification.NotificationRuleService;
 import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
-import org.thingsboard.server.dao.oauth2.OAuth2Service;
 import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
@@ -71,6 +71,7 @@ import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.EdgeEventStorageSettings;
+import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
 import org.thingsboard.server.service.edge.rpc.constructor.edge.EdgeMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.alarm.AlarmEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.alarm.AlarmEdgeProcessorFactory;
@@ -127,6 +128,9 @@ public class EdgeContextComponent {
 
     @Autowired
     private EdgeService edgeService;
+
+    @Autowired(required = false)
+    private EdgeRpcService edgeRpcService;
 
     @Autowired
     private EdgeEventService edgeEventService;
@@ -201,7 +205,7 @@ public class EdgeContextComponent {
     private NotificationTemplateService notificationTemplateService;
 
     @Autowired
-    private OAuth2Service oAuth2Service;
+    private DomainService domainService;
 
     @Autowired
     private RateLimitService rateLimitService;
@@ -258,19 +262,19 @@ public class EdgeContextComponent {
     private AdminSettingsEdgeProcessor adminSettingsProcessor;
 
     @Autowired
-    private OtaPackageEdgeProcessor otaPackageEdgeProcessor;
+    private OtaPackageEdgeProcessor otaPackageProcessor;
 
     @Autowired
-    private QueueEdgeProcessor queueEdgeProcessor;
+    private QueueEdgeProcessor queueProcessor;
 
     @Autowired
-    private TenantEdgeProcessor tenantEdgeProcessor;
+    private TenantEdgeProcessor tenantProcessor;
 
     @Autowired
-    private TenantProfileEdgeProcessor tenantProfileEdgeProcessor;
+    private TenantProfileEdgeProcessor tenantProfileProcessor;
 
     @Autowired
-    private ResourceEdgeProcessor resourceEdgeProcessor;
+    private ResourceEdgeProcessor resourceProcessor;
 
     @Autowired
     private NotificationEdgeProcessor notificationEdgeProcessor;
@@ -344,7 +348,7 @@ public class EdgeContextComponent {
     private EntityGroupEdgeProcessor entityGroupProcessor;
 
     @Autowired
-    private CustomTranslationEdgeProcessor customTranslationEdgeProcessor;
+    private CustomTranslationEdgeProcessor customTranslationProcessor;
 
     @Autowired
     private WhiteLabelingEdgeProcessor whiteLabelingProcessor;

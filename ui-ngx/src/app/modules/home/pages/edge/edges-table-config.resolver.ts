@@ -35,11 +35,11 @@ import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
+  EntityChipsEntityTableColumn,
   EntityColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
-  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
@@ -172,7 +172,7 @@ export class EdgesTableConfigResolver implements Resolve<EntityTableConfig<EdgeI
       columns.push(new EntityTableColumn<EdgeInfo>('ownerName', title, '20%'));
     }
     columns.push(
-      new GroupChipsEntityTableColumn<EdgeInfo>( 'groups', 'entity.groups', '25%')
+      new EntityChipsEntityTableColumn<EdgeInfo>( 'groups', 'entity.groups', '25%')
     );
     return columns;
   }
