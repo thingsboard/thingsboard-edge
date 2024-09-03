@@ -43,7 +43,7 @@ import org.thingsboard.server.common.data.menu.CustomMenu;
 public class CustomMenuCaffeineCache extends CaffeineTbTransactionalCache<CustomMenuId, CustomMenu> {
 
     public CustomMenuCaffeineCache(CacheManager cacheManager) {
-        super(cacheManager, CacheConstants.INTEGRATIONS_CACHE);
+        super(cacheManager, CacheConstants.CUSTOM_MENU_CACHE);
     }
 
 }

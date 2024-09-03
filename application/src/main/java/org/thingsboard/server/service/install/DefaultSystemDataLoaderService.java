@@ -799,7 +799,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
                 customMenuService.findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), CMScope.SYSTEM);
         if (defaultSystemCustomMenu == null) {
             try {
-                customMenuService.createCustomMenu(createDefaultMenu("Default system menu", CMScope.SYSTEM), null, false);
+                customMenuService.createCustomMenu(createDefaultMenu("System default menu", CMScope.SYSTEM), null, false);
             } catch (ThingsboardException e) {
                 log.warn(e.getMessage());
             }
@@ -808,7 +808,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
                 customMenuService.findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), CMScope.TENANT);
         if (defaultTenantCustomMenu == null) {
             try {
-                customMenuService.createCustomMenu(createDefaultMenu("Default tenant menu", CMScope.TENANT), null, false);
+                customMenuService.createCustomMenu(createDefaultMenu("Tenant default menu", CMScope.TENANT), null, false);
             } catch (ThingsboardException e) {
                 log.warn(e.getMessage());
             }
@@ -817,7 +817,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
                 customMenuService.findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), CMScope.CUSTOMER);
         if (defaultCustomerCustomMenu == null) {
             try {
-                customMenuService.createCustomMenu(createDefaultMenu("Default customer menu", CMScope.CUSTOMER), null, false);
+                customMenuService.createCustomMenu(createDefaultMenu("Customer default menu", CMScope.CUSTOMER), null, false);
             } catch (ThingsboardException e) {
                 log.warn(e.getMessage());
             }

@@ -45,14 +45,14 @@ import org.thingsboard.server.dao.menu.CustomMenuCacheKey;
 import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.entitiy.AbstractTenantEntityEtagCacheService;
+import org.thingsboard.server.service.entitiy.AbstractEtagCacheService;
 
 import java.util.List;
 
 @Service
 @Slf4j
 @TbCoreComponent
-public class DefaultTbCustomMenuService extends AbstractTenantEntityEtagCacheService<CustomMenuCacheKey> implements TbCustomMenuService {
+public class DefaultTbCustomMenuService extends AbstractEtagCacheService<CustomMenuCacheKey> implements TbCustomMenuService {
 
     private final CustomMenuService customMenuService;
     private final TbClusterService clusterService;
@@ -96,7 +96,7 @@ public class DefaultTbCustomMenuService extends AbstractTenantEntityEtagCacheSer
     }
 
     private void evictFromCache(TenantId tenantId) {
-        evictEtags(tenantId);
+        evictETags(tenantId);
         clusterService.broadcastToCore(TransportProtos.ToCoreNotificationMsg.newBuilder()
                 .setCustomMenuCacheInvalidateMsg(TransportProtos.CustomMenuCacheInvalidateMsg.newBuilder()
                         .setTenantIdMSB(tenantId.getId().getMostSignificantBits())

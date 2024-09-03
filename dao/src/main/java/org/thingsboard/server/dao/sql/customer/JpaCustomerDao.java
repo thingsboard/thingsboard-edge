@@ -53,6 +53,8 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
  */
@@ -164,16 +166,16 @@ public class JpaCustomerDao extends JpaAbstractDao<CustomerEntity, Customer> imp
     }
 
     @Override
-    public List<Customer> findCustomersByCustomMenuId(UUID customMenuId) {
-        return DaoUtil.convertDataList(customerRepository.findByCustomMenuId(customMenuId));
+    public List<Customer> findCustomersByCustomMenuId(CustomMenuId customMenuId) {
+        return DaoUtil.convertDataList(customerRepository.findByCustomMenuId(customMenuId.getId()));
     }
 
     @Override
-    public void updateCustomersCustomMenuId(List<UUID> customerIds, UUID customMenuId) {
+    public void updateCustomersCustomMenuId(List<CustomerId> customerIds, UUID customMenuId) {
         if (customMenuId == null) {
-            customerRepository.updateCustomMenuIdToNull(customerIds);
+            customerRepository.updateCustomMenuIdToNull(toUUIDs(customerIds));
         } else {
-            customerRepository.updateCustomMenuId(customerIds, customMenuId);
+            customerRepository.updateCustomMenuId(toUUIDs(customerIds), customMenuId);
         }
     }
 

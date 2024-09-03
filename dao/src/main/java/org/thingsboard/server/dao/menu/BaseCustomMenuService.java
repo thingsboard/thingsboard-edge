@@ -39,7 +39,6 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.CustomMenuDeleteResult;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityInfo;
-import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -66,7 +65,7 @@ import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.DataValidationException;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -189,27 +188,15 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     @Override
     public List<EntityInfo> findCustomMenuAssigneeList(CustomMenuInfo customMenuInfo) {
         log.trace("Executing findCustomMenuAssigneeList customMenuId [{}] ", customMenuInfo.getId());
-        List<EntityInfo> assigners = new ArrayList<>();
-        switch (customMenuInfo.getAssigneeType()) {
-            case NO_ASSIGN:
-            case ALL:
-                break;
-            case CUSTOMERS:
-                List<Customer> customers = customerService.findCustomersByCustomMenuId(customMenuInfo.getId());
-                for (Customer customer : customers) {
-                    assigners.add(new EntityInfo(customer.getId(), customer.getName()));
-                }
-                break;
-            case USERS:
-                List<User> users = userService.findUsersByCustomMenuId(customMenuInfo.getId());
-                for (User user : users) {
-                    assigners.add(new EntityInfo(user.getId(), user.getName()));
-                }
-                break;
-            default:
-                throw new RuntimeException("Invalid custom menu assignee type '" + customMenuInfo.getAssigneeType() + "' specified for custom menu!");
-        }
-        return assigners;
+        return switch (customMenuInfo.getAssigneeType()) {
+            case NO_ASSIGN, ALL -> Collections.emptyList();
+            case CUSTOMERS -> customerService.findCustomersByCustomMenuId(customMenuInfo.getId()).stream()
+                    .map(customer -> new EntityInfo(customer.getId(), customer.getName())).toList();
+            case USERS -> userService.findUsersByCustomMenuId(customMenuInfo.getId()).stream()
+                    .map(user -> new EntityInfo(user.getId(), user.getName())).toList();
+            default ->
+                    throw new RuntimeException("Invalid custom menu assignee type '" + customMenuInfo.getAssigneeType() + "' specified for custom menu!");
+        };
     }
 
     @Override
@@ -227,7 +214,6 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
             result.assigneeList(existingAssigneeList);
         }
         if (success) {
-            //delete assignee list
             if (!existingAssigneeList.isEmpty()) {
                 List<EntityId> entityIds = existingAssigneeList.stream().map(EntityInfo::getId).toList();
                 unassignCustomMenu(customMenu.getAssigneeType(), entityIds);
@@ -235,6 +221,12 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
             deleteCustomMenu(customMenu);
         }
         return result.success(success).build();
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        log.trace("Executing deleteByTenantId, tenantId [{}]", tenantId);
+        customMenuDao.removeByTenantId(tenantId);
     }
 
     private CustomMenu saveCustomMenu(CustomMenu customMenu, List<EntityId> assignToList, boolean force) throws ThingsboardException {
@@ -266,6 +258,9 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
 
     private void assignCustomMenu(CustomMenuId customMenuId, CMAssigneeType assigneeType, List<EntityId> assignToList) {
         switch (assigneeType) {
+            case ALL:
+            case NO_ASSIGN:
+                break;
             case CUSTOMERS:
                 List<CustomerId> customerIds = assignToList.stream().map(CustomerId.class::cast).toList();
                 customerService.updateCustomersCustomMenuId(customerIds, customMenuId.getId());
@@ -274,11 +269,8 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
                 List<UserId> userIds = assignToList.stream().map(UserId.class::cast).toList();
                 userService.updateUsersCustomMenuId(userIds, customMenuId.getId());
                 break;
-            case NO_ASSIGN:
-            case ALL:
-                break;
             default:
-                throw new IncorrectParameterException("Assignee list is applicable to 'CUSTOMERS' or 'USERS' assignee type only!");
+                throw new IncorrectParameterException("Unsupported assignee type!");
         }
     }
 
@@ -288,19 +280,19 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
             case NO_ASSIGN:
                 break;
             case CUSTOMERS:
-                if (!CollectionUtils.isEmpty(toRemoveEntityIds)) {
+                if (CollectionUtils.isNotEmpty(toRemoveEntityIds)) {
                     List<CustomerId> toRemoveCustomerIds = toRemoveEntityIds.stream().map(CustomerId.class::cast).toList();
                     customerService.updateCustomersCustomMenuId(toRemoveCustomerIds, null);
                 }
                 break;
             case USERS:
-                if (!CollectionUtils.isEmpty(toRemoveEntityIds)) {
+                if (CollectionUtils.isNotEmpty(toRemoveEntityIds)) {
                     List<UserId> toRemoveUserIds = toRemoveEntityIds.stream().map(UserId.class::cast).toList();
                     userService.updateUsersCustomMenuId(toRemoveUserIds, null);
                 }
                 break;
             default:
-                throw new IncorrectParameterException("List of assigners can be applied only to CUSTOMERS or USERS assignee type!");
+                throw new IncorrectParameterException("Unsupported assignee type!");
         }
     }
 

@@ -45,7 +45,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Schema
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class CustomMenuInfo  extends BaseData<CustomMenuId> implements HasTenantId {
+public class CustomMenuInfo extends BaseData<CustomMenuId> implements HasTenantId {
 
     @Schema(description = "JSON object with Tenant Id that owns the menu.", accessMode = Schema.AccessMode.READ_ONLY)
     private TenantId tenantId;
@@ -64,7 +64,7 @@ public class CustomMenuInfo  extends BaseData<CustomMenuId> implements HasTenant
 
     @NotNull
     @Schema(description = "Custom menu assignee type. Possible values are: All (all users of specified scope), " +
-            "CUSTOMERS (specified customers), USERS (specified list of users), NO_ASSIGN (no assigned users)", example = "ALL",
+            "CUSTOMERS (specified customers), USERS (specified list of users), NO_ASSIGN (no assignees)", example = "ALL",
             requiredMode = Schema.RequiredMode.REQUIRED)
     private CMAssigneeType assigneeType;
 

@@ -116,8 +116,7 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, UUID>,
 
     @Modifying
     @Transactional
-    @Query("UPDATE CustomerEntity c SET c.customMenuId = :customMenuId " +
-            "WHERE c.id IN :ids")
+    @Query("UPDATE CustomerEntity c SET c.customMenuId = :customMenuId WHERE c.id IN :ids")
     void updateCustomMenuId(@Param("ids") List<UUID> ids, @Param("customMenuId") UUID customMenuId);
 
     @Modifying

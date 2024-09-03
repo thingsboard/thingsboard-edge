@@ -81,6 +81,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -103,7 +104,7 @@ public class CustomMenuController extends BaseController {
     @Autowired
     private CustomMenuService customMenuService;
 
-    @ApiOperation(value = "Get All Custom menus configured on tenant/customer level (getCustomMenuInfos)",
+    @ApiOperation(value = "Get all custom menus configured at user level (getCustomMenuInfos)",
             notes = "Returns a page of custom menu info objects owned by the tenant or the customer of a current user. "
                     + ControllerConstants.WL_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -125,17 +126,19 @@ public class CustomMenuController extends BaseController {
     }
 
     @ApiOperation(value = "Get end-user Custom Menu configuration (getCustomMenu)",
-            notes = "Fetch the Custom Menu configuration object for the authorized user. The custom menu is configured in the white labeling parameters and has one of three scopes:" +
-                    "SYSTEM, TENANT, CUSTOMER. There are three default menu configured on system level of each scope. " +
-                    "If no custom menu configured on user, customer or tenant level default system configuration will be applied for the corresponding scope." +
-                    "If custom menu of specific scope is configured on the tenant level, it overrides the menu configuration of the corresponding scope on the system level. " +
-                    "If the custom menu of specific scope is configured on the customer level, it overrides the menu configuration of the corresponding scope on the tenant level." +
-                    "If custom menu is assigned to specific list of customers, it overrides default menu configuration of the corresponding level. " +
-                    "If custom menu is assigned to specific list of users, it overrides all other configuration. ")
+            notes = "Fetch the Custom Menu configuration object for the authorized user. " +
+                    "The custom menu is configured in the white labeling parameters and has one of three user scopes:" +
+                    "SYSTEM, TENANT, CUSTOMER and four assignee type: NO_ASSIGN, ALL, CUSTOMERS, USERS." +
+                    "There are three default (assignee type: ALL) menus configured on the system level for each scope and if no other menu is configured for user, " +
+                    "system configuration of the corresponding scope will be applied." +
+                    "If a custom menu with assignee type ALL is configured on the tenant level, it overrides the menu configuration of the corresponding scope on the system level. " +
+                    "If a custom menu with assignee type CUSTOMERS is configured on tenant level for specific customer, it will be applied to all customer users." +
+                    "If a custom menu with assignee type ALL is configured on the customer level, it overrides the menu assigned on tenant level." +
+                    "If a custom menu is assigned to specific list of users, it overrides all other configuration.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/customMenu")
     public void getCustomMenu(@RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
-                                HttpServletResponse response) throws ThingsboardException, IOException {
+                              HttpServletResponse response) throws ThingsboardException, IOException {
         SecurityUser currentUser = getCurrentUser();
         CustomMenuCacheKey cacheKey = CustomMenuCacheKey.forUser(currentUser.getTenantId(), currentUser.getId());
         if (StringUtils.isNotEmpty(etag) && StringUtils.remove(etag, '\"').equals(tbCustomMenuService.getETag(cacheKey))) {
@@ -171,7 +174,7 @@ public class CustomMenuController extends BaseController {
     }
 
     @ApiOperation(value = "Get Custom Menu assignee list (getCustomMenuAssigneeList)",
-            notes = "Fetch the list of Entity Info objects or empty list if custom menu is not assigned to anyone or as NO_ASSIGN or ALL assignee type." +
+            notes = "Fetch the list of Entity Info objects that represent users or customer, or empty list if custom menu is not assigned yet or has NO_ASSIGN/ALL assignee type." +
                     ControllerConstants.CUSTOM_MENU_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/customMenu/{customMenuId}/assigneeList")
@@ -256,8 +259,8 @@ public class CustomMenuController extends BaseController {
     @PutMapping(value = "/customMenu/{id}/assign/{assigneeType}")
     public void updateCustomMenuAssigneeList(@PathVariable("id") UUID id,
                                              @PathVariable("assigneeType") CMAssigneeType assigneeType,
-                                             @Parameter(description = "Use force if you want to change assignee type and cleanup old assignees")
-                                                                   @RequestParam(name = "force", required = false) boolean force,
+                                             @Parameter(description = "Use force if you want to override default menu")
+                                             @RequestParam(name = "force", required = false) boolean force,
                                              @RequestBody(required = false) UUID[] entityIds) throws ThingsboardException {
         CustomMenuId customMenuId = new CustomMenuId(id);
         CustomMenu customMenu = checkCustomMenuId(customMenuId, Operation.WRITE);
@@ -269,7 +272,7 @@ public class CustomMenuController extends BaseController {
             notes = "Deletes the custom menu based on the provided Custom Menu Id. " +
                     "Referencing non-existing custom menu Id will cause an error. " +
                     "If the custom menu is assigned to the list of users or customers bad request is returned." +
-                    "To delete custom menu that has assignee list use 'force' request param set to true ")
+                    "To delete a custom menu that has assignee list set 'force' request param to true ")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @DeleteMapping(value = "/customMenu/{customMenuId}")
     public ResponseEntity<CustomMenuDeleteResult> deleteCustomMenu(@Parameter(required = true, description = CUSTOM_MENU_ID_PARAM_DESCRIPTION)
@@ -287,11 +290,14 @@ public class CustomMenuController extends BaseController {
     }
 
     private List<EntityId> getAssignToList(CMAssigneeType type, UUID[] ids) throws ThingsboardException {
-        if (ids == null || type == CMAssigneeType.NO_ASSIGN || type == CMAssigneeType.ALL) {
-            return List.of();
+        if (ids == null) {
+            return Collections.emptyList();
         }
         List<EntityId> assignToList = new ArrayList<>();
         switch (type) {
+            case NO_ASSIGN:
+            case ALL:
+                break;
             case CUSTOMERS:
                 for (UUID id : ids) {
                     CustomerId customerId = new CustomerId(id);

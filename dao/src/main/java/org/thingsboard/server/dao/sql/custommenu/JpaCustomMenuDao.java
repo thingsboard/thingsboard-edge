@@ -81,6 +81,11 @@ public class JpaCustomMenuDao extends JpaAbstractDao<CustomMenuEntity, CustomMen
     }
 
     @Override
+    public void removeByTenantId(TenantId tenantId) {
+        customMenuRepository.deleteByTenantId(tenantId.getId());
+    }
+
+    @Override
     protected Class<CustomMenuEntity> getEntityClass() {
         return CustomMenuEntity.class;
     }

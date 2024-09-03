@@ -67,6 +67,7 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
     private String lastName;
     @NoXss
     private String phone;
+    @Getter @Setter
     private CustomMenuId customMenuId;
 
     @Getter @Setter
@@ -219,14 +220,6 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
             title = email;
         }
         return title;
-    }
-
-    public CustomMenuId getCustomMenuId() {
-        return customMenuId;
-    }
-
-    public void setCustomMenuId(CustomMenuId customMenuId) {
-        this.customMenuId = customMenuId;
     }
 
     @Override

@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.user;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -151,8 +152,8 @@ public interface UserDao extends Dao<User>, TenantEntityDao {
 
     PageData<User> findByAuthorityAndTenantProfilesIds(Authority authority, List<TenantProfileId> tenantProfilesIds, PageLink pageLink);
 
-    List<User> findUsersByCustomMenuId(UUID id);
+    List<User> findUsersByCustomMenuId(CustomMenuId id);
 
-    void updateCustomersCustomMenuId(List<UUID> ids, UUID customMenuId);
+    void updateUsersCustomMenuId(List<UserId> ids, UUID customMenuId);
 
 }

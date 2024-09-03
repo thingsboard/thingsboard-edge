@@ -55,13 +55,13 @@ public class CustomMenuEntity extends AbstractCustomMenuEntity<CustomMenu> {
     @Column(name = ModelConstants.CUSTOM_MENU_SETTINGS)
     private JsonNode settings;
 
+    public CustomMenuEntity() {
+        super();
+    }
+
     public CustomMenuEntity(CustomMenu customMenu) {
         super(customMenu);
         this.settings = JacksonUtil.valueToTree(customMenu.getConfig());
-    }
-
-    public CustomMenuEntity() {
-        super();
     }
 
     @Override
