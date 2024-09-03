@@ -109,6 +109,7 @@ export class ProfileComponent extends PageComponent implements OnInit, HasConfir
             firstName: user.firstName,
             id: user.id,
             lastName: user.lastName,
+            customMenuId: user.customMenuId
           } }));
         this.store.dispatch(new ActionSettingsChangeLanguage({ userLang: user.additionalInfo.lang, reload: false, ignoredLoad: false }));
         this.authService.refreshJwtToken(false);

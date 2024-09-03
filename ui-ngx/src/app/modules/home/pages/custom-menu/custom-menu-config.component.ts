@@ -29,7 +29,15 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, ElementRef, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  ViewEncapsulation
+} from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -55,6 +63,9 @@ import {
   AddCustomMenuItemDialogComponent,
   AddCustomMenuItemDialogData
 } from '@home/pages/custom-menu/add-custom-menu-item.dialog.component';
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { MediaBreakpoints } from '@shared/models/constants';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'tb-custom-menu-config',
@@ -62,12 +73,14 @@ import {
   styleUrls: ['./custom-menu-config.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class CustomMenuConfigComponent extends PageComponent implements OnInit, HasDirtyFlag {
+export class CustomMenuConfigComponent extends PageComponent implements OnInit, OnDestroy, HasDirtyFlag {
 
   @ViewChild('menuItemsContainer')
   menuItemsContainer: ElementRef<HTMLElement>;
 
   private forcePristine = false;
+
+  private observeBreakpointSubscription: Subscription;
 
   get isDirty(): boolean {
     return this.customMenuFormGroup.dirty && !this.forcePristine;
@@ -76,6 +89,8 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
   set isDirty(value: boolean) {
     this.forcePristine = !value;
   }
+
+  maxIconNameBlockWidth = 256;
 
   customMenu: CustomMenuInfo;
   customMenuConfig: CustomMenuConfig;
@@ -97,7 +112,8 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
               private customMenuService: CustomMenuService,
               private userPermissionsService: UserPermissionsService,
               private cd: ChangeDetectorRef,
-              private dialog: MatDialog) {
+              private dialog: MatDialog,
+              private breakpointObserver: BreakpointObserver) {
     super(store);
     this.customMenu = this.route.snapshot.data.customMenu;
     this.customMenuConfig = this.route.snapshot.data.customMenuConfig;
@@ -111,6 +127,16 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
     if (this.readonly) {
       this.customMenuFormGroup.disable({emitEvent: false});
     }
+    this.observeBreakpointSubscription =
+      this.breakpointObserver.observe([MediaBreakpoints.xs, MediaBreakpoints['gt-xs'], MediaBreakpoints['gt-sm']]).subscribe(() => {
+         this.computeMaxIconNameBlockWidth();
+    });
+    this.computeMaxIconNameBlockWidth();
+  }
+
+  ngOnDestroy() {
+    this.observeBreakpointSubscription.unsubscribe();
+    super.ngOnDestroy();
   }
 
   goBack() {
@@ -208,6 +234,16 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
       menuItemsControls.push(this.fb.control(deepClone(item), []));
     });
     return this.fb.array(menuItemsControls);
+  }
+
+  private computeMaxIconNameBlockWidth() {
+    if (this.breakpointObserver.isMatched(MediaBreakpoints['gt-sm'])) {
+      this.maxIconNameBlockWidth = 256;
+    } else if (this.breakpointObserver.isMatched(MediaBreakpoints['gt-xs'])) {
+      this.maxIconNameBlockWidth = 200;
+    } else {
+      this.maxIconNameBlockWidth = 0;
+    }
   }
 
 }

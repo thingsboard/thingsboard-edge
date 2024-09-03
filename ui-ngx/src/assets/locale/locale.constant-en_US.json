@@ -1274,7 +1274,10 @@
         "link-type-dashboard": "Dashboard",
         "url": "URL",
         "set-url": "Set URL",
-        "set-access-token": "Set access token"
+        "set-access-token": "Set access token",
+        "menu-conflict": "Menu conflict",
+        "menu-conflict-message": "There is another default custom menu with scope <b>{{scope}}</b>. Are you sure you want to replace it with your custom menu?",
+        "replace": "Replace"
     },
     "custom-translation": {
         "add-new-key": "Add new key",

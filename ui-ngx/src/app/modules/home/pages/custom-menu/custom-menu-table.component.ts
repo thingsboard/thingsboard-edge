@@ -156,14 +156,16 @@ export class CustomMenuTableComponent implements OnInit {
         (menu) => this.translate.instant(cmAssigneeTypeTranslations.get(menu.assigneeType))));
     }
     if (authUser.authority !== Authority.SYS_ADMIN) {
-      this.customMenuTableConfig.cellActionDescriptors.push(
-        {
-          name: this.translate.instant('custom-menu.manage-assignees'),
-          icon: 'mdi:account-group-outline',
-          isEnabled: () => true,
-          onAction: ($event, entity) => this.manageCustomMenuAssignees($event, entity)
-        }
-      );
+      if (!readonly) {
+        this.customMenuTableConfig.cellActionDescriptors.push(
+          {
+            name: this.translate.instant('custom-menu.manage-assignees'),
+            icon: 'mdi:account-group-outline',
+            isEnabled: () => true,
+            onAction: ($event, entity) => this.manageCustomMenuAssignees($event, entity)
+          }
+        );
+      }
     }
     this.customMenuTableConfig.cellActionDescriptors.push(
       {

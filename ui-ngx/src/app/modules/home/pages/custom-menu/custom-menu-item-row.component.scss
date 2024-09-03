@@ -29,6 +29,9 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
+@import "../../../../../scss/constants";
+@import '../../../../../scss/mixins';
+
 .tb-custom-menu-item-row-component-container {
   display: flex;
   flex-direction: column;
@@ -39,7 +42,15 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  .mat-mdc-icon-button {
+  .mat-mdc-icon-button.mat-mdc-button-base {
+    &:not(.tb-drag-handle) {
+      @media #{$mat-xs} {
+        @include tb-mat-icon-button-size(24);
+      }
+      @media #{$mat-sm} {
+        @include tb-mat-icon-button-size(32);
+      }
+    }
     &:not(:disabled) {
       .mat-icon {
         color: rgba(0, 0, 0, 0.54);
@@ -53,6 +64,7 @@
   }
   .tb-form-row {
     flex: 1;
+    min-width: 0;
     &.tb-no-padding-left {
       padding-left: 0;
     }
@@ -60,18 +72,13 @@
       display: flex;
       align-items: center;
       gap: 0;
+      min-width: 0;
     }
     .tb-custom-menu-item-icon-name-block {
       display: flex;
       align-items: center;
       gap: 12px;
-      .tb-custom-menu-item-name {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
-      }
+      min-width: 0;
     }
     .tb-custom-menu-item-input-block {
       display: flex;
@@ -99,6 +106,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-width: 0;
   .tb-custom-menu-item-pages-list {
     display: flex;
     flex-direction: column;

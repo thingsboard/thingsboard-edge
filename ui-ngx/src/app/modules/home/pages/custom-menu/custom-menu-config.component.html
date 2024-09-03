@@ -41,17 +41,32 @@
           <mat-icon>arrow_back</mat-icon>
         </button>
         <div class="title-section">
-          <span class="tb-custom-menu-config-title">{{  customMenu.name }} </span>
-          <mat-slide-toggle [formControl]="showHiddenItems">{{ 'custom-menu.show-hidden-items' | translate }}</mat-slide-toggle>
+          <span tbTruncateWithTooltip class="tb-custom-menu-config-title">{{  customMenu.name }} </span>
+          <mat-slide-toggle fxHide.xs [formControl]="showHiddenItems">{{ 'custom-menu.show-hidden-items' | translate }}</mat-slide-toggle>
         </div>
         <span fxFlex></span>
-        <button mat-stroked-button color="primary"
+        <button *ngIf="!readonly"
+                fxHide.lt-md
+                mat-stroked-button
+                color="primary"
                 (click)="resetToDefault()">
           <tb-icon matButtonIcon>mdi:broom</tb-icon>
           {{'custom-menu.reset-to-default-menu' | translate}}
         </button>
+        <button *ngIf="!readonly"
+                fxHide.gt-sm
+                type="button"
+                mat-stroked-button
+                class="tb-box-button"
+                matTooltip="{{ 'custom-menu.reset-to-default-menu' | translate }}"
+                matTooltipPosition="above"
+                (click)="resetToDefault()">
+          <tb-icon color="primary" matButtonIcon>mdi:broom</tb-icon>
+        </button>
         <div tb-help="customMenu"></div>
       </div>
+      <mat-slide-toggle fxHide.gt-xs style="padding-left: 16px;"
+                        [formControl]="showHiddenItems">{{ 'custom-menu.show-hidden-items' | translate }}</mat-slide-toggle>
     </mat-card-title>
   </mat-card-header>
   <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
@@ -77,9 +92,11 @@
                   class="tb-mat-40 tb-drag-handle">
             <tb-icon>drag_indicator</tb-icon>
           </button>
-          <tb-custom-menu-item-row fxFlex [formControl]="menuItemControl"
+          <tb-custom-menu-item-row style="flex: 1; min-width: 0;"
+                                   [formControl]="menuItemControl"
                                    [scope]="customMenu.scope"
                                    [showHidden]="showHiddenItems.value"
+                                   [maxIconNameBlockWidth]="maxIconNameBlockWidth"
                                    (menuItemRemoved)="removeCustomMenuItem($index)">
           </tb-custom-menu-item-row>
         </div>

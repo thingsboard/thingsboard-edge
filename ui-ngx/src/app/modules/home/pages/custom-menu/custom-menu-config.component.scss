@@ -34,9 +34,14 @@
 tb-custom-menu-config {
   width: 100%;
   height: 100%;
-  padding: 16px;
-
+  padding: 8px;
+  @media #{$mat-gt-sm} {
+    padding: 16px;
+  }
   @media #{$mat-gt-md} {
+    width: 1000px;
+  }
+  @media #{$mat-gt-xl} {
     width: 60%;
   }
 }
@@ -50,6 +55,7 @@ tb-custom-menu-config {
 
   .mat-mdc-card-header-text {
     flex: 1;
+    min-width: 0;
   }
 
   .title-container {
@@ -62,6 +68,7 @@ tb-custom-menu-config {
       flex-direction: row;
       align-items: center;
       gap: 24px;
+      min-width: 0;
       .tb-custom-menu-config-title {
         font-weight: 500;
         font-size: 24px;
@@ -138,6 +145,7 @@ tb-custom-menu-config {
     letter-spacing: 0.4px;
     color: rgba(0, 0, 0, 0.54);
   }
+
 }
 
 .mat-mdc-button.mat-mdc-button-base.tb-add-custom-menu-item-button {

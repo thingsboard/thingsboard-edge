@@ -42,10 +42,10 @@
                                    color="var(--tb-primary-500)"
                                    formControlName="icon">
           </tb-material-icon-select>
-          <div class="tb-custom-menu-item-name"> {{ itemName }} </div>
+          <div tbTruncateWithTooltip> {{ itemName }} </div>
         </div>
       </div>
-      <div class="tb-custom-menu-item-input-block">
+      <div fxHide.xs class="tb-custom-menu-item-input-block">
         <mat-form-field fxFlex class="tb-inline-field flex tb-suffix-absolute" appearance="outline" subscriptSizing="dynamic">
           <input matInput [required]="isCustomMenuItem" formControlName="name" placeholder="{{ itemNamePlaceholder }}">
           <mat-icon matSuffix
@@ -100,11 +100,13 @@
           <tb-custom-menu-item-row cdkDrag
                                    [cdkDragDisabled]="!pagesDragEnabled"
                                    class="tb-draggable tb-custom-menu-item-page"
-                                   fxFlex [formControl]="pageControl"
+                                   style="flex: 1; min-width: 0;"
+                                   [formControl]="pageControl"
                                    [scope]="scope"
                                    [showHidden]="showHidden"
                                    [childDrag]="pagesDragEnabled"
                                    [level]="level + 1"
+                                   [maxIconNameBlockWidth]="maxIconNameBlockWidth"
                                    (menuItemRemoved)="removeCustomPage($index)">
             <button cdkDragHandle *ngIf="pagesDragEnabled"
                     class="tb-mat-40 tb-drag-handle tb-custom-menu-item-row-prefix"

@@ -125,6 +125,9 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
   @Input()
   level = 0;
 
+  @Input()
+  maxIconNameBlockWidth = 256;
+
   @Output()
   menuItemRemoved = new EventEmitter();
 
@@ -191,7 +194,7 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
     for (const propName of Object.keys(changes)) {
       const change = changes[propName];
       if (!change.firstChange && change.currentValue !== change.previousValue) {
-        if (['level', 'childDrag'].includes(propName)) {
+        if (['level', 'childDrag', 'maxIconNameBlockWidth'].includes(propName)) {
           this.updateIconNameBlockWidth();
         }
       }
@@ -400,12 +403,16 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
   }
 
   private updateIconNameBlockWidth() {
-    let width = 256;
-    if (this.childDrag) {
-      width -= 24;
+    if (this.maxIconNameBlockWidth) {
+      let width = this.maxIconNameBlockWidth;
+      if (this.childDrag) {
+        width -= 24;
+      }
+      width -= this.level * 16;
+      this.iconNameBlockWidth = width + 'px';
+    } else {
+      this.iconNameBlockWidth = '100%';
     }
-    width -= this.level * 16;
-    this.iconNameBlockWidth = width + 'px';
   }
 
   private updateCleanupState() {

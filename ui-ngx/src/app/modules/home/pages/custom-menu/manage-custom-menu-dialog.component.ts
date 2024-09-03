@@ -60,6 +60,7 @@ import { EntityInfoData } from '@shared/models/entity.models';
 import { parseHttpErrorMessage } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
+import { DialogService } from '@core/services/dialog.service';
 
 export interface ManageCustomMenuDialogData {
   add: boolean;
@@ -110,6 +111,7 @@ export class ManageCustomMenuDialogComponent
               public dialogRef: MatDialogRef<ManageCustomMenuDialogComponent, ManageCustomMenuDialogResult>,
               private customMenuService: CustomMenuService,
               private userService: UserService,
+              private dialogService: DialogService,
               private translate: TranslateService,
               private fb: UntypedFormBuilder) {
     super(store, router, dialogRef);
@@ -191,41 +193,68 @@ export class ManageCustomMenuDialogComponent
         assigneeType: this.customMenuFormGroup.get('assigneeType').value
       };
       const assignToList: string[] = this.customMenuFormGroup.get('assignToList').value;
-      this.customMenuService.saveCustomMenu(customMenuInfo, assignToList).subscribe(customMenu => {
-        this.dialogRef.close({customMenu});
-      });
+      this.handleMenuSaveOperation(
+        customMenuInfo,
+        this.customMenuService.saveCustomMenu(customMenuInfo, assignToList, false,
+          {ignoreErrors: true}),
+        customMenu => this.dialogRef.close({customMenu}),
+        () => this.customMenuService.saveCustomMenu(customMenuInfo, assignToList, true)
+      );
     }
   }
 
   private updateAssignees() {
     if (this.customMenuFormGroup.valid) {
+      const customMenu = this.data.customMenu;
       const assigneeType: CMAssigneeType = this.customMenuFormGroup.get('assigneeType').value;
       const assignToList: string[] = this.customMenuFormGroup.get('assignToList').value;
-      this.customMenuService.assignCustomMenu(this.data.customMenu.id.id, assigneeType, assignToList, false,
-        {ignoreErrors: true}).pipe(
-        map(() => ({success: true, error: null})),
-        catchError((err) => {
-          if (isDefaultCustomMenuConflict(err)) {
-            return of({success: false, error: null});
-          } else {
-            return of({success: false, error: err});
-          }
-        }),
-      ).subscribe(
-        (assignResult) => {
-          if (assignResult.success) {
-            this.dialogRef.close({assigneeType, assignToList});
-          } else if (!assignResult.error) {
-            // TODO: Show dialog
-          } else {
-            const errorMessageWithTimeout = parseHttpErrorMessage(assignResult.error, this.translate);
-            setTimeout(() => {
-              this.store.dispatch(new ActionNotificationShow({message: errorMessageWithTimeout.message, type: 'error'}));
-            }, errorMessageWithTimeout.timeout);
-          }
-        }
+      this.handleMenuSaveOperation(
+        customMenu,
+        this.customMenuService.assignCustomMenu(customMenu.id.id, assigneeType, assignToList, false,
+          {ignoreErrors: true}),
+        _res => this.dialogRef.close({assigneeType, assignToList}),
+        () => this.customMenuService.assignCustomMenu(customMenu.id.id, assigneeType, assignToList, true)
       );
     }
+  }
+
+  private handleMenuSaveOperation<R>(customMenu: CustomMenuInfo,
+                                     saveObservable: Observable<R>,
+                                     onSuccess: (res: R) => void,
+                                     onForceSave: () => Observable<R>) {
+    saveObservable.pipe(
+      map((res) => ({success: true, error: null, res})),
+      catchError((err) => {
+        if (isDefaultCustomMenuConflict(err)) {
+          return of({success: false, error: null, res: null});
+        } else {
+          return of({success: false, error: err, res: null});
+        }
+      }),
+    ).subscribe(
+      (saveResult) => {
+        if (saveResult.success) {
+          onSuccess(saveResult.res);
+        } else if (!saveResult.error) {
+          const menuConflictMessage = this.translate.instant('custom-menu.menu-conflict-message',
+            {scope: this.translate.instant(cmScopeTranslations.get(customMenu.scope))});
+          this.dialogService.confirm(this.translate.instant('custom-menu.menu-conflict'), menuConflictMessage,
+            this.translate.instant('action.cancel'), this.translate.instant('custom-menu.replace')).subscribe((res) => {
+            if (res) {
+              const forceSaveObservable = onForceSave();
+              forceSaveObservable.subscribe((forceSaveRes) => {
+                onSuccess(forceSaveRes);
+              });
+            }
+          });
+        } else {
+          const errorMessageWithTimeout = parseHttpErrorMessage(saveResult.error, this.translate);
+          setTimeout(() => {
+            this.store.dispatch(new ActionNotificationShow({message: errorMessageWithTimeout.message, type: 'error'}));
+          }, errorMessageWithTimeout.timeout);
+        }
+      }
+    );
   }
 
   fetchUsers(searchText?: string): Observable<Array<User>> {
