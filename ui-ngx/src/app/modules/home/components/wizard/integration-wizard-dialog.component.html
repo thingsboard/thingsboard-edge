@@ -89,6 +89,7 @@
             <tb-toggle-select fxFlex appearance="fill" formControlName="converterType">
               <tb-toggle-option [value]="'new'">{{ 'integration.new-converter' | translate }}</tb-toggle-option>
               <tb-toggle-option [value]="'exist'">{{ 'integration.existing-converter' | translate }}</tb-toggle-option>
+              <tb-toggle-option [value]="'library'">{{ 'integration.library' | translate }}</tb-toggle-option>
             </tb-toggle-select>
           </div>
           <tb-converter-autocomplete fxFlex formControlName="uplinkConverterId" required
@@ -108,6 +109,11 @@
                         isEdit="true"
                         [entity]="uplinkConverter"
           ></tb-converter>
+          <tb-converter-library
+            *ngIf="uplinkConverterForm.get('converterType').value === 'library'"
+            (converterChanged)="onLibraryConverterChanged($event)"
+            [integrationType]="integrationWizardForm.get('type').value"
+          />
         </div>
       </form>
     </mat-step>
@@ -120,6 +126,7 @@
             <tb-toggle-select fxFlex appearance="fill" formControlName="converterType">
               <tb-toggle-option [value]="'new'">{{ 'integration.new-converter' | translate }}</tb-toggle-option>
               <tb-toggle-option [value]="'exist'">{{ 'integration.existing-converter' | translate }}</tb-toggle-option>
+              <tb-toggle-option [value]="'library'">{{ 'integration.library' | translate }}</tb-toggle-option>
             </tb-toggle-select>
           </div>
           <tb-converter-autocomplete fxFlex formControlName="downlinkConverterId"
@@ -138,6 +145,12 @@
                         isEdit="true"
                         [entity]="downlinkConverter"
           ></tb-converter>
+          <tb-converter-library
+            *ngIf="downlinkConverterForm.get('converterType').value === 'library'"
+            (converterChanged)="onLibraryConverterChanged($event)"
+            [integrationType]="integrationWizardForm.get('type').value"
+            [isUplink]="false"
+          />
         </div>
       </form>
     </mat-step>

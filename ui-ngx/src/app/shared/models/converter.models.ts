@@ -119,6 +119,21 @@ export interface ConverterDebugInput {
   inIntegrationMetadata: string;
 }
 
+export interface Vendor {
+  name: string;
+  logo: string;
+}
+
+export interface Model {
+  name: string;
+  photo: string;
+  info: {
+    description: string;
+    label: string;
+    url: string;
+  }
+}
+
 export function getConverterHelpLink(converter: Converter) {
   let link = 'converters';
   if (converter && converter.type) {

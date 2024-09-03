@@ -59,11 +59,13 @@ import {
 } from '@home/components/converter/converter-test-dialog.component';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import { IntegrationType } from '@shared/models/integration.models';
+import { IntegrationDirectory, IntegrationType } from '@shared/models/integration.models';
 import { isDefinedAndNotNull, isNotEmptyStr } from '@core/utils';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
-import { takeUntil } from 'rxjs/operators';
-import { Observable, Subject } from 'rxjs';
+import { map, takeUntil } from 'rxjs/operators';
+import { forkJoin, Observable, Subject } from 'rxjs';
+import { ContentType } from '@shared/models/constants';
+import { ConverterLibraryService } from '@home/components/converter/converter-library.service';
 
 @Component({
   selector: 'tb-converter',
@@ -98,6 +100,9 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   @Input()
+  libraryInfo: { vendorName: string, modelName: string };
+
+  @Input()
   integrationName: string;
 
   converterType = ConverterType;
@@ -118,6 +123,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
               private converterService: ConverterService,
               private dialog: MatDialog,
               private resourcesService: ResourcesService,
+              private converterLibraryService: ConverterLibraryService,
               @Optional() @Inject('entity') protected entityValue: Converter,
               @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<Converter>,
               protected fb: FormBuilder,
@@ -280,7 +286,31 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       }));
   }
 
-  openConverterTestDialog() {
+  openConverterTestDialog(): void {
+    (this.libraryInfo ? this.getLibraryDebugIn() : this.getDefaultDebugIn()).pipe(takeUntil(this.destroy$)).subscribe(
+      (debugIn: ConverterDebugInput) => this.showConverterTestDialog(debugIn)
+    );
+  }
+
+  private getLibraryDebugIn(): Observable<ConverterDebugInput> {
+    const isUplink = this.entity.type === ConverterType.UPLINK;
+    const integrationDir = IntegrationDirectory[this.integrationType] ?? this.integrationType;
+    return forkJoin([
+      this.converterLibraryService
+        .getConverterPayload(integrationDir, this.libraryInfo.vendorName, this.libraryInfo.modelName, isUplink),
+      this.converterLibraryService
+        .getConverterMetaData(integrationDir, this.libraryInfo.vendorName, this.libraryInfo.modelName, isUplink)
+    ])
+      .pipe(
+        map(([inContent, inMetadata]) => ({
+          inMetadata: JSON.stringify(inMetadata),
+          inContent: JSON.stringify(inContent),
+          inContentType: ContentType.JSON
+        } as ConverterDebugInput))
+      )
+  }
+
+  private getDefaultDebugIn(): Observable<ConverterDebugInput> {
     let request: Observable<ConverterDebugInput>;
     if (this.entity.id) {
       request = this.converterService.getLatestConverterDebugInput(this.entity.id.id);
@@ -296,11 +326,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
       request = this.converterService.getLatestConverterDebugInput(NULL_UUID, parameters);
     }
-    request.subscribe(
-      (debugIn) => {
-        this.showConverterTestDialog(debugIn);
-      }
-    );
+    return request;
   }
 
   showConverterTestDialog(debugIn: ConverterDebugInput, setFirstTab = false) {

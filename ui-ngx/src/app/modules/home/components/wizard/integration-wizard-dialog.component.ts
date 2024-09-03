@@ -155,7 +155,10 @@ export class IntegrationWizardDialogComponent extends
       converterType: ['new'],
       newUplinkConverter: [{
           type: ConverterType.UPLINK
-        }]
+        }],
+      libraryUplinkConverter: [{
+        type: ConverterType.UPLINK,
+      }]
     });
 
     this.downlinkConverterForm = this.fb.group({
@@ -166,7 +169,13 @@ export class IntegrationWizardDialogComponent extends
           type: ConverterType.DOWNLINK
         },
         disable: true
-      }]
+      }],
+      libraryDownlinkConverter: [{
+        value: {
+          type: ConverterType.DOWNLINK
+        },
+        disable: true
+      }],
     });
 
     this.integrationConfigurationForm = this.fb.group({
@@ -188,9 +197,15 @@ export class IntegrationWizardDialogComponent extends
       if (value === 'exist') {
         this.uplinkConverterForm.get('uplinkConverterId').enable({emitEvent: false});
         this.uplinkConverterForm.get('newUplinkConverter').disable({emitEvent: false});
+        this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
+      } else if (value === 'library') {
+        this.uplinkConverterForm.get('uplinkConverterId').disable({emitEvent: false});
+        this.uplinkConverterForm.get('newUplinkConverter').disable({emitEvent: false});
+        this.uplinkConverterForm.get('libraryUplinkConverter').enable({emitEvent: false});
       } else {
         this.uplinkConverterForm.get('uplinkConverterId').disable({emitEvent: false});
         this.uplinkConverterForm.get('newUplinkConverter').enable({emitEvent: false});
+        this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
       }
     });
 
@@ -200,9 +215,15 @@ export class IntegrationWizardDialogComponent extends
       if (value === 'exist') {
         this.downlinkConverterForm.get('downlinkConverterId').enable({emitEvent: false});
         this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
+        this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
+      } else if (value === 'library') {
+        this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
+        this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
+        this.downlinkConverterForm.get('libraryDownlinkConverter').enable({emitEvent: false});
       } else {
         this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
         this.downlinkConverterForm.get('newDownlinkConverter').enable({emitEvent: false});
+        this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
       }
     });
   }
@@ -248,11 +269,23 @@ export class IntegrationWizardDialogComponent extends
     return getIntegrationHelpLink(this.integrationWizardForm.value);
   }
 
+  onLibraryConverterChanged(converterFormGroup: UntypedFormGroup): void {
+    if (converterFormGroup.get('type').value === ConverterType.UPLINK) {
+      this.uplinkConverterForm.setControl('libraryUplinkConverter', converterFormGroup, {emitEvent: false});
+    } else {
+      this.downlinkConverterForm.setControl('libraryDownlinkConverter', converterFormGroup, {emitEvent: false});
+    }
+  }
+
   private createUplinkConverter(): Observable<ConverterId> {
-    if (this.uplinkConverterForm.get('converterType').value === 'exist') {
+    const converterType = this.uplinkConverterForm.get('converterType').value;
+    if (converterType === 'exist') {
       return of(this.uplinkConverterForm.get('uplinkConverterId').value);
     } else {
-      const converterConfig: Converter = deepTrim(this.uplinkConverterForm.get('newUplinkConverter').value);
+      const converterConfig: Converter = deepTrim(converterType === 'new'
+        ? this.uplinkConverterForm.get('newUplinkConverter').value
+        : this.uplinkConverterForm.get('libraryUplinkConverter').value
+      );
       converterConfig.edgeTemplate = this.data.edgeTemplate;
       return this.converterService.saveConverter(converterConfig).pipe(
         tap(converter => {
@@ -267,13 +300,17 @@ export class IntegrationWizardDialogComponent extends
   }
 
   private createDownlinkConverter(): Observable<ConverterId> {
+    const converterType = this.downlinkConverterForm.get('converterType').value;
     if (!this.showDownlinkStep || this.downlinkConverterForm.get('downlinkConverterId').pristine &&
-      this.downlinkConverterForm.get('converterType').value === 'exist') {
+      converterType === 'exist') {
       return of(null);
     } else if (this.downlinkConverterForm.get('converterType').value === 'exist') {
       return of(this.downlinkConverterForm.get('downlinkConverterId').value);
     } else {
-      const converterConfig: Converter = deepTrim(this.downlinkConverterForm.get('newDownlinkConverter').value);
+      const converterConfig: Converter = deepTrim(converterType === 'new'
+        ? this.downlinkConverterForm.get('newDownlinkConverter').value
+        : this.downlinkConverterForm.get('libraryDownlinkConverter').value
+      );
       converterConfig.edgeTemplate = this.data.edgeTemplate;
       return this.converterService.saveConverter(converterConfig).pipe(
         tap(converter => {

@@ -231,6 +231,8 @@ import { MoveWidgetsDialogComponent } from '@home/components/dashboard-page/layo
 import {
   SelectDashboardBreakpointComponent
 } from '@home/components/dashboard-page/layout/select-dashboard-breakpoint.component';
+import { EntityChipsComponent } from '@home/components/entity/entity-chips.component';
+import { ConverterLibraryComponent } from '@home/components/converter/converter-library.component';
 
 @NgModule({
   declarations:
@@ -401,7 +403,9 @@ import {
       IntegrationWizardDialogComponent,
       ConverterComponent,
       ConverterTestDialogComponent,
-      SendNotificationButtonComponent
+      SendNotificationButtonComponent,
+      EntityChipsComponent,
+      ConverterLibraryComponent
     ],
   imports: [
     CommonModule,
