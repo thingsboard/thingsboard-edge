@@ -67,23 +67,19 @@
       </mat-select>
     </mat-form-field>
     <tb-entity-list *ngIf="customMenuFormGroup.get('assigneeType').value === CMAssigneeType.USERS"
-                    required
                     formControlName="assignToList"
                     appearance="outline"
                     [entityType]="EntityType.USER"
                     [fetchEntitiesFunction]="fetchUsersFunction"
                     labelText="{{ 'custom-menu.assign-to' | translate }}"
-                    placeholderText="{{ 'user.user' | translate }}"
-                    requiredText="{{ 'custom-menu.assignee-users-required' | translate }}">
+                    placeholderText="{{ 'user.user' | translate }}">
     </tb-entity-list>
     <tb-entity-list *ngIf="customMenuFormGroup.get('assigneeType').value === CMAssigneeType.CUSTOMERS"
-                    required
                     formControlName="assignToList"
                     appearance="outline"
                     [entityType]="EntityType.CUSTOMER"
                     labelText="{{ 'custom-menu.assign-to' | translate }}"
-                    placeholderText="{{ 'customer.customer' | translate }}"
-                    requiredText="{{ 'custom-menu.assignee-customers-required' | translate }}">
+                    placeholderText="{{ 'customer.customer' | translate }}">
     </tb-entity-list>
   </div>
   <div mat-dialog-actions fxLayoutAlign="end center">

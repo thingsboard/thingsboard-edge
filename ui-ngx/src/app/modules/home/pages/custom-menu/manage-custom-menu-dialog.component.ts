@@ -123,7 +123,7 @@ export class ManageCustomMenuDialogComponent
       scope: [this.data.add ? (this.authUser.authority === Authority.TENANT_ADMIN ? CMScope.TENANT : CMScope.CUSTOMER)
         : this.data.customMenu.scope],
       assigneeType: [this.data.add ? CMAssigneeType.NO_ASSIGN: this.data.customMenu.assigneeType],
-      assignToList: [this.data.add ? null : this.data.assigneeList, Validators.required]
+      assignToList: [this.data.add ? null : this.data.assigneeList]
     });
     this.title = this.data.add ? 'custom-menu.add' : 'custom-menu.manage-assignees';
     this.updateAssigneeTypes(this.data.add);
@@ -192,7 +192,7 @@ export class ManageCustomMenuDialogComponent
         scope: this.customMenuFormGroup.get('scope').value,
         assigneeType: this.customMenuFormGroup.get('assigneeType').value
       };
-      const assignToList: string[] = this.customMenuFormGroup.get('assignToList').value;
+      const assignToList: string[] = this.customMenuFormGroup.get('assignToList').value || [];
       this.handleMenuSaveOperation(
         customMenuInfo,
         this.customMenuService.saveCustomMenu(customMenuInfo, assignToList, false,
@@ -207,7 +207,7 @@ export class ManageCustomMenuDialogComponent
     if (this.customMenuFormGroup.valid) {
       const customMenu = this.data.customMenu;
       const assigneeType: CMAssigneeType = this.customMenuFormGroup.get('assigneeType').value;
-      const assignToList: string[] = this.customMenuFormGroup.get('assignToList').value;
+      const assignToList: string[] = this.customMenuFormGroup.get('assignToList').value || [];
       this.handleMenuSaveOperation(
         customMenu,
         this.customMenuService.assignCustomMenu(customMenu.id.id, assigneeType, assignToList, false,

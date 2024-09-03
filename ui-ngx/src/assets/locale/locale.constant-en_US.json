@@ -1269,8 +1269,6 @@
         "assignee-customers": "Customers list",
         "assignee-users": "Users list",
         "assign-to": "Assign to",
-        "assignee-users-required": "At least one user should be assigned",
-        "assignee-customers-required": "At least one customer should be assigned",
         "manage-assignees": "Manage custom menu assignees",
         "manage-config": "Manage custom menu config",
         "show-hidden-items": "Show hidden items",
