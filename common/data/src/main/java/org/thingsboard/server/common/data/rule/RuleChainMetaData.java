@@ -32,6 +32,7 @@ package org.thingsboard.server.common.data.rule;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.id.RuleChainId;
 
 import java.util.ArrayList;
@@ -42,10 +43,13 @@ import java.util.List;
  */
 @Schema
 @Data
-public class RuleChainMetaData {
+public class RuleChainMetaData implements HasVersion {
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "JSON object with Rule Chain Id.", accessMode = Schema.AccessMode.READ_ONLY)
     private RuleChainId ruleChainId;
+
+    @Schema(requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "Version of the Rule Chain")
+    private Long version;
 
     @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Index of the first rule node in the 'nodes' list")
     private Integer firstNodeIndex;
