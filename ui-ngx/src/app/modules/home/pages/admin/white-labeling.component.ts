@@ -33,9 +33,8 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { TranslateService } from '@ngx-translate/core';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { LoginWhiteLabelingParams, WhiteLabelingParams } from '@shared/models/white-labeling.models';
 import { Operation, Resource } from '@shared/models/security.models';
@@ -44,13 +43,12 @@ import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { environment as env } from '@env/environment';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { Observable, Subject } from 'rxjs';
 import { isDefined, isEqual } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import { CustomCssDialogComponent, CustomCssDialogData } from '@home/pages/admin/custom-css-dialog.component';
 import { UiSettingsService } from '@core/http/ui-settings.service';
-import { share, skip, takeUntil } from 'rxjs/operators';
+import { share, takeUntil } from 'rxjs/operators';
 import { WINDOW } from '@core/services/window.service';
 
 @Component({
@@ -61,7 +59,7 @@ import { WINDOW } from '@core/services/window.service';
 export class WhiteLabelingComponent extends PageComponent implements OnInit, OnDestroy, HasConfirmForm {
 
   wlSettings: UntypedFormGroup;
-  whiteLabelingParams: WhiteLabelingParams & LoginWhiteLabelingParams;
+  private whiteLabelingParams: WhiteLabelingParams & LoginWhiteLabelingParams;
 
   isSysAdmin = getCurrentAuthUser(this.store).authority === Authority.SYS_ADMIN;
   isTenant = getCurrentAuthUser(this.store).authority === Authority.TENANT_ADMIN;
@@ -89,12 +87,10 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
   private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
-              private router: Router,
               private route: ActivatedRoute,
               private userPermissionsService: UserPermissionsService,
               private whiteLabelingService: WhiteLabelingService,
               private uiSettingsService: UiSettingsService,
-              private translate: TranslateService,
               private dialog: MatDialog,
               public fb: UntypedFormBuilder,
               @Inject(WINDOW) private window: Window) {
@@ -127,7 +123,7 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
       if (this.whiteLabelingParams.showNameBottom === null){
         this.whiteLabelingParams.showNameBottom = true;
       }
-      this.wlSettings.reset(this.whiteLabelingParams);
+      this.wlSettings.reset(this.whiteLabelingParams, {emitEvent: false});
       if (!this.readonly) {
         this.updateValidators();
       }
@@ -199,16 +195,17 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
     if (this.readonly) {
       this.wlSettings.disable();
     } else {
-      this.wlSettings.get('showNameVersion').valueChanges.subscribe(() => {
+      this.wlSettings.get('showNameVersion').valueChanges.pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(() => {
         this.updateValidators();
       });
       if (this.isLoginWl && !this.isSysAdmin) {
         this.wlSettings.get('domainName').valueChanges.pipe(
-          skip(1),
           takeUntil(this.destroy$)
         ).subscribe((value) => {
           const baseUrlFormControl = this.wlSettings.get('baseUrl');
-          if (baseUrlFormControl.pristine) {
+          if (baseUrlFormControl.pristine && !this.whiteLabelingParams.baseUrl) {
             baseUrlFormControl.patchValue(value ? this.window.location.protocol + '//' + value : '');
           }
         });

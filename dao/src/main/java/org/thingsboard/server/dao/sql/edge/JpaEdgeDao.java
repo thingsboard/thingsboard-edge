@@ -183,6 +183,18 @@ public class JpaEdgeDao extends JpaAbstractDao<EdgeEntity, Edge> implements Edge
     }
 
     @Override
+    public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityId(UUID tenantId, UUID entityId, EntityType entityType, PageLink pageLink) {
+        log.debug("Try to find edge ids by tenantId [{}], entityId [{}], entityType [{}], pageLink [{}]", tenantId, entityId, entityType, pageLink);
+        return DaoUtil.pageToPageData(
+                edgeRepository.findIdsByTenantIdAndEntityId(
+                        tenantId,
+                        entityId,
+                        entityType.name(),
+                        pageLink.getTextSearch(),
+                        DaoUtil.toPageable(pageLink))).mapData(EdgeId::fromUUID);
+    }
+
+    @Override
     public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityIds(UUID tenantId, List<UUID> entityIds, EntityType entityType, PageLink pageLink) {
         log.debug("Try to find edge ids by tenantId [{}], entityIds [{}], pageLink [{}]", tenantId, entityIds, pageLink);
         return DaoUtil.pageToPageData(
@@ -220,6 +232,7 @@ public class JpaEdgeDao extends JpaAbstractDao<EdgeEntity, Edge> implements Edge
                         DaoUtil.toPageable(pageLink))).mapData(EdgeId::fromUUID);
     }
 
+    @Override
     public PageData<Edge> findEdgesByTenantProfileId(UUID tenantProfileId, PageLink pageLink) {
         log.debug("Try to find edges by tenantProfileId [{}], pageLink [{}]", tenantProfileId, pageLink);
         return DaoUtil.toPageData(

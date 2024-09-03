@@ -321,7 +321,7 @@ public class UserController extends BaseController {
             if (user.getId() != null) {
                 User prevUser = userService.findUserById(getTenantId(), user.getId());
                 JsonNode additionalInfo = prevUser.getAdditionalInfo();
-                if (additionalInfo != null && additionalInfo.has(HOME_DASHBOARD_ID)) {
+                if (additionalInfo != null && additionalInfo.hasNonNull(HOME_DASHBOARD_ID)) {
                     prevHomeDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();
                     if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {
                         prevHideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();

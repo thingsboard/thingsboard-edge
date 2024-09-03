@@ -214,7 +214,6 @@ import { AlarmAssigneePanelComponent } from '@home/components/alarm/alarm-assign
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { AllEntitiesTableConfigService } from '@home/components/entity/all-entities-table-config.service';
 import { SendNotificationButtonComponent } from '@home/components/notification/send-notification-button.component';
-import { GroupChipsComponent } from '@home/components/group/group-chips.component';
 import { GroupEntityInfoComponent } from '@home/components/group/group-entity-info.component';
 import { ManageOwnerAndGroupsDialogComponent } from '@home/components/group/manage-owner-and-groups-dialog.component';
 import { OwnerAndGroupsComponent } from '@home/components/group/owner-and-groups.component';
@@ -298,7 +297,6 @@ import { ConverterLibraryComponent } from '@home/components/converter/converter-
       EntityGroupColumnsComponent,
       EntityGroupColumnDialogComponent,
       AddGroupEntityDialogComponent,
-      GroupChipsComponent,
       GroupEntityInfoComponent,
       OwnerAndGroupsComponent,
       ManageOwnerAndGroupsDialogComponent,
@@ -472,7 +470,6 @@ import { ConverterLibraryComponent } from '@home/components/converter/converter-
     EntityGroupColumnsComponent,
     EntityGroupColumnDialogComponent,
     AddGroupEntityDialogComponent,
-    GroupChipsComponent,
     GroupEntityInfoComponent,
     OwnerAndGroupsComponent,
     ManageOwnerAndGroupsDialogComponent,
@@ -569,7 +566,8 @@ import { ConverterLibraryComponent } from '@home/components/converter/converter-
     RateLimitsListComponent,
     RateLimitsTextComponent,
     IntegrationWizardDialogComponent,
-    SendNotificationButtonComponent
+    SendNotificationButtonComponent,
+    EntityChipsComponent
   ],
   providers: [
     WidgetComponentService,

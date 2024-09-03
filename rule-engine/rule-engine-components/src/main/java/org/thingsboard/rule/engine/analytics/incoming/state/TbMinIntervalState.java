@@ -65,7 +65,7 @@ public class TbMinIntervalState extends TbBaseIntervalState {
     @Override
     public String toValueJson(Gson gson, String outputValueKey) {
         JsonObject json = new JsonObject();
-        json.addProperty(outputValueKey, min);
+        json.addProperty(outputValueKey, min.doubleValue());
         return gson.toJson(json);
     }
 
