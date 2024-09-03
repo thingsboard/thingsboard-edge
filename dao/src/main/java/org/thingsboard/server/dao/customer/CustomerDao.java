@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.customer;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -109,8 +110,8 @@ public interface CustomerDao extends Dao<Customer>, TenantEntityDao, ExportableC
      */
     PageData<Customer> findCustomersWithTheSameTitle(PageLink pageLink);
 
-    List<Customer> findCustomersByCustomMenuId(UUID id);
+    List<Customer> findCustomersByCustomMenuId(CustomMenuId id);
 
-    void updateCustomersCustomMenuId(List<UUID> ids, UUID customMenuId);
+    void updateCustomersCustomMenuId(List<CustomerId> customerIds, UUID customMenuId);
 
 }

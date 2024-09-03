@@ -51,6 +51,9 @@ public class CustomMenuValidator extends DataValidator<CustomMenuInfo> {
 
     @Override
     protected void validateDataImpl(TenantId tenantId, CustomMenuInfo customMenuInfo) {
+        if (customMenuInfo.getTenantId() == null) {
+            throw new DataValidationException("Custom menu should be assigned to tenant");
+        }
         if (customMenuInfo.getScope() == CMScope.TENANT && customMenuInfo.getAssigneeType() == CMAssigneeType.CUSTOMERS) {
             throw new DataValidationException("Tenant custom menu can not be assigned to customers");
         }
@@ -59,9 +62,6 @@ public class CustomMenuValidator extends DataValidator<CustomMenuInfo> {
         }
         if (customMenuInfo.getCustomerId() != null && !customMenuInfo.getCustomerId().isNullUid() && customMenuInfo.getScope() != CMScope.CUSTOMER) {
             throw new DataValidationException("Customer custom menu can have CUSTOMER scope only");
-        }
-        if (customMenuInfo.getTenantId() == null) {
-            throw new DataValidationException("Custom menu should be assigned to tenant");
         }
     }
 

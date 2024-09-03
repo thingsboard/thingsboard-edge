@@ -38,6 +38,6 @@ public interface EtagCacheService<K> {
 
     void putETag(K cacheKey, String etag);
 
-    void evictEtags(TenantId tenantId);
+    void evictETags(TenantId tenantId);
 
 }

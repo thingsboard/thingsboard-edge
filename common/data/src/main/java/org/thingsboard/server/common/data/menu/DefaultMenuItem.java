@@ -35,7 +35,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.thingsboard.server.common.data.menu.MenuItemType.DEFAULT;
@@ -46,10 +45,10 @@ import static org.thingsboard.server.common.data.menu.MenuItemType.DEFAULT;
 @JsonView(Views.Public.class)
 public class DefaultMenuItem implements MenuItem {
 
-    @Schema(description = "Unique identifier for predefined menu items", example = "home",  accessMode = Schema.AccessMode.READ_ONLY)
+    @Schema(description = "Unique identifier for predefined menu items", example = "home", accessMode = Schema.AccessMode.READ_ONLY)
     @JsonView(Views.Public.class)
     private String id;
-    @Schema(description = "Name of the menu item", example = "My Custom Menu", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "Name of the menu item", example = "My Custom Menu")
     @JsonView(Views.Public.class)
     private String name;
     @Schema(description = "URL of the menu item icon. Overrides 'materialIcon'", example = "My Custom Menu")

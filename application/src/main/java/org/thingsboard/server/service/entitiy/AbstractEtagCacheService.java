@@ -40,11 +40,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
-public abstract class AbstractTenantEntityEtagCacheService<K extends HasTenantId> {
+public abstract class AbstractEtagCacheService<K extends HasTenantId> {
 
     public final Cache<K, String> etagCache;
 
-    public AbstractTenantEntityEtagCacheService(int cacheTtl, int cacheMaxSize) {
+    public AbstractEtagCacheService(int cacheTtl, int cacheMaxSize) {
         this.etagCache = Caffeine.newBuilder()
                 .expireAfterAccess(cacheTtl, TimeUnit.MINUTES)
                 .maximumSize(cacheMaxSize)
@@ -59,7 +59,7 @@ public abstract class AbstractTenantEntityEtagCacheService<K extends HasTenantId
         etagCache.put(cacheKey, etag);
     }
 
-    public void evictEtags(TenantId tenantId) {
+    public void evictETags(TenantId tenantId) {
         if (tenantId.isSysTenantId()) {
             etagCache.invalidateAll();
         } else {

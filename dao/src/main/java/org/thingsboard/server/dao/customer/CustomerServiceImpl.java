@@ -469,14 +469,13 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     @Override
     public List<Customer> findCustomersByCustomMenuId(CustomMenuId customMenuId) {
         log.trace("Executing findCustomersByCustomMenuId, customMenuId [{}]", customMenuId);
-        validateId(customMenuId, id -> "Incorrect customMenuId " + id);
-        return customerDao.findCustomersByCustomMenuId(customMenuId.getId());
+        return customerDao.findCustomersByCustomMenuId(customMenuId);
     }
 
     @Override
-    public void updateCustomersCustomMenuId(List<CustomerId> ids, UUID customMenuId) {
+    public void updateCustomersCustomMenuId(List<CustomerId> customerIds, UUID customMenuId) {
         log.trace("Executing updateCustomMenuId, customMenuId [{}]", customMenuId);
-        customerDao.updateCustomersCustomMenuId(toUUIDs(ids), customMenuId);
+        customerDao.updateCustomersCustomMenuId(customerIds, customMenuId);
     }
 
     private final PaginatedRemover<TenantId, Customer> customersByTenantRemover =

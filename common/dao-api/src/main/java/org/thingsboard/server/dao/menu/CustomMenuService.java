@@ -74,4 +74,6 @@ public interface CustomMenuService {
 
     CustomMenuDeleteResult deleteCustomMenu(CustomMenu customMenu, boolean force);
 
+    void deleteByTenantId(TenantId tenantId);
+
 }

@@ -51,6 +51,10 @@ public class CustomMenu extends CustomMenuInfo {
         super();
     }
 
+    public CustomMenu(CustomMenuId id) {
+        super(id);
+    }
+
     public CustomMenu(CustomMenuInfo customMenuInfo) {
         super(customMenuInfo);
     }
@@ -60,22 +64,9 @@ public class CustomMenu extends CustomMenuInfo {
         this.config = customMenu.getConfig();
     }
 
-    public CustomMenu(CustomMenuId id) {
-        super(id);
-    }
-
     public CustomMenu(CustomMenuInfo customMenuInfo, CustomMenuConfig config) {
         super(customMenuInfo);
         this.config = config;
     }
 
-    public CustomMenu(CustomMenuAssigneeInfo customMenuAssigneeInfo) {
-        super(customMenuAssigneeInfo);
-    }
-
-    public void update(CustomMenuInfo customMenuInfo) {
-        setScope(customMenuInfo.getScope());
-        setAssigneeType(customMenuInfo.getAssigneeType());
-        setName(customMenuInfo.getName());
-    }
 }

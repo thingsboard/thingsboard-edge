@@ -42,7 +42,6 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -205,13 +204,8 @@ public class DefaultAccessControlService implements AccessControlService {
                 ThingsboardErrorCode.PERMISSION_DENIED);
     }
 
-    private void customMenuOperationPermissionDenied(Operation operation, CustomMenu customMenu) throws ThingsboardException {
-        throw new ThingsboardException("You don't have permission to perform '" + operation + "' operation with customMenu '" + customMenu.getName() + "'!",
-                ThingsboardErrorCode.PERMISSION_DENIED);
-    }
-
     private void customMenuOperationPermissionDenied(Operation operation, CustomMenuInfo customMenuInfo) throws ThingsboardException {
-        throw new ThingsboardException("You don't have permission to perform '" + operation + "' operation with customMenu '" + customMenuInfo.getName() + "'!",
+        throw new ThingsboardException("You don't have permission to perform '" + operation + "' operation with custom menu '" + customMenuInfo.getName() + "'!",
                 ThingsboardErrorCode.PERMISSION_DENIED);
     }
 

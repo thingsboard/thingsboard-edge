@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
 /**
@@ -218,16 +219,16 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
     }
 
     @Override
-    public List<User> findUsersByCustomMenuId(UUID id) {
-        return DaoUtil.convertDataList(userRepository.findByCustomMenuId(id));
+    public List<User> findUsersByCustomMenuId(CustomMenuId customMenuId) {
+        return DaoUtil.convertDataList(userRepository.findByCustomMenuId(customMenuId.getId()));
     }
 
     @Override
-    public void updateCustomersCustomMenuId(List<UUID> ids, UUID customMenuId) {
+    public void updateUsersCustomMenuId(List<UserId> userIds, UUID customMenuId) {
         if (customMenuId == null) {
-            userRepository.updateCustomMenuIdToNull(ids);
+            userRepository.updateCustomMenuIdToNull(toUUIDs(userIds));
         } else {
-            userRepository.updateCustomMenuId(ids, customMenuId);
+            userRepository.updateCustomMenuId(toUUIDs(userIds), customMenuId);
         }
     }
 

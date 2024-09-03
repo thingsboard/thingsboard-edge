@@ -32,8 +32,6 @@ package org.thingsboard.server.service.translation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -54,6 +52,7 @@ import org.thingsboard.server.dao.translation.TranslationCacheKey;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.entitiy.AbstractEtagCacheService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -67,7 +66,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -79,7 +77,7 @@ import static org.thingsboard.common.util.JacksonUtil.newObjectNode;
 @Service
 @Slf4j
 @TbCoreComponent
-public class DefaultTbTranslationService implements TbTranslationService {
+public class DefaultTbTranslationService extends AbstractEtagCacheService<TranslationCacheKey> implements TbTranslationService {
 
     public static final String LOCALE_FILES_DIRECTORY_PATH = "public/assets/locale";
     public static final Pattern LOCALE_FILE_PATTERN = Pattern.compile("locale\\.constant-(.*?)\\.json");
@@ -87,7 +85,6 @@ public class DefaultTbTranslationService implements TbTranslationService {
     private static final Set<String> DEFAULT_LOCALE_KEYS;
     private static final Map<String, JsonNode> TRANSLATION_VALUE_MAP = new HashMap<>();
     private static final Map<String, TranslationInfo> TRANSLATION_INFO_MAP = new HashMap<>();
-    private final Cache<TranslationCacheKey, String> etagCache;
     private final CustomTranslationService customTranslationService;
     private final WhiteLabelingService whiteLabelingService;
     private final CustomerService customerService;
@@ -109,14 +106,11 @@ public class DefaultTbTranslationService implements TbTranslationService {
                                        WhiteLabelingService whiteLabelingService, CustomerService customerService,
                                        @Value("${cache.translation.etag.timeToLiveInMinutes:44640}") int cacheTtl,
                                        @Value("${cache.translation.etag.maxSize:1000000}") int cacheMaxSize) {
+        super(cacheTtl, cacheMaxSize);
         this.clusterService = clusterService;
         this.customTranslationService = customTranslationService;
         this.whiteLabelingService = whiteLabelingService;
         this.customerService = customerService;
-        this.etagCache = Caffeine.newBuilder()
-                .expireAfterAccess(cacheTtl, TimeUnit.MINUTES)
-                .maximumSize(cacheMaxSize)
-                .build();
     }
 
     @Override
@@ -215,29 +209,6 @@ public class DefaultTbTranslationService implements TbTranslationService {
     public void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
         customTranslationService.deleteCustomTranslation(tenantId, customerId, localeCode);
         evictFromCache(tenantId);
-    }
-
-    @Override
-    public String getETag(TranslationCacheKey translationCacheKey) {
-        return etagCache.getIfPresent(translationCacheKey);
-    }
-
-    @Override
-    public void putETag(TranslationCacheKey translationCacheKey, String etag) {
-        etagCache.put(translationCacheKey, etag);
-    }
-
-    @Override
-    public void evictETags(TenantId tenantId) {
-        if (tenantId.isSysTenantId()) {
-            etagCache.invalidateAll();
-        } else {
-            Set<TranslationCacheKey> keysToInvalidate = etagCache
-                    .asMap().keySet().stream()
-                    .filter(translationCacheKey -> tenantId.equals(translationCacheKey.getTenantId()))
-                    .collect(Collectors.toSet());
-            etagCache.invalidateAll(keysToInvalidate);
-        }
     }
 
     private static TranslationInfo createTranslationInfo(Set<String> engLocaleKeys, String localeCode, JsonNode translation, boolean customized) {
