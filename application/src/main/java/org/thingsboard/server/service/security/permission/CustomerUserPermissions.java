@@ -449,7 +449,10 @@ public class CustomerUserPermissions extends AbstractPermissions {
                 return false;
             }
             return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation) &&
-                    user.getTenantId().equals(customMenu.getTenantId()) && user.getCustomerId().equals(customMenu.getCustomerId());
+                    user.getTenantId().equals(customMenu.getTenantId()) && customMenu.getCustomerId() != null &&
+                    (user.getCustomerId().equals(customMenu.getCustomerId()) ||
+                            ownersCacheService.getOwners(customMenu.getTenantId(), customMenu.getCustomerId(), null)
+                                    .contains(user.getCustomerId()));
         }
     };
 }
