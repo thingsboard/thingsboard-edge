@@ -29,7 +29,16 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnChanges, Output, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import { FormBuilder, FormGroup, UntypedFormGroup, Validators } from '@angular/forms';
 import { Observable, of, shareReplay, Subject } from 'rxjs';
 import { catchError, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
@@ -37,7 +46,7 @@ import { ConverterLibraryService } from '@home/components/converter/converter-li
 import { IntegrationDirectory, IntegrationType } from '@shared/models/integration.models';
 import { Converter, ConverterType, Model, Vendor } from '@shared/models/converter.models';
 import { ConverterComponent } from '@home/components/converter/converter.component';
-import { isEqual } from '@core/utils';
+import { isDefined, isEqual } from '@core/utils';
 import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
@@ -45,7 +54,7 @@ import { coerceBoolean } from '@shared/decorators/coercion';
   templateUrl: './converter-library.component.html',
   styleUrls: ['./converter-library.component.scss']
 })
-export class ConverterLibraryComponent implements OnChanges, AfterViewInit {
+export class ConverterLibraryComponent implements OnChanges {
 
   @coerceBoolean()
   @Input() isUplink = true;
@@ -148,17 +157,18 @@ export class ConverterLibraryComponent implements OnChanges, AfterViewInit {
     );
   }
 
-  ngOnChanges(): void {
-    this.libraryFormGroup.get('vendor').patchValue('');
-    this.libraryFormGroup.get('model').patchValue('');
-    this.integrationDir = IntegrationDirectory[this.integrationType] ?? this.integrationType;
-  }
-
-  ngAfterViewInit(): void {
-    this.initialConverter.type = this.isUplink ? ConverterType.UPLINK : ConverterType.DOWNLINK;
-    if (!this.isUplink) {
-      this.libraryFormGroup.get('vendor').clearValidators();
-      this.libraryFormGroup.get('model').clearValidators();
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.integrationType && this.integrationType) {
+      this.libraryFormGroup.get('vendor').patchValue('');
+      this.libraryFormGroup.get('model').patchValue('');
+      this.integrationDir = IntegrationDirectory[this.integrationType] ?? this.integrationType;
+    }
+    if (changes.isUplink && isDefined(this.isUplink)) {
+      this.initialConverter.type = this.isUplink ? ConverterType.UPLINK : ConverterType.DOWNLINK;
+      if (!this.isUplink) {
+        this.libraryFormGroup.get('vendor').clearValidators();
+        this.libraryFormGroup.get('model').clearValidators();
+      }
     }
   }
 
@@ -192,8 +202,11 @@ export class ConverterLibraryComponent implements OnChanges, AfterViewInit {
   }
 
   private onConverterChanged(converter: Converter): void {
-    delete converter.type;
-    this.showConverter = converter && !isEqual(converter, {});
-    setTimeout(() => this.converterChanged.emit(this.dataConverterComponent.entityForm));
+    const converterData = {...converter};
+    delete converterData.type;
+    this.showConverter = !isEqual(converterData, {});
+    setTimeout(() => {
+      this.converterChanged.emit(this.dataConverterComponent.entityForm)
+    });
   }
 }
