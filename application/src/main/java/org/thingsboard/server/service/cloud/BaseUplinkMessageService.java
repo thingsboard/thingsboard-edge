@@ -314,7 +314,7 @@ public abstract class BaseUplinkMessageService {
                     return true;
                 }
             } while (!success);
-            return success;
+            return true;
         } finally {
             uplinkMsgsPackLock.unlock();
         }

@@ -690,11 +690,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         cloudNotificationService.pushNotificationToCloud(cloudNotificationMsg, callback);
     }
 
-    private void forwardToAppActor(UUID id, TbActorMsg actorMsg) {
-        log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg);
-        actorContext.tell(actorMsg);
-    }
-
     private void forwardToEventService(ErrorEventProto eventProto, TbCallback callback) {
         Event event = ErrorEvent.builder()
                 .tenantId(toTenantId(eventProto.getTenantIdMSB(), eventProto.getTenantIdLSB()))
