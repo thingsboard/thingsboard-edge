@@ -119,9 +119,8 @@ public class RuleChainControllerTest extends AbstractControllerTest {
         deleteTenant(savedTenant.getId());
     }
 
-    // edge-only: @Ignore - edge entities support available for CE/PE
-    @Ignore
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testSaveRuleChain() throws Exception {
         RuleChain ruleChain = new RuleChain();
         ruleChain.setName("RuleChain");
@@ -269,9 +268,8 @@ public class RuleChainControllerTest extends AbstractControllerTest {
                 .andExpect(statusReason(containsString(msgErrorNoFound("Rule chain", entityIdStr))));
     }
 
-    // edge-only: @Ignore - edge entities support available for CE/PE
-    @Ignore
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testFindEdgeRuleChainsByEdgeId() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
