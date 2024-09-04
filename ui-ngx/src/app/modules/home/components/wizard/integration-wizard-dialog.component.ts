@@ -159,7 +159,10 @@ export class IntegrationWizardDialogComponent extends
           type: ConverterType.UPLINK
         }],
       libraryUplinkConverter: [{
-        type: ConverterType.UPLINK,
+        value: {
+          type: ConverterType.UPLINK
+        },
+        disable: true
       }]
     });
 
@@ -274,8 +277,18 @@ export class IntegrationWizardDialogComponent extends
   onLibraryConverterChanged(converterFormGroup: UntypedFormGroup): void {
     if (converterFormGroup.get('type').value === ConverterType.UPLINK) {
       this.uplinkConverterForm.setControl('libraryUplinkConverter', converterFormGroup, {emitEvent: false});
+      if (this.uplinkConverterForm.get('converterType')?.value !== ConverterSourceType.LIBRARY) {
+        this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
+      } else {
+        this.uplinkConverterForm.get('libraryUplinkConverter').enable({emitEvent: false});
+      }
     } else {
       this.downlinkConverterForm.setControl('libraryDownlinkConverter', converterFormGroup, {emitEvent: false});
+      if (this.downlinkConverterForm.get('converterType')?.value !== ConverterSourceType.LIBRARY) {
+        this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
+      } else {
+        this.downlinkConverterForm.get('libraryDownlinkConverter').enable({emitEvent: false});
+      }
     }
   }
 
