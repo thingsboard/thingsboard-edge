@@ -30,6 +30,7 @@
 ///
 
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -52,7 +53,8 @@ import { coerceBoolean } from '@shared/decorators/coercion';
 @Component({
   selector: 'tb-converter-library',
   templateUrl: './converter-library.component.html',
-  styleUrls: ['./converter-library.component.scss']
+  styleUrls: ['./converter-library.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ConverterLibraryComponent implements OnChanges {
 
@@ -201,6 +203,10 @@ export class ConverterLibraryComponent implements OnChanges {
       this.vendorInput.nativeElement.blur();
       this.vendorInput.nativeElement.focus();
     }, 0);
+  }
+
+  trackByName(_, item: Vendor | Model): string {
+    return item.name;
   }
 
   private onConverterChanged(converter: Converter): void {

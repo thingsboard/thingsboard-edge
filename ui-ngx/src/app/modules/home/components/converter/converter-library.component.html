@@ -49,7 +49,7 @@
                       [displayWith]="displayVendorFn"
                       #vendorsAutocomplete="matAutocomplete">
       <div fxLayout="row wrap">
-        <mat-option *ngFor="let vendor of (filteredVendors$ | async)" [value]="vendor" fxFlex="100">
+        <mat-option *ngFor="let vendor of (filteredVendors$ | async); trackBy: trackByName" [value]="vendor" fxFlex="100">
           <div class="tb-flex align-center">
             <img [src]="vendor.logo" aria-label="logo" class="Vendor logo"/>
             {{ vendor.name }}
@@ -84,7 +84,7 @@
                       [displayWith]="displayModelFn"
                       #modelsAutocomplete="matAutocomplete">
       <div fxLayout="row wrap">
-        <mat-option *ngFor="let model of (filteredModels$ | async)" [value]="model" fxFlex="100">
+        <mat-option *ngFor="let model of (filteredModels$ | async); trackBy: trackByName" [value]="model" fxFlex="100">
           <div fxLayout="row" class="library-model tb-flex align-center space-between">
             <div class="tb-flex align-center">
               <img class="device-img" [src]="model.photo" alt="Model photo"/>
