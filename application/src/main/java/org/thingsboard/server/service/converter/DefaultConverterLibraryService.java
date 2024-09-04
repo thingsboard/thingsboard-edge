@@ -119,9 +119,19 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     }
 
     @Override
-    public List<Model> getVendorModels(String integrationType, String vendorName) {
+    public List<Model> getVendorModels(String integrationType, String converterType, String vendorName) {
         return listFiles("VENDORS/" + vendorName, 3, true).stream()
-                .filter(integrationDir -> integrationDir.name().equals(integrationType))
+                .filter(integrationDir -> {
+                    if (!integrationDir.name().equals(integrationType)) {
+                        return false;
+                    }
+                    if (StringUtils.isEmpty(converterType)) {
+                        return true;
+                    }
+                    List<String> converterTypes = listFiles(integrationDir.path(), 4, true).stream()
+                            .map(RepoFile::name).toList();
+                    return converterTypes.contains(converterType);
+                })
                 .map(integrationDir -> Path.of(integrationDir.path()).getParent())
                 .map(modelPath -> {
                     String name = modelPath.getFileName().toString();
