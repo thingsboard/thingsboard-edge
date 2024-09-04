@@ -69,7 +69,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
     protected RoleService roleService;
 
     @Test
-    @Ignore
+    @Ignore("*EdgeTests are ignored on Edge side")
     public void testCreateUpdateDeleteTenantUser() throws Exception {
         // create user
         edgeImitator.expectMessageAmount(5);
@@ -167,7 +167,7 @@ public class UserEdgeTest extends AbstractEdgeTest {
     }
 
     @Test
-    @Ignore
+    @Ignore("*EdgeTests are ignored on Edge side")
     public void testCreateUpdateDeleteCustomerUser() throws Exception {
         // create customer
         Customer savedCustomer = saveCustomer("Edge Customer", null);

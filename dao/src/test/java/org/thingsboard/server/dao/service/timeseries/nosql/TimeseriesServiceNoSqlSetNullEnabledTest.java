@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.service.timeseries.nosql;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -57,6 +58,7 @@ import static org.junit.Assert.assertTrue;
 @TestPropertySource(properties = {
         "cassandra.query.set_null_values_enabled=true",
 })
+@Ignore("NoSQL is not supported on Edge")
 public class TimeseriesServiceNoSqlSetNullEnabledTest extends TimeseriesServiceNoSqlTest {
 
     @Override

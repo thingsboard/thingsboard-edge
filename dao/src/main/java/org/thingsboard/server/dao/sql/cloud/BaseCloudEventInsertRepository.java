@@ -30,15 +30,16 @@
  */
 package org.thingsboard.server.dao.sql.cloud;
 
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.thingsboard.server.dao.model.sql.CloudEventEntity;
+import org.thingsboard.server.dao.model.sql.AbstractCloudEventEntity;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -46,12 +47,8 @@ import java.util.List;
 
 @Repository
 @Transactional
-public class CloudEventInsertRepository {
-
-    private static final String INSERT =
-            "INSERT INTO cloud_event (id, created_time, entity_body, entity_id, cloud_event_type, cloud_event_action, tenant_id, ts, entity_group_id) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) " +
-                    "ON CONFLICT DO NOTHING;";
+@RequiredArgsConstructor
+public class BaseCloudEventInsertRepository<T extends AbstractCloudEventEntity> {
 
     @Autowired
     protected JdbcTemplate jdbcTemplate;
@@ -59,14 +56,17 @@ public class CloudEventInsertRepository {
     @Autowired
     private TransactionTemplate transactionTemplate;
 
-    protected void save(List<CloudEventEntity> entities) {
+    protected void save(List<T> entities, String tableName) {
+        String insertQuery = "INSERT INTO " + tableName +
+                " (id, created_time, entity_body, entity_id, cloud_event_type, cloud_event_action, tenant_id, ts) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;";
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {
-                jdbcTemplate.batchUpdate(INSERT, new BatchPreparedStatementSetter() {
+                jdbcTemplate.batchUpdate(insertQuery, new BatchPreparedStatementSetter() {
                     @Override
                     public void setValues(PreparedStatement ps, int i) throws SQLException {
-                        CloudEventEntity cloudEvent = entities.get(i);
+                        T cloudEvent = entities.get(i);
                         ps.setObject(1, cloudEvent.getId());
                         ps.setLong(2, cloudEvent.getCreatedTime());
                         ps.setString(3, cloudEvent.getEntityBody() != null
@@ -88,4 +88,5 @@ public class CloudEventInsertRepository {
             }
         });
     }
+
 }

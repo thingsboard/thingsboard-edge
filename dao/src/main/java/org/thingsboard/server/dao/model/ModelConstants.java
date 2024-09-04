@@ -785,6 +785,7 @@ public class ModelConstants {
     public static final String CLOUD_EVENT_ENTITY_ID_PROPERTY = "entity_id";
     public static final String CLOUD_EVENT_ENTITY_BODY_PROPERTY = "entity_body";
     public static final String CLOUD_EVENT_ENTITY_GROUP_ID_PROPERTY = "entity_group_id";
+    public static final String TS_KV_CLOUD_EVENT_COLUMN_FAMILY_NAME = "ts_kv_cloud_event";
 
     /**
      * Cassandra attributes and timeseries constants.

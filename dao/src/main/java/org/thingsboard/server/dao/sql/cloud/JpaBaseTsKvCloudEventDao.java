@@ -31,14 +31,12 @@
 package org.thingsboard.server.dao.sql.cloud;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
-import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.stats.StatsFactory;
-import org.thingsboard.server.dao.cloud.CloudEventDao;
 import org.thingsboard.server.dao.model.ModelConstants;
-import org.thingsboard.server.dao.model.sql.CloudEventEntity;
+import org.thingsboard.server.dao.model.sql.TsKvCloudEventEntity;
 import org.thingsboard.server.dao.sql.ScheduledLogExecutorComponent;
 import org.thingsboard.server.dao.sqlts.insert.sql.SqlPartitioningRepository;
 
@@ -46,61 +44,56 @@ import java.util.List;
 import java.util.UUID;
 
 @Slf4j
+@Primary
 @Component
-public class JpaBaseCloudEventDao extends AbstractJpaCloudEventDao<CloudEventEntity> implements CloudEventDao {
+public class JpaBaseTsKvCloudEventDao extends AbstractJpaCloudEventDao<TsKvCloudEventEntity> {
 
-    private final CloudEventRepository cloudEventRepository;
-    private final BaseCloudEventInsertRepository<CloudEventEntity> cloudEventInsertRepository;
+    private final TsKvCloudEventRepository tsKvCloudEventRepository;
+    private final BaseCloudEventInsertRepository<TsKvCloudEventEntity> tsKvCloudEventInsertRepository;
 
-    public JpaBaseCloudEventDao(ScheduledLogExecutorComponent logExecutor,
-                                StatsFactory statsFactory,
-                                SqlPartitioningRepository partitioningRepository,
-                                CloudEventRepository cloudEventRepository,
-                                BaseCloudEventInsertRepository<CloudEventEntity> cloudEventInsertRepository) {
+    public JpaBaseTsKvCloudEventDao(ScheduledLogExecutorComponent logExecutor,
+                                    StatsFactory statsFactory,
+                                    SqlPartitioningRepository partitioningRepository,
+                                    TsKvCloudEventRepository tsKvCloudEventRepository,
+                                    BaseCloudEventInsertRepository<TsKvCloudEventEntity> tsKvCloudEventInsertRepository) {
         super(logExecutor, statsFactory, partitioningRepository);
-        this.cloudEventRepository = cloudEventRepository;
-        this.cloudEventInsertRepository = cloudEventInsertRepository;
+        this.tsKvCloudEventRepository = tsKvCloudEventRepository;
+        this.tsKvCloudEventInsertRepository = tsKvCloudEventInsertRepository;
     }
 
     @Override
-    protected BaseCloudEventRepository<CloudEventEntity, UUID> getRepository() {
-        return cloudEventRepository;
+    protected BaseCloudEventRepository<TsKvCloudEventEntity, UUID> getRepository() {
+        return tsKvCloudEventRepository;
     }
 
     @Override
     protected String getTableName() {
-        return ModelConstants.CLOUD_EVENT_COLUMN_FAMILY_NAME;
+        return ModelConstants.TS_KV_CLOUD_EVENT_COLUMN_FAMILY_NAME;
     }
 
     @Override
     protected String getLogName() {
-        return "Cloud Event";
+        return "TsKv Cloud Event";
     }
 
     @Override
     protected String getStatsNamePrefix() {
-        return "cloud.events";
+        return "tskv.cloud.events";
     }
 
     @Override
-    protected void saveEntities(List<CloudEventEntity> entities) {
-        cloudEventInsertRepository.save(entities, getTableName());
+    protected void saveEntities(List<TsKvCloudEventEntity> entities) {
+        tsKvCloudEventInsertRepository.save(entities, getTableName());
     }
 
     @Override
-    protected Class<CloudEventEntity> getEntityClass() {
-        return CloudEventEntity.class;
+    protected Class<TsKvCloudEventEntity> getEntityClass() {
+        return TsKvCloudEventEntity.class;
     }
 
     @Override
-    protected CloudEventEntity createEntity(CloudEvent cloudEvent) {
-        return new CloudEventEntity(cloudEvent);
-    }
-
-    @Override
-    public long countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(UUID tenantId, UUID entityId, CloudEventType cloudEventType, EdgeEventActionType cloudEventAction, Long startTime, Long endTime) {
-        return cloudEventRepository.countEventsByTenantIdAndEntityIdAndActionAndTypeAndStartTimeAndEndTime(
-                tenantId, entityId, cloudEventType, cloudEventAction, startTime, endTime);
+    protected TsKvCloudEventEntity createEntity(CloudEvent cloudEvent) {
+        return new TsKvCloudEventEntity(cloudEvent);
     }
 
 }

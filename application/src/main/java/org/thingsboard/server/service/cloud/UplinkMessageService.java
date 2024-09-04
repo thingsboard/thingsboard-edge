@@ -28,29 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
+package org.thingsboard.server.service.cloud;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.gen.edge.v1.UplinkResponseMsg;
 
-import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_COLUMN_FAMILY_NAME;
+public interface UplinkMessageService {
 
-@Entity
-@Table(name = CLOUD_EVENT_COLUMN_FAMILY_NAME)
-public class CloudEventEntity extends AbstractCloudEventEntity {
+    void processHandleMessages(TenantId tenantId) throws Exception;
 
-    public CloudEventEntity() {
-        super();
-    }
-
-    public CloudEventEntity(CloudEvent cloudEvent) {
-        super(cloudEvent);
-    }
-
-    @Override
-    public CloudEvent toData() {
-        return super.toData();
-    }
+    void onUplinkResponse(UplinkResponseMsg msg);
 
 }

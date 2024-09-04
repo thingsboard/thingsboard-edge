@@ -28,29 +28,50 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
+package org.thingsboard.server.service.cloud;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.TimePageLink;
 
-import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_COLUMN_FAMILY_NAME;
+@Slf4j
+@Service
+public class DefaultGeneralUplinkMessageService extends BaseUplinkMessageService implements GeneralUplinkMessageService {
 
-@Entity
-@Table(name = CLOUD_EVENT_COLUMN_FAMILY_NAME)
-public class CloudEventEntity extends AbstractCloudEventEntity {
+    private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
 
-    public CloudEventEntity() {
-        super();
-    }
-
-    public CloudEventEntity(CloudEvent cloudEvent) {
-        super(cloudEvent);
+    @Override
+    protected PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
+        return cloudEventService.findCloudEvents(tenantId, seqIdStart, seqIdEnd, pageLink);
     }
 
     @Override
-    public CloudEvent toData() {
-        return super.toData();
+    protected String getTableName() {
+        return "cloud_event";
+    }
+
+    @Override
+    protected boolean newMessagesAvailableInGeneralQueue(TenantId tenantId) {
+        return false;
+    }
+
+    @Override
+    protected void updateQueueStartTsSeqIdOffset(TenantId tenantId, Long newStartTs, Long newSeqId) {
+        updateQueueStartTsSeqIdOffset(tenantId, QUEUE_START_TS_ATTR_KEY, QUEUE_SEQ_ID_OFFSET_ATTR_KEY, newStartTs, newSeqId);
+    }
+
+    @Override
+    public ListenableFuture<Long> getQueueStartTs(TenantId tenantId) {
+        return getLongAttrByKey(tenantId, QUEUE_START_TS_ATTR_KEY);
+    }
+
+    @Override
+    protected ListenableFuture<Long> getQueueSeqIdStart(TenantId tenantId) {
+        return getLongAttrByKey(tenantId, QUEUE_SEQ_ID_OFFSET_ATTR_KEY);
     }
 
 }

@@ -34,17 +34,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 
-import static org.thingsboard.server.dao.model.ModelConstants.CLOUD_EVENT_COLUMN_FAMILY_NAME;
+import static org.thingsboard.server.dao.model.ModelConstants.TS_KV_CLOUD_EVENT_COLUMN_FAMILY_NAME;
 
 @Entity
-@Table(name = CLOUD_EVENT_COLUMN_FAMILY_NAME)
-public class CloudEventEntity extends AbstractCloudEventEntity {
+@Table(name = TS_KV_CLOUD_EVENT_COLUMN_FAMILY_NAME)
+public class TsKvCloudEventEntity extends AbstractCloudEventEntity {
 
-    public CloudEventEntity() {
+    public TsKvCloudEventEntity() {
         super();
     }
 
-    public CloudEventEntity(CloudEvent cloudEvent) {
+    public TsKvCloudEventEntity(CloudEvent cloudEvent) {
         super(cloudEvent);
     }
 

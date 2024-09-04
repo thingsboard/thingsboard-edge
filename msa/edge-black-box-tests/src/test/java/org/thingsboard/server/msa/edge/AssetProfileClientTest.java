@@ -130,8 +130,10 @@ public class AssetProfileClientTest extends AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS)
                 .until(() ->  {
                     PageData<AssetProfile> assetProfiles = edgeRestClient.getAssetProfiles(new PageLink(100));
-                    for (AssetProfile assetProfile : assetProfiles.getData()) {
-                        System.out.println("<<<< " + assetProfile);
+                    if (assetProfiles.getTotalElements() != expectedAssetProfilesCnt) {
+                        for (AssetProfile assetProfile : assetProfiles.getData()) {
+                            log.error("Asset profile: {}", assetProfile);
+                        }
                     }
                     return assetProfiles.getTotalElements() == expectedAssetProfilesCnt;
                 });

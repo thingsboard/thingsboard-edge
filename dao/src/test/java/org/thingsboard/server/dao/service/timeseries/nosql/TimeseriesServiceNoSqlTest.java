@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.service.timeseries.nosql;
 
 import com.datastax.oss.driver.api.core.uuid.Uuids;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.kv.Aggregation;
@@ -42,6 +43,7 @@ import org.thingsboard.server.common.data.kv.JsonDataEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.common.data.kv.StringDataEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.dao.service.DaoNoSqlTest;
 import org.thingsboard.server.dao.service.timeseries.BaseTimeseriesServiceTest;
 
 import java.util.Collections;
@@ -55,8 +57,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-// edge-only: NoSQL is not supported on edge
-// @DaoNoSqlTest
+@DaoNoSqlTest
+@Ignore("NoSQL is not supported on Edge")
 public class TimeseriesServiceNoSqlTest extends BaseTimeseriesServiceTest {
 
     @Test

@@ -78,7 +78,11 @@ public class CloudEventsCleanUpService extends AbstractCleanUpService {
         if (ttlTaskExecutionEnabled && isSystemTenantPartitionMine()) {
             cloudEventService.cleanupEvents(cloudEventsExpTime);
         } else {
+            // clean up 'cloud_event'
             partitioningRepository.cleanupPartitionsCache(ModelConstants.CLOUD_EVENT_COLUMN_FAMILY_NAME, cloudEventsExpTime, TimeUnit.HOURS.toMillis(partitionSizeInHours));
+            // clean up 'ts_kv_cloud_event'
+            partitioningRepository.cleanupPartitionsCache(ModelConstants.TS_KV_CLOUD_EVENT_COLUMN_FAMILY_NAME, cloudEventsExpTime, TimeUnit.HOURS.toMillis(partitionSizeInHours));
         }
     }
+
 }

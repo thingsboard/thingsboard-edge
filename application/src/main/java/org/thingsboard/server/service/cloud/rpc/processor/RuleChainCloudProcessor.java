@@ -62,8 +62,7 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private RuleChainService ruleChainService;
 
-    public ListenableFuture<Void> processRuleChainMsgFromCloud(TenantId tenantId, RuleChainUpdateMsg ruleChainUpdateMsg,
-                                                               Long queueStartTs) {
+    public ListenableFuture<Void> processRuleChainMsgFromCloud(TenantId tenantId, RuleChainUpdateMsg ruleChainUpdateMsg) {
         try {
             cloudSynchronizationManager.getSync().set(true);
             RuleChainId ruleChainId = new RuleChainId(new UUID(ruleChainUpdateMsg.getIdMSB(), ruleChainUpdateMsg.getIdLSB()));

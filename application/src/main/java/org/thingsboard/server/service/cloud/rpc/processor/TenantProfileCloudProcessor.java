@@ -137,7 +137,7 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
 
     private TenantProfile findTenantProfileByName(TenantId tenantId, String name) {
         PageDataIterable<TenantProfile> tenantProfiles = new PageDataIterable<>(
-                link -> tenantProfileService.findTenantProfiles(tenantId, link), DEFAULT_PAGE_SIZE);
+                link -> tenantProfileService.findTenantProfiles(tenantId, link), 1000);
 
         for (TenantProfile tenantProfile : tenantProfiles) {
             if (tenantProfile.getName().equals(name)) {
@@ -154,7 +154,7 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
 
     private void updateTenants(TenantProfileId newTenantProfileId, TenantProfileId oldTenantProfileId) {
         List<TenantId> tenantIdList = tenantService.findTenantIdsByTenantProfileId(oldTenantProfileId);
-        PageDataIterable<Tenant> tenants = new PageDataIterable<>(link -> tenantService.findTenants(link), DEFAULT_PAGE_SIZE);
+        PageDataIterable<Tenant> tenants = new PageDataIterable<>(link -> tenantService.findTenants(link), 1000);
         for (Tenant tenant : tenants) {
             if (tenantIdList.contains(tenant.getId())) {
                 tenant.setTenantProfileId(newTenantProfileId);

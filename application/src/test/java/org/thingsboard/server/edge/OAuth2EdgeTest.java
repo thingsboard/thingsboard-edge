@@ -62,7 +62,6 @@ public class OAuth2EdgeTest extends AbstractEdgeTest {
         // enable oauth and save domain
         edgeImitator.allowIgnoredTypes();
         edgeImitator.expectMessageAmount(1);
-
         Domain savedDomain = doPost("/api/domain", constructDomain(), Domain.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();

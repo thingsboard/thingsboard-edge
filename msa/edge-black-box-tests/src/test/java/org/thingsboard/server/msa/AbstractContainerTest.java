@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.DeviceProfileType;
 import org.thingsboard.server.common.data.DeviceTransportType;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EntityView;
+import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.ShortEntityView;
@@ -213,7 +214,12 @@ public abstract class AbstractContainerTest {
                 .atMost(30, TimeUnit.SECONDS).
                 until(() -> {
                     try {
-                        return edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements() == 28;
+                        long totalElements = edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements();
+                        final long expectedCount = 28;
+                        if (totalElements != expectedCount) {
+                            log.warn("Expected {} widget bundles, but got {}", expectedCount, totalElements);
+                        }
+                        return totalElements == expectedCount;
                     } catch (Throwable e) {
                         return false;
                     }
@@ -494,6 +500,7 @@ public abstract class AbstractContainerTest {
             expected.setDefaultRuleChainId(null);
             actual.setDefaultEdgeRuleChainId(null);
             actual.setDefaultRuleChainId(null);
+            cleanUpVersion(expected, actual);
             Assert.assertEquals("Device profiles on cloud and edge are different", expected, actual);
         }
     }
@@ -508,6 +515,7 @@ public abstract class AbstractContainerTest {
             Assert.assertEquals(expected.getDefaultRuleChainId(), actual.getDefaultEdgeRuleChainId());
             expected.setDefaultRuleChainId(null);
             actual.setDefaultEdgeRuleChainId(null);
+            cleanUpVersion(expected, actual);
             Assert.assertEquals("Asset profiles on cloud and edge are different", expected, actual);
         }
     }
@@ -543,6 +551,7 @@ public abstract class AbstractContainerTest {
             actual.setType(null);
             expected.setRoot(false);
             actual.setRoot(false);
+            cleanUpVersion(expected, actual);
             Assert.assertEquals("Rule chains on cloud and edge are different (except type)", expected, actual);
 
             Awaitility.await()
@@ -595,6 +604,7 @@ public abstract class AbstractContainerTest {
             WidgetsBundle actual = cloudWidgetsBundle.get();
             expected.setImage(null);
             actual.setImage(null);
+            cleanUpVersion(expected, actual);
             Assert.assertEquals("Widgets bundles on cloud and edge are different", expected, actual);
         }
     }
@@ -608,6 +618,7 @@ public abstract class AbstractContainerTest {
             WidgetTypeDetails actual = cloudWidgetsBundle.get();
             expected.setImage(null);
             actual.setImage(null);
+            cleanUpVersion(expected, actual);
             Assert.assertEquals("Widget types on cloud and edge are different", expected, actual);
         }
     }
@@ -619,6 +630,7 @@ public abstract class AbstractContainerTest {
             Optional<Device> cloudDevice = cloudRestClient.getDeviceById(deviceId);
             Device expected = edgeDevice.get();
             Device actual = cloudDevice.get();
+            cleanUpVersion(expected, actual);
             Assert.assertEquals("Devices on cloud and edge are different", expected, actual);
         }
     }
@@ -630,6 +642,7 @@ public abstract class AbstractContainerTest {
             Optional<Asset> cloudAsset = cloudRestClient.getAssetById(assetId);
             Asset expected = edgeAsset.get();
             Asset actual = cloudAsset.get();
+            cleanUpVersion(expected, actual);
             Assert.assertEquals("Assets on cloud and edge are different", expected, actual);
         }
     }
@@ -641,6 +654,7 @@ public abstract class AbstractContainerTest {
             Optional<EntityView> cloudEntityView = cloudRestClient.getEntityViewById(entityViewId);
             EntityView expected = edgeEntityView.get();
             EntityView actual = cloudEntityView.get();
+            cleanUpVersion(expected, actual);
             Assert.assertEquals("Entity Views on cloud and edge are different", expected, actual);
         }
     }
@@ -652,6 +666,7 @@ public abstract class AbstractContainerTest {
             Optional<Dashboard> cloudDashboard = cloudRestClient.getDashboardById(dashboardId);
             Dashboard expected = edgeDashboard.get();
             Dashboard actual = cloudDashboard.get();
+            cleanUpVersion(expected, actual);
             Assert.assertEquals("Dashboards on cloud and edge are different", expected, actual);
         }
     }
@@ -665,6 +680,7 @@ public abstract class AbstractContainerTest {
             User actual = cloudUser.get();
             expected.setAdditionalInfo(cleanLastLoginTsFromAdditionalInfo(expected.getAdditionalInfo()));
             actual.setAdditionalInfo(cleanLastLoginTsFromAdditionalInfo(actual.getAdditionalInfo()));
+            cleanUpVersion(expected, actual);
             Assert.assertEquals("Users on cloud and edge are different (except lastLoginTs)", expected, actual);
         }
     }
@@ -712,6 +728,11 @@ public abstract class AbstractContainerTest {
 
             Assert.assertEquals("Integrations on cloud and edge are different", expected, actual);
         }
+    }
+
+    protected void cleanUpVersion(HasVersion expected, HasVersion actual) {
+        expected.setVersion(null);
+        actual.setVersion(null);
     }
 
     private JsonNode cleanLastLoginTsFromAdditionalInfo(JsonNode additionalInfo) {

@@ -31,16 +31,16 @@
 
 import { BaseData, GroupEntityInfo } from '@shared/models/base-data';
 import { TenantId } from '@shared/models/id/tenant-id';
-import { EntityId } from '@shared/models/id/entity-id';
-import { HasUUID } from '@shared/models/id/has-uuid';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { EdgeId } from '@shared/models/id/edge-id';
 import { EntitySearchQuery } from '@shared/models/relation.models';
 import { RuleChainId } from '@shared/models/id/rule-chain-id';
 import { EventId } from '@shared/models/id/event-id';
-import { HasTenantId, HasVersion } from '@shared/models/entity.models';
+import { EntityId } from '@shared/models/id/entity-id';
 import { EntityType } from '@shared/models/entity-type.models';
+import { HasUUID } from '@shared/models/id/has-uuid';
+import {HasTenantId, HasVersion} from '@shared/models/entity.models';
 
 export interface EdgeSettings {
   edgeId: string;

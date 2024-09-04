@@ -52,6 +52,7 @@ const routes: Routes = [
       breadcrumb: {
         menuId: MenuId.notifications_center
       },
+      routerTabsHeaderComponent: SendNotificationButtonComponent
     },
     children: [
       {

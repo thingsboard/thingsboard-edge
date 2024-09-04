@@ -77,7 +77,6 @@ $$
 $$;
 
 -- UPDATE WIDGET TYPE END
->>>>>>> upstream/master
 
 -- KV VERSIONING UPDATE START
 
@@ -150,7 +149,7 @@ DELETE FROM domain d1 USING (
 ) d2 WHERE d1.name = d2.name AND d1.ctid <> d2.ctid;
 
 ALTER TABLE mobile_app ADD COLUMN IF NOT EXISTS oauth2_enabled boolean,
-                       ADD COLUMN IF NOT EXISTS tenant_id uuid DEFAULT '13814000-1dd2-11b2-8080-808080808080';
+    ADD COLUMN IF NOT EXISTS tenant_id uuid DEFAULT '13814000-1dd2-11b2-8080-808080808080';
 
 -- delete duplicated apps
 DELETE FROM mobile_app m1 USING (
@@ -218,8 +217,23 @@ $$;
 
 -- OAUTH2 UPDATE END
 
-
 -- EDGE RELATED
+
+CREATE TABLE IF NOT EXISTS ts_kv_cloud_event (
+    seq_id INT GENERATED ALWAYS AS IDENTITY,
+    id uuid NOT NULL,
+    created_time bigint NOT NULL,
+    cloud_event_type varchar(255),
+    entity_id uuid,
+    cloud_event_action varchar(255),
+    entity_body varchar(10000000),
+    tenant_id uuid,
+    ts bigint NOT NULL
+    ) PARTITION BY RANGE(created_time);
+
+ALTER TABLE IF EXISTS ts_kv_cloud_event ALTER COLUMN seq_id SET CYCLE;
+
+CREATE INDEX IF NOT EXISTS idx_ts_kv_cloud_event_tenant_id_and_created_time ON ts_kv_cloud_event(tenant_id, created_time DESC);
 
 CREATE INDEX IF NOT EXISTS idx_cloud_event_tenant_id_entity_id_event_type_event_action_crt ON cloud_event
     (tenant_id, entity_id, cloud_event_type, cloud_event_action, created_time DESC);

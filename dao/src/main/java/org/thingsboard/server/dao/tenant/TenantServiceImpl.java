@@ -255,10 +255,12 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
 
     @Override
     public boolean tenantExists(TenantId tenantId) {
-        return existsTenantCache.getAndPutInTransaction(tenantId, () -> tenantDao.existsById(tenantId, tenantId.getId()), false);
+        // edge-only: we cannot properly evict cache, because it's only appear on tenant creation
+        // return existsTenantCache.getAndPutInTransaction(tenantId, () -> tenantDao.existsById(tenantId, tenantId.getId()), false);
+       return tenantDao.existsById(tenantId, tenantId.getId());
     }
 
-    private PaginatedRemover<TenantId, Tenant> tenantsRemover = new PaginatedRemover<>() {
+    private final PaginatedRemover<TenantId, Tenant> tenantsRemover = new PaginatedRemover<>() {
 
         @Override
         protected PageData<Tenant> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {

@@ -49,6 +49,8 @@ public interface CloudEventService {
 
     ListenableFuture<Void> saveAsync(CloudEvent cloudEvent);
 
+    ListenableFuture<Void> saveTsKvAsync(CloudEvent cloudEvent);
+
     void saveCloudEvent(TenantId tenantId,
                         CloudEventType cloudEventType,
                         EdgeEventActionType cloudEventAction,
@@ -67,9 +69,12 @@ public interface CloudEventService {
 
     PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
 
+    PageData<CloudEvent> findTsKvCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
+
     EdgeSettings findEdgeSettings(TenantId tenantId);
 
     ListenableFuture<List<Long>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings);
 
     void cleanupEvents(long ttl);
+
 }

@@ -46,7 +46,7 @@ import org.thingsboard.server.common.data.HasVersion;
 public abstract class BaseVersionedEntity<D extends BaseData & HasVersion> extends BaseSqlEntity<D> implements HasVersion {
 
     @Getter @Setter
-    @Version
+//    @Version - edge-only: we ignore this version annotation
     @Column(name = ModelConstants.VERSION_PROPERTY)
     protected Long version;
 

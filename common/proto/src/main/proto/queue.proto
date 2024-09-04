@@ -1645,7 +1645,6 @@ message ToCoreNotificationMsg {
   TranslationCacheInvalidateMsg translationCacheInvalidateMsg = 100;
 }
 
-
 /* Messages to Edge queue that are handled by ThingsBoard Core Service */
 message ToEdgeMsg {
   EdgeNotificationMsgProto edgeNotificationMsg = 1;

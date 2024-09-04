@@ -28,36 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.cloud;
+package org.thingsboard.server.service.cloud;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Repository;
-import org.thingsboard.server.dao.sql.JpaAbstractDaoListeningExecutorService;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-@Slf4j
-@Repository
-public class SqlCloudEventCleanupRepository extends JpaAbstractDaoListeningExecutorService implements CloudEventCleanupRepository {
-
-    @Override
-    public void cleanupEvents(long eventsTtl) {
-        try (Connection connection = dataSource.getConnection();
-             PreparedStatement stmt = connection.prepareStatement("call cleanup_cloud_events_by_ttl(?,?)")) {
-            stmt.setLong(1, eventsTtl);
-            stmt.setLong(2, 0);
-            stmt.execute();
-            printWarnings(stmt);
-            try (ResultSet resultSet = stmt.getResultSet()){
-                resultSet.next();
-                log.info("Total cloud events removed by TTL: [{}]", resultSet.getLong(1));
-            }
-        } catch (SQLException e) {
-            log.error("SQLException occurred during events TTL task execution ", e);
-        }
-    }
-
+public interface TsUplinkMessageService extends UplinkMessageService {
 }
