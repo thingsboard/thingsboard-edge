@@ -1031,9 +1031,8 @@ public class AssetControllerTest extends AbstractControllerTest {
         Assert.assertEquals(0, pageData.getData().size());
     }
 
-    // edge-only: @Ignore - edge entities support available for CE/PE
-    @Ignore
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testAssignAssetToEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);

@@ -86,9 +86,8 @@ public class EdgeEventControllerTest extends AbstractControllerTest {
     public void afterTest() throws Exception {
     }
 
-    // edge-only: @Ignore - edge entities support available for CE/PE
-    @Ignore
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testGetEdgeEvents() throws Exception {
         Edge edge = constructEdge("TestEdge", "default");
         edge = doPost("/api/edge", edge, Edge.class);

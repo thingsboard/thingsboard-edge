@@ -510,9 +510,8 @@ public class DashboardControllerTest extends AbstractControllerTest {
         Assert.assertEquals(dashboards, loadedDashboards);
     }
 
-    // edge-only: @Ignore - edge entities support available for CE/PE
-    @Ignore
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testAssignDashboardToEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);

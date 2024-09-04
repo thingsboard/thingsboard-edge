@@ -1383,9 +1383,8 @@ public class DeviceControllerTest extends AbstractControllerTest {
         deleteTenant(savedDifferentTenant.getId());
     }
 
-    // edge-only: @Ignore - edge entities support available for CE/PE
-    @Ignore
     @Test
+    @Ignore("Edge entities support available for CE/PE only")
     public void testAssignDeviceToEdge() throws Exception {
         Edge edge = constructEdge("My edge", "default");
         Edge savedEdge = doPost("/api/edge", edge, Edge.class);
