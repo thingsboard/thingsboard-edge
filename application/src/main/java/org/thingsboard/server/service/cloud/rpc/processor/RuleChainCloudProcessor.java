@@ -86,7 +86,7 @@ public class RuleChainCloudProcessor extends BaseEdgeProcessor {
                         throw new RuntimeException("[{" + tenantId + "}] ruleChainMetadataUpdateMsg {" + ruleChainMetadataUpdateMsg + "} cannot be converted to rule chain metadata");
                     }
                     if (ruleChainMetadata.getNodes().size() > 0) {
-                        ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata, Function.identity());
+                        ruleChainService.saveRuleChainMetaData(tenantId, ruleChainMetadata, Function.identity(), true, false);
                     }
                     break;
                 case UNRECOGNIZED:
