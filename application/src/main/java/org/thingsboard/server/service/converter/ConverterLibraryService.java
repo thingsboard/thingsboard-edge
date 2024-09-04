@@ -36,7 +36,7 @@ public interface ConverterLibraryService {
 
     List<Vendor> getVendors(String integrationType);
 
-    List<Model> getVendorModels(String integrationType, String vendorName);
+    List<Model> getVendorModels(String integrationType, String converterType, String vendorName);
 
     String getConverter(String integrationType, String converterType, String vendorName, String model);
 
