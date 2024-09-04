@@ -60,6 +60,7 @@ import org.thingsboard.rule.engine.api.MailService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.UserActivationLink;
 import org.thingsboard.server.common.data.UserEmailInfo;
 import org.thingsboard.server.common.data.UserInfo;
 import org.thingsboard.server.common.data.alarm.Alarm;
@@ -108,7 +109,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
@@ -133,6 +133,7 @@ import static org.thingsboard.server.controller.ControllerConstants.RBAC_WRITE_C
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID_PARAM_DESCRIPTION;
@@ -151,7 +152,6 @@ public class UserController extends BaseController {
     public static final String USER_ID = "userId";
     public static final String PATHS = "paths";
     public static final String YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION = "You don't have permission to perform this operation!";
-    public static final String ACTIVATE_URL_PATTERN = "%s/api/noauth/activate?activateToken=%s";
     public static final String MOBILE_TOKEN_HEADER = "X-Mobile-Token";
 
     @Value("${security.user_token_access_enabled}")
@@ -345,26 +345,38 @@ public class UserController extends BaseController {
             @Parameter(description = "Email of the user", required = true)
             @RequestParam(value = "email") String email,
             HttpServletRequest request) throws ThingsboardException {
-        User user = checkNotNull(userService.findUserByEmail(getCurrentUser().getTenantId(), email));
-        accessControlService.checkPermission(getCurrentUser(), Resource.USER, Operation.READ, user.getId(), user);
+        SecurityUser securityUser = getCurrentUser();
+        User user = checkNotNull(userService.findUserByEmail(securityUser.getTenantId(), email));
+        accessControlService.checkPermission(securityUser, Resource.USER, Operation.READ, user.getId(), user);
 
-        String activationLink = getActivationLink(user.getId(), request);
-        mailService.sendActivationEmail(getTenantId(), activationLink, email);
+        UserActivationLink activationLink = tbUserService.getActivationLink(securityUser.getTenantId(), securityUser.getCustomerId(), securityUser.getAuthority(), user.getId(), request);
+        mailService.sendActivationEmail(securityUser.getTenantId(), activationLink.value(), activationLink.ttlMs(), email);
     }
 
-    @ApiOperation(value = "Get the activation link (getActivationLink)",
+    @ApiOperation(value = "Get activation link (getActivationLink)",
             notes = "Get the activation link for the user. " +
                     "The base url for activation link is configurable in the general settings of system administrator. \n\n" + RBAC_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/user/{userId}/activationLink", method = RequestMethod.GET, produces = "text/plain")
-    @ResponseBody
+    @GetMapping(value = "/user/{userId}/activationLink", produces = "text/plain")
     public String getActivationLink(@Parameter(description = USER_ID_PARAM_DESCRIPTION)
                                     @PathVariable(USER_ID) String strUserId,
                                     HttpServletRequest request) throws ThingsboardException {
+        return getActivationLinkInfo(strUserId, request).value();
+    }
+
+    @ApiOperation(value = "Get activation link info (getActivationLinkInfo)",
+            notes = "Get the activation link info for the user. " +
+                    "The base url for activation link is configurable in the general settings of system administrator. \n\n" + RBAC_READ_CHECK)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @GetMapping(value = "/user/{userId}/activationLinkInfo")
+    public UserActivationLink getActivationLinkInfo(@Parameter(description = USER_ID_PARAM_DESCRIPTION)
+                                                    @PathVariable(USER_ID) String strUserId,
+                                                    HttpServletRequest request) throws ThingsboardException {
         checkParameter(USER_ID, strUserId);
         UserId userId = new UserId(toUUID(strUserId));
         checkUserId(userId, Operation.READ);
-        return getActivationLink(userId, request);
+        SecurityUser securityUser = getCurrentUser();
+        return tbUserService.getActivationLink(securityUser.getTenantId(), securityUser.getCustomerId(), securityUser.getAuthority(), userId, request);
     }
 
     @ApiOperation(value = "Delete User (deleteUser)",
@@ -865,23 +877,6 @@ public class UserController extends BaseController {
     public void removeMobileSession(@RequestHeader(MOBILE_TOKEN_HEADER) String mobileToken,
                                     @AuthenticationPrincipal SecurityUser user) {
         userService.removeMobileSession(user.getTenantId(), mobileToken);
-    }
-
-    private String getActivationLink(UserId userId, HttpServletRequest request) throws ThingsboardException {
-        SecurityUser authUser = getCurrentUser();
-        TenantId tenantId = authUser.getTenantId();
-        UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, userId);
-        if (!userCredentials.isEnabled() && userCredentials.getActivateToken() != null) {
-            if (System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(15) > userCredentials.getActivateTokenExpTime()) { // renew link if less than 15 minutes before expiration
-                userCredentials = userService.generateUserActivationToken(userCredentials);
-                userCredentials = userService.saveUserCredentials(tenantId, userCredentials);
-                log.debug("[{}][{}] Regenerated expired user activation token", tenantId, userId);
-            }
-            String baseUrl = systemSecurityService.getBaseUrl(authUser.getAuthority(), tenantId, authUser.getCustomerId(), request);
-            return String.format(ACTIVATE_URL_PATTERN, baseUrl, userCredentials.getActivateToken());
-        } else {
-            throw new ThingsboardException("User is already activated!", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-        }
     }
 
     private void checkNotReserved(String strType, UserSettingsType type) throws ThingsboardException {

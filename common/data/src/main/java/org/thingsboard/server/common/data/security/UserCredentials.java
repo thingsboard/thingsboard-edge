@@ -67,12 +67,22 @@ public class UserCredentials extends BaseDataWithAdditionalInfo<UserCredentialsI
 
     @JsonIgnore
     public boolean isActivationTokenExpired() {
-        return activateTokenExpTime == null || System.currentTimeMillis() > activateTokenExpTime;
+        return getActivationTokenTtl() == 0;
+    }
+
+    @JsonIgnore
+    public long getActivationTokenTtl() {
+        return activateTokenExpTime != null ? Math.max(activateTokenExpTime - System.currentTimeMillis(), 0) : 0;
     }
 
     @JsonIgnore
     public boolean isResetTokenExpired() {
-        return resetTokenExpTime == null || System.currentTimeMillis() > resetTokenExpTime;
+        return getResetTokenTtl() == 0;
+    }
+
+    @JsonIgnore
+    public long getResetTokenTtl() {
+        return resetTokenExpTime != null ? Math.max(resetTokenExpTime - System.currentTimeMillis(), 0) : 0;
     }
 
 }

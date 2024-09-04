@@ -117,9 +117,9 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.MobileAppId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
-import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -135,9 +135,9 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.mobile.MobileApp;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -186,9 +186,9 @@ import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.oauth2.OAuth2ClientService;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
-import org.thingsboard.server.dao.oauth2.OAuth2ClientService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -232,14 +232,12 @@ import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -1360,6 +1358,19 @@ public abstract class BaseController {
 
     protected <T> ResponseEntity<T> response(HttpStatus status) {
         return ResponseEntity.status(status).build();
+    }
+
+    protected <T> ResponseEntity<T> redirectTo(String location) {
+        URI uri;
+        try {
+            uri = URI.create(location);
+        } catch (IllegalArgumentException e) {
+            log.error("Failed to create URI from '{}'", location, e);
+            throw e;
+        }
+        return ResponseEntity.status(HttpStatus.SEE_OTHER)
+                .location(uri)
+                .build();
     }
 
     protected List<OAuth2ClientId> getOAuth2ClientIds(UUID[] ids) throws ThingsboardException {

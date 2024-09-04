@@ -41,6 +41,7 @@ import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.UserActivationLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
@@ -53,6 +54,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.within;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -209,7 +211,8 @@ public class AuthControllerTest extends AbstractControllerTest {
         userCredentialsDao.save(tenantId, userCredentials);
 
         doGet("/api/noauth/resetPassword?resetToken={resetToken}", this.currentResetPasswordToken)
-                .andExpect(status().isGone());
+                .andExpect(status().isSeeOther())
+                .andExpect(header().string(HttpHeaders.LOCATION, "/passwordResetLinkExpired"));
         JsonNode resetPasswordRequest = JacksonUtil.newObjectNode()
                 .put("resetToken", this.currentResetPasswordToken)
                 .put("password", "wefwefe");
@@ -233,33 +236,42 @@ public class AuthControllerTest extends AbstractControllerTest {
 
         UserCredentials userCredentials = userCredentialsDao.findByUserId(tenantId, user.getUuidId());
         assertThat(userCredentials.getActivateTokenExpTime()).isCloseTo(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(ttl), Offset.offset(120000L));
-        String initialActivationLink = doGet("/api/user/" + user.getId() + "/activationLink", String.class);
+        String initialActivationLink = getActivationLink(user);
         String initialActivationToken = StringUtils.substringAfterLast(initialActivationLink, "activateToken=");
+        UserActivationLink activationLinkInfo = getActivationLinkInfo(user);
+        assertThat(TimeUnit.MILLISECONDS.toHours(activationLinkInfo.ttlMs())).isCloseTo(ttl, within(1L));
+        assertThat(activationLinkInfo.value()).isEqualTo(initialActivationLink);
 
         // expiring activation token
         userCredentials.setActivateTokenExpTime(System.currentTimeMillis() - 1);
         userCredentialsDao.save(tenantId, userCredentials);
         doGet("/api/noauth/activate?activateToken={activateToken}", initialActivationToken)
-                .andExpect(status().isGone());
+                .andExpect(status().isSeeOther())
+                .andExpect(header().string(HttpHeaders.LOCATION, "/activationLinkExpired"));
         doPost("/api/noauth/activate", JacksonUtil.newObjectNode()
                 .put("activateToken", initialActivationToken)
                 .put("password", "wefewe")).andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message", is("Activation token expired")));
 
         // checking that activation link is regenerated when requested
-        String regeneratedActivationLink = doGet("/api/user/" + user.getId() + "/activationLink", String.class);
-        assertThat(regeneratedActivationLink).isNotEqualTo(initialActivationLink);
+        UserActivationLink regeneratedActivationLink = getActivationLinkInfo(user);
+        assertThat(regeneratedActivationLink.value()).isNotEqualTo(initialActivationLink);
+        assertThat(TimeUnit.MILLISECONDS.toHours(regeneratedActivationLink.ttlMs())).isCloseTo(ttl, within(1L));
 
         // checking link renewal if less than 15 minutes before expiration
         userCredentials = userCredentialsDao.findByUserId(tenantId, user.getUuidId());
         userCredentials.setActivateTokenExpTime(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(30));
         userCredentialsDao.save(tenantId, userCredentials);
-        assertThat(doGet("/api/user/" + user.getId() + "/activationLink", String.class)).isEqualTo(regeneratedActivationLink);
+        activationLinkInfo = getActivationLinkInfo(user);
+        assertThat(activationLinkInfo.value()).isEqualTo(regeneratedActivationLink.value());
+        assertThat(TimeUnit.MILLISECONDS.toMinutes(activationLinkInfo.ttlMs())).isCloseTo(30, within(1L));
+
         userCredentials.setActivateTokenExpTime(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(10));
         userCredentialsDao.save(tenantId, userCredentials);
-        String newActivationLink = doGet("/api/user/" + user.getId() + "/activationLink", String.class);
-        assertThat(newActivationLink).isNotEqualTo(regeneratedActivationLink);
-        String newActivationToken = StringUtils.substringAfterLast(newActivationLink, "activateToken=");
+        UserActivationLink newActivationLink = getActivationLinkInfo(user);
+        assertThat(newActivationLink.value()).isNotEqualTo(regeneratedActivationLink.value());
+        assertThat(TimeUnit.MILLISECONDS.toHours(newActivationLink.ttlMs())).isCloseTo(ttl, within(1L));
+        String newActivationToken = StringUtils.substringAfterLast(newActivationLink.value(), "activateToken=");
 
         userCredentials = userCredentialsDao.findByUserId(tenantId, user.getUuidId());
         assertThat(userCredentials.getActivateTokenExpTime()).isCloseTo(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(ttl), Offset.offset(120000L));
@@ -279,6 +291,14 @@ public class AuthControllerTest extends AbstractControllerTest {
         SecuritySettings securitySettings = doGet("/api/admin/securitySettings", SecuritySettings.class);
         updater.accept(securitySettings);
         doPost("/api/admin/securitySettings", securitySettings).andExpect(status().isOk());
+    }
+
+    private String getActivationLink(User user) throws Exception {
+        return doGet("/api/user/" + user.getId() + "/activationLink", String.class);
+    }
+
+    private UserActivationLink getActivationLinkInfo(User user) throws Exception {
+        return doGet("/api/user/" + user.getId() + "/activationLinkInfo", UserActivationLink.class);
     }
 
 }
