@@ -56,6 +56,8 @@ import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.menu.DefaultMenuItem;
 import org.thingsboard.server.common.data.menu.HomeMenuItem;
 import org.thingsboard.server.common.data.menu.HomeMenuItemType;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.menu.CustomMenuDao;
 import org.thingsboard.server.dao.service.DaoSqlTest;
@@ -77,6 +79,8 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
     protected static final String SECOND_TENANT_ADMIN_EMAIL = "secondtesttenant@thingsboard.org";
     protected static final String CUSTOMER_B_USER_EMAIL = "testcustomerB@thingsboard.org";
     protected static final String CUSTOMER_B_USER_PASSWORD = "customerB";
+    static final TypeReference<PageData<CustomMenuInfo>> PAGE_DATA_CUSTOM_MENU_TYPE_REFERENCE = new TypeReference<>() {
+    };
 
     private static CustomMenu systemSystemMenu;
     private static CustomMenu systemTenantMenu;
@@ -141,6 +145,25 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         CustomMenuInfo retrievedAfterUpdate = doGet("/api/customMenu/" + tenantMenu.getId() + "/info", CustomMenuInfo.class);
         tenantMenu.setName(newName);
         assertThat(retrievedAfterUpdate).isEqualTo(new CustomMenuInfo(tenantMenu));
+
+        PageLink pageLink = new PageLink(10);
+        PageData<CustomMenuInfo> customMenus = doGetTypedWithPageLink("/api/customMenu/infos?", PAGE_DATA_CUSTOM_MENU_TYPE_REFERENCE, pageLink);
+        assertThat(customMenus.getData()).hasSize(1);
+
+        // find by scope and assignee type
+        PageData<CustomMenuInfo> customMenusByScopeAndAssigneeType = doGetTypedWithPageLink("/api/customMenu/infos?scope=TENANT&assigneeType=USERS&",
+                PAGE_DATA_CUSTOM_MENU_TYPE_REFERENCE, pageLink);
+        assertThat(customMenusByScopeAndAssigneeType.getData()).hasSize(1);
+
+        // find by another scope
+        PageData<CustomMenuInfo> customMenusByAnotherScope = doGetTypedWithPageLink("/api/customMenu/infos?scope=CUSTOMER&",
+                PAGE_DATA_CUSTOM_MENU_TYPE_REFERENCE, pageLink);
+        assertThat(customMenusByAnotherScope.getData()).hasSize(0);
+
+        // find by another assignee type
+        PageData<CustomMenuInfo> customMenusByAnotherAssigneeType = doGetTypedWithPageLink("/api/customMenu/infos?assigneeType=ALL&",
+                PAGE_DATA_CUSTOM_MENU_TYPE_REFERENCE, pageLink);
+        assertThat(customMenusByAnotherAssigneeType.getData()).hasSize(0);
     }
 
     @Test
@@ -167,7 +190,18 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         JsonNode currentSubCustomerMenu = doGet("/api/customMenu", JsonNode.class);
         assertCustomMenuConfig(currentSubCustomerMenu, subCustomerDefaultConfig);
 
+        // check all child menus are visible for customer
+        loginCustomerAdminUser();
+        CustomMenuInfo subCustomerMenuUnderCustomer = doGet("/api/customMenu/" + subCustomerMenu.getId() + "/info", CustomMenu.class);
+        assertThat(subCustomerMenuUnderCustomer).isEqualTo(subCustomerMenu);
+
+        // check all customer menus are visible for tenant
+        loginTenantAdmin();
+        CustomMenuInfo subCustomerMenuUnderTenant = doGet("/api/customMenu/" + subCustomerMenu.getId() + "/info", CustomMenu.class);
+        assertThat(subCustomerMenuUnderTenant).isEqualTo(subCustomerMenu);
+
         // delete subcustomer default menu
+        loginCustomerAdminUser();
         doDelete("/api/customMenu/" + subCustomerMenu.getId());
         JsonNode currentSubCustomerMenu2 = doGet("/api/customMenu", JsonNode.class);
         assertCustomMenuConfig(currentSubCustomerMenu2, customerDefaultConfig);

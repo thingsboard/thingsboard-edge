@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuConfig;
+import org.thingsboard.server.common.data.menu.CustomMenuFilter;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.menu.DefaultMenuItem;
@@ -137,9 +138,9 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     }
 
     @Override
-    public PageData<CustomMenuInfo> findCustomMenuInfos(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
-        log.trace("Executing findCustomMenuInfos tenantId [{}], customerId [{}]", tenantId, customerId);
-        return customMenuDao.findByTenantIdAndCustomerId(tenantId, customerId, pageLink);
+    public PageData<CustomMenuInfo> findCustomMenuInfos(CustomMenuFilter customMenuFilter, PageLink pageLink) {
+        log.trace("Executing findCustomMenuInfos [{}]", customMenuFilter);
+        return customMenuDao.findInfosByFilter(customMenuFilter, pageLink);
     }
 
     @Override

@@ -62,8 +62,10 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
+import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuConfig;
+import org.thingsboard.server.common.data.menu.CustomMenuFilter;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.menu.Views;
 import org.thingsboard.server.common.data.page.PageData;
@@ -86,8 +88,10 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOM_MENU_ASSIGNEE_TYPE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOM_MENU_ID;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOM_MENU_ID_PARAM_DESCRIPTION;
+import static org.thingsboard.server.controller.ControllerConstants.CUSTOM_MENU_SCOPE_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOM_MENU_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
@@ -109,7 +113,11 @@ public class CustomMenuController extends BaseController {
                     + ControllerConstants.WL_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/customMenu/infos")
-    public PageData<CustomMenuInfo> getCustomMenuInfos(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+    public PageData<CustomMenuInfo> getCustomMenuInfos(@Parameter(description = CUSTOM_MENU_SCOPE_PARAM_DESCRIPTION)
+                                                       @RequestParam(required = false) CMScope scope,
+                                                       @Parameter(description = CUSTOM_MENU_ASSIGNEE_TYPE_PARAM_DESCRIPTION)
+                                                       @RequestParam(required = false) CMAssigneeType assigneeType,
+                                                       @Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
                                                        @RequestParam int pageSize,
                                                        @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
                                                        @RequestParam int page,
@@ -122,7 +130,13 @@ public class CustomMenuController extends BaseController {
         SecurityUser currentUser = getCurrentUser();
         checkWhiteLabelingPermissions(Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-        return customMenuService.findCustomMenuInfos(currentUser.getTenantId(), getCurrentUser().getCustomerId(), pageLink);
+        CustomMenuFilter customMenuFilter = CustomMenuFilter.builder()
+                .tenantId(currentUser.getTenantId())
+                .customerId(currentUser.getCustomerId())
+                .scope(scope)
+                .assigneeType(assigneeType)
+                .build();
+        return customMenuService.findCustomMenuInfos(customMenuFilter, pageLink);
     }
 
     @ApiOperation(value = "Get end-user Custom Menu configuration (getCustomMenu)",

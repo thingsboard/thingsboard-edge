@@ -28,27 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.menu;
+package org.thingsboard.server.common.data.menu;
 
-import org.thingsboard.server.common.data.id.CustomMenuId;
+import lombok.Builder;
+import lombok.Data;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.menu.CMScope;
-import org.thingsboard.server.common.data.menu.CustomMenu;
-import org.thingsboard.server.common.data.menu.CustomMenuFilter;
-import org.thingsboard.server.common.data.menu.CustomMenuInfo;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
 
+@Data
+@Builder
+public class CustomMenuFilter {
 
-public interface CustomMenuDao extends Dao<CustomMenu> {
+    private TenantId tenantId;
+    private CustomerId customerId;
+    private CMScope scope;
+    private CMAssigneeType assigneeType;
 
-    CustomMenuInfo findInfoById(CustomMenuId customMenuId);
-
-    PageData<CustomMenuInfo> findInfosByFilter(CustomMenuFilter customMenuFilter, PageLink pageLink);
-
-    CustomMenu findDefaultMenuByScope(TenantId tenantId, CustomerId customerId, CMScope scope);
-
-    void removeByTenantId(TenantId tenantId);
 }

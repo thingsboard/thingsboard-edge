@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuFilter;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -69,9 +70,10 @@ public class JpaCustomMenuDao extends JpaAbstractDao<CustomMenuEntity, CustomMen
     }
 
     @Override
-    public PageData<CustomMenuInfo> findByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
-        return DaoUtil.toPageData(customMenuInfoRepository.findByTenantIdAndCustomerId(tenantId.getId(),
-                customerId == null ? EntityId.NULL_UUID : customerId.getId(), pageLink.getTextSearch(), DaoUtil.toPageable(pageLink)));
+    public PageData<CustomMenuInfo> findInfosByFilter(CustomMenuFilter customMenuFilter, PageLink pageLink) {
+        return DaoUtil.toPageData(customMenuInfoRepository.findByTenantIdAndCustomerIdAndScopeAndAssigneeType(customMenuFilter.getTenantId().getId(),
+                customMenuFilter.getCustomerId() == null ? EntityId.NULL_UUID : customMenuFilter.getCustomerId().getId(),
+                customMenuFilter.getScope(), customMenuFilter.getAssigneeType(), pageLink.getTextSearch(), DaoUtil.toPageable(pageLink)));
     }
 
     @Override

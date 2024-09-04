@@ -42,6 +42,7 @@ import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuConfig;
+import org.thingsboard.server.common.data.menu.CustomMenuFilter;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -60,7 +61,7 @@ public interface CustomMenuService {
 
     CustomMenu findCustomMenuById(TenantId tenantId, CustomMenuId customMenuId);
 
-    PageData<CustomMenuInfo> findCustomMenuInfos(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+    PageData<CustomMenuInfo> findCustomMenuInfos(CustomMenuFilter customMenuFilter, PageLink pageLink);
 
     CustomMenuConfig findSystemAdminCustomMenuConfig();
 

@@ -329,11 +329,15 @@ public class TenantAdminPermissions extends AbstractPermissions {
     private final PermissionChecker customMenuPermissionChecker = new PermissionChecker() {
         @Override
         public boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenuInfo customMenu) {
-            if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), null)) {
+            if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), null) ||
+                    !user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation)) {
                 return false;
             }
-            return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation) &&
-                    user.getTenantId().equals(customMenu.getTenantId());
+            if (operation == Operation.READ) {
+                return user.getTenantId().equals(customMenu.getTenantId());
+            } else {
+                return user.getTenantId().equals(customMenu.getTenantId()) && user.getCustomerId().equals(customMenu.getCustomerId());
+            }
         }
     };
 

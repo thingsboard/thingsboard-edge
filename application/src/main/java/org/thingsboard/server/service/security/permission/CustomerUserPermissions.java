@@ -445,14 +445,18 @@ public class CustomerUserPermissions extends AbstractPermissions {
     private final PermissionChecker customMenuPermissionChecker = new PermissionChecker() {
         @Override
         public boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenuInfo customMenu) {
-            if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getCustomerId())) {
+            if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), user.getCustomerId()) ||
+                    !user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation)) {
                 return false;
             }
-            return user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation) &&
-                    user.getTenantId().equals(customMenu.getTenantId()) && customMenu.getCustomerId() != null &&
-                    (user.getCustomerId().equals(customMenu.getCustomerId()) ||
-                            ownersCacheService.getOwners(customMenu.getTenantId(), customMenu.getCustomerId(), null)
-                                    .contains(user.getCustomerId()));
+            if (operation == Operation.READ) {
+                return user.getTenantId().equals(customMenu.getTenantId()) && customMenu.getCustomerId() != null &&
+                        (user.getCustomerId().equals(customMenu.getCustomerId()) ||
+                                ownersCacheService.getOwners(customMenu.getTenantId(), customMenu.getCustomerId(), null)
+                                        .contains(user.getCustomerId()));
+            } else {
+                return user.getTenantId().equals(customMenu.getTenantId()) && user.getCustomerId().equals(customMenu.getCustomerId());
+            }
         }
     };
 }
