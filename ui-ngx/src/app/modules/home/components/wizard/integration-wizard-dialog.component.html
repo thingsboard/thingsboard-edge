@@ -110,7 +110,7 @@
                         [entity]="uplinkConverter"
           ></tb-converter>
           <tb-converter-library
-            *ngIf="uplinkConverterForm.get('converterType').value === ConverterSourceType.LIBRARY"
+            [fxShow]="uplinkConverterForm.get('converterType').value === ConverterSourceType.LIBRARY"
             (converterChanged)="onLibraryConverterChanged($event)"
             [integrationType]="integrationWizardForm.get('type').value"
           />
@@ -146,7 +146,7 @@
                         [entity]="downlinkConverter"
           ></tb-converter>
           <tb-converter-library
-            *ngIf="downlinkConverterForm.get('converterType').value === ConverterSourceType.LIBRARY"
+            [fxShow]="downlinkConverterForm.get('converterType').value === ConverterSourceType.LIBRARY"
             (converterChanged)="onLibraryConverterChanged($event)"
             [integrationType]="integrationWizardForm.get('type').value"
             [isUplink]="false"

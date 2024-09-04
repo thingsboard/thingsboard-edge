@@ -101,10 +101,12 @@ export class ConverterLibraryComponent implements OnChanges {
       switchMap(vendors =>
         this.libraryFormGroup.get('vendor').valueChanges.pipe(
           startWith(''),
-          map(searchValue =>
-            vendors.filter(vendor =>
-              vendor.name.includes(searchValue) || searchValue?.name === vendor.name
-            )
+          map(searchValue => {
+              this.libraryFormGroup.get('model').patchValue('');
+              return vendors.filter(vendor =>
+                vendor.name.includes(searchValue) || searchValue?.name === vendor.name
+              )
+            }
           )
         )
       )
