@@ -28,93 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  grid-template-rows: min-content minmax(auto, 1fr) min-content;
+package org.thingsboard.server.dao.edge;
 
-  .configuration-block {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CacheSpecsMap;
+import org.thingsboard.server.cache.RedisTbTransactionalCache;
+import org.thingsboard.server.cache.TBRedisCacheConfiguration;
+import org.thingsboard.server.cache.TbJsonRedisSerializer;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.id.EdgeId;
 
-  .mat-toolbar {
-    grid-row: 1;
-    background: transparent;
-    color: rgba(0, 0, 0, .87) !important;
-  }
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
+@Service("EdgeSessionCache")
+public class EdgeSessionRedisCache extends RedisTbTransactionalCache<EdgeId, String> {
 
-  .tab-group-block {
-    min-width: 0;
-    height: 100%;
-    min-height: 0;
-    grid-row: 2;
-  }
-
-  .toggle-group {
-    margin-right: auto;
-  }
-
-  .first-capital {
-    text-transform: capitalize;
-  }
-
-  textarea {
-    resize: none;
-  }
-
-  .saving-period {
-    flex: 1;
-  }
-
-  .statistics-container {
-    width: 100%;
-
-    .command-container {
-      width: 100%;
-    }
-  }
-
-  .actions {
-    grid-row: 3;
-    padding: 8px;
-    display: flex;
-    gap: 8px;
-    justify-content: flex-end;
-    flex: 1;
-  }
-
-  mat-form-field {
-    mat-error {
-      display: none !important;
+    public EdgeSessionRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
+        super(CacheConstants.EDGE_SESSIONS_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbJsonRedisSerializer<>(String.class));
     }
 
-    mat-error:first-child {
-      display: block !important;
-    }
-  }
 }
-
-:host ::ng-deep {
-  .pointer-event {
-    pointer-events: all;
-  }
-
-  .toggle-group span {
-    padding: 0 25px;
-  }
-
-  .mat-mdc-form-field-icon-suffix {
-    color: #E0E0E0;
-    &:hover {
-      color: #9E9E9E;
-    }
-  }
-
-  .mat-mdc-form-field-icon-suffix {
-    display: flex;
-  }
-}
-

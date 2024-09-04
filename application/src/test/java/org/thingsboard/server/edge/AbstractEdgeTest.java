@@ -44,7 +44,6 @@ import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
@@ -153,9 +152,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     @Autowired
     protected EdgeEventService edgeEventService;
-
-    @Autowired
-    protected TbClusterService clusterService;
 
     @Before
     public void setupEdgeTest() throws Exception {
@@ -986,6 +982,27 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         return JacksonUtil.convertValue(
                 doGet("/api/entityGroups/" + entityId.getEntityType() + "/" + entityId.getId(), JsonNode.class),
                 new TypeReference<>() {});
+    }
+
+
+    protected ObjectNode createDefaultRpc() {
+        return createDefaultRpc(1);
+    }
+
+    protected ObjectNode createDefaultRpc(Integer value) {
+        ObjectNode rpc = JacksonUtil.newObjectNode();
+        rpc.put("method", "setGpio");
+
+        ObjectNode params = JacksonUtil.newObjectNode();
+
+        params.put("pin", 7);
+        params.put("value", value);
+
+        rpc.set("params", params);
+        rpc.put("persistent", true);
+        rpc.put("timeout", 5000);
+
+        return rpc;
     }
 
 }

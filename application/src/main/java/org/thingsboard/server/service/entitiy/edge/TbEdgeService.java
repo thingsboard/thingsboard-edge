@@ -50,4 +50,5 @@ public interface TbEdgeService {
     Edge save(Edge edge, RuleChain edgeTemplateRootRuleChain, List<EntityGroup> entityGroups, User user) throws Exception;
 
     Edge setEdgeRootRuleChain(Edge edge, RuleChainId ruleChainId, User user) throws Exception;
+
 }

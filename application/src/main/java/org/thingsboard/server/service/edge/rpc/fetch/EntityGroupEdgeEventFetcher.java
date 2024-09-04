@@ -61,7 +61,7 @@ public class EntityGroupEdgeEventFetcher implements EdgeEventFetcher {
 
     @Override
     public PageData<EdgeEvent> fetchEdgeEvents(TenantId tenantId, Edge edge, PageLink pageLink) {
-        log.trace("[{}] start fetching edge events [{}]", tenantId, edge.getId());
+        log.trace("[{}] start fetching edge events [{}], pageLink {}", tenantId, edge.getId(), pageLink);
         PageData<EntityGroup> pageData = entityGroupService.findEdgeEntityGroupsByType(tenantId, edge.getId(), groupType, pageLink);
         List<EdgeEvent> result = new ArrayList<>();
         if (!pageData.getData().isEmpty()) {
