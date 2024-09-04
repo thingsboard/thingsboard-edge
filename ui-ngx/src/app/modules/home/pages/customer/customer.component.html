@@ -149,6 +149,13 @@
           </section>
         </section>
       </div>
+      <tb-custom-menu-autocomplete *ngIf="allowCustomerWhiteLabeling &&
+                                          whiteLabelingAllowed && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)"
+                                   fxFlex
+                                   formControlName="customMenuId"
+                                   [scope]="CMScope.CUSTOMER"
+                                   [assigneeType]="CMAssigneeType.CUSTOMERS">
+      </tb-custom-menu-autocomplete>
       <tb-contact [parentForm]="entityForm" [isEdit]="isEdit"></tb-contact>
     </fieldset>
   </form>

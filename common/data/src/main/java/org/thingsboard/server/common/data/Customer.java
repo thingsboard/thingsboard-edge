@@ -83,6 +83,7 @@ public class Customer extends ContactBased<CustomerId> implements HasTenantId, H
         this.title = customer.getTitle();
         this.externalId = customer.getExternalId();
         this.version = customer.getVersion();
+        this.customMenuId = customer.getCustomMenuId();
     }
 
     public TenantId getTenantId() {

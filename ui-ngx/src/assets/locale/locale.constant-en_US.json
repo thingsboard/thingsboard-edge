@@ -1252,6 +1252,7 @@
         "custom-menu": "Custom menu",
         "custom-menu-config": "Custom menu config",
         "no-custom-menus-prompt": "No custom menus found",
+        "no-custom-menus-matching": "No custom menus matching '{{entity}}' were found.",
         "search": "Search custom menus",
         "add": "Add custom menu",
         "delete-custom-menu-title": "Are you sure you want to delete the custom menu '{{customMenuName}}'?",
