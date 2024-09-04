@@ -52,7 +52,6 @@ public class TbCoreConsumerStats {
     public static final String DEVICE_STATES = "deviceState";
     public static final String SUBSCRIPTION_MSGS = "subMsgs";
     public static final String SCHEDULER = "scheduler";
-    public static final String EDGE_NOTIFICATIONS = "edgeNfs";
     public static final String CLOUD_NOTIFICATIONS = "cloudNfs";
     public static final String DEVICE_CONNECTS = "deviceConnect";
     public static final String DEVICE_ACTIVITIES = "deviceActivity";
@@ -68,9 +67,6 @@ public class TbCoreConsumerStats {
     public static final String TO_CORE_NF_OTHER = "coreNfOther"; // normally, there is no messages when codebase is fine
     public static final String TO_CORE_NF_COMPONENT_LIFECYCLE = "coreNfCompLfcl";
     public static final String TO_CORE_NF_DEVICE_RPC_RESPONSE = "coreNfDevRpcRsp";
-    public static final String TO_CORE_NF_EDGE_EVENT_UPDATE = "coreNfEdgeUpd";
-    public static final String TO_CORE_NF_EDGE_SYNC_REQUEST = "coreNfEdgeSyncReq";
-    public static final String TO_CORE_NF_EDGE_SYNC_RESPONSE = "coreNfEdgeSyncResp";
     public static final String TO_CORE_NF_NOTIFICATION_RULE_PROCESSOR = "coreNfNfRlProc";
     public static final String TO_CORE_NF_QUEUE_UPDATE = "coreNfQueueUpd";
     public static final String TO_CORE_NF_QUEUE_DELETE = "coreNfQueueDel";
@@ -89,7 +85,6 @@ public class TbCoreConsumerStats {
 
     private final StatsCounter deviceStateCounter;
     private final StatsCounter subscriptionMsgCounter;
-    private final StatsCounter edgeNotificationsCounter;
     private final StatsCounter cloudNotificationMsgCounter;
     private final StatsCounter deviceConnectsCounter;
     private final StatsCounter deviceActivitiesCounter;
@@ -106,9 +101,6 @@ public class TbCoreConsumerStats {
     private final StatsCounter toCoreNfOtherCounter;
     private final StatsCounter toCoreNfComponentLifecycleCounter;
     private final StatsCounter toCoreNfDeviceRpcResponseCounter;
-    private final StatsCounter toCoreNfEdgeEventUpdateCounter;
-    private final StatsCounter toCoreNfEdgeSyncRequestCounter;
-    private final StatsCounter toCoreNfEdgeSyncResponseCounter;
     private final StatsCounter toCoreNfNotificationRuleProcessorCounter;
     private final StatsCounter toCoreNfQueueUpdateCounter;
     private final StatsCounter toCoreNfQueueDeleteCounter;
@@ -116,7 +108,7 @@ public class TbCoreConsumerStats {
     private final StatsCounter toCoreNfSubscriptionManagerCounter;
     private final StatsCounter toCoreNfVersionControlResponseCounter;
 
-    private final List<StatsCounter> counters = new ArrayList<>(24 + 4); //CE + PE
+    private final List<StatsCounter> counters = new ArrayList<>(23 + 4); //CE + PE
 
     public TbCoreConsumerStats(StatsFactory statsFactory) {
         String statsKey = StatsType.CORE.getName();
@@ -131,7 +123,6 @@ public class TbCoreConsumerStats {
         this.claimDeviceCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_CLAIMS));
         this.deviceStateCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_STATES));
         this.subscriptionMsgCounter = register(statsFactory.createStatsCounter(statsKey, SUBSCRIPTION_MSGS));
-        this.edgeNotificationsCounter = register(statsFactory.createStatsCounter(statsKey, EDGE_NOTIFICATIONS));
         this.cloudNotificationMsgCounter = register(statsFactory.createStatsCounter(statsKey, CLOUD_NOTIFICATIONS));
         this.deviceConnectsCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_CONNECTS));
         this.deviceActivitiesCounter = register(statsFactory.createStatsCounter(statsKey, DEVICE_ACTIVITIES));
@@ -149,9 +140,6 @@ public class TbCoreConsumerStats {
         this.toCoreNfOtherCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NF_OTHER));
         this.toCoreNfComponentLifecycleCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NF_COMPONENT_LIFECYCLE));
         this.toCoreNfDeviceRpcResponseCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NF_DEVICE_RPC_RESPONSE));
-        this.toCoreNfEdgeEventUpdateCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NF_EDGE_EVENT_UPDATE));
-        this.toCoreNfEdgeSyncRequestCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NF_EDGE_SYNC_REQUEST));
-        this.toCoreNfEdgeSyncResponseCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NF_EDGE_SYNC_RESPONSE));
         this.toCoreNfNotificationRuleProcessorCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NF_NOTIFICATION_RULE_PROCESSOR));
         this.toCoreNfQueueUpdateCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NF_QUEUE_UPDATE));
         this.toCoreNfQueueDeleteCounter = register(statsFactory.createStatsCounter(statsKey, TO_CORE_NF_QUEUE_DELETE));
@@ -198,11 +186,6 @@ public class TbCoreConsumerStats {
     public void log(TransportProtos.SchedulerServiceMsgProto schedulerServiceMsg) {
         totalCounter.increment();
         schedulerMsgCounter.increment();
-    }
-
-    public void log(TransportProtos.EdgeNotificationMsgProto msg) {
-        totalCounter.increment();
-        edgeNotificationsCounter.increment();
     }
 
     public void log(TransportProtos.CloudNotificationMsgProto msg) {
@@ -253,12 +236,6 @@ public class TbCoreConsumerStats {
 
         } else if (msg.hasComponentLifecycle()) {
             toCoreNfComponentLifecycleCounter.increment();
-        } else if (msg.hasEdgeEventUpdate()) {
-            toCoreNfEdgeEventUpdateCounter.increment();
-        } else if (msg.hasToEdgeSyncRequest()) {
-            toCoreNfEdgeSyncRequestCounter.increment();
-        } else if (msg.hasFromEdgeSyncResponse()) {
-            toCoreNfEdgeSyncResponseCounter.increment();
         } else if (msg.getQueueUpdateMsgsCount() > 0) {
             toCoreNfQueueUpdateCounter.increment();
         } else if (msg.getQueueDeleteMsgsCount() > 0) {
@@ -278,9 +255,8 @@ public class TbCoreConsumerStats {
         int total = totalCounter.get();
         if (total > 0) {
             StringBuilder stats = new StringBuilder();
-            counters.forEach(counter -> {
-                stats.append(counter.getName()).append(" = [").append(counter.get()).append("] ");
-            });
+            counters.forEach(counter ->
+                    stats.append(counter.getName()).append(" = [").append(counter.get()).append("] "));
             log.info("Core Stats: {}", stats);
         }
     }
@@ -288,4 +264,5 @@ public class TbCoreConsumerStats {
     public void reset() {
         counters.forEach(StatsCounter::clear);
     }
+
 }

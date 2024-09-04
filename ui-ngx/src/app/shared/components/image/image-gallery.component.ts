@@ -220,7 +220,7 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
         property: 'createdTime',
         direction: Direction.DESC
       });
-      return this.imageService.getImages(pageLink, this.imageSubType, filter.includeSystemImages);
+      return this.imageService.getImages(pageLink, filter.includeSystemImages, this.imageSubType);
     };
   }
 

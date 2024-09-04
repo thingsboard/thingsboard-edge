@@ -311,19 +311,18 @@ public class BaseIntegrationService extends CachedVersionedEntityService<Integra
         return integrationInfoDao.findIntegrationsByTenantIdAndEdgeId(tenantId.getId(), edgeId.getId(), pageLink);
     }
 
-    private PaginatedRemover<TenantId, Integration> tenantIntegrationsRemover =
-            new PaginatedRemover<>() {
+    private final PaginatedRemover<TenantId, Integration> tenantIntegrationsRemover = new PaginatedRemover<>() {
 
-                @Override
-                protected PageData<Integration> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
-                    return integrationDao.findByTenantId(id.getId(), pageLink);
-                }
+        @Override
+        protected PageData<Integration> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+            return integrationDao.findByTenantId(id.getId(), pageLink);
+        }
 
-                @Override
-                protected void removeEntity(TenantId tenantId, Integration entity) {
-                    deleteIntegration(tenantId, new IntegrationId(entity.getId().getId()));
-                }
-            };
+        @Override
+        protected void removeEntity(TenantId tenantId, Integration entity) {
+            deleteIntegration(tenantId, new IntegrationId(entity.getId().getId()));
+        }
+    };
 
     @Override
     public Optional<HasId<?>> findEntity(TenantId tenantId, EntityId entityId) {

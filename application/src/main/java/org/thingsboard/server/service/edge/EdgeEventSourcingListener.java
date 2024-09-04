@@ -32,6 +32,7 @@ package org.thingsboard.server.service.edge;
 
 import com.fasterxml.jackson.databind.node.NullNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -69,8 +70,6 @@ import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserServiceImpl;
 
-import javax.annotation.PostConstruct;
-
 /**
  * This event listener does not support async event processing because relay on ThreadLocal
  * Another possible approach is to implement a special annotation and a bunch of classes similar to TransactionalApplicationListener
@@ -96,7 +95,7 @@ public class EdgeEventSourcingListener {
 
     @PostConstruct
     public void init() {
-        log.info("EdgeEventSourcingListener initiated");
+        log.debug("EdgeEventSourcingListener initiated");
     }
 
     @TransactionalEventListener(fallbackExecution = true)
@@ -151,8 +150,7 @@ public class EdgeEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(ActionEntityEvent<?> event) {
-        if (EntityType.DEVICE.equals(event.getEntityId().getEntityType())
-                && ActionType.ASSIGNED_TO_TENANT.equals(event.getActionType())) {
+        if (EntityType.DEVICE.equals(event.getEntityId().getEntityType()) && ActionType.ASSIGNED_TO_TENANT.equals(event.getActionType())) {
             return;
         }
         try {

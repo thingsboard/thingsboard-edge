@@ -64,7 +64,6 @@ import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
 import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponseActorMsg;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsUpdateMsg;
-import org.thingsboard.server.gen.edge.v1.DeviceGroupOtaPackageUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceRpcCallMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
@@ -278,8 +277,7 @@ public abstract class DeviceEdgeProcessor extends BaseDeviceProcessor implements
                 if (device != null) {
                     EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
                     UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-                    DeviceUpdateMsg deviceUpdateMsg = ((DeviceMsgConstructor)
-                            deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructDeviceUpdatedMsg(msgType, device, entityGroupId);
+                    DeviceUpdateMsg deviceUpdateMsg = msgConstructor.constructDeviceUpdatedMsg(msgType, device, entityGroupId);
                     DownlinkMsg.Builder builder = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addDeviceUpdateMsg(deviceUpdateMsg);
@@ -301,19 +299,17 @@ public abstract class DeviceEdgeProcessor extends BaseDeviceProcessor implements
             case UNASSIGNED_FROM_EDGE:
             case CHANGE_OWNER:
                 EntityGroupId entityGroupId = edgeEvent.getEntityGroupId() != null ? new EntityGroupId(edgeEvent.getEntityGroupId()) : null;
-                DeviceUpdateMsg deviceUpdateMsg = msgConstructor.constructDeviceDeleteMsg(deviceId, entityGroupId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addDeviceUpdateMsg(deviceUpdateMsg)
+                        .addDeviceUpdateMsg(msgConstructor.constructDeviceDeleteMsg(deviceId, entityGroupId))
                         .build();
                 break;
             case CREDENTIALS_UPDATED:
                 DeviceCredentials deviceCredentials = deviceCredentialsService.findDeviceCredentialsByDeviceId(edgeEvent.getTenantId(), deviceId);
                 if (deviceCredentials != null) {
-                    DeviceCredentialsUpdateMsg deviceCredentialsUpdateMsg = msgConstructor.constructDeviceCredentialsUpdatedMsg(deviceCredentials);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addDeviceCredentialsUpdateMsg(deviceCredentialsUpdateMsg)
+                            .addDeviceCredentialsUpdateMsg(msgConstructor.constructDeviceCredentialsUpdatedMsg(deviceCredentials))
                             .build();
                 }
                 break;
@@ -334,13 +330,11 @@ public abstract class DeviceEdgeProcessor extends BaseDeviceProcessor implements
             if (deviceGroupOtaPackage == null) {
                 return null;
             }
+            var msgConstructor = (DeviceMsgConstructor) deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion);
             UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-            DeviceGroupOtaPackageUpdateMsg deviceGroupOtaUpdateMsg = ((DeviceMsgConstructor)
-                    deviceMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion))
-                    .constructDeviceGroupOtaUpdateMsg(msgType, deviceGroupOtaPackage);
             downlinkMsg = DownlinkMsg.newBuilder()
                     .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                    .addDeviceGroupOtaPackageUpdateMsg(deviceGroupOtaUpdateMsg)
+                    .addDeviceGroupOtaPackageUpdateMsg(msgConstructor.constructDeviceGroupOtaUpdateMsg(msgType, deviceGroupOtaPackage))
                     .build();
         } catch (Exception e) {
             log.error("Can't process device group ota package msg [{}]", edgeEvent, e);

@@ -37,9 +37,10 @@ public enum StatsType {
     JS_INVOKE("jsInvoke"),
     RATE_EXECUTOR("rateExecutor"),
     INTEGRATION("integration"),
-    HOUSEKEEPER("housekeeper");
+    HOUSEKEEPER("housekeeper"),
+    EDGE("edge");
 
-    private String name;
+    private final String name;
 
     StatsType(String name) {
         this.name = name;
@@ -48,4 +49,5 @@ public enum StatsType {
     public String getName() {
         return name;
     }
+
 }

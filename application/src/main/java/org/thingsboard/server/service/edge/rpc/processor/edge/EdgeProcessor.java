@@ -180,7 +180,7 @@ public class EdgeProcessor extends BaseEdgeProcessor {
     }
 
     private void unassignEntityGroupsOfRemovedCustomer(TenantId tenantId, EdgeId edgeId, EntityType groupType, EntityId customerId) {
-        PageLink removalPageLink = new PageLink(DEFAULT_PAGE_SIZE, 0);
+        PageLink removalPageLink = new PageLink(1000, 0);
         while (true) {
             PageData<EntityGroup> toRemove = entityGroupService.findEdgeEntityGroupsByOwnerIdAndType(tenantId, edgeId, customerId, groupType, removalPageLink);
             for (EntityGroup entityGroup : toRemove.getData()) {
@@ -193,7 +193,7 @@ public class EdgeProcessor extends BaseEdgeProcessor {
     }
 
     private void unassignSchedulerEventsOfRemovedCustomer(TenantId tenantId, EdgeId edgeId, CustomerId customerId) {
-        PageLink removalPageLink = new PageLink(DEFAULT_PAGE_SIZE, 0);
+        PageLink removalPageLink = new PageLink(1000, 0);
         while (true) {
             PageData<SchedulerEventInfo> toRemove = schedulerEventService.findSchedulerEventInfosByTenantIdAndEdgeIdAndCustomerId(tenantId, edgeId, customerId, removalPageLink);
             for (SchedulerEventInfo schedulerEventInfo : toRemove.getData()) {

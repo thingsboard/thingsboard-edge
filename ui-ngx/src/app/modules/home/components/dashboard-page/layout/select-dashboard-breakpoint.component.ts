@@ -78,7 +78,7 @@ export class SelectDashboardBreakpointComponent implements OnInit, OnDestroy {
   }
 
   selectLayoutChanged() {
-    this.dashboardCtrl.layouts.main.layoutCtx.ctrl.updatedCurrentBreakpoint(this.selectedBreakpoint);
+    this.dashboardUtils.updatedLayoutForBreakpoint(this.dashboardCtrl.layouts.main, this.selectedBreakpoint);
     this.dashboardCtrl.updateLayoutSizes();
   }
 

@@ -36,14 +36,16 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToVersionControlServiceMsg;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 
@@ -63,6 +65,8 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
     private TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorDownlinkMsg>> toIntegrationExecutorDownlinks;
     private TbQueueProducer<TbProtoQueueMsg<ToUsageStatsServiceMsg>> toUsageStats;
     private TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> toHousekeeper;
+    private TbQueueProducer<TbProtoQueueMsg<ToEdgeMsg>> toEdge;
+    private TbQueueProducer<TbProtoQueueMsg<ToEdgeNotificationMsg>> toEdgeNotifications;
 
     public TbRuleEngineProducerProvider(TbRuleEngineQueueFactory tbQueueProvider) {
         this.tbQueueProvider = tbQueueProvider;
@@ -79,6 +83,8 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
         this.toIntegrationExecutorDownlinks = tbQueueProvider.createIntegrationExecutorDownlinkMsgProducer();
         this.toUsageStats = tbQueueProvider.createToUsageStatsServiceMsgProducer();
         this.toHousekeeper = tbQueueProvider.createHousekeeperMsgProducer();
+        this.toEdge = tbQueueProvider.createEdgeMsgProducer();
+        this.toEdgeNotifications = tbQueueProvider.createEdgeNotificationsMsgProducer();
     }
 
     @Override
@@ -112,6 +118,16 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
     }
 
     @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToEdgeMsg>> getTbEdgeMsgProducer() {
+        return toEdge;
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToEdgeNotificationMsg>> getTbEdgeNotificationsMsgProducer() {
+        return toEdgeNotifications;
+    }
+
+    @Override
     public TbQueueProducer<TbProtoQueueMsg<ToIntegrationExecutorNotificationMsg>> getTbIntegrationExecutorNotificationsMsgProducer() {
         return toIntegrationExecutorNotifications;
     }
@@ -127,7 +143,7 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
     }
 
     @Override
-    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> getTbVersionControlMsgProducer() {
+    public TbQueueProducer<TbProtoQueueMsg<ToVersionControlServiceMsg>> getTbVersionControlMsgProducer() {
         throw new RuntimeException(NOT_IMPLEMENTED);
     }
 
@@ -137,7 +153,7 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
     }
 
     @Override
-    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToHousekeeperServiceMsg>> getHousekeeperMsgProducer() {
+    public TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> getHousekeeperMsgProducer() {
         return toHousekeeper;
     }
 

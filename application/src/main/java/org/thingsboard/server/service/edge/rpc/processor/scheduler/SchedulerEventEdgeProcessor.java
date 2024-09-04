@@ -53,12 +53,12 @@ public class SchedulerEventEdgeProcessor extends BaseEdgeProcessor {
         SchedulerEventId schedulerEventId = new SchedulerEventId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
+        var msgConstructor = (SchedulerEventMsgConstructor) schedulerEventMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion);
         switch (msgType) {
             case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
                 SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(edgeEvent.getTenantId(), schedulerEventId);
                 if (schedulerEvent != null) {
-                    SchedulerEventUpdateMsg schedulerEventUpdateMsg = ((SchedulerEventMsgConstructor)
-                            schedulerEventMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructSchedulerEventUpdatedMsg(msgType, schedulerEvent);
+                    SchedulerEventUpdateMsg schedulerEventUpdateMsg = msgConstructor.constructSchedulerEventUpdatedMsg(msgType, schedulerEvent);
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addSchedulerEventUpdateMsg(schedulerEventUpdateMsg)
@@ -66,8 +66,7 @@ public class SchedulerEventEdgeProcessor extends BaseEdgeProcessor {
                 }
             }
             case ENTITY_DELETED_RPC_MESSAGE -> {
-                SchedulerEventUpdateMsg schedulerEventUpdateMsg = ((SchedulerEventMsgConstructor)
-                        schedulerEventMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructEventDeleteMsg(schedulerEventId);
+                SchedulerEventUpdateMsg schedulerEventUpdateMsg = msgConstructor.constructEventDeleteMsg(schedulerEventId);
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addSchedulerEventUpdateMsg(schedulerEventUpdateMsg)

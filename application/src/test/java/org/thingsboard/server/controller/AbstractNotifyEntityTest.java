@@ -52,6 +52,7 @@ import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
+import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.model.ModelConstants;
 
@@ -303,6 +304,18 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
         Mockito.reset(tbClusterService, auditLogService);
     }
 
+    protected void testNotifyEdgeStateChangeEventManyTimeMsgToEdgeServiceNever(HasName entity, EntityId entityId, EntityId originatorId,
+                                                                               TenantId tenantId, CustomerId customerId, UserId userId, String userName,
+                                                                               ActionType actionType, int cntTimeBroadcast, Object... additionalInfo) {
+        int cntTime = 1;
+        testNotificationMsgToEdgeServiceNeverWithActionType(entityId, actionType);
+        testLogEntityAction(entity, originatorId, tenantId, customerId, userId, userName, actionType, cntTime, additionalInfo);
+        ArgumentMatcher<EntityId> matcherOriginatorId = argument -> argument.equals(originatorId);
+        testPushMsgToRuleEngineTime(matcherOriginatorId, tenantId, entity, cntTime);
+        testBroadcastEdgeStateChangeEventTime(tenantId, cntTimeBroadcast);
+        Mockito.reset(tbClusterService, auditLogService);
+    }
+
     protected void testNotifyEntityMsgToEdgePushMsgToCoreOneTime(HasName entity, EntityId entityId, EntityId originatorId,
                                                                  TenantId tenantId, CustomerId customerId, UserId userId, String userName,
                                                                  ActionType actionType, Object... additionalInfo) {
@@ -444,9 +457,15 @@ public abstract class AbstractNotifyEntityTest extends AbstractWebTest {
 
     protected void testBroadcastEntityStateChangeEventTime(EntityId entityId, TenantId tenantId, int cntTime) {
         ArgumentMatcher<TenantId> matcherTenantIdId = cntTime > 1 || tenantId == null ? argument -> argument.getClass().equals(TenantId.class) :
-                argument -> argument.equals(tenantId) ;
+                argument -> argument.equals(tenantId);
         Mockito.verify(tbClusterService, times(cntTime)).broadcastEntityStateChangeEvent(Mockito.argThat(matcherTenantIdId),
                 Mockito.any(entityId.getClass()), Mockito.any(ComponentLifecycleEvent.class));
+    }
+
+    protected void testBroadcastEdgeStateChangeEventTime(TenantId tenantId, int cntTime) {
+        ArgumentMatcher<TenantId> matcherTenantIdId = cntTime > 1 || tenantId == null ? argument -> argument.getClass().equals(TenantId.class) :
+                argument -> argument.equals(tenantId);
+        Mockito.verify(tbClusterService, times(cntTime)).onEdgeStateChangeEvent(Mockito.any(ComponentLifecycleMsg.class));
     }
 
     private void testPushMsgToCoreTime(int cntTime) {

@@ -48,6 +48,8 @@ import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 
+import java.util.concurrent.TimeUnit;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @DaoSqlTest
@@ -125,6 +127,9 @@ public class SchedulerEventEdgeTest extends AbstractEdgeTest {
         Customer savedCustomer = saveCustomer("Edge Customer", null);
         // create sub customer
         saveCustomer("Edge Sub Customer", savedCustomer.getId());
+
+        // must sleep to make sure that role creation events are processed by edge consumer before edge owner changed
+        TimeUnit.SECONDS.sleep(1);
 
         // change edge owner from tenant to customer
         changeEdgeOwnerToCustomer(savedCustomer);

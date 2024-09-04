@@ -48,6 +48,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.dao.group.EntityGroupService;
 
@@ -81,13 +82,13 @@ public abstract class TbAbstractGroupActionNode<C extends TbAbstractGroupActionC
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
         withCallback(processEntityGroupAction(ctx, msg),
-                m -> ctx.tellNext(msg, "Success"),
+                m -> ctx.tellNext(msg, TbNodeConnectionType.SUCCESS),
                 t -> ctx.tellFailure(msg, t), ctx.getDbCallbackExecutor());
     }
 
     private ListenableFuture<Void> processEntityGroupAction(TbContext ctx, TbMsg msg) {
         EntityId ownerId = ctx.getPeContext().getOwner(ctx.getTenantId(), msg.getOriginator());
-        if(ownerId ==  null) {
+        if (ownerId == null) {
             ownerId = ctx.getTenantId();
         }
         ListenableFuture<EntityGroupId> entityGroupIdFeature = getEntityGroup(ctx, msg, ownerId);
