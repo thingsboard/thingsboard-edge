@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
@@ -466,6 +467,18 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
         validateId(customerId, id -> INCORRECT_CUSTOMER_ID + id);
         validatePageLink(pageLink);
         return customerInfoDao.findCustomersByTenantIdAndCustomerIdIncludingSubCustomers(tenantId.getId(), customerId.getId(), pageLink);
+    }
+
+    @Override
+    public List<Customer> findCustomersByCustomMenuId(CustomMenuId customMenuId) {
+        log.trace("Executing findCustomersByCustomMenuId, customMenuId [{}]", customMenuId);
+        return customerDao.findCustomersByCustomMenuId(customMenuId);
+    }
+
+    @Override
+    public void updateCustomersCustomMenuId(List<CustomerId> customerIds, UUID customMenuId) {
+        log.trace("Executing updateCustomersCustomMenuId, customMenuId [{}]", customMenuId);
+        customerDao.updateCustomersCustomMenuId(customerIds, customMenuId);
     }
 
     private final PaginatedRemover<TenantId, Customer> customersByTenantRemover =

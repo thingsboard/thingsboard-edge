@@ -103,6 +103,7 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -133,6 +134,8 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.mobile.MobileApp;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
@@ -183,6 +186,7 @@ import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
@@ -449,6 +453,9 @@ public abstract class BaseController {
 
     @Autowired
     protected ExportableEntitiesService entitiesService;
+
+    @Autowired
+    protected CustomMenuService customMenuService;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
@@ -727,6 +734,22 @@ public abstract class BaseController {
 
     CustomerInfo checkCustomerInfoId(CustomerId customerId, Operation operation) throws ThingsboardException {
         return checkEntityId(customerId, customerService::findCustomerInfoById, operation);
+    }
+
+    CustomMenu checkCustomMenuId(CustomMenuId customMenuId, Operation operation) throws ThingsboardException {
+        SecurityUser currentUser = getCurrentUser();
+        CustomMenu customMenu = customMenuService.findCustomMenuById(currentUser.getTenantId(), customMenuId);
+        checkNotNull(customMenu, "Custom menu not found");
+        accessControlService.checkCustomMenuPermission(currentUser, operation, customMenu);
+        return customMenu;
+    }
+
+    CustomMenuInfo checkCustomMenuInfoId(CustomMenuId customMenuId, Operation operation) throws ThingsboardException {
+        SecurityUser currentUser = getCurrentUser();
+        CustomMenuInfo customMenuInfo = customMenuService.findCustomMenuInfoById(currentUser.getTenantId(), customMenuId);
+        checkNotNull(customMenuInfo, "Custom menu not found");
+        accessControlService.checkCustomMenuPermission(currentUser, operation, customMenuInfo);
+        return customMenuInfo;
     }
 
     User checkUserId(UserId userId, Operation operation) throws ThingsboardException {

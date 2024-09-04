@@ -263,8 +263,8 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
 
     private CustomMenu getCustomMenuForEntity(TenantId tenantId, EntityId entityId) {
         return switch (entityId.getEntityType()) {
-            case TENANT -> customMenuService.getTenantCustomMenu(tenantId);
-            case CUSTOMER -> customMenuService.getCustomerCustomMenu(tenantId, new CustomerId(entityId.getId()));
+//            case TENANT -> customMenuService.getTenantCustomMenu(tenantId);
+//            case CUSTOMER -> customMenuService.getCustomerCustomMenu(tenantId, new CustomerId(entityId.getId()));
             default -> null;
         };
     }

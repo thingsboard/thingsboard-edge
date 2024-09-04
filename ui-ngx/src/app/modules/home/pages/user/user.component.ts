@@ -118,7 +118,8 @@ export class UserComponent extends GroupEntityComponent<UserInfo> {
             homeDashboardHideToolbar: [entity && entity.additionalInfo &&
             isDefinedAndNotNull(entity.additionalInfo.homeDashboardHideToolbar) ? entity.additionalInfo.homeDashboardHideToolbar : true]
           }
-        )
+        ),
+        customMenuId: [entity?.customMenuId]
       }
     );
   }

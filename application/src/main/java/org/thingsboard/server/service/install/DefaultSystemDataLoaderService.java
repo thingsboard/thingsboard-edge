@@ -59,6 +59,7 @@ import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -67,6 +68,9 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 import org.thingsboard.server.common.data.kv.BooleanDataEntry;
+import org.thingsboard.server.common.data.menu.CMAssigneeType;
+import org.thingsboard.server.common.data.menu.CMScope;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.mobile.MobileApp;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -89,6 +93,7 @@ import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.mobile.MobileAppDao;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.notification.NotificationTargetService;
@@ -142,6 +147,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
     private final NotificationSettingsService notificationSettingsService;
     private final NotificationTargetService notificationTargetService;
     private final EntityGroupService entityGroupService;
+    private final CustomMenuService customMenuService;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -759,6 +765,47 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
             executor.shutdown();
             executor.awaitTermination(Integer.MAX_VALUE, TimeUnit.SECONDS);
         }
+    }
+
+    @Override
+    public void createDefaultCustomMenu() {
+        CustomMenuInfo defaultSystemCustomMenu =
+                customMenuService.findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), CMScope.SYSTEM);
+        if (defaultSystemCustomMenu == null) {
+            try {
+                customMenuService.createCustomMenu(createDefaultMenu("System default menu", CMScope.SYSTEM), null, false);
+            } catch (ThingsboardException e) {
+                log.warn(e.getMessage());
+            }
+        }
+        CustomMenuInfo defaultTenantCustomMenu =
+                customMenuService.findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), CMScope.TENANT);
+        if (defaultTenantCustomMenu == null) {
+            try {
+                customMenuService.createCustomMenu(createDefaultMenu("Tenant default menu", CMScope.TENANT), null, false);
+            } catch (ThingsboardException e) {
+                log.warn(e.getMessage());
+            }
+        }
+        CustomMenuInfo defaultCustomerCustomMenu =
+                customMenuService.findDefaultCustomMenuByScope(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), CMScope.CUSTOMER);
+        if (defaultCustomerCustomMenu == null) {
+            try {
+                customMenuService.createCustomMenu(createDefaultMenu("Customer default menu", CMScope.CUSTOMER), null, false);
+            } catch (ThingsboardException e) {
+                log.warn(e.getMessage());
+            }
+        }
+    }
+
+    private static CustomMenuInfo createDefaultMenu(String name, CMScope scope) {
+        CustomMenuInfo customMenuInfo = new CustomMenuInfo();
+        customMenuInfo.setTenantId(TenantId.SYS_TENANT_ID);
+        customMenuInfo.setCustomerId(new CustomerId(CustomerId.NULL_UUID));
+        customMenuInfo.setName(name);
+        customMenuInfo.setScope(scope);
+        customMenuInfo.setAssigneeType(CMAssigneeType.ALL);
+        return customMenuInfo;
     }
 
 }

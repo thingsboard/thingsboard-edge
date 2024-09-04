@@ -663,6 +663,9 @@ cache:
     customTranslation:
       timeToLiveInMinutes: "${CACHE_SPECS_CUSTOM_TRANSLATION_TTL:1440}" # Custom translation cache TTL
       maxSize: "${CACHE_SPECS_CUSTOM_TRANSLATION_MAX_SIZE:10000}" # 0 means the cache is disabled
+    customMenu:
+      timeToLiveInMinutes: "${CACHE_SPECS_CUSTOM_MENU_TTL:1440}" # Custom menu cache TTL
+      maxSize: "${CACHE_SPECS_CUSTOM_MENU_MAX_SIZE:10000}" # 0 means the cache is disabled
 
   # Deliberately placed outside the 'specs' group above
   notificationRules:
@@ -684,6 +687,10 @@ cache:
     etag:
       timeToLiveInMinutes: "${CACHE_SPECS_TRANSLATION_ETAGS_TTL:44640}" # Translation ETags cache TTL in minutes (one month by default)
       maxSize: "${CACHE_SPECS_TRANSLATION_ETAGS_MAX_SIZE:1000000}" # 0 means the cache is disabled
+  customMenu:
+    etag:
+      timeToLiveInMinutes: "${CACHE_SPECS_CUSTOM_MENU_ETAGS_TTL:44640}" # Custom Menu ETags cache TTL in minutes (one month by default)
+      maxSize: "${CACHE_SPECS_CUSTOM_MENU_ETAGS_MAX_SIZE:1000000}" # 0 means the cache is disabled
 
 # Spring data parameters
 spring.data.redis.repositories.enabled: false # Disable this because it is not required.
