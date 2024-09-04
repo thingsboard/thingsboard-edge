@@ -79,7 +79,7 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
         try {
             entity = doSave(entity, isNew, flush);
         } catch (OptimisticLockException e) {
-            throw new EntityVersionMismatchException((getEntityType() != null ? getEntityType().getNormalName() : "Entity") + " was already changed by someone else", e);
+            throw new EntityVersionMismatchException(getEntityType(), e);
         }
         return DaoUtil.getData(entity);
     }
@@ -135,6 +135,7 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
         log.debug("Remove request: {}", id);
     }
 
+    @Override
     @Transactional
     public void removeAllByIds(Collection<UUID> ids) {
         JpaRepository<E, UUID> repository = getRepository();

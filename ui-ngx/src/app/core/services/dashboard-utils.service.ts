@@ -59,6 +59,7 @@ import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { BackgroundType, colorBackground, isBackgroundSettings } from '@shared/models/widget-settings.models';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { TranslateService } from '@ngx-translate/core';
+import { DashboardPageLayout } from '@home/components/dashboard-page/dashboard-page.models';
 
 @Injectable({
   providedIn: 'root'
@@ -752,10 +753,25 @@ export class DashboardUtilsService {
   public moveWidgets(layout: DashboardLayout, cols: number, rows: number) {
     cols = isDefinedAndNotNull(cols) ? Math.round(cols) : 0;
     rows = isDefinedAndNotNull(rows) ? Math.round(rows) : 0;
+    if (cols < 0 || rows < 0) {
+      let widgetMinCol = Infinity;
+      let widgetMinRow = Infinity;
+      for (const w of Object.keys(layout.widgets)) {
+        const widget = layout.widgets[w];
+        widgetMinCol = Math.min(widgetMinCol, widget.col);
+        widgetMinRow = Math.min(widgetMinRow, widget.row);
+      }
+      if ((cols + widgetMinCol) < 0 ){
+        cols = -widgetMinCol;
+      }
+      if ((rows + widgetMinRow) < 0 ){
+        rows = -widgetMinRow;
+      }
+    }
     for (const w of Object.keys(layout.widgets)) {
       const widget = layout.widgets[w];
-      widget.col = Math.max(0, widget.col + cols);
-      widget.row = Math.max(0, widget.row + rows);
+      widget.col += cols;
+      widget.row += rows;
     }
   }
 
@@ -1065,5 +1081,23 @@ export class DashboardUtilsService {
     const minStr = isDefined(currentData?.minWidth) ? `min ${currentData.minWidth}px` : '';
     const maxStr = isDefined(currentData?.maxWidth) ? `max ${currentData.maxWidth}px` : '';
     return minStr && maxStr ? `${minStr} - ${maxStr}` : `${minStr}${maxStr}`;
+  }
+
+  updatedLayoutForBreakpoint(layout: DashboardPageLayout, breakpointId: BreakpointId) {
+    let selectBreakpointId: BreakpointId = 'default';
+    if (layout.layoutCtx.layoutData[breakpointId]) {
+      selectBreakpointId = breakpointId;
+    }
+    layout.layoutCtx.breakpoint = selectBreakpointId;
+    const layoutInfo = layout.layoutCtx.layoutData[selectBreakpointId];
+    if (layoutInfo.gridSettings) {
+      layout.layoutCtx.gridSettings = layoutInfo.gridSettings;
+    }
+    layout.layoutCtx.widgets.setWidgetIds(layoutInfo.widgetIds);
+    layout.layoutCtx.widgetLayouts = layoutInfo.widgetLayouts;
+    if (layout.show && layout.layoutCtx.ctrl) {
+      layout.layoutCtx.ctrl.reload();
+    }
+    layout.layoutCtx.ignoreLoading = true;
   }
 }

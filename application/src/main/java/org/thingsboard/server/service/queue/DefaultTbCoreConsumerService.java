@@ -59,7 +59,6 @@ import org.thingsboard.server.dao.resource.ImageCacheKey;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
-import org.thingsboard.server.gen.transport.TransportProtos.EdgeNotificationMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ErrorEventProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.LifecycleEventProto;
@@ -87,7 +86,6 @@ import org.thingsboard.server.queue.provider.TbCoreQueueFactory;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
 import org.thingsboard.server.service.cloud.CloudNotificationService;
-import org.thingsboard.server.service.edge.EdgeNotificationService;
 import org.thingsboard.server.service.notification.NotificationSchedulerService;
 import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbAssetProfileCache;
@@ -143,7 +141,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final TbLocalSubscriptionService localSubscriptionService;
     private final SubscriptionManagerService subscriptionManagerService;
     private final TbCoreDeviceRpcService tbCoreDeviceRpcService;
-    private final EdgeNotificationService edgeNotificationService;
     private final CloudNotificationService cloudNotificationService;
     private final OtaPackageStateService firmwareStateService;
     private final GitVersionControlQueueService vcQueueService;
@@ -172,7 +169,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbApiUsageStateService statsService,
                                         TbTenantProfileCache tenantProfileCache,
                                         TbApiUsageStateService apiUsageStateService,
-                                        EdgeNotificationService edgeNotificationService,
                                         OtaPackageStateService firmwareStateService,
                                         GitVersionControlQueueService vcQueueService,
                                         CloudNotificationService cloudNotificationService,
@@ -189,7 +185,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.localSubscriptionService = localSubscriptionService;
         this.subscriptionManagerService = subscriptionManagerService;
         this.tbCoreDeviceRpcService = tbCoreDeviceRpcService;
-        this.edgeNotificationService = edgeNotificationService;
         this.cloudNotificationService = cloudNotificationService;
         this.stats = new TbCoreConsumerStats(statsFactory);
         this.statsService = statsService;
@@ -252,16 +247,16 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
 
     @Override
     protected void onTbApplicationEvent(PartitionChangeEvent event) {
-        log.info("Subscribing to partitions: {}", event.getPartitions());
-        mainConsumer.update(event.getPartitions());
-        usageStatsConsumer.subscribe(event.getPartitions()
+        log.debug("Subscribing to partitions: {}", event.getCorePartitions());
+        mainConsumer.update(event.getCorePartitions());
+        usageStatsConsumer.subscribe(event.getCorePartitions()
                 .stream()
                 .map(tpi -> tpi.newByTopic(usageStatsConsumer.getConsumer().getTopic()))
                 .collect(Collectors.toSet()));
     }
 
     private void processMsgs(List<TbProtoQueueMsg<ToCoreMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToCoreMsg>> consumer, CoreQueueConfig config) throws Exception {
-        List<IdMsgPair<ToCoreMsg>> orderedMsgList = msgs.stream().map(msg -> new IdMsgPair<>(UUID.randomUUID(), msg)).collect(Collectors.toList());
+        List<IdMsgPair<ToCoreMsg>> orderedMsgList = msgs.stream().map(msg -> new IdMsgPair<>(UUID.randomUUID(), msg)).toList();
         ConcurrentMap<UUID, TbProtoQueueMsg<ToCoreMsg>> pendingMap = orderedMsgList.stream().collect(
                 Collectors.toConcurrentMap(IdMsgPair::getUuid, IdMsgPair::getMsg));
         CountDownLatch processingTimeoutLatch = new CountDownLatch(1);
@@ -286,9 +281,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                     } else if (toCoreMsg.hasDeviceStateServiceMsg()) {
                         log.trace("[{}] Forwarding message to device state service {}", id, toCoreMsg.getDeviceStateServiceMsg());
                         forwardToStateService(toCoreMsg.getDeviceStateServiceMsg(), callback);
-                    } else if (toCoreMsg.hasEdgeNotificationMsg()) {
-                        log.trace("[{}] Forwarding message to edge service {}", id, toCoreMsg.getEdgeNotificationMsg());
-                        forwardToEdgeNotificationService(toCoreMsg.getEdgeNotificationMsg(), callback);
                     } else if (toCoreMsg.hasCloudNotificationMsg()) {
                         log.trace("[{}] Forwarding message to cloud service {}", id, toCoreMsg.getCloudNotificationMsg());
                         forwardToCloudNotificationService(toCoreMsg.getCloudNotificationMsg(), callback);
@@ -392,15 +384,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             forwardToRuleEngineCallService(toCoreNotification.getRestApiCallResponseMsg(), callback);
         } else if (toCoreNotification.hasComponentLifecycle()) {
             handleComponentLifecycleMsg(id, ProtoUtils.fromProto(toCoreNotification.getComponentLifecycle()));
-            callback.onSuccess();
-        } else if (toCoreNotification.hasEdgeEventUpdate()) {
-            forwardToAppActor(id, ProtoUtils.fromProto(toCoreNotification.getEdgeEventUpdate()));
-            callback.onSuccess();
-        } else if (toCoreNotification.hasToEdgeSyncRequest()) {
-            forwardToAppActor(id, ProtoUtils.fromProto(toCoreNotification.getToEdgeSyncRequest()));
-            callback.onSuccess();
-        } else if (toCoreNotification.hasFromEdgeSyncResponse()) {
-            forwardToAppActor(id, ProtoUtils.fromProto(toCoreNotification.getFromEdgeSyncResponse()));
             callback.onSuccess();
         } else if (toCoreNotification.getQueueUpdateMsgsCount() > 0) {
             partitionService.updateQueues(toCoreNotification.getQueueUpdateMsgsList());
@@ -698,13 +681,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } catch (Exception e) {
             callback.onFailure(new RuntimeException("Failed to schedule notification request", e));
         }
-    }
-
-    private void forwardToEdgeNotificationService(EdgeNotificationMsgProto edgeNotificationMsg, TbCallback callback) {
-        if (statsEnabled) {
-            stats.log(edgeNotificationMsg);
-        }
-        edgeNotificationService.pushNotificationToEdge(edgeNotificationMsg, callback);
     }
 
     private void forwardToCloudNotificationService(TransportProtos.CloudNotificationMsgProto cloudNotificationMsg, TbCallback callback) {
