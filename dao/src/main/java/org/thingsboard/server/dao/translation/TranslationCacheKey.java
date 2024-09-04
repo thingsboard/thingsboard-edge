@@ -47,6 +47,10 @@ public class TranslationCacheKey implements HasTenantId {
     private String localeCode;
     private String domain;
 
+    public static TranslationCacheKey forTenant(TenantId tenantId) {
+        return new TranslationCacheKey(tenantId, null, null, null);
+    }
+
     public static TranslationCacheKey forFullTranslation(TenantId tenantId, CustomerId customerId, String locale) {
         return new TranslationCacheKey(tenantId, customerId, locale, null);
     }

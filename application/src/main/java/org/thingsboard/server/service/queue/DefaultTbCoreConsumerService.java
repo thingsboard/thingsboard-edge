@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.event.ErrorEvent;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.event.LifecycleEvent;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -70,8 +71,10 @@ import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.common.util.ProtoUtils;
+import org.thingsboard.server.dao.menu.CustomMenuCacheKey;
 import org.thingsboard.server.dao.resource.ImageCacheKey;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+import org.thingsboard.server.dao.translation.TranslationCacheKey;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
@@ -107,6 +110,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.queue.util.TbPackCallback;
 import org.thingsboard.server.queue.util.TbPackProcessingContext;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
+import org.thingsboard.server.service.custommenu.TbCustomMenuService;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
 import org.thingsboard.server.service.integration.TbCoreIntegrationApiService;
 import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
@@ -178,6 +182,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final TbCoreQueueFactory queueFactory;
     private final TbImageService imageService;
     private final TbTranslationService translationService;
+    private final TbCustomMenuService customMenuService;
     private final TbCoreConsumerStats stats;
 
     private MainQueueConsumerManager<TbProtoQueueMsg<ToCoreMsg>, CoreQueueConfig> mainConsumer;
@@ -205,7 +210,8 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         NotificationSchedulerService notificationSchedulerService,
                                         NotificationRuleProcessor notificationRuleProcessor,
                                         TbImageService imageService,
-                                        TbTranslationService translationService) {
+                                        TbTranslationService translationService,
+                                        TbCustomMenuService customMenuService) {
         super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, apiUsageStateService, partitionService,
                 eventPublisher, jwtSettingsService);
         this.stateService = stateService;
@@ -224,6 +230,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.notificationRuleProcessor = notificationRuleProcessor;
         this.imageService = imageService;
         this.translationService = translationService;
+        this.customMenuService = customMenuService;
         this.queueFactory = tbCoreQueueFactory;
     }
 
@@ -455,6 +462,8 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             forwardToResourceService(toCoreNotification.getResourceCacheInvalidateMsg(), callback);
         } else if (toCoreNotification.hasTranslationCacheInvalidateMsg()) {
             forwardToTranslationService(toCoreNotification.getTranslationCacheInvalidateMsg(), callback);
+        } else if (toCoreNotification.hasCustomMenuCacheInvalidateMsg()) {
+            forwardToCustomMenuService(toCoreNotification.getCustomMenuCacheInvalidateMsg(), callback);
         }
         if (statsEnabled) {
             stats.log(toCoreNotification);
@@ -587,7 +596,15 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
 
     private void forwardToTranslationService(TransportProtos.TranslationCacheInvalidateMsg msg, TbCallback callback) {
         var tenantId = new TenantId(new UUID(msg.getTenantIdMSB(), msg.getTenantIdLSB()));
-        translationService.evictETags(tenantId);
+        translationService.evictETags(TranslationCacheKey.forTenant(tenantId));
+        callback.onSuccess();
+    }
+
+    private void forwardToCustomMenuService(TransportProtos.CustomMenuCacheInvalidateMsg msg, TbCallback callback) {
+        var tenantId = new TenantId(new UUID(msg.getTenantIdMSB(), msg.getTenantIdLSB()));
+        var customer = msg.getCustomerIdMSB() > 0 ? new CustomerId(new UUID(msg.getCustomerIdMSB(), msg.getCustomerIdLSB())) : null;
+        var userId = msg.getUserIdMSB() > 0 ? new UserId(new UUID(msg.getUserIdMSB(), msg.getUserIdLSB())) : null;
+        customMenuService.evictETags(CustomMenuCacheKey.forUser(tenantId, customer, userId));
         callback.onSuccess();
     }
 

@@ -382,7 +382,7 @@ public class DefaultTbTranslationService extends AbstractEtagCacheService<Transl
     }
 
     private void evictFromCache(TenantId tenantId) {
-        evictETags(tenantId);
+        evictETags(TranslationCacheKey.forTenant(tenantId));
         clusterService.broadcastToCore(TransportProtos.ToCoreNotificationMsg.newBuilder()
                 .setTranslationCacheInvalidateMsg(TransportProtos.TranslationCacheInvalidateMsg.newBuilder()
                         .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
@@ -390,4 +390,19 @@ public class DefaultTbTranslationService extends AbstractEtagCacheService<Transl
                         .build())
                 .build());
     }
+
+    @Override
+    public void evictETags(TranslationCacheKey cacheKey) {
+        TenantId tenantId = cacheKey.getTenantId();
+        if (tenantId.isSysTenantId()) {
+            etagCache.invalidateAll();
+        } else {
+            Set<TranslationCacheKey> keysToInvalidate = etagCache
+                    .asMap().keySet().stream()
+                    .filter(translationCacheKey -> tenantId.equals(translationCacheKey.getTenantId()))
+                    .collect(Collectors.toSet());
+            etagCache.invalidateAll(keysToInvalidate);
+        }
+    }
+
 }

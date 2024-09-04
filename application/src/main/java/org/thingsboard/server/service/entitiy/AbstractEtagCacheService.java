@@ -33,12 +33,8 @@ package org.thingsboard.server.service.entitiy;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.thingsboard.server.common.data.HasTenantId;
-import org.thingsboard.server.common.data.id.TenantId;
 
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
 
 public abstract class AbstractEtagCacheService<K extends HasTenantId> {
 
@@ -59,15 +55,4 @@ public abstract class AbstractEtagCacheService<K extends HasTenantId> {
         etagCache.put(cacheKey, etag);
     }
 
-    public void evictETags(TenantId tenantId) {
-        if (tenantId.isSysTenantId()) {
-            etagCache.invalidateAll();
-        } else {
-            Set<K> keysToInvalidate = etagCache
-                    .asMap().keySet().stream()
-                    .filter(translationCacheKey -> tenantId.equals(translationCacheKey.getTenantId()))
-                    .collect(Collectors.toSet());
-            etagCache.invalidateAll(keysToInvalidate);
-        }
-    }
 }

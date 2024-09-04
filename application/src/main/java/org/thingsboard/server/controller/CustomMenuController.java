@@ -154,7 +154,7 @@ public class CustomMenuController extends BaseController {
     public void getCustomMenu(@RequestHeader(name = HttpHeaders.IF_NONE_MATCH, required = false) String etag,
                               HttpServletResponse response) throws ThingsboardException, IOException {
         SecurityUser currentUser = getCurrentUser();
-        CustomMenuCacheKey cacheKey = CustomMenuCacheKey.forUser(currentUser.getTenantId(), currentUser.getId());
+        CustomMenuCacheKey cacheKey = CustomMenuCacheKey.forUser(currentUser.getTenantId(), currentUser.getCustomerId(), currentUser.getId());
         if (StringUtils.isNotEmpty(etag) && StringUtils.remove(etag, '\"').equals(tbCustomMenuService.getETag(cacheKey))) {
             response.setStatus(HttpStatus.NOT_MODIFIED.value());
         } else {
