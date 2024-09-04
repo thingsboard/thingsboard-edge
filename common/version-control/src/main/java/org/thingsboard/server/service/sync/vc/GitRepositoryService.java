@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.common.data.sync.vc.VersionCreationResult;
 import org.thingsboard.server.common.data.sync.vc.VersionedEntityInfo;
 import org.thingsboard.server.service.sync.vc.GitRepository.Diff;
+import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -77,11 +78,14 @@ public interface GitRepositoryService {
 
     List<BranchInfo> listBranches(TenantId tenantId);
 
-    String getFileContentAtCommit(TenantId tenantId, String relativePath, String versionId) throws IOException;
+    String getFileContentAtCommit(TenantId tenantId, String relativePath, String versionId);
 
     List<Diff> getVersionsDiffList(TenantId tenantId, String path, String versionId1, String versionId2) throws IOException;
 
     String getContentsDiff(TenantId tenantId, String content1, String content2) throws IOException;
 
     void fetch(TenantId tenantId) throws GitAPIException;
+
+    List<RepoFile> listFiles(TenantId tenantId, String versionId, String path, int depth);
+
 }

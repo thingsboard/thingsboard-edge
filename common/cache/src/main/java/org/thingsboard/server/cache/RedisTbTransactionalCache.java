@@ -40,6 +40,8 @@ import org.springframework.data.redis.connection.RedisStringCommands;
 import org.springframework.data.redis.connection.jedis.JedisClusterConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnection;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -51,8 +53,10 @@ import redis.clients.jedis.util.JedisClusterCRC16;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -87,9 +91,10 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
         this.evictExpiration = Expiration.from(configuration.getEvictTtlInMs(), TimeUnit.MILLISECONDS);
         this.cacheTtl = Optional.ofNullable(cacheSpecsMap)
                 .map(CacheSpecsMap::getSpecs)
-                .map(x -> x.get(cacheName))
+                .map(specs -> specs.get(cacheName))
                 .map(CacheSpecs::getTimeToLiveInMinutes)
-                .map(t -> Expiration.from(t, TimeUnit.MINUTES))
+                .filter(ttl -> !ttl.equals(0))
+                .map(ttl -> Expiration.from(ttl, TimeUnit.MINUTES))
                 .orElseGet(Expiration::persistent);
         this.cacheEnabled = Optional.ofNullable(cacheSpecsMap)
                 .map(CacheSpecsMap::getSpecs)
@@ -193,6 +198,29 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
                 connection.stringCommands().set(rawKey, getRawValue(value), evictExpiration, RedisStringCommands.SetOption.UPSERT);
             }
         }
+    }
+
+    @Override
+    public void evictByPrefix(String prefix) {
+        if (!cacheEnabled) {
+            return;
+        }
+        try (var connection = connectionFactory.getConnection()) {
+            Set<byte[]> keysToEvict = getKeysByPrefix(prefix, connection);
+            if (!keysToEvict.isEmpty()) {
+                connection.keyCommands().del(keysToEvict.toArray(new byte[keysToEvict.size()][]));
+            }
+        }
+    }
+
+    private Set<byte[]> getKeysByPrefix(String prefix, RedisConnection connection) {
+        Set<byte[]> keysToEvict = new HashSet<>();
+        var scanOptions = ScanOptions.scanOptions().match(cacheName + prefix + "*").count(1000).build();
+        Cursor<byte[]> cursor = connection.keyCommands().scan(scanOptions);
+        while (cursor.hasNext()) {
+            keysToEvict.add(cursor.next());
+        }
+        return keysToEvict;
     }
 
     @Override

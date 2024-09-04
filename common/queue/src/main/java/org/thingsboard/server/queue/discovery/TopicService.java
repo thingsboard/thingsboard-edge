@@ -45,8 +45,9 @@ public class TopicService {
     @Value("${queue.prefix:}")
     private String prefix;
 
-    private Map<String, TopicPartitionInfo> tbCoreNotificationTopics = new HashMap<>();
-    private Map<String, TopicPartitionInfo> tbRuleEngineNotificationTopics = new HashMap<>();
+    private final Map<String, TopicPartitionInfo> tbCoreNotificationTopics = new HashMap<>();
+    private final Map<String, TopicPartitionInfo> tbRuleEngineNotificationTopics = new HashMap<>();
+    private final Map<String, TopicPartitionInfo> tbEdgeNotificationTopics = new HashMap<>();
     private Map<String, TopicPartitionInfo> tbIntegrationExecutorNotificationTopics = new HashMap<>();
 
     /**
@@ -57,23 +58,27 @@ public class TopicService {
      * @return
      */
     public TopicPartitionInfo getNotificationsTopic(ServiceType serviceType, String serviceId) {
-        switch (serviceType) {
-            case TB_CORE:
-                return tbCoreNotificationTopics.computeIfAbsent(serviceId,
-                        id -> buildNotificationsTopicPartitionInfo(serviceType, serviceId));
-            case TB_RULE_ENGINE:
-                return tbRuleEngineNotificationTopics.computeIfAbsent(serviceId,
-                        id -> buildNotificationsTopicPartitionInfo(serviceType, serviceId));
-            case TB_INTEGRATION_EXECUTOR:
-                return tbIntegrationExecutorNotificationTopics.computeIfAbsent(serviceId,
-                        id -> buildNotificationsTopicPartitionInfo(serviceType, serviceId));
-            default:
-                return buildNotificationsTopicPartitionInfo(serviceType, serviceId);
-        }
+        return switch (serviceType) {
+            case TB_CORE -> tbCoreNotificationTopics.computeIfAbsent(serviceId,
+                    id -> buildNotificationsTopicPartitionInfo(serviceType, serviceId));
+            case TB_RULE_ENGINE -> tbRuleEngineNotificationTopics.computeIfAbsent(serviceId,
+                    id -> buildNotificationsTopicPartitionInfo(serviceType, serviceId));
+            case TB_INTEGRATION_EXECUTOR -> tbIntegrationExecutorNotificationTopics.computeIfAbsent(serviceId,
+                    id -> buildNotificationsTopicPartitionInfo(serviceType, serviceId));
+            default -> buildNotificationsTopicPartitionInfo(serviceType, serviceId);
+        };
     }
 
     private TopicPartitionInfo buildNotificationsTopicPartitionInfo(ServiceType serviceType, String serviceId) {
         return buildTopicPartitionInfo(serviceType.name().toLowerCase() + ".notifications." + serviceId, null, null, false);
+    }
+
+    public TopicPartitionInfo getEdgeNotificationsTopic(String serviceId) {
+        return tbEdgeNotificationTopics.computeIfAbsent(serviceId, id -> buildEdgeNotificationsTopicPartitionInfo(serviceId));
+    }
+
+    private TopicPartitionInfo buildEdgeNotificationsTopicPartitionInfo(String serviceId) {
+        return buildTopicPartitionInfo("tb_edge.notifications." + serviceId, null, null, false);
     }
 
     public TopicPartitionInfo buildTopicPartitionInfo(String topic, TenantId tenantId, Integer partition, boolean myPartition) {

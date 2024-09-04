@@ -65,12 +65,12 @@ import {
   CellActionDescriptorType,
   ChartEntityTableColumn,
   EntityActionTableColumn,
+  EntityChipsEntityTableColumn,
   EntityColumn,
   EntityLinkTableColumn,
   EntityTableColumn,
   EntityTableConfig,
   GroupActionDescriptor,
-  GroupChipsEntityTableColumn,
   HeaderActionDescriptor
 } from '@home/models/entity/entities-table-config.models';
 import { EntityTypeTranslation } from '@shared/models/entity-type.models';
@@ -427,7 +427,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     this.cd.detectChanges();
   }
 
-  updateData(closeDetails: boolean = true) {
+  updateData(closeDetails: boolean = true, reloadEntity: boolean = true) {
     if (closeDetails) {
       this.isDetailsOpen = false;
     }
@@ -452,7 +452,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
       timePageLink.endTime = interval.endTime;
     }
     this.dataSource.loadEntities(this.pageLink);
-    if (this.isDetailsOpen && this.entityDetailsPanel) {
+    if (reloadEntity && this.isDetailsOpen && this.entityDetailsPanel) {
       this.entityDetailsPanel.reloadEntity();
     }
   }
@@ -536,7 +536,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
   }
 
   onEntityUpdated(entity: BaseData<HasId>) {
-    this.updateData(false);
+    this.updateData(false, false);
     this.entitiesTableConfig.entityUpdated(entity);
   }
 
@@ -640,7 +640,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
   columnsUpdated(resetData: boolean = false) {
     this.entityColumns = this.entitiesTableConfig.columns.filter(
       (column) => column instanceof EntityTableColumn || column instanceof EntityLinkTableColumn ||
-        column instanceof ChartEntityTableColumn || column instanceof GroupChipsEntityTableColumn)
+        column instanceof ChartEntityTableColumn || column instanceof EntityChipsEntityTableColumn)
       .map(column => column as EntityTableColumn<BaseData<HasId>>);
     this.actionColumns = this.entitiesTableConfig.columns.filter(
       (column) => column instanceof EntityActionTableColumn)

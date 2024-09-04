@@ -33,6 +33,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
 import { SchedulerEventsComponent } from '@home/components/scheduler/scheduler-events.component';
+import { MenuId } from '@core/services/menu.models';
 
 export const schedulerRoutes: Routes = [
   {
@@ -42,8 +43,7 @@ export const schedulerRoutes: Routes = [
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       title: 'scheduler.scheduler',
       breadcrumb: {
-        label: 'scheduler.scheduler',
-        icon: 'schedule'
+        menuId: MenuId.scheduler
       }
     }
   }

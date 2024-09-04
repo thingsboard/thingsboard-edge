@@ -55,7 +55,9 @@ public enum Resource {
     USER(EntityType.USER),
     WIDGETS_BUNDLE(EntityType.WIDGETS_BUNDLE),
     WIDGET_TYPE(EntityType.WIDGET_TYPE),
-    OAUTH2_CONFIGURATION_INFO(),
+    OAUTH2_CLIENT(EntityType.OAUTH2_CLIENT),
+    DOMAIN(EntityType.DOMAIN),
+    MOBILE_APP(EntityType.MOBILE_APP),
     OAUTH2_CONFIGURATION_TEMPLATE(),
     TENANT_PROFILE(EntityType.TENANT_PROFILE),
     DEVICE_PROFILE(EntityType.DEVICE_PROFILE),
@@ -112,7 +114,9 @@ public enum Resource {
         operationsByResource.put(Resource.ALL, Set.of(Operation.values()));
         operationsByResource.put(Resource.PROFILE, Set.of(Operation.ALL, Operation.WRITE));
         operationsByResource.put(Resource.ADMIN_SETTINGS, Set.of(Operation.ALL, Operation.READ, Operation.WRITE));
-        operationsByResource.put(Resource.OAUTH2_CONFIGURATION_INFO, Operation.crudOperations);
+        operationsByResource.put(Resource.OAUTH2_CLIENT, Operation.crudOperations);
+        operationsByResource.put(Resource.DOMAIN, Operation.crudOperations);
+        operationsByResource.put(Resource.MOBILE_APP, Operation.crudOperations);
         operationsByResource.put(Resource.OAUTH2_CONFIGURATION_TEMPLATE, Operation.crudOperations);
         operationsByResource.put(Resource.ALARM, Set.of(Operation.ALL, Operation.READ, Operation.WRITE, Operation.CREATE));
         operationsByResource.put(Resource.DEVICE, Set.of(Operation.ALL, Operation.READ, Operation.WRITE,
@@ -171,7 +175,9 @@ public enum Resource {
                 Resource.WIDGET_TYPE,
                 Resource.ROLE,
                 Resource.WHITE_LABELING,
-                Resource.OAUTH2_CONFIGURATION_INFO,
+                Resource.OAUTH2_CLIENT,
+                Resource.DOMAIN,
+                Resource.MOBILE_APP,
                 Resource.OAUTH2_CONFIGURATION_TEMPLATE,
                 Resource.TB_RESOURCE,
                 Resource.QUEUE,

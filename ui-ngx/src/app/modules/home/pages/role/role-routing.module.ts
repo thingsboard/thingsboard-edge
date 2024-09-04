@@ -39,14 +39,14 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
+import { MenuId } from '@core/services/menu.models';
 
 export const rolesRoutes: Routes = [
   {
     path: 'roles',
     data: {
       breadcrumb: {
-        label: 'role.roles',
-        icon: 'security'
+        menuId: MenuId.roles
       }
     },
     children: [

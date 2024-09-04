@@ -28,8 +28,9 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-.mdc-button.tb-action-settings-button {
+.mdc-button.mat-mdc-outlined-button.mat-mdc-button-base.tb-action-settings-button {
   width: 100%;
+  height: 40px;
   .mdc-button__label {
     width: 100%;
     & > div {

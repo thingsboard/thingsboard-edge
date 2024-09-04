@@ -36,5 +36,5 @@
   [ngClass]="{'is-new': section.isNew}">
   <img *ngIf="section.iconUrl" [src]="section.iconUrl"/>
   <tb-icon matButtonIcon *ngIf="!section.iconUrl && section.icon !== null">{{section.icon}}</tb-icon>
-  <span>{{(section.ignoreTranslate || section.isCustom) ? utils.customTranslation(section.name, section.name) : (section.name | translate)}}</span>
+  <span>{{section.customTranslate ? (section.name | customTranslate) : (section.name | translate)}}</span>
 </a>

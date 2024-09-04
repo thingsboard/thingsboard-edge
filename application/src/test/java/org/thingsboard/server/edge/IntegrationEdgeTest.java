@@ -82,35 +82,35 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Integration savedIntegration = doPost("/api/integration", integration, Integration.class);
 
         // 1
-        validateIntegrationAssignToEdge(savedIntegration, savedConverter);
+        savedIntegration = validateIntegrationAssignToEdge(savedIntegration, savedConverter);
 
         // 2
-        validateIntegrationConfigurationUpdate(savedIntegration);
+        savedIntegration = validateIntegrationConfigurationUpdate(savedIntegration);
 
         // 3
-        validateConverterConfigurationUpdate(savedConverter);
+        savedConverter = validateConverterConfigurationUpdate(savedConverter);
 
         // 4
-        validateIntegrationDefaultConverterUpdate(savedIntegration);
+        savedIntegration = validateIntegrationDefaultConverterUpdate(savedIntegration);
 
         // 5
-        validateIntegrationDownlinkConverterUpdate(savedIntegration);
+        savedIntegration = validateIntegrationDownlinkConverterUpdate(savedIntegration);
 
         // 6
         validateAddingAndUpdateOfEdgeAttribute();
 
         // 7
-        validateIntegrationUnassignFromEdge(savedIntegration);
+        savedIntegration = validateIntegrationUnassignFromEdge(savedIntegration);
 
         // 8
         validateRemoveOfIntegration(savedIntegration);
     }
 
-    private void validateConverterConfigurationUpdate(Converter savedConverter) throws Exception {
+    private Converter validateConverterConfigurationUpdate(Converter savedConverter) throws Exception {
         edgeImitator.expectMessageAmount(1);
 
         savedConverter.setName("My new converter updated");
-        doPost("/api/converter", savedConverter, Converter.class);
+        savedConverter = doPost("/api/converter", savedConverter, Converter.class);
 
         Assert.assertTrue(edgeImitator.waitForMessages());
 
@@ -122,6 +122,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, converterUpdateMsg.getMsgType());
         Assert.assertEquals(savedConverter.getId(), converter.getId());
         Assert.assertEquals(savedConverter.getName(), converter.getName());
+        return savedConverter;
     }
 
     private void validateAddingAndUpdateOfEdgeAttribute() throws Exception {
@@ -161,10 +162,10 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(2, edgeImitator.findAllMessagesByType(ConverterUpdateMsg.class).size());
     }
 
-    private void validateIntegrationAssignToEdge(Integration savedIntegration, Converter savedConverter) throws Exception {
+    private Integration validateIntegrationAssignToEdge(Integration savedIntegration, Converter savedConverter) throws Exception {
         edgeImitator.expectMessageAmount(2);
 
-        doPost("/api/edge/" + edge.getUuidId()
+        savedIntegration = doPost("/api/edge/" + edge.getUuidId()
                 + "/integration/" + savedIntegration.getUuidId(), Integration.class);
 
         Assert.assertTrue(edgeImitator.waitForMessages());
@@ -189,9 +190,10 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedConverter.getUuidId().getMostSignificantBits(), converterUpdateMsg.getIdMSB());
         Assert.assertEquals(savedConverter.getUuidId().getLeastSignificantBits(), converterUpdateMsg.getIdLSB());
         Assert.assertEquals(savedConverter.getName(), converter.getName());
+        return savedIntegration;
     }
 
-    private void validateIntegrationConfigurationUpdate(Integration savedIntegration) throws Exception {
+    private Integration validateIntegrationConfigurationUpdate(Integration savedIntegration) throws Exception {
         edgeImitator.expectMessageAmount(2);
 
         ObjectNode updatedIntegrationConfig = JacksonUtil.newObjectNode();
@@ -199,7 +201,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
                 .put("baseUrl", "${{baseUrl}}/api/v1")
                 .put("deviceHW", "${{deviceHW}}");
         savedIntegration.setConfiguration(updatedIntegrationConfig);
-        doPost("/api/integration", savedIntegration, Integration.class);
+        savedIntegration = doPost("/api/integration", savedIntegration, Integration.class);
 
         Assert.assertTrue(edgeImitator.waitForMessages());
 
@@ -210,9 +212,10 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Assert.assertNotNull(integration);
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
         Assert.assertTrue(integration.getConfiguration().get("metadata").get("baseUrl").asText().contains("http://localhost:18080/api/v1"));
+        return savedIntegration;
     }
 
-    private void validateIntegrationDefaultConverterUpdate(Integration savedIntegration) throws Exception {
+    private Integration validateIntegrationDefaultConverterUpdate(Integration savedIntegration) throws Exception {
         edgeImitator.expectMessageAmount(2);
 
         ObjectNode newConverterConfiguration = JacksonUtil.newObjectNode()
@@ -225,7 +228,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Converter newSavedConverter = doPost("/api/converter", converter, Converter.class);
 
         savedIntegration.setDefaultConverterId(newSavedConverter.getId());
-        doPost("/api/integration", savedIntegration, Integration.class);
+        savedIntegration = doPost("/api/integration", savedIntegration, Integration.class);
 
         Assert.assertTrue(edgeImitator.waitForMessages());
 
@@ -247,9 +250,10 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_UPDATED_RPC_MESSAGE, converterUpdateMsg.getMsgType());
         Assert.assertEquals(newSavedConverter.getId(), converterMsg.getId());
         Assert.assertEquals(newSavedConverter.getName(), converterMsg.getName());
+        return savedIntegration;
     }
 
-    private void validateIntegrationDownlinkConverterUpdate(Integration savedIntegration) throws Exception {
+    private Integration validateIntegrationDownlinkConverterUpdate(Integration savedIntegration) throws Exception {
         edgeImitator.expectMessageAmount(3);
 
         ObjectNode downlinkConverterConfiguration = JacksonUtil.newObjectNode()
@@ -262,7 +266,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Converter savedDownlinkConverter = doPost("/api/converter", downlinkConverter, Converter.class);
 
         savedIntegration.setDownlinkConverterId(savedDownlinkConverter.getId());
-        doPost("/api/integration", savedIntegration, Integration.class);
+        savedIntegration = doPost("/api/integration", savedIntegration, Integration.class);
 
         Assert.assertTrue(edgeImitator.waitForMessages());
 
@@ -299,7 +303,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         downlinkConverterConfiguration = JacksonUtil.newObjectNode()
                 .put("encoder", "return {contentType: 'JSON', data: '\"{\"pin\": 3}\"'};");
         savedDownlinkConverter.setConfiguration(downlinkConverterConfiguration);
-        doPost("/api/converter", savedDownlinkConverter, Converter.class);
+        savedDownlinkConverter = doPost("/api/converter", savedDownlinkConverter, Converter.class);
 
         Assert.assertTrue(edgeImitator.waitForMessages());
 
@@ -312,12 +316,13 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(savedDownlinkConverter.getUuidId().getMostSignificantBits(), downlinkConverterUpdateMsg.getIdMSB());
         Assert.assertEquals(savedDownlinkConverter.getUuidId().getLeastSignificantBits(), downlinkConverterUpdateMsg.getIdLSB());
         Assert.assertEquals(downlinkConverterConfiguration, converterMsg.getConfiguration());
+        return savedIntegration;
     }
 
-    private void validateIntegrationUnassignFromEdge(Integration savedIntegration) throws Exception {
+    private Integration validateIntegrationUnassignFromEdge(Integration savedIntegration) throws Exception {
         edgeImitator.expectMessageAmount(1);
 
-        doDelete("/api/edge/" + edge.getUuidId()
+        savedIntegration = doDelete("/api/edge/" + edge.getUuidId()
                 + "/integration/" + savedIntegration.getUuidId(), Integration.class);
 
         Assert.assertTrue(edgeImitator.waitForMessages());
@@ -328,6 +333,7 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(UpdateMsgType.ENTITY_DELETED_RPC_MESSAGE, integrationUpdateMsg.getMsgType());
         Assert.assertEquals(savedIntegration.getUuidId().getMostSignificantBits(), integrationUpdateMsg.getIdMSB());
         Assert.assertEquals(savedIntegration.getUuidId().getLeastSignificantBits(), integrationUpdateMsg.getIdLSB());
+        return savedIntegration;
     }
 
     private void validateRemoveOfIntegration(Integration savedIntegration) throws Exception {
@@ -336,4 +342,5 @@ public class IntegrationEdgeTest extends AbstractEdgeTest {
                 .andExpect(status().isOk());
         Assert.assertTrue(edgeImitator.waitForMessages(10));
     }
+
 }

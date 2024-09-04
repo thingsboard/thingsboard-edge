@@ -140,7 +140,7 @@ public class TbMqttNode extends TbAbstractExternalNode {
         config.setCleanSession(this.mqttNodeConfiguration.isCleanSession());
 
         prepareMqttClientConfig(config);
-        MqttClient client = MqttClient.create(config, null, ctx.getExternalCallExecutor());
+        MqttClient client = getMqttClient(ctx, config);
         client.setEventLoop(ctx.getSharedEventLoop());
         Promise<MqttConnectResult> connectFuture = client.connect(this.mqttNodeConfiguration.getHost(), this.mqttNodeConfiguration.getPort());
         MqttConnectResult result;
@@ -161,7 +161,11 @@ public class TbMqttNode extends TbAbstractExternalNode {
         return client;
     }
 
-    protected void prepareMqttClientConfig(MqttClientConfig config) throws SSLException {
+    MqttClient getMqttClient(TbContext ctx, MqttClientConfig config) {
+        return MqttClient.create(config, null, ctx.getExternalCallExecutor());
+    }
+
+    protected void prepareMqttClientConfig(MqttClientConfig config) {
         ClientCredentials credentials = this.mqttNodeConfiguration.getCredentials();
         if (credentials.getType() == CredentialsType.BASIC) {
             BasicCredentials basicCredentials = (BasicCredentials) credentials;

@@ -43,6 +43,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { UntypedFormGroup } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { coerceBoolean } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-details-panel',
@@ -58,6 +59,10 @@ export class DetailsPanelComponent extends PageComponent implements OnDestroy {
   @Input() isAlwaysEdit = false;
   @Input() isShowSearch = false;
   @Input() backgroundColor = '#FFF';
+
+  @Input()
+  @coerceBoolean()
+  showCloseDetails = true;
 
   private theFormValue: UntypedFormGroup;
   private formSubscription: Subscription = null;
