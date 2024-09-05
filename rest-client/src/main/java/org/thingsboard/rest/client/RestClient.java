@@ -52,6 +52,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.rest.client.utils.RestJsonConverter;
@@ -154,7 +155,10 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.kv.Aggregation;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.menu.CMAssigneeType;
+import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.mobile.MobileApp;
 import org.thingsboard.server.common.data.mobile.MobileAppInfo;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
@@ -3928,34 +3932,32 @@ public class RestClient implements Closeable {
                 params).getBody();
     }
 
-    public Optional<CustomMenu> getCustomMenu() {
-        try {
-            ResponseEntity<CustomMenu> customMenu = restTemplate.getForEntity(baseURL + "/api/customMenu/customMenu", CustomMenu.class);
-            return Optional.ofNullable(customMenu.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
+    public PageData<CustomMenuInfo> getCustomMenuInfos(PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
+
+        if (!isEmpty(pageLink.getTextSearch())) {
+            params.put("textSearch", pageLink.getTextSearch());
         }
+
+        String url = baseURL + "/api/customMenu/infos?" + getUrlParams(pageLink);
+
+        ResponseEntity<PageData<CustomMenuInfo>> response = restTemplate.exchange(
+                url, HttpMethod.GET, HttpEntity.EMPTY, new ParameterizedTypeReference<>() {}, params);
+
+        return response.getBody();
     }
 
-    public Optional<CustomMenu> getCurrentCustomMenu() {
-        try {
-            ResponseEntity<CustomMenu> customMenu = restTemplate.getForEntity(baseURL + "/api/customMenu/currentCustomMenu", CustomMenu.class);
-            return Optional.ofNullable(customMenu.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
-    }
+    public CustomMenu saveCustomMenu(CustomMenuInfo customMenuInfo, UUID[] ids, boolean force) {
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseURL + "/api/customMenu")
+                .queryParam("assignToList", (Object[]) ids)
+                .queryParam("force", force);
 
-    public CustomMenu saveCustomMenu(CustomMenu customMenu) {
-        return restTemplate.postForEntity(baseURL + "/api/customMenu/customMenu", customMenu, CustomMenu.class).getBody();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<CustomMenuInfo> requestEntity = new HttpEntity<>(customMenuInfo, headers);
+
+        return restTemplate.postForEntity(builder.toUriString(), requestEntity, CustomMenu.class).getBody();
     }
 
     public Optional<JsonNode> getCustomTranslation(String localeCode) {
