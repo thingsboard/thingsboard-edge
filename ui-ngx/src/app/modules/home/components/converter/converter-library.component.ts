@@ -93,10 +93,10 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
   converter$: Observable<Converter>;
   filteredModels$: Observable<Array<Model>>;
   filteredVendors$: Observable<Array<Vendor>>;
-  integrationDir: IntegrationDirectory;
   vendorInputSubject = new Subject<void>();
   modelInputSubject = new Subject<void>();
 
+  private integrationDir: IntegrationDirectory;
   private destroy$ = new Subject<void>();
 
   private onChange!: (converter: Converter) => void;
