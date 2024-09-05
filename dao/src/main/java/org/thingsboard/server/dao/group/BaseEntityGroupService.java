@@ -133,6 +133,9 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
     public static final String EDGE_ENTITY_GROUP_RELATION_PREFIX = "EDGE_ENTITY_GROUP_";
 
     private static final ReentrantLock roleCreationLock = new ReentrantLock();
+
+    private final EntityGroupValidator validator = new EntityGroupValidator();
+
     private RoleId tenantAdminRoleId;
 
     @Autowired
@@ -208,7 +211,7 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
         if (entityGroup.getId() == null) {
             entityGroup.setOwnerId(parentEntityId);
         }
-        EntityGroup old = new EntityGroupValidator().validate(entityGroup, data -> tenantId);
+        EntityGroup old = validator.validate(entityGroup, data -> tenantId);
         EntityGroupEvictEvent event = new EntityGroupEvictEvent(old != null ? old.getOwnerId() : entityGroup.getOwnerId(), entityGroup.getType(), entityGroup.getName(), old != null ? old.getName() : null);
         if (entityGroup.getId() == null && entityGroup.getConfiguration() == null) {
             EntityGroupConfiguration entityGroupConfiguration =
@@ -531,9 +534,20 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
     public void deleteEntityGroup(TenantId tenantId, EntityGroupId entityGroupId) {
         log.trace("Executing deleteEntityGroup [{}]", entityGroupId);
         validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
+        deleteEntityGroup(tenantId, entityGroupId, false);
+    }
+
+    private void deleteEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, boolean force) {
+        EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
+        if (entityGroup == null) {
+            if (force) {
+                return;
+            } else {
+                throw new IncorrectParameterException("Unable to delete non-existent entity group.");
+            }
+        }
         groupPermissionService.deleteGroupPermissionsByTenantIdAndUserGroupId(tenantId, entityGroupId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndEntityGroupId(tenantId, entityGroupId);
-        EntityGroup entityGroup = findEntityGroupById(tenantId, entityGroupId);
         entityGroupDao.removeById(tenantId, entityGroupId.getId());
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityGroupId).build());
         publishEvictEvent(new EntityGroupEvictEvent(entityGroup.getOwnerId(), entityGroup.getType(), entityGroup.getName(), null));
@@ -541,7 +555,7 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
 
     @Override
     public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
-        deleteEntityGroup(tenantId, (EntityGroupId) id);
+        deleteEntityGroup(tenantId, (EntityGroupId) id, force);
     }
 
     @Override
