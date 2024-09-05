@@ -226,7 +226,7 @@ public abstract class BaseUplinkMessageService {
                     return pageLink;
                 } else {
                     while (queueEndTs < System.currentTimeMillis()) {
-                        log.info("newCloudEventsAvailable: queueEndTs < System.currentTimeMillis() [{}] [{}]", queueEndTs, System.currentTimeMillis());
+                        log.trace("newCloudEventsAvailable: queueEndTs < System.currentTimeMillis() [{}] [{}]", queueEndTs, System.currentTimeMillis());
                         queueStartTs = queueEndTs;
                         queueEndTs = queueEndTs + TimeUnit.DAYS.toMillis(1);
                         pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
