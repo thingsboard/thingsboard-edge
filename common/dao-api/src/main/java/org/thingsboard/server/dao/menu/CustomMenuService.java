@@ -61,7 +61,7 @@ public interface CustomMenuService {
 
     CustomMenu findCustomMenuById(TenantId tenantId, CustomMenuId customMenuId);
 
-    PageData<CustomMenuInfo> findCustomMenuInfos(CustomMenuFilter customMenuFilter, PageLink pageLink);
+    PageData<CustomMenuInfo> findCustomMenuInfos(TenantId tenantId, CustomMenuFilter customMenuFilter, PageLink pageLink);
 
     CustomMenuConfig findSystemAdminCustomMenuConfig();
 

@@ -171,11 +171,11 @@ public class JpaCustomerDao extends JpaAbstractDao<CustomerEntity, Customer> imp
     }
 
     @Override
-    public void updateCustomersCustomMenuId(List<CustomerId> customerIds, UUID customMenuId) {
+    public void updateCustomersCustomMenuId(List<CustomerId> customerIds, CustomMenuId customMenuId) {
         if (customMenuId == null) {
             customerRepository.updateCustomMenuIdToNull(toUUIDs(customerIds));
         } else {
-            customerRepository.updateCustomMenuId(toUUIDs(customerIds), customMenuId);
+            customerRepository.updateCustomMenuId(toUUIDs(customerIds), customMenuId.getId());
         }
     }
 

@@ -624,7 +624,7 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
     }
 
     @Override
-    public void updateUsersCustomMenuId(List<UserId> userIds, UUID customMenuId) {
+    public void updateUsersCustomMenuId(List<UserId> userIds, CustomMenuId customMenuId) {
         log.trace("Executing updateUsersCustomMenuId, customMenuId [{}]", customMenuId);
         userDao.updateUsersCustomMenuId(userIds, customMenuId);
     }

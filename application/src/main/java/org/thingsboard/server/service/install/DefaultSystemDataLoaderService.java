@@ -801,7 +801,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
             try {
                 customMenuService.createCustomMenu(createDefaultMenu("System default menu", CMScope.SYSTEM), null, false);
             } catch (ThingsboardException e) {
-                log.warn(e.getMessage());
+                log.warn("Failed to create System default menu", e);
             }
         }
         CustomMenuInfo defaultTenantCustomMenu =
@@ -810,7 +810,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
             try {
                 customMenuService.createCustomMenu(createDefaultMenu("Tenant default menu", CMScope.TENANT), null, false);
             } catch (ThingsboardException e) {
-                log.warn(e.getMessage());
+                log.warn("Failed to create Tenant default menu", e);
             }
         }
         CustomMenuInfo defaultCustomerCustomMenu =
@@ -819,7 +819,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
             try {
                 customMenuService.createCustomMenu(createDefaultMenu("Customer default menu", CMScope.CUSTOMER), null, false);
             } catch (ThingsboardException e) {
-                log.warn(e.getMessage());
+                log.warn("Failed to create Customer default menu", e);
             }
         }
     }

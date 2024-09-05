@@ -70,7 +70,7 @@ public class JpaCustomMenuDao extends JpaAbstractDao<CustomMenuEntity, CustomMen
     }
 
     @Override
-    public PageData<CustomMenuInfo> findInfosByFilter(CustomMenuFilter customMenuFilter, PageLink pageLink) {
+    public PageData<CustomMenuInfo> findInfosByFilter(TenantId tenantId, CustomMenuFilter customMenuFilter, PageLink pageLink) {
         return DaoUtil.toPageData(customMenuInfoRepository.findByTenantIdAndCustomerIdAndScopeAndAssigneeType(customMenuFilter.getTenantId().getId(),
                 customMenuFilter.getCustomerId() == null ? EntityId.NULL_UUID : customMenuFilter.getCustomerId().getId(),
                 customMenuFilter.getScope(), customMenuFilter.getAssigneeType(), pageLink.getTextSearch(), DaoUtil.toPageable(pageLink)));

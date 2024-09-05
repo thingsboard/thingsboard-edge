@@ -397,11 +397,7 @@ public class DefaultTbTranslationService extends AbstractEtagCacheService<Transl
         if (tenantId.isSysTenantId()) {
             etagCache.invalidateAll();
         } else {
-            Set<TranslationCacheKey> keysToInvalidate = etagCache
-                    .asMap().keySet().stream()
-                    .filter(translationCacheKey -> tenantId.equals(translationCacheKey.getTenantId()))
-                    .collect(Collectors.toSet());
-            etagCache.invalidateAll(keysToInvalidate);
+            invalidateByFilter(key -> tenantId.equals(key.getTenantId()));
         }
     }
 
