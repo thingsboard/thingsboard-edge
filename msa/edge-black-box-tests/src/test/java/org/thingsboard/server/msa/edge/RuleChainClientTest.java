@@ -74,7 +74,7 @@ public class RuleChainClientTest extends AbstractContainerTest {
 
         // update metadata: enable debug mode for each node in rule chain
         rootRuleChainMetadata.getNodes().forEach(s -> s.setDebugMode(true));
-        cloudRestClient.saveRuleChainMetaData(rootRuleChainMetadata);
+        rootRuleChainMetadata = cloudRestClient.saveRuleChainMetaData(rootRuleChainMetadata);
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
                 .atMost(30, TimeUnit.SECONDS)
