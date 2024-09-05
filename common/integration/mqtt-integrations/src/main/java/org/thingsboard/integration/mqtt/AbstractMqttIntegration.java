@@ -99,6 +99,11 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
         if (!allowLocalNetworkHosts && isLocalNetworkHost(mqttClientConfiguration.getHost())) {
             throw new IllegalArgumentException("Usage of local network host for MQTT broker connection is not allowed!");
         }
+        String clientId = mqttClientConfiguration.getClientId();
+        if (StringUtils.isNotBlank(clientId) && clientId.length() > 23) {
+            throw new IllegalArgumentException("Client ID is too long '" + clientId + "'. " +
+                    "The length of Client ID cannot be longer than 23, but current length is " + clientId.length() + ".");
+        }
     }
 
     protected void setupConfiguration(MqttClientConfiguration mqttClientConfiguration) {
