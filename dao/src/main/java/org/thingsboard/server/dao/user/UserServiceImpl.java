@@ -619,13 +619,13 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
 
     @Override
     public List<User> findUsersByCustomMenuId(CustomMenuId customMenuId) {
-        log.trace("Executing findCustomersByCustomMenuId, customMenuId [{}]", customMenuId);
+        log.trace("Executing findUsersByCustomMenuId, customMenuId [{}]", customMenuId);
         return userDao.findUsersByCustomMenuId(customMenuId);
     }
 
     @Override
     public void updateUsersCustomMenuId(List<UserId> userIds, UUID customMenuId) {
-        log.trace("Executing updateCustomMenuId, customMenuId [{}]", customMenuId);
+        log.trace("Executing updateUsersCustomMenuId, customMenuId [{}]", customMenuId);
         userDao.updateUsersCustomMenuId(userIds, customMenuId);
     }
 
