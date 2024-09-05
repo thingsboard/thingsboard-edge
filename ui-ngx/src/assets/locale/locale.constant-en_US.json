@@ -5001,7 +5001,11 @@
         "email-auth-placeholder": "Email code",
         "backup-code-auth-description": "Please enter one of your backup codes.",
         "backup-code-auth-placeholder": "Backup code",
-        "version-mask": "{{name}} v.{{version}}"
+        "version-mask": "{{name}} v.{{version}}",
+        "activation-link-expired": "Activation link has expired",
+        "activation-link-expired-message": "The link to activate your profile has expired. You can return to the login page to receive a new email.",
+        "reset-password-link-expired": "Password reset link has expired",
+        "reset-password-link-expired-message": "The link to reset your password has expired. You can return to the login page to receive a new email."
     },
     "signup": {
         "firstname": "First name",
@@ -7027,7 +7031,7 @@
         "display-activation-link": "Display activation link",
         "send-activation-mail": "Send activation mail",
         "activation-link": "User activation link",
-        "activation-link-text": "In order to activate user use the following <a href='{{activationLink}}' target='_blank'>activation link</a> :",
+        "activation-link-text": "In order to activate user use the following <a href='{{activationLink}}' target='_blank'>activation link</a> (expires in {{activationLinkTtl}}) :",
         "copy-activation-link": "Copy activation link",
         "activation-link-copied-message": "User activation link has been copied to clipboard",
         "details": "Details",
