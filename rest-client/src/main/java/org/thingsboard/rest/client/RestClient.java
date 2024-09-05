@@ -3936,10 +3936,6 @@ public class RestClient implements Closeable {
         Map<String, String> params = new HashMap<>();
         addPageLinkToParam(params, pageLink);
 
-        if (!isEmpty(pageLink.getTextSearch())) {
-            params.put("textSearch", pageLink.getTextSearch());
-        }
-
         String url = baseURL + "/api/customMenu/infos?" + getUrlParams(pageLink);
 
         ResponseEntity<PageData<CustomMenuInfo>> response = restTemplate.exchange(
@@ -3948,15 +3944,23 @@ public class RestClient implements Closeable {
         return response.getBody();
     }
 
-    public CustomMenu saveCustomMenu(CustomMenuInfo customMenuInfo, UUID[] ids, boolean force) {
-        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseURL + "/api/customMenu")
-                .queryParam("assignToList", (Object[]) ids)
-                .queryParam("force", force);
+    public CustomMenu saveCustomMenu(CustomMenuInfo customMenuInfo, UUID[] ids, Boolean force) {
+        Map<String, Object> params = new HashMap<>();
+        if (ids != null && ids.length > 0) {
+            params.put("assignToList", ids);
+        }
+        if (force != null) {
+            params.put("force", force);
+        }
 
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseURL + "/api/customMenu");
+
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            builder.queryParam(entry.getKey(), entry.getValue());
+        }
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<CustomMenuInfo> requestEntity = new HttpEntity<>(customMenuInfo, headers);
-
         return restTemplate.postForEntity(builder.toUriString(), requestEntity, CustomMenu.class).getBody();
     }
 
