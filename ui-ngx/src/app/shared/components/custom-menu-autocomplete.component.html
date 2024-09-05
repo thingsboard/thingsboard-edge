@@ -65,7 +65,7 @@
     #customMenuAutocomplete="matAutocomplete"
     [displayWith]="displayCustomMenuFn">
     <mat-option *ngFor="let customMenu of filteredCustomMenus | async" [value]="customMenu">
-      <span [innerHTML]="customMenu.name | translate | highlight:searchText"></span>
+      <span [innerHTML]="customMenu.name | highlight:searchText"></span>
     </mat-option>
     <mat-option *ngIf="!(filteredCustomMenus | async)?.length" [value]="null">
       <div (click)="$event.stopPropagation()">

@@ -48,8 +48,8 @@ import {
   CustomMenuConfig,
   CustomMenuInfo,
   CustomMenuItem,
-  defaultCustomMenuConfig,
-  isDefaultMenuConfig,
+  defaultCustomMenuConfig, hideAllMenuItems,
+  isDefaultMenuConfig, isHomeMenuItem,
   MenuItem
 } from '@shared/models/custom-menu.models';
 import { AbstractControl, FormControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -156,10 +156,18 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
     }
   }
 
+  hideAll() {
+    const config: CustomMenuConfig = this.customMenuFormGroup.value;
+    config.items = hideAllMenuItems(config.items);
+    this.customMenuFormGroup.setControl('items', this.prepareMenuItemsFormArray(config.items), {emitEvent: false});
+    this.customMenuFormGroup.markAsDirty();
+  }
+
   save() {
     const config: CustomMenuConfig = beforeSaveCustomMenuConfig(this.customMenuFormGroup.value, this.customMenu.scope);
     this.customMenuService.updateCustomMenuConfig(this.customMenu.id.id, config).subscribe(
       () => {
+        this.customMenuConfig = deepClone(this.customMenuFormGroup.value);
         this.customMenuFormGroup.markAsPristine();
       }
     );

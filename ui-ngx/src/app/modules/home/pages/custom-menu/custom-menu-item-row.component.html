@@ -36,7 +36,10 @@
       <div class="tb-custom-menu-item-start-block">
         <ng-content select=".tb-custom-menu-item-row-prefix"></ng-content>
         <div class="tb-custom-menu-item-icon-name-block" [style.width]="iconNameBlockWidth">
-          <mat-slide-toggle *ngIf="!isHomeMenuItem" formControlName="visible"></mat-slide-toggle>
+          <mat-slide-toggle *ngIf="!isHomeMenuItem"
+                            matTooltip="{{ (menuItemRowFormGroup.get('visible').value ? 'custom-menu.visible' : 'custom-menu.hidden') | translate }}"
+                            matTooltipPosition="above"
+                            formControlName="visible"></mat-slide-toggle>
           <div *ngIf="isHomeMenuItem" style="width: 40px;"></div>
           <tb-material-icon-select asBoxInput
                                    color="var(--tb-primary-500)"

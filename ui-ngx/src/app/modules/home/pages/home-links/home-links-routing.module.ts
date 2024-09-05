@@ -118,16 +118,39 @@ const applySystemParametersToHomeDashboard = (store: Store<AppState>,
   );
 };
 
-const resolveHomeDashboard = (dashboardService: DashboardService,
+const resolveMenuHomeDashboard = (menuService: MenuService,
+                                  dashboardService: DashboardService,
+                                  resourcesService: ResourcesService,
+                                  store: Store<AppState>): Observable<HomeDashboard> =>
+  menuService.menuSections().pipe(first()).pipe(
+    mergeMap((sections) => {
+      const homeSection = sections.find(s => s.id === MenuId.home);
+      if (homeSection?.homeDashboardId) {
+        return dashboardService.getDashboard(homeSection.homeDashboardId, {ignoreErrors: true}).pipe(
+          map((dashboard) => ({
+            ...dashboard,
+            hideDashboardToolbar: homeSection.homeHideDashboardToolbar
+          })),
+          catchError(() => getHomeDashboard(store, resourcesService))
+        );
+      } else {
+        return getHomeDashboard(store, resourcesService);
+      }
+    })
+  );
+
+const resolveHomeDashboard = (menuService: MenuService,
+                              dashboardService: DashboardService,
                               resourcesService: ResourcesService,
                               store: Store<AppState>): Observable<HomeDashboard> =>
   dashboardService.getHomeDashboard().pipe(
     mergeMap((dashboard) => {
       if (!dashboard) {
-        return getHomeDashboard(store, resourcesService);
+        return resolveMenuHomeDashboard(menuService, dashboardService, resourcesService, store);
       }
       return of(dashboard);
-    })
+    }),
+    catchError(() => resolveMenuHomeDashboard(menuService, dashboardService, resourcesService, store))
   );
 
 export const homeDashboardResolver: ResolveFn<HomeDashboard> = (
@@ -137,23 +160,7 @@ export const homeDashboardResolver: ResolveFn<HomeDashboard> = (
   dashboardService = inject(DashboardService),
   resourcesService = inject(ResourcesService),
   store: Store<AppState> = inject(Store<AppState>)
-): Observable<HomeDashboard> =>
-  menuService.menuSections().pipe(first()).pipe(
-    mergeMap((sections) => {
-      const homeSection = sections.find(s => s.id === MenuId.home);
-      if (homeSection?.homeDashboardId) {
-        return dashboardService.getDashboard(homeSection.homeDashboardId, {ignoreErrors: true}).pipe(
-          map((dashboard) => ({
-              ...dashboard,
-              hideDashboardToolbar: homeSection.homeHideDashboardToolbar
-          })),
-          catchError(() => resolveHomeDashboard(dashboardService, resourcesService, store))
-        );
-      } else {
-        return resolveHomeDashboard(dashboardService, resourcesService, store);
-      }
-    })
-  );
+): Observable<HomeDashboard> => resolveHomeDashboard(menuService, dashboardService, resourcesService, store);
 
 const routes: Routes = [
   {

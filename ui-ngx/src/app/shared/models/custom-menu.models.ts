@@ -323,3 +323,15 @@ export const beforeSaveCustomMenuConfig = (config: CustomMenuConfig, scope: CMSc
     return config;
   }
 };
+
+export const hideAllMenuItems = (items: MenuItem[]): MenuItem[] => {
+  for (const item of items) {
+    if (!isHomeMenuItem(item) && item.visible) {
+      item.visible = false;
+    }
+    if (item.pages) {
+      item.pages = hideAllMenuItems(item.pages);
+    }
+  }
+  return items;
+};
