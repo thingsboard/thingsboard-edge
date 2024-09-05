@@ -58,8 +58,8 @@ public class BaseCloudEventInsertRepository<T extends AbstractCloudEventEntity> 
 
     protected void save(List<T> entities, String tableName) {
         String insertQuery = "INSERT INTO " + tableName +
-                " (id, created_time, entity_body, entity_id, cloud_event_type, cloud_event_action, tenant_id, ts) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;";
+                " (id, created_time, entity_body, entity_id, cloud_event_type, cloud_event_action, tenant_id, ts, entity_group_id) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT DO NOTHING;";
         transactionTemplate.execute(new TransactionCallbackWithoutResult() {
             @Override
             protected void doInTransactionWithoutResult(TransactionStatus status) {

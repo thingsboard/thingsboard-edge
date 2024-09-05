@@ -215,7 +215,7 @@ public abstract class AbstractContainerTest {
                 until(() -> {
                     try {
                         long totalElements = edgeRestClient.getWidgetsBundles(new PageLink(100)).getTotalElements();
-                        final long expectedCount = 28;
+                        final long expectedCount = 30;
                         if (totalElements != expectedCount) {
                             log.warn("Expected {} widget bundles, but got {}", expectedCount, totalElements);
                         }
@@ -693,6 +693,7 @@ public abstract class AbstractContainerTest {
             Role expected = edgeRole.get();
             Role actual = cloudRole.get();
             // permissions field is transient and not used in comparison
+            cleanUpVersion(expected, actual);
             Assert.assertEquals("Roles on cloud and edge are different", expected, actual);
         }
     }
@@ -707,6 +708,7 @@ public abstract class AbstractContainerTest {
             Assert.assertFalse("Edge converter isEdgeTemplate incorrect", expected.isEdgeTemplate());
             Assert.assertTrue("Cloud converter isEdgeTemplate incorrect", actual.isEdgeTemplate());
             actual.setEdgeTemplate(false);
+            cleanUpVersion(expected, actual);
             Assert.assertEquals("Converters on cloud and edge are different", expected, actual);
         }
     }
@@ -725,6 +727,7 @@ public abstract class AbstractContainerTest {
             // configuration must be reset, because configuration on cloud contains placeholders
             actual.setConfiguration(null);
             expected.setConfiguration(null);
+            cleanUpVersion(expected, actual);
 
             Assert.assertEquals("Integrations on cloud and edge are different", expected, actual);
         }
