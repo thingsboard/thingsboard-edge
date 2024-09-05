@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.common.data.menu;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -43,7 +42,6 @@ import static org.thingsboard.server.common.data.menu.MenuItemType.HOME;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class HomeMenuItem extends DefaultMenuItem {
 
     @Schema(description = "DEFAULT or DASHBOARD. DASHBOARD means default home page presentation changed to refer to dashboard")

@@ -163,17 +163,17 @@ ALTER TABLE oauth2_client ADD COLUMN IF NOT EXISTS tenant_id uuid DEFAULT '13814
 UPDATE oauth2_client SET title = additional_info::jsonb->>'providerName' WHERE additional_info IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS domain_oauth2_client (
-                                                    domain_id uuid NOT NULL,
-                                                    oauth2_client_id uuid NOT NULL,
-                                                    CONSTRAINT fk_domain FOREIGN KEY (domain_id) REFERENCES domain(id) ON DELETE CASCADE,
-                                                    CONSTRAINT fk_oauth2_client FOREIGN KEY (oauth2_client_id) REFERENCES oauth2_client(id) ON DELETE CASCADE
+    domain_id uuid NOT NULL,
+    oauth2_client_id uuid NOT NULL,
+    CONSTRAINT fk_domain FOREIGN KEY (domain_id) REFERENCES domain(id) ON DELETE CASCADE,
+    CONSTRAINT fk_oauth2_client FOREIGN KEY (oauth2_client_id) REFERENCES oauth2_client(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS mobile_app_oauth2_client (
-                                                        mobile_app_id uuid NOT NULL,
-                                                        oauth2_client_id uuid NOT NULL,
-                                                        CONSTRAINT fk_domain FOREIGN KEY (mobile_app_id) REFERENCES mobile_app(id) ON DELETE CASCADE,
-                                                        CONSTRAINT fk_oauth2_client FOREIGN KEY (oauth2_client_id) REFERENCES oauth2_client(id) ON DELETE CASCADE
+    mobile_app_id uuid NOT NULL,
+    oauth2_client_id uuid NOT NULL,
+    CONSTRAINT fk_domain FOREIGN KEY (mobile_app_id) REFERENCES mobile_app(id) ON DELETE CASCADE,
+    CONSTRAINT fk_oauth2_client FOREIGN KEY (oauth2_client_id) REFERENCES oauth2_client(id) ON DELETE CASCADE
 );
 
 -- migrate oauth2_params table

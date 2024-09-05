@@ -573,7 +573,7 @@ public abstract class BaseEdgeProcessor {
                 futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, entityId, body, sourceEdgeId, null));
             }
         } else {
-            futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId, null, sourceEdgeId, null);
+            futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId, body, sourceEdgeId, null);
         }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }

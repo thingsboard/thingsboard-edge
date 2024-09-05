@@ -1252,6 +1252,7 @@
         "custom-menu": "Custom menu",
         "custom-menu-config": "Custom menu config",
         "no-custom-menus-prompt": "No custom menus found",
+        "no-custom-menus-matching": "No custom menus matching '{{entity}}' were found.",
         "search": "Search custom menus",
         "add": "Add custom menu",
         "delete-custom-menu-title": "Are you sure you want to delete the custom menu '{{customMenuName}}'?",
@@ -7583,7 +7584,11 @@
         "color": "Color",
         "tooltip": "Tooltip",
         "units-required": "Unit is required.",
-        "list-layout": "List layout"
+        "list-layout": "List layout",
+        "layout": "Layout",
+        "resize-options": "Resize options",
+        "resizable": "Resizable",
+        "preserve-aspect-ratio": "Preserve aspect ratio"
     },
     "widget-type": {
         "import": "Import widget type",

@@ -30,14 +30,12 @@
  */
 package org.thingsboard.server.service.custommenu;
 
-import org.thingsboard.server.common.data.id.TenantId;
-
 public interface EtagCacheService<K> {
 
     String getETag(K cacheKey);
 
     void putETag(K cacheKey, String etag);
 
-    void evictETags(TenantId tenantId);
+    void evictETags(K cacheKey);
 
 }

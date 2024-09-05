@@ -32,7 +32,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
-  CMAssigneeType,
+  CMAssigneeType, CMScope,
   CustomMenu,
   CustomMenuConfig,
   CustomMenuDeleteResult,
@@ -76,8 +76,16 @@ export class CustomMenuService {
     );
   }
 
-  public getCustomMenuInfos(pageLink: PageLink, config?: RequestConfig): Observable<PageData<CustomMenuInfo>> {
-    return this.http.get<PageData<CustomMenuInfo>>(`/api/customMenu/infos${pageLink.toQuery()}`,
+  public getCustomMenuInfos(pageLink: PageLink, scope?: CMScope, assigneeType?: CMAssigneeType,
+                            config?: RequestConfig): Observable<PageData<CustomMenuInfo>> {
+    let url = `/api/customMenu/infos${pageLink.toQuery()}`;
+    if (scope) {
+      url += `&scope=${scope}`;
+    }
+    if (assigneeType) {
+      url += `&assigneeType=${assigneeType}`;
+    }
+    return this.http.get<PageData<CustomMenuInfo>>(url,
       defaultHttpOptionsFromConfig(config));
   }
 

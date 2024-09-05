@@ -48,6 +48,8 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractEtagCacheService;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -95,8 +97,29 @@ public class DefaultTbCustomMenuService extends AbstractEtagCacheService<CustomM
         return customMenuDeleteResult;
     }
 
+    @Override
+    public void evictETags(CustomMenuCacheKey cacheKey) {
+        if (cacheKey.getUserId() != null) {
+            etagCache.invalidate(cacheKey);
+        } else if (cacheKey.getCustomerId() != null) {
+            Set<CustomMenuCacheKey> keysToInvalidate = etagCache
+                    .asMap().keySet().stream()
+                    .filter(translationCacheKey -> cacheKey.getCustomerId().equals(translationCacheKey.getCustomerId()))
+                    .collect(Collectors.toSet());
+            etagCache.invalidateAll(keysToInvalidate);
+        } else if (cacheKey.getTenantId().isSysTenantId()) {
+            etagCache.invalidateAll();
+        } else {
+            Set<CustomMenuCacheKey> keysToInvalidate = etagCache
+                    .asMap().keySet().stream()
+                    .filter(translationCacheKey -> cacheKey.getTenantId().equals(translationCacheKey.getTenantId()))
+                    .collect(Collectors.toSet());
+            etagCache.invalidateAll(keysToInvalidate);
+        }
+    }
+
     private void evictFromCache(TenantId tenantId) {
-        evictETags(tenantId);
+        evictETags(CustomMenuCacheKey.forTenant(tenantId));
         clusterService.broadcastToCore(TransportProtos.ToCoreNotificationMsg.newBuilder()
                 .setCustomMenuCacheInvalidateMsg(TransportProtos.CustomMenuCacheInvalidateMsg.newBuilder()
                         .setTenantIdMSB(tenantId.getId().getMostSignificantBits())

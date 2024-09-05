@@ -1,0 +1,89 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<mat-form-field [formGroup]="selectCustomMenuFormGroup"
+                [class]="{'tb-inline-field': inlineField, 'flex': inlineField,
+                          'tb-suffix-absolute': (inlineField && !selectCustomMenuFormGroup.get('customMenu').value)}"
+                class="mat-block"
+                [floatLabel]="floatLabel"
+                [appearance]="inlineField ? 'outline' : appearance"
+                [subscriptSizing]="inlineField ? 'dynamic' : subscriptSizing">
+  <mat-label *ngIf="!inlineField && label">{{ label }}</mat-label>
+  <input matInput type="text"
+         #customMenuInput
+         placeholder="{{ placeholder }}"
+         formControlName="customMenu"
+         (focusin)="onFocus()"
+         [required]="required"
+         [matAutocomplete]="customMenuAutocomplete">
+  <button *ngIf="selectCustomMenuFormGroup.get('customMenu').value && !disabled"
+          type="button"
+          matSuffix mat-icon-button aria-label="Clear"
+          (click)="clear()">
+    <mat-icon class="material-icons">close</mat-icon>
+  </button>
+  <mat-icon matSuffix
+            matTooltipPosition="above"
+            matTooltipClass="tb-error-tooltip"
+            [matTooltip]="requiredText | translate"
+            *ngIf="inlineField && requiredText && selectCustomMenuFormGroup.get('customMenu').hasError('required')
+                            && selectCustomMenuFormGroup.get('customMenu').touched"
+            class="tb-error">
+    warning
+  </mat-icon>
+  <mat-autocomplete
+    class="tb-autocomplete"
+    #customMenuAutocomplete="matAutocomplete"
+    [displayWith]="displayCustomMenuFn">
+    <mat-option *ngFor="let customMenu of filteredCustomMenus | async" [value]="customMenu">
+      <span [innerHTML]="customMenu.name | translate | highlight:searchText"></span>
+    </mat-option>
+    <mat-option *ngIf="!(filteredCustomMenus | async)?.length" [value]="null">
+      <div (click)="$event.stopPropagation()">
+        <div *ngIf="!textIsNotEmpty(searchText); else searchNotEmpty">
+          <span>{{ 'custom-menu.no-custom-menus-prompt' | translate }}</span>
+        </div>
+        <ng-template #searchNotEmpty>
+          <span>
+          {{ translate.get('custom-menu.no-custom-menus-matching', {entity: searchText}) | async }}
+          </span>
+        </ng-template>
+      </div>
+    </mat-option>
+  </mat-autocomplete>
+  <mat-error *ngIf="!inlineField && subscriptSizing !== 'dynamic'">
+    <ng-content select="[tb-error]"></ng-content>
+  </mat-error>
+  <mat-hint *ngIf="!inlineField && subscriptSizing !== 'dynamic'">
+    <ng-content select="[tb-hint]"></ng-content>
+  </mat-hint>
+</mat-form-field>
