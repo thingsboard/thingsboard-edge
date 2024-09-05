@@ -84,10 +84,9 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.menu.CMItemType;
+import org.thingsboard.server.common.data.menu.CMAssigneeType;
+import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
-import org.thingsboard.server.common.data.menu.CustomMenuConfig;
-import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -106,9 +105,11 @@ import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.edge.EdgeEventService;
+import org.thingsboard.server.dao.menu.CustomMenuDao;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
@@ -155,6 +156,11 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     @Autowired
     protected EdgeEventService edgeEventService;
 
+    @Autowired
+    private CustomMenuDao customMenuDao;
+
+    private static List<UUID> idsToRemove = new ArrayList<>();
+
     @Before
     public void setupEdgeTest() throws Exception {
         loginSysAdmin();
@@ -167,20 +173,12 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // save jwt settings into db
         doPost("/api/admin/jwtSettings", settings).andExpect(status().isOk());
 
-        // create custom menu
-        CustomMenu sysMenu = new CustomMenu();
-        sysMenu.setName("System Menu");
-
-        CustomMenuItem sysItem = new CustomMenuItem();
-        sysItem.setName("System Menu");
-        sysItem.setUrl("/system/menu");
-        sysItem.setMenuItemType(CMItemType.LINK);
-
-        CustomMenuConfig sysMenuConfig = new CustomMenuConfig(List.of(sysItem));
-
-        sysMenu.setConfig(sysMenuConfig);
-
-        doPost("/api/customMenu/customMenu", sysMenu);
+        CustomMenu systemMenu = doPost("/api/customMenu", createDefaultCustomMenu("System Menu", CMScope.SYSTEM), CustomMenu.class);
+        idsToRemove.add(systemMenu.getUuidId());
+        CustomMenu tenantMenu = doPost("/api/customMenu", createDefaultCustomMenu("Tenant Menu", CMScope.TENANT), CustomMenu.class);
+        idsToRemove.add(tenantMenu.getUuidId());
+        CustomMenu customerMenu = doPost("/api/customMenu", createDefaultCustomMenu("Customer Menu", CMScope.CUSTOMER), CustomMenu.class);
+        idsToRemove.add(customerMenu.getUuidId());
 
         loginTenantAdmin();
 
@@ -189,7 +187,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
         edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
-        edgeImitator.expectMessageAmount(28);
+        edgeImitator.expectMessageAmount(30);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -224,6 +222,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     public void teardownEdgeTest() {
         try {
             loginTenantAdmin();
+            customMenuDao.removeAllByIds(idsToRemove);
+            idsToRemove = new ArrayList<>();
 
             doDelete("/api/edge/" + edge.getId().toString())
                     .andExpect(status().isOk());
@@ -289,9 +289,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         validateMsgsCnt(RuleChainMetadataUpdateMsg.class, 2);
         validateRuleChainMetadataUpdates(ruleChainUUID);
 
-        // 5 messages ('general', 'mail', 'connectivity', 'jwt', 'customMenu')
-        validateMsgsCnt(AdminSettingsUpdateMsg.class, 5);
-        validateAdminSettings(5);
+        // 4 messages ('general', 'mail', 'connectivity', 'jwt')
+        validateMsgsCnt(AdminSettingsUpdateMsg.class, 4);
+        validateAdminSettings(4);
 
         // 3 messages
         // - 1 from default profile fetcher
@@ -333,6 +333,10 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // 2 messages from fetcher: 'login' and 'general'
         validateMsgsCnt(WhiteLabelingProto.class, 2);
         validateWhiteLabeling();
+
+        // 3 messages from fetcher: 'sysadmin' and 'tenant' and 'customer' default custom menu
+        validateMsgsCnt(CustomMenuProto.class, 3);
+        validateCustomMenu(3);
 
         // 1 message sync completed
         validateMsgsCnt(SyncCompletedMsg.class, 1);
@@ -455,9 +459,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
             if (adminSettings.getKey().equals("jwt")) {
                 validateJwtAdminSettings(adminSettings);
             }
-            if (adminSettings.getKey().equals("customMenu")) {
-                validateCustomMenuAdminSettings(adminSettings);
-            }
         }
     }
 
@@ -490,10 +491,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertNotNull(jsonNode.get("refreshTokenExpTime"));
         Assert.assertNotNull(jsonNode.get("tokenIssuer"));
         Assert.assertNotNull(jsonNode.get("tokenSigningKey"));
-    }
-
-    private void validateCustomMenuAdminSettings(AdminSettings adminSettings) {
-        Assert.assertNotNull(adminSettings.getJsonValue().get("value"));
     }
 
     private void validateAssetProfiles(int expectedMsgCnt) throws Exception {
@@ -562,6 +559,32 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
                     return WhiteLabelingType.LOGIN.equals(whiteLabeling.getType());
                 }).findAny();
         Assert.assertTrue(generalWhiteLabeling.isPresent());
+    }
+
+    private void validateCustomMenu(int expectedMsgCnt) {
+        List<CustomMenuProto> customMenuProto = edgeImitator.findAllMessagesByType(CustomMenuProto.class);
+        Assert.assertEquals(expectedMsgCnt, customMenuProto.size());
+        Optional<CustomMenuProto> systemMenu =
+                customMenuProto.stream().filter(system -> {
+                    CustomMenu customMenu = JacksonUtil.fromString(system.getEntity(), CustomMenu.class, true);
+                    Assert.assertNotNull(customMenu);
+                    return CMScope.SYSTEM.equals(customMenu.getScope());
+                }).findAny();
+        Assert.assertTrue(systemMenu.isPresent());
+        Optional<CustomMenuProto> tenantMenu =
+                customMenuProto.stream().filter(system -> {
+                    CustomMenu customMenu = JacksonUtil.fromString(system.getEntity(), CustomMenu.class, true);
+                    Assert.assertNotNull(customMenu);
+                    return CMScope.TENANT.equals(customMenu.getScope());
+                }).findAny();
+        Assert.assertTrue(tenantMenu.isPresent());
+        Optional<CustomMenuProto> customerMenu =
+                customMenuProto.stream().filter(system -> {
+                    CustomMenu customMenu = JacksonUtil.fromString(system.getEntity(), CustomMenu.class, true);
+                    Assert.assertNotNull(customMenu);
+                    return CMScope.CUSTOMER.equals(customMenu.getScope());
+                }).findAny();
+        Assert.assertTrue(customerMenu.isPresent());
     }
 
     private void validateSyncCompleted() {
@@ -1011,6 +1034,14 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         rpc.put("timeout", 5000);
 
         return rpc;
+    }
+
+    private CustomMenu createDefaultCustomMenu(String name, CMScope scope) {
+        CustomMenu customMenu = new CustomMenu();
+        customMenu.setName(name);
+        customMenu.setScope(scope);
+        customMenu.setAssigneeType(CMAssigneeType.ALL);
+        return customMenu;
     }
 
 }

@@ -295,10 +295,11 @@ public class DefaultTbEdgeConsumerService extends AbstractConsumerService<ToEdge
                 case ENTITY_GROUP -> future = edgeCtx.getEntityGroupProcessor().processEntityNotification(tenantId, edgeNotificationMsg);
                 case INTEGRATION -> future = edgeCtx.getIntegrationProcessor().processEntityNotification(tenantId, edgeNotificationMsg);
                 case CONVERTER -> future = edgeCtx.getConverterProcessor().processEntityNotification(tenantId, edgeNotificationMsg);
-                case WHITE_LABELING, LOGIN_WHITE_LABELING, MAIL_TEMPLATES, CUSTOM_MENU ->
+                case WHITE_LABELING, LOGIN_WHITE_LABELING, MAIL_TEMPLATES ->
                         future = edgeCtx.getWhiteLabelingProcessor().processWhiteLabelingNotification(tenantId, edgeNotificationMsg);
                 case DEVICE_GROUP_OTA -> future = edgeCtx.getDeviceProcessor().processDeviceOtaNotification(tenantId, edgeNotificationMsg);
                 case CUSTOM_TRANSLATION -> future = edgeCtx.getCustomTranslationProcessor().processCustomTranslationNotification(tenantId, edgeNotificationMsg);
+                case CUSTOM_MENU -> future = edgeCtx.getCustomMenuProcessor().processCustomMenuNotification(tenantId, edgeNotificationMsg);
                 default -> {
                     future = Futures.immediateFuture(null);
                     log.warn("[{}] Edge event type [{}] is not designed to be pushed to edge", tenantId, type);

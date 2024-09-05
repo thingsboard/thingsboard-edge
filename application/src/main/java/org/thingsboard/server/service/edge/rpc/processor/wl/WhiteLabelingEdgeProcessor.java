@@ -45,13 +45,11 @@ import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
-import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
@@ -235,38 +233,6 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
 
     private boolean isDefaultLoginWhiteLabeling(LoginWhiteLabelingParams loginWhiteLabelingParams) {
         return new LoginWhiteLabelingParams().equals(loginWhiteLabelingParams);
-    }
-
-    public DownlinkMsg convertCustomMenuEventToDownlink(EdgeEvent edgeEvent) {
-        DownlinkMsg downlinkMsg = null;
-        try {
-            EntityId entityId = JacksonUtil.convertValue(edgeEvent.getBody(), EntityId.class);
-            if (entityId == null || TenantId.SYS_TENANT_ID.equals(entityId)) {
-                return null;
-            }
-            CustomMenu customMenu = getCustomMenuForEntity(edgeEvent.getTenantId(), entityId);
-            if (customMenu == null) {
-                customMenu = new CustomMenu();
-            }
-            CustomMenuProto customMenuProto = customMenuMsgConstructor.constructCustomMenuProto(customMenu, entityId);
-            if (customMenuProto != null) {
-                downlinkMsg = DownlinkMsg.newBuilder()
-                        .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .setCustomMenuProto(customMenuProto)
-                        .build();
-            }
-        } catch (Exception e) {
-            log.error("Can't process custom menu msg [{}]", edgeEvent, e);
-        }
-        return downlinkMsg;
-    }
-
-    private CustomMenu getCustomMenuForEntity(TenantId tenantId, EntityId entityId) {
-        return switch (entityId.getEntityType()) {
-//            case TENANT -> customMenuService.getTenantCustomMenu(tenantId);
-//            case CUSTOMER -> customMenuService.getCustomerCustomMenu(tenantId, new CustomerId(entityId.getId()));
-            default -> null;
-        };
     }
 
     public ListenableFuture<Void> processWhiteLabelingNotification(TenantId tenantId, TransportProtos.EdgeNotificationMsgProto edgeNotificationMsg) {

@@ -33,6 +33,7 @@ package org.thingsboard.server.common.data.menu;
 import com.fasterxml.jackson.annotation.JsonView;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
@@ -41,8 +42,8 @@ import static org.thingsboard.server.common.data.menu.MenuItemType.DEFAULT;
 
 @Schema
 @Data
+@EqualsAndHashCode
 @NoArgsConstructor
-@JsonView(Views.Public.class)
 public class DefaultMenuItem implements MenuItem {
 
     @Schema(description = "Unique identifier for predefined menu items", example = "home", accessMode = Schema.AccessMode.READ_ONLY)

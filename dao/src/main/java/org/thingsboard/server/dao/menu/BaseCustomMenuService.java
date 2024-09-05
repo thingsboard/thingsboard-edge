@@ -36,6 +36,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.CustomMenuDeleteResult;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityInfo;
@@ -121,6 +122,8 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
         }
         assignCustomMenu(customMenu.getId(), newAssigneeType, toAddEntityIds);
         unassignCustomMenu(oldAssigneeType, toRemoveEntityIds);
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(customMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
+                .edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.UPDATED).build());
     }
 
     @Override
@@ -243,18 +246,14 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
                 }
             }
         }
-        try {
-            CustomMenu savedCustomMenu = customMenuDao.save(customMenu.getTenantId(), customMenu);
-            if (CollectionUtils.isNotEmpty(assignToList)) {
-                assignCustomMenu(savedCustomMenu.getId(), customMenu.getAssigneeType(), assignToList);
-            }
-            publishEvictEvent(new CustomMenuCacheEvictEvent(savedCustomMenu.getId()));
-            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(savedCustomMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
-                    .edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.UPDATED).build());
-            return savedCustomMenu;
-        } catch (Exception t) {
-            throw t;
+        CustomMenu savedCustomMenu = customMenuDao.save(customMenu.getTenantId(), customMenu);
+        if (CollectionUtils.isNotEmpty(assignToList)) {
+            assignCustomMenu(savedCustomMenu.getId(), customMenu.getAssigneeType(), assignToList);
         }
+        publishEvictEvent(new CustomMenuCacheEvictEvent(savedCustomMenu.getId()));
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(savedCustomMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
+                .body(JacksonUtil.toString(savedCustomMenu)).edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.UPDATED).build());
+        return savedCustomMenu;
     }
 
     private void assignCustomMenu(CustomMenuId customMenuId, CMAssigneeType assigneeType, List<EntityId> entityIdsToAssign) {
@@ -290,6 +289,8 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
         try {
             customMenuDao.removeById(customMenu.getTenantId(), customMenu.getId().getId());
             publishEvictEvent(new CustomMenuCacheEvictEvent(customMenu.getId()));
+            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(customMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
+                    .body(JacksonUtil.toString(customMenu)).edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.DELETED).build());
         } catch (Exception e) {
             checkConstraintViolation(e,
                     Map.of("fk_user_custom_menu", "The custom menu referenced by the user cannot be deleted!",
@@ -311,19 +312,18 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
 
     private static <T extends MenuItem> T filterVisiblePages(T item) {
         switch (item.getType()) {
-            case HOME:
-            case DEFAULT:
-                var defaultItemPages = ((DefaultMenuItem)item).getPages();
+            case HOME, DEFAULT -> {
+                var defaultItemPages = ((DefaultMenuItem) item).getPages();
                 if (defaultItemPages != null) {
-                    ((DefaultMenuItem)item).setPages(filterVisibleMenuItems(defaultItemPages));
+                    ((DefaultMenuItem) item).setPages(filterVisibleMenuItems(defaultItemPages));
                 }
-            break;
-            case CUSTOM:
-                var customItemPages = ((CustomMenuItem)item).getPages();
+            }
+            case CUSTOM -> {
+                var customItemPages = ((CustomMenuItem) item).getPages();
                 if (customItemPages != null) {
-                    ((CustomMenuItem)item).setPages(filterVisibleMenuItems(customItemPages));
+                    ((CustomMenuItem) item).setPages(filterVisibleMenuItems(customItemPages));
                 }
-            break;
+            }
         }
         return item;
     }
@@ -359,4 +359,5 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     public void handleEvictEvent(CustomMenuCacheEvictEvent event) {
         cache.evict(event.getCustomMenuId());
     }
+
 }
