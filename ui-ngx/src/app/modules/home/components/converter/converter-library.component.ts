@@ -81,10 +81,7 @@ import { isEmptyStr } from '@core/utils';
 export class ConverterLibraryComponent implements ControlValueAccessor, Validator, OnChanges {
 
   @Input() converterType = ConverterType.UPLINK;
-
   @Input() integrationType: IntegrationType;
-
-  @Output() converterChanged = new EventEmitter<UntypedFormGroup>();
 
   @ViewChild('modelInput', { static: true }) modelInput: ElementRef;
   @ViewChild('vendorInput', { static: true }) vendorInput: ElementRef;
@@ -178,18 +175,15 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       switchMap(vendor =>
         this.libraryFormGroup.get('model').valueChanges.pipe(
           switchMap(model =>
-            model?.name && vendor?.name ? this.converterLibraryService.getConverter(
-              this.integrationDir,
-              vendor.name,
-              model.name,
-              this.converterType
-            ) : of(null).pipe(catchError(() => of(null)))
-          )
+            model?.name && vendor?.name
+              ? this.converterLibraryService.getConverter(this.integrationDir, vendor.name, model.name, this.converterType)
+              : of(null)
+          ),
+          catchError(() => of(null))
         )
       ),
       tap((converter: Converter) => {
         if (!converter) {
-          this.libraryFormGroup.updateValueAndValidity();
           return;
         }
         this.onConverterChanged();
