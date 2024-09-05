@@ -93,7 +93,7 @@
                 <div class="device-description">{{ model.info.description }}</div>
               </div>
             </div>
-            <div class="tb-title-link" (click)="onLinkClick($event, model.info.url)"></div>
+            <mat-icon class="link-arrow" (click)="onLinkClick($event, model.info.url)">arrow_outward</mat-icon>
           </div>
         </mat-option>
       </div>
@@ -108,12 +108,12 @@
       </mat-error>
   </mat-form-field>
 </div>
-<tb-converter [fxShow]="showConverter"
+<tb-converter *ngIf="converter$ | async as entity"
               #dataConverter
               [integrationType]="integrationType"
               [libraryInfo]="{ vendorName: libraryFormGroup.get('vendor').value.name, modelName: libraryFormGroup.get('model').value.name }"
               hideType="true"
               isEdit="true"
-              [entity]="converter$ | async"
+              [entity]="entity"
 />
 

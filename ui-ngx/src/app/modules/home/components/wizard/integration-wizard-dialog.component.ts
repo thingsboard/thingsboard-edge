@@ -158,12 +158,7 @@ export class IntegrationWizardDialogComponent extends
       newUplinkConverter: [{
           type: ConverterType.UPLINK
         }],
-      libraryUplinkConverter: [{
-        value: {
-          type: ConverterType.UPLINK
-        },
-        disable: true
-      }]
+      libraryUplinkConverter: []
     });
 
     this.downlinkConverterForm = this.fb.group({
@@ -175,12 +170,7 @@ export class IntegrationWizardDialogComponent extends
         },
         disable: true
       }],
-      libraryDownlinkConverter: [{
-        value: {
-          type: ConverterType.DOWNLINK
-        },
-        disable: true
-      }],
+      libraryDownlinkConverter: [],
     });
 
     this.integrationConfigurationForm = this.fb.group({
@@ -238,6 +228,8 @@ export class IntegrationWizardDialogComponent extends
       this.uplinkConverterForm.setControl('newUplinkConverter', this.uplinkDataConverterComponent.entityForm, {emitEvent: false});
       this.downlinkConverterForm.setControl('newDownlinkConverter', this.downlinkDataConverterComponent.entityForm, {emitEvent: false});
       this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
+      this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
+      this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
     }, 0);
   }
 
@@ -272,24 +264,6 @@ export class IntegrationWizardDialogComponent extends
 
   get helpLinkId(): string {
     return getIntegrationHelpLink(this.integrationWizardForm.value);
-  }
-
-  onLibraryConverterChanged(converterFormGroup: UntypedFormGroup): void {
-    if (converterFormGroup.get('type').value === ConverterType.UPLINK) {
-      this.uplinkConverterForm.setControl('libraryUplinkConverter', converterFormGroup, {emitEvent: false});
-      if (this.uplinkConverterForm.get('converterType')?.value !== ConverterSourceType.LIBRARY) {
-        this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
-      } else {
-        this.uplinkConverterForm.get('libraryUplinkConverter').enable({emitEvent: false});
-      }
-    } else {
-      this.downlinkConverterForm.setControl('libraryDownlinkConverter', converterFormGroup, {emitEvent: false});
-      if (this.downlinkConverterForm.get('converterType')?.value !== ConverterSourceType.LIBRARY) {
-        this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
-      } else {
-        this.downlinkConverterForm.get('libraryDownlinkConverter').enable({emitEvent: false});
-      }
-    }
   }
 
   private createUplinkConverter(): Observable<ConverterId> {

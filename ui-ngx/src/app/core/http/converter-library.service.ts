@@ -32,8 +32,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Converter, Model, Vendor } from '@shared/models/converter.models';
+import { Converter, ConverterType, Model, Vendor } from '@shared/models/converter.models';
 import { IntegrationDirectory } from '@shared/models/integration.models';
+import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
 
 @Injectable({
   providedIn: 'root'
@@ -44,29 +45,60 @@ export class ConverterLibraryService {
 
   constructor(
     private http: HttpClient
-  ) {}
-
-  getVendors(integrationDir: IntegrationDirectory): Observable<Vendor[]> {
-    return this.http.get(`${this.baseUrl}/${integrationDir}/vendors`) as Observable<Vendor[]>;
+  ) {
   }
 
-  getModels(integrationDir: IntegrationDirectory, vendorName: string): Observable<Model[]> {
-    return this.http.get(`${this.baseUrl}/${integrationDir}/${vendorName}/models`) as Observable<Model[]>;
+  getVendors(integrationDir: IntegrationDirectory, config?: RequestConfig): Observable<Vendor[]> {
+    return this.http.get(`${this.baseUrl}/${integrationDir}/vendors`, defaultHttpOptionsFromConfig(config)) as Observable<Vendor[]>;
   }
 
-  getConverter(integrationDir: IntegrationDirectory, vendorName: string, modelName: string, isUplink = true): Observable<Converter> {
-    return this.http.get(`${this.baseUrl}/${integrationDir}/${vendorName}/${modelName}/${this.getLinkDirection(isUplink)}`) as Observable<Converter>;
+  getModels(
+    integrationDir: IntegrationDirectory,
+    vendorName: string,
+    converterType: ConverterType,
+    config?: RequestConfig
+  ): Observable<Model[]> {
+    return this.http.get(
+      `${this.baseUrl}/${integrationDir}/${vendorName}/models?converterType=${converterType.toLowerCase()}`,
+      defaultHttpOptionsFromConfig(config)
+    ) as Observable<Model[]>;
   }
 
-  getConverterMetaData(integrationDir: IntegrationDirectory, vendorName: string, modelName: string, isUplink = true) {
-    return this.http.get(`${this.baseUrl}/${integrationDir}/${vendorName}/${modelName}/${this.getLinkDirection(isUplink)}/metadata`);
+  getConverter(
+    integrationDir: IntegrationDirectory,
+    vendorName: string, modelName: string,
+    converterType: ConverterType,
+    config?: RequestConfig
+  ): Observable<Converter> {
+    return this.http.get(
+      `${this.baseUrl}/${integrationDir}/${vendorName}/${modelName}/${converterType.toLowerCase()}`,
+      defaultHttpOptionsFromConfig(config)
+    ) as Observable<Converter>;
   }
 
-  getConverterPayload(integrationDir: IntegrationDirectory, vendorName: string, modelName: string, isUplink = true) {
-    return this.http.get(`${this.baseUrl}/${integrationDir}/${vendorName}/${modelName}/${this.getLinkDirection(isUplink)}/payload`);
+  getConverterMetaData(
+    integrationDir: IntegrationDirectory,
+    vendorName: string,
+    modelName: string,
+    converterType: ConverterType,
+    config?: RequestConfig
+  ) {
+    return this.http.get(
+      `${this.baseUrl}/${integrationDir}/${vendorName}/${modelName}/${converterType.toLowerCase()}/metadata`,
+      defaultHttpOptionsFromConfig(config)
+    );
   }
 
-  private getLinkDirection(isUplink = true): string {
-    return isUplink? 'uplink' : 'downlink';
+  getConverterPayload(
+    integrationDir: IntegrationDirectory,
+    vendorName: string,
+    modelName: string,
+    converterType: ConverterType,
+    config?: RequestConfig
+  ) {
+    return this.http.get(
+      `${this.baseUrl}/${integrationDir}/${vendorName}/${modelName}/${converterType.toLowerCase()}/payload`,
+      defaultHttpOptionsFromConfig(config)
+    );
   }
 }

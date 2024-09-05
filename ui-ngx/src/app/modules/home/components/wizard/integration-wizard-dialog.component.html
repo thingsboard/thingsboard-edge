@@ -110,8 +110,8 @@
                         [entity]="uplinkConverter"
           ></tb-converter>
           <tb-converter-library
+            formControlName="libraryUplinkConverter"
             [fxShow]="uplinkConverterForm.get('converterType').value === ConverterSourceType.LIBRARY"
-            (converterChanged)="onLibraryConverterChanged($event)"
             [integrationType]="integrationWizardForm.get('type').value"
           />
         </div>
@@ -146,10 +146,10 @@
                         [entity]="downlinkConverter"
           ></tb-converter>
           <tb-converter-library
+            formControlName="libraryDownlinkConverter"
             [fxShow]="downlinkConverterForm.get('converterType').value === ConverterSourceType.LIBRARY"
-            (converterChanged)="onLibraryConverterChanged($event)"
             [integrationType]="integrationWizardForm.get('type').value"
-            [isUplink]="false"
+            [converterType]="converterType.DOWNLINK"
           />
         </div>
       </form>

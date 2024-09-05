@@ -33,32 +33,9 @@
   margin-right: 8px;
 }
 
-.tb-title-link {
-  font-style: normal;
-  font-weight: 500;
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: 0.25px;
+.link-arrow {
   color: rgba(0, 0, 0, 0.54);
-  position: relative;
-  border-bottom: none;
-  &:hover, &:focus {
-    border-bottom: none;
-  }
-  &::after {
-    content: 'arrow_forward';
-    display: inline-block;
-    transform: rotate(315deg);
-    font-family: 'Material Icons';
-    font-weight: normal;
-    font-style: normal;
-    font-size: 24px;
-    vertical-align: bottom;
-    margin-left: 6px;
-  }
-  &:hover::after {
-    color: inherit;
-  }
+  margin: 0;
 }
 
 .library-model {

@@ -65,7 +65,7 @@ import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { map, takeUntil } from 'rxjs/operators';
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { ContentType } from '@shared/models/constants';
-import { ConverterLibraryService } from '@home/components/converter/converter-library.service';
+import { ConverterLibraryService } from '@core/http/converter-library.service';
 
 @Component({
   selector: 'tb-converter',
@@ -287,19 +287,18 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   openConverterTestDialog(): void {
-    (this.libraryInfo ? this.getLibraryDebugIn() : this.getDefaultDebugIn()).pipe(takeUntil(this.destroy$)).subscribe(
-      (debugIn: ConverterDebugInput) => this.showConverterTestDialog(debugIn)
-    );
+    this.libraryInfo ? this.getLibraryDebugIn() : this.getDefaultDebugIn()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((debugIn: ConverterDebugInput) => this.showConverterTestDialog(debugIn));
   }
 
   private getLibraryDebugIn(): Observable<ConverterDebugInput> {
-    const isUplink = this.entity.type === ConverterType.UPLINK;
     const integrationDir = IntegrationDirectory[this.integrationType] ?? this.integrationType;
     return forkJoin([
       this.converterLibraryService
-        .getConverterPayload(integrationDir, this.libraryInfo.vendorName, this.libraryInfo.modelName, isUplink),
+        .getConverterPayload(integrationDir, this.libraryInfo.vendorName, this.libraryInfo.modelName, this.entityForm.get('type').value),
       this.converterLibraryService
-        .getConverterMetaData(integrationDir, this.libraryInfo.vendorName, this.libraryInfo.modelName, isUplink)
+        .getConverterMetaData(integrationDir, this.libraryInfo.vendorName, this.libraryInfo.modelName, this.entityForm.get('type').value)
     ])
       .pipe(
         map(([inContent, inMetadata]) => ({

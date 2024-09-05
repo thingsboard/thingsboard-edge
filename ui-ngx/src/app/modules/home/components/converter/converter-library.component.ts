@@ -34,32 +34,53 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   Input,
   OnChanges,
   Output,
   SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { FormBuilder, FormGroup, UntypedFormGroup, Validators } from '@angular/forms';
-import { Observable, of, shareReplay, Subject } from 'rxjs';
-import { catchError, distinctUntilChanged, map, startWith, switchMap, tap } from 'rxjs/operators';
-import { ConverterLibraryService } from '@home/components/converter/converter-library.service';
+import {
+  ControlValueAccessor,
+  FormBuilder,
+  FormGroup,
+  NG_VALIDATORS,
+  NG_VALUE_ACCESSOR,
+  UntypedFormGroup,
+  ValidationErrors,
+  Validator,
+  Validators
+} from '@angular/forms';
+import { merge, Observable, of, shareReplay, Subject } from 'rxjs';
+import { catchError, distinctUntilChanged, filter, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { ConverterLibraryService } from '@core/http/converter-library.service';
 import { IntegrationDirectory, IntegrationType } from '@shared/models/integration.models';
 import { Converter, ConverterType, Model, Vendor } from '@shared/models/converter.models';
 import { ConverterComponent } from '@home/components/converter/converter.component';
-import { isDefined, isEqual } from '@core/utils';
-import { coerceBoolean } from '@shared/decorators/coercion';
+import { isEmptyStr } from '@core/utils';
 
 @Component({
   selector: 'tb-converter-library',
   templateUrl: './converter-library.component.html',
   styleUrls: ['./converter-library.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => ConverterLibraryComponent),
+      multi: true
+    },
+    {
+      provide: NG_VALIDATORS,
+      useExisting: forwardRef(() => ConverterLibraryComponent),
+      multi: true
+    }
+  ],
 })
-export class ConverterLibraryComponent implements OnChanges {
+export class ConverterLibraryComponent implements ControlValueAccessor, Validator, OnChanges {
 
-  @coerceBoolean()
-  @Input() isUplink = true;
+  @Input() converterType = ConverterType.UPLINK;
 
   @Input() integrationType: IntegrationType;
 
@@ -69,7 +90,7 @@ export class ConverterLibraryComponent implements OnChanges {
   @ViewChild('vendorInput', { static: true }) vendorInput: ElementRef;
   @ViewChild('dataConverter') dataConverterComponent: ConverterComponent;
 
-  libraryFormGroup: FormGroup;
+  libraryFormGroup: UntypedFormGroup;
   vendors$: Observable<Array<Vendor>>;
   models$: Observable<Model[]>;
   converter$: Observable<Converter>;
@@ -78,8 +99,11 @@ export class ConverterLibraryComponent implements OnChanges {
   integrationDir: IntegrationDirectory;
   vendorInputSubject = new Subject<void>();
   modelInputSubject = new Subject<void>();
-  showConverter = false;
-  initialConverter: Converter = {} as Converter;
+
+  private destroy$ = new Subject<void>();
+
+  private onChange!: (converter: Converter) => void;
+  private onTouched!: () => void;
 
   constructor(
     private fb: FormBuilder,
@@ -87,8 +111,14 @@ export class ConverterLibraryComponent implements OnChanges {
   ) {
     this.libraryFormGroup = fb.group({
       vendor: ['', Validators.required],
-      model: ['', Validators.required]
+      model: ['', Validators.required],
+      converter: this.fb.group({})
     });
+
+    merge(this.libraryFormGroup.valueChanges, this.converterFormGroup.valueChanges).pipe(
+      filter(() => !!this.onChange),
+      takeUntil(this.destroy$)
+    ).subscribe(value => this.onChange(value?.converter));
 
     this.vendors$ = this.vendorInputSubject.asObservable().pipe(
       switchMap(() => of(this.integrationDir)),
@@ -103,13 +133,14 @@ export class ConverterLibraryComponent implements OnChanges {
       switchMap(vendors =>
         this.libraryFormGroup.get('vendor').valueChanges.pipe(
           startWith(''),
-          map(searchValue => {
-              this.libraryFormGroup.get('model').patchValue('');
-              return vendors.filter(vendor =>
-                vendor.name.includes(searchValue) || searchValue?.name === vendor.name
-              )
+          map(value => {
+            this.libraryFormGroup.get('model').patchValue('');
+            if (isEmptyStr(value)) {
+              return vendors;
             }
-          )
+            const searchValue = (value?.name ?? value.trim()).toLowerCase();
+            return vendors.filter(vendor => vendor.name.toLowerCase().includes(searchValue));
+          })
         )
       )
     );
@@ -119,7 +150,7 @@ export class ConverterLibraryComponent implements OnChanges {
       distinctUntilChanged(),
       switchMap(() => {
           if (this.libraryFormGroup.get('vendor').value?.name) {
-            return this.converterLibraryService.getModels(this.integrationDir, this.libraryFormGroup.get('vendor').value.name)
+            return this.converterLibraryService.getModels(this.integrationDir, this.libraryFormGroup.get('vendor').value.name, this.converterType)
           }
           this.libraryFormGroup.get('model').patchValue('');
           return of([]);
@@ -132,48 +163,83 @@ export class ConverterLibraryComponent implements OnChanges {
       switchMap(models =>
         this.libraryFormGroup.get('model').valueChanges.pipe(
           startWith(''),
-          map(searchValue =>
-            models.filter(model =>
-              model.info.label.includes(searchValue) || searchValue?.info?.label === model.info.label
-            )
-          )
+          map(value => {
+            if (isEmptyStr(value)) {
+              return models;
+            }
+            const searchValue = (value?.name ?? value.trim()).toLowerCase();
+            return models.filter(model => model.name.toLowerCase().includes(searchValue));
+          })
         )
       )
     );
 
     this.converter$ = this.libraryFormGroup.get('vendor').valueChanges.pipe(
-      startWith(null),
       switchMap(vendor =>
-        vendor ? this.libraryFormGroup.get('model').valueChanges.pipe(
-          startWith(null),
+        this.libraryFormGroup.get('model').valueChanges.pipe(
           switchMap(model =>
-            model ? this.converterLibraryService.getConverter(
+            model?.name && vendor?.name ? this.converterLibraryService.getConverter(
               this.integrationDir,
-              vendor?.name ?? '',
-              model?.name ?? '',
-              this.isUplink
-            ).pipe(catchError(() => of(this.initialConverter)))
-              : of(this.initialConverter)
+              vendor.name,
+              model.name,
+              this.converterType
+            ) : of(null).pipe(catchError(() => of(null)))
           )
-        ) : of(this.initialConverter)
+        )
       ),
-      tap(converter => this.onConverterChanged(converter))
+      tap((converter: Converter) => {
+        if (!converter) {
+          this.libraryFormGroup.updateValueAndValidity();
+          return;
+        }
+        this.onConverterChanged();
+      })
     );
   }
 
+  get converterFormGroup(): FormGroup {
+    return this.libraryFormGroup.get('converter') as FormGroup;
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes.integrationType && this.integrationType) {
-      this.libraryFormGroup.get('vendor').patchValue('');
-      this.libraryFormGroup.get('model').patchValue('');
+    if (
+      changes.integrationType
+      && !changes.integrationType.firstChange
+      && changes.integrationType.currentValue !== changes.integrationType.previousValue
+    ) {
+      this.libraryFormGroup.get('vendor').reset();
+      this.libraryFormGroup.get('model').reset();
       this.integrationDir = IntegrationDirectory[this.integrationType] ?? this.integrationType;
     }
-    if (changes.isUplink && isDefined(this.isUplink)) {
-      this.initialConverter.type = this.isUplink ? ConverterType.UPLINK : ConverterType.DOWNLINK;
-      if (!this.isUplink) {
-        this.libraryFormGroup.get('vendor').clearValidators();
-        this.libraryFormGroup.get('model').clearValidators();
-      }
-    }
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    isDisabled
+      ? this.converterFormGroup.disable({emitEvent: false})
+      : this.converterFormGroup.enable({emitEvent: false});
+    this.converterFormGroup.updateValueAndValidity();
+  }
+
+  registerOnChange(fn: (converter: Converter) => void): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  writeValue(_): void {
+  }
+
+  validate(): ValidationErrors | null {
+    return this.libraryFormGroup.valid ? null : {
+      converterFormGroup: {valid: false}
+    };
   }
 
   displayModelFn(model?: Model): string {
@@ -209,12 +275,13 @@ export class ConverterLibraryComponent implements OnChanges {
     return item.name;
   }
 
-  private onConverterChanged(converter: Converter): void {
-    const converterData = {...converter};
-    delete converterData.type;
-    this.showConverter = !isEqual(converterData, {});
+  private onConverterChanged(): void {
     setTimeout(() => {
-      this.converterChanged.emit(this.dataConverterComponent.entityForm)
+      Object.keys(this.converterFormGroup.controls).forEach(key => this.converterFormGroup.removeControl(key))
+      Object.keys(this.dataConverterComponent.entityForm.controls).forEach(key => {
+        this.converterFormGroup.addControl(key, this.dataConverterComponent.entityForm.controls[key]);
+      });
+      this.converterFormGroup.updateValueAndValidity();
     });
   }
 }
