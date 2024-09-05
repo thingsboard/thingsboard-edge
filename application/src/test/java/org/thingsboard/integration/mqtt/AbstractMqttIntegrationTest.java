@@ -41,6 +41,7 @@ import org.thingsboard.mqtt.MqttClient;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -141,6 +142,35 @@ class AbstractMqttIntegrationTest {
             "   }\n" +
             "}";
 
+    String configClientIdLong = "{\n" +
+            "   \"clientConfiguration\":{\n" +
+            "      \"host\":\"localhost\",\n" +
+            "      \"port\":1883,\n" +
+            "      \"cleanSession\":true,\n" +
+            "      \"ssl\":false,\n" +
+            "      \"connectTimeoutSec\":10,\n" +
+            "      \"clientId\":\"12n3ibfi54gbhgrtnjhrt95654n32f2fg3mi44\",\n" +
+            "      \"maxBytesInMessage\":32368,\n" +
+            "      \"credentials\":{\n" +
+            "         \"type\":\"anonymous\"\n" +
+            "      }\n" +
+            "   },\n" +
+            "   \"downlinkTopicPattern\":\"${topic}\",\n" +
+            "   \"topicFilters\":[\n" +
+            "      {\n" +
+            "         \"filter\":\"my/data\",\n" +
+            "         \"qos\":1\n" +
+            "      },\n" +
+            "      {\n" +
+            "         \"filter\":\"test/topic\",\n" +
+            "         \"qos\":1\n" +
+            "      }\n" +
+            "   ],\n" +
+            "   \"metadata\":{\n" +
+            "      \n" +
+            "   }\n" +
+            "}";
+
     @BeforeEach
     void setUp() throws Exception {
         Integration configuration = getIntegration(config);
@@ -168,6 +198,17 @@ class AbstractMqttIntegrationTest {
     @Test
     void testMqttIntegrationUnsubscribe3() throws Exception {
         processTest(configNoClientId, 0);
+    }
+
+    @Test
+    void testMqttIntegrationClientIdTooLong() {
+        Integration integration = getIntegration(configClientIdLong);
+
+        String clientId = "12n3ibfi54gbhgrtnjhrt95654n32f2fg3mi44";
+        assertThatThrownBy(() -> basicMqttIntegration.validateConfiguration(integration, true))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Client ID is too long '" + clientId + "'. " +
+                        "The length of Client ID cannot be longer than 23, but current length is " + clientId.length() + ".");
     }
 
     private void processTest(String config, int wantedNumberOfInvocations) throws Exception {
