@@ -34,12 +34,14 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
+import org.thingsboard.server.service.custommenu.TbCustomMenuService;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.List;
@@ -47,6 +49,9 @@ import java.util.List;
 @Component
 @Slf4j
 public class CustomMenuCloudProcessor extends BaseEdgeProcessor {
+
+    @Autowired
+    private TbCustomMenuService tbCustomMenuService;
 
     public ListenableFuture<Void> processCustomMenuMsgFromCloud(TenantId tenantId, CustomMenuProto customMenuProto) {
         try {
@@ -60,12 +65,12 @@ public class CustomMenuCloudProcessor extends BaseEdgeProcessor {
                             ? JacksonUtil.fromString(customMenuProto.getAssigneeList(), new TypeReference<>() {}, true) : null;
                     CustomMenu existing = customMenuService.findCustomMenuById(customMenu.getTenantId(), customMenu.getId());
                     if (existing != null) {
-                        CustomMenu savedCustomMenu = customMenuService.updateCustomMenu(customMenu, false);
+                        CustomMenu savedCustomMenu = tbCustomMenuService.updateCustomMenu(customMenu, false);
                         if (assigneeList != null) {
-                            customMenuService.updateAssigneeList(savedCustomMenu, savedCustomMenu.getAssigneeType(), assigneeList, true);
+                            tbCustomMenuService.updateAssigneeList(savedCustomMenu, savedCustomMenu.getAssigneeType(), assigneeList, true);
                         }
                     } else {
-                        customMenuService.createCustomMenu(customMenu, assigneeList, false);
+                        tbCustomMenuService.createCustomMenu(customMenu, assigneeList, false);
                     }
                 }
                 case ENTITY_DELETED_RPC_MESSAGE -> {
@@ -75,7 +80,7 @@ public class CustomMenuCloudProcessor extends BaseEdgeProcessor {
                     }
                     CustomMenu existing = customMenuService.findCustomMenuById(customMenu.getTenantId(), customMenu.getId());
                     if (existing != null) {
-                        customMenuService.deleteCustomMenu(customMenu, true);
+                        tbCustomMenuService.deleteCustomMenu(customMenu, true);
                     }
                 }
             }
