@@ -119,6 +119,12 @@ export interface ConverterDebugInput {
   inIntegrationMetadata: string;
 }
 
+export enum ConverterSourceType {
+  NEW = 'new',
+  EXIST = 'exist',
+  LIBRARY = 'library',
+}
+
 export interface Vendor {
   name: string;
   logo: string;

@@ -32,7 +32,6 @@
 import { AfterViewInit, Component, Inject, OnDestroy, ViewChild } from '@angular/core';
 import { DialogComponent } from '@shared/components/dialog.component';
 import {
-  ConverterSourceType,
   getIntegrationHelpLink,
   Integration,
   IntegrationType,
@@ -51,7 +50,7 @@ import { forkJoin, Observable, of, Subject } from 'rxjs';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { TranslateService } from '@ngx-translate/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { Converter, ConverterType } from '@shared/models/converter.models';
+import { Converter, ConverterSourceType, ConverterType } from '@shared/models/converter.models';
 import { ConverterComponent } from '@home/components/converter/converter.component';
 import { deepTrim, guid, isDefinedAndNotNull } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';

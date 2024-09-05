@@ -74,12 +74,6 @@ export enum IntegrationDirectory {
   TTN = 'ThingsStackIndustries'
 }
 
-export enum ConverterSourceType {
-  NEW = 'new',
-  EXIST = 'exist',
-  LIBRARY = 'library',
-}
-
 export enum CoapSecurityMode {
   NO_SECURE = 'NO_SECURE',
   DTLS = 'DTLS',
