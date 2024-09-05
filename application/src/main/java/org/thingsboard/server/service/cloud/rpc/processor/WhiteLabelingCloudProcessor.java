@@ -58,25 +58,6 @@ public class WhiteLabelingCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private WhiteLabelingService whiteLabelingService;
 
-    public ListenableFuture<Void> processCustomMenuMsgFromCloud(TenantId tenantId, CustomMenuProto customMenuProto) {
-        try {
-            EntityId entityId = constructEntityId(customMenuProto.getEntityType(), customMenuProto.getEntityIdMSB(), customMenuProto.getEntityIdLSB());
-            CustomMenu customMenu = JacksonUtil.fromString(customMenuProto.getEntity(), CustomMenu.class, true);
-            if (customMenu == null) {
-                throw new RuntimeException("[{" + tenantId + "}] customMenuProto {" + customMenuProto + "} cannot be converted to custom menu");
-            }
-            switch (entityId.getEntityType()) {
-                case TENANT -> customMenuService.saveTenantCustomMenu(tenantId, customMenu);
-                case CUSTOMER -> customMenuService.saveCustomerCustomMenu(tenantId, new CustomerId(entityId.getId()), customMenu);
-            }
-        } catch (Exception e) {
-            String errMsg = "Exception during updating custom menu";
-            log.error(errMsg, e);
-            return Futures.immediateFailedFuture(new RuntimeException(errMsg, e));
-        }
-        return Futures.immediateFuture(null);
-    }
-
     public ListenableFuture<Void> processWhiteLabelingMsgFromCloud(TenantId tenantId, CustomerId customerId, WhiteLabelingProto whiteLabelingProto) throws Exception {
         WhiteLabeling whiteLabeling = JacksonUtil.fromString(whiteLabelingProto.getEntity(), WhiteLabeling.class, true);
         if (whiteLabeling == null) {

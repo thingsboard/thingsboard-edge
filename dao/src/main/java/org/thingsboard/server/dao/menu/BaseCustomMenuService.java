@@ -234,7 +234,8 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     }
 
     private CustomMenu saveCustomMenu(CustomMenu customMenu, List<EntityId> assignToList, boolean force) throws ThingsboardException {
-        customMenuInfoValidator.validate(customMenu, CustomMenuInfo::getTenantId);
+//         edge-only: we do not need to validate, validation is done on TB side
+//         customMenuInfoValidator.validate(customMenu, CustomMenuInfo::getTenantId);
         if (customMenu.getAssigneeType() == CMAssigneeType.ALL) {
             CustomMenu existingDefaultCustomMenu = findDefaultCustomMenuByScope(customMenu.getTenantId(), customMenu.getCustomerId(), customMenu.getScope());
             if (existingDefaultCustomMenu != null && !existingDefaultCustomMenu.getId().equals(customMenu.getId())) {

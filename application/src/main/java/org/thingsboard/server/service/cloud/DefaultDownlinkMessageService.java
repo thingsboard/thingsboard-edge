@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
@@ -52,6 +53,7 @@ import org.thingsboard.server.gen.edge.v1.AlarmUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.ConverterUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceCredentialsRequestMsg;
@@ -91,6 +93,7 @@ import org.thingsboard.server.service.cloud.rpc.processor.AlarmCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.AssetProfileCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.ConverterCloudProcessor;
+import org.thingsboard.server.service.cloud.rpc.processor.CustomMenuCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomTranslationCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.CustomerCloudProcessor;
 import org.thingsboard.server.service.cloud.rpc.processor.DashboardCloudProcessor;
@@ -190,6 +193,9 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
 
     @Autowired
     private CustomTranslationCloudProcessor customTranslationProcessor;
+
+    @Autowired
+    private CustomMenuCloudProcessor customMenuProcessor;
 
     @Autowired
     private WhiteLabelingCloudProcessor whiteLabelingProcessor;
@@ -378,7 +384,7 @@ public class DefaultDownlinkMessageService implements DownlinkMessageService {
                 result.add(customTranslationProcessor.processCustomTranslationMsgFromCloud(tenantId, downlinkMsg.getCustomTranslationUpdateMsg()));
             }
             if (downlinkMsg.hasCustomMenuProto()) {
-                result.add(whiteLabelingProcessor.processCustomMenuMsgFromCloud(tenantId, downlinkMsg.getCustomMenuProto()));
+                result.add(customMenuProcessor.processCustomMenuMsgFromCloud(tenantId, downlinkMsg.getCustomMenuProto()));
             }
             if (downlinkMsg.hasWhiteLabelingProto()) {
                 result.add(whiteLabelingProcessor.processWhiteLabelingMsgFromCloud(tenantId, this.customerId, downlinkMsg.getWhiteLabelingProto()));
