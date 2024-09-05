@@ -39,6 +39,7 @@ import org.thingsboard.server.service.converter.Model;
 import org.thingsboard.server.service.converter.Vendor;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -51,16 +52,47 @@ public class ConverterLibraryControllerTest extends AbstractControllerTest {
     }
 
     @Test
-    public void test() throws Exception {
+    public void testChirpStack() throws Exception {
         String integrationType = "ChirpStack";
+        String vendor = "Milesight";
+        List<String> expectedModels_uplink = List.of("AT101", "WT201", "WS302");
+        List<String> expectedModels_downlink = List.of("WT201");
+        test(integrationType, List.of(vendor),
+                Map.of(vendor, expectedModels_uplink),
+                Map.of(vendor, expectedModels_downlink),
+                integrationType,
+                "\"applicationName\": \"Chirpstack application\"",
+                "freeze_protection_config");
+    }
 
+    @Test
+    public void testThingsStackIndustries() throws Exception {
+        String integrationType = "ThingsStackIndustries";
+        String vendor = "Netvox";
+        List<String> expectedModels_uplink = List.of("R718N3");
+        List<String> expectedModels_downlink = List.of();
+        test(integrationType, List.of(vendor),
+                Map.of(vendor, expectedModels_uplink),
+                Map.of(vendor, expectedModels_downlink),
+                "Things Stack Industries",
+                "gAyBtYAQFKAZ8D6ADIG1gBAUoCnwMKAAAAAAABSgMkBd0F1BtYNgFKBJ85AAAAAAAA",
+                "");
+    }
+
+    private void test(String integrationType, List<String> expectedVendors,
+                      Map<String, List<String>> expectedUplinkModels,
+                      Map<String, List<String>> expectedDownlinkModels,
+                      String expectedIntegrationName,
+                      String expectedUplinkPayloadSubstring,
+                      String expectedDownlinkPayloadSubstring) throws Exception {
         List<Vendor> vendors = doGetTyped("/api/converter/library/" + integrationType + "/vendors", new TypeReference<>() {});
-        assertThat(vendors).extracting(Vendor::name).contains("Milesight");
+        assertThat(vendors).extracting(Vendor::name).containsAll(expectedVendors);
 
         for (Vendor vendor : vendors) {
-            List<Model> models = doGetTyped("/api/converter/library/" + integrationType + "/" + vendor.name() + "/models", new TypeReference<>() {});
-            assertThat(models).size().isGreaterThanOrEqualTo(8);
-            assertThat(models).extracting(Model::name).contains("AT101", "WT201", "WS302");
+            // uplink
+            List<Model> models = doGetTyped("/api/converter/library/" + integrationType + "/" + vendor.name() + "/models?converterType=uplink", new TypeReference<>() {});
+            List<String> expectedModels = expectedUplinkModels.get(vendor.name());
+            assertThat(models).extracting(Model::name).containsAll(expectedModels);
 
             for (Model model : models) {
                 ObjectNode uplinkConverter = doGet("/api/converter/library/" + integrationType + "/" + vendor.name() + "/" + model.name() + "/uplink", ObjectNode.class);
@@ -69,25 +101,28 @@ public class ConverterLibraryControllerTest extends AbstractControllerTest {
                 assertThat(uplinkConverter.get("configuration").get("scriptLang").asText()).isEqualTo("TBEL");
 
                 ObjectNode uplinkConverterMetadata = doGet("/api/converter/library/" + integrationType + "/" + vendor.name() + "/" + model.name() + "/uplink/metadata", ObjectNode.class);
-                assertThat(uplinkConverterMetadata.get("integrationName").asText()).contains(integrationType);
+                assertThat(uplinkConverterMetadata.get("integrationName").asText()).contains(expectedIntegrationName);
 
                 String uplinkPayload = doGet("/api/converter/library/" + integrationType + "/" + vendor.name() + "/" + model.name() + "/uplink/payload", String.class);
-                assertThat(uplinkPayload).contains("\"applicationName\": \"Chirpstack application\"");
+                assertThat(uplinkPayload).contains(expectedUplinkPayloadSubstring);
+            }
 
+            // downlink
+            models = doGetTyped("/api/converter/library/" + integrationType + "/" + vendor.name() + "/models?converterType=downlink", new TypeReference<>() {});
+            expectedModels = expectedDownlinkModels.get(vendor.name());
+            assertThat(models).extracting(Model::name).containsAll(expectedModels);
 
-                if (!model.name().equals("WT201")) {
-                    continue;
-                }
+            for (Model model : models) {
                 ObjectNode downlinkConverter = doGet("/api/converter/library/" + integrationType + "/" + vendor.name() + "/" + model.name() + "/downlink", ObjectNode.class);
                 assertThat(downlinkConverter.get("name").asText()).contains(model.name());
                 assertThat(downlinkConverter.get("type").asText()).isEqualTo("DOWNLINK");
                 assertThat(downlinkConverter.get("configuration").get("scriptLang").asText()).isEqualTo("TBEL");
 
                 ObjectNode downlinkConverterMetadata = doGet("/api/converter/library/" + integrationType + "/" + vendor.name() + "/" + model.name() + "/downlink/metadata", ObjectNode.class);
-                assertThat(downlinkConverterMetadata.get("integrationName").asText()).contains(integrationType);
+                assertThat(downlinkConverterMetadata.get("integrationName").asText()).contains(expectedIntegrationName);
 
                 String downlinkPayload = doGet("/api/converter/library/" + integrationType + "/" + vendor.name() + "/" + model.name() + "/downlink/payload", String.class);
-                assertThat(downlinkPayload).contains("freeze_protection_config");
+                assertThat(downlinkPayload).contains(expectedDownlinkPayloadSubstring);
             }
         }
     }
