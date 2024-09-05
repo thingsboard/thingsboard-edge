@@ -49,7 +49,7 @@
         </div>
       </div>
       <div fxHide.xs class="tb-custom-menu-item-input-block">
-        <mat-form-field fxFlex class="tb-inline-field flex tb-suffix-absolute" appearance="outline" subscriptSizing="dynamic">
+        <mat-form-field class="flex tb-suffix-absolute" appearance="outline" subscriptSizing="dynamic">
           <input matInput [required]="isCustomMenuItem" formControlName="name" placeholder="{{ itemNamePlaceholder }}">
           <mat-icon matSuffix
                     matTooltipPosition="above"
@@ -61,7 +61,7 @@
           </mat-icon>
         </mat-form-field>
         <mat-form-field *ngIf="isHomeMenuItem || isCustomMenuItem"
-                        fxFlex class="tb-inline-field tb-custom-menu-item-info" appearance="outline" subscriptSizing="dynamic">
+                        class="flex tb-custom-menu-item-info" appearance="outline" subscriptSizing="dynamic">
           <input matInput readonly [placeholder]="itemInfo">
         </mat-form-field>
       </div>
@@ -92,7 +92,7 @@
   <div *ngIf="visiblePagesControls().length" class="tb-custom-menu-item-pages-container">
     <div class="tb-custom-menu-item-pages-left"></div>
     <div class="tb-custom-menu-item-pages-right">
-      <div *ngIf="visiblePagesControls().length" class="tb-drop-list tb-custom-menu-item-pages-list"
+      <div class="tb-drop-list tb-custom-menu-item-pages-list"
            cdkDropList
            cdkDropListOrientation="vertical"
            (cdkDropListDropped)="pageDrop($event)"
