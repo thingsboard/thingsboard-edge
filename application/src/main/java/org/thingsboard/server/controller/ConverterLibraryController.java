@@ -37,6 +37,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -64,12 +65,13 @@ public class ConverterLibraryController extends BaseController {
     }
 
     @ApiOperation(value = "Get vendor models (getVendorModels)",
-            notes = "Returns a list of models for the vendor and integration type")
+            notes = "Returns a list of models for the vendor, integration type and converter type")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping(value = "/{integrationType}/{vendorName}/models")
     public List<Model> getVendorModels(@PathVariable String integrationType,
-                                       @PathVariable String vendorName) {
-        return converterLibraryService.getVendorModels(integrationType, vendorName);
+                                       @PathVariable String vendorName,
+                                       @RequestParam(required = false) String converterType) {
+        return converterLibraryService.getVendorModels(integrationType, converterType, vendorName);
     }
 
     @ApiOperation(value = "Get uplink converter (getUplinkConverter)",
