@@ -30,21 +30,20 @@
 ///
 
 import {
+  AfterViewInit,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   forwardRef,
   Input,
   OnChanges,
-  Output,
+  OnDestroy,
   SimpleChanges,
   ViewChild
 } from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
-  FormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   UntypedFormGroup,
@@ -52,8 +51,15 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { merge, Observable, of, shareReplay, Subject } from 'rxjs';
-import { catchError, distinctUntilChanged, filter, map, startWith, switchMap, takeUntil, tap } from 'rxjs/operators';
+import { combineLatest, Observable, of, shareReplay, Subject } from 'rxjs';
+import {
+  catchError,
+  distinctUntilChanged,
+  map,
+  startWith,
+  switchMap,
+  takeUntil,
+} from 'rxjs/operators';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
 import { IntegrationDirectory, IntegrationType } from '@shared/models/integration.models';
 import { Converter, ConverterType, Model, Vendor } from '@shared/models/converter.models';
@@ -78,7 +84,7 @@ import { isEmptyStr } from '@core/utils';
     }
   ],
 })
-export class ConverterLibraryComponent implements ControlValueAccessor, Validator, OnChanges {
+export class ConverterLibraryComponent implements ControlValueAccessor, Validator, OnChanges, AfterViewInit, OnDestroy {
 
   @Input() converterType = ConverterType.UPLINK;
   @Input() integrationType: IntegrationType;
@@ -109,13 +115,11 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
     this.libraryFormGroup = fb.group({
       vendor: ['', Validators.required],
       model: ['', Validators.required],
-      converter: this.fb.group({})
     });
 
-    merge(this.libraryFormGroup.valueChanges, this.converterFormGroup.valueChanges).pipe(
-      filter(() => !!this.onChange),
-      takeUntil(this.destroy$)
-    ).subscribe(value => this.onChange(value?.converter));
+    this.libraryFormGroup.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(value => this.onChange(value?.converter));
 
     this.vendors$ = this.vendorInputSubject.asObservable().pipe(
       switchMap(() => of(this.integrationDir)),
@@ -126,20 +130,19 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       shareReplay(1)
     );
 
-    this.filteredVendors$ = this.vendors$.pipe(
-      switchMap(vendors =>
-        this.libraryFormGroup.get('vendor').valueChanges.pipe(
-          startWith(''),
-          map(value => {
-            this.libraryFormGroup.get('model').patchValue('');
-            if (isEmptyStr(value)) {
-              return vendors;
-            }
-            const searchValue = (value?.name ?? value.trim()).toLowerCase();
-            return vendors.filter(vendor => vendor.name.toLowerCase().includes(searchValue));
-          })
-        )
-      )
+    this.filteredVendors$ = combineLatest([
+      this.libraryFormGroup.get('vendor').valueChanges,
+      this.vendors$
+    ]).pipe(
+      map(([value, vendors]) => {
+        this.libraryFormGroup.get('model').patchValue('', {emitEvent: false});
+        if (isEmptyStr(value)) {
+          return vendors;
+        }
+        const searchValue = (value?.name ?? value.trim()).toLowerCase();
+        return vendors.filter(vendor => vendor.name.toLowerCase().includes(searchValue));
+      }),
+      shareReplay(1)
     );
 
     this.models$ = this.modelInputSubject.asObservable().pipe(
@@ -156,43 +159,32 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       shareReplay(1)
     );
 
-    this.filteredModels$ = this.models$.pipe(
-      switchMap(models =>
-        this.libraryFormGroup.get('model').valueChanges.pipe(
-          startWith(''),
-          map(value => {
-            if (isEmptyStr(value)) {
-              return models;
-            }
-            const searchValue = (value?.name ?? value.trim()).toLowerCase();
-            return models.filter(model => model.name.toLowerCase().includes(searchValue));
-          })
-        )
-      )
-    );
-
-    this.converter$ = this.libraryFormGroup.get('vendor').valueChanges.pipe(
-      switchMap(vendor =>
-        this.libraryFormGroup.get('model').valueChanges.pipe(
-          switchMap(model =>
-            model?.name && vendor?.name
-              ? this.converterLibraryService.getConverter(this.integrationDir, vendor.name, model.name, this.converterType)
-              : of(null)
-          ),
-          catchError(() => of(null))
-        )
-      ),
-      tap((converter: Converter) => {
-        if (!converter) {
-          return;
+    this.filteredModels$ = combineLatest([
+      this.models$,
+      this.libraryFormGroup.get('model').valueChanges.pipe(startWith(''))
+    ]).pipe(
+      map(([models, value]) => {
+        if (isEmptyStr(value)) {
+          return models;
         }
-        this.onConverterChanged();
-      })
+        const searchValue = (value?.name ?? value.trim()).toLowerCase();
+        return models.filter(model => model.name.toLowerCase().includes(searchValue));
+      }),
+      shareReplay(1)
     );
-  }
 
-  get converterFormGroup(): FormGroup {
-    return this.libraryFormGroup.get('converter') as FormGroup;
+    this.converter$ = combineLatest([
+      this.libraryFormGroup.get('vendor').valueChanges.pipe(startWith('')),
+      this.libraryFormGroup.get('model').valueChanges.pipe(startWith(''))
+    ]).pipe(
+      switchMap(([vendor, model]) =>
+        vendor?.name && model?.name
+          ? this.converterLibraryService.getConverter(this.integrationDir, vendor.name, model.name, this.converterType)
+          : of(null)
+      ),
+      catchError(() => of(null)),
+      map((converter: Converter) => converter ?? { type: this.converterType } as Converter)
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -201,10 +193,14 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       && !changes.integrationType.firstChange
       && changes.integrationType.currentValue !== changes.integrationType.previousValue
     ) {
-      this.libraryFormGroup.get('vendor').reset();
-      this.libraryFormGroup.get('model').reset();
+      this.libraryFormGroup.get('vendor').reset('');
+      this.libraryFormGroup.get('model').reset('');
       this.integrationDir = IntegrationDirectory[this.integrationType] ?? this.integrationType;
     }
+  }
+
+  ngAfterViewInit(): void {
+    this.libraryFormGroup.setControl('converter', this.dataConverterComponent.entityForm, {emitEvent: false});
   }
 
   ngOnDestroy(): void {
@@ -214,9 +210,8 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
   setDisabledState(isDisabled: boolean): void {
     isDisabled
-      ? this.converterFormGroup.disable({emitEvent: false})
-      : this.converterFormGroup.enable({emitEvent: false});
-    this.converterFormGroup.updateValueAndValidity();
+      ? this.libraryFormGroup.disable({emitEvent: false})
+      : this.libraryFormGroup.enable({emitEvent: false});
   }
 
   registerOnChange(fn: (converter: Converter) => void): void {
@@ -267,15 +262,5 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
   trackByName(_, item: Vendor | Model): string {
     return item.name;
-  }
-
-  private onConverterChanged(): void {
-    setTimeout(() => {
-      Object.keys(this.converterFormGroup.controls).forEach(key => this.converterFormGroup.removeControl(key))
-      Object.keys(this.dataConverterComponent.entityForm.controls).forEach(key => {
-        this.converterFormGroup.addControl(key, this.dataConverterComponent.entityForm.controls[key]);
-      });
-      this.converterFormGroup.updateValueAndValidity();
-    });
   }
 }
