@@ -381,7 +381,14 @@ $$
                     "pages": [
                       {"id": "security_settings_general"},
                       {"id": "two_fa"},
-                      {"id": "oauth2"}
+                      {
+                        "id": "oauth2",
+                        "pages": [
+                          {"id": "domains"},
+                          {"id": "mobile_apps"},
+                          {"id": "clients"}
+                        ]
+                      }
                     ]
                   }
                 ]'::jsonb || (coalesce(config::jsonb #> '{menuItems}', '[]'::jsonb)))
