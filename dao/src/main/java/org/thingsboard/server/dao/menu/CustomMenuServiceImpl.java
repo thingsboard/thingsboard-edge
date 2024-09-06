@@ -78,7 +78,7 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMenuId, CustomMenu, CustomMenuCacheEvictEvent> implements CustomMenuService {
+public class CustomMenuServiceImpl extends AbstractCachedEntityService<CustomMenuId, CustomMenu, CustomMenuCacheEvictEvent> implements CustomMenuService {
 
     private static final String INCORRECT_CUSTOM_MENU_ID = "Incorrect customMenuId ";
     private final CustomerService customerService;
@@ -108,7 +108,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
                 .toList();
 
         List<EntityId> toRemoveEntityIds = existingEntityIds.stream()
-                .filter(entityId -> newAssignToList.stream().noneMatch(id -> id.equals(entityId)))
+                .filter(entityId -> !newAssignToList.contains(entityId))
                 .toList();
         List<EntityId> toAddEntityIds = newAssignToList.stream()
                 .filter(entityId -> !existingEntityIds.contains(entityId))
@@ -141,9 +141,9 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     }
 
     @Override
-    public PageData<CustomMenuInfo> findCustomMenuInfos(CustomMenuFilter customMenuFilter, PageLink pageLink) {
+    public PageData<CustomMenuInfo> findCustomMenuInfos(TenantId tenantId, CustomMenuFilter customMenuFilter, PageLink pageLink) {
         log.trace("Executing findCustomMenuInfos [{}]", customMenuFilter);
-        return customMenuDao.findInfosByFilter(customMenuFilter, pageLink);
+        return customMenuDao.findInfosByFilter(tenantId, customMenuFilter, pageLink);
     }
 
     @Override
@@ -275,11 +275,11 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
                 break;
             case CUSTOMERS:
                 List<CustomerId> customerIds = entityIds.stream().map(CustomerId.class::cast).toList();
-                customerService.updateCustomersCustomMenuId(customerIds, isUnassign ? null : customMenuId.getId());
+                customerService.updateCustomersCustomMenuId(customerIds, isUnassign ? null : customMenuId);
                 break;
             case USERS:
                 List<UserId> userIds = entityIds.stream().map(UserId.class::cast).toList();
-                userService.updateUsersCustomMenuId(userIds, isUnassign ? null : customMenuId.getId());
+                userService.updateUsersCustomMenuId(userIds, isUnassign ? null : customMenuId);
                 break;
             default:
                 throw new IncorrectParameterException("Unsupported assignee type!");
@@ -308,7 +308,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     }
 
     private static <T extends MenuItem> List<T> filterVisibleMenuItems(List<T> menuItems) {
-        return menuItems.stream().filter(MenuItem::isVisible).map(BaseCustomMenuService::filterVisiblePages).collect(Collectors.toList());
+        return menuItems.stream().filter(MenuItem::isVisible).map(CustomMenuServiceImpl::filterVisiblePages).collect(Collectors.toList());
     }
 
     private static <T extends MenuItem> T filterVisiblePages(T item) {
@@ -358,7 +358,7 @@ public class BaseCustomMenuService extends AbstractCachedEntityService<CustomMen
     @TransactionalEventListener(classes = CustomMenuCacheEvictEvent.class)
     @Override
     public void handleEvictEvent(CustomMenuCacheEvictEvent event) {
-        cache.evict(event.getCustomMenuId());
+        cache.evict(event.customMenuId());
     }
 
 }

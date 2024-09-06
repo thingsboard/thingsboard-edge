@@ -36,6 +36,7 @@ import {
   forwardRef,
   Input,
   OnChanges,
+  OnDestroy,
   OnInit,
   Output,
   Renderer2,
@@ -57,7 +58,8 @@ import {
 } from '@angular/forms';
 import {
   CMItemLinkType,
-  CMItemType, cmLinkTypeTranslations,
+  CMItemType,
+  cmLinkTypeTranslations,
   CMScope,
   CustomMenuItem,
   HomeMenuItem,
@@ -83,6 +85,7 @@ import {
 } from '@home/pages/custom-menu/add-custom-menu-item.dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { CustomMenuItemPanelComponent } from '@home/pages/custom-menu/custom-menu-item-panel.component';
+import { Observable, Subscription } from 'rxjs';
 
 @Component({
   selector: 'tb-custom-menu-item-row',
@@ -102,11 +105,9 @@ import { CustomMenuItemPanelComponent } from '@home/pages/custom-menu/custom-men
   ],
   encapsulation: ViewEncapsulation.None
 })
-export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit, Validator, OnChanges {
+export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit, OnDestroy, Validator, OnChanges {
 
   homeMenuItemTypeTranslations = homeMenuItemTypeTranslations;
-
-  cmLinkTypeTranslations = cmLinkTypeTranslations;
 
   @Input()
   disabled: boolean;
@@ -127,6 +128,9 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
 
   @Input()
   maxIconNameBlockWidth = 256;
+
+  @Input()
+  hideItems: Observable<void>;
 
   @Output()
   menuItemRemoved = new EventEmitter();
@@ -167,6 +171,8 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
 
   private propagateChange = (_val: any) => {};
 
+  private hideItemsSubscription: Subscription;
+
   constructor(private fb: UntypedFormBuilder,
               private cd: ChangeDetectorRef,
               private translate: TranslateService,
@@ -188,6 +194,21 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
       () => this.updateModel()
     );
     this.updateIconNameBlockWidth();
+    if (this.hideItems) {
+      this.hideItemsSubscription = this.hideItems.subscribe(() => {
+        if (!this.isHomeMenuItem && !this.disabled && this.modelValue.visible) {
+          this.menuItemRowFormGroup.patchValue(
+            {visible: false}, {emitEvent: true}
+          );
+        }
+      });
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.hideItemsSubscription) {
+      this.hideItemsSubscription.unsubscribe();
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -205,7 +226,7 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(_fn: any): void {
   }
 
   setDisabledState(isDisabled: boolean): void {

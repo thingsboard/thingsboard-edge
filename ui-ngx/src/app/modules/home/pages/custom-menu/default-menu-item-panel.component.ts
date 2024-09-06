@@ -167,6 +167,7 @@ export class DefaultMenuItemPanelComponent implements OnInit {
           hideDashboardToolbar: true
         }, {emitEvent: false}
       );
+      this.homeTypeChanged();
     }
     this.menuItemFormGroup.markAsDirty();
     this.updateModel();
@@ -182,7 +183,13 @@ export class DefaultMenuItemPanelComponent implements OnInit {
     } else {
       delete this.menuItem.name;
     }
-    this.menuItem.icon = this.menuItemFormGroup.get('icon').value;
+    const icon = this.menuItemFormGroup.get('icon').value;
+    if (icon !== this.defaultMenuSection.icon) {
+      this.menuItem.icon = icon;
+    } else {
+      delete this.menuItem.icon;
+    }
+
     if (this.isHomeMenuItem) {
       const homeMenuItem = this.menuItem as HomeMenuItem;
       homeMenuItem.homeType = this.menuItemFormGroup.get('homeType').value;

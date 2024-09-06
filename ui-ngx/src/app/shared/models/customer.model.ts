@@ -40,7 +40,7 @@ export interface Customer extends ContactBased<CustomerId>, HasTenantId, HasVers
   tenantId: TenantId;
   parentCustomerId?: CustomerId;
   title: string;
-  customMenuId: CustomMenuId;
+  customMenuId?: CustomMenuId;
   additionalInfo?: any;
 }
 

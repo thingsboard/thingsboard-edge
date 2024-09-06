@@ -38,7 +38,6 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuConfig;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -52,8 +51,8 @@ import org.thingsboard.server.dao.util.mapping.JsonConverter;
 public class CustomMenuEntity extends AbstractCustomMenuEntity<CustomMenu> {
 
     @Convert(converter = JsonConverter.class)
-    @Column(name = ModelConstants.CUSTOM_MENU_SETTINGS)
-    private JsonNode settings;
+    @Column(name = ModelConstants.CUSTOM_MENU_CONFIG)
+    private JsonNode config;
 
     public CustomMenuEntity() {
         super();
@@ -61,12 +60,12 @@ public class CustomMenuEntity extends AbstractCustomMenuEntity<CustomMenu> {
 
     public CustomMenuEntity(CustomMenu customMenu) {
         super(customMenu);
-        this.settings = JacksonUtil.valueToTree(customMenu.getConfig());
+        this.config = toJson(customMenu.getConfig());
     }
 
     @Override
     public CustomMenu toData() {
-        return new CustomMenu(super.toCustomMenuInfo(), JacksonUtil.treeToValue(settings, CustomMenuConfig.class));
+        return new CustomMenu(super.toCustomMenuInfo(), fromJson(config, CustomMenuConfig.class));
     }
 
 }

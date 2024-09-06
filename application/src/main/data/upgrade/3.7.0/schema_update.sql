@@ -249,26 +249,28 @@ CREATE TABLE IF NOT EXISTS custom_menu (
     created_time bigint NOT NULL,
     tenant_id UUID NOT NULL,
     customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
-    menu_name varchar(255) NOT NULL,
+    name varchar(255) NOT NULL,
     scope VARCHAR(16),
     assignee_type VARCHAR(16),
-    settings VARCHAR(10000000)
+    config VARCHAR(10000000)
 );
+
+CREATE INDEX IF NOT EXISTS idx_custom_menu ON custom_menu(tenant_id, customer_id);
 
 -- migrate sys admin custom menu settings
 DO
 $$
     BEGIN
         IF EXISTS(SELECT 1 FROM admin_settings WHERE key = 'customMenu') THEN
-            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
+            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, name, scope, assignee_type, config)
                 (SELECT uuid_generate_v4(), s.created_time, '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
                         'System default menu', 'SYSTEM', 'ALL', trim('"' FROM s.json_value::json ->> 'value') FROM admin_settings s
                  WHERE key = 'customMenu');
-            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
+            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, name, scope, assignee_type, config)
                 (SELECT uuid_generate_v4(), s.created_time, '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
                         'Tenant default menu', 'TENANT', 'ALL', trim('"' FROM s.json_value::json ->> 'value') FROM admin_settings s
                  WHERE key = 'customMenu');
-            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
+            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, name, scope, assignee_type, config)
                 (SELECT uuid_generate_v4(), s.created_time, '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
                         'Customer default menu', 'CUSTOMER', 'ALL', trim('"' FROM s.json_value::json ->> 'value') FROM admin_settings s
                  WHERE key = 'customMenu');
@@ -278,21 +280,21 @@ $$
 $$;
 
 -- migrate tenant customMenu attributes
-INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
+INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, name, scope, assignee_type, config)
     (SELECT uuid_generate_v4(), a.last_update_ts, a.entity_id, '13814000-1dd2-11b2-8080-808080808080', 'Tenant default menu', 'TENANT', 'ALL', COALESCE(a.str_v, a.json_v::text) FROM tenant t
         INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary  where key = 'customMenu'));
-INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
+INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, name, scope, assignee_type, config)
     (SELECT uuid_generate_v4(), a.last_update_ts, a.entity_id, '13814000-1dd2-11b2-8080-808080808080', 'Customer default menu', 'CUSTOMER', 'ALL', COALESCE(a.str_v, a.json_v::text) FROM tenant t
         INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary  where key = 'customMenu'));
 
 -- migrate customer customMenu attributes
-INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type, settings)
+INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, name, scope, assignee_type, config)
     (SELECT uuid_generate_v4(), a.last_update_ts, c.tenant_id, c.id, 'Customer default menu', 'CUSTOMER', 'ALL' , COALESCE(a.str_v, a.json_v::text) FROM customer c
         INNER JOIN attribute_kv a ON c.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary  where key = 'customMenu'));
 
 DELETE FROM attribute_kv WHERE attribute_key = (select key_id from key_dictionary where key LIKE 'customMenu');
 -- delete not valid records
-DELETE FROM custom_menu WHERE settings IS NULL OR settings = '';
+DELETE FROM custom_menu WHERE config IS NULL OR config = '';
 
 CREATE OR REPLACE FUNCTION update_menu_item_with_visible_and_type(json_element jsonb, disabled_ids text[])
     RETURNS jsonb
@@ -340,14 +342,14 @@ DO
 $$
     BEGIN
         -- in case of running the upgrade script a second time
-        IF (SELECT settings::jsonb -> 'disabledMenuItems' FROM custom_menu LIMIT 1) IS NOT NULL THEN
+        IF (SELECT config::jsonb -> 'disabledMenuItems' FROM custom_menu LIMIT 1) IS NOT NULL THEN
             -- rename childMenuItems -> pages, materialIcon -> icon, iframeUrl -> url
-            UPDATE custom_menu SET settings = replace(settings::TEXT, 'childMenuItems', 'pages')::jsonb;
-            UPDATE custom_menu SET settings = replace(settings::TEXT, 'materialIcon', 'icon')::jsonb;
-            UPDATE custom_menu SET settings = replace(settings::TEXT, 'iframeUrl', 'url')::jsonb;
+            UPDATE custom_menu SET config = replace(config::TEXT, 'childMenuItems', 'pages')::jsonb;
+            UPDATE custom_menu SET config = replace(config::TEXT, 'materialIcon', 'icon')::jsonb;
+            UPDATE custom_menu SET config = replace(config::TEXT, 'iframeUrl', 'url')::jsonb;
 
             -- add predefined menu items to sys admin custom menu
-            UPDATE custom_menu SET settings = jsonb_set(settings::jsonb, '{menuItems}',
+            UPDATE custom_menu SET config = jsonb_set(config::jsonb, '{menuItems}',
                 '[
                   {"id": "home"},
                   {"id": "tenants"},
@@ -402,14 +404,21 @@ $$
                     "pages": [
                       {"id": "security_settings_general"},
                       {"id": "two_fa"},
-                      {"id": "oauth2"}
+                      {
+                        "id": "oauth2",
+                        "pages": [
+                          {"id": "domains"},
+                          {"id": "mobile_apps"},
+                          {"id": "clients"}
+                        ]
+                      }
                     ]
                   }
-                ]'::jsonb || (coalesce(settings::jsonb #> '{menuItems}', '[]'::jsonb)))
-            WHERE settings IS NOT NULL and tenant_id = '13814000-1dd2-11b2-8080-808080808080';
+                ]'::jsonb || (coalesce(config::jsonb #> '{menuItems}', '[]'::jsonb)))
+            WHERE config IS NOT NULL and tenant_id = '13814000-1dd2-11b2-8080-808080808080';
 
             -- add predefined menu items to tenant custom menus
-            UPDATE custom_menu SET settings = jsonb_set(settings::jsonb, '{menuItems}',
+            UPDATE custom_menu SET config = jsonb_set(config::jsonb, '{menuItems}',
                  '[
                    {"id": "home"},
                    {"id": "alarms"},
@@ -562,11 +571,11 @@ $$
                        {"id": "audit_log"}
                      ]
                    }
-                 ]'::jsonb ||(coalesce(settings::jsonb #> '{menuItems}', '[]'::jsonb)))
-            WHERE settings IS NOT NULL and customer_id = '13814000-1dd2-11b2-8080-808080808080' and tenant_id != '13814000-1dd2-11b2-8080-808080808080';
+                 ]'::jsonb ||(coalesce(config::jsonb #> '{menuItems}', '[]'::jsonb)))
+            WHERE config IS NOT NULL and customer_id = '13814000-1dd2-11b2-8080-808080808080' and tenant_id != '13814000-1dd2-11b2-8080-808080808080';
 
             -- add predefined menu items to customer custom menus
-            UPDATE custom_menu SET settings = jsonb_set(settings::jsonb, '{menuItems}',
+            UPDATE custom_menu SET config = jsonb_set(config::jsonb, '{menuItems}',
                  '[
                      {"id": "home"},
                      {"id": "alarms"},
@@ -667,13 +676,13 @@ $$
                          {"id": "audit_log"}
                        ]
                      }
-                 ]'::jsonb || (coalesce(settings::jsonb #> '{menuItems}', '[]'::jsonb)))
-            WHERE settings IS NOT NULL and customer_id != '13814000-1dd2-11b2-8080-808080808080';
+                 ]'::jsonb || (coalesce(config::jsonb #> '{menuItems}', '[]'::jsonb)))
+            WHERE config IS NOT NULL and customer_id != '13814000-1dd2-11b2-8080-808080808080';
 
             -- for each item add visible/not visible, add type: home, default or custom
-            UPDATE custom_menu SET settings = json_build_object('items', (SELECT jsonb_agg(update_menu_item_with_visible_and_type(elem,
-                (SELECT array_agg(disableIds) FROM jsonb_array_elements_text(settings::jsonb #> '{disabledMenuItems}') AS disableIds)))
-                                                FROM jsonb_array_elements(settings::jsonb #> '{menuItems}') AS elem));
+            UPDATE custom_menu SET config = json_build_object('items', (SELECT jsonb_agg(update_menu_item_with_visible_and_type(elem,
+                (SELECT array_agg(disableIds) FROM jsonb_array_elements_text(config::jsonb #> '{disabledMenuItems}') AS disableIds)))
+                                                FROM jsonb_array_elements(config::jsonb #> '{menuItems}') AS elem));
         END IF;
     END;
 $$;
@@ -699,7 +708,7 @@ $$
     BEGIN
         -- in case of running the upgrade script a second time
         IF NOT EXISTS(SELECT 1 FROM custom_menu WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' AND scope = 'SYSTEM' AND assignee_type = 'ALL') THEN
-            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
+            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, name, scope, assignee_type)
             VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
                     'System default menu', 'SYSTEM', 'ALL');
         END IF;
@@ -712,7 +721,7 @@ $$
     BEGIN
         -- in case of running the upgrade script a second time
         IF NOT EXISTS(SELECT 1 FROM custom_menu WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' AND scope = 'TENANT' AND assignee_type = 'ALL') THEN
-            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
+            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, name, scope, assignee_type)
             VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
                     'Tenant default menu', 'TENANT', 'ALL');
         END IF;
@@ -725,7 +734,7 @@ $$
     BEGIN
         -- in case of running the upgrade script a second time
         IF NOT EXISTS(SELECT 1 FROM custom_menu WHERE tenant_id = '13814000-1dd2-11b2-8080-808080808080' AND scope = 'CUSTOMER' AND assignee_type = 'ALL') THEN
-            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, menu_name, scope, assignee_type)
+            INSERT INTO custom_menu(id, created_time, tenant_id, customer_id, name, scope, assignee_type)
             VALUES (uuid_generate_v4(), (extract(epoch from now()) * 1000), '13814000-1dd2-11b2-8080-808080808080', '13814000-1dd2-11b2-8080-808080808080',
                     'Customer default menu', 'CUSTOMER', 'ALL');
         END IF;

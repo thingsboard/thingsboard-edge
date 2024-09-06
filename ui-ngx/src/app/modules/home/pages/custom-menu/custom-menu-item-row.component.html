@@ -36,7 +36,10 @@
       <div class="tb-custom-menu-item-start-block">
         <ng-content select=".tb-custom-menu-item-row-prefix"></ng-content>
         <div class="tb-custom-menu-item-icon-name-block" [style.width]="iconNameBlockWidth">
-          <mat-slide-toggle *ngIf="!isHomeMenuItem" formControlName="visible"></mat-slide-toggle>
+          <mat-slide-toggle *ngIf="!isHomeMenuItem"
+                            matTooltip="{{ (menuItemRowFormGroup.get('visible').value ? 'custom-menu.visible' : 'custom-menu.hidden') | translate }}"
+                            matTooltipPosition="above"
+                            formControlName="visible"></mat-slide-toggle>
           <div *ngIf="isHomeMenuItem" style="width: 40px;"></div>
           <tb-material-icon-select asBoxInput
                                    color="var(--tb-primary-500)"
@@ -46,7 +49,7 @@
         </div>
       </div>
       <div fxHide.xs class="tb-custom-menu-item-input-block">
-        <mat-form-field fxFlex class="tb-inline-field flex tb-suffix-absolute" appearance="outline" subscriptSizing="dynamic">
+        <mat-form-field class="flex tb-suffix-absolute" appearance="outline" subscriptSizing="dynamic">
           <input matInput [required]="isCustomMenuItem" formControlName="name" placeholder="{{ itemNamePlaceholder }}">
           <mat-icon matSuffix
                     matTooltipPosition="above"
@@ -58,7 +61,7 @@
           </mat-icon>
         </mat-form-field>
         <mat-form-field *ngIf="isHomeMenuItem || isCustomMenuItem"
-                        fxFlex class="tb-inline-field tb-custom-menu-item-info" appearance="outline" subscriptSizing="dynamic">
+                        class="flex tb-custom-menu-item-info" appearance="outline" subscriptSizing="dynamic">
           <input matInput readonly [placeholder]="itemInfo">
         </mat-form-field>
       </div>
@@ -89,7 +92,7 @@
   <div *ngIf="visiblePagesControls().length" class="tb-custom-menu-item-pages-container">
     <div class="tb-custom-menu-item-pages-left"></div>
     <div class="tb-custom-menu-item-pages-right">
-      <div *ngIf="visiblePagesControls().length" class="tb-drop-list tb-custom-menu-item-pages-list"
+      <div class="tb-drop-list tb-custom-menu-item-pages-list"
            cdkDropList
            cdkDropListOrientation="vertical"
            (cdkDropListDropped)="pageDrop($event)"
@@ -107,6 +110,7 @@
                                    [childDrag]="pagesDragEnabled"
                                    [level]="level + 1"
                                    [maxIconNameBlockWidth]="maxIconNameBlockWidth"
+                                   [hideItems]="hideItems"
                                    (menuItemRemoved)="removeCustomPage($index)">
             <button cdkDragHandle *ngIf="pagesDragEnabled"
                     class="tb-mat-40 tb-drag-handle tb-custom-menu-item-row-prefix"

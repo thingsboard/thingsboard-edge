@@ -137,7 +137,7 @@ public class CustomMenuController extends BaseController {
                 .scope(scope)
                 .assigneeType(assigneeType)
                 .build();
-        return customMenuService.findCustomMenuInfos(customMenuFilter, pageLink);
+        return customMenuService.findCustomMenuInfos(currentUser.getTenantId(), customMenuFilter, pageLink);
     }
 
     @ApiOperation(value = "Get end-user Custom Menu configuration (getCustomMenu)",
@@ -253,17 +253,16 @@ public class CustomMenuController extends BaseController {
             @RequestParam(name = "force", required = false) boolean force,
             @Parameter(description = "A JSON value representing the custom menu basic info fields")
             @RequestBody @Valid CustomMenuInfo customMenuInfo) throws ThingsboardException {
+        if (customMenuInfo.getId() != null) {
+            throw new ThingsboardException("Update is unsupported.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
+        }
         SecurityUser currentUser = getCurrentUser();
         customMenuInfo.setTenantId(currentUser.getTenantId());
         customMenuInfo.setCustomerId(currentUser.getCustomerId());
         List<EntityId> assigneeList = getAssigneeList(customMenuInfo.getAssigneeType(), ids);
 
-        if (customMenuInfo.getId() == null) {
-            checkWhiteLabelingPermissions(Operation.WRITE);
-            return tbCustomMenuService.createCustomMenu(customMenuInfo, assigneeList, force);
-        } else {
-            throw new ThingsboardException("Update is unsupported.", ThingsboardErrorCode.BAD_REQUEST_PARAMS);
-        }
+        checkWhiteLabelingPermissions(Operation.WRITE);
+        return tbCustomMenuService.createCustomMenu(customMenuInfo, assigneeList, force);
     }
 
     @ApiOperation(value = "Update custom menu assignee list (updateCustomMenuAssigneeList)",
@@ -306,6 +305,9 @@ public class CustomMenuController extends BaseController {
 
     private List<EntityId> getAssigneeList(CMAssigneeType type, UUID[] ids) throws ThingsboardException {
         List<EntityId> assignToList = new ArrayList<>();
+        if (ids == null) {
+            return assignToList;
+        }
         switch (type) {
             case NO_ASSIGN:
             case ALL:

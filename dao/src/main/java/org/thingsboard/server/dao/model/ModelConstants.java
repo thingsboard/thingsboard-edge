@@ -127,10 +127,10 @@ public class ModelConstants {
      * Custom menu settings constants.
      */
     public static final String CUSTOM_MENU_TABLE_NAME = "custom_menu";
-    public static final String CUSTOM_MENU_NAME = "menu_name";
+    public static final String CUSTOM_MENU_NAME = "name";
     public static final String CUSTOM_MENU_SCOPE = "scope";
     public static final String CUSTOM_MENU_ASSIGNEE_TYPE = "assignee_type";
-    public static final String CUSTOM_MENU_SETTINGS = "settings";
+    public static final String CUSTOM_MENU_CONFIG = "config";
 
     /**
      * Custom translation constants.

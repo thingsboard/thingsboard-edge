@@ -92,6 +92,6 @@ public interface CustomerService extends EntityDaoService {
 
     List<Customer> findCustomersByCustomMenuId(CustomMenuId customMenuId);
 
-    void updateCustomersCustomMenuId(List<CustomerId> customerIds, UUID customMenuId);
+    void updateCustomersCustomMenuId(List<CustomerId> customerIds, CustomMenuId customMenuId);
 
 }

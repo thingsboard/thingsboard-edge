@@ -224,11 +224,11 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
     }
 
     @Override
-    public void updateUsersCustomMenuId(List<UserId> userIds, UUID customMenuId) {
+    public void updateUsersCustomMenuId(List<UserId> userIds, CustomMenuId customMenuId) {
         if (customMenuId == null) {
             userRepository.updateCustomMenuIdToNull(toUUIDs(userIds));
         } else {
-            userRepository.updateCustomMenuId(toUUIDs(userIds), customMenuId);
+            userRepository.updateCustomMenuId(toUUIDs(userIds), customMenuId.getId());
         }
     }
 

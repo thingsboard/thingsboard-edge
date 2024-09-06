@@ -100,21 +100,13 @@ public class DefaultTbCustomMenuService extends AbstractEtagCacheService<CustomM
     @Override
     public void evictETags(CustomMenuCacheKey cacheKey) {
         if (cacheKey.getUserId() != null) {
-            etagCache.invalidate(cacheKey);
+            invalidateByFilter(key -> cacheKey.getUserId().equals(key.getUserId()));
         } else if (cacheKey.getCustomerId() != null) {
-            Set<CustomMenuCacheKey> keysToInvalidate = etagCache
-                    .asMap().keySet().stream()
-                    .filter(translationCacheKey -> cacheKey.getCustomerId().equals(translationCacheKey.getCustomerId()))
-                    .collect(Collectors.toSet());
-            etagCache.invalidateAll(keysToInvalidate);
+            invalidateByFilter(key -> cacheKey.getCustomerId().equals(key.getCustomerId()));
         } else if (cacheKey.getTenantId().isSysTenantId()) {
             etagCache.invalidateAll();
         } else {
-            Set<CustomMenuCacheKey> keysToInvalidate = etagCache
-                    .asMap().keySet().stream()
-                    .filter(translationCacheKey -> cacheKey.getTenantId().equals(translationCacheKey.getTenantId()))
-                    .collect(Collectors.toSet());
-            etagCache.invalidateAll(keysToInvalidate);
+            invalidateByFilter(key -> cacheKey.getTenantId().equals(key.getTenantId()));
         }
     }
 

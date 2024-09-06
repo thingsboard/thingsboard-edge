@@ -46,7 +46,15 @@
         </div>
         <span fxFlex></span>
         <button *ngIf="!readonly"
-                fxHide.lt-md
+                fxHide.lt-lg
+                mat-stroked-button
+                color="primary"
+                (click)="hideAll()">
+          <tb-icon matButtonIcon>visibility_off</tb-icon>
+          {{'custom-menu.hide-all-menu-items' | translate}}
+        </button>
+        <button *ngIf="!readonly"
+                fxHide.lt-lg
                 mat-stroked-button
                 color="primary"
                 (click)="resetToDefault()">
@@ -54,7 +62,17 @@
           {{'custom-menu.reset-to-default-menu' | translate}}
         </button>
         <button *ngIf="!readonly"
-                fxHide.gt-sm
+                fxHide.gt-md
+                type="button"
+                mat-stroked-button
+                class="tb-box-button"
+                matTooltip="{{ 'custom-menu.hide-all-menu-items' | translate }}"
+                matTooltipPosition="above"
+                (click)="hideAll()">
+          <tb-icon color="primary" matButtonIcon>visibility_off</tb-icon>
+        </button>
+        <button *ngIf="!readonly"
+                fxHide.gt-md
                 type="button"
                 mat-stroked-button
                 class="tb-box-button"
@@ -97,6 +115,7 @@
                                    [scope]="customMenu.scope"
                                    [showHidden]="showHiddenItems.value"
                                    [maxIconNameBlockWidth]="maxIconNameBlockWidth"
+                                   [hideItems]="hideItems$"
                                    (menuItemRemoved)="removeCustomMenuItem($index)">
           </tb-custom-menu-item-row>
         </div>

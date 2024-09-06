@@ -154,6 +154,6 @@ public interface UserDao extends Dao<User>, TenantEntityDao {
 
     List<User> findUsersByCustomMenuId(CustomMenuId id);
 
-    void updateUsersCustomMenuId(List<UserId> ids, UUID customMenuId);
+    void updateUsersCustomMenuId(List<UserId> ids, CustomMenuId customMenuId);
 
 }

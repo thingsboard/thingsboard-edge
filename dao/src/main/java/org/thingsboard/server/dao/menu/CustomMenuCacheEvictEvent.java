@@ -30,14 +30,6 @@
  */
 package org.thingsboard.server.dao.menu;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 
-@Data
-@RequiredArgsConstructor
-class CustomMenuCacheEvictEvent {
-
-    private final CustomMenuId customMenuId;
-
-}
+public record CustomMenuCacheEvictEvent (CustomMenuId customMenuId) { }

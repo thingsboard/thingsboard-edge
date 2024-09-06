@@ -163,6 +163,6 @@ public interface UserService extends EntityDaoService {
 
     List<User> findUsersByCustomMenuId(CustomMenuId customMenuId);
 
-    void updateUsersCustomMenuId(List<UserId> ids, UUID customMenuId);
+    void updateUsersCustomMenuId(List<UserId> ids, CustomMenuId customMenuId);
 
 }
