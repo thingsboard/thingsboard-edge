@@ -82,6 +82,7 @@ public class BaseRelatedEdgesService extends AbstractCachedEntityService<Related
 
     @Override
     public PageData<EdgeId> findEdgeIdsByTenantIdAndGroupEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
+        log.trace("Executing findEdgeIdsByTenantIdAndGroupEntityId, tenantId [{}], entityId [{}], pageLink [{}]", tenantId, entityId, pageLink);
         if (!pageLink.equals(FIRST_PAGE)) {
             return edgeService.findEdgeIdsByTenantIdAndGroupEntityId(tenantId, entityId, pageLink);
         }
@@ -91,6 +92,7 @@ public class BaseRelatedEdgesService extends AbstractCachedEntityService<Related
 
     @Override
     public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEdgeIdsByTenantIdAndEntityGroupIds, tenantId [{}], entityGroupId [{}], groupType [{}], pageLink [{}]", tenantId, entityGroupId, groupType, pageLink);
         if (!pageLink.equals(FIRST_PAGE)) {
             return edgeService.findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, List.of(entityGroupId), groupType, pageLink);
         }
@@ -106,6 +108,7 @@ public class BaseRelatedEdgesService extends AbstractCachedEntityService<Related
 
     @Override
     public void publishEdgeIdsEvictEventByTenantId(TenantId tenantId) {
+        log.trace("Executing publishEdgeIdsEvictEventByTenantId, tenantId [{}]", tenantId);
         publishEvictEvent(new RelatedEdgesEvictEvent(tenantId, null));
     }
 
