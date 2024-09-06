@@ -68,6 +68,7 @@ import { AccountModule } from '@home/pages/account/account.module';
 import { IntegrationsCenterModule } from '@home/pages/integration/integrations-center.module';
 import { CustomTranslationModule } from '@home/pages/custom-translation/custom-translation.module';
 import { ScadaSymbolModule } from '@home/pages/scada-symbol/scada-symbol.module';
+import { CustomMenuModule } from '@home/pages/custom-menu/custom-menu.module';
 
 @NgModule({
   exports: [
@@ -108,7 +109,8 @@ import { ScadaSymbolModule } from '@home/pages/scada-symbol/scada-symbol.module'
     VcModule,
     AccountModule,
     ScadaSymbolModule,
-    CustomTranslationModule
+    CustomTranslationModule,
+    CustomMenuModule
   ]
 })
 export class HomePagesModule { }

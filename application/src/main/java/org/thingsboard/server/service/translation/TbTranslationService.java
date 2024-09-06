@@ -36,11 +36,12 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
 import org.thingsboard.server.dao.translation.TranslationCacheKey;
+import org.thingsboard.server.service.custommenu.EtagCacheService;
 
 import java.util.List;
 import java.util.Set;
 
-public interface TbTranslationService {
+public interface TbTranslationService extends EtagCacheService<TranslationCacheKey> {
 
     List<TranslationInfo> getTranslationInfos(TenantId tenantId, CustomerId customerId);
 
@@ -59,11 +60,5 @@ public interface TbTranslationService {
     void deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String key);
 
     void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
-
-    String getETag(TranslationCacheKey translationCacheKey);
-
-    void putETag(TranslationCacheKey translationCacheKey, String etag);
-
-    void evictETags(TenantId tenantId);
 
 }

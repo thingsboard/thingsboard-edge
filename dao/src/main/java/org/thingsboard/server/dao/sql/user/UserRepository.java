@@ -33,8 +33,10 @@ package org.thingsboard.server.dao.sql.user;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.model.sql.UserEntity;
 
@@ -155,5 +157,18 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
     int countUsersByTenantIdAndRoleIdAndIdNotIn(@Param("tenantId") UUID tenantId,
                                                              @Param("roleId") UUID roleId,
                                                              @Param("userIds") List<UUID> userIds);
+
+    @Query("SELECT u FROM UserEntity u WHERE u.customMenuId = :customMenuId")
+    List<UserEntity> findByCustomMenuId(@Param("customMenuId") UUID customMenuId);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE UserEntity u SET u.customMenuId = :customMenuId WHERE u.id IN :ids")
+    void updateCustomMenuId(@Param("ids") List<UUID> ids, @Param("customMenuId") UUID customMenuId);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE UserEntity u SET u.customMenuId = NULL WHERE u.id IN :ids")
+    void updateCustomMenuIdToNull(@Param("ids") List<UUID> ids);
 
 }
