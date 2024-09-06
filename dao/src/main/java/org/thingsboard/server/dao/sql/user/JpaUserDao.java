@@ -37,6 +37,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -55,6 +56,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
 
 /**
@@ -214,6 +216,20 @@ public class JpaUserDao extends JpaAbstractDao<UserEntity, User> implements User
     public PageData<User> findByAuthorityAndTenantProfilesIds(Authority authority, List<TenantProfileId> tenantProfilesIds, PageLink pageLink) {
         return DaoUtil.toPageData(userRepository.findByAuthorityAndTenantProfilesIds(authority, DaoUtil.toUUIDs(tenantProfilesIds),
                 DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
+    public List<User> findUsersByCustomMenuId(CustomMenuId customMenuId) {
+        return DaoUtil.convertDataList(userRepository.findByCustomMenuId(customMenuId.getId()));
+    }
+
+    @Override
+    public void updateUsersCustomMenuId(List<UserId> userIds, CustomMenuId customMenuId) {
+        if (customMenuId == null) {
+            userRepository.updateCustomMenuIdToNull(toUUIDs(userIds));
+        } else {
+            userRepository.updateCustomMenuId(toUUIDs(userIds), customMenuId.getId());
+        }
     }
 
     @Override

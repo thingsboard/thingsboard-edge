@@ -47,4 +47,5 @@ public class EdgeEventUpdateMsg implements EdgeSessionMsg {
     public MsgType getMsgType() {
         return MsgType.EDGE_EVENT_UPDATE_TO_EDGE_SESSION_MSG;
     }
+
 }

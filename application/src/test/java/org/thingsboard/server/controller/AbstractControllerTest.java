@@ -47,6 +47,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.permission.ShareGroupRequest;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
@@ -149,7 +150,16 @@ public abstract class AbstractControllerTest extends AbstractNotifyEntityTest {
         entityGroup.setType(entityType);
         EntityGroupInfo groupInfo =
                 doPostWithResponse("/api/entityGroup", entityGroup, EntityGroupInfo.class);
+        var groupId = groupInfo.getId();
 
+        shareGroup(groupId, ownerId);
+
+        doPost("/api/entityGroup/" + groupId + "/makePublic")
+                .andExpect(status().isOk());
+        return doGet("/api/entityGroup/" + groupId, EntityGroupInfo.class);
+    }
+
+    protected void shareGroup(EntityGroupId entityGroupId, EntityId ownerId) throws Exception {
         ShareGroupRequest groupRequest = new ShareGroupRequest(
                 ownerId,
                 true,
@@ -158,12 +168,7 @@ public abstract class AbstractControllerTest extends AbstractNotifyEntityTest {
                 null
         );
 
-        doPost("/api/entityGroup/" + groupInfo.getId() + "/share", groupRequest)
+        doPost("/api/entityGroup/" + entityGroupId + "/share", groupRequest)
                 .andExpect(status().isOk());
-
-        doPost("/api/entityGroup/" + groupInfo.getId() + "/makePublic")
-                .andExpect(status().isOk());
-        return doGet("/api/entityGroup/" + groupInfo.getUuidId(), EntityGroupInfo.class);
     }
-
 }

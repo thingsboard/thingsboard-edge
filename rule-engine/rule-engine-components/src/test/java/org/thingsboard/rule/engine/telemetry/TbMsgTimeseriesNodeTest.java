@@ -69,6 +69,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
@@ -145,14 +146,14 @@ public class TbMsgTimeseriesNodeTest {
             TelemetryNodeCallback callback = invocation.getArgument(5);
             callback.onSuccess(null);
             return null;
-        }).when(telemetryServiceMock).saveAndNotify(any(), any(), any(), anyList(), anyLong(), any());
+        }).when(telemetryServiceMock).saveAndNotify(any(), any(), any(), anyList(), anyLong(), any(), anyBoolean());
 
         node.onMsg(ctxMock, msg);
 
         List<TsKvEntry> expectedList = getTsKvEntriesListWithTs(data, System.currentTimeMillis());
         ArgumentCaptor<List<TsKvEntry>> entryListCaptor = ArgumentCaptor.forClass(List.class);
         verify(telemetryServiceMock).saveAndNotify(eq(TENANT_ID), isNull(), eq(DEVICE_ID), entryListCaptor.capture(),
-                eq(tenantProfileDefaultStorageTtl), any(TelemetryNodeCallback.class));
+                eq(tenantProfileDefaultStorageTtl), any(TelemetryNodeCallback.class), anyBoolean());
         assertThat(entryListCaptor.getValue()).usingRecursiveFieldByFieldElementComparatorIgnoringFields("ts")
                 .containsExactlyElementsOf(expectedList);
         verify(ctxMock).tellSuccess(msg);
@@ -182,14 +183,14 @@ public class TbMsgTimeseriesNodeTest {
             TelemetryNodeCallback callback = invocation.getArgument(5);
             callback.onSuccess(null);
             return null;
-        }).when(telemetryServiceMock).saveWithoutLatestAndNotify(any(), any(), any(), anyList(), anyLong(), any());
+        }).when(telemetryServiceMock).saveWithoutLatestAndNotify(any(), any(), any(), anyList(), anyLong(), any(), anyBoolean());
 
         node.onMsg(ctxMock, msg);
 
         List<TsKvEntry> expectedList = getTsKvEntriesListWithTs(data, ts);
         ArgumentCaptor<List<TsKvEntry>> entryListCaptor = ArgumentCaptor.forClass(List.class);
         verify(telemetryServiceMock).saveWithoutLatestAndNotify(
-                eq(TENANT_ID), isNull(), eq(DEVICE_ID), entryListCaptor.capture(), eq(ttlFromConfig), any(TelemetryNodeCallback.class));
+                eq(TENANT_ID), isNull(), eq(DEVICE_ID), entryListCaptor.capture(), eq(ttlFromConfig), any(TelemetryNodeCallback.class), anyBoolean());
         assertThat(entryListCaptor.getValue()).containsExactlyElementsOf(expectedList);
         verify(ctxMock).tellSuccess(msg);
         verifyNoMoreInteractions(ctxMock, telemetryServiceMock);
@@ -215,7 +216,7 @@ public class TbMsgTimeseriesNodeTest {
         TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, metadata, data);
         node.onMsg(ctxMock, msg);
 
-        verify(telemetryServiceMock).saveAndNotify(eq(TENANT_ID), isNull(), eq(DEVICE_ID), anyList(), eq(expectedTtl), any(TelemetryNodeCallback.class));
+        verify(telemetryServiceMock).saveAndNotify(eq(TENANT_ID), isNull(), eq(DEVICE_ID), anyList(), eq(expectedTtl), any(TelemetryNodeCallback.class), anyBoolean());
     }
 
     private static Stream<Arguments> givenTtlFromConfigAndTtlFromMd_whenOnMsg_thenVerifyTtl() {

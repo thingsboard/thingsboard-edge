@@ -255,6 +255,9 @@ import { WidgetButtonComponent } from '@shared/components/button/widget-button.c
 import { HexInputComponent } from '@shared/components/color-picker/hex-input.component';
 import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 import { ScadaSymbolInputComponent } from '@shared/components/image/scada-symbol-input.component';
+import { CountryAutocompleteComponent } from '@shared/components/country-autocomplete.component';
+import { CountryData } from '@shared/models/country.models';
+import { CustomMenuAutocompleteComponent } from '@shared/components/custom-menu-autocomplete.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -315,7 +318,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
         disableTooltipInteractivity: true
       }
     },
-    TbBreakPointsProvider
+    TbBreakPointsProvider,
+    CountryData
   ],
   declarations: [
     FooterComponent,
@@ -435,6 +439,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     TogglePasswordComponent,
     ProtobufContentComponent,
     BranchAutocompleteComponent,
+    CountryAutocompleteComponent,
     PhoneInputComponent,
     TbSparkLineComponent,
     TbScriptLangComponent,
@@ -479,7 +484,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ImageGalleryDialogComponent,
     WidgetButtonComponent,
     HexInputComponent,
-    ScadaSymbolInputComponent
+    ScadaSymbolInputComponent,
+    CustomMenuAutocompleteComponent
   ],
   imports: [
     CommonModule,
@@ -711,6 +717,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     TogglePasswordComponent,
     ProtobufContentComponent,
     BranchAutocompleteComponent,
+    CountryAutocompleteComponent,
     PhoneInputComponent,
     TbSparkLineComponent,
     TbScriptLangComponent,
@@ -754,7 +761,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     EmbedImageDialogComponent,
     ImageGalleryDialogComponent,
     WidgetButtonComponent,
-    ScadaSymbolInputComponent
+    ScadaSymbolInputComponent,
+    CustomMenuAutocompleteComponent
   ]
 })
 export class SharedModule { }

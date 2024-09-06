@@ -65,7 +65,7 @@ public class TbSumIntervalState extends TbBaseIntervalState {
     @Override
     public String toValueJson(Gson gson, String outputValueKey) {
         JsonObject json = new JsonObject();
-        json.addProperty(outputValueKey, sum);
+        json.addProperty(outputValueKey, sum.doubleValue());
         return gson.toJson(json);
     }
 

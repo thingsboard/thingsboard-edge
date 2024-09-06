@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -60,6 +61,7 @@ import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -257,6 +259,11 @@ public class GroupPermissionController extends BaseController {
         checkEntityGroupId(entityGroupId, Operation.READ);
         accessControlService.checkPermission(getCurrentUser(), Resource.GROUP_PERMISSION, Operation.READ);
         List<GroupPermissionInfo> groupPermissions = groupPermissionService.findGroupPermissionInfoListByTenantIdAndEntityGroupIdAsync(tenantId, entityGroupId).get();
+        if (getCurrentUser().isCustomerUser()) {
+            var customerId = getCurrentUser().getCustomerId();
+            Set<EntityId> owners = ownersCacheService.getChildOwners(tenantId, customerId);
+            groupPermissions = groupPermissions.stream().filter(gp -> owners.contains(gp.getUserGroupOwnerId())).toList();
+        }
         return applyPermissionInfo(groupPermissions);
     }
 

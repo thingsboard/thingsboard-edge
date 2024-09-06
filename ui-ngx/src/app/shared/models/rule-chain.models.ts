@@ -50,7 +50,7 @@ export interface RuleChain extends BaseData<RuleChainId>, HasTenantId, HasVersio
   isDefault?: boolean;
 }
 
-export interface RuleChainMetaData {
+export interface RuleChainMetaData extends HasVersion {
   ruleChainId: RuleChainId;
   firstNodeIndex?: number;
   nodes: Array<RuleNode>;

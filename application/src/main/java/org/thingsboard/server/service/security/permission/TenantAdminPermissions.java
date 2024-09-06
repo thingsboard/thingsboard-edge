@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.dao.group.EntityGroupService;
@@ -102,6 +103,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.VERSION_CONTROL, genericPermissionChecker);
         put(Resource.NOTIFICATION, tenantStandaloneEntityPermissionChecker);
         put(Resource.MOBILE_APP_SETTINGS, PermissionChecker.allowAllPermissionChecker);
+        put(Resource.CUSTOM_MENU, customMenuPermissionChecker);
     }
 
     public static final PermissionChecker tenantStandaloneEntityPermissionChecker = new PermissionChecker() {
@@ -321,6 +323,21 @@ public class TenantAdminPermissions extends AbstractPermissions {
             Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
             // This entity does not have groups, so we are checking only generic level permissions
             return user.getUserPermissions().hasGenericPermission(resource, operation);
+        }
+    };
+
+    private final PermissionChecker customMenuPermissionChecker = new PermissionChecker() {
+        @Override
+        public boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenuInfo customMenu) {
+            if (!whiteLabelingService.isWhiteLabelingAllowed(user.getTenantId(), null) ||
+                    !user.getUserPermissions().hasGenericPermission(Resource.WHITE_LABELING, operation)) {
+                return false;
+            }
+            if (operation == Operation.READ) {
+                return user.getTenantId().equals(customMenu.getTenantId());
+            } else {
+                return user.getTenantId().equals(customMenu.getTenantId()) && user.getCustomerId().equals(customMenu.getCustomerId());
+            }
         }
     };
 
