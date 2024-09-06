@@ -208,7 +208,7 @@ export const isHomeMenuItem = (item: MenuItem): item is HomeMenuItem =>
 
 export const isCustomMenuItem = (item: MenuItem): item is CustomMenuItem => {
   const customItem = item as CustomMenuItem;
-  return isNotEmptyStr(customItem.name) && isNotEmptyStr(customItem.icon)
+  return isNotEmptyStr(customItem.name)
     && isNotEmptyStr(customItem.menuItemType) && !!CMItemType[customItem.menuItemType];
 };
 
