@@ -44,7 +44,7 @@ export interface User extends BaseData<UserId> {
   authority: Authority;
   firstName: string;
   lastName: string;
-  customMenuId: CustomMenuId;
+  customMenuId?: CustomMenuId;
   additionalInfo: any;
 }
 
