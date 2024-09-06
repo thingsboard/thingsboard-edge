@@ -80,6 +80,7 @@ import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuConfig;
 import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -1399,7 +1400,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
         edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(34);
+        edgeImitator.expectMessageAmount(33);
         edgeImitator.connect();
         waitForMessages(edgeImitator);
 
@@ -1410,7 +1411,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popEntityGroupMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "AssetGroup", EntityType.ASSET, EntityType.TENANT));
         Assert.assertTrue("There are some messages: " + edgeImitator.getDownlinkMsgs(), edgeImitator.getDownlinkMsgs().isEmpty());
 
-        edgeImitator.expectMessageAmount(31);
+        edgeImitator.expectMessageAmount(30);
         doPost("/api/edge/sync/" + edge.getId());
         waitForMessages(edgeImitator);
 
@@ -1442,7 +1443,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
 
         CustomMenuItem sysItem = new CustomMenuItem();
         sysItem.setName("System Menu");
-        sysMenu.setMenuItems(new ArrayList<>(List.of(sysItem)));
+        sysMenu.setConfig(new CustomMenuConfig(new ArrayList<>(List.of(sysItem))));
 
         doPost("/api/customMenu/customMenu", sysMenu);
 
@@ -1476,7 +1477,6 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "mail"));
         Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "connectivity"));
         Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "jwt"));
-        Assert.assertTrue(popAdminSettingsMsg(edgeImitator.getDownlinkMsgs(), "customMenu"));
         Assert.assertTrue(popDeviceProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
         Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
         Assert.assertTrue(popDeviceProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "default"));
@@ -1549,7 +1549,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
         edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
 
-        edgeImitator.expectMessageAmount(44);
+        edgeImitator.expectMessageAmount(43);
         edgeImitator.connect();
         waitForMessages(edgeImitator);
 
@@ -1564,7 +1564,7 @@ public class EdgeControllerTest extends AbstractControllerTest {
         Assert.assertTrue(popAssetProfileMsg(edgeImitator.getDownlinkMsgs(), UpdateMsgType.ENTITY_CREATED_RPC_MESSAGE, "test"));
         Assert.assertTrue("There are some messages: " + edgeImitator.getDownlinkMsgs(), edgeImitator.getDownlinkMsgs().isEmpty());
 
-        edgeImitator.expectMessageAmount(37);
+        edgeImitator.expectMessageAmount(36);
         doPost("/api/edge/sync/" + edge.getId());
         waitForMessages(edgeImitator);
 

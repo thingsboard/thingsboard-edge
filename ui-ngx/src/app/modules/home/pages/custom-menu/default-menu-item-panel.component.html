@@ -1,0 +1,105 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-default-menu-item-panel" [formGroup]="menuItemFormGroup">
+  <div class="tb-default-menu-item-title-container">
+    <div class="tb-default-menu-item-title">{{ (isHomeMenuItem ? 'custom-menu.edit-home-menu-item' : 'custom-menu.edit-menu-item') | translate }}</div>
+    <button *ngIf="!disabled"
+            [disabled]="!isCleanupEnabled"
+            type="button"
+            mat-stroked-button
+            class="tb-box-button"
+            matTooltip="{{ 'custom-menu.reset-to-menu-item-defaults' | translate }}"
+            matTooltipPosition="above"
+            (click)="cleanup()">
+      <tb-icon [color]="isCleanupEnabled ? 'primary' : null" matButtonIcon>mdi:broom</tb-icon>
+    </button>
+  </div>
+  <div class="tb-default-menu-item-panel-content">
+    <div *ngIf="!isHomeMenuItem" class="tb-form-row space-between">
+      <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="visible">
+        {{ 'custom-menu.visible' | translate }}
+      </mat-slide-toggle>
+    </div>
+    <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="center center">
+      <tb-material-icon-select asBoxInput
+                               color="var(--tb-primary-500)"
+                               formControlName="icon">
+      </tb-material-icon-select>
+      <mat-form-field fxFlex appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+        <mat-label translate>custom-menu.menu-item-name</mat-label>
+        <input matInput formControlName="name" placeholder="{{ defaultItemName }}">
+      </mat-form-field>
+    </div>
+    <ng-container *ngIf="isHomeTypeEditable">
+      <div class="tb-form-row no-border no-padding space-between">
+        <div>{{ 'custom-menu.home-page-type' | translate }}</div>
+        <tb-toggle-select formControlName="homeType">
+          <tb-toggle-option *ngFor="let type of homeMenuItemTypes" [value]="type">{{ homeMenuItemTypeTranslations.get(type) | translate }}</tb-toggle-option>
+        </tb-toggle-select>
+      </div>
+      <ng-container *ngIf="menuItemFormGroup.get('homeType').value === HomeMenuItemType.DASHBOARD">
+        <tb-dashboard-autocomplete fxFlex
+                                   formControlName="dashboardId"
+                                   required
+                                   label="{{ 'dashboard.dashboard' | translate }}"
+                                   floatLabel="always"
+                                   appearance="outline"
+                                   subscriptSizing="dynamic"
+                                   requiredText="dashboard.dashboard-required"
+                                   placeholder="{{ 'dashboard.select-dashboard' | translate }}"
+                                   [selectFirstDashboard]="false"
+        ></tb-dashboard-autocomplete>
+        <div class="tb-form-row space-between">
+          <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="hideDashboardToolbar">
+            {{ 'custom-menu.hide-toolbar' | translate }}
+          </mat-slide-toggle>
+        </div>
+      </ng-container>
+    </ng-container>
+  </div>
+  <div class="tb-default-menu-item-panel-buttons">
+    <button mat-button
+            color="primary"
+            type="button"
+            (click)="cancel()">
+      {{ 'action.cancel' | translate }}
+    </button>
+    <button mat-raised-button
+            color="primary"
+            type="button"
+            (click)="apply()"
+            [disabled]="menuItemFormGroup.invalid || !menuItemFormGroup.dirty">
+      {{ 'action.apply' | translate }}
+    </button>
+  </div>
+</div>

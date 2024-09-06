@@ -154,6 +154,13 @@
           </section>
         </section>
       </div>
+      <tb-custom-menu-autocomplete *ngIf="entity?.id &&
+                                          (isSysAdmin$ | async) === false && (whiteLabelingAllowed$ | async) && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)"
+                                   fxFlex
+                                   formControlName="customMenuId"
+                                   [scope]="isUserTenantAdmin() ? CMScope.TENANT : CMScope.CUSTOMER"
+                                   [assigneeType]="CMAssigneeType.USERS">
+      </tb-custom-menu-autocomplete>
     </fieldset>
   </form>
   <tb-group-entity-info *ngIf="(isSysAdmin$ | async) === false && !isEdit" [groupEntity]="entity"></tb-group-entity-info>

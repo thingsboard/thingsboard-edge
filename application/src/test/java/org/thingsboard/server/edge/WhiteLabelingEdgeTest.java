@@ -32,21 +32,25 @@ package org.thingsboard.server.edge;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.protobuf.AbstractMessage;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.menu.CMAssigneeType;
+import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
-import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.dao.menu.CustomMenuDao;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
 import org.thingsboard.server.gen.edge.v1.CustomTranslationUpdateMsg;
@@ -54,11 +58,22 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 @DaoSqlTest
 public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
+
+    private static List<UUID> idsToRemove = new ArrayList<>();
+
+    @Autowired
+    private CustomMenuDao customMenuDao;
+
+    @After
+    public void teardown() throws Exception {
+        customMenuDao.removeAllByIds(idsToRemove);
+        idsToRemove = new ArrayList<>();
+    }
 
     @Test
     public void testWhiteLabeling() throws Exception {
@@ -293,7 +308,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
 
     private void testCustomMenu_tenant() throws Exception {
         loginTenantAdmin();
-        updateAndVerifyCustomMenuUpdate("Tenant custom menu");
+        updateAndVerifyCustomMenuUpdate("Tenant custom menu", CMScope.TENANT);
     }
 
     private void testCustomMenu_customer() throws Exception {
@@ -312,41 +327,31 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         changeEdgeOwnerFromTenantToSubCustomer(savedCustomerA, savedSubCustomerA);
 
         createCustomerUserAndLogin(savedCustomerA, "customerA@thingsboard.org");
-        updateAndVerifyCustomMenuUpdate("customer_value_updated");
+        updateAndVerifyCustomMenuUpdate("customer_value_updated", CMScope.CUSTOMER);
 
         createCustomerUserAndLogin(savedSubCustomerA, "subCustomerA@thingsboard.org");
-        updateAndVerifyCustomMenuUpdate("sub_customer_value_updated");
+        updateAndVerifyCustomMenuUpdate("sub_customer_value_updated", CMScope.CUSTOMER);
     }
 
-    private void updateAndVerifyCustomMenuUpdate(String customMenuName) throws Exception {
-        CustomMenu customMenu = doGet("/api/customMenu/customMenu", CustomMenu.class);
+    private void updateAndVerifyCustomMenuUpdate(String customMenuName, CMScope scope) throws Exception {
         edgeImitator.expectMessageAmount(1);
 
-        CustomMenuItem customMenuItemChild1 = new CustomMenuItem();
-        customMenuItemChild1.setName("Waste Management Administration");
-        customMenuItemChild1.setMaterialIcon("dashboard");
+        CustomMenu menu = new CustomMenu();
+        menu.setName(customMenuName);
+        menu.setScope(scope);
+        menu.setAssigneeType(CMAssigneeType.ALL);
+        menu = doPost("/api/customMenu", menu, CustomMenu.class);
+        idsToRemove.add(menu.getUuidId());
 
-        CustomMenuItem customMenuItemChild2 = new CustomMenuItem();
-        customMenuItemChild2.setName("Assisted Living Administration");
-        customMenuItemChild2.setMaterialIcon("tablet_dashboard");
-
-        CustomMenuItem customMenuItem = new CustomMenuItem();
-        customMenuItem.setName(customMenuName);
-        customMenuItem.setMaterialIcon("grid_view");
-        customMenuItem.setChildMenuItems(Arrays.asList(customMenuItemChild1, customMenuItemChild2));
-
-        customMenu.setMenuItems(new ArrayList<>(List.of(customMenuItem)));
-        doPost("/api/customMenu/customMenu", customMenu, CustomMenu.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
         AbstractMessage latestMessage = edgeImitator.getLatestMessage();
         Assert.assertTrue(latestMessage instanceof CustomMenuProto);
         CustomMenuProto customMenuProto = (CustomMenuProto) latestMessage;
         CustomMenu cm = JacksonUtil.fromString(customMenuProto.getEntity(), CustomMenu.class, true);
         Assert.assertNotNull(cm);
-        ArrayList<CustomMenuItem> menuItems = cm.getMenuItems();
-        Assert.assertEquals(1, menuItems.size());
-        Assert.assertEquals(menuItems, customMenu.getMenuItems());
-        Assert.assertEquals(customMenuName, menuItems.get(0).getName());
+        Assert.assertEquals(menu.getName(), cm.getName());
+        Assert.assertEquals(menu.getScope(), cm.getScope());
+        Assert.assertEquals(menu.getAssigneeType(), cm.getAssigneeType());
     }
 
 }

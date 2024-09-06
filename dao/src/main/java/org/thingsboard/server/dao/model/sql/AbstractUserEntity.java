@@ -39,6 +39,7 @@ import jakarta.persistence.MappedSuperclass;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -88,6 +89,9 @@ public abstract class AbstractUserEntity<T extends User> extends BaseVersionedEn
     @Column(name = ModelConstants.USER_ADDITIONAL_INFO_PROPERTY)
     private JsonNode additionalInfo;
 
+    @Column(name = ModelConstants.USER_CUSTOM_MENU_ID_PROPERTY)
+    private UUID customMenuId;
+
     public AbstractUserEntity() {
         super();
     }
@@ -106,6 +110,9 @@ public abstract class AbstractUserEntity<T extends User> extends BaseVersionedEn
         this.lastName = user.getLastName();
         this.phone = user.getPhone();
         this.additionalInfo = user.getAdditionalInfo();
+        if (user.getCustomMenuId() != null) {
+            this.customMenuId = user.getCustomMenuId().getId();
+        }
     }
 
     public AbstractUserEntity(UserEntity userEntity) {
@@ -118,6 +125,7 @@ public abstract class AbstractUserEntity<T extends User> extends BaseVersionedEn
         this.lastName = userEntity.getLastName();
         this.phone = userEntity.getPhone();
         this.additionalInfo = userEntity.getAdditionalInfo();
+        this.customMenuId = userEntity.getCustomMenuId();
     }
 
     protected User toUser() {
@@ -136,6 +144,9 @@ public abstract class AbstractUserEntity<T extends User> extends BaseVersionedEn
         user.setLastName(lastName);
         user.setPhone(phone);
         user.setAdditionalInfo(additionalInfo);
+        if (customMenuId != null) {
+            user.setCustomMenuId(new CustomMenuId(customMenuId));
+        }
         return user;
     }
 
