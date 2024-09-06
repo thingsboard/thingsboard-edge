@@ -549,8 +549,8 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
         groupPermissionService.deleteGroupPermissionsByTenantIdAndUserGroupId(tenantId, entityGroupId);
         groupPermissionService.deleteGroupPermissionsByTenantIdAndEntityGroupId(tenantId, entityGroupId);
         entityGroupDao.removeById(tenantId, entityGroupId.getId());
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityGroupId).build());
         publishEvictEvent(new EntityGroupEvictEvent(entityGroup.getOwnerId(), entityGroup.getType(), entityGroup.getName(), null));
+        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(entityGroupId).build());
     }
 
     @Override
