@@ -98,13 +98,13 @@ public class IntegrationClientTest extends AbstractContainerTest {
 
         verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val1", true);
 
-        validateIntegrationConfigurationUpdate(savedIntegration);
+        savedIntegration = validateIntegrationConfigurationUpdate(savedIntegration);
 
-        validateEdgeAttributesUpdate(savedIntegration);
+        savedIntegration = validateEdgeAttributesUpdate(savedIntegration);
 
-        validateIntegrationDefaultConverterUpdate(savedIntegration);
+        savedIntegration = validateIntegrationDefaultConverterUpdate(savedIntegration);
 
-        validateIntegrationDownlinkConverterUpdate(savedIntegration);
+        savedIntegration = validateIntegrationDownlinkConverterUpdate(savedIntegration);
 
         validateIntegrationUnassignFromEdge(savedIntegration);
 
@@ -151,11 +151,11 @@ public class IntegrationClientTest extends AbstractContainerTest {
         assertEntitiesByIdsAndType(integrations.getData().stream().map(IdBased::getId).collect(Collectors.toList()), EntityType.INTEGRATION);
     }
 
-    private void validateIntegrationConfigurationUpdate(Integration savedIntegration) {
+    private Integration validateIntegrationConfigurationUpdate(Integration savedIntegration) {
         ObjectNode updatedIntegrationConfig = JacksonUtil.newObjectNode();
         updatedIntegrationConfig.putObject("metadata").put("key", "val2");
         savedIntegration.setConfiguration(updatedIntegrationConfig);
-        cloudRestClient.saveIntegration(savedIntegration);
+        savedIntegration = cloudRestClient.saveIntegration(savedIntegration);
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -167,13 +167,15 @@ public class IntegrationClientTest extends AbstractContainerTest {
                 });
 
         verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val2", true);
+
+        return savedIntegration;
     }
 
-    private void validateEdgeAttributesUpdate(Integration savedIntegration) {
+    private Integration validateEdgeAttributesUpdate(Integration savedIntegration) {
         ObjectNode updatedIntegrationConfig = JacksonUtil.newObjectNode();
         updatedIntegrationConfig.putObject("metadata").put("key", "${{valAttr}}");
         savedIntegration.setConfiguration(updatedIntegrationConfig);
-        cloudRestClient.saveIntegration(savedIntegration);
+        savedIntegration = cloudRestClient.saveIntegration(savedIntegration);
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -199,9 +201,11 @@ public class IntegrationClientTest extends AbstractContainerTest {
                 });
 
         verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val4", true);
+
+        return savedIntegration;
     }
 
-    private void validateIntegrationDefaultConverterUpdate(Integration savedIntegration) {
+    private Integration validateIntegrationDefaultConverterUpdate(Integration savedIntegration) {
         ObjectNode newConverterConfiguration = JacksonUtil.newObjectNode()
                 .put("decoder", "return {deviceName: 'Device Converter val5', deviceType: 'default'};");
         Converter converter = new Converter();
@@ -212,7 +216,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         Converter newSavedConverter = cloudRestClient.saveConverter(converter);
 
         savedIntegration.setDefaultConverterId(newSavedConverter.getId());
-        cloudRestClient.saveIntegration(savedIntegration);
+        savedIntegration = cloudRestClient.saveIntegration(savedIntegration);
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -229,9 +233,11 @@ public class IntegrationClientTest extends AbstractContainerTest {
                 until(() -> edgeRestClient.getConverters(new PageLink(100)).getTotalElements() == 1);
 
         verifyHttpIntegrationUpAndRunning(savedIntegration, "Device Converter val5", false);
+
+        return savedIntegration;
     }
 
-    private void validateIntegrationDownlinkConverterUpdate(Integration savedIntegration) {
+    private Integration validateIntegrationDownlinkConverterUpdate(Integration savedIntegration) {
         ObjectNode downlinkConverterConfiguration = JacksonUtil.newObjectNode()
                 .put("encoder", "return {contentType: 'JSON', data: '{\"pin\": 3}'};");
         Converter converter = new Converter();
@@ -242,7 +248,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         Converter savedDownlinkConverter = cloudRestClient.saveConverter(converter);
 
         savedIntegration.setDownlinkConverterId(savedDownlinkConverter.getId());
-        cloudRestClient.saveIntegration(savedIntegration);
+        savedIntegration = cloudRestClient.saveIntegration(savedIntegration);
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -266,7 +272,7 @@ public class IntegrationClientTest extends AbstractContainerTest {
         sendHttpUplinkAndVerifyDownlink(savedIntegration);
 
         savedIntegration.setDownlinkConverterId(null);
-        cloudRestClient.saveIntegration(savedIntegration);
+        savedIntegration = cloudRestClient.saveIntegration(savedIntegration);
 
         Awaitility.await()
                 .pollInterval(500, TimeUnit.MILLISECONDS)
@@ -275,6 +281,8 @@ public class IntegrationClientTest extends AbstractContainerTest {
 
         Optional<Device> device = cloudRestClient.getTenantDevice(deviceName);
         cloudRestClient.deleteDevice(device.get().getId());
+
+        return savedIntegration;
     }
 
     private void sendHttpUplinkAndVerifyDownlink(Integration savedIntegration) {
