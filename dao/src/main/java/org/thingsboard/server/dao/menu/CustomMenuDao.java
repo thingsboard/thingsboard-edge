@@ -46,7 +46,7 @@ public interface CustomMenuDao extends Dao<CustomMenu> {
 
     CustomMenuInfo findInfoById(CustomMenuId customMenuId);
 
-    PageData<CustomMenuInfo> findInfosByFilter(CustomMenuFilter customMenuFilter, PageLink pageLink);
+    PageData<CustomMenuInfo> findInfosByFilter(TenantId tenantId, CustomMenuFilter customMenuFilter, PageLink pageLink);
 
     CustomMenu findDefaultMenuByScope(TenantId tenantId, CustomerId customerId, CMScope scope);
 

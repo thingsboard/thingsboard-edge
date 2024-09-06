@@ -97,7 +97,7 @@ public class ControllerConstants {
     protected static final String CUSTOM_MENU_ID_PARAM_DESCRIPTION = "A string value representing the custom menu id. For example, '784f394c-42b6-435a-983c-b7beff2784f9'";
     protected static final String CUSTOM_MENU_TEXT_SEARCH_DESCRIPTION = "The case insensitive 'substring' filter based on the custom menu name.";
     protected static final String CUSTOM_MENU_SCOPE_PARAM_DESCRIPTION = "Custom menu scope.";
-    protected static final String CUSTOM_MENU_ASSIGNEE_TYPE_PARAM_DESCRIPTION = "Custom menu name assignee type.";
+    protected static final String CUSTOM_MENU_ASSIGNEE_TYPE_PARAM_DESCRIPTION = "Custom menu assignee type.";
 
     protected static final String SYSTEM_AUTHORITY_PARAGRAPH = "\n\nAvailable for users with 'SYS_ADMIN' authority.";
     protected static final String SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH = "\n\nAvailable for users with 'SYS_ADMIN' or 'TENANT_ADMIN' authority.";

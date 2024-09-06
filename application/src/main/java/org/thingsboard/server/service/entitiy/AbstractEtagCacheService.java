@@ -34,7 +34,10 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.thingsboard.server.common.data.HasTenantId;
 
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public abstract class AbstractEtagCacheService<K extends HasTenantId> {
 
@@ -53,6 +56,13 @@ public abstract class AbstractEtagCacheService<K extends HasTenantId> {
 
     public void putETag(K cacheKey, String etag) {
         etagCache.put(cacheKey, etag);
+    }
+
+    public void invalidateByFilter(Predicate<K> predicate) {
+        Set<K> keysToInvalidate = etagCache.asMap().keySet().stream()
+                .filter(predicate)
+                .collect(Collectors.toSet());
+        etagCache.invalidateAll(keysToInvalidate);
     }
 
 }

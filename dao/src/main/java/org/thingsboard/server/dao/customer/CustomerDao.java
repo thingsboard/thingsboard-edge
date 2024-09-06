@@ -112,6 +112,6 @@ public interface CustomerDao extends Dao<Customer>, TenantEntityDao, ExportableC
 
     List<Customer> findCustomersByCustomMenuId(CustomMenuId id);
 
-    void updateCustomersCustomMenuId(List<CustomerId> customerIds, UUID customMenuId);
+    void updateCustomersCustomMenuId(List<CustomerId> customerIds, CustomMenuId customMenuId);
 
 }

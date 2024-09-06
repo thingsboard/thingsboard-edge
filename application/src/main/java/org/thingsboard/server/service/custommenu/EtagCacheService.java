@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.service.custommenu;
 
+import java.util.function.Predicate;
+
 public interface EtagCacheService<K> {
 
     String getETag(K cacheKey);
@@ -37,5 +39,7 @@ public interface EtagCacheService<K> {
     void putETag(K cacheKey, String etag);
 
     void evictETags(K cacheKey);
+
+    void invalidateByFilter(Predicate<K> cacheKey);
 
 }

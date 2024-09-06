@@ -68,7 +68,7 @@ public class SystemCustomMenuEdgeEventFetcher implements EdgeEventFetcher {
                 .scope(null)
                 .assigneeType(null)
                 .build();
-        PageData<CustomMenuInfo> customMenuInfos = customMenuService.findCustomMenuInfos(customMenuFilter, pageLink);
+        PageData<CustomMenuInfo> customMenuInfos = customMenuService.findCustomMenuInfos(tenantId, customMenuFilter, pageLink);
         List<EdgeEvent> events = new ArrayList<>();
         for (var cm : customMenuInfos.getData()) {
             CustomMenu customMenu = customMenuService.findCustomMenuById(cm.getTenantId(), cm.getId());
