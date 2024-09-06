@@ -1023,10 +1023,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     @SuppressWarnings("unchecked")
     protected <T> T readResponse(ResultActions result, Class<T> responseClass) throws Exception {
-        byte[] content = result.andReturn().getResponse().getContentAsByteArray();
-        MockHttpInputMessage mockHttpInputMessage = new MockHttpInputMessage(content);
-        HttpMessageConverter converter = responseClass.equals(String.class) ? stringHttpMessageConverter : mappingJackson2HttpMessageConverter;
-        return (T) converter.read(responseClass, mockHttpInputMessage);
+        return readResponse(result.andReturn(), responseClass);
     }
 
     protected <T> T readResponse(ResultActions result, TypeReference<T> type) throws Exception {
@@ -1036,6 +1033,13 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected <T> T readResponse(MvcResult result, TypeReference<T> type) throws Exception {
         byte[] content = result.getResponse().getContentAsByteArray();
         return JacksonUtil.OBJECT_MAPPER.readerFor(type).readValue(content);
+    }
+
+    protected <T> T readResponse(MvcResult result, Class<T> responseClass) throws Exception {
+        byte[] content = result.getResponse().getContentAsByteArray();
+        MockHttpInputMessage mockHttpInputMessage = new MockHttpInputMessage(content);
+        HttpMessageConverter converter = responseClass.equals(String.class) ? stringHttpMessageConverter : mappingJackson2HttpMessageConverter;
+        return (T) converter.read(responseClass, mockHttpInputMessage);
     }
 
     protected String getErrorMessage(ResultActions result) throws Exception {

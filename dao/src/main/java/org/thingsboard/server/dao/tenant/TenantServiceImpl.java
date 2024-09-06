@@ -53,6 +53,7 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.mobile.MobileAppSettingsService;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.service.PaginatedRemover;
@@ -101,6 +102,8 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     private NotificationSettingsService notificationSettingsService;
     @Autowired
     private MobileAppSettingsService mobileAppSettingsService;
+    @Autowired
+    private CustomMenuService customMenuService;
     @Autowired
     private TenantDataValidator tenantValidator;
     @Autowired
@@ -202,6 +205,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         customTranslationService.deleteCustomTranslationByTenantId(tenantId);
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         mobileAppSettingsService.deleteByTenantId(tenantId);
+        customMenuService.deleteByTenantId(tenantId);
         notificationSettingsService.deleteNotificationSettings(tenantId);
 
         tenantDao.removeById(tenantId, tenantId.getId());

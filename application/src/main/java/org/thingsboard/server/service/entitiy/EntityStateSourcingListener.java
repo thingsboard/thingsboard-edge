@@ -50,10 +50,12 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
@@ -145,6 +147,16 @@ public class EntityStateSourcingListener {
                 Converter converter = (Converter) event.getEntity();
                 if (!converter.isEdgeTemplate()) {
                     tbClusterService.broadcastEntityStateChangeEvent(tenantId, converter.getId(), lifecycleEvent);
+                }
+            }
+            case CUSTOMER -> {
+                if (!isCreated) {
+                    tbClusterService.onCustomerUpdated(tenantId, (CustomerId) entityId);
+                }
+            }
+            case USER -> {
+                if (!isCreated) {
+                    tbClusterService.onUserUpdated(tenantId, (UserId) entityId);
                 }
             }
             default -> {}

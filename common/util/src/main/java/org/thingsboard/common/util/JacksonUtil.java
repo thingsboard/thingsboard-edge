@@ -30,6 +30,7 @@
  */
 package org.thingsboard.common.util;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
@@ -50,6 +51,7 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.kv.KvEntry;
+import org.thingsboard.server.common.data.menu.Views;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,6 +95,10 @@ public class JacksonUtil {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
             .build();
 
+    public static final ObjectMapper OBJECT_MAPPER_INCLUDE_NOT_NULL = JsonMapper.builder()
+            .serializationInclusion(JsonInclude.Include.NON_NULL)
+            .build();
+
     public static ObjectMapper getObjectMapperWithJavaTimeModule() {
         return JsonMapper.builder()
                 .addModule(new Jdk8Module())
@@ -127,6 +133,14 @@ public class JacksonUtil {
     public static <T> T fromString(String string, TypeReference<T> valueTypeRef) {
         try {
             return string != null ? OBJECT_MAPPER.readValue(string, valueTypeRef) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given string value cannot be transformed to Json object: " + string, e);
+        }
+    }
+
+    public static <T> T fromString(String string, TypeReference<T> valueTypeRef, boolean ignoreUnknownFields) {
+        try {
+            return string != null ? IGNORE_UNKNOWN_PROPERTIES_JSON_MAPPER.readValue(string, valueTypeRef) : null;
         } catch (IOException e) {
             throw new IllegalArgumentException("The given string value cannot be transformed to Json object: " + string, e);
         }
@@ -187,6 +201,10 @@ public class JacksonUtil {
             throw new IllegalArgumentException("The given Json object value: "
                     + value + " cannot be transformed to a String", e);
         }
+    }
+
+    public static String writeValueAsViewIgnoringNullFields(Object value, Class<Views.Public> serializationView) throws JsonProcessingException {
+        return value == null ? "" : OBJECT_MAPPER_INCLUDE_NOT_NULL.writerWithView(serializationView).writeValueAsString(value);
     }
 
     public static String writeValueAsStringWithDefaultPrettyPrinter(Object value) {

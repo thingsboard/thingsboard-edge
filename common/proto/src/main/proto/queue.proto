@@ -503,6 +503,15 @@ message TranslationCacheInvalidateMsg {
   int64 tenantIdLSB = 2;
 }
 
+message CustomMenuCacheInvalidateMsg {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  int64 customerIdMSB = 3;
+  int64 customerIdLSB = 4;
+  int64 userIdMSB = 5;
+  int64 userIdLSB = 6;
+}
+
 message LwM2MRegistrationRequestMsg {
   string tenantId = 1;
   string endpoint = 2;
@@ -1643,6 +1652,7 @@ message ToCoreNotificationMsg {
   FromEdgeSyncResponseMsgProto fromEdgeSyncResponse = 15 [deprecated = true];
   ResourceCacheInvalidateMsg resourceCacheInvalidateMsg = 16;
   TranslationCacheInvalidateMsg translationCacheInvalidateMsg = 100;
+  CustomMenuCacheInvalidateMsg customMenuCacheInvalidateMsg = 101;
 }
 
 /* Messages to Edge queue that are handled by ThingsBoard Core Service */
