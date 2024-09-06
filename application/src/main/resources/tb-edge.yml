@@ -666,6 +666,9 @@ cache:
     customMenu:
       timeToLiveInMinutes: "${CACHE_SPECS_CUSTOM_MENU_TTL:1440}" # Custom menu cache TTL
       maxSize: "${CACHE_SPECS_CUSTOM_MENU_MAX_SIZE:10000}" # 0 means the cache is disabled
+    entityGroups:
+      timeToLiveInMinutes: "${CACHE_SPECS_ENTITY_GROUPS_TTL:1440}" # entity groups cache TTL
+      maxSize: "${CACHE_SPECS_ENTITY_GROUPS_MAX_SIZE:10000}" # 0 means the cache is disabled
 
   # Deliberately placed outside the 'specs' group above
   notificationRules:

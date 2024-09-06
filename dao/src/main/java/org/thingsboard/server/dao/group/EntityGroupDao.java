@@ -57,6 +57,7 @@ public interface EntityGroupDao extends Dao<EntityGroup>, ExportableEntityDao<En
     Optional<EntityGroup> findEntityGroupByTypeAndName(UUID tenantId, UUID parentEntityId,
                                                        EntityType parentEntityType, EntityType groupType, String name);
 
+    @Deprecated(since = "3.7.1", forRemoval = true)
     ListenableFuture<Optional<EntityGroup>> findEntityGroupByTypeAndNameAsync(UUID tenantId, UUID parentEntityId,
                                                                               EntityType parentEntityType, EntityType groupType, String name);
 
