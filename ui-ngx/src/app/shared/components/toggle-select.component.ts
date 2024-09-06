@@ -39,7 +39,7 @@ import { coerceBoolean } from '@shared/decorators/coercion';
 @Component({
   selector: 'tb-toggle-select',
   templateUrl: './toggle-select.component.html',
-  styleUrls: [],
+  styleUrls: ['./toggle-select.component.scss'],
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -66,6 +66,18 @@ export class ToggleSelectComponent extends _ToggleBase implements ControlValueAc
   @Input()
   @coerceBoolean()
   disablePagination = false;
+
+  @Input()
+  @coerceBoolean()
+  fillHeight = false;
+
+  @Input()
+  @coerceBoolean()
+  extraPadding = false;
+
+  @Input()
+  @coerceBoolean()
+  primaryBackground = false;
 
   modelValue: any;
 

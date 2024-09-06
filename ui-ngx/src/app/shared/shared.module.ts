@@ -257,6 +257,7 @@ import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 import { ScadaSymbolInputComponent } from '@shared/components/image/scada-symbol-input.component';
 import { CountryAutocompleteComponent } from '@shared/components/country-autocomplete.component';
 import { CountryData } from '@shared/models/country.models';
+import { SvgXmlComponent } from '@shared/components/svg-xml.component';
 import { CustomMenuAutocompleteComponent } from '@shared/components/custom-menu-autocomplete.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
@@ -382,6 +383,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     JsFuncComponent,
     CssComponent,
     HtmlComponent,
+    SvgXmlComponent,
     FabTriggerDirective,
     FabActionsDirective,
     FabToolbarComponent,
@@ -607,6 +609,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     JsFuncComponent,
     CssComponent,
     HtmlComponent,
+    SvgXmlComponent,
     FabTriggerDirective,
     FabActionsDirective,
     TbJsonToStringDirective,

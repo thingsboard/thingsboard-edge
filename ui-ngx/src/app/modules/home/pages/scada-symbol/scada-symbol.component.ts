@@ -150,6 +150,8 @@ export class ScadaSymbolComponent extends PageComponent
 
   symbolEditorDirty = false;
 
+  symbolEditorValid = true;
+
   private previewScadaSymbolObjectSettings: ScadaSymbolObjectSettings;
 
   private forcePristine = false;
@@ -353,6 +355,10 @@ export class ScadaSymbolComponent extends PageComponent
     this.symbolEditorDirty = dirty;
   }
 
+  onSymbolEditObjectValid(valid: boolean) {
+    this.symbolEditorValid = valid;
+  }
+
   updateScadaSymbol() {
     this.dialog.open<UploadImageDialogComponent, UploadImageDialogData,
       UploadImageDialogResult>(UploadImageDialogComponent, {
@@ -369,6 +375,7 @@ export class ScadaSymbolComponent extends PageComponent
           scadaSymbolContent: this.symbolData.scadaSymbolContent
         };
         this.symbolEditorDirty = true;
+        this.symbolEditorValid = true;
       }
     });
   }
@@ -482,6 +489,7 @@ export class ScadaSymbolComponent extends PageComponent
     }
     this.scadaSymbolFormGroup.markAsPristine();
     this.symbolEditorDirty = false;
+    this.symbolEditorValid = true;
     this.cd.markForCheck();
   }
 }
