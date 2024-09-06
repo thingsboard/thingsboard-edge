@@ -53,12 +53,12 @@ import {
 } from '@angular/forms';
 import { combineLatest, debounce, interval, Observable, of, shareReplay, Subject } from 'rxjs';
 import {
-  catchError,
+  catchError, debounceTime,
   distinctUntilChanged,
   map,
   startWith,
   switchMap,
-  takeUntil,
+  takeUntil, tap,
 } from 'rxjs/operators';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
 import { IntegrationDirectory, IntegrationType } from '@shared/models/integration.models';
@@ -152,7 +152,6 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
           if (this.libraryFormGroup.get('vendor').value?.name) {
             return this.converterLibraryService.getModels(this.integrationDir, this.libraryFormGroup.get('vendor').value.name, this.converterType)
           }
-          this.libraryFormGroup.get('model').patchValue('');
           return of([]);
         }
       ),
@@ -182,6 +181,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
             : of(null)
         ),
         catchError(() => of(null)),
+        distinctUntilChanged(),
         map((converter: Converter) => converter ?? { type: this.converterType } as Converter)
     );
   }
