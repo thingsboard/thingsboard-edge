@@ -110,6 +110,7 @@
                                    [childDrag]="pagesDragEnabled"
                                    [level]="level + 1"
                                    [maxIconNameBlockWidth]="maxIconNameBlockWidth"
+                                   [hideItems]="hideItems"
                                    (menuItemRemoved)="removeCustomPage($index)">
             <button cdkDragHandle *ngIf="pagesDragEnabled"
                     class="tb-mat-40 tb-drag-handle tb-custom-menu-item-row-prefix"

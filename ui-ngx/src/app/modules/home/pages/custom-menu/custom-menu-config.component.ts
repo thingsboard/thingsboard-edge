@@ -29,15 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-  ViewChild,
-  ViewEncapsulation
-} from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -48,8 +40,8 @@ import {
   CustomMenuConfig,
   CustomMenuInfo,
   CustomMenuItem,
-  defaultCustomMenuConfig, hideAllMenuItems,
-  isDefaultMenuConfig, isHomeMenuItem,
+  defaultCustomMenuConfig,
+  isDefaultMenuConfig,
   MenuItem
 } from '@shared/models/custom-menu.models';
 import { AbstractControl, FormControl, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
@@ -65,7 +57,7 @@ import {
 } from '@home/pages/custom-menu/add-custom-menu-item.dialog.component';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { MediaBreakpoints } from '@shared/models/constants';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription } from 'rxjs';
 
 @Component({
   selector: 'tb-custom-menu-config',
@@ -82,6 +74,8 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
 
   private observeBreakpointSubscription: Subscription;
 
+  private hideItemsSubject = new Subject<void>();
+
   get isDirty(): boolean {
     return this.customMenuFormGroup.dirty && !this.forcePristine;
   }
@@ -89,6 +83,8 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
   set isDirty(value: boolean) {
     this.forcePristine = !value;
   }
+
+  hideItems$ = this.hideItemsSubject.asObservable();
 
   maxIconNameBlockWidth = 256;
 
@@ -111,7 +107,6 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
               private route: ActivatedRoute,
               private customMenuService: CustomMenuService,
               private userPermissionsService: UserPermissionsService,
-              private cd: ChangeDetectorRef,
               private dialog: MatDialog,
               private breakpointObserver: BreakpointObserver) {
     super(store);
@@ -157,10 +152,10 @@ export class CustomMenuConfigComponent extends PageComponent implements OnInit, 
   }
 
   hideAll() {
-    const config: CustomMenuConfig = this.customMenuFormGroup.value;
-    config.items = hideAllMenuItems(config.items);
-    this.customMenuFormGroup.setControl('items', this.prepareMenuItemsFormArray(config.items), {emitEvent: false});
-    this.customMenuFormGroup.markAsDirty();
+    this.hideItemsSubject.next();
+    if (this.showHiddenItems.value) {
+      this.showHiddenItems.setValue(false);
+    }
   }
 
   save() {
