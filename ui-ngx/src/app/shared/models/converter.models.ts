@@ -125,6 +125,12 @@ export enum ConverterSourceType {
   LIBRARY = 'library',
 }
 
+export interface ConverterLibraryValue {
+  vendor: string;
+  model: string;
+  converter: Converter
+}
+
 export interface Vendor {
   name: string;
   logo: string;
@@ -137,7 +143,8 @@ export interface Model {
     description: string;
     label: string;
     url: string;
-  }
+  };
+  searchText?: string;
 }
 
 export function getConverterHelpLink(converter: Converter) {

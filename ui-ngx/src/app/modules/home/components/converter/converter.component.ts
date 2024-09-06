@@ -287,7 +287,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   openConverterTestDialog(): void {
-    this.libraryInfo ? this.getLibraryDebugIn() : this.getDefaultDebugIn()
+    (this.libraryInfo ? this.getLibraryDebugIn() : this.getDefaultDebugIn())
       .pipe(takeUntil(this.destroy$))
       .subscribe((debugIn: ConverterDebugInput) => this.showConverterTestDialog(debugIn));
   }

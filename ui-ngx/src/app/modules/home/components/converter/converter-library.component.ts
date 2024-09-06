@@ -51,7 +51,7 @@ import {
   Validator,
   Validators
 } from '@angular/forms';
-import { combineLatest, Observable, of, shareReplay, Subject } from 'rxjs';
+import { combineLatest, debounce, interval, Observable, of, shareReplay, Subject } from 'rxjs';
 import {
   catchError,
   distinctUntilChanged,
@@ -62,9 +62,9 @@ import {
 } from 'rxjs/operators';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
 import { IntegrationDirectory, IntegrationType } from '@shared/models/integration.models';
-import { Converter, ConverterType, Model, Vendor } from '@shared/models/converter.models';
+import { Converter, ConverterLibraryValue, ConverterType, Model, Vendor } from '@shared/models/converter.models';
 import { ConverterComponent } from '@home/components/converter/converter.component';
-import { isEmptyStr } from '@core/utils';
+import { isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
 
 @Component({
   selector: 'tb-converter-library',
@@ -91,7 +91,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
   @ViewChild('modelInput', { static: true }) modelInput: ElementRef;
   @ViewChild('vendorInput', { static: true }) vendorInput: ElementRef;
-  @ViewChild('dataConverter') dataConverterComponent: ConverterComponent;
+  @ViewChild('dataConverter', { static: true }) dataConverterComponent: ConverterComponent;
 
   libraryFormGroup: UntypedFormGroup;
   vendors$: Observable<Array<Vendor>>;
@@ -131,7 +131,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
     );
 
     this.filteredVendors$ = combineLatest([
-      this.libraryFormGroup.get('vendor').valueChanges,
+      this.vendorValueChanges,
       this.vendors$
     ]).pipe(
       map(([value, vendors]) => {
@@ -139,7 +139,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
         if (isEmptyStr(value)) {
           return vendors;
         }
-        const searchValue = (value?.name ?? value.trim()).toLowerCase();
+        const searchValue = ((value as Vendor)?.name ?? (value as string).trim()).toLowerCase();
         return vendors.filter(vendor => vendor.name.toLowerCase().includes(searchValue));
       }),
       shareReplay(1)
@@ -156,35 +156,50 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
           return of([]);
         }
       ),
+      map((models: Model[]) => models.map(model => ({ ...model, searchText: (model.name + model.info.description).toLowerCase() }))),
       shareReplay(1)
     );
 
     this.filteredModels$ = combineLatest([
       this.models$,
-      this.libraryFormGroup.get('model').valueChanges.pipe(startWith(''))
+      this.modelValueChanges
     ]).pipe(
       map(([models, value]) => {
         if (isEmptyStr(value)) {
           return models;
         }
-        const searchValue = (value?.name ?? value.trim()).toLowerCase();
-        return models.filter(model => model.name.toLowerCase().includes(searchValue));
+        const searchValue = ((value as Model)?.name ?? (value as string).trim()).toLowerCase();
+        return models.filter(model => model.searchText.toLowerCase().includes(searchValue));
       }),
       shareReplay(1)
     );
 
-    this.converter$ = combineLatest([
-      this.libraryFormGroup.get('vendor').valueChanges.pipe(startWith('')),
-      this.libraryFormGroup.get('model').valueChanges.pipe(startWith(''))
-    ]).pipe(
-      switchMap(([vendor, model]) =>
-        vendor?.name && model?.name
-          ? this.converterLibraryService.getConverter(this.integrationDir, vendor.name, model.name, this.converterType)
-          : of(null)
-      ),
-      catchError(() => of(null)),
-      map((converter: Converter) => converter ?? { type: this.converterType } as Converter)
+    this.converter$ = combineLatest([this.vendorValueChanges, this.modelValueChanges])
+      .pipe(
+        switchMap(([vendor, model]: [Vendor, Model]) =>
+          vendor?.name && model?.name
+            ? this.converterLibraryService.getConverter(this.integrationDir, vendor.name, model.name, this.converterType)
+            : of(null)
+        ),
+        catchError(() => of(null)),
+        map((converter: Converter) => converter ?? { type: this.converterType } as Converter)
     );
+  }
+
+  get vendorValueChanges(): Observable<Vendor | string> {
+    return this.libraryFormGroup.get('vendor').valueChanges.pipe(
+      startWith(''),
+      debounce((value) => isNotEmptyStr(value) ? interval(300) : of(0)),
+      distinctUntilChanged(),
+    )
+  }
+
+  get modelValueChanges(): Observable<Model | string> {
+    return this.libraryFormGroup.get('model').valueChanges.pipe(
+      startWith(''),
+      debounce((value) => isNotEmptyStr(value) ? interval(300) : of(0)),
+      distinctUntilChanged(),
+    )
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -222,7 +237,10 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
     this.onTouched = fn;
   }
 
-  writeValue(_): void {
+  writeValue(converterLibraryValue: ConverterLibraryValue): void {
+    if (isDefinedAndNotNull(converterLibraryValue)) {
+      this.libraryFormGroup.patchValue(converterLibraryValue, {emitEvent: false});
+    }
   }
 
   validate(): ValidationErrors | null {

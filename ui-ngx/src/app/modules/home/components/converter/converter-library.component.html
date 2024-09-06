@@ -56,7 +56,7 @@
           </div>
         </mat-option>
       </div>
-      <mat-option *ngIf="!(filteredVendors$ | async)?.length" [value]="null" class="tb-not-found">
+      <mat-option *ngIf="!(filteredVendors$ | async)?.length" [value]="''" class="tb-not-found">
         <div class="tb-not-found-content" (click)="$event.stopPropagation()">
           {{ "integration.vendor-not-found" | translate }}
         </div>
@@ -97,7 +97,7 @@
           </div>
         </mat-option>
       </div>
-        <mat-option *ngIf="!(filteredModels$ | async)?.length" [value]="null" class="tb-not-found">
+        <mat-option *ngIf="!(filteredModels$ | async)?.length" [value]="''" class="tb-not-found">
           <div class="tb-not-found-content" (click)="$event.stopPropagation()">
             {{ "integration.model-not-found" | translate }}
           </div>
