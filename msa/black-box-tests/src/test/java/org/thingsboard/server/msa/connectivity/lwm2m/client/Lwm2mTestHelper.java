@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.msa.connectivity.lwm2m;
+package org.thingsboard.server.msa.connectivity.lwm2m.client;
 
 import org.eclipse.californium.elements.config.Configuration;
 import org.eclipse.leshan.client.object.Security;
@@ -59,16 +59,22 @@ public class Lwm2mTestHelper {
     public static final String CLIENT_PSK_IDENTITY = "SOME_PSK_ID";
     public static final String CLIENT_PSK_KEY = "73656372657450534b73656372657450";
 
+    public static  String OBSERVE_ATTRIBUTES_WITH_PARAMS =
 
-    public static final String OBSERVE_ATTRIBUTES_WITHOUT_PARAMS =
             "    {\n" +
-                    "    \"keyName\": {},\n" +
-                    "    \"observe\": [],\n" +
-                    "    \"attribute\": [],\n" +
-                    "    \"telemetry\": [],\n" +
+                    "    \"keyName\": {\n" +
+                    "      \"/3_1.2/0/9\": \"batteryLevel\"\n" +
+                    "    },\n" +
+                    "    \"observe\": [\n" +
+                    "      \"/3_1.2/0/9\"\n" +
+                    "    ],\n" +
+                    "    \"attribute\": [\n" +
+                    "    ],\n" +
+                    "    \"telemetry\": [\n" +
+                    "      \"/3_1.2/0/9\"\n" +
+                    "    ],\n" +
                     "    \"attributeLwm2m\": {}\n" +
                     "  }";
-
     public static final String CLIENT_LWM2M_SETTINGS =
             "     {\n" +
                     "    \"edrxCycle\": null,\n" +
