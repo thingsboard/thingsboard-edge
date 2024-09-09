@@ -39,7 +39,7 @@ import { HomeDashboard } from '@shared/models/dashboard.models';
 import { DashboardService } from '@core/http/dashboard.service';
 import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
-import { map } from 'rxjs/operators';
+import { catchError, first, map } from 'rxjs/operators';
 import {
   getCurrentAuthUser,
   selectHomeDashboardParams,
@@ -50,6 +50,7 @@ import { EntityKeyType } from '@shared/models/query/query.models';
 import { ResourcesService } from '@core/services/resources.service';
 import { isDefinedAndNotNull } from '@core/utils';
 import { MenuId } from '@core/services/menu.models';
+import { MenuService } from '@core/services/menu.service';
 
 const sysAdminHomePageJson = '/assets/dashboard/sys_admin_home_page.json';
 const tenantAdminHomePageJson = '/assets/dashboard/tenant_admin_home_page.json';
@@ -72,7 +73,7 @@ const getHomeDashboard = (store: Store<AppState>, resourcesService: ResourcesSer
 const applySystemParametersToHomeDashboard = (store: Store<AppState>,
                                               dashboard$: Observable<HomeDashboard>,
                                               authority: Authority): Observable<HomeDashboard> => {
-  let selectParams$: Observable<{persistDeviceStateToTelemetry?: boolean, mobileQrEnabled?: boolean}>;
+  let selectParams$: Observable<{persistDeviceStateToTelemetry?: boolean; mobileQrEnabled?: boolean}>;
   switch (authority) {
     case Authority.SYS_ADMIN:
       selectParams$ = store.pipe(
@@ -117,21 +118,49 @@ const applySystemParametersToHomeDashboard = (store: Store<AppState>,
   );
 };
 
-export const homeDashboardResolver: ResolveFn<HomeDashboard> = (
-  route: ActivatedRouteSnapshot,
-  state: RouterStateSnapshot,
-  dashboardService = inject(DashboardService),
-  resourcesService = inject(ResourcesService),
-  store: Store<AppState> = inject(Store<AppState>)
-): Observable<HomeDashboard> =>
+const resolveMenuHomeDashboard = (menuService: MenuService,
+                                  dashboardService: DashboardService,
+                                  resourcesService: ResourcesService,
+                                  store: Store<AppState>): Observable<HomeDashboard> =>
+  menuService.menuSections().pipe(first()).pipe(
+    mergeMap((sections) => {
+      const homeSection = sections.find(s => s.id === MenuId.home);
+      if (homeSection?.homeDashboardId) {
+        return dashboardService.getDashboard(homeSection.homeDashboardId, {ignoreErrors: true}).pipe(
+          map((dashboard) => ({
+            ...dashboard,
+            hideDashboardToolbar: homeSection.homeHideDashboardToolbar
+          })),
+          catchError(() => getHomeDashboard(store, resourcesService))
+        );
+      } else {
+        return getHomeDashboard(store, resourcesService);
+      }
+    })
+  );
+
+const resolveHomeDashboard = (menuService: MenuService,
+                              dashboardService: DashboardService,
+                              resourcesService: ResourcesService,
+                              store: Store<AppState>): Observable<HomeDashboard> =>
   dashboardService.getHomeDashboard().pipe(
     mergeMap((dashboard) => {
       if (!dashboard) {
-        return getHomeDashboard(store, resourcesService);
+        return resolveMenuHomeDashboard(menuService, dashboardService, resourcesService, store);
       }
       return of(dashboard);
-    })
+    }),
+    catchError(() => resolveMenuHomeDashboard(menuService, dashboardService, resourcesService, store))
   );
+
+export const homeDashboardResolver: ResolveFn<HomeDashboard> = (
+  _route: ActivatedRouteSnapshot,
+  _state: RouterStateSnapshot,
+  menuService = inject(MenuService),
+  dashboardService = inject(DashboardService),
+  resourcesService = inject(ResourcesService),
+  store: Store<AppState> = inject(Store<AppState>)
+): Observable<HomeDashboard> => resolveHomeDashboard(menuService, dashboardService, resourcesService, store);
 
 const routes: Routes = [
   {

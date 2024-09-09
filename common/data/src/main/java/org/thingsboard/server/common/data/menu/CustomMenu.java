@@ -31,19 +31,42 @@
 package org.thingsboard.server.common.data.menu;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
-import java.util.ArrayList;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 
 @Schema
 @Data
-@EqualsAndHashCode
-public class CustomMenu {
+@EqualsAndHashCode(callSuper = true)
+@Slf4j
+public class CustomMenu extends CustomMenuInfo {
 
-    @Schema(description = "List of disabled regular menu items", requiredMode = Schema.RequiredMode.REQUIRED, example = "home")
-    private ArrayList<String> disabledMenuItems = new ArrayList<>();
-    @Schema(description = "List of custom menu items", requiredMode = Schema.RequiredMode.REQUIRED)
-    private ArrayList<CustomMenuItem> menuItems = new ArrayList<>();
+    @Schema(description = "Custom menu configuration")
+    @Valid
+    private CustomMenuConfig config;
+
+    public CustomMenu() {
+        super();
+    }
+
+    public CustomMenu(CustomMenuId id) {
+        super(id);
+    }
+
+    public CustomMenu(CustomMenuInfo customMenuInfo) {
+        super(customMenuInfo);
+    }
+
+    public CustomMenu(CustomMenu customMenu) {
+        super(customMenu);
+        this.config = customMenu.getConfig();
+    }
+
+    public CustomMenu(CustomMenuInfo customMenuInfo, CustomMenuConfig config) {
+        super(customMenuInfo);
+        this.config = config;
+    }
 
 }

@@ -121,12 +121,12 @@ public class EdgeEventSourcingListener {
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(DeleteEntityEvent<?> event) {
         TenantId tenantId = event.getTenantId();
-        EntityType entityType = event.getEntityId().getEntityType();
         if (!tenantId.isSysTenantId() && !tenantService.tenantExists(tenantId)) {
             log.debug("[{}] Ignoring DeleteEntityEvent because tenant does not exist: {}", tenantId, event);
             return;
         }
         try {
+            EntityType entityType = event.getEntityId().getEntityType();
             if (EntityType.EDGE.equals(entityType) || EntityType.TENANT.equals(entityType)) {
                 return;
             }
@@ -152,7 +152,7 @@ public class EdgeEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(ActionEntityEvent<?> event) {
-        if (EntityType.DEVICE.equals(event.getEntityId().getEntityType()) && ActionType.ASSIGNED_TO_TENANT.equals(event.getActionType())) {
+        if (event.getEntityId() != null && EntityType.DEVICE.equals(event.getEntityId().getEntityType()) && ActionType.ASSIGNED_TO_TENANT.equals(event.getActionType())) {
             return;
         }
         try {
