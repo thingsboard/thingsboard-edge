@@ -69,6 +69,7 @@ export interface ScadaSymbolEditObjectCallbacks {
   tagsUpdated: (tags: string[]) => void;
   hasHiddenElements?: (hasHidden: boolean) => void;
   onSymbolEditObjectDirty: (dirty: boolean) => void;
+  onSymbolEditObjectValid: (valid: boolean) => void;
   onZoom?: () => void;
 }
 
