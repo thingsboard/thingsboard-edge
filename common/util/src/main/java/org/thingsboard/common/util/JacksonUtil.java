@@ -138,6 +138,14 @@ public class JacksonUtil {
         }
     }
 
+    public static <T> T fromString(String string, TypeReference<T> valueTypeRef, boolean ignoreUnknownFields) {
+        try {
+            return string != null ? IGNORE_UNKNOWN_PROPERTIES_JSON_MAPPER.readValue(string, valueTypeRef) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given string value cannot be transformed to Json object: " + string, e);
+        }
+    }
+
     public static <T> T fromString(String string, JavaType javaType) {
         try {
             return string != null ? OBJECT_MAPPER.readValue(string, javaType) : null;

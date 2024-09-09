@@ -223,6 +223,8 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
         EntityGroup old = null;
         if (doValidate) {
             old = validator.validate(entityGroup, data -> tenantId);
+        } else if (entityGroup.getId() != null) {
+            old = entityGroupDao.findById(tenantId, entityGroup.getId().getId());
         }
         EntityGroupEvictEvent event = new EntityGroupEvictEvent(old != null ? old.getOwnerId() : entityGroup.getOwnerId(), entityGroup.getType(), entityGroup.getName(), old != null ? old.getName() : null);
         if (entityGroup.getId() == null && entityGroup.getConfiguration() == null) {
