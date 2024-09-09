@@ -37,6 +37,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -51,6 +52,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+
+import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 
 /**
  * Created by Valerii Sosliuk on 5/6/2017.
@@ -160,6 +163,20 @@ public class JpaCustomerDao extends JpaAbstractDao<CustomerEntity, Customer> imp
         return DaoUtil.toPageData(
                 customerRepository.findCustomersWithTheSameTitle(DaoUtil.toPageable(pageLink))
         );
+    }
+
+    @Override
+    public List<Customer> findCustomersByCustomMenuId(CustomMenuId customMenuId) {
+        return DaoUtil.convertDataList(customerRepository.findByCustomMenuId(customMenuId.getId()));
+    }
+
+    @Override
+    public void updateCustomersCustomMenuId(List<CustomerId> customerIds, CustomMenuId customMenuId) {
+        if (customMenuId == null) {
+            customerRepository.updateCustomMenuIdToNull(toUUIDs(customerIds));
+        } else {
+            customerRepository.updateCustomMenuId(toUUIDs(customerIds), customMenuId.getId());
+        }
     }
 
     @Override

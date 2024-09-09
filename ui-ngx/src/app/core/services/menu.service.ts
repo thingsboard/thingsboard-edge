@@ -74,7 +74,7 @@ export class MenuService {
         }
       }
     );
-    this.customMenuService.customMenuChanged$.subscribe(() => {
+    this.customMenuService.customMenuConfigChanged$.subscribe(() => {
       this.buildMenu();
     });
     this.router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(

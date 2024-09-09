@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.transport.TransportContext;
+import org.thingsboard.server.common.transport.TransportTenantProfileCache;
 import org.thingsboard.server.transport.mqtt.adaptors.JsonMqttAdaptor;
 import org.thingsboard.server.transport.mqtt.adaptors.ProtoMqttAdaptor;
 
@@ -65,6 +66,10 @@ public class MqttTransportContext extends TransportContext {
     @Getter
     @Autowired
     private ProtoMqttAdaptor protoMqttAdaptor;
+
+    @Getter
+    @Autowired
+    private TransportTenantProfileCache tenantProfileCache;
 
     @Getter
     @Value("${transport.mqtt.netty.max_payload_size}")

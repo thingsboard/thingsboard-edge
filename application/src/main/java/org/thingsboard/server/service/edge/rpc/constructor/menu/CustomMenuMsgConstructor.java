@@ -31,20 +31,26 @@
 package org.thingsboard.server.service.edge.rpc.constructor.menu;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
+import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
+
+import java.util.List;
 
 @Component
 @Slf4j
 public class CustomMenuMsgConstructor {
 
-    public CustomMenuProto constructCustomMenuProto(CustomMenu customMenu, EntityId entityId) {
-        return CustomMenuProto.newBuilder().setEntity(JacksonUtil.toString(customMenu))
-                .setEntityIdMSB(entityId.getId().getMostSignificantBits())
-                .setEntityIdLSB(entityId.getId().getLeastSignificantBits())
-                .setEntityType(entityId.getEntityType().name()).build();
+    public CustomMenuProto constructCustomMenuMsg(UpdateMsgType msgType, CustomMenu customMenu, List<EntityId> entityIds) {
+        CustomMenuProto.Builder builder = CustomMenuProto.newBuilder();
+        if (CollectionUtils.isNotEmpty(entityIds)) {
+            builder.setAssigneeList(JacksonUtil.toString(entityIds));
+        }
+        return builder.setMsgType(msgType).setEntity(JacksonUtil.toString(customMenu)).build();
     }
+
 }

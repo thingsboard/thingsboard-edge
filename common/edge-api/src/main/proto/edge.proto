@@ -720,10 +720,9 @@ message CustomTranslationProto {
 }
 
 message CustomMenuProto {
-  optional int64 entityIdMSB = 1;
-  optional int64 entityIdLSB = 2;
-  optional string entityType = 3;
-  optional string entity = 4;
+  optional UpdateMsgType msgType = 1;
+  optional string entity = 2;
+  optional string assigneeList = 3;
 }
 
 message CustomTranslationUpdateMsg {

@@ -32,14 +32,29 @@
 import { EntityType } from '@shared/models/entity-type.models';
 import { AuthState } from '@core/auth/auth.models';
 import { Authority } from '@shared/models/authority.enum';
-import { deepClone } from '@core/utils';
+import { deepClone, isDefinedAndNotNull, isNotEmptyStr } from '@core/utils';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
-import { CustomMenu, CustomMenuItem } from '@shared/models/custom-menu.models';
+import {
+  CMItemLinkType,
+  CMItemType,
+  CustomMenuConfig,
+  CustomMenuItem,
+  HomeMenuItemType,
+  isCustomMenuItem,
+  isDefaultMenuItem,
+  isHomeMenuItem,
+  MenuItem
+} from '@shared/models/custom-menu.models';
 
 export declare type MenuSectionType = 'link' | 'toggle';
 
-export interface MenuSection {
+export interface MenuReference {
+  id: MenuId  | string;
+  pages?: Array<MenuReference>;
+}
+
+export interface MenuSection extends MenuReference {
   id: MenuId | string;
   name: string;
   fullName?: string;
@@ -47,7 +62,6 @@ export interface MenuSection {
   path: string;
   queryParams?: {[k: string]: any};
   icon: string;
-  iconUrl?: string;
   pages?: Array<MenuSection>;
   opened?: boolean;
   rootOnly?: boolean;
@@ -56,6 +70,8 @@ export interface MenuSection {
   stateId?: string;
   childStateIds?: {[stateId: string]: boolean};
   customTranslate?: boolean;
+  homeDashboardId?: string;
+  homeHideDashboardToolbar?: boolean;
 }
 
 export const sectionPath = (section: MenuSection): string => {
@@ -69,11 +85,6 @@ export const sectionPath = (section: MenuSection): string => {
 export const filterOpenedMenuSection = (section: MenuSection, url: string, openedMenuSections: string[]): boolean =>
   section.type === 'toggle' &&
     ((!section.isCustom && url.startsWith(section.path)) || openedMenuSections.includes(sectionPath(section)));
-
-export interface MenuReference {
-  id: MenuId;
-  pages?: Array<MenuReference>;
-}
 
 export interface HomeSectionReference {
   name: string;
@@ -1138,7 +1149,8 @@ const menuFilters = new Map<MenuId, MenuFilter>([
           userPermissionsService.hasSharedReadGroupsPermission(EntityType.DASHBOARD)
   ],
   [
-    MenuId.solution_templates, (_authState, userPermissionsService) =>
+    MenuId.solution_templates, (authState, userPermissionsService) =>
+          authState.authUser.authority === Authority.TENANT_ADMIN &&
           userPermissionsService.hasGenericPermission(Resource.ALL, Operation.ALL)
   ],
   [
@@ -1178,12 +1190,13 @@ const menuFilters = new Map<MenuId, MenuFilter>([
           userPermissionsService.hasSharedReadGroupsPermission(EntityType.ENTITY_VIEW)
   ],
   [
-    MenuId.device_profiles, (_authState, userPermissionsService) =>
+    MenuId.device_profiles, (authState, userPermissionsService) =>
+          authState.authUser.authority === Authority.TENANT_ADMIN &&
           userPermissionsService.hasReadGenericPermission(Resource.DEVICE_PROFILE)
   ],
   [
-    MenuId.asset_profiles, (_authState, userPermissionsService) =>
-          userPermissionsService.hasReadGenericPermission(Resource.ASSET_PROFILE)
+    MenuId.asset_profiles, (authState, userPermissionsService) =>
+          authState.authUser.authority === Authority.TENANT_ADMIN && userPermissionsService.hasReadGenericPermission(Resource.ASSET_PROFILE)
   ],
   [
     MenuId.customer_all, (_authState, userPermissionsService) =>
@@ -1210,16 +1223,16 @@ const menuFilters = new Map<MenuId, MenuFilter>([
           userPermissionsService.hasGenericReadGroupsPermission(EntityType.USER)
   ],
   [
-    MenuId.integrations, (_authState, userPermissionsService) =>
-          userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)
+    MenuId.integrations, (authState, userPermissionsService) =>
+          authState.authUser.authority === Authority.TENANT_ADMIN && userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)
   ],
   [
-    MenuId.converters, (_authState, userPermissionsService) =>
-          userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)
+    MenuId.converters, (authState, userPermissionsService) =>
+          authState.authUser.authority === Authority.TENANT_ADMIN && userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)
   ],
   [
-    MenuId.rule_chains, (_authState, userPermissionsService) =>
-          userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)
+    MenuId.rule_chains, (authState, userPermissionsService) =>
+          authState.authUser.authority === Authority.TENANT_ADMIN && userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)
   ],
   [
     MenuId.edge_all, (authState, userPermissionsService) =>
@@ -1235,58 +1248,69 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.rulechain_templates, (authState, userPermissionsService) =>
-           authState.edgesSupportEnabled && userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)
+      authState.edgesSupportEnabled && authState.authUser.authority === Authority.TENANT_ADMIN &&
+      userPermissionsService.hasReadGenericPermission(Resource.RULE_CHAIN)
   ],
   [
     MenuId.integration_templates, (authState, userPermissionsService) =>
-           authState.edgesSupportEnabled && userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)
+      authState.edgesSupportEnabled && authState.authUser.authority === Authority.TENANT_ADMIN &&
+      userPermissionsService.hasReadGenericPermission(Resource.INTEGRATION)
   ],
   [
     MenuId.converter_templates, (authState, userPermissionsService) =>
-           authState.edgesSupportEnabled && userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)
+           authState.edgesSupportEnabled && authState.authUser.authority === Authority.TENANT_ADMIN &&
+           userPermissionsService.hasReadGenericPermission(Resource.CONVERTER)
   ],
   [
-    MenuId.otaUpdates, (_authState, userPermissionsService) =>
-            userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)
+    MenuId.otaUpdates, (authState, userPermissionsService) =>
+           authState.authUser.authority === Authority.TENANT_ADMIN && userPermissionsService.hasReadGenericPermission(Resource.OTA_PACKAGE)
   ],
   [
-    MenuId.version_control, (_authState, userPermissionsService) =>
-            userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)
+    MenuId.version_control, (authState, userPermissionsService) =>
+           authState.authUser.authority === Authority.TENANT_ADMIN &&
+           userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)
   ],
   [
     MenuId.scheduler, (_authState, userPermissionsService) =>
             userPermissionsService.hasReadGenericPermission(Resource.SCHEDULER_EVENT)
   ],
   [
-    MenuId.widget_types, (_authState, userPermissionsService) =>
-            userPermissionsService.hasReadGenericPermission(Resource.WIDGET_TYPE)
+    MenuId.widget_types, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN && userPermissionsService.hasReadGenericPermission(Resource.WIDGET_TYPE)
   ],
   [
-    MenuId.widgets_bundles, (_authState, userPermissionsService) =>
+    MenuId.widgets_bundles, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.WIDGETS_BUNDLE)
   ],
   [
-    MenuId.resources_library, (_authState, userPermissionsService) =>
+    MenuId.resources_library, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)
   ],
   [
-    MenuId.notification_sent, (_authState, userPermissionsService) =>
+    MenuId.notification_sent, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)
   ],
   [
-    MenuId.notification_recipients, (_authState, userPermissionsService) =>
+    MenuId.notification_recipients, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)
   ],
   [
-    MenuId.notification_templates, (_authState, userPermissionsService) =>
+    MenuId.notification_templates, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)
   ],
   [
-    MenuId.notification_rules, (_authState, userPermissionsService) =>
+    MenuId.notification_rules, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)
   ],
   [
-    MenuId.api_usage, (_authState, userPermissionsService) =>
+    MenuId.api_usage, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.API_USAGE_STATE) &&
             userPermissionsService.hasGenericPermission(Resource.API_USAGE_STATE, Operation.READ_TELEMETRY)
   ],
@@ -1304,6 +1328,7 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.mail_templates, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             authState.whiteLabelingAllowed && userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)
   ],
   [
@@ -1320,26 +1345,32 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.mail_server, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             authState.whiteLabelingAllowed && userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)
   ],
   [
     MenuId.notification_settings, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             authState.whiteLabelingAllowed && userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)
   ],
   [
-    MenuId.repository_settings, (_authState, userPermissionsService) =>
+    MenuId.repository_settings, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)
   ],
   [
-    MenuId.auto_commit_settings, (_authState, userPermissionsService) =>
+    MenuId.auto_commit_settings, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)
   ],
   [
-    MenuId.mobile_app_settings, (_authState, userPermissionsService) =>
+    MenuId.mobile_app_settings, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.MOBILE_APP_SETTINGS)
   ],
   [
     MenuId.two_fa, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             authState.whiteLabelingAllowed && userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)
   ],
   [
@@ -1348,6 +1379,7 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.self_registration, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
             authState.whiteLabelingAllowed && userPermissionsService.hasReadGenericPermission(Resource.WHITE_LABELING)
   ],
   [
@@ -1356,7 +1388,7 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ]
 ]);
 
-const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
+export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
   [
     Authority.SYS_ADMIN,
     [
@@ -1864,25 +1896,29 @@ const defaultHomeSectionMap = new Map<Authority, HomeSectionReference[]>([
   ]
 ]);
 
+const referencesToMenuIdList = (references: MenuReference[]): Array<MenuId | string> => {
+  const result: Array<MenuId | string> = [];
+  for (const ref of references) {
+    result.push(ref.id);
+    if (ref.pages?.length) {
+      result.push(...referencesToMenuIdList(ref.pages));
+    }
+  }
+  return result;
+};
+
 export const buildUserMenu = (authState: AuthState, userPermissionsService: UserPermissionsService,
-                              customMenu: CustomMenu): Array<MenuSection> => {
-  const references = defaultUserMenuMap.get(authState.authUser.authority);
-  let disabledItems: MenuId[] = [];
-  if (customMenu && customMenu.disabledMenuItems) {
-    disabledItems = customMenu.disabledMenuItems;
+                              customMenuConfig: CustomMenuConfig): Array<MenuSection> => {
+  if (customMenuConfig?.items?.length) {
+    const customStateIds: {[stateId: string]: boolean} = {};
+    const allowedMenuIds = referencesToMenuIdList(defaultUserMenuMap.get(authState.authUser.authority));
+    return customMenuConfig.items.map(item =>
+      menuItemToMenuSection(authState, userPermissionsService, allowedMenuIds, customStateIds, item)).filter(section => !!section);
+  } else {
+    const references = defaultUserMenuMap.get(authState.authUser.authority);
+    return (references || []).map(ref =>
+      referenceToMenuSection(authState, userPermissionsService, ref)).filter(section => !!section);
   }
-  const index = disabledItems.indexOf('sms_provider' as MenuId);
-  if (index !== -1) {
-    disabledItems[index] = MenuId.notification_settings;
-  }
-  const menuSections = (references || []).map(ref =>
-    referenceToMenuSection(authState, userPermissionsService, disabledItems, ref)).filter(section => !!section);
-  let customMenuItems: CustomMenuItem[] = [];
-  if (customMenu && customMenu.menuItems) {
-    customMenuItems = customMenu.menuItems;
-  }
-  menuSections.push(...buildCustomMenu(customMenuItems));
-  return menuSections;
 };
 
 export const buildUserHome = (authState: AuthState, availableMenuSections: MenuSection[]): Array<HomeSection> => {
@@ -1891,15 +1927,60 @@ export const buildUserHome = (authState: AuthState, availableMenuSections: MenuS
     homeReferenceToHomeSection(availableMenuSections, ref)).filter(section => !!section);
 };
 
+export const menuItemToMenuSection = (authState: AuthState,
+                                      userPermissionsService: UserPermissionsService,
+                                      allowedMenuIds: Array<MenuId | string>,
+                                      customStateIds: {[stateId: string]: boolean},
+                                      item: MenuItem): MenuSection | undefined => {
+  if (isDefaultMenuItem(item)) {
+    if (!filterMenuReference(authState, userPermissionsService, allowedMenuIds, item)) {
+      return undefined;
+    }
+    if (isDefinedAndNotNull(item.visible) && !item.visible) {
+      return undefined;
+    }
+    const section = menuSectionMap.get(item.id);
+    const result = deepClone(section);
+    if (isNotEmptyStr(item.icon)) {
+      result.icon = item.icon;
+    }
+    if (isNotEmptyStr(item.name)) {
+      result.name = item.name;
+      result.customTranslate = true;
+    }
+    if (isHomeMenuItem(item)) {
+      const type = item.homeType;
+      switch (type) {
+        case HomeMenuItemType.DEFAULT:
+          break;
+        case HomeMenuItemType.DASHBOARD:
+          result.homeDashboardId = item.dashboardId;
+          result.homeHideDashboardToolbar = item.hideDashboardToolbar;
+          break;
+      }
+    }
+    if (item.pages?.length) {
+      result.pages = item.pages.map(page =>
+        menuItemToMenuSection(authState, userPermissionsService, allowedMenuIds, customStateIds, page)).filter(page => !!page);
+    }
+    if (result.type === 'toggle' && !result.pages?.length) {
+      return undefined;
+    }
+    return result;
+  } else if (isCustomMenuItem(item)) {
+    return buildCustomMenuSection(customStateIds, item);
+  }
+};
+
 const referenceToMenuSection = (authState: AuthState, userPermissionsService: UserPermissionsService,
-                                disabledItems: MenuId[], reference: MenuReference): MenuSection | undefined => {
-  if (filterMenuReference(authState, userPermissionsService, disabledItems, reference)) {
-    const section = menuSectionMap.get(reference.id);
+                                reference: MenuReference): MenuSection | undefined => {
+  if (filterMenuReference(authState, userPermissionsService, [], reference)) {
+    const section = menuSectionMap.get(MenuId[reference.id]);
     if (section) {
       const result = deepClone(section);
       if (reference.pages?.length) {
         result.pages = reference.pages.map(page =>
-          referenceToMenuSection(authState, userPermissionsService, disabledItems, page)).filter(page => !!page);
+          referenceToMenuSection(authState, userPermissionsService, page)).filter(page => !!page);
       }
       return result;
     } else {
@@ -1910,92 +1991,110 @@ const referenceToMenuSection = (authState: AuthState, userPermissionsService: Us
   }
 };
 
-const filterMenuReference = (authState: AuthState, userPermissionsService: UserPermissionsService, disabledItems: MenuId[],
+const filterMenuReference = (authState: AuthState, userPermissionsService: UserPermissionsService,
+                             allowedMenuIds: Array<MenuId | string>,
                              reference: MenuReference): boolean => {
-  if (disabledItems.includes(reference.id)) {
+  if (allowedMenuIds?.length && !allowedMenuIds.includes(reference.id)) {
     return false;
   }
   if (authState.authUser.authority === Authority.SYS_ADMIN) {
     return true;
   }
-  const filter = menuFilters.get(reference.id);
+  const filter = menuFilters.get(MenuId[reference.id]);
   if (filter) {
-    if (filter(authState, userPermissionsService)) {
-      if (reference.pages?.length) {
-        if (reference.pages.every(page => !filterMenuReference(authState, userPermissionsService, disabledItems, page))) {
-          return false;
-        }
-      }
-      return true;
+    if (!filter(authState, userPermissionsService)) {
+      return false;
     }
-    return false;
-  } else {
-    return true;
   }
+  if (reference.pages?.length) {
+    if (reference.pages.every(page => !filterMenuReference(authState, userPermissionsService, allowedMenuIds, page))) {
+      return false;
+    }
+  }
+  return true;
 };
 
-const buildCustomMenu = (customMenuItems: CustomMenuItem[]): MenuSection[] => {
-  const menuSections: MenuSection[] = [];
-  const stateIds: {[stateId: string]: boolean} = {};
-  for (const customMenuItem of customMenuItems) {
-    const stateId = getCustomMenuStateId(customMenuItem.name, stateIds);
-    const customMenuSection = {
-      id: stateId,
-      isCustom: true,
-      customTranslate: true,
-      stateId,
-      name: customMenuItem.name,
-      icon: customMenuItem.materialIcon,
-      iconUrl: customMenuItem.iconUrl,
-      path: '/iframeView'
-    } as MenuSection;
-    if (customMenuItem.childMenuItems && customMenuItem.childMenuItems.length) {
-      customMenuSection.type = 'toggle';
-      const pages: MenuSection[] = [];
-      const childStateIds: {[stateId: string]: boolean} = {};
-      for (const customMenuChildItem of customMenuItem.childMenuItems) {
-        const childStateId = getCustomMenuStateId(customMenuChildItem.name, stateIds);
-        const customMenuChildSection: MenuSection = {
-          id: childStateId,
-          isCustom: true,
-          customTranslate: true,
-          stateId: childStateId,
-          name: customMenuChildItem.name,
-          type: 'link',
-          icon: customMenuChildItem.materialIcon,
-          iconUrl: customMenuChildItem.iconUrl,
-          path: '/iframeView/child'
-        };
-        customMenuChildSection.queryParams = {
-          stateId,
-          iframeUrl: customMenuItem.iframeUrl,
-          dashboardId: customMenuItem.dashboardId,
-          hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
-          setAccessToken: customMenuItem.setAccessToken,
-          childStateId,
-          childIframeUrl: customMenuChildItem.iframeUrl,
-          childDashboardId: customMenuChildItem.dashboardId,
-          childHideDashboardToolbar: customMenuChildItem.hideDashboardToolbar,
-          childSetAccessToken: customMenuChildItem.setAccessToken
-        };
-        pages.push(customMenuChildSection);
-        childStateIds[childStateId] = true;
-      }
-      customMenuSection.pages = pages;
-      customMenuSection.childStateIds = childStateIds;
-    } else {
-      customMenuSection.type = 'link';
-      customMenuSection.queryParams = {
-        stateId,
-        iframeUrl: customMenuItem.iframeUrl,
-        dashboardId: customMenuItem.dashboardId,
-        hideDashboardToolbar: customMenuItem.hideDashboardToolbar,
-        setAccessToken: customMenuItem.setAccessToken
-      };
-    }
-    menuSections.push(customMenuSection);
+const buildCustomMenuSection = (stateIds: {[stateId: string]: boolean}, customMenuItem: CustomMenuItem): MenuSection | undefined => {
+  if (isDefinedAndNotNull(customMenuItem.visible) && !customMenuItem.visible) {
+    return undefined;
   }
-  return menuSections;
+  if (customMenuItem.menuItemType === CMItemType.SECTION &&
+      !customMenuItem.pages?.length) {
+    return undefined;
+  }
+  const stateId = getCustomMenuStateId(customMenuItem.name, stateIds);
+  const customMenuSection = {
+    id: stateId,
+    isCustom: true,
+    customTranslate: true,
+    stateId,
+    name: customMenuItem.name,
+    icon: customMenuItem.icon
+  } as MenuSection;
+  if (customMenuItem.menuItemType === CMItemType.SECTION) {
+    customMenuSection.type = 'toggle';
+    const pages: MenuSection[] = [];
+    const childStateIds: {[stateId: string]: boolean} = {};
+    for (const customMenuChildItem of customMenuItem.pages) {
+      if (isDefinedAndNotNull(customMenuChildItem.visible) && !customMenuChildItem.visible) {
+        continue;
+      }
+      const childStateId = getCustomMenuStateId(customMenuChildItem.name, stateIds);
+      const customMenuChildSection: MenuSection = {
+        id: childStateId,
+        isCustom: true,
+        customTranslate: true,
+        stateId: childStateId,
+        name: customMenuChildItem.name,
+        type: 'link',
+        icon: customMenuChildItem.icon,
+        path: '/iframeView/child'
+      };
+      customMenuChildSection.queryParams = {
+        ...customMenuItemQueryParams(customMenuItem, stateId),
+        ...customMenuItemQueryParams(customMenuChildItem, childStateId, true)
+      };
+      pages.push(customMenuChildSection);
+      childStateIds[childStateId] = true;
+    }
+    if (!pages.length) {
+      return undefined;
+    }
+    customMenuSection.pages = pages;
+    customMenuSection.childStateIds = childStateIds;
+  } else {
+    customMenuSection.path = '/iframeView';
+    customMenuSection.type = 'link';
+    customMenuSection.queryParams = customMenuItemQueryParams(customMenuItem, stateId);
+  }
+  return customMenuSection;
+};
+
+const customMenuItemQueryParams = (item: CustomMenuItem, stateId: string, child = false):  {[k: string]: any} => {
+  const queryParams: {[k: string]: any} = {};
+  if (child) {
+    queryParams.childStateId = stateId;
+  } else {
+    queryParams.stateId = stateId;
+  }
+  if (item.linkType === CMItemLinkType.URL) {
+    if (child) {
+      queryParams.childIframeUrl = item.url;
+      queryParams.childSetAccessToken = item.setAccessToken;
+    } else {
+      queryParams.iframeUrl = item.url;
+      queryParams.setAccessToken = item.setAccessToken;
+    }
+  } else if (item.linkType === CMItemLinkType.DASHBOARD) {
+    if (child) {
+      queryParams.childDashboardId = item.dashboardId;
+      queryParams.childHideDashboardToolbar = item.hideDashboardToolbar;
+    } else {
+      queryParams.dashboardId = item.dashboardId;
+      queryParams.hideDashboardToolbar = item.hideDashboardToolbar;
+    }
+  }
+  return queryParams;
 };
 
 const getCustomMenuStateId = (name: string, stateIds: {[stateId: string]: boolean}): string => {
