@@ -49,7 +49,7 @@ import {
   ValidationErrors,
   Validators
 } from '@angular/forms';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { filter, map, mergeMap, share, tap } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -59,7 +59,9 @@ import { EntityService } from '@core/http/entity.service';
 import { MatAutocomplete } from '@angular/material/autocomplete';
 import { MatChipGrid } from '@angular/material/chips';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { SubscriptSizing } from '@angular/material/form-field';
+import { MatFormFieldAppearance, SubscriptSizing } from '@angular/material/form-field';
+import { coerceBoolean } from '@shared/decorators/coercion';
+import { EntityInfoData } from '@shared/models/entity.models';
 
 @Component({
   selector: 'tb-entity-list',
@@ -83,6 +85,12 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
   entityListFormGroup: UntypedFormGroup;
 
   private modelValue: Array<string> | null;
+
+  @Input()
+  fetchEntitiesFunction: (searchText?: string) => Observable<Array<BaseData<EntityId>>>;
+
+  @Input()
+  appearance: MatFormFieldAppearance = 'fill';
 
   @Input()
   entityType: EntityType;
@@ -132,6 +140,10 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
 
   @Input()
   hint: string;
+
+  @Input()
+  @coerceBoolean()
+  syncIdsWithDB = false;
 
   @ViewChild('entityInput') entityInput: ElementRef<HTMLInputElement>;
   @ViewChild('entityAutocomplete') matAutocomplete: MatAutocomplete;
@@ -208,14 +220,27 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
     }
   }
 
-  writeValue(value: Array<string> | null): void {
+  writeValue(value: Array<string> | Array<EntityInfoData> | null): void {
     this.searchText = '';
-    if (value != null && value.length > 0) {
-      this.modelValue = [...value];
-      this.entityService.getEntities(this.entityType, value).subscribe(
+    if (value?.length > 0) {
+      let entitiesObservable: Observable<Array<BaseData<EntityId>>>;
+      if (typeof value[0] === 'string') {
+        const entityIds = value as Array<string>;
+        this.modelValue = [...entityIds];
+        entitiesObservable = this.entityService.getEntities(this.entityType, entityIds);
+      } else {
+        const entities = value as Array<EntityInfoData>;
+        this.modelValue = entities.map(entity => entity.id.id);
+        entitiesObservable = of(entities);
+      }
+      entitiesObservable.subscribe(
         (entities) => {
           this.entities = entities;
           this.entityListFormGroup.get('entities').setValue(this.entities);
+          if (this.syncIdsWithDB && this.modelValue.length !== entities.length) {
+            this.modelValue = entities.map(entity => entity.id.id);
+            this.propagateChange(this.modelValue);
+          }
         }
       );
     } else {
@@ -278,9 +303,14 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
 
   private fetchEntities(searchText?: string): Observable<Array<BaseData<EntityId>>> {
     this.searchText = searchText;
-    return this.entityService.getEntitiesByNameFilter(this.entityType, searchText,
-      50, this.entitySubType, {ignoreLoading: true}).pipe(
-      map((data) => data ? data : []));
+    if (this.fetchEntitiesFunction) {
+      return this.fetchEntitiesFunction(searchText).pipe(
+        map((data) => data ? data : []));
+    } else {
+      return this.entityService.getEntitiesByNameFilter(this.entityType, searchText,
+        50, this.entitySubType, {ignoreLoading: true}).pipe(
+        map((data) => data ? data : []));
+    }
   }
 
   public onFocus() {

@@ -46,6 +46,7 @@ import { GroupEntitiesTableComponent } from '@home/components/group/group-entiti
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { CustomerTitleResolver } from '@home/pages/customer/customer.shared';
 import { entityGroupsTitle } from '@shared/models/entity-group.models';
+import { MenuId } from '@core/services/menu.models';
 
 const deviceRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
   ({
@@ -115,8 +116,7 @@ export const deviceGroupsRoute: Route = {
   data: {
     groupType: EntityType.DEVICE,
     breadcrumb: {
-      label: 'device.groups',
-      icon: 'devices_other'
+      menuId: MenuId.device_groups
     }
   },
   children: deviceGroupsChildrenRoutesTemplate(false)
@@ -128,8 +128,7 @@ const deviceSharedGroupsRoute: Route = {
     groupType: EntityType.DEVICE,
     shared: true,
     breadcrumb: {
-      label: 'device.shared',
-      icon: 'devices_other'
+      menuId: MenuId.device_shared
     }
   },
   children: deviceGroupsChildrenRoutesTemplate(true)
@@ -165,8 +164,7 @@ export const devicesRoute = (root = false): Route => {
           groupType: EntityType.DEVICE,
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           breadcrumb: {
-            label: 'device.all',
-            icon: 'devices_other'
+            menuId: MenuId.device_all
           }
         },
         children: [

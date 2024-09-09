@@ -36,6 +36,7 @@ import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
@@ -56,13 +57,16 @@ public class SysAdminPermissions extends AbstractPermissions {
         put(Resource.WIDGETS_BUNDLE, systemEntityPermissionChecker);
         put(Resource.WIDGET_TYPE, systemEntityPermissionChecker);
         put(Resource.WHITE_LABELING, PermissionChecker.allowAllPermissionChecker);
-        put(Resource.OAUTH2_CONFIGURATION_INFO, PermissionChecker.allowAllPermissionChecker);
+        put(Resource.OAUTH2_CLIENT, PermissionChecker.allowAllPermissionChecker);
+        put(Resource.MOBILE_APP, PermissionChecker.allowAllPermissionChecker);
+        put(Resource.DOMAIN, PermissionChecker.allowAllPermissionChecker);
         put(Resource.OAUTH2_CONFIGURATION_TEMPLATE, PermissionChecker.allowAllPermissionChecker);
         put(Resource.TENANT_PROFILE, PermissionChecker.allowAllPermissionChecker);
         put(Resource.TB_RESOURCE, systemEntityPermissionChecker);
         put(Resource.QUEUE, systemEntityPermissionChecker);
         put(Resource.NOTIFICATION, systemEntityPermissionChecker);
         put(Resource.MOBILE_APP_SETTINGS, PermissionChecker.allowAllPermissionChecker);
+        put(Resource.CUSTOM_MENU, customMenuPermissionChecker);
     }
 
     private static final PermissionChecker systemEntityPermissionChecker = new PermissionChecker() {
@@ -97,6 +101,13 @@ public class SysAdminPermissions extends AbstractPermissions {
             return true;
         }
 
+    };
+
+    private static final PermissionChecker customMenuPermissionChecker = new PermissionChecker() {
+        @Override
+        public boolean hasCustomMenuPermission(SecurityUser user, Operation operation, CustomMenuInfo customMenu) {
+            return customMenu.getTenantId().isSysTenantId();
+        }
     };
 
 }

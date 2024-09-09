@@ -44,14 +44,13 @@ import io.netty.handler.codec.MessageToMessageDecoder;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.tcpip.AbstractIpIntegration;
 import org.thingsboard.integration.tcpip.HandlerConfiguration;
 import org.thingsboard.integration.tcpip.configs.TextHandlerConfiguration;
+import org.thingsboard.server.common.data.StringUtils;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.charset.Charset;

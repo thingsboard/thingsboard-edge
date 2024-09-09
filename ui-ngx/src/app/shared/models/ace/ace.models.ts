@@ -52,6 +52,8 @@ function loadAceDependencies(): Observable<any> {
     aceObservables.push(from(import('ace-builds/src-noconflict/mode-text')));
     aceObservables.push(from(import('ace-builds/src-noconflict/mode-markdown')));
     aceObservables.push(from(import('ace-builds/src-noconflict/mode-html')));
+    aceObservables.push(from(import('ace-builds/src-noconflict/mode-xml')));
+    aceObservables.push(from(import('ace-builds/src-noconflict/mode-svg')));
     aceObservables.push(from(import('ace-builds/src-noconflict/mode-c_cpp')));
     aceObservables.push(from(import('ace-builds/src-noconflict/mode-protobuf')));
     aceObservables.push(from(import('ace-builds/src-noconflict/snippets/java')));
@@ -62,6 +64,8 @@ function loadAceDependencies(): Observable<any> {
     aceObservables.push(from(import('ace-builds/src-noconflict/snippets/text')));
     aceObservables.push(from(import('ace-builds/src-noconflict/snippets/markdown')));
     aceObservables.push(from(import('ace-builds/src-noconflict/snippets/html')));
+    aceObservables.push(from(import('ace-builds/src-noconflict/snippets/xml')));
+    aceObservables.push(from(import('ace-builds/src-noconflict/snippets/svg')));
     aceObservables.push(from(import('ace-builds/src-noconflict/snippets/c_cpp')));
     aceObservables.push(from(import('ace-builds/src-noconflict/snippets/protobuf')));
     aceObservables.push(from(import('ace-builds/src-noconflict/theme-textmate')));
@@ -362,3 +366,9 @@ export class Range implements Ace.Range {
   }
 
 }
+
+export interface TbHighlightRule {
+  class: string;
+  regex: RegExp;
+}
+

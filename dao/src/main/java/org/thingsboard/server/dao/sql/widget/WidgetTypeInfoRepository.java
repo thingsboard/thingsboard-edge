@@ -56,7 +56,8 @@ public interface WidgetTypeInfoRepository extends JpaRepository<WidgetTypeInfoEn
                             "OR :searchText ILIKE currentTag || ' %' " +
                             "OR :searchText ILIKE '% ' || currentTag " +
                             "OR :searchText ILIKE '% ' || currentTag || ' %')" +
-                    "))))",
+                    ")))) " +
+                    "ORDER BY CASE WHEN :scadaFirst then wti.scada END DESC",
             countQuery = "SELECT count(*) FROM widget_type_info_view wti WHERE wti.tenant_id = :systemTenantId " +
                     "AND ((:deprecatedFilterEnabled) IS FALSE OR wti.deprecated = :deprecatedFilter) " +
                     "AND ((:widgetTypesEmpty) IS TRUE OR wti.widget_type IN (:widgetTypes)) " +
@@ -79,6 +80,7 @@ public interface WidgetTypeInfoRepository extends JpaRepository<WidgetTypeInfoEn
                                                           @Param("deprecatedFilter") boolean deprecatedFilter,
                                                           @Param("widgetTypesEmpty") boolean widgetTypesEmpty,
                                                           @Param("widgetTypes") List<String> widgetTypes,
+                                                          @Param("scadaFirst") boolean scadaFirst,
                                                           Pageable pageable);
 
     @Query(nativeQuery = true,
@@ -95,7 +97,8 @@ public interface WidgetTypeInfoRepository extends JpaRepository<WidgetTypeInfoEn
                             "OR :searchText ILIKE currentTag || ' %' " +
                             "OR :searchText ILIKE '% ' || currentTag " +
                             "OR :searchText ILIKE '% ' || currentTag || ' %')" +
-                    "))))",
+                    ")))) " +
+                    "ORDER BY CASE WHEN :scadaFirst then wti.scada END DESC",
             countQuery = "SELECT count(*) FROM widget_type_info_view wti WHERE wti.tenant_id IN (:tenantId, :nullTenantId) " +
                     "AND ((:deprecatedFilterEnabled) IS FALSE OR wti.deprecated = :deprecatedFilter) " +
                     "AND ((:widgetTypesEmpty) IS TRUE OR wti.widget_type IN (:widgetTypes)) " +
@@ -119,6 +122,7 @@ public interface WidgetTypeInfoRepository extends JpaRepository<WidgetTypeInfoEn
                                                                   @Param("deprecatedFilter") boolean deprecatedFilter,
                                                                   @Param("widgetTypesEmpty") boolean widgetTypesEmpty,
                                                                   @Param("widgetTypes") List<String> widgetTypes,
+                                                                  @Param("scadaFirst") boolean scadaFirst,
                                                                   Pageable pageable);
 
     @Query(nativeQuery = true,
@@ -135,7 +139,8 @@ public interface WidgetTypeInfoRepository extends JpaRepository<WidgetTypeInfoEn
                             "OR :searchText ILIKE currentTag || ' %' " +
                             "OR :searchText ILIKE '% ' || currentTag " +
                             "OR :searchText ILIKE '% ' || currentTag || ' %')" +
-                    "))))",
+                    ")))) " +
+                    "ORDER BY CASE WHEN :scadaFirst then wti.scada END DESC",
             countQuery = "SELECT count(*) FROM widget_type_info_view wti WHERE wti.tenant_id = :tenantId " +
                     "AND ((:deprecatedFilterEnabled) IS FALSE OR wti.deprecated = :deprecatedFilter) " +
                     "AND ((:widgetTypesEmpty) IS TRUE OR wti.widget_type IN (:widgetTypes)) " +
@@ -158,6 +163,7 @@ public interface WidgetTypeInfoRepository extends JpaRepository<WidgetTypeInfoEn
                                                                @Param("deprecatedFilter") boolean deprecatedFilter,
                                                                @Param("widgetTypesEmpty") boolean widgetTypesEmpty,
                                                                @Param("widgetTypes") List<String> widgetTypes,
+                                                               @Param("scadaFirst") boolean scadaFirst,
                                                                Pageable pageable);
 
     @Query("SELECT wti FROM WidgetTypeInfoEntity wti, WidgetsBundleWidgetEntity wbw " +

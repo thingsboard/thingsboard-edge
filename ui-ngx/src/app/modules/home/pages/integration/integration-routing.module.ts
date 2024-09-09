@@ -39,14 +39,14 @@ import { EntityDetailsPageComponent } from '@home/components/entity/entity-detai
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
+import { MenuId } from '@core/services/menu.models';
 
 export const integrationsRoute = (): Route => (
 {
   path: 'integrations',
   data: {
     breadcrumb: {
-      label: 'integration.integrations',
-      icon: 'input'
+      menuId: MenuId.integrations
     }
   },
   children: [

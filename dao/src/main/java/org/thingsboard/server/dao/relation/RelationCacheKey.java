@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.relation.EntitySearchDirection;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 @EqualsAndHashCode
@@ -46,6 +47,7 @@ import java.io.Serializable;
 @Builder
 public class RelationCacheKey implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 3911151843961657570L;
 
     private final EntityId from;

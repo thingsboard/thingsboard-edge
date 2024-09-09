@@ -60,6 +60,9 @@ browser:
   useNewPage: false
 
 logger:
+  # Sets the logging level.
+  # Available levels and their priorities:
+  # { error: 0, warn: 1, info: 2, http: 3, verbose: 4, debug: 5, silly: 6 }
   level: "info"
   path: "logs"
   filename: "tb-web-report-%DATE%.log"

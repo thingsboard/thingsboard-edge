@@ -118,6 +118,11 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.id.UUIDBased;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.oauth2.MapperType;
+import org.thingsboard.server.common.data.oauth2.OAuth2Client;
+import org.thingsboard.server.common.data.oauth2.OAuth2CustomMapperConfig;
+import org.thingsboard.server.common.data.oauth2.OAuth2MapperConfig;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -597,7 +602,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         JsonNode activateRequest = getActivateRequest(password);
         ResultActions resultActions = doPost("/api/noauth/activate", activateRequest);
         resultActions.andExpect(status().isOk());
-        return savedUser;
+        return doGet("/api/user/" + savedUser.getId(), User.class);
     }
 
     protected EntityGroupInfo findCustomerAdminsGroup(CustomerId customerId) throws Exception {
@@ -1018,10 +1023,7 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
 
     @SuppressWarnings("unchecked")
     protected <T> T readResponse(ResultActions result, Class<T> responseClass) throws Exception {
-        byte[] content = result.andReturn().getResponse().getContentAsByteArray();
-        MockHttpInputMessage mockHttpInputMessage = new MockHttpInputMessage(content);
-        HttpMessageConverter converter = responseClass.equals(String.class) ? stringHttpMessageConverter : mappingJackson2HttpMessageConverter;
-        return (T) converter.read(responseClass, mockHttpInputMessage);
+        return readResponse(result.andReturn(), responseClass);
     }
 
     protected <T> T readResponse(ResultActions result, TypeReference<T> type) throws Exception {
@@ -1031,6 +1033,13 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     protected <T> T readResponse(MvcResult result, TypeReference<T> type) throws Exception {
         byte[] content = result.getResponse().getContentAsByteArray();
         return JacksonUtil.OBJECT_MAPPER.readerFor(type).readValue(content);
+    }
+
+    protected <T> T readResponse(MvcResult result, Class<T> responseClass) throws Exception {
+        byte[] content = result.getResponse().getContentAsByteArray();
+        MockHttpInputMessage mockHttpInputMessage = new MockHttpInputMessage(content);
+        HttpMessageConverter converter = responseClass.equals(String.class) ? stringHttpMessageConverter : mappingJackson2HttpMessageConverter;
+        return (T) converter.read(responseClass, mockHttpInputMessage);
     }
 
     protected String getErrorMessage(ResultActions result) throws Exception {
@@ -1231,6 +1240,41 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
         TenantProfile tenantProfile = JacksonUtil.clone(oldTenantProfile);
         updater.accept(tenantProfile);
         tbTenantProfileService.save(TenantId.SYS_TENANT_ID, tenantProfile, oldTenantProfile);
+    }
+
+    protected OAuth2Client createOauth2Client(TenantId tenantId, String title) {
+        return createOauth2Client(tenantId, title, null);
+    }
+
+    protected OAuth2Client createOauth2Client(TenantId tenantId, String title, List<PlatformType> platforms) {
+        OAuth2Client oAuth2Client = new OAuth2Client();
+        oAuth2Client.setTenantId(tenantId);
+        oAuth2Client.setTitle(title);
+        oAuth2Client.setClientId(UUID.randomUUID().toString());
+        oAuth2Client.setClientSecret(UUID.randomUUID().toString());
+        oAuth2Client.setAuthorizationUri(UUID.randomUUID().toString());
+        oAuth2Client.setAccessTokenUri(UUID.randomUUID().toString());
+        oAuth2Client.setScope(Arrays.asList(UUID.randomUUID().toString(), UUID.randomUUID().toString()));
+        oAuth2Client.setPlatforms(platforms == null ? Collections.emptyList() : platforms);
+        oAuth2Client.setUserInfoUri(UUID.randomUUID().toString());
+        oAuth2Client.setUserNameAttributeName(UUID.randomUUID().toString());
+        oAuth2Client.setJwkSetUri(UUID.randomUUID().toString());
+        oAuth2Client.setClientAuthenticationMethod(UUID.randomUUID().toString());
+        oAuth2Client.setLoginButtonLabel(UUID.randomUUID().toString());
+        oAuth2Client.setLoginButtonIcon(UUID.randomUUID().toString());
+        oAuth2Client.setAdditionalInfo(JacksonUtil.newObjectNode().put(UUID.randomUUID().toString(), UUID.randomUUID().toString()));
+        oAuth2Client.setMapperConfig(
+                OAuth2MapperConfig.builder()
+                        .allowUserCreation(true)
+                        .activateUser(true)
+                        .type(MapperType.CUSTOM)
+                        .custom(
+                                OAuth2CustomMapperConfig.builder()
+                                        .url(UUID.randomUUID().toString())
+                                        .build()
+                        )
+                        .build());
+        return oAuth2Client;
     }
 
 }

@@ -1,0 +1,247 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+.tb-scada-symbol-editor-shape {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.tb-scada-symbol-editor-tooltips {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.tb-scada-symbol-editor-svg-xml {
+  width: 100%;
+  height: 100%;
+  padding-top: 88px;
+}
+.tb-scada-symbol-editor-buttons {
+  pointer-events: none;
+  position: absolute;
+  left: 20px;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+
+  .tb-primary-fill {
+    background: #fff;
+    border-radius: 50%;
+    &:before {
+      opacity: 0.1;
+    }
+  }
+
+  .tb-scada-symbol-editor-view-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 101;
+  }
+
+  .tb-scada-symbol-editor-zoom-buttons {
+    display: flex;
+    flex-direction: column;
+    z-index: 101;
+    background: #fff;
+    border-radius: 24px;
+    &.tb-primary-fill {
+      border-radius: 24px;
+      &:before {
+        opacity: 0.1;
+      }
+    }
+  }
+
+  .tb-scada-symbol-editor-right-buttons {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    z-index: 101;
+    tb-toggle-select {
+      pointer-events: auto;
+    }
+  }
+}
+
+.tooltipster-sidetip.scada-symbol {
+  position: fixed;
+  .tooltipster-box {
+    user-select: none;
+    background: rgba(0, 0, 0, 0.54);
+    border: 1px solid rgba(0, 0, 0, 0);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    .tooltipster-content {
+      padding: 4px 8px;
+      font-size: 12px;
+      line-height: 12px;
+      font-weight: 500;
+      color: #ffffff;
+    }
+  }
+  &.tb-active {
+    .tooltipster-box {
+      background: #fff;
+      border: 1px solid rgba(0, 0, 0, 0.38);
+      box-shadow: 0 0 10px 6px rgba(0, 0, 0, .2);
+      .tooltipster-content {
+        color: rgba(0, 0, 0, 0.76);
+      }
+    }
+    .tooltipster-arrow {
+      .tooltipster-arrow-uncropped {
+        .tooltipster-arrow-background {
+          border-width: 12px;
+        }
+      }
+    }
+    &.tooltipster-top {
+      .tooltipster-arrow {
+        bottom: -1px;
+        .tooltipster-arrow-uncropped {
+          .tooltipster-arrow-border {
+            border-top-color: rgba(0, 0, 0, 0.38);
+          }
+          .tooltipster-arrow-background {
+            border-top-color: #fff;
+            left: -2px;
+          }
+        }
+      }
+    }
+    &.tooltipster-bottom {
+      .tooltipster-arrow {
+        top: -1px;
+        .tooltipster-arrow-uncropped {
+          .tooltipster-arrow-border {
+            border-bottom-color: rgba(0, 0, 0, 0.38);
+          }
+          .tooltipster-arrow-background {
+            border-bottom-color: #fff;
+            left: -2px;
+            top: -1px;
+          }
+        }
+      }
+    }
+    &.tooltipster-left {
+      .tooltipster-arrow {
+        right: -1px;
+        .tooltipster-arrow-uncropped {
+          .tooltipster-arrow-border {
+            border-left-color: rgba(0, 0, 0, 0.38);
+          }
+          .tooltipster-arrow-background {
+            border-left-color: #fff;
+            top: -2px;
+          }
+        }
+      }
+    }
+    &.tooltipster-right {
+      .tooltipster-arrow {
+        left: -1px;
+        .tooltipster-arrow-uncropped {
+          .tooltipster-arrow-border {
+            border-right-color: rgba(0, 0, 0, 0.38);
+          }
+          .tooltipster-arrow-background {
+            border-right-color: #fff;
+            top: -2px;
+            left: -1px;
+          }
+        }
+      }
+    }
+  }
+  &.tooltipster-left, &.tooltipster-right {
+    .tooltipster-box {
+      min-height: 36px;
+    }
+  }
+  &.tooltipster-top {
+    .tooltipster-arrow {
+      bottom: -2px;
+      .tooltipster-arrow-uncropped {
+        .tooltipster-arrow-border {
+          border-top-color: rgba(0, 0, 0, 0.54);
+        }
+        .tooltipster-arrow-background {
+          border-top-color: transparent;
+        }
+      }
+    }
+  }
+  &.tooltipster-bottom {
+    .tooltipster-arrow {
+      top: -2px;
+      .tooltipster-arrow-uncropped {
+        .tooltipster-arrow-border {
+          border-bottom-color: rgba(0, 0, 0, 0.54);
+        }
+        .tooltipster-arrow-background {
+          border-bottom-color: transparent;
+        }
+      }
+    }
+  }
+  &.tooltipster-left {
+    .tooltipster-arrow {
+      right: -2px;
+      .tooltipster-arrow-uncropped {
+        .tooltipster-arrow-border {
+          border-left-color: rgba(0, 0, 0, 0.54);
+        }
+        .tooltipster-arrow-background {
+          border-left-color: transparent;
+        }
+      }
+    }
+  }
+  &.tooltipster-right {
+    .tooltipster-arrow {
+      left: -2px;
+      .tooltipster-arrow-uncropped {
+        .tooltipster-arrow-border {
+          border-right-color: rgba(0, 0, 0, 0.54);
+        }
+        .tooltipster-arrow-background {
+          border-right-color: transparent;
+        }
+      }
+    }
+  }
+}

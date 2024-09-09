@@ -33,6 +33,7 @@ import {
   ImageResourceInfo,
   ImageResourceInfoWithReferences,
   imageResourceType,
+  ResourceSubType,
   toImageDeleteResult
 } from '@shared/models/resource.models';
 import { forkJoin, merge, Observable, of, Subject, Subscription } from 'rxjs';
@@ -44,10 +45,13 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  ElementRef, EventEmitter, HostBinding,
+  ElementRef,
+  EventEmitter,
+  HostBinding,
   Input,
   OnDestroy,
-  OnInit, Output,
+  OnInit,
+  Output,
   ViewChild,
   ViewEncapsulation
 } from '@angular/core';
@@ -73,7 +77,7 @@ import { ItemSizeStrategy, ScrollGridComponent } from '@shared/components/grid/s
 import { MatDialog } from '@angular/material/dialog';
 import {
   UploadImageDialogComponent,
-  UploadImageDialogData
+  UploadImageDialogData, UploadImageDialogResult
 } from '@shared/components/image/upload-image-dialog.component';
 import { ImageDialogComponent, ImageDialogData } from '@shared/components/image/image-dialog.component';
 import { ImportExportService } from '@shared/import-export/import-export.service';
@@ -137,6 +141,9 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
   dialogMode = false;
 
   @Input()
+  imageSubType = ResourceSubType.IMAGE;
+
+  @Input()
   mode: 'list' | 'grid' = 'list';
 
   @Input()
@@ -183,6 +190,12 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
 
   authUser = getCurrentAuthUser(this.store);
 
+  actionColumnWidth = '240px';
+
+  get isScada() {
+    return this.imageSubType === ResourceSubType.SCADA_SYMBOL;
+  }
+
   private updateDataSubscription: Subscription;
 
   private widgetResize$: ResizeObserver;
@@ -207,7 +220,7 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
         property: 'createdTime',
         direction: Direction.DESC
       });
-      return this.imageService.getImages(pageLink, filter.includeSystemImages);
+      return this.imageService.getImages(pageLink, filter.includeSystemImages, this.imageSubType);
     };
   }
 
@@ -218,6 +231,7 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
     this.pageSizeOptions = [this.defaultPageSize, this.defaultPageSize * 2, this.defaultPageSize * 3];
     const routerQueryParams: PageQueryParam = this.route.snapshot.queryParams;
     if (this.pageMode) {
+      this.imageSubType = this.route.snapshot.data.imageSubType || ResourceSubType.IMAGE;
       if (routerQueryParams.hasOwnProperty('direction')
         || routerQueryParams.hasOwnProperty('property')) {
         sortOrder = {
@@ -245,6 +259,9 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
     if (this.mode === 'list') {
       this.dataSource = new ImagesDatasource(this.imageService, null,
           entity => this.deleteEnabled(entity));
+    }
+    if (this.isScada) {
+      this.actionColumnWidth = '192px';
     }
   }
 
@@ -446,7 +463,7 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
       } else {
         this.pageLink.sortOrder = null;
       }
-      this.dataSource.loadEntities(this.pageLink, this.includeSystemImages);
+      this.dataSource.loadEntities(this.pageLink, this.imageSubType, this.includeSystemImages);
     } else {
       this.gridComponent.update();
     }
@@ -501,8 +518,9 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
     if ($event) {
       $event.stopPropagation();
     }
-    const title = this.translate.instant('image.delete-image-title', {imageTitle: image.title});
-    const content = this.translate.instant('image.delete-image-text');
+    const title = this.translate.instant(this.isScada ? 'scada.delete-symbol-title' : 'image.delete-image-title',
+      {imageTitle: image.title});
+    const content = this.translate.instant(this.isScada ? 'scada.delete-symbol-text' : 'image.delete-image-text');
     this.dialogService.confirm(title, content,
       this.translate.instant('action.no'),
       this.translate.instant('action.yes')).subscribe((result) => {
@@ -549,8 +567,9 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
     }
     const selectedImages = this.dataSource.selection.selected;
     if (selectedImages && selectedImages.length) {
-      const title = this.translate.instant('image.delete-images-title', {count: selectedImages.length});
-      const content = this.translate.instant('image.delete-images-text');
+      const title = this.translate.instant(this.isScada ? 'scada.delete-symbols-title' : 'image.delete-images-title',
+        {count: selectedImages.length});
+      const content = this.translate.instant(this.isScada ? 'scada.delete-symbols-text' : 'image.delete-images-text');
       this.dialogService.confirm(title, content,
         this.translate.instant('action.no'),
         this.translate.instant('action.yes')).subscribe((result) => {
@@ -650,16 +669,24 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
 
   uploadImage(): void {
     this.dialog.open<UploadImageDialogComponent, UploadImageDialogData,
-      ImageResourceInfo>(UploadImageDialogComponent, {
+      UploadImageDialogResult>(UploadImageDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {}
+      data: {
+        imageSubType: this.imageSubType
+      }
     }).afterClosed().subscribe((result) => {
-      if (result) {
+      if (result?.image) {
         if (this.selectionMode) {
-          this.imageSelected.next(result);
+          this.imageSelected.next(result.image);
         } else {
-          this.updateData();
+          if (this.isScada) {
+            const type = imageResourceType(result.image);
+            const key = encodeURIComponent(result.image.resourceKey);
+            this.router.navigateByUrl(`resources/scada-symbols/${type}/${key}`);
+          } else {
+            this.updateData();
+          }
         }
       }
     });
@@ -669,19 +696,25 @@ export class ImageGalleryComponent extends PageComponent implements OnInit, OnDe
     if ($event) {
       $event.stopPropagation();
     }
-    this.dialog.open<ImageDialogComponent, ImageDialogData,
-      ImageResourceInfo>(ImageDialogComponent, {
-      disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {
-        image,
-        readonly: this.readonly(image)
-      }
-    }).afterClosed().subscribe((result) => {
-      if (result) {
-        this.imageUpdated(result, itemIndex);
-      }
-    });
+    if (this.isScada) {
+      const type = imageResourceType(image);
+      const key = encodeURIComponent(image.resourceKey);
+      this.router.navigateByUrl(`resources/scada-symbols/${type}/${key}`);
+    } else {
+      this.dialog.open<ImageDialogComponent, ImageDialogData,
+        ImageResourceInfo>(ImageDialogComponent, {
+        disableClose: true,
+        panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+        data: {
+          image,
+          readonly: this.readonly(image)
+        }
+      }).afterClosed().subscribe((result) => {
+        if (result) {
+          this.imageUpdated(result, itemIndex);
+        }
+      });
+    }
   }
 
   embedImage($event: Event, image: ImageResourceInfo, itemIndex = -1) {

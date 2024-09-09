@@ -32,6 +32,7 @@ package org.thingsboard.server.queue.discovery;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.With;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.queue.Queue;
@@ -42,6 +43,7 @@ import org.thingsboard.server.common.msg.queue.ServiceType;
 public class QueueKey {
 
     private final ServiceType type;
+    @With
     private final String queueName;
     private final TenantId tenantId;
 

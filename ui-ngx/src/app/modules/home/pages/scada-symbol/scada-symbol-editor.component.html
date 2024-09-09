@@ -1,0 +1,97 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-scada-symbol-editor-shape" [fxShow]="editorMode === 'svg'" #scadaSymbolShape></div>
+<div class="tb-scada-symbol-editor-tooltips" [fxShow]="editorMode === 'svg'" #tooltipsContainer>
+  <tb-anchor #tooltipsContainerComponent></tb-anchor>
+</div>
+<div class="tb-scada-symbol-editor-svg-xml" [fxShow]="editorMode === 'xml'">
+  <tb-svg-xml [formControl]="svgContentFormControl"
+              fillHeight
+              noLabel>
+  </tb-svg-xml>
+</div>
+<div class="tb-scada-symbol-editor-buttons">
+  <div class="tb-scada-symbol-editor-view-buttons">
+    <div class="tb-scada-symbol-editor-zoom-buttons tb-primary-fill" [fxShow]="editorMode === 'svg'">
+      <button mat-icon-button
+              [disabled]="zoomInDisabled"
+              (click)="zoomIn()"
+              matTooltip="{{ 'scada.zoom-in' | translate }}"
+              matTooltipPosition="above">
+        <mat-icon>add</mat-icon>
+      </button>
+      <button mat-icon-button
+              [disabled]="zoomOutDisabled"
+              (click)="zoomOut()"
+              matTooltip="{{ 'scada.zoom-out' | translate }}"
+              matTooltipPosition="above">
+        <mat-icon>remove</mat-icon>
+      </button>
+    </div>
+    <div *ngIf="displayShowHidden" [fxShow]="editorMode === 'svg'" class="tb-primary-fill">
+      <button mat-icon-button
+              (click)="toggleShowHidden()"
+              matTooltip="{{ (showHiddenElements ? 'scada.hide-hidden-elements' : 'scada.show-hidden-elements') | translate }}"
+              matTooltipPosition="above">
+        <mat-icon>{{ showHiddenElements ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+    </div>
+  </div>
+  <div class="tb-scada-symbol-editor-right-buttons">
+    <div class="tb-primary-fill">
+      <button mat-icon-button
+              (click)="updateScadaSymbol.emit()"
+              matTooltip="{{ 'scada.update-symbol' | translate }}"
+              matTooltipPosition="above">
+        <mat-icon>file_upload</mat-icon>
+      </button>
+    </div>
+    <div class="tb-primary-fill">
+      <button mat-icon-button
+              (click)="downloadScadaSymbol.emit()"
+              matTooltip="{{ 'scada.download-symbol' | translate }}"
+              matTooltipPosition="above">
+        <mat-icon>download</mat-icon>
+      </button>
+    </div>
+    <tb-toggle-select appearance="fill"
+                      [disabled]="!svgContentFormControl.valid"
+                      fillHeight
+                      extraPadding
+                      primaryBackground
+                      [(ngModel)]="editorMode">
+      <tb-toggle-option value="svg">{{ 'scada.mode-svg' | translate }}</tb-toggle-option>
+      <tb-toggle-option value="xml">{{ 'scada.mode-xml' | translate }}</tb-toggle-option>
+    </tb-toggle-select>
+  </div>
+</div>

@@ -58,7 +58,7 @@ RUN apt-get update \
     libxdamage1 libxext6 libxfixes3 libxkbcommon0 libxrandr2 \
     && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /noto \
-    && wget --no-verbose --no-check-certificate -O /noto/NotoSansCJKjp-hinted.zip https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip \
+    && wget --no-verbose --no-check-certificate -O /noto/NotoSansCJKjp-hinted.zip https://noto-website-2.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip \
     && unzip /noto/NotoSansCJKjp-hinted.zip -d /noto && \
     mkdir -p /usr/share/fonts/noto && \
     cp /noto/*.otf /usr/share/fonts/noto && \

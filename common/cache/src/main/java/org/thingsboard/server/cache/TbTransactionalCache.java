@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.cache;
 
+import org.thingsboard.server.common.data.id.TenantId;
+
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -54,6 +56,8 @@ public interface TbTransactionalCache<K extends Serializable, V extends Serializ
 
     void evictOrPut(K key, V value);
 
+    void evictByPrefix(String prefix);
+
     TbCacheTransaction<K, V> newTransactionForKey(K key);
 
     /**
@@ -68,7 +72,7 @@ public interface TbTransactionalCache<K extends Serializable, V extends Serializ
         if (putToCache) {
             return getAndPutInTransaction(key, dbCall, cacheNullValue);
         } else {
-            TbCacheValueWrapper<V> cacheValueWrapper = get(key);
+            TbCacheValueWrapper<V> cacheValueWrapper = get(key, true);
             if (cacheValueWrapper != null) {
                 return cacheValueWrapper.get();
             }
@@ -107,7 +111,7 @@ public interface TbTransactionalCache<K extends Serializable, V extends Serializ
         if (putToCache) {
             return getAndPutInTransaction(key, dbCall, cacheValueToResult, dbValueToCacheValue, cacheNullValue);
         } else {
-            TbCacheValueWrapper<V> cacheValueWrapper = get(key);
+            TbCacheValueWrapper<V> cacheValueWrapper = get(key, true);
             if (cacheValueWrapper != null) {
                 var cacheValue = cacheValueWrapper.get();
                 return cacheValue == null ? null : cacheValueToResult.apply(cacheValue);

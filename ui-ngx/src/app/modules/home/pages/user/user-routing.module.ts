@@ -43,6 +43,7 @@ import { EntityGroupResolver, groupEntitiesLabelFunction } from '@home/pages/gro
 import { EntityGroupsTableConfigResolver } from '@home/components/group/entity-groups-table-config.resolver';
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
+import { MenuId } from '@core/services/menu.models';
 
 const userRoute = (entityGroup: any, entitiesTableConfig: any): Route =>
   ({
@@ -112,8 +113,7 @@ export const userGroupsRoute: Route = {
   data: {
     groupType: EntityType.USER,
     breadcrumb: {
-      label: 'user.groups',
-      icon: 'account_circle'
+      menuId: MenuId.user_groups
     }
   },
   children: userGroupsChildrenRoutes
@@ -126,8 +126,7 @@ export const usersRoute = (root = false): Route => {
     data: {
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       breadcrumb: {
-        label: 'user.users',
-        icon: 'account_circle'
+        menuId: MenuId.users
       }
     },
     children: [
@@ -145,8 +144,7 @@ export const usersRoute = (root = false): Route => {
           groupType: EntityType.USER,
           auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
           breadcrumb: {
-            label: 'user.all',
-            icon: 'account_circle'
+            menuId: MenuId.user_all
           }
         },
         children: [

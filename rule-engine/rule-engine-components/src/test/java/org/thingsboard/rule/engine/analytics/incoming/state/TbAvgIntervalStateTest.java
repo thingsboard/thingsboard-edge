@@ -42,6 +42,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
 class TbAvgIntervalStateTest {
@@ -88,10 +89,6 @@ class TbAvgIntervalStateTest {
         assertAvg(num1, num2, num3, num4);
     }
 
-    private void assertEquals(BigDecimal expected, BigDecimal actual) {
-        assertThat(expected.compareTo(actual)).as("TbAvgIntervalState AVG").isEqualTo(0);
-    }
-
     private void assertAvg(BigDecimal ... updateValues) {
         BigDecimal expectedSum = new BigDecimal(0);
         BigDecimal expectedCount = new BigDecimal(updateValues.length);
@@ -113,7 +110,7 @@ class TbAvgIntervalStateTest {
                 "TbAvgIntervalState COUNT"
         );
 
-        assertEquals(expectedAvg, getAvgFromState());
+        assertEquals(expectedAvg.doubleValue(), getAvgFromState().doubleValue());
     }
 
     private BigDecimal getAvgFromState() {

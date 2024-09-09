@@ -33,7 +33,7 @@ package org.thingsboard.server.queue.provider;
 import org.thingsboard.server.gen.integration.IntegrationApiRequestMsg;
 import org.thingsboard.server.gen.integration.IntegrationApiResponseMsg;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
-import org.thingsboard.server.gen.transport.TransportProtos;
+import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.TbQueueRequestTemplate;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
@@ -51,7 +51,7 @@ public interface TbIntegrationExecutorQueueFactory extends TbCoreIntegrationExec
      */
     TbQueueProducer<TbProtoQueueMsg<ToCoreIntegrationMsg>> createTbCoreIntegrationMsgProducer();
 
-    TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToCoreNotificationMsg>> createTbCoreNotificationMsgProducer();
+    TbQueueProducer<TbProtoQueueMsg<ToCoreNotificationMsg>> createTbCoreNotificationMsgProducer();
 
     TbQueueRequestTemplate<TbProtoQueueMsg<IntegrationApiRequestMsg>, TbProtoQueueMsg<IntegrationApiResponseMsg>> createIntegrationApiRequestTemplate();
 
