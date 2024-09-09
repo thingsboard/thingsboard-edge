@@ -131,6 +131,7 @@ import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -152,6 +153,8 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
 
     protected EdgeImitator edgeImitator;
     protected Edge edge;
+
+    private Random random = new Random();
 
     @Autowired
     protected EdgeEventService edgeEventService;
@@ -233,13 +236,17 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         extendDeviceProfileData(thermostatDeviceProfile);
         thermostatDeviceProfile = doPost("/api/deviceProfile", thermostatDeviceProfile, DeviceProfile.class);
 
-        RuleChainId rootRuleChainId = getEdgeRootRuleChainId();
-        RuleChainMetaData rootRuleChainMetadata = doGet("/api/ruleChain/" + rootRuleChainId.getId().toString() + "/metadata", RuleChainMetaData.class);
-        rootRuleChainMetadata.getNodes().forEach(n -> n.setDebugMode(true));
-        doPost("/api/ruleChain/metadata", rootRuleChainMetadata, RuleChainMetaData.class);
+        updateRootRuleChainMetadata();
 
         edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
         verifyTenantAdministratorsAndTenantUsersAssignedToEdge();
+    }
+
+    protected void updateRootRuleChainMetadata() throws Exception {
+        RuleChainId rootRuleChainId = getEdgeRootRuleChainId();
+        RuleChainMetaData rootRuleChainMetadata = doGet("/api/ruleChain/" + rootRuleChainId.getId().toString() + "/metadata", RuleChainMetaData.class);
+        rootRuleChainMetadata.getNodes().forEach(n -> n.setDebugMode(random.nextBoolean()));
+        doPost("/api/ruleChain/metadata", rootRuleChainMetadata, RuleChainMetaData.class);
     }
 
     protected void extendDeviceProfileData(DeviceProfile deviceProfile) {
