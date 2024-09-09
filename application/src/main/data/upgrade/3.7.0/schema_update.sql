@@ -392,7 +392,7 @@ $$
                     ]
                   }
                 ]'::jsonb || (coalesce(config::jsonb #> '{menuItems}', '[]'::jsonb)))
-            WHERE config IS NOT NULL and tenant_id = '13814000-1dd2-11b2-8080-808080808080';
+            WHERE config IS NOT NULL AND scope = 'SYSTEM';
 
             -- add predefined menu items to tenant custom menus
             UPDATE custom_menu SET config = jsonb_set(config::jsonb, '{menuItems}',
@@ -549,7 +549,7 @@ $$
                      ]
                    }
                  ]'::jsonb ||(coalesce(config::jsonb #> '{menuItems}', '[]'::jsonb)))
-            WHERE config IS NOT NULL and customer_id = '13814000-1dd2-11b2-8080-808080808080' and tenant_id != '13814000-1dd2-11b2-8080-808080808080';
+            WHERE config IS NOT NULL AND scope = 'TENANT';
 
             -- add predefined menu items to customer custom menus
             UPDATE custom_menu SET config = jsonb_set(config::jsonb, '{menuItems}',
@@ -654,7 +654,7 @@ $$
                        ]
                      }
                  ]'::jsonb || (coalesce(config::jsonb #> '{menuItems}', '[]'::jsonb)))
-            WHERE config IS NOT NULL and customer_id != '13814000-1dd2-11b2-8080-808080808080';
+            WHERE config IS NOT NULL AND scope = 'CUSTOMER';
 
             -- for each item add visible/not visible, add type: home, default or custom
             UPDATE custom_menu SET config = json_build_object('items', (SELECT jsonb_agg(update_menu_item_with_visible_and_type(elem,
