@@ -481,6 +481,8 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         subCustomerMenu = doPost("/api/customMenu", subCustomerMenu, CustomMenu.class);
         CustomMenuConfig subCustomerDefaultConfig = putRandomMenuConfig(subCustomerMenu.getId());
 
+        //wait till cache invalidated by tenant id
+        Thread.sleep(1000);
         String etag = getUserCustomMenu().getResponse().getHeader("ETag");
         assertThat(etag).isNotNull();
         assertThat(getUserCustomMenu(etag).getResponse().getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
