@@ -53,6 +53,7 @@
       </mat-error>
     </mat-form-field>
     <mat-form-field appearance="outline" *ngIf="data.add && authUser.authority === Authority.TENANT_ADMIN">
+      <mat-label translate>custom-menu.scope</mat-label>
       <mat-select formControlName="scope">
         <mat-option *ngFor="let scope of customMenuScopes" [value]="scope">
           {{ cmScopeTranslations.get(scope) | translate }}
@@ -60,6 +61,7 @@
       </mat-select>
     </mat-form-field>
     <mat-form-field appearance="outline">
+      <mat-label translate>custom-menu.assignee-type</mat-label>
       <mat-select formControlName="assigneeType">
         <mat-option *ngFor="let assigneeType of assigneeTypes" [value]="assigneeType">
           {{ cmAssigneeTypeTranslations.get(assigneeType) | translate }}
