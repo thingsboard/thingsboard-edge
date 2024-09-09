@@ -170,10 +170,12 @@ public class EdgeEventSourcingListener {
                 try {
                     Edge edge = JacksonUtil.fromString(event.getBody(), Edge.class);
                     if (edge != null && new RuleChainId(event.getEntityId().getId()).equals(edge.getRootRuleChainId())) {
-                        log.trace("skipping ASSIGNED_TO_EDGE event of RULE_CHAIN entity in case Edge Root Rule Chain: {}", event);
+                        log.trace("[{}] skipping ASSIGNED_TO_EDGE event of RULE_CHAIN entity in case Edge Root Rule Chain: {}", event.getTenantId(), event);
                         return;
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) {
+                    return;
+                }
             }
             EntityType entityGroupType = event.getEntityGroup() != null ? event.getEntityGroup().getType() : null;
             EntityGroupId entityGroupId = event.getEntityGroup() != null ? event.getEntityGroup().getId() : null;
