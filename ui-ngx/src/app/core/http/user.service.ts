@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 import { defaultHttpOptionsFromConfig, RequestConfig } from './http-utils';
-import { User, UserEmailInfo, UserInfo } from '@shared/models/user.model';
+import { ActivationLinkInfo, User, UserEmailInfo, UserInfo } from '@shared/models/user.model';
 import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { PageLink } from '@shared/models/page/page-link';
@@ -134,6 +134,10 @@ export class UserService {
   public getActivationLink(userId: string, config?: RequestConfig): Observable<string> {
     return this.http.get(`/api/user/${userId}/activationLink`,
       {...{responseType: 'text'}, ...defaultHttpOptionsFromConfig(config)});
+  }
+
+  public getActivationLinkInfo(userId: string, config?: RequestConfig): Observable<ActivationLinkInfo> {
+    return this.http.get<ActivationLinkInfo>(`/api/user/${userId}/activationLinkInfo`, defaultHttpOptionsFromConfig(config));
   }
 
   public sendActivationEmail(email: string, config?: RequestConfig) {
