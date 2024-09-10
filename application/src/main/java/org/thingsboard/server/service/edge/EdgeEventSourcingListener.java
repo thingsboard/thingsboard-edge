@@ -261,6 +261,7 @@ public class EdgeEventSourcingListener {
                             log.trace("skipping entity in case of Edge 'All' group: {}", entityGroup);
                             return false;
                         }
+                        return !event.getCreated();
                     }
                     break;
                 case API_USAGE_STATE, EDGE:
