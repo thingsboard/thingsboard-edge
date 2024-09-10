@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.edge;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,7 @@ import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import java.util.List;
 
 @Service
+@Slf4j
 public class BaseRelatedEdgesService extends AbstractCachedEntityService<RelatedEdgesCacheKey, RelatedEdgesCacheValue, RelatedEdgesEvictEvent> implements RelatedEdgesService {
 
     public static final int RELATED_EDGES_CACHE_ITEMS = 1000;
@@ -70,6 +72,7 @@ public class BaseRelatedEdgesService extends AbstractCachedEntityService<Related
 
     @Override
     public PageData<EdgeId> findEdgeIdsByEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
+        log.trace("Executing findEdgeIdsByEntityId, tenantId [{}], entityId [{}], pageLink [{}]", tenantId, entityId, pageLink);
         if (!pageLink.equals(FIRST_PAGE)) {
             return edgeService.findEdgeIdsByTenantIdAndEntityId(tenantId, entityId, pageLink);
         }
@@ -79,6 +82,7 @@ public class BaseRelatedEdgesService extends AbstractCachedEntityService<Related
 
     @Override
     public PageData<EdgeId> findEdgeIdsByTenantIdAndGroupEntityId(TenantId tenantId, EntityId entityId, PageLink pageLink) {
+        log.trace("Executing findEdgeIdsByTenantIdAndGroupEntityId, tenantId [{}], entityId [{}], pageLink [{}]", tenantId, entityId, pageLink);
         if (!pageLink.equals(FIRST_PAGE)) {
             return edgeService.findEdgeIdsByTenantIdAndGroupEntityId(tenantId, entityId, pageLink);
         }
@@ -88,6 +92,7 @@ public class BaseRelatedEdgesService extends AbstractCachedEntityService<Related
 
     @Override
     public PageData<EdgeId> findEdgeIdsByTenantIdAndEntityGroupIds(TenantId tenantId, EntityGroupId entityGroupId, EntityType groupType, PageLink pageLink) {
+        log.trace("Executing findEdgeIdsByTenantIdAndEntityGroupIds, tenantId [{}], entityGroupId [{}], groupType [{}], pageLink [{}]", tenantId, entityGroupId, groupType, pageLink);
         if (!pageLink.equals(FIRST_PAGE)) {
             return edgeService.findEdgeIdsByTenantIdAndEntityGroupIds(tenantId, List.of(entityGroupId), groupType, pageLink);
         }
@@ -97,11 +102,13 @@ public class BaseRelatedEdgesService extends AbstractCachedEntityService<Related
 
     @Override
     public void publishRelatedEdgeIdsEvictEvent(TenantId tenantId, EntityId entityId) {
+        log.trace("Executing publishRelatedEdgeIdsEvictEvent, tenantId [{}], entityId [{}]", tenantId, entityId);
         publishEvictEvent(new RelatedEdgesEvictEvent(tenantId, entityId));
     }
 
     @Override
     public void publishEdgeIdsEvictEventByTenantId(TenantId tenantId) {
+        log.trace("Executing publishEdgeIdsEvictEventByTenantId, tenantId [{}]", tenantId);
         publishEvictEvent(new RelatedEdgesEvictEvent(tenantId, null));
     }
 
