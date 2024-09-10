@@ -28,21 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.integration;
+package org.thingsboard.server.dao.role;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.cache.VersionedCaffeineTbCache;
-import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.common.data.integration.Integration;
+import lombok.Data;
+import org.thingsboard.server.cache.CacheKey;
+import org.thingsboard.server.common.data.id.RoleId;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
-@Service("IntegrationCache")
-public class IntegrationCaffeineCache extends VersionedCaffeineTbCache<IntegrationCacheKey, Integration> {
+import java.io.Serial;
 
-    public IntegrationCaffeineCache(CacheManager cacheManager) {
-        super(cacheManager, CacheConstants.INTEGRATIONS_CACHE);
+@Data(staticConstructor = "forId")
+public class RoleCacheKey implements CacheKey {
+
+    @Serial
+    private static final long serialVersionUID = 3472395528434231465L;
+
+    private final RoleId roleId;
+
+    @Override
+    public String toString() {
+        return roleId.toString();
+    }
+
+    @Override
+    public boolean isVersioned() {
+        return true;
     }
 
 }

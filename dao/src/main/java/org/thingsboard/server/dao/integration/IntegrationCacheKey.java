@@ -30,19 +30,28 @@
  */
 package org.thingsboard.server.dao.integration;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.cache.VersionedCaffeineTbCache;
-import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.common.data.integration.Integration;
+import lombok.Data;
+import org.thingsboard.server.cache.CacheKey;
+import org.thingsboard.server.common.data.id.IntegrationId;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
-@Service("IntegrationCache")
-public class IntegrationCaffeineCache extends VersionedCaffeineTbCache<IntegrationCacheKey, Integration> {
+import java.io.Serial;
 
-    public IntegrationCaffeineCache(CacheManager cacheManager) {
-        super(cacheManager, CacheConstants.INTEGRATIONS_CACHE);
+@Data(staticConstructor = "forId")
+public class IntegrationCacheKey implements CacheKey {
+
+    @Serial
+    private static final long serialVersionUID = 3472395528434231465L;
+
+    private final IntegrationId integrationId;
+
+    @Override
+    public String toString() {
+        return integrationId.toString();
+    }
+
+    @Override
+    public boolean isVersioned() {
+        return true;
     }
 
 }

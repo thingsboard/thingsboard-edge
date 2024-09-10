@@ -91,7 +91,7 @@ public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrati
 
     @Override
     public Device findCachedDeviceByTenantIdAndName(TenantId tenantId, String deviceName) {
-        TbCacheValueWrapper<Device> cacheValue = deviceCache.get(new DeviceCacheKey(tenantId, deviceName), true);
+        TbCacheValueWrapper<Device> cacheValue = deviceCache.get(new DeviceCacheKey(tenantId, deviceName));
         return cacheValue == null ? null : cacheValue.get();
     }
 
