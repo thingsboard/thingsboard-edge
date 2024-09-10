@@ -34,6 +34,7 @@ import { UserId } from './id/user-id';
 import { CustomerId } from './id/customer-id';
 import { Authority } from './authority.enum';
 import { TenantId } from './id/tenant-id';
+import { CustomMenuId } from '@shared/models/id/custom-menu-id';
 
 export interface User extends BaseData<UserId> {
   tenantId: TenantId;
@@ -43,6 +44,7 @@ export interface User extends BaseData<UserId> {
   authority: Authority;
   firstName: string;
   lastName: string;
+  customMenuId?: CustomMenuId;
   additionalInfo: any;
 }
 

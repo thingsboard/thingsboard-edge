@@ -51,6 +51,7 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.notification.NotificationRuleService;
 import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
@@ -93,6 +94,7 @@ import org.thingsboard.server.service.edge.rpc.processor.entityview.EntityViewPr
 import org.thingsboard.server.service.edge.rpc.processor.group.EntityGroupEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.group.GroupPermissionsEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.integration.IntegrationEdgeProcessor;
+import org.thingsboard.server.service.edge.rpc.processor.menu.CustomMenuEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.notification.NotificationEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.oauth2.OAuth2EdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.ota.OtaPackageEdgeProcessor;
@@ -336,6 +338,9 @@ public class EdgeContextComponent {
     protected CustomTranslationService customTranslationService;
 
     @Autowired
+    protected CustomMenuService customMenuService;
+
+    @Autowired
     protected EntityGroupService entityGroupService;
 
     @Autowired
@@ -349,6 +354,9 @@ public class EdgeContextComponent {
 
     @Autowired
     private CustomTranslationEdgeProcessor customTranslationProcessor;
+
+    @Autowired
+    private CustomMenuEdgeProcessor customMenuProcessor;
 
     @Autowired
     private WhiteLabelingEdgeProcessor whiteLabelingProcessor;

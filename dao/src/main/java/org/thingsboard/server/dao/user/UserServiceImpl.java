@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.UserInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
@@ -636,6 +637,18 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
             ((ObjectNode) userSettings.getSettings().get("sessions")).remove(mobileToken);
             userSettingsService.saveUserSettings(tenantId, userSettings);
         }
+    }
+
+    @Override
+    public List<User> findUsersByCustomMenuId(CustomMenuId customMenuId) {
+        log.trace("Executing findUsersByCustomMenuId, customMenuId [{}]", customMenuId);
+        return userDao.findUsersByCustomMenuId(customMenuId);
+    }
+
+    @Override
+    public void updateUsersCustomMenuId(List<UserId> userIds, CustomMenuId customMenuId) {
+        log.trace("Executing updateUsersCustomMenuId, customMenuId [{}]", customMenuId);
+        userDao.updateUsersCustomMenuId(userIds, customMenuId);
     }
 
     private Optional<UserMobileInfo> findMobileInfo(TenantId tenantId, UserId userId) {

@@ -60,4 +60,5 @@ public interface SystemDataLoaderService {
 
     void updateDefaultNotificationConfigs(boolean updateTenants);
 
+    void createDefaultCustomMenu();
 }

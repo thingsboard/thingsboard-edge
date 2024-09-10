@@ -206,6 +206,17 @@ CREATE TABLE IF NOT EXISTS custom_translation (
     CONSTRAINT custom_translation_pkey PRIMARY KEY (tenant_id, customer_id, locale_code)
 );
 
+CREATE TABLE IF NOT EXISTS custom_menu (
+    id uuid NOT NULL CONSTRAINT custom_menu_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id UUID NOT NULL,
+    customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
+    name varchar(255) NOT NULL,
+    scope VARCHAR(16),
+    assignee_type VARCHAR(16),
+    config VARCHAR(10000000)
+);
+
 ALTER TABLE resource ADD COLUMN IF NOT EXISTS customer_id uuid;
 
 CREATE INDEX IF NOT EXISTS idx_entity_group_by_type_name_and_owner_id ON entity_group(type, name, owner_id);
@@ -230,3 +241,19 @@ CREATE INDEX IF NOT EXISTS idx_raw_data_event_main
 CREATE INDEX IF NOT EXISTS idx_group_permission_tenant_id ON group_permission(tenant_id);
 
 ALTER TABLE mobile_app_settings ADD COLUMN IF NOT EXISTS use_system_settings boolean default true;
+
+ALTER TABLE tb_user ADD COLUMN IF NOT EXISTS custom_menu_id UUID;
+
+ALTER TABLE customer ADD COLUMN IF NOT EXISTS custom_menu_id UUID;
+
+DO
+$$
+    BEGIN
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'fk_tb_user_custom_menu') THEN
+            ALTER TABLE tb_user ADD CONSTRAINT fk_tb_user_custom_menu FOREIGN KEY (custom_menu_id) REFERENCES custom_menu(id);
+            ALTER TABLE customer ADD CONSTRAINT fk_customer_custom_menu FOREIGN KEY (custom_menu_id) REFERENCES custom_menu(id);
+        END IF;
+    END;
+$$;
+
+CREATE INDEX IF NOT EXISTS idx_custom_menu ON custom_menu(tenant_id, customer_id);

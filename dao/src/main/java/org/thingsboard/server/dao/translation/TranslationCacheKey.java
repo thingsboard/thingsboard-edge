@@ -33,18 +33,23 @@ package org.thingsboard.server.dao.translation;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class TranslationCacheKey {
+public class TranslationCacheKey implements HasTenantId {
 
     private TenantId tenantId;
     private CustomerId customerId;
     private String localeCode;
     private String domain;
+
+    public static TranslationCacheKey forTenant(TenantId tenantId) {
+        return new TranslationCacheKey(tenantId, null, null, null);
+    }
 
     public static TranslationCacheKey forFullTranslation(TenantId tenantId, CustomerId customerId, String locale) {
         return new TranslationCacheKey(tenantId, customerId, locale, null);

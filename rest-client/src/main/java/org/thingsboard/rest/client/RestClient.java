@@ -52,6 +52,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.rest.client.utils.RestJsonConverter;
@@ -154,7 +155,10 @@ import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.kv.Aggregation;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.common.data.menu.CMAssigneeType;
+import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.mobile.MobileApp;
 import org.thingsboard.server.common.data.mobile.MobileAppInfo;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
@@ -568,13 +572,16 @@ public class RestClient implements Closeable {
         return restTemplate.postForEntity(baseURL + "/api/alarm", alarm, Alarm.class).getBody();
     }
 
-    public List<EntitySubtype> getAlarmTypes(PageLink pageLink) {
+    public PageData<EntitySubtype> getAlarmTypes(PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
         return restTemplate.exchange(
                 baseURL + "/api/alarm/types?" + getUrlParams(pageLink),
                 HttpMethod.GET,
                 HttpEntity.EMPTY,
-                new ParameterizedTypeReference<List<EntitySubtype>>() {
-                }).getBody();
+                new ParameterizedTypeReference<PageData<EntitySubtype>>() {
+                },
+                params).getBody();
     }
 
     public AlarmComment saveAlarmComment(AlarmId alarmId, AlarmComment alarmComment) {
@@ -3915,34 +3922,36 @@ public class RestClient implements Closeable {
                 params).getBody();
     }
 
-    public Optional<CustomMenu> getCustomMenu() {
-        try {
-            ResponseEntity<CustomMenu> customMenu = restTemplate.getForEntity(baseURL + "/api/customMenu/customMenu", CustomMenu.class);
-            return Optional.ofNullable(customMenu.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
-        }
+    public PageData<CustomMenuInfo> getCustomMenuInfos(PageLink pageLink) {
+        Map<String, String> params = new HashMap<>();
+        addPageLinkToParam(params, pageLink);
+
+        String url = baseURL + "/api/customMenu/infos?" + getUrlParams(pageLink);
+
+        ResponseEntity<PageData<CustomMenuInfo>> response = restTemplate.exchange(
+                url, HttpMethod.GET, HttpEntity.EMPTY, new ParameterizedTypeReference<>() {}, params);
+
+        return response.getBody();
     }
 
-    public Optional<CustomMenu> getCurrentCustomMenu() {
-        try {
-            ResponseEntity<CustomMenu> customMenu = restTemplate.getForEntity(baseURL + "/api/customMenu/currentCustomMenu", CustomMenu.class);
-            return Optional.ofNullable(customMenu.getBody());
-        } catch (HttpClientErrorException exception) {
-            if (exception.getStatusCode() == HttpStatus.NOT_FOUND) {
-                return Optional.empty();
-            } else {
-                throw exception;
-            }
+    public CustomMenu saveCustomMenu(CustomMenuInfo customMenuInfo, UUID[] ids, Boolean force) {
+        Map<String, Object> params = new HashMap<>();
+        if (ids != null && ids.length > 0) {
+            params.put("assignToList", ids);
         }
-    }
+        if (force != null) {
+            params.put("force", force);
+        }
 
-    public CustomMenu saveCustomMenu(CustomMenu customMenu) {
-        return restTemplate.postForEntity(baseURL + "/api/customMenu/customMenu", customMenu, CustomMenu.class).getBody();
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseURL + "/api/customMenu");
+
+        for (Map.Entry<String, Object> entry : params.entrySet()) {
+            builder.queryParam(entry.getKey(), entry.getValue());
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<CustomMenuInfo> requestEntity = new HttpEntity<>(customMenuInfo, headers);
+        return restTemplate.postForEntity(builder.toUriString(), requestEntity, CustomMenu.class).getBody();
     }
 
     public Optional<JsonNode> getCustomTranslation(String localeCode) {
