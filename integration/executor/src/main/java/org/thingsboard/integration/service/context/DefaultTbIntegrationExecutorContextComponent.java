@@ -42,7 +42,7 @@ import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.IntegrationRateLimitService;
 import org.thingsboard.integration.api.IntegrationStatisticsService;
 import org.thingsboard.server.cache.TbCacheValueWrapper;
-import org.thingsboard.server.cache.TbTransactionalCache;
+import org.thingsboard.server.cache.VersionedTbCache;
 import org.thingsboard.server.cache.device.DeviceCacheKey;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -59,7 +59,7 @@ import java.util.concurrent.TimeUnit;
 public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrationExecutorContextComponent {
 
     private final DownlinkCacheService downlinkCacheService;
-    private final TbTransactionalCache<DeviceCacheKey, Device> deviceCache;
+    private final VersionedTbCache<DeviceCacheKey, Device> deviceCache;
     private final IntegrationStatisticsService integrationStatisticsService;
     private final IntegrationRateLimitService rateLimitService;
     private EventLoopGroup eventLoopGroup;
@@ -91,7 +91,7 @@ public class DefaultTbIntegrationExecutorContextComponent implements TbIntegrati
 
     @Override
     public Device findCachedDeviceByTenantIdAndName(TenantId tenantId, String deviceName) {
-        TbCacheValueWrapper<Device> cacheValue = deviceCache.get(new DeviceCacheKey(tenantId, deviceName));
+        TbCacheValueWrapper<Device> cacheValue = deviceCache.get(new DeviceCacheKey(tenantId, deviceName), true);
         return cacheValue == null ? null : cacheValue.get();
     }
 
