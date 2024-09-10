@@ -32,6 +32,7 @@ package org.thingsboard.server.cluster;
 
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
@@ -142,6 +143,6 @@ public interface TbClusterService extends TbQueueClusterService {
 
     void onUserUpdated(User user, User oldUser);
 
-    void onCustomerUpdated(TenantId tenantId, CustomerId customerId);
+    void onCustomerUpdated(Customer customer, Customer oldCustomer);
 
 }

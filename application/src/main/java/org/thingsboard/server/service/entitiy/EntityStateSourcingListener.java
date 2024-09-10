@@ -39,6 +39,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
@@ -151,7 +152,7 @@ public class EntityStateSourcingListener {
             }
             case CUSTOMER -> {
                 if (!isCreated) {
-                    tbClusterService.onCustomerUpdated(tenantId, (CustomerId) entityId);
+                    tbClusterService.onCustomerUpdated((Customer) event.getEntity(), (Customer) event.getOldEntity());
                 }
             }
             case USER -> {
