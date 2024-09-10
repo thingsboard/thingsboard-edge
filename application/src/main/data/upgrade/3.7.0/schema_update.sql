@@ -292,7 +292,7 @@ BEGIN
             END IF;
         END IF;
     ELSE
-        IF (json_element ? 'pages' AND jsonb_array_length(json_element #> '{pages}') != 0) THEN
+        IF (json_element ? 'pages' AND jsonb_typeof(json_element -> 'pages') = 'array' AND jsonb_array_length(json_element -> 'pages') != 0) THEN
             updated_element := json_element::jsonb || '{"visible":true, "type": "CUSTOM", "menuItemType": "SECTION"}'::jsonb;
         ELSE
             IF (json_element->'dashboardId' IS NOT NULL AND json_element->>'dashboardId' <> '') THEN
@@ -303,7 +303,7 @@ BEGIN
         END IF;
     END IF;
     -- If the element has 'childMenuItems', recursively apply the function
-    IF json_element ? 'pages' AND jsonb_array_length(json_element #> '{pages}') != 0 THEN
+    IF json_element ? 'pages' AND jsonb_typeof(json_element -> 'pages') = 'array' AND jsonb_array_length(json_element -> 'pages') != 0 THEN
         updated_element := jsonb_set(
                 updated_element,
                 '{pages}',
