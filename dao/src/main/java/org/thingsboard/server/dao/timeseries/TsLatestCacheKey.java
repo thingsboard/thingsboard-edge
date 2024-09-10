@@ -33,15 +33,15 @@ package org.thingsboard.server.dao.timeseries;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.thingsboard.server.cache.CacheKey;
 import org.thingsboard.server.common.data.id.EntityId;
 
 import java.io.Serial;
-import java.io.Serializable;
 
 @EqualsAndHashCode
 @Getter
 @AllArgsConstructor
-public class TsLatestCacheKey implements Serializable {
+public class TsLatestCacheKey implements CacheKey {
 
     @Serial
     private static final long serialVersionUID = 2024369077925351881L;
@@ -52,6 +52,11 @@ public class TsLatestCacheKey implements Serializable {
     @Override
     public String toString() {
         return "{" + entityId + "}" + key;
+    }
+
+    @Override
+    public boolean isVersioned() {
+        return true;
     }
 
 }

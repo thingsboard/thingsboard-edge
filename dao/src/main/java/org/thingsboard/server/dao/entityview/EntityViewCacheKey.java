@@ -33,17 +33,17 @@ package org.thingsboard.server.dao.entityview;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.thingsboard.server.cache.CacheKey;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 
 import java.io.Serial;
-import java.io.Serializable;
 
 @Getter
 @EqualsAndHashCode
 @Builder
-public class EntityViewCacheKey implements Serializable {
+public class EntityViewCacheKey implements CacheKey {
 
     @Serial
     private static final long serialVersionUID = 5986277528222738163L;
@@ -81,6 +81,11 @@ public class EntityViewCacheKey implements Serializable {
         } else {
             return tenantId + "_n_" + name;
         }
+    }
+
+    @Override
+    public boolean isVersioned() {
+        return entityViewId != null;
     }
 
 }
