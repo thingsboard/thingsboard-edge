@@ -223,7 +223,7 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
         TbMsg msg = TbMsg.newMsg(TbMsgType.POST_TELEMETRY_REQUEST, DEVICE_ID, metaData, "{\"msgEndInterval\":\"" + endTs + "\"}");
         node.onMsg(ctxMock, msg);
 
-        /// THEN
+        // THEN
         ArgumentCaptor<List<ReadTsKvQuery>> actualReadTsKvQueryList = ArgumentCaptor.forClass(List.class);
         then(timeseriesServiceMock).should().findAll(eq(TENANT_ID), eq(DEVICE_ID), actualReadTsKvQueryList.capture());
         ReadTsKvQuery actualReadTsKvQuery = actualReadTsKvQueryList.getValue().get(0);
@@ -273,12 +273,12 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
         ArgumentCaptor<List<ReadTsKvQuery>> actualReadTsKvQueryList = ArgumentCaptor.forClass(List.class);
         then(timeseriesServiceMock).should().findAll(eq(TENANT_ID), eq(DEVICE_ID), actualReadTsKvQueryList.capture());
         List<String> actualKeys = actualReadTsKvQueryList.getValue().stream().map(TsKvQuery::getKey).toList();
-        assertThat(actualKeys).containsAll(List.of("temperature", "humidity", "pressure"));
+        assertThat(actualKeys).containsExactlyInAnyOrder("temperature", "humidity", "pressure");
     }
 
     @ParameterizedTest
     @MethodSource
-    public void givenAggregation_whenOnMsg_thenVerifyAggregationStepInQuery(Aggregation aggregation, Consumer<ReadTsKvQuery> verifyAggregationStepInQuery) throws TbNodeException {
+    public void givenAggregation_whenOnMsg_thenVerifyAggregationStepInQuery(Aggregation aggregation, Consumer<ReadTsKvQuery> aggregationStepVerifier) throws TbNodeException {
         // GIVEN
         config.setStartInterval(5);
         config.setEndInterval(1);
@@ -298,7 +298,7 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
         ArgumentCaptor<List<ReadTsKvQuery>> actualReadTsKvQueryList = ArgumentCaptor.forClass(List.class);
         then(timeseriesServiceMock).should().findAll(eq(TENANT_ID), eq(DEVICE_ID), actualReadTsKvQueryList.capture());
         ReadTsKvQuery actualReadTsKvQuery = actualReadTsKvQueryList.getValue().get(0);
-        verifyAggregationStepInQuery.accept(actualReadTsKvQuery);
+        aggregationStepVerifier.accept(actualReadTsKvQuery);
     }
 
     private static Stream<Arguments> givenAggregation_whenOnMsg_thenVerifyAggregationStepInQuery() {
@@ -310,7 +310,7 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
 
     @ParameterizedTest
     @MethodSource
-    public void givenFetchModeAndLimit_whenOnMsg_thenVerifyLimitInQuery(FetchMode fetchMode, int limit, Consumer<ReadTsKvQuery> verifyLimitInQuery) throws TbNodeException {
+    public void givenFetchModeAndLimit_whenOnMsg_thenVerifyLimitInQuery(FetchMode fetchMode, int limit, Consumer<ReadTsKvQuery> limitInQueryVerifier) throws TbNodeException {
         // GIVEN
         config.setFetchMode(fetchMode);
         config.setLimit(limit);
@@ -328,7 +328,7 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
         ArgumentCaptor<List<ReadTsKvQuery>> actualReadTsKvQueryList = ArgumentCaptor.forClass(List.class);
         then(timeseriesServiceMock).should().findAll(eq(TENANT_ID), eq(DEVICE_ID), actualReadTsKvQueryList.capture());
         ReadTsKvQuery actualReadTsKvQuery = actualReadTsKvQueryList.getValue().get(0);
-        verifyLimitInQuery.accept(actualReadTsKvQuery);
+        limitInQueryVerifier.accept(actualReadTsKvQuery);
     }
 
     private static Stream<Arguments> givenFetchModeAndLimit_whenOnMsg_thenVerifyLimitInQuery() {
@@ -350,7 +350,7 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
 
     @ParameterizedTest
     @MethodSource
-    public void givenFetchModeAndOrder_whenOnMsg_thenVerifyOrderInQuery(FetchMode fetchMode, Direction orderBy, Consumer<ReadTsKvQuery> verifyOrderInQuery) throws TbNodeException {
+    public void givenFetchModeAndOrder_whenOnMsg_thenVerifyOrderInQuery(FetchMode fetchMode, Direction orderBy, Consumer<ReadTsKvQuery> orderInQueryVerifier) throws TbNodeException {
         // GIVEN
         config.setFetchMode(fetchMode);
         config.setOrderBy(orderBy);
@@ -368,7 +368,7 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
         ArgumentCaptor<List<ReadTsKvQuery>> actualReadTsKvQueryList = ArgumentCaptor.forClass(List.class);
         then(timeseriesServiceMock).should().findAll(eq(TENANT_ID), eq(DEVICE_ID), actualReadTsKvQueryList.capture());
         ReadTsKvQuery actualReadTsKvQuery = actualReadTsKvQueryList.getValue().get(0);
-        verifyOrderInQuery.accept(actualReadTsKvQuery);
+        orderInQueryVerifier.accept(actualReadTsKvQuery);
     }
 
     private static Stream<Arguments> givenFetchModeAndOrder_whenOnMsg_thenVerifyOrderInQuery() {
