@@ -666,18 +666,8 @@ $$;
 
 DROP FUNCTION update_menu_item_with_visible_and_type;
 
-DO
-$$
-    BEGIN
-        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'fk_tb_user_custom_menu') THEN
-            ALTER TABLE tb_user ADD COLUMN IF NOT EXISTS custom_menu_id UUID;
-            ALTER TABLE tb_user ADD CONSTRAINT fk_tb_user_custom_menu FOREIGN KEY (custom_menu_id) REFERENCES custom_menu(id);
-
-            ALTER TABLE customer ADD COLUMN IF NOT EXISTS custom_menu_id UUID;
-            ALTER TABLE customer ADD CONSTRAINT fk_customer_custom_menu FOREIGN KEY (custom_menu_id) REFERENCES custom_menu(id);
-        END IF;
-    END;
-$$;
+ALTER TABLE tb_user ADD COLUMN IF NOT EXISTS custom_menu_id UUID;
+ALTER TABLE customer ADD COLUMN IF NOT EXISTS custom_menu_id UUID;
 
 -- create default system menu if not exists
 DO

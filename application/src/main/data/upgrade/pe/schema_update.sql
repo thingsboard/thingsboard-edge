@@ -246,14 +246,4 @@ ALTER TABLE tb_user ADD COLUMN IF NOT EXISTS custom_menu_id UUID;
 
 ALTER TABLE customer ADD COLUMN IF NOT EXISTS custom_menu_id UUID;
 
-DO
-$$
-    BEGIN
-        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'fk_tb_user_custom_menu') THEN
-            ALTER TABLE tb_user ADD CONSTRAINT fk_tb_user_custom_menu FOREIGN KEY (custom_menu_id) REFERENCES custom_menu(id);
-            ALTER TABLE customer ADD CONSTRAINT fk_customer_custom_menu FOREIGN KEY (custom_menu_id) REFERENCES custom_menu(id);
-        END IF;
-    END;
-$$;
-
 CREATE INDEX IF NOT EXISTS idx_custom_menu ON custom_menu(tenant_id, customer_id);

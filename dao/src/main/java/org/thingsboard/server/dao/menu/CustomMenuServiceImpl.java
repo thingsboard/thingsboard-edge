@@ -286,17 +286,10 @@ public class CustomMenuServiceImpl extends AbstractCachedEntityService<CustomMen
     }
 
     private void deleteCustomMenu(CustomMenu customMenu) {
-        try {
-            customMenuDao.removeById(customMenu.getTenantId(), customMenu.getId().getId());
-            publishEvictEvent(new CustomMenuCacheEvictEvent(customMenu.getId()));
-            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(customMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
-                    .body(JacksonUtil.toString(customMenu)).edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.DELETED).build());
-        } catch (Exception e) {
-            checkConstraintViolation(e,
-                    Map.of("fk_user_custom_menu", "The custom menu referenced by the user cannot be deleted!",
-                            "fk_customer_custom_menu", "The custom menu referenced by the customer cannot be deleted!"));
-            throw e;
-        }
+        customMenuDao.removeById(customMenu.getTenantId(), customMenu.getId().getId());
+        publishEvictEvent(new CustomMenuCacheEvictEvent(customMenu.getId()));
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(customMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
+                .body(JacksonUtil.toString(customMenu)).edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.DELETED).build());
     }
 
     private static CustomMenuConfig getVisibleMenuItems(CustomMenu customMenu) {
