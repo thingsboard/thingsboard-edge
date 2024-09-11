@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EntityGroupRequestMsg;
+import org.thingsboard.server.gen.edge.v1.ResourceUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.edge.v1.UplinkMsg;
 
@@ -60,7 +61,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class DashboardEdgeTest extends AbstractEdgeTest {
 
     private static final int MOBILE_ORDER = 5;
-    private static final String IMAGE = "data:image/png;base64,iVBORw0KGgoA";
+    private static final String IMAGE = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4Ij48cGF0aCBkPSJNMTMuMjMgMTAuNTZWMTBjLTEuOTQgMC0zLjk5LjM5LTMuOTkgMi42NyAwIDEuMTYuNjEgMS45NSAxLjYzIDEuOTUuNzYgMCAxLjQzLS40NyAxLjg2LTEuMjIuNTItLjkzLjUtMS44LjUtMi44NG0yLjcgNi41M2MtLjE4LjE2LS40My4xNy0uNjMuMDYtLjg5LS43NC0xLjA1LTEuMDgtMS41NC0xLjc5LTEuNDcgMS41LTIuNTEgMS45NS00LjQyIDEuOTUtMi4yNSAwLTQuMDEtMS4zOS00LjAxLTQuMTcgMC0yLjE4IDEuMTctMy42NCAyLjg2LTQuMzggMS40Ni0uNjQgMy40OS0uNzYgNS4wNC0uOTNWNy41YzAtLjY2LjA1LTEuNDEtLjMzLTEuOTYtLjMyLS40OS0uOTUtLjctMS41LS43LTEuMDIgMC0xLjkzLjUzLTIuMTUgMS42MS0uMDUuMjQtLjI1LjQ4LS40Ny40OWwtMi42LS4yOGMtLjIyLS4wNS0uNDYtLjIyLS40LS41Ni42LTMuMTUgMy40NS00LjEgNi00LjEgMS4zIDAgMyAuMzUgNC4wMyAxLjMzQzE3LjExIDQuNTUgMTcgNi4xOCAxNyA3Ljk1djQuMTdjMCAxLjI1LjUgMS44MSAxIDIuNDguMTcuMjUuMjEuNTQgMCAuNzFsLTIuMDYgMS43OGgtLjAxIj48L3BhdGg+PHBhdGggZD0iTTIwLjE2IDE5LjU0QzE4IDIxLjE0IDE0LjgyIDIyIDEyLjEgMjJjLTMuODEgMC03LjI1LTEuNDEtOS44NS0zLjc2LS4yLS4xOC0uMDItLjQzLjI1LS4yOSAyLjc4IDEuNjMgNi4yNSAyLjYxIDkuODMgMi42MSAyLjQxIDAgNS4wNy0uNSA3LjUxLTEuNTMuMzctLjE2LjY2LjI0LjMyLjUxIj48L3BhdGg+PHBhdGggZD0iTTIxLjA3IDE4LjVjLS4yOC0uMzYtMS44NS0uMTctMi41Ny0uMDgtLjE5LjAyLS4yMi0uMTYtLjAzLS4zIDEuMjQtLjg4IDMuMjktLjYyIDMuNTMtLjMzLjI0LjMtLjA3IDIuMzUtMS4yNCAzLjMyLS4xOC4xNi0uMzUuMDctLjI2LS4xMS4yNi0uNjcuODUtMi4xNC41Ny0yLjV6Ij48L3BhdGg+PC9zdmc+";
 
     @Test
     public void testDashboards() throws Exception {
@@ -89,12 +90,16 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
                 dashboardEntityGroup1.getUuidId().getLeastSignificantBits(),
                 savedDashboard.getId());
 
-        edgeImitator.expectMessageAmount(1);
+        edgeImitator.expectMessageAmount(2);
         savedDashboard.setMobileHide(true);
         savedDashboard.setImage(IMAGE);
         savedDashboard.setMobileOrder(MOBILE_ORDER);
         savedDashboard = doPost("/api/dashboard", savedDashboard, Dashboard.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
+        Optional<DashboardUpdateMsg> dashboardUpdateMsgOpt = edgeImitator.findMessageByType(DashboardUpdateMsg.class);
+        Assert.assertTrue(dashboardUpdateMsgOpt.isPresent());
+        Optional<ResourceUpdateMsg> resourceUpdateMsg = edgeImitator.findMessageByType(ResourceUpdateMsg.class);
+        Assert.assertTrue(resourceUpdateMsg.isPresent());
 
         // add dashboard to entity group 2
         EntityGroup dashboardEntityGroup2 = createEntityGroupAndAssignToEdge(EntityType.DASHBOARD, "DashboardGroup2", tenantId);
@@ -111,7 +116,7 @@ public class DashboardEdgeTest extends AbstractEdgeTest {
         Assert.assertEquals(dashboardEntityGroup2.getUuidId().getLeastSignificantBits(), dashboardUpdateMsg.getEntityGroupIdLSB());
         Assert.assertEquals(savedDashboard.getTitle(), dashboardMsg.getTitle());
         Assert.assertTrue(dashboardMsg.isMobileHide());
-        Assert.assertEquals(IMAGE, dashboardMsg.getImage());
+        Assert.assertEquals("tb-image;/api/images/tenant/edge_dashboard_1_dashboard_image.svg", dashboardMsg.getImage());
         Assert.assertEquals(MOBILE_ORDER, dashboardMsg.getMobileOrder().intValue());
 
         // update dashboard

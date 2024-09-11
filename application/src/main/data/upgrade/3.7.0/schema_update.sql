@@ -392,7 +392,7 @@ $$
                     ]
                   }
                 ]'::jsonb || (coalesce(config::jsonb #> '{menuItems}', '[]'::jsonb)))
-            WHERE config IS NOT NULL and tenant_id = '13814000-1dd2-11b2-8080-808080808080';
+            WHERE config IS NOT NULL AND scope = 'SYSTEM';
 
             -- add predefined menu items to tenant custom menus
             UPDATE custom_menu SET config = jsonb_set(config::jsonb, '{menuItems}',
@@ -549,7 +549,7 @@ $$
                      ]
                    }
                  ]'::jsonb ||(coalesce(config::jsonb #> '{menuItems}', '[]'::jsonb)))
-            WHERE config IS NOT NULL and customer_id = '13814000-1dd2-11b2-8080-808080808080' and tenant_id != '13814000-1dd2-11b2-8080-808080808080';
+            WHERE config IS NOT NULL AND scope = 'TENANT';
 
             -- add predefined menu items to customer custom menus
             UPDATE custom_menu SET config = jsonb_set(config::jsonb, '{menuItems}',
@@ -654,7 +654,7 @@ $$
                        ]
                      }
                  ]'::jsonb || (coalesce(config::jsonb #> '{menuItems}', '[]'::jsonb)))
-            WHERE config IS NOT NULL and customer_id != '13814000-1dd2-11b2-8080-808080808080';
+            WHERE config IS NOT NULL AND scope = 'CUSTOMER';
 
             -- for each item add visible/not visible, add type: home, default or custom
             UPDATE custom_menu SET config = json_build_object('items', (SELECT jsonb_agg(update_menu_item_with_visible_and_type(elem,
@@ -719,3 +719,20 @@ $$
 $$;
 
 -- CUSTOM MENU MIGRATION END
+
+-- USER CREDENTIALS UPDATE START
+
+ALTER TABLE user_credentials ADD COLUMN IF NOT EXISTS activate_token_exp_time BIGINT;
+-- Setting 24-hour TTL for existing activation tokens
+UPDATE user_credentials SET activate_token_exp_time = cast(extract(EPOCH FROM NOW()) * 1000 AS BIGINT) + 86400000
+    WHERE activate_token IS NOT NULL AND activate_token_exp_time IS NULL;
+
+ALTER TABLE user_credentials ADD COLUMN IF NOT EXISTS reset_token_exp_time BIGINT;
+-- Setting 24-hour TTL for existing password reset tokens
+UPDATE user_credentials SET reset_token_exp_time = cast(extract(EPOCH FROM NOW()) * 1000 AS BIGINT) + 86400000
+    WHERE reset_token IS NOT NULL AND reset_token_exp_time IS NULL;
+
+UPDATE admin_settings SET json_value = (json_value::jsonb || '{"userActivationTokenTtl":24,"passwordResetTokenTtl":24}'::jsonb)::varchar
+    WHERE key = 'securitySettings';
+
+-- USER CREDENTIALS UPDATE END
