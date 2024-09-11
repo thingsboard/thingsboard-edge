@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
@@ -59,7 +60,6 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
@@ -96,7 +96,8 @@ public class TbChangeOwnerNode implements TbNode {
             throw new TbNodeException("Owner type should be specified!", true);
         }
         if (!supportedEntityTypes.contains(ownerType)) {
-            throw new TbNodeException(unsupportedOwnerTypeErrorMessage(), true);
+            throw new TbNodeException("Unsupported owner type '" + ownerType +
+                    "'! Only " + supportedEntityTypesStr + " types are allowed.", true);
         }
         if (EntityType.TENANT.equals(ownerType)) {
             return;
@@ -114,54 +115,44 @@ public class TbChangeOwnerNode implements TbNode {
             case TENANT -> changeOwnerFuture = changeOwnerAsync(ctx, originator, ctx.getTenantId(), false);
             case CUSTOMER -> {
                 String ownerName = TbNodeUtils.processPattern(config.getOwnerNamePattern(), msg);
-                AtomicBoolean newOwnerCreated = new AtomicBoolean();
-                ListenableFuture<CustomerId> customerIdFuture = findOrCreateCustomerAsync(ctx, msg, ownerName, newOwnerCreated);
+                ListenableFuture<Pair<CustomerId, Boolean>> customerIdFuture = findOrCreateCustomerAsync(ctx, msg, ownerName);
                 changeOwnerFuture = Futures.transformAsync(customerIdFuture, customerId ->
-                        changeOwnerAsync(ctx, originator, customerId, newOwnerCreated.get()), MoreExecutors.directExecutor());
+                        changeOwnerAsync(ctx, originator, customerId.getFirst(), customerId.getSecond()), MoreExecutors.directExecutor());
             }
-            default -> throw new IllegalArgumentException(unsupportedOwnerTypeErrorMessage());
+            default -> throw new UnsupportedOperationException("Unsupported owner type '" + ownerType +
+                    "'! Only " + supportedEntityTypesStr + " types are allowed.");
         }
         withCallback(changeOwnerFuture, __ -> ctx.tellSuccess(msg), t -> ctx.tellFailure(msg, t), MoreExecutors.directExecutor());
     }
 
-    private ListenableFuture<CustomerId> findOrCreateCustomerAsync(TbContext ctx, TbMsg msg, String ownerName, AtomicBoolean newOwnerCreated) {
+    private ListenableFuture<Pair<CustomerId, Boolean>> findOrCreateCustomerAsync(TbContext ctx, TbMsg msg, String ownerName) {
         CustomerService customerService = ctx.getCustomerService();
         TenantId tenantId = ctx.getTenantId();
         ListenableFuture<Optional<Customer>> optionalCustomerListenableFuture = customerService.findCustomerByTenantIdAndTitleAsync(tenantId, ownerName);
-        if (config.isCreateOwnerIfNotExists()) {
-            return Futures.transform(optionalCustomerListenableFuture,
-                    customerOpt -> {
-                        if (customerOpt.isPresent()) {
-                            return customerOpt.get().getId();
-                        }
-                        try {
-                            Customer newCustomer = new Customer();
-                            newCustomer.setTitle(ownerName);
-                            newCustomer.setTenantId(tenantId);
-                            if (config.isCreateOwnerOnOriginatorLevel()) {
-                                EntityId currentOriginatorOwnerId = ctx.getPeContext()
-                                        .getOwner(tenantId, msg.getOriginator());
-                                newCustomer.setOwnerId(currentOriginatorOwnerId);
-                                newCustomer.setOwnerId(currentOriginatorOwnerId);
-                            }
-                            Customer savedCustomer = customerService.saveCustomer(newCustomer);
-                            newOwnerCreated.set(true);
-                            ctx.enqueue(ctx.customerCreatedMsg(savedCustomer, ctx.getSelfId()),
-                                    () -> log.trace("Pushed Customer Created message: {}", savedCustomer),
-                                    throwable -> log.warn("Failed to push Customer Created message: {}", savedCustomer, throwable));
-                            return savedCustomer.getId();
-                        } catch (DataValidationException e) {
-                            customerOpt = customerService.findCustomerByTenantIdAndTitle(tenantId, ownerName);
-                            if (customerOpt.isPresent()) {
-                                return customerOpt.get().getId();
-                            }
-                            throw new RuntimeException("Failed to create customer with title '" + ownerName + "'", e);
-                        }
-                    }, MoreExecutors.directExecutor());
-        }
-        return Futures.transform(optionalCustomerListenableFuture, customer -> {
-            if (customer.isPresent()) {
-                return customer.get().getId();
+        return Futures.transform(optionalCustomerListenableFuture, customerOpt -> {
+            if (customerOpt.isPresent()) {
+                return Pair.of(customerOpt.get().getId(), false);
+            }
+            if (config.isCreateOwnerIfNotExists()) {
+                try {
+                    Customer newCustomer = new Customer();
+                    newCustomer.setTitle(ownerName);
+                    newCustomer.setTenantId(tenantId);
+                    if (config.isCreateOwnerOnOriginatorLevel()) {
+                        EntityId currentOriginatorOwnerId = ctx.getPeContext()
+                                .getOwner(tenantId, msg.getOriginator());
+                        newCustomer.setOwnerId(currentOriginatorOwnerId);
+                    }
+                    Customer savedCustomer = customerService.saveCustomer(newCustomer);
+                    ctx.enqueue(ctx.customerCreatedMsg(savedCustomer, ctx.getSelfId()),
+                            () -> log.trace("Pushed Customer Created message: {}", savedCustomer),
+                            throwable -> log.warn("Failed to push Customer Created message: {}", savedCustomer, throwable));
+                    return Pair.of(savedCustomer.getId(), true);
+                } catch (DataValidationException e) {
+                    return customerService.findCustomerByTenantIdAndTitle(tenantId, ownerName)
+                            .map(customer -> Pair.of(customer.getId(), false))
+                            .orElseThrow(() -> new RuntimeException("Failed to create customer with title '" + ownerName + "'", e));
+                }
             }
             throw new NoSuchElementException("Customer with title '" + ownerName + "' doesn't exist!");
         }, MoreExecutors.directExecutor());
@@ -175,11 +166,6 @@ public class TbChangeOwnerNode implements TbNode {
             }
             return null;
         });
-    }
-
-    private String unsupportedOwnerTypeErrorMessage() {
-        return "Unsupported owner type '" + ownerType +
-                "'! Only " + supportedEntityTypesStr + " types are allowed.";
     }
 
     @Override
