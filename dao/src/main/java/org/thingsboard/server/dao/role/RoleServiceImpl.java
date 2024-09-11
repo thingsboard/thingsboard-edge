@@ -68,7 +68,7 @@ import static org.thingsboard.server.dao.service.Validator.validateString;
 
 @Service("RoleDaoService")
 @Slf4j
-public class RoleServiceImpl extends CachedVersionedEntityService<RoleId, Role, RoleEvictEvent> implements RoleService {
+public class RoleServiceImpl extends CachedVersionedEntityService<RoleCacheKey, Role, RoleEvictEvent> implements RoleService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_CUSTOMER_ID = "Incorrect customerId ";
@@ -93,9 +93,9 @@ public class RoleServiceImpl extends CachedVersionedEntityService<RoleId, Role, 
     @Override
     public void handleEvictEvent(RoleEvictEvent event) {
         if (event.getSavedRole() != null) {
-            cache.put(event.getSavedRole().getId(), event.getSavedRole());
+            cache.put(RoleCacheKey.forId(event.getSavedRole().getId()), event.getSavedRole());
         } else {
-            cache.evict(event.getRoleId());
+            cache.evict(RoleCacheKey.forId(event.getRoleId()));
         }
     }
 
@@ -120,7 +120,7 @@ public class RoleServiceImpl extends CachedVersionedEntityService<RoleId, Role, 
     public Role findRoleById(TenantId tenantId, RoleId roleId) {
         log.trace("Executing findRoleById [{}]", roleId);
         validateId(roleId, id -> INCORRECT_ROLE_ID + id);
-        return cache.get(roleId, () -> roleDao.findById(tenantId, roleId.getId()));
+        return cache.get(RoleCacheKey.forId(roleId), () -> roleDao.findById(tenantId, roleId.getId()));
     }
 
     @Override
