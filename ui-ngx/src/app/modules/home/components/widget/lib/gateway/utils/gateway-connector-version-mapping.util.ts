@@ -32,50 +32,26 @@
 import {
   ConnectorType,
   GatewayConnector,
-  LegacyGatewayConnector,
+  ModbusBasicConfig,
+  MQTTBasicConfig,
+  OPCBasicConfig,
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
-import { MqttVersionMappingUtil } from './mqtt-version-mapping.util';
+import { MqttVersionProcessor } from '@home/components/widget/lib/gateway/abstract/mqtt-version-processor.abstract';
+import { OpcVersionProcessor } from '@home/components/widget/lib/gateway/abstract/opc-version-processor.abstract';
+import { ModbusVersionProcessor } from '@home/components/widget/lib/gateway/abstract/modbus-version-processor.abstract';
 
-export class GatewayConnectorVersionMappingUtil {
+export abstract class GatewayConnectorVersionMappingUtil {
 
-  static getMappedByVersion(connector: GatewayConnector, gatewayVersion: string): GatewayConnector {
-    switch (connector.type) {
+  static getConfig(connector: GatewayConnector, gatewayVersion: string): GatewayConnector {
+    switch(connector.type) {
       case ConnectorType.MQTT:
-        return this.getMappedMQTTByVersion(connector, gatewayVersion);
+        return new MqttVersionProcessor(gatewayVersion, connector as GatewayConnector<MQTTBasicConfig>).getProcessedByVersion();
+      case ConnectorType.OPCUA:
+        return new OpcVersionProcessor(gatewayVersion, connector as GatewayConnector<OPCBasicConfig>).getProcessedByVersion();
+      case ConnectorType.MODBUS:
+        return new ModbusVersionProcessor(gatewayVersion, connector as GatewayConnector<ModbusBasicConfig>).getProcessedByVersion();
       default:
         return connector;
     }
-  }
-
-  private static getMappedMQTTByVersion(
-    connector: GatewayConnector | LegacyGatewayConnector,
-    gatewayVersion: string
-  ): GatewayConnector | LegacyGatewayConnector {
-    if (this.isVersionUpdateNeeded(gatewayVersion, connector.configVersion)) {
-      return this.isGatewayOutdated(gatewayVersion, connector.configVersion)
-        ? MqttVersionMappingUtil.getLegacyVersion(connector)
-        : MqttVersionMappingUtil.getNewestVersion(connector);
-    }
-    return connector;
-  }
-
-  private static isGatewayOutdated(gatewayVersion: string, configVersion: string): boolean {
-    if (!gatewayVersion || !configVersion) {
-      return false;
-    }
-
-    return this.parseVersion(configVersion) > this.parseVersion(gatewayVersion);
-  }
-
-  private static isVersionUpdateNeeded(configVersion: string, gatewayVersion: string): boolean {
-    if (!gatewayVersion || !configVersion) {
-      return false;
-    }
-
-    return this.parseVersion(configVersion) !== this.parseVersion(gatewayVersion);
-  }
-
-  private static parseVersion(version: string): number {
-    return Number(version?.replace(/\./g, ''));
   }
 }

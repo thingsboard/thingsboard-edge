@@ -74,13 +74,16 @@ import {
   GatewayConnectorDefaultTypesTranslatesMap,
   GatewayLogLevel,
   noLeadTrailSpacesRegex,
+  GatewayVersion,
 } from './gateway-widget.models';
 import { MatDialog } from '@angular/material/dialog';
 import { AddConnectorDialogComponent } from '@home/components/widget/lib/gateway/dialog/add-connector-dialog.component';
 import { debounceTime, filter, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { PageData } from '@shared/models/page/page-data';
-import { GatewayConnectorVersionMappingUtil } from './utils/gateway-connector-version-mapping.util';
+import {
+  GatewayConnectorVersionMappingUtil
+} from '@home/components/widget/lib/gateway/utils/gateway-connector-version-mapping.util';
 
 export class ForceErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -114,6 +117,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
   readonly displayedColumns = ['enabled', 'key', 'type', 'syncStatus', 'errors', 'actions'];
   readonly GatewayConnectorTypesTranslatesMap = GatewayConnectorDefaultTypesTranslatesMap;
   readonly ConnectorConfigurationModes = ConfigurationModes;
+  readonly GatewayVersion = GatewayVersion;
 
   pageLink: PageLink;
   dataSource: MatTableDataSource<GatewayAttributeData>;
@@ -262,7 +266,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
 
     value.ts = Date.now();
 
-    return GatewayConnectorVersionMappingUtil.getMappedByVersion(value, this.gatewayVersion);
+    return value;
   }
 
   private updateData(reload: boolean = false): void {
@@ -495,7 +499,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
           value.configurationJson = {} as ConnectorBaseConfig;
         }
         value.basicConfig = value.configurationJson;
-        this.updateConnector({...value, configVersion: this.gatewayVersion ?? ''});
+        this.updateConnector(value);
         this.generate('basicConfig.broker.clientId');
         setTimeout(() => this.saveConnector());
     });
@@ -749,12 +753,12 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       this.connectorForm.enable();
     }
 
-    const connectorState = {
+    const connectorState = GatewayConnectorVersionMappingUtil.getConfig({
       configuration: '',
       key: 'auto',
       configurationJson: {} as ConnectorBaseConfig,
       ...connector,
-    };
+    }, this.gatewayVersion);
 
     connectorState.basicConfig = connectorState.configurationJson;
     this.initialConnector = connectorState;

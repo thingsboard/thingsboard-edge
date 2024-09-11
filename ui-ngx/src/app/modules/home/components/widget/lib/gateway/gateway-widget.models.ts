@@ -139,21 +139,14 @@ export interface GatewayConnectorBase {
   configVersion?: string;
 }
 
-export type GatewayConnector = CurrentGatewayConnector | LegacyGatewayConnector;
-
-export interface CurrentGatewayConnector extends GatewayConnectorBase {
-  configurationJson: ConnectorBaseConfig;
-  basicConfig?: ConnectorBaseConfig;
-}
-
-export interface LegacyGatewayConnector extends GatewayConnectorBase {
-  configurationJson: ConnectorLegacyBaseConfig;
-  basicConfig?: ConnectorLegacyBaseConfig;
+export interface GatewayConnector<BaseConfig = ConnectorBaseConfig> extends GatewayConnectorBase {
+  configurationJson: BaseConfig;
+  basicConfig?: BaseConfig;
 }
 
 export interface GatewayVersionedDefaultConfig {
-  legacy: LegacyGatewayConnector;
-  current: GatewayConnector;
+  legacy: GatewayConnector<ConnectorLegacyConfig>;
+  '3.5.1': GatewayConnector<ConnectorBaseConfig_v_3_5_2>;
 }
 
 export interface DataMapping {
@@ -210,11 +203,20 @@ export interface ConnectorSecurity {
   mode?: ModeType;
 }
 
+export enum GatewayVersion {
+  Current = '3.5.1',
+  Legacy = 'legacy'
+}
+
 export type ConnectorMapping = DeviceConnectorMapping | RequestMappingValue | ConverterConnectorMapping;
 
 export type ConnectorMappingFormValue = DeviceConnectorMapping | RequestMappingFormValue | ConverterMappingFormValue;
 
-export type ConnectorBaseConfig = ConnectorBaseInfo | MQTTBasicConfig | OPCBasicConfig | ModbusBasicConfig;
+export type ConnectorBaseConfig = ConnectorBaseConfig_v_3_5_2 | ConnectorLegacyConfig;
+
+export type ConnectorLegacyConfig = ConnectorBaseInfo | MQTTLegacyBasicConfig | OPCLegacyBasicConfig | ModbusBasicConfig;
+
+export type ConnectorBaseConfig_v_3_5_2 = ConnectorBaseInfo | MQTTBasicConfig_v3_5_2 | OPCBasicConfig_v3_5_2;
 
 export type ConnectorLegacyBaseConfig = ConnectorBaseInfo | MQTTLegacyBasicConfig;
 
@@ -225,7 +227,9 @@ export interface ConnectorBaseInfo {
   logLevel: GatewayLogLevel;
 }
 
-export interface MQTTBasicConfig {
+export type MQTTBasicConfig = MQTTBasicConfig_v3_5_2 | MQTTLegacyBasicConfig;
+
+export interface MQTTBasicConfig_v3_5_2 {
   mapping: ConverterConnectorMapping[];
   requestsMapping: Record<RequestType, RequestMappingData[] | RequestMappingValue[]> | RequestMappingData[] | RequestMappingValue[];
   broker: BrokerConfig;
@@ -243,14 +247,32 @@ export interface MQTTLegacyBasicConfig {
   serverSideRpc: LegacyRequestMappingData[];
 }
 
-export interface OPCBasicConfig {
+export type OPCBasicConfig = OPCBasicConfig_v3_5_2 | OPCLegacyBasicConfig;
+
+export interface OPCBasicConfig_v3_5_2 {
   mapping: DeviceConnectorMapping[];
   server: ServerConfig;
 }
 
-export interface ModbusBasicConfig {
+export interface OPCLegacyBasicConfig {
+  server: LegacyServerConfig;
+}
+
+export interface LegacyServerConfig extends Omit<ServerConfig, 'enableSubscriptions'> {
+  mapping: LegacyDeviceConnectorMapping[];
+  disableSubscriptions: boolean;
+}
+
+export type ModbusBasicConfig = ModbusBasicConfig_v3_5_2 | ModbusLegacyBasicConfig;
+
+export interface ModbusBasicConfig_v3_5_2 {
   master: ModbusMasterConfig;
   slave: ModbusSlave;
+}
+
+export interface ModbusLegacyBasicConfig {
+  master: ModbusMasterConfig;
+  slave: ModbusLegacySlave;
 }
 
 export interface WorkersConfig {
@@ -260,9 +282,9 @@ export interface WorkersConfig {
 
 export interface ConnectorDeviceInfo {
   deviceNameExpression: string;
-  deviceNameExpressionSource: SourceType;
+  deviceNameExpressionSource: SourceType | OPCUaSourceType;
   deviceProfileExpression: string;
-  deviceProfileExpressionSource: SourceType;
+  deviceProfileExpressionSource: SourceType | OPCUaSourceType;
 }
 
 export interface Attribute {
@@ -271,13 +293,23 @@ export interface Attribute {
   value: string;
 }
 
+export interface LegacyAttribute {
+  key: string;
+  path: string;
+}
+
 export interface Timeseries {
   key: string;
   type: string;
   value: string;
 }
 
-interface RpcArgument {
+export interface LegacyTimeseries {
+  key: string;
+  path: string;
+}
+
+export interface RpcArgument {
   type: string;
   value: number;
 }
@@ -287,10 +319,20 @@ export interface RpcMethod {
   arguments: RpcArgument[];
 }
 
+export interface LegacyRpcMethod {
+  method: string;
+  arguments: unknown[];
+}
+
 export interface AttributesUpdate {
   key: string;
   type: string;
   value: string;
+}
+
+export interface LegacyDeviceAttributeUpdate {
+  attributeOnThingsBoard: string;
+  attributeOnDevice: string;
 }
 
 export interface Converter {
@@ -338,12 +380,22 @@ export type ConverterMappingFormValue = Omit<ConverterConnectorMapping, 'convert
 
 export interface DeviceConnectorMapping {
   deviceNodePattern: string;
-  deviceNodeSource: SourceType;
+  deviceNodeSource: OPCUaSourceType;
   deviceInfo: ConnectorDeviceInfo;
   attributes?: Attribute[];
   timeseries?: Timeseries[];
   rpc_methods?: RpcMethod[];
   attributes_updates?: AttributesUpdate[];
+}
+
+export interface LegacyDeviceConnectorMapping {
+  deviceNamePattern: string;
+  deviceNodePattern: string;
+  deviceTypePattern: string;
+  attributes?: LegacyAttribute[];
+  timeseries?: LegacyTimeseries[];
+  rpc_methods?: LegacyRpcMethod[];
+  attributes_updates?: LegacyDeviceAttributeUpdate[];
 }
 
 export enum ConnectorType {
@@ -1082,7 +1134,7 @@ export interface SlaveConfig {
   pollPeriod: number;
   unitId: number;
   deviceName: string;
-  deviceType: string;
+  deviceType?: string;
   sendDataOnlyOnChange: boolean;
   connectAttemptTimeMs: number;
   connectAttemptCount: number;
@@ -1134,7 +1186,18 @@ export interface ModbusSlave {
   security: ModbusSecurity;
 }
 
+export interface ModbusLegacySlave extends Omit<ModbusSlave, 'values'> {
+  values: ModbusLegacyRegisterValues;
+}
+
 export type ModbusValuesState = ModbusRegisterValues | ModbusValues;
+
+export interface ModbusLegacyRegisterValues {
+  holding_registers: ModbusValues[];
+  coils_initializer: ModbusValues[];
+  input_registers: ModbusValues[];
+  discrete_inputs: ModbusValues[];
+}
 
 export interface ModbusRegisterValues {
   holding_registers: ModbusValues;

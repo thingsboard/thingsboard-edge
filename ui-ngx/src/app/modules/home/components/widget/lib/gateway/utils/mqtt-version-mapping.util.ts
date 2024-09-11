@@ -29,21 +29,16 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { deleteNullProperties, isEqual } from '@core/utils';
+import { deleteNullProperties } from '@core/utils';
 import {
   AttributeRequest,
   ConnectorDeviceInfo,
   Converter,
   ConverterConnectorMapping,
   ConvertorType,
-  CurrentGatewayConnector,
-  GatewayConnector,
   LegacyConverter,
   LegacyConverterConnectorMapping,
-  LegacyGatewayConnector,
   LegacyRequestMappingData,
-  MQTTBasicConfig,
-  MQTTLegacyBasicConfig,
   RequestMappingData,
   RequestType,
   ServerSideRpc,
@@ -59,56 +54,9 @@ export class MqttVersionMappingUtil {
   static readonly mqttRequestMappingNewFields =
     ['attributeNameExpressionSource', 'responseTopicQoS', 'extensionConfig'];
 
-  static getNewestVersion(mqttConnector: GatewayConnector): CurrentGatewayConnector {
-    const {
-      connectRequests,
-      disconnectRequests,
-      attributeRequests,
-      attributeUpdates,
-      serverSideRpc
-    } = mqttConnector.configurationJson as MQTTLegacyBasicConfig;
-    let configurationJson = {
-      ...mqttConnector.configurationJson,
-      requestsMapping: this.mapRequestsToNewestVersion({
-          connectRequests,
-          disconnectRequests,
-          attributeRequests,
-          attributeUpdates,
-          serverSideRpc
-        }),
-      mapping: this.mapMappingToNewestVersion((mqttConnector.configurationJson as MQTTLegacyBasicConfig).mapping),
-    };
-
-    this.mqttRequestTypeKeys.forEach((key: RequestType) => {
-      const { [key]: removedKey, ...rest } = configurationJson as MQTTLegacyBasicConfig;
-      configurationJson = { ...rest } as any;
-    });
-
-    this.cleanUpConfigJson(configurationJson as MQTTBasicConfig);
-
-    return {
-      ...mqttConnector,
-      configurationJson
-    } as CurrentGatewayConnector;
-  }
-
-  static getLegacyVersion(mqttConnector: GatewayConnector): LegacyGatewayConnector {
-    const { requestsMapping, mapping, ...restConfig } = mqttConnector.configurationJson as MQTTBasicConfig;
-
-    const updatedRequestsMapping = this.mapRequestsToLegacyVersion(requestsMapping as Record<RequestType, RequestMappingData[]>);
-    const updatedMapping = this.mapMappingToLegacyVersion(mapping);
-
-    return {
-      ...mqttConnector,
-      configurationJson: {
-        ...restConfig,
-        ...updatedRequestsMapping,
-        mapping: updatedMapping,
-      },
-    } as LegacyGatewayConnector;
-  }
-
-  static mapMappingToNewestVersion(mapping: LegacyConverterConnectorMapping[] | ConverterConnectorMapping[]): ConverterConnectorMapping[] {
+  static mapMappingToUpgradedVersion(
+    mapping: LegacyConverterConnectorMapping[]
+  ): ConverterConnectorMapping[] {
     return mapping?.map(({ converter, topicFilter, subscriptionQos = 1 }) => {
       const deviceInfo = converter.deviceInfo ?? this.extractConverterDeviceInfo(converter);
 
@@ -121,12 +69,12 @@ export class MqttVersionMappingUtil {
       this.cleanUpOldFields(newConverter);
 
       return { converter: newConverter, topicFilter, subscriptionQos };
-    });
+    }) as ConverterConnectorMapping[];
   }
 
-  static mapRequestsToNewestVersion(
+  static mapRequestsToUpgradedVersion(
     requestMapping: Record<RequestType,
-      RequestMappingData[] | LegacyRequestMappingData[]>
+      LegacyRequestMappingData[]>
   ): Record<RequestType, RequestMappingData[]> {
     return this.mqttRequestTypeKeys.reduce((acc, key: RequestType) => {
       if (!requestMapping[key]) {
@@ -134,7 +82,7 @@ export class MqttVersionMappingUtil {
       }
 
       acc[key] = requestMapping[key].map(value => {
-        const newValue = this.mapRequestToNewest(value as LegacyRequestMappingData, key);
+        const newValue = this.mapRequestToUpgradedVersion(value as LegacyRequestMappingData, key);
 
         this.cleanUpOldFields(newValue as {});
 
@@ -145,7 +93,7 @@ export class MqttVersionMappingUtil {
     }, {}) as Record<RequestType, RequestMappingData[]>;
   }
 
-  static mapRequestsToLegacyVersion(
+  static mapRequestsToDowngradedVersion(
     requestsMapping: Record<RequestType, RequestMappingData[]>
   ): Record<RequestType, LegacyRequestMappingData[]> {
     return this.mqttRequestTypeKeys.reduce((acc, key) => {
@@ -176,11 +124,11 @@ export class MqttVersionMappingUtil {
     }, {}) as Record<RequestType, LegacyRequestMappingData[]>;
   }
 
-  static mapMappingToLegacyVersion(
+  static mapMappingToDowngradedVersion(
     mapping: ConverterConnectorMapping[]
   ): LegacyConverterConnectorMapping[] {
     return mapping?.map((converterMapping: ConverterConnectorMapping) => {
-      const converter = this.mapConverterToLegacy(converterMapping.converter);
+      const converter = this.mapConverterToDowngradedVersion(converterMapping.converter);
 
       this.cleanUpNewFields(converter as {});
 
@@ -188,7 +136,7 @@ export class MqttVersionMappingUtil {
     });
   }
 
-  private static mapConverterToLegacy(converter: Converter): LegacyConverter {
+  private static mapConverterToDowngradedVersion(converter: Converter): LegacyConverter {
     const { deviceInfo, ...restConverter } = converter;
 
     return converter.type !== ConvertorType.BYTES ? {
@@ -231,16 +179,6 @@ export class MqttVersionMappingUtil {
     return SourceType.CONST;
   }
 
-  private static cleanUpConfigJson(configurationJson: MQTTBasicConfig): void {
-    if (isEqual(configurationJson.requestsMapping, {})) {
-      delete configurationJson.requestsMapping;
-    }
-
-    if (isEqual(configurationJson.mapping, [])) {
-      delete configurationJson.mapping;
-    }
-  }
-
   private static extractConverterDeviceInfo(converter: LegacyConverter): ConnectorDeviceInfo {
     const deviceNameExpression = converter.deviceNameExpression
       || converter.deviceNameJsonExpression
@@ -265,7 +203,7 @@ export class MqttVersionMappingUtil {
     } : null;
   }
 
-  private static mapRequestToNewest(value, key: RequestType): RequestMappingData {
+  private static mapRequestToUpgradedVersion(value, key: RequestType): RequestMappingData {
     const deviceNameExpression = value.deviceNameJsonExpression || value.deviceNameTopicExpression || null;
     const deviceProfileExpression = value.deviceTypeTopicExpression || value.deviceTypeJsonExpression || 'default';
     const deviceProfileExpressionSource = deviceProfileExpression ? this.getTypeSourceByValue(deviceProfileExpression) : null;

@@ -29,18 +29,19 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Input, TemplateRef, ChangeDetectionStrategy } from '@angular/core';
+import { Component, forwardRef, ChangeDetectionStrategy } from '@angular/core';
 import { NG_VALUE_ACCESSOR, NG_VALIDATORS } from '@angular/forms';
 import {
-  MQTTBasicConfig,
+  BrokerConfig,
+  MQTTBasicConfig_v3_5_2,
   MQTTLegacyBasicConfig,
   RequestMappingData,
   RequestMappingValue,
-  RequestType
+  RequestType, WorkersConfig
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
 import { MqttVersionMappingUtil } from '@home/components/widget/lib/gateway/utils/mqtt-version-mapping.util';
 import {
-  AbstractMqttBasicConfigComponent
+  MqttBasicConfigDirective
 } from '@home/components/widget/lib/gateway/connectors-configuration/mqtt/basic-config/mqtt-basic-config.abstract';
 import { isDefinedAndNotNull } from '@core/utils';
 import { CommonModule } from '@angular/common';
@@ -50,7 +51,7 @@ import {
 } from '@home/components/widget/lib/gateway/connectors-configuration/security-config/security-config.component';
 import {
   WorkersConfigControlComponent
-} from '@home/components/widget/lib/gateway/connectors-configuration/workers-config-control/workers-config-control.component';
+} from '@home/components/widget/lib/gateway/connectors-configuration/mqtt/workers-config-control/workers-config-control.component';
 import {
   BrokerConfigControlComponent
 } from '@home/components/widget/lib/gateway/connectors-configuration/mqtt/broker-config-control/broker-config-control.component';
@@ -85,12 +86,9 @@ import {
     MappingTableComponent,
   ],
 })
-export class MqttLegacyBasicConfigComponent extends AbstractMqttBasicConfigComponent {
+export class MqttLegacyBasicConfigComponent extends MqttBasicConfigDirective<MQTTLegacyBasicConfig> {
 
-  @Input()
-  generalTabContent: TemplateRef<any>;
-
-  writeValue(basicConfig: MQTTLegacyBasicConfig): void {
+  protected override mapConfigToFormValue(config: MQTTLegacyBasicConfig): MQTTBasicConfig_v3_5_2 {
     const {
       broker,
       mapping = [],
@@ -99,28 +97,26 @@ export class MqttLegacyBasicConfigComponent extends AbstractMqttBasicConfigCompo
       attributeRequests = [],
       attributeUpdates = [],
       serverSideRpc = []
-    } = basicConfig;
-    const updatedRequestMapping = MqttVersionMappingUtil.mapRequestsToNewestVersion({
+    } = config as MQTTLegacyBasicConfig;
+    const updatedRequestMapping = MqttVersionMappingUtil.mapRequestsToUpgradedVersion({
       connectRequests,
       disconnectRequests,
       attributeRequests,
       attributeUpdates,
       serverSideRpc
     });
-    const editedBase = {
+    return {
       workers: broker && (broker.maxNumberOfWorkers || broker.maxMessageNumberPerWorker) ? {
         maxNumberOfWorkers: broker.maxNumberOfWorkers,
         maxMessageNumberPerWorker: broker.maxMessageNumberPerWorker,
-      } : {},
-      mapping: MqttVersionMappingUtil.mapMappingToNewestVersion(mapping) || [],
-      broker: broker || {},
+      } : {} as WorkersConfig,
+      mapping: MqttVersionMappingUtil.mapMappingToUpgradedVersion(mapping) || [],
+      broker: broker || {} as BrokerConfig,
       requestsMapping: this.getRequestDataArray(updatedRequestMapping),
     };
-
-    this.basicFormGroup.setValue(editedBase, {emitEvent: false});
   }
 
-  protected getMappedMQTTConfig(basicConfig: MQTTBasicConfig): MQTTLegacyBasicConfig {
+  protected override getMappedValue(basicConfig: MQTTBasicConfig_v3_5_2): MQTTLegacyBasicConfig {
     let { broker, workers, mapping, requestsMapping  } = basicConfig || {};
 
     if (isDefinedAndNotNull(workers.maxNumberOfWorkers) || isDefinedAndNotNull(workers.maxMessageNumberPerWorker)) {
@@ -136,8 +132,8 @@ export class MqttLegacyBasicConfigComponent extends AbstractMqttBasicConfigCompo
 
     return {
       broker,
-      mapping: MqttVersionMappingUtil.mapMappingToLegacyVersion(mapping),
-      ...(MqttVersionMappingUtil.mapRequestsToLegacyVersion(requestsMapping as Record<RequestType, RequestMappingData[]>))
+      mapping: MqttVersionMappingUtil.mapMappingToDowngradedVersion(mapping),
+      ...(MqttVersionMappingUtil.mapRequestsToDowngradedVersion(requestsMapping as Record<RequestType, RequestMappingData[]>))
     };
   }
 }

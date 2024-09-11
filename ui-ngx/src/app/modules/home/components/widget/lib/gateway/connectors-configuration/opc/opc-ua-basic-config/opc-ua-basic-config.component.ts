@@ -29,34 +29,25 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectionStrategy, Component, forwardRef, Input, OnDestroy, TemplateRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef } from '@angular/core';
+import { FormGroup, NG_VALIDATORS, NG_VALUE_ACCESSOR } from '@angular/forms';
 import {
-  ControlValueAccessor,
-  FormBuilder,
-  FormGroup,
-  NG_VALIDATORS,
-  NG_VALUE_ACCESSOR,
-  ValidationErrors,
-  Validator,
-} from '@angular/forms';
-import {
-  ConnectorType,
   MappingType,
-  OPCBasicConfig,
+  OPCBasicConfig_v3_5_2,
+  ServerConfig
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
-import { SharedModule } from '@shared/shared.module';
 import { CommonModule } from '@angular/common';
-import { takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { SharedModule } from '@shared/shared.module';
+import { MappingTableComponent } from '@home/components/widget/lib/gateway/connectors-configuration/mapping-table/mapping-table.component';
 import {
   SecurityConfigComponent
 } from '@home/components/widget/lib/gateway/connectors-configuration/security-config/security-config.component';
 import {
-  MappingTableComponent
-} from '@home/components/widget/lib/gateway/connectors-configuration/mapping-table/mapping-table.component';
-import {
   OpcServerConfigComponent
-} from '@home/components/widget/lib/gateway/connectors-configuration/opc-server-config/opc-server-config.component';
+} from '@home/components/widget/lib/gateway/connectors-configuration/opc/opc-server-config/opc-server-config.component';
+import {
+  GatewayConnectorBasicConfigDirective
+} from '@home/components/widget/lib/gateway/abstract/gateway-connector-basic-config.abstract';
 
 @Component({
   selector: 'tb-opc-ua-basic-config',
@@ -84,58 +75,28 @@ import {
   ],
   styleUrls: ['./opc-ua-basic-config.component.scss']
 })
-
-export class OpcUaBasicConfigComponent implements ControlValueAccessor, Validator, OnDestroy {
-  @Input() generalTabContent: TemplateRef<any>;
+export class OpcUaBasicConfigComponent extends GatewayConnectorBasicConfigDirective<OPCBasicConfig_v3_5_2, OPCBasicConfig_v3_5_2> {
 
   mappingTypes = MappingType;
-  basicFormGroup: FormGroup;
 
-  onChange!: (value: string) => void;
-  onTouched!: () => void;
-
-  protected readonly connectorType = ConnectorType;
-  private destroy$ = new Subject<void>();
-
-  constructor(private fb: FormBuilder) {
-    this.basicFormGroup = this.fb.group({
+  protected override initBasicFormGroup(): FormGroup {
+    return this.fb.group({
       mapping: [],
       server: [],
     });
-
-    this.basicFormGroup.valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(value => {
-        this.onChange(value);
-        this.onTouched();
-      });
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
-
-  registerOnChange(fn: (value: string) => void): void {
-    this.onChange = fn;
-  }
-
-  registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
-  }
-
-  writeValue(basicConfig: OPCBasicConfig): void {
-    const editedBase = {
-      server: basicConfig.server || {},
-      mapping: basicConfig.mapping || [],
+  protected override mapConfigToFormValue(config: OPCBasicConfig_v3_5_2): OPCBasicConfig_v3_5_2 {
+    return {
+      server: config.server ?? {} as ServerConfig,
+      mapping: config.mapping ?? [],
     };
-
-    this.basicFormGroup.setValue(editedBase, {emitEvent: false});
   }
 
-  validate(): ValidationErrors | null {
-    return this.basicFormGroup.valid ? null : {
-      basicFormGroup: {valid: false}
+  protected override getMappedValue(value: OPCBasicConfig_v3_5_2): OPCBasicConfig_v3_5_2 {
+    return {
+      server: value.server,
+      mapping: value.mapping,
     };
   }
 }
