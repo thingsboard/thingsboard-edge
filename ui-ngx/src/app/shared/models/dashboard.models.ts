@@ -50,6 +50,8 @@ export interface WidgetLayout {
   mobileOrder?: number;
   col?: number;
   row?: number;
+  resizable?: boolean;
+  preserveAspectRatio?: boolean;
 }
 
 export interface WidgetLayouts {
@@ -102,7 +104,6 @@ export interface GridSettings {
   mobileRowHeight?: number;
   mobileDisplayLayoutFirst?: boolean;
   layoutDimension?: LayoutDimension;
-  [key: string]: any;
 }
 
 export interface DashboardLayout {

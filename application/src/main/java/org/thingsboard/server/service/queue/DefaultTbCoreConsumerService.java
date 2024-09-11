@@ -53,6 +53,7 @@ import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.event.ErrorEvent;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.event.LifecycleEvent;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.NotificationRequestId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -70,12 +71,13 @@ import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequestActorMsg;
 import org.thingsboard.server.common.stats.StatsFactory;
 import org.thingsboard.server.common.util.KvProtoUtil;
 import org.thingsboard.server.common.util.ProtoUtils;
+import org.thingsboard.server.dao.menu.CustomMenuCacheKey;
 import org.thingsboard.server.dao.resource.ImageCacheKey;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
+import org.thingsboard.server.dao.translation.TranslationCacheKey;
 import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.DeviceStateServiceMsgProto;
-import org.thingsboard.server.gen.transport.TransportProtos.EdgeNotificationMsgProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ErrorEventProto;
 import org.thingsboard.server.gen.transport.TransportProtos.FromDeviceRPCResponseProto;
 import org.thingsboard.server.gen.transport.TransportProtos.IntegrationDownlinkMsgProto;
@@ -108,7 +110,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.queue.util.TbPackCallback;
 import org.thingsboard.server.queue.util.TbPackProcessingContext;
 import org.thingsboard.server.service.apiusage.TbApiUsageStateService;
-import org.thingsboard.server.service.edge.EdgeNotificationService;
+import org.thingsboard.server.service.custommenu.TbCustomMenuService;
 import org.thingsboard.server.service.integration.IntegrationManagerService;
 import org.thingsboard.server.service.integration.TbCoreIntegrationApiService;
 import org.thingsboard.server.service.integration.TbIntegrationDownlinkService;
@@ -172,7 +174,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final TbIntegrationDownlinkService downlinkService;
     private final IntegrationManagerService integrationManagerService;
     private final RuleEngineCallService ruleEngineCallService;
-    private final EdgeNotificationService edgeNotificationService;
     private final OtaPackageStateService firmwareStateService;
     private final GitVersionControlQueueService vcQueueService;
     private final TbCoreIntegrationApiService tbCoreIntegrationApiService;
@@ -181,6 +182,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
     private final TbCoreQueueFactory queueFactory;
     private final TbImageService imageService;
     private final TbTranslationService translationService;
+    private final TbCustomMenuService customMenuService;
     private final TbCoreConsumerStats stats;
 
     private MainQueueConsumerManager<TbProtoQueueMsg<ToCoreMsg>, CoreQueueConfig> mainConsumer;
@@ -199,7 +201,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         TbAssetProfileCache assetProfileCache,
                                         TbApiUsageStateService apiUsageStateService,
                                         TbTenantProfileCache tenantProfileCache,
-                                        EdgeNotificationService edgeNotificationService,
                                         OtaPackageStateService firmwareStateService,
                                         GitVersionControlQueueService vcQueueService,
                                         TbCoreIntegrationApiService tbCoreIntegrationApiService,
@@ -209,7 +210,8 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                                         NotificationSchedulerService notificationSchedulerService,
                                         NotificationRuleProcessor notificationRuleProcessor,
                                         TbImageService imageService,
-                                        TbTranslationService translationService) {
+                                        TbTranslationService translationService,
+                                        TbCustomMenuService customMenuService) {
         super(actorContext, tenantProfileCache, deviceProfileCache, assetProfileCache, apiUsageStateService, partitionService,
                 eventPublisher, jwtSettingsService);
         this.stateService = stateService;
@@ -220,7 +222,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.downlinkService = downlinkService;
         this.integrationManagerService = integrationManagerService;
         this.ruleEngineCallService = ruleEngineCallService;
-        this.edgeNotificationService = edgeNotificationService;
         this.stats = new TbCoreConsumerStats(statsFactory);
         this.firmwareStateService = firmwareStateService;
         this.vcQueueService = vcQueueService;
@@ -229,6 +230,7 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         this.notificationRuleProcessor = notificationRuleProcessor;
         this.imageService = imageService;
         this.translationService = translationService;
+        this.customMenuService = customMenuService;
         this.queueFactory = tbCoreQueueFactory;
     }
 
@@ -291,18 +293,19 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
 
     @Override
     protected void onTbApplicationEvent(PartitionChangeEvent event) {
-        log.info("Subscribing to partitions: {}", event.getPartitions());
-        mainConsumer.update(event.getPartitions());
-        usageStatsConsumer.subscribe(event.getPartitions().stream()
+        log.debug("Subscribing to partitions: {}", event.getCorePartitions());
+        mainConsumer.update(event.getCorePartitions());
+        usageStatsConsumer.subscribe(event.getCorePartitions()
+                .stream()
                 .map(tpi -> tpi.newByTopic(usageStatsConsumer.getConsumer().getTopic()))
                 .collect(Collectors.toSet()));
-        integrationApiConsumer.subscribe(event.getPartitions().stream()
+        integrationApiConsumer.subscribe(event.getCorePartitions().stream()
                 .map(tpi -> tpi.newByTopic(integrationApiConsumer.getConsumer().getTopic()))
                 .collect(Collectors.toSet()));
     }
 
     private void processMsgs(List<TbProtoQueueMsg<ToCoreMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToCoreMsg>> consumer, CoreQueueConfig config) throws Exception {
-        List<IdMsgPair<ToCoreMsg>> orderedMsgList = msgs.stream().map(msg -> new IdMsgPair<>(UUID.randomUUID(), msg)).collect(Collectors.toList());
+        List<IdMsgPair<ToCoreMsg>> orderedMsgList = msgs.stream().map(msg -> new IdMsgPair<>(UUID.randomUUID(), msg)).toList();
         ConcurrentMap<UUID, TbProtoQueueMsg<ToCoreMsg>> pendingMap = orderedMsgList.stream().collect(
                 Collectors.toConcurrentMap(IdMsgPair::getUuid, IdMsgPair::getMsg));
         CountDownLatch processingTimeoutLatch = new CountDownLatch(1);
@@ -330,9 +333,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
                     } else if (toCoreMsg.hasSchedulerServiceMsg()) {
                         log.trace("[{}] Forwarding message to scheduler service {}", id, toCoreMsg.getSchedulerServiceMsg());
                         forwardToSchedulerService(toCoreMsg.getSchedulerServiceMsg(), callback);
-                    } else if (toCoreMsg.hasEdgeNotificationMsg()) {
-                        log.trace("[{}] Forwarding message to edge service {}", id, toCoreMsg.getEdgeNotificationMsg());
-                        forwardToEdgeNotificationService(toCoreMsg.getEdgeNotificationMsg(), callback);
                     } else if (toCoreMsg.hasDeviceConnectMsg()) {
                         log.trace("[{}] Forwarding message to device state service {}", id, toCoreMsg.getDeviceConnectMsg());
                         forwardToStateService(toCoreMsg.getDeviceConnectMsg(), callback);
@@ -442,15 +442,6 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         } else if (toCoreNotification.hasComponentLifecycle()) {
             handleComponentLifecycleMsg(id, ProtoUtils.fromProto(toCoreNotification.getComponentLifecycle()));
             callback.onSuccess();
-        } else if (toCoreNotification.hasEdgeEventUpdate()) {
-            forwardToAppActor(id, ProtoUtils.fromProto(toCoreNotification.getEdgeEventUpdate()));
-            callback.onSuccess();
-        } else if (toCoreNotification.hasToEdgeSyncRequest()) {
-            forwardToAppActor(id, ProtoUtils.fromProto(toCoreNotification.getToEdgeSyncRequest()));
-            callback.onSuccess();
-        } else if (toCoreNotification.hasFromEdgeSyncResponse()) {
-            forwardToAppActor(id, ProtoUtils.fromProto(toCoreNotification.getFromEdgeSyncResponse()));
-            callback.onSuccess();
         } else if (toCoreNotification.getQueueUpdateMsgsCount() > 0) {
             partitionService.updateQueues(toCoreNotification.getQueueUpdateMsgsList());
             callback.onSuccess();
@@ -471,6 +462,8 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
             forwardToResourceService(toCoreNotification.getResourceCacheInvalidateMsg(), callback);
         } else if (toCoreNotification.hasTranslationCacheInvalidateMsg()) {
             forwardToTranslationService(toCoreNotification.getTranslationCacheInvalidateMsg(), callback);
+        } else if (toCoreNotification.hasCustomMenuCacheInvalidateMsg()) {
+            forwardToCustomMenuService(toCoreNotification.getCustomMenuCacheInvalidateMsg(), callback);
         }
         if (statsEnabled) {
             stats.log(toCoreNotification);
@@ -603,7 +596,15 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
 
     private void forwardToTranslationService(TransportProtos.TranslationCacheInvalidateMsg msg, TbCallback callback) {
         var tenantId = new TenantId(new UUID(msg.getTenantIdMSB(), msg.getTenantIdLSB()));
-        translationService.evictETags(tenantId);
+        translationService.evictETags(TranslationCacheKey.forTenant(tenantId));
+        callback.onSuccess();
+    }
+
+    private void forwardToCustomMenuService(TransportProtos.CustomMenuCacheInvalidateMsg msg, TbCallback callback) {
+        var tenantId = new TenantId(new UUID(msg.getTenantIdMSB(), msg.getTenantIdLSB()));
+        var customer = msg.getCustomerIdMSB() > 0 ? new CustomerId(new UUID(msg.getCustomerIdMSB(), msg.getCustomerIdLSB())) : null;
+        var userId = msg.getUserIdMSB() > 0 ? new UserId(new UUID(msg.getUserIdMSB(), msg.getUserIdLSB())) : null;
+        customMenuService.evictETags(CustomMenuCacheKey.forUser(tenantId, customer, userId));
         callback.onSuccess();
     }
 
@@ -782,23 +783,11 @@ public class DefaultTbCoreConsumerService extends AbstractConsumerService<ToCore
         }
     }
 
-    private void forwardToEdgeNotificationService(EdgeNotificationMsgProto edgeNotificationMsg, TbCallback callback) {
-        if (statsEnabled) {
-            stats.log(edgeNotificationMsg);
-        }
-        edgeNotificationService.pushNotificationToEdge(edgeNotificationMsg, callback);
-    }
-
     private void forwardToDeviceActor(TransportToDeviceActorMsg toDeviceActorMsg, TbCallback callback) {
         if (statsEnabled) {
             stats.log(toDeviceActorMsg);
         }
         actorContext.tell(new TransportToDeviceActorMsgWrapper(toDeviceActorMsg, callback));
-    }
-
-    private void forwardToAppActor(UUID id, TbActorMsg actorMsg) {
-        log.trace("[{}] Forwarding message to App Actor {}", id, actorMsg);
-        actorContext.tell(actorMsg);
     }
 
     private void forwardToEventService(ErrorEventProto eventProto, TbCallback callback) {

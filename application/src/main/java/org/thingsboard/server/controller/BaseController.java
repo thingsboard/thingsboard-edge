@@ -44,7 +44,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -103,6 +105,7 @@ import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.AssetProfileId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.data.id.ConverterId;
+import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.DeviceId;
@@ -115,9 +118,9 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.HasId;
+import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.MobileAppId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
-import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -133,9 +136,11 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.menu.CustomMenuInfo;
 import org.thingsboard.server.common.data.mobile.MobileApp;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
+import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.page.TimePageLink;
@@ -182,11 +187,12 @@ import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.oauth2.OAuth2ClientService;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
-import org.thingsboard.server.dao.oauth2.OAuth2ClientService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -230,14 +236,12 @@ import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -259,7 +263,7 @@ import static org.thingsboard.server.dao.service.Validator.validateId;
 @TbCoreComponent
 public abstract class BaseController {
 
-    private final Logger log = org.slf4j.LoggerFactory.getLogger(getClass());
+    protected final Logger log = org.slf4j.LoggerFactory.getLogger(getClass());
 
     /*Swagger UI description*/
 
@@ -445,6 +449,9 @@ public abstract class BaseController {
 
     @Autowired
     protected ExportableEntitiesService entitiesService;
+
+    @Autowired
+    protected CustomMenuService customMenuService;
 
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
@@ -723,6 +730,22 @@ public abstract class BaseController {
 
     CustomerInfo checkCustomerInfoId(CustomerId customerId, Operation operation) throws ThingsboardException {
         return checkEntityId(customerId, customerService::findCustomerInfoById, operation);
+    }
+
+    CustomMenu checkCustomMenuId(CustomMenuId customMenuId, Operation operation) throws ThingsboardException {
+        SecurityUser currentUser = getCurrentUser();
+        CustomMenu customMenu = customMenuService.findCustomMenuById(currentUser.getTenantId(), customMenuId);
+        checkNotNull(customMenu, "Custom menu not found");
+        accessControlService.checkCustomMenuPermission(currentUser, operation, customMenu);
+        return customMenu;
+    }
+
+    CustomMenuInfo checkCustomMenuInfoId(CustomMenuId customMenuId, Operation operation) throws ThingsboardException {
+        SecurityUser currentUser = getCurrentUser();
+        CustomMenuInfo customMenuInfo = customMenuService.findCustomMenuInfoById(currentUser.getTenantId(), customMenuId);
+        checkNotNull(customMenuInfo, "Custom menu not found");
+        accessControlService.checkCustomMenuPermission(currentUser, operation, customMenuInfo);
+        return customMenuInfo;
     }
 
     User checkUserId(UserId userId, Operation operation) throws ThingsboardException {
@@ -1354,6 +1377,23 @@ public abstract class BaseController {
                 outputStream.flush();
             }
         }
+    }
+
+    protected <T> ResponseEntity<T> response(HttpStatus status) {
+        return ResponseEntity.status(status).build();
+    }
+
+    protected <T> ResponseEntity<T> redirectTo(String location) {
+        URI uri;
+        try {
+            uri = URI.create(location);
+        } catch (IllegalArgumentException e) {
+            log.error("Failed to create URI from '{}'", location, e);
+            throw e;
+        }
+        return ResponseEntity.status(HttpStatus.SEE_OTHER)
+                .location(uri)
+                .build();
     }
 
     protected List<OAuth2ClientId> getOAuth2ClientIds(UUID[] ids) throws ThingsboardException {

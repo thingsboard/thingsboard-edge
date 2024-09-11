@@ -98,13 +98,14 @@ public class Edge extends BaseDataWithAdditionalInfo<EdgeId>
         super(edge);
         this.tenantId = edge.getTenantId();
         this.customerId = edge.getCustomerId();
-        this.type = edge.getType();
+        this.rootRuleChainId = edge.getRootRuleChainId();
         this.name = edge.getName();
+        this.type = edge.getType();
+        this.label = edge.getLabel();
         this.routingKey = edge.getRoutingKey();
         this.secret = edge.getSecret();
         this.edgeLicenseKey = edge.getEdgeLicenseKey();
         this.cloudEndpoint = edge.getCloudEndpoint();
-        this.rootRuleChainId = edge.getRootRuleChainId();
         this.version = edge.getVersion();
     }
 
@@ -112,9 +113,9 @@ public class Edge extends BaseDataWithAdditionalInfo<EdgeId>
         this.tenantId = edge.getTenantId();
         this.customerId = edge.getCustomerId();
         this.rootRuleChainId = edge.getRootRuleChainId();
+        this.name = edge.getName();
         this.type = edge.getType();
         this.label = edge.getLabel();
-        this.name = edge.getName();
         this.routingKey = edge.getRoutingKey();
         this.secret = edge.getSecret();
         this.edgeLicenseKey = edge.getEdgeLicenseKey();

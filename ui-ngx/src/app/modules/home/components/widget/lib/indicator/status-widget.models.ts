@@ -80,6 +80,7 @@ export interface StatusWidgetSettings {
   layout: StatusWidgetLayout;
   onState: StatusWidgetStateSettings;
   offState: StatusWidgetStateSettings;
+  padding: string
 }
 
 export const statusWidgetDefaultSettings: StatusWidgetSettings = {
@@ -215,5 +216,6 @@ export const statusWidgetDefaultSettings: StatusWidgetSettings = {
         blur: 3
       }
     }
-  }
+  },
+  padding: ''
 };

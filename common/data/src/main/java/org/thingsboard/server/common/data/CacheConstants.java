@@ -41,6 +41,7 @@ public class CacheConstants {
     public static final String DOWNLINK_CACHE = "downlink";
     public static final String ENTITY_VIEW_CACHE = "entityViews";
     public static final String EDGE_CACHE = "edges";
+    public static final String EDGE_SESSIONS_CACHE = "edgeSessions";
     public static final String RELATED_EDGES_CACHE = "relatedEdges";
     public static final String ROLE_CACHE = "roles";
     public static final String USER_PERMISSIONS_CACHE = "permissions";
@@ -75,4 +76,6 @@ public class CacheConstants {
     public static final String ALARM_TYPES_CACHE = "alarmTypes";
     public static final String MOBILE_APP_SETTINGS_CACHE = "mobileAppSettings";
     public static final String MOBILE_SECRET_KEY_CACHE = "mobileSecretKey";
+    public static final String CUSTOM_MENU_CACHE = "customMenu";
+    public static final String ENTITY_GROUP_CACHE = "entityGroups";
 }

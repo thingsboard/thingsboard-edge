@@ -44,7 +44,6 @@ import org.junit.Before;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.TestPropertySource;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
@@ -85,8 +84,9 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.menu.CMAssigneeType;
+import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
-import org.thingsboard.server.common.data.menu.CustomMenuItem;
 import org.thingsboard.server.common.data.ota.ChecksumAlgorithm;
 import org.thingsboard.server.common.data.ota.OtaPackageType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -105,9 +105,11 @@ import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.edge.EdgeEventService;
+import org.thingsboard.server.dao.menu.CustomMenuDao;
 import org.thingsboard.server.edge.imitator.EdgeImitator;
 import org.thingsboard.server.gen.edge.v1.AdminSettingsUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.AssetProfileUpdateMsg;
+import org.thingsboard.server.gen.edge.v1.CustomMenuProto;
 import org.thingsboard.server.gen.edge.v1.CustomerUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.DeviceProfileUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeConfiguration;
@@ -129,6 +131,7 @@ import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -151,11 +154,15 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     protected EdgeImitator edgeImitator;
     protected Edge edge;
 
+    private Random random = new Random();
+
     @Autowired
     protected EdgeEventService edgeEventService;
 
     @Autowired
-    protected TbClusterService clusterService;
+    private CustomMenuDao customMenuDao;
+
+    private static List<UUID> idsToRemove = new ArrayList<>();
 
     @Before
     public void setupEdgeTest() throws Exception {
@@ -169,14 +176,12 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // save jwt settings into db
         doPost("/api/admin/jwtSettings", settings).andExpect(status().isOk());
 
-        // create custom menu
-        CustomMenu sysMenu = new CustomMenu();
-
-        CustomMenuItem sysItem = new CustomMenuItem();
-        sysItem.setName("System Menu");
-        sysMenu.setMenuItems(new ArrayList<>(List.of(sysItem)));
-
-        doPost("/api/customMenu/customMenu", sysMenu);
+        CustomMenu systemMenu = doPost("/api/customMenu", createDefaultCustomMenu("System Menu", CMScope.SYSTEM), CustomMenu.class);
+        idsToRemove.add(systemMenu.getUuidId());
+        CustomMenu tenantMenu = doPost("/api/customMenu", createDefaultCustomMenu("Tenant Menu", CMScope.TENANT), CustomMenu.class);
+        idsToRemove.add(tenantMenu.getUuidId());
+        CustomMenu customerMenu = doPost("/api/customMenu", createDefaultCustomMenu("Customer Menu", CMScope.CUSTOMER), CustomMenu.class);
+        idsToRemove.add(customerMenu.getUuidId());
 
         loginTenantAdmin();
 
@@ -185,7 +190,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
         edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
-        edgeImitator.expectMessageAmount(28);
+        edgeImitator.expectMessageAmount(30);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();
@@ -205,21 +210,18 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
     }
 
     private RuleChainId getEdgeRootRuleChainId() throws Exception {
-        List<RuleChain> edgeRuleChains = doGetTypedWithPageLink("/api/edge/" + edge.getUuidId() + "/ruleChains?",
-                new TypeReference<PageData<RuleChain>>() {
-                }, new PageLink(100)).getData();
-        for (RuleChain edgeRuleChain : edgeRuleChains) {
-            if (edgeRuleChain.isRoot()) {
-                return edgeRuleChain.getId();
-            }
-        }
-        throw new RuntimeException("Root rule chain not found");
+        return doGetTypedWithPageLink("/api/ruleChains?type={type}&", new TypeReference<PageData<RuleChain>>() {},
+                new PageLink(100, 0, "Edge Root Rule Chain"),
+                "EDGE")
+                .getData().get(0).getId();
     }
 
     @After
     public void teardownEdgeTest() {
         try {
             loginTenantAdmin();
+            customMenuDao.removeAllByIds(idsToRemove);
+            idsToRemove = new ArrayList<>();
 
             doDelete("/api/edge/" + edge.getId().toString())
                     .andExpect(status().isOk());
@@ -228,14 +230,23 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         }
     }
 
-    private void installation() {
+    private void installation() throws Exception {
         thermostatDeviceProfile = this.createDeviceProfile(THERMOSTAT_DEVICE_PROFILE_NAME,
                 createMqttDeviceProfileTransportConfiguration(new JsonTransportPayloadConfiguration(), false));
         extendDeviceProfileData(thermostatDeviceProfile);
         thermostatDeviceProfile = doPost("/api/deviceProfile", thermostatDeviceProfile, DeviceProfile.class);
 
+        updateRootRuleChainMetadata();
+
         edge = doPost("/api/edge", constructEdge("Test Edge", "test"), Edge.class);
         verifyTenantAdministratorsAndTenantUsersAssignedToEdge();
+    }
+
+    protected void updateRootRuleChainMetadata() throws Exception {
+        RuleChainId rootRuleChainId = getEdgeRootRuleChainId();
+        RuleChainMetaData rootRuleChainMetadata = doGet("/api/ruleChain/" + rootRuleChainId.getId().toString() + "/metadata", RuleChainMetaData.class);
+        rootRuleChainMetadata.getNodes().forEach(n -> n.setDebugMode(random.nextBoolean()));
+        doPost("/api/ruleChain/metadata", rootRuleChainMetadata, RuleChainMetaData.class);
     }
 
     protected void extendDeviceProfileData(DeviceProfile deviceProfile) {
@@ -285,9 +296,9 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         validateMsgsCnt(RuleChainMetadataUpdateMsg.class, 2);
         validateRuleChainMetadataUpdates(ruleChainUUID);
 
-        // 5 messages ('general', 'mail', 'connectivity', 'jwt', 'customMenu')
-        validateMsgsCnt(AdminSettingsUpdateMsg.class, 5);
-        validateAdminSettings(5);
+        // 4 messages ('general', 'mail', 'connectivity', 'jwt')
+        validateMsgsCnt(AdminSettingsUpdateMsg.class, 4);
+        validateAdminSettings(4);
 
         // 3 messages
         // - 1 from default profile fetcher
@@ -329,6 +340,10 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         // 2 messages from fetcher: 'login' and 'general'
         validateMsgsCnt(WhiteLabelingProto.class, 2);
         validateWhiteLabeling();
+
+        // 3 messages from fetcher: 'sysadmin' and 'tenant' and 'customer' default custom menu
+        validateMsgsCnt(CustomMenuProto.class, 3);
+        validateCustomMenu(3);
 
         // 1 message sync completed
         validateMsgsCnt(SyncCompletedMsg.class, 1);
@@ -451,9 +466,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
             if (adminSettings.getKey().equals("jwt")) {
                 validateJwtAdminSettings(adminSettings);
             }
-            if (adminSettings.getKey().equals("customMenu")) {
-                validateCustomMenuAdminSettings(adminSettings);
-            }
         }
     }
 
@@ -486,10 +498,6 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         Assert.assertNotNull(jsonNode.get("refreshTokenExpTime"));
         Assert.assertNotNull(jsonNode.get("tokenIssuer"));
         Assert.assertNotNull(jsonNode.get("tokenSigningKey"));
-    }
-
-    private void validateCustomMenuAdminSettings(AdminSettings adminSettings) {
-        Assert.assertNotNull(adminSettings.getJsonValue().get("value"));
     }
 
     private void validateAssetProfiles(int expectedMsgCnt) throws Exception {
@@ -558,6 +566,32 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
                     return WhiteLabelingType.LOGIN.equals(whiteLabeling.getType());
                 }).findAny();
         Assert.assertTrue(generalWhiteLabeling.isPresent());
+    }
+
+    private void validateCustomMenu(int expectedMsgCnt) {
+        List<CustomMenuProto> customMenuProto = edgeImitator.findAllMessagesByType(CustomMenuProto.class);
+        Assert.assertEquals(expectedMsgCnt, customMenuProto.size());
+        Optional<CustomMenuProto> systemMenu =
+                customMenuProto.stream().filter(system -> {
+                    CustomMenu customMenu = JacksonUtil.fromString(system.getEntity(), CustomMenu.class, true);
+                    Assert.assertNotNull(customMenu);
+                    return CMScope.SYSTEM.equals(customMenu.getScope());
+                }).findAny();
+        Assert.assertTrue(systemMenu.isPresent());
+        Optional<CustomMenuProto> tenantMenu =
+                customMenuProto.stream().filter(system -> {
+                    CustomMenu customMenu = JacksonUtil.fromString(system.getEntity(), CustomMenu.class, true);
+                    Assert.assertNotNull(customMenu);
+                    return CMScope.TENANT.equals(customMenu.getScope());
+                }).findAny();
+        Assert.assertTrue(tenantMenu.isPresent());
+        Optional<CustomMenuProto> customerMenu =
+                customMenuProto.stream().filter(system -> {
+                    CustomMenu customMenu = JacksonUtil.fromString(system.getEntity(), CustomMenu.class, true);
+                    Assert.assertNotNull(customMenu);
+                    return CMScope.CUSTOMER.equals(customMenu.getScope());
+                }).findAny();
+        Assert.assertTrue(customerMenu.isPresent());
     }
 
     private void validateSyncCompleted() {
@@ -986,6 +1020,35 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         return JacksonUtil.convertValue(
                 doGet("/api/entityGroups/" + entityId.getEntityType() + "/" + entityId.getId(), JsonNode.class),
                 new TypeReference<>() {});
+    }
+
+
+    protected ObjectNode createDefaultRpc() {
+        return createDefaultRpc(1);
+    }
+
+    protected ObjectNode createDefaultRpc(Integer value) {
+        ObjectNode rpc = JacksonUtil.newObjectNode();
+        rpc.put("method", "setGpio");
+
+        ObjectNode params = JacksonUtil.newObjectNode();
+
+        params.put("pin", 7);
+        params.put("value", value);
+
+        rpc.set("params", params);
+        rpc.put("persistent", true);
+        rpc.put("timeout", 5000);
+
+        return rpc;
+    }
+
+    private CustomMenu createDefaultCustomMenu(String name, CMScope scope) {
+        CustomMenu customMenu = new CustomMenu();
+        customMenu.setName(name);
+        customMenu.setScope(scope);
+        customMenu.setAssigneeType(CMAssigneeType.ALL);
+        return customMenu;
     }
 
 }

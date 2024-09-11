@@ -44,15 +44,17 @@ import org.thingsboard.server.gen.integration.ToCoreIntegrationMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.js.JsInvokeProtos;
-import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToOtaPackageStateServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToRuleEngineNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToTransportMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToUsageStatsServiceMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToVersionControlServiceMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.TransportApiRequestMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.TransportApiResponseMsg;
 import org.thingsboard.server.queue.TbQueueAdmin;
@@ -71,6 +73,7 @@ import org.thingsboard.server.queue.kafka.TbKafkaProducerTemplate;
 import org.thingsboard.server.queue.kafka.TbKafkaSettings;
 import org.thingsboard.server.queue.kafka.TbKafkaTopicConfigs;
 import org.thingsboard.server.queue.settings.TbQueueCoreSettings;
+import org.thingsboard.server.queue.settings.TbQueueEdgeSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationApiSettings;
 import org.thingsboard.server.queue.settings.TbQueueIntegrationExecutorSettings;
 import org.thingsboard.server.queue.settings.TbQueueRemoteJsInvokeSettings;
@@ -96,6 +99,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
     private final TbQueueTransportNotificationSettings transportNotificationSettings;
     private final TbQueueRemoteJsInvokeSettings jsInvokeSettings;
     private final TbQueueVersionControlSettings vcSettings;
+    private final TbQueueEdgeSettings edgeSettings;
     private final TbKafkaConsumerStatsService consumerStatsService;
     private final TbQueueIntegrationExecutorSettings integrationExecutorSettings;
 
@@ -112,6 +116,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
     private final TbQueueAdmin vcAdmin;
     private final TbQueueAdmin housekeeperAdmin;
     private final TbQueueAdmin housekeeperReprocessingAdmin;
+    private final TbQueueAdmin edgeAdmin;
 
     private final AtomicLong consumerCount = new AtomicLong();
     private final AtomicLong integrationConsumerCount = new AtomicLong();
@@ -125,6 +130,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
                                      TbQueueTransportNotificationSettings transportNotificationSettings,
                                      TbQueueRemoteJsInvokeSettings jsInvokeSettings,
                                      TbQueueVersionControlSettings vcSettings,
+                                     TbQueueEdgeSettings edgeSettings,
                                      TbKafkaConsumerStatsService consumerStatsService,
                                      TbQueueIntegrationExecutorSettings integrationNotificationSettings,
                                      TbKafkaTopicConfigs kafkaTopicConfigs,
@@ -140,6 +146,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         this.jsInvokeSettings = jsInvokeSettings;
         this.vcSettings = vcSettings;
         this.consumerStatsService = consumerStatsService;
+        this.edgeSettings = edgeSettings;
         this.integrationExecutorSettings = integrationExecutorSettings;
 
         this.coreAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getCoreConfigs());
@@ -155,6 +162,7 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         this.vcAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getVcConfigs());
         this.housekeeperAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getHousekeeperConfigs());
         this.housekeeperReprocessingAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getHousekeeperReprocessingConfigs());
+        this.edgeAdmin = new TbKafkaAdmin(kafkaSettings, kafkaTopicConfigs.getEdgeConfigs());
     }
 
     @Override
@@ -231,19 +239,19 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToCoreNotificationMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("monolith-core-notifications-" + serviceInfoProvider.getServiceId());
-        requestBuilder.defaultTopic(topicService.buildTopicName(coreSettings.getTopic()));
+        requestBuilder.defaultTopic(topicService.getNotificationsTopic(ServiceType.TB_CORE, serviceInfoProvider.getServiceId()).getFullTopicName());
         requestBuilder.admin(notificationAdmin);
         return requestBuilder.build();
     }
 
     @Override
-    public TbQueueConsumer<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> createToVersionControlMsgConsumer() {
-        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+    public TbQueueConsumer<TbProtoQueueMsg<ToVersionControlServiceMsg>> createToVersionControlMsgConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToVersionControlServiceMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
         consumerBuilder.settings(kafkaSettings);
         consumerBuilder.topic(topicService.buildTopicName(vcSettings.getTopic()));
         consumerBuilder.clientId("monolith-vc-consumer-" + serviceInfoProvider.getServiceId());
         consumerBuilder.groupId(topicService.buildTopicName("monolith-vc-node"));
-        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), TransportProtos.ToVersionControlServiceMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToVersionControlServiceMsg.parseFrom(msg.getData()), msg.getHeaders()));
         consumerBuilder.admin(vcAdmin);
         consumerBuilder.statsService(consumerStatsService);
         return consumerBuilder.build();
@@ -480,8 +488,8 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
     }
 
     @Override
-    public TbQueueProducer<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> createVersionControlMsgProducer() {
-        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<TransportProtos.ToVersionControlServiceMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+    public TbQueueProducer<TbProtoQueueMsg<ToVersionControlServiceMsg>> createVersionControlMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToVersionControlServiceMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
         requestBuilder.settings(kafkaSettings);
         requestBuilder.clientId("monolith-vc-producer-" + serviceInfoProvider.getServiceId());
         requestBuilder.defaultTopic(topicService.buildTopicName(vcSettings.getTopic()));
@@ -535,6 +543,52 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
                 .build();
     }
 
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToEdgeMsg>> createEdgeMsgConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToEdgeMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(topicService.buildTopicName(edgeSettings.getTopic()));
+        consumerBuilder.clientId("monolith-edge-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId(topicService.buildTopicName("monolith-edge-consumer"));
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToEdgeMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.admin(edgeAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToEdgeMsg>> createEdgeMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToEdgeMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("monolith-to-edge-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.buildTopicName(edgeSettings.getTopic()));
+        requestBuilder.admin(edgeAdmin);
+        return requestBuilder.build();
+    }
+
+    @Override
+    public TbQueueConsumer<TbProtoQueueMsg<ToEdgeNotificationMsg>> createToEdgeNotificationsMsgConsumer() {
+        TbKafkaConsumerTemplate.TbKafkaConsumerTemplateBuilder<TbProtoQueueMsg<ToEdgeNotificationMsg>> consumerBuilder = TbKafkaConsumerTemplate.builder();
+        consumerBuilder.settings(kafkaSettings);
+        consumerBuilder.topic(topicService.getEdgeNotificationsTopic(serviceInfoProvider.getServiceId()).getFullTopicName());
+        consumerBuilder.clientId("monolith-edge-notifications-consumer-" + serviceInfoProvider.getServiceId());
+        consumerBuilder.groupId(topicService.buildTopicName("monolith-edge-notifications-consumer-" + serviceInfoProvider.getServiceId()));
+        consumerBuilder.decoder(msg -> new TbProtoQueueMsg<>(msg.getKey(), ToEdgeNotificationMsg.parseFrom(msg.getData()), msg.getHeaders()));
+        consumerBuilder.admin(notificationAdmin);
+        consumerBuilder.statsService(consumerStatsService);
+        return consumerBuilder.build();
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToEdgeNotificationMsg>> createEdgeNotificationsMsgProducer() {
+        TbKafkaProducerTemplate.TbKafkaProducerTemplateBuilder<TbProtoQueueMsg<ToEdgeNotificationMsg>> requestBuilder = TbKafkaProducerTemplate.builder();
+        requestBuilder.settings(kafkaSettings);
+        requestBuilder.clientId("monolith-to-edge-notifications-" + serviceInfoProvider.getServiceId());
+        requestBuilder.defaultTopic(topicService.getEdgeNotificationsTopic(serviceInfoProvider.getServiceId()).getFullTopicName());
+        requestBuilder.admin(notificationAdmin);
+        return requestBuilder.build();
+    }
+
     @PreDestroy
     private void destroy() {
         if (coreAdmin != null) {
@@ -563,6 +617,9 @@ public class KafkaMonolithQueueFactory implements TbCoreQueueFactory, TbRuleEngi
         }
         if (vcAdmin != null) {
             vcAdmin.destroy();
+        }
+        if (edgeAdmin != null) {
+            edgeAdmin.destroy();
         }
         if (integrationApiRequestAdmin != null) {
             integrationApiRequestAdmin.destroy();

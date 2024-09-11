@@ -41,7 +41,7 @@
          mat-tab-link
          [active]="rla.isActive">
         <tb-icon *ngIf="tab.icon !== null" class="tb-mat-18">{{tab.icon}}</tb-icon>
-        <span>{{tab.name | translate}}</span>
+        <span>{{ tab.customTranslate ? (tab.name | customTranslate) : (tab.name | translate) }}</span>
       </a>
     </nav>
     <tb-anchor #tabsHeaderComponent></tb-anchor>

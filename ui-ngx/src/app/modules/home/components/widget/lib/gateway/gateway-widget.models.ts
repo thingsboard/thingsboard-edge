@@ -51,7 +51,8 @@ export enum GatewayLogLevel {
   ERROR = 'ERROR',
   WARNING = 'WARNING',
   INFO = 'INFO',
-  DEBUG = 'DEBUG'
+  DEBUG = 'DEBUG',
+  TRACE = 'TRACE'
 }
 
 export enum PortLimits {
@@ -134,7 +135,7 @@ export interface GatewayConnectorBase {
   logLevel: string;
   key?: string;
   class?: string;
-  mode?: ConnectorConfigurationModes;
+  mode?: ConfigurationModes;
   configVersion?: string;
 }
 
@@ -557,7 +558,7 @@ export interface ModbusSlaveInfo {
   buttonTitle: string;
 }
 
-export enum ConnectorConfigurationModes {
+export enum ConfigurationModes {
   BASIC = 'basic',
   ADVANCED = 'advanced'
 }

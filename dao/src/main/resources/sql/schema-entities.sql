@@ -205,6 +205,7 @@ CREATE TABLE IF NOT EXISTS customer (
     external_id uuid,
     is_public boolean,
     version BIGINT DEFAULT 1,
+    custom_menu_id uuid,
     CONSTRAINT customer_title_unq_key UNIQUE (tenant_id, title),
     CONSTRAINT customer_external_id_unq_key UNIQUE (tenant_id, external_id)
 );
@@ -549,7 +550,8 @@ CREATE TABLE IF NOT EXISTS tb_user (
     last_name varchar(255),
     phone varchar(255),
     tenant_id uuid,
-    version BIGINT DEFAULT 1
+    version BIGINT DEFAULT 1,
+    custom_menu_id uuid
 );
 
 CREATE TABLE IF NOT EXISTS tenant_profile (
@@ -587,9 +589,11 @@ CREATE TABLE IF NOT EXISTS user_credentials (
     id uuid NOT NULL CONSTRAINT user_credentials_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
     activate_token varchar(255) UNIQUE,
+    activate_token_exp_time BIGINT,
     enabled boolean,
     password varchar(255),
     reset_token varchar(255) UNIQUE,
+    reset_token_exp_time BIGINT,
     user_id uuid UNIQUE,
     additional_info varchar DEFAULT '{}'
 );
@@ -1056,6 +1060,17 @@ CREATE TABLE IF NOT EXISTS white_labeling (
     settings VARCHAR(10000000),
     domain_name VARCHAR(255) UNIQUE,
     CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type)
+);
+
+CREATE TABLE IF NOT EXISTS custom_menu (
+    id uuid NOT NULL CONSTRAINT custom_menu_pkey PRIMARY KEY,
+    created_time bigint NOT NULL,
+    tenant_id UUID NOT NULL,
+    customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
+    name varchar(255) NOT NULL,
+    scope VARCHAR(16),
+    assignee_type VARCHAR(16),
+    config VARCHAR(10000000)
 );
 
 CREATE TABLE IF NOT EXISTS alarm_types (

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.common.util;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.json.JsonWriteFeature;
@@ -50,9 +51,11 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.kv.KvEntry;
+import org.thingsboard.server.common.data.menu.Views;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -91,6 +94,10 @@ public class JacksonUtil {
     public static final ObjectMapper IGNORE_UNKNOWN_PROPERTIES_JSON_MAPPER = JsonMapper.builder()
             .addModule(new Jdk8Module())
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+            .build();
+
+    public static final ObjectMapper OBJECT_MAPPER_INCLUDE_NOT_NULL = JsonMapper.builder()
+            .serializationInclusion(JsonInclude.Include.NON_NULL)
             .build();
 
     public static ObjectMapper getObjectMapperWithJavaTimeModule() {
@@ -189,6 +196,10 @@ public class JacksonUtil {
         }
     }
 
+    public static String writeValueAsViewIgnoringNullFields(Object value, Class<Views.Public> serializationView) throws JsonProcessingException {
+        return value == null ? "" : OBJECT_MAPPER_INCLUDE_NOT_NULL.writerWithView(serializationView).writeValueAsString(value);
+    }
+
     public static String writeValueAsStringWithDefaultPrettyPrinter(Object value) {
         try {
             return OBJECT_MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(value);
@@ -281,6 +292,15 @@ public class JacksonUtil {
         } catch (IOException e) {
             throw new IllegalArgumentException("The given File object value: "
                     + value + " cannot be transformed to a JsonNode", e);
+        }
+    }
+
+    public static JsonNode toJsonNode(InputStream value) {
+        try {
+            return value != null ? OBJECT_MAPPER.readTree(value) : null;
+        } catch (IOException e) {
+            throw new IllegalArgumentException("The given InputStream value: "
+                                               + value + " cannot be transformed to a JsonNode", e);
         }
     }
 

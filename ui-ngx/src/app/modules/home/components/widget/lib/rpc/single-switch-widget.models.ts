@@ -95,6 +95,7 @@ export interface SingleSwitchWidgetSettings {
   offLabelFont: Font;
   offLabelColor: string;
   background: BackgroundSettings;
+  padding: string;
 }
 
 export const singleSwitchDefaultSettings: SingleSwitchWidgetSettings = {
@@ -232,5 +233,6 @@ export const singleSwitchDefaultSettings: SingleSwitchWidgetSettings = {
       color: 'rgba(255,255,255,0.72)',
       blur: 3
     }
-  }
+  },
+  padding: ''
 };

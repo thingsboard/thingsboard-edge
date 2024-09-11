@@ -45,9 +45,11 @@ public class ToEdgeSyncRequest implements EdgeSessionMsg {
     private final UUID id;
     private final TenantId tenantId;
     private final EdgeId edgeId;
+    private final String serviceId;
 
     @Override
     public MsgType getMsgType() {
         return MsgType.EDGE_SYNC_REQUEST_TO_EDGE_SESSION_MSG;
     }
+
 }

@@ -490,8 +490,7 @@ public abstract class BaseEdgeProcessor {
         }, dbCallbackExecutorService);
     }
 
-    private boolean doSaveIfEdgeIsOffline(EdgeEventType type,
-                                          EdgeEventActionType action) {
+    private boolean doSaveIfEdgeIsOffline(EdgeEventType type, EdgeEventActionType action) {
         return switch (action) {
             case TIMESERIES_UPDATED, ALARM_ACK, ALARM_CLEAR, ALARM_ASSIGNED, ALARM_UNASSIGNED, ADDED_COMMENT, UPDATED_COMMENT ->
                     true;
@@ -525,7 +524,7 @@ public abstract class BaseEdgeProcessor {
                 futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, entityId, body, sourceEdgeId, null));
             }
         } else {
-            futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId, null, sourceEdgeId, null);
+            futures = processActionForAllEdgesByTenantId(tenantId, type, actionType, entityId, body, sourceEdgeId, null);
         }
         return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
     }

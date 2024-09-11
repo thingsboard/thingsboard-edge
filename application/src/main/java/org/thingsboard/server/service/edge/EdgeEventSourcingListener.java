@@ -50,10 +50,12 @@ import org.thingsboard.server.common.data.alarm.EntityAlarm;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.domain.Domain;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
@@ -119,12 +121,12 @@ public class EdgeEventSourcingListener {
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(DeleteEntityEvent<?> event) {
         TenantId tenantId = event.getTenantId();
-        EntityType entityType = event.getEntityId().getEntityType();
         if (!tenantId.isSysTenantId() && !tenantService.tenantExists(tenantId)) {
             log.debug("[{}] Ignoring DeleteEntityEvent because tenant does not exist: {}", tenantId, event);
             return;
         }
         try {
+            EntityType entityType = event.getEntityId().getEntityType();
             if (EntityType.EDGE.equals(entityType) || EntityType.TENANT.equals(entityType)) {
                 return;
             }
@@ -150,8 +152,7 @@ public class EdgeEventSourcingListener {
 
     @TransactionalEventListener(fallbackExecution = true)
     public void handleEvent(ActionEntityEvent<?> event) {
-        if (EntityType.DEVICE.equals(event.getEntityId().getEntityType())
-                && ActionType.ASSIGNED_TO_TENANT.equals(event.getActionType())) {
+        if (event.getEntityId() != null && EntityType.DEVICE.equals(event.getEntityId().getEntityType()) && ActionType.ASSIGNED_TO_TENANT.equals(event.getActionType())) {
             return;
         }
         try {
@@ -162,6 +163,17 @@ public class EdgeEventSourcingListener {
                 }
                 if (ActionType.ASSIGNED_TO_EDGE.equals(event.getActionType()) && event.getEntityGroup().isEdgeGroupAll()) {
                     log.trace("skipping entity in case of 'Edge All' group: {}", event);
+                    return;
+                }
+            }
+            if (event.getEntityId().getEntityType().equals(EntityType.RULE_CHAIN) && event.getEdgeId() != null && event.getActionType().equals(ActionType.ASSIGNED_TO_EDGE)) {
+                try {
+                    Edge edge = JacksonUtil.fromString(event.getBody(), Edge.class);
+                    if (edge != null && new RuleChainId(event.getEntityId().getId()).equals(edge.getRootRuleChainId())) {
+                        log.trace("[{}] skipping ASSIGNED_TO_EDGE event of RULE_CHAIN entity in case Edge Root Rule Chain: {}", event.getTenantId(), event);
+                        return;
+                    }
+                } catch (Exception ignored) {
                     return;
                 }
             }

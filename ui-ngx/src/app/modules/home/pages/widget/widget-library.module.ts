@@ -43,6 +43,7 @@ import { WidgetTypeComponent } from '@home/pages/widget/widget-type.component';
 import { WidgetTypeTabsComponent } from '@home/pages/widget/widget-type-tabs.component';
 import { WidgetsBundleWidgetsComponent } from '@home/pages/widget/widgets-bundle-widgets.component';
 import { WidgetTypeAutocompleteComponent } from '@home/pages/widget/widget-type-autocomplete.component';
+import { WidgetsBundleDialogComponent } from '@home/pages/widget/widgets-bundle-dialog.component';
 
 @NgModule({
   declarations: [
@@ -54,7 +55,8 @@ import { WidgetTypeAutocompleteComponent } from '@home/pages/widget/widget-type-
     SelectWidgetTypeDialogComponent,
     SaveWidgetTypeAsDialogComponent,
     WidgetTypeTabsComponent,
-    WidgetsBundleTabsComponent
+    WidgetsBundleTabsComponent,
+    WidgetsBundleDialogComponent
   ],
   imports: [
     CommonModule,
