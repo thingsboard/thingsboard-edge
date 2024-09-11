@@ -28,37 +28,14 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.attributes;
+package org.thingsboard.server.cache;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import org.thingsboard.server.cache.VersionedCacheKey;
-import org.thingsboard.server.common.data.AttributeScope;
-import org.thingsboard.server.common.data.id.EntityId;
+import java.io.Serializable;
 
-import java.io.Serial;
+public interface VersionedCacheKey extends Serializable {
 
-@EqualsAndHashCode
-@Getter
-@AllArgsConstructor
-public class AttributeCacheKey implements VersionedCacheKey {
-
-    @Serial
-    private static final long serialVersionUID = 2013369077925351881L;
-
-    private final AttributeScope scope;
-    private final EntityId entityId;
-    private final String key;
-
-    @Override
-    public String toString() {
-        return "{" + entityId + "}" + scope + "_" + key;
-    }
-
-    @Override
-    public boolean isVersioned() {
-        return true;
+    default boolean isVersioned() {
+        return false;
     }
 
 }

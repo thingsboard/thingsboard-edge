@@ -30,7 +30,7 @@
 ///
 
 import { Type } from '@angular/core';
-import { ControlValueAccessor } from '@angular/forms';
+import { ControlValueAccessor, Validator } from '@angular/forms';
 import { SendRpcRequestComponent } from '@home/components/scheduler/config/send-rpc-request.component';
 import { UpdateAttributesComponent } from '@home/components/scheduler/config/update-attributes.component';
 import { GenerateReportComponent } from '@home/components/scheduler/config/generate-report.component';
@@ -38,7 +38,7 @@ import { OtaUpdateEventConfigComponent } from '@home/components/scheduler/config
 
 export interface SchedulerEventConfigType {
   name: string;
-  componentType?: Type<ControlValueAccessor>;
+  componentType?: Type<ControlValueAccessor & Validator>;
   template?: string;
   originator?: boolean;
   msgType?: boolean;
