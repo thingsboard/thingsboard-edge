@@ -30,6 +30,8 @@
  */
 package org.thingsboard.server.dao.sql.custommenu;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -54,4 +56,6 @@ public interface CustomMenuRepository extends JpaRepository<CustomMenuEntity, UU
     @Query("DELETE FROM CustomMenuEntity r WHERE r.tenantId = :tenantId")
     void deleteByTenantId(@Param("tenantId") UUID tenantId);
 
+    @Query("SELECT m FROM CustomMenuEntity m WHERE m.tenantId = :tenantId")
+    Page<CustomMenuEntity> findByTenantId(@Param("tenantId") UUID tenantId, Pageable pageable);
 }

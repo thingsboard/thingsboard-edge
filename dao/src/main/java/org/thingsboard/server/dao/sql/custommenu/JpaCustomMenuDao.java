@@ -88,6 +88,11 @@ public class JpaCustomMenuDao extends JpaAbstractDao<CustomMenuEntity, CustomMen
     }
 
     @Override
+    public PageData<CustomMenu> findByTenantId(TenantId tenantId, PageLink pageLink) {
+        return DaoUtil.toPageData(customMenuRepository.findByTenantId(tenantId.getId(), DaoUtil.toPageable(pageLink)));
+    }
+
+    @Override
     protected Class<CustomMenuEntity> getEntityClass() {
         return CustomMenuEntity.class;
     }

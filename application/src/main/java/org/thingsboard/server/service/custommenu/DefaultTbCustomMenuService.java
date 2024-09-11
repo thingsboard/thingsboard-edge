@@ -33,6 +33,7 @@ package org.thingsboard.server.service.custommenu;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.CustomMenuDeleteResult;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -41,6 +42,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
+import org.thingsboard.server.dao.menu.CustomMenuCacheEvictEvent;
 import org.thingsboard.server.dao.menu.CustomMenuCacheKey;
 import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -48,8 +50,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.AbstractEtagCacheService;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -70,31 +70,22 @@ public class DefaultTbCustomMenuService extends AbstractEtagCacheService<CustomM
 
     @Override
     public CustomMenu createCustomMenu(CustomMenuInfo customMenuInfo, List<EntityId> assignToList, boolean force) throws ThingsboardException {
-        CustomMenu saved = customMenuService.createCustomMenu(customMenuInfo, assignToList, force);
-        evictFromCache(saved.getTenantId());
-        return saved;
+        return customMenuService.createCustomMenu(customMenuInfo, assignToList, force);
     }
 
     @Override
     public CustomMenu updateCustomMenu(CustomMenu customMenu, boolean force) throws ThingsboardException {
-        CustomMenu updated = customMenuService.updateCustomMenu(customMenu, force);
-        evictFromCache(customMenu.getTenantId());
-        return updated;
+        return customMenuService.updateCustomMenu(customMenu, force);
     }
 
     @Override
     public void updateAssigneeList(CustomMenu oldCustomMenu, CMAssigneeType newAssigneeType, List<EntityId> newAssignToList, boolean force) throws ThingsboardException {
         customMenuService.updateAssigneeList(oldCustomMenu, newAssigneeType, newAssignToList, force);
-        evictFromCache(oldCustomMenu.getTenantId());
     }
 
     @Override
     public CustomMenuDeleteResult deleteCustomMenu(CustomMenu customMenu, boolean force) {
-        CustomMenuDeleteResult customMenuDeleteResult = customMenuService.deleteCustomMenu(customMenu, force);
-        if (customMenuDeleteResult.isSuccess()) {
-            evictFromCache(customMenu.getTenantId());
-        }
-        return customMenuDeleteResult;
+        return customMenuService.deleteCustomMenu(customMenu, force);
     }
 
     @Override
@@ -118,6 +109,11 @@ public class DefaultTbCustomMenuService extends AbstractEtagCacheService<CustomM
                         .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
                         .build())
                 .build());
+    }
+
+    @TransactionalEventListener(classes = CustomMenuCacheEvictEvent.class, fallbackExecution = true)
+    public void handleEvictEvent(CustomMenuCacheEvictEvent event) {
+        evictFromCache(event.tenantId());
     }
 
 }
