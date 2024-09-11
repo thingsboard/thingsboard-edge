@@ -90,7 +90,7 @@ public class CustomMenuServiceImpl extends AbstractCachedEntityService<CustomMen
     @Override
     public CustomMenu createCustomMenu(CustomMenuInfo customMenuInfo, List<EntityId> assignToList, boolean force) throws ThingsboardException {
         log.trace("Executing createCustomMenu [{}]", customMenuInfo);
-        return saveCustomMenu(new CustomMenu(customMenuInfo), assignToList, force);
+        return saveCustomMenu(new CustomMenu(customMenuInfo, new CustomMenuConfig()), assignToList, force);
     }
 
     @Override
