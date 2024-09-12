@@ -29,26 +29,29 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Pipe, PipeTransform } from '@angular/core';
 import {
-  MappingValueType,
-  OPCUaSourceType,
-  SourceType
+  ConnectorType,
+  GatewayConnector,
+  ModbusBasicConfig,
+  MQTTBasicConfig,
+  OPCBasicConfig,
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
+import { MqttVersionProcessor } from '@home/components/widget/lib/gateway/abstract/mqtt-version-processor.abstract';
+import { OpcVersionProcessor } from '@home/components/widget/lib/gateway/abstract/opc-version-processor.abstract';
+import { ModbusVersionProcessor } from '@home/components/widget/lib/gateway/abstract/modbus-version-processor.abstract';
 
-@Pipe({
-  name: 'getGatewayHelpLink',
-  standalone: true,
-})
-export class GatewayHelpLinkPipe implements PipeTransform {
-  transform(field: string, sourceType: SourceType | OPCUaSourceType, sourceTypes?: Array<SourceType | OPCUaSourceType | MappingValueType> ): string {
-    if (!sourceTypes || sourceTypes?.includes(OPCUaSourceType.PATH)) {
-      if (sourceType !== OPCUaSourceType.CONST) {
-        return `widget/lib/gateway/${field}-${sourceType}_fn`;
-      } else {
-        return;
-      }
+export abstract class GatewayConnectorVersionMappingUtil {
+
+  static getConfig(connector: GatewayConnector, gatewayVersion: string): GatewayConnector {
+    switch(connector.type) {
+      case ConnectorType.MQTT:
+        return new MqttVersionProcessor(gatewayVersion, connector as GatewayConnector<MQTTBasicConfig>).getProcessedByVersion();
+      case ConnectorType.OPCUA:
+        return new OpcVersionProcessor(gatewayVersion, connector as GatewayConnector<OPCBasicConfig>).getProcessedByVersion();
+      case ConnectorType.MODBUS:
+        return new ModbusVersionProcessor(gatewayVersion, connector as GatewayConnector<ModbusBasicConfig>).getProcessedByVersion();
+      default:
+        return connector;
     }
-    return 'widget/lib/gateway/expressions_fn';
   }
 }

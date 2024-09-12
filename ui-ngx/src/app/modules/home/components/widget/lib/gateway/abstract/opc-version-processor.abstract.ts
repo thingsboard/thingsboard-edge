@@ -29,26 +29,43 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Pipe, PipeTransform } from '@angular/core';
 import {
-  MappingValueType,
-  OPCUaSourceType,
-  SourceType
-} from '@home/components/widget/lib/gateway/gateway-widget.models';
+  GatewayConnector, LegacyServerConfig,
+  OPCBasicConfig,
+  OPCBasicConfig_v3_5_2,
+  OPCLegacyBasicConfig,
+} from '../gateway-widget.models';
+import { GatewayConnectorVersionProcessor } from './gateway-connector-version-processor.abstract';
+import { OpcVersionMappingUtil } from '@home/components/widget/lib/gateway/utils/opc-version-mapping.util';
 
-@Pipe({
-  name: 'getGatewayHelpLink',
-  standalone: true,
-})
-export class GatewayHelpLinkPipe implements PipeTransform {
-  transform(field: string, sourceType: SourceType | OPCUaSourceType, sourceTypes?: Array<SourceType | OPCUaSourceType | MappingValueType> ): string {
-    if (!sourceTypes || sourceTypes?.includes(OPCUaSourceType.PATH)) {
-      if (sourceType !== OPCUaSourceType.CONST) {
-        return `widget/lib/gateway/${field}-${sourceType}_fn`;
-      } else {
-        return;
-      }
-    }
-    return 'widget/lib/gateway/expressions_fn';
+export class OpcVersionProcessor extends GatewayConnectorVersionProcessor<OPCBasicConfig> {
+
+  constructor(
+    protected gatewayVersionIn: string,
+    protected connector: GatewayConnector<OPCBasicConfig>
+  ) {
+    super(gatewayVersionIn, connector);
+  }
+
+  getUpgradedVersion(): GatewayConnector<OPCBasicConfig_v3_5_2> {
+    const server = this.connector.configurationJson.server as LegacyServerConfig;
+    return {
+      ...this.connector,
+      configurationJson: {
+        server: server ? OpcVersionMappingUtil.mapServerToUpgradedVersion(server) : {},
+        mapping: server.mapping ? OpcVersionMappingUtil.mapMappingToUpgradedVersion(server.mapping) : [],
+      },
+      configVersion: this.gatewayVersionIn
+    } as GatewayConnector<OPCBasicConfig_v3_5_2>;
+  }
+
+  getDowngradedVersion(): GatewayConnector<OPCLegacyBasicConfig> {
+    return {
+      ...this.connector,
+      configurationJson: {
+        server: OpcVersionMappingUtil.mapServerToDowngradedVersion(this.connector.configurationJson as OPCBasicConfig_v3_5_2)
+      },
+      configVersion: this.gatewayVersionIn
+    } as GatewayConnector<OPCLegacyBasicConfig>;
   }
 }

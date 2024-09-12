@@ -29,26 +29,48 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Pipe, PipeTransform } from '@angular/core';
-import {
-  MappingValueType,
-  OPCUaSourceType,
-  SourceType
-} from '@home/components/widget/lib/gateway/gateway-widget.models';
+import { GatewayConnector, GatewayVersion } from '@home/components/widget/lib/gateway/gateway-widget.models';
+import { isNumber, isString } from '@core/utils';
 
-@Pipe({
-  name: 'getGatewayHelpLink',
-  standalone: true,
-})
-export class GatewayHelpLinkPipe implements PipeTransform {
-  transform(field: string, sourceType: SourceType | OPCUaSourceType, sourceTypes?: Array<SourceType | OPCUaSourceType | MappingValueType> ): string {
-    if (!sourceTypes || sourceTypes?.includes(OPCUaSourceType.PATH)) {
-      if (sourceType !== OPCUaSourceType.CONST) {
-        return `widget/lib/gateway/${field}-${sourceType}_fn`;
-      } else {
-        return;
-      }
-    }
-    return 'widget/lib/gateway/expressions_fn';
+export abstract class GatewayConnectorVersionProcessor<BasicConfig> {
+  gatewayVersion: number;
+  configVersion: number;
+
+  protected constructor(protected gatewayVersionIn: string | number, protected connector: GatewayConnector<BasicConfig>) {
+    this.gatewayVersion = this.parseVersion(this.gatewayVersionIn);
+    this.configVersion = this.parseVersion(connector.configVersion);
   }
+
+  getProcessedByVersion(): GatewayConnector<BasicConfig> {
+    if (this.isVersionUpdateNeeded()) {
+      return this.isVersionUpgradeNeeded()
+        ? this.getUpgradedVersion()
+        : this.getDowngradedVersion();
+    }
+
+    return this.connector;
+  }
+
+  private isVersionUpdateNeeded(): boolean {
+    if (!this.gatewayVersion) {
+      return false;
+    }
+
+    return this.configVersion !== this.gatewayVersion;
+  }
+
+  private isVersionUpgradeNeeded(): boolean {
+    return this.gatewayVersionIn === GatewayVersion.Current && (!this.configVersion || this.configVersion < this.gatewayVersion);
+  }
+
+  private parseVersion(version: string | number): number {
+    if (isNumber(version)) {
+      return version as number;
+    }
+
+    return isString(version) ? parseFloat((version as string).replace(/\./g, '').slice(0, 3)) / 100 : 0;
+  }
+
+  protected abstract getDowngradedVersion(): GatewayConnector<BasicConfig>;
+  protected abstract getUpgradedVersion(): GatewayConnector<BasicConfig>;
 }

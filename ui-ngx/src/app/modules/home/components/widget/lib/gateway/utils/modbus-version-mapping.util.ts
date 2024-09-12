@@ -29,26 +29,67 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Pipe, PipeTransform } from '@angular/core';
 import {
-  MappingValueType,
-  OPCUaSourceType,
-  SourceType
+  ModbusDataType,
+  ModbusLegacyRegisterValues,
+  ModbusLegacySlave,
+  ModbusMasterConfig,
+  ModbusRegisterValues,
+  ModbusSlave,
+  ModbusValue,
+  ModbusValues,
+  SlaveConfig
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
 
-@Pipe({
-  name: 'getGatewayHelpLink',
-  standalone: true,
-})
-export class GatewayHelpLinkPipe implements PipeTransform {
-  transform(field: string, sourceType: SourceType | OPCUaSourceType, sourceTypes?: Array<SourceType | OPCUaSourceType | MappingValueType> ): string {
-    if (!sourceTypes || sourceTypes?.includes(OPCUaSourceType.PATH)) {
-      if (sourceType !== OPCUaSourceType.CONST) {
-        return `widget/lib/gateway/${field}-${sourceType}_fn`;
-      } else {
-        return;
-      }
-    }
-    return 'widget/lib/gateway/expressions_fn';
+export class ModbusVersionMappingUtil {
+
+  static mapMasterToUpgradedVersion(master: ModbusMasterConfig): ModbusMasterConfig {
+    return {
+      slaves: master.slaves.map((slave: SlaveConfig) => ({
+        ...slave,
+        deviceType: slave.deviceType ?? 'default',
+      }))
+    };
+  }
+
+  static mapSlaveToDowngradedVersion(slave: ModbusSlave): ModbusLegacySlave {
+    const values = Object.keys(slave.values).reduce((acc, valueKey) => {
+      acc = {
+        ...acc,
+        [valueKey]: [
+          slave.values[valueKey]
+        ]
+      };
+      return acc;
+    }, {} as ModbusLegacyRegisterValues);
+    return {
+      ...slave,
+      values
+    };
+  }
+
+  static mapSlaveToUpgradedVersion(slave: ModbusLegacySlave): ModbusSlave {
+    const values = Object.keys(slave.values).reduce((acc, valueKey) => {
+      acc = {
+        ...acc,
+        [valueKey]: this.mapValuesToUpgradedVersion(slave.values[valueKey][0])
+      };
+      return acc;
+    }, {} as ModbusRegisterValues);
+    return {
+      ...slave,
+      values
+    };
+  }
+
+  private static mapValuesToUpgradedVersion(registerValues: ModbusValues): ModbusValues {
+    return Object.keys(registerValues).reduce((acc, valueKey) => {
+      acc = {
+       ...acc,
+        [valueKey]: registerValues[valueKey].map((value: ModbusValue) =>
+          ({ ...value, type: (value.type as string) === 'int' ? ModbusDataType.INT16 : value.type }))
+      };
+      return acc;
+    }, {} as ModbusValues);
   }
 }

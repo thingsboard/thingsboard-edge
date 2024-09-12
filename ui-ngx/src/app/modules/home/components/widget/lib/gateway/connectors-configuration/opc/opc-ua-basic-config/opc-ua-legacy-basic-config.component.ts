@@ -30,34 +30,39 @@
 ///
 
 import { ChangeDetectionStrategy, Component, forwardRef } from '@angular/core';
-import { NG_VALIDATORS, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { FormGroup, NG_VALIDATORS, NG_VALUE_ACCESSOR } from '@angular/forms';
 import {
-  ModbusBasicConfig_v3_5_2,
-  ModbusMasterConfig,
-  ModbusSlave
+  MappingType,
+  OPCBasicConfig_v3_5_2,
+  OPCLegacyBasicConfig, ServerConfig,
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
-import { ModbusSlaveConfigComponent } from '../modbus-slave-config/modbus-slave-config.component';
-import { ModbusMasterTableComponent } from '../modbus-master-table/modbus-master-table.component';
-import { EllipsisChipListDirective } from '@shared/directives/ellipsis-chip-list.directive';
+import { MappingTableComponent } from '@home/components/widget/lib/gateway/connectors-configuration/mapping-table/mapping-table.component';
 import {
-  ModbusBasicConfigDirective
-} from '@home/components/widget/lib/gateway/connectors-configuration/modbus/modbus-basic-config/modbus-basic-config.abstract';
+  SecurityConfigComponent
+} from '@home/components/widget/lib/gateway/connectors-configuration/security-config/security-config.component';
+import {
+  OpcServerConfigComponent
+} from '@home/components/widget/lib/gateway/connectors-configuration/opc/opc-server-config/opc-server-config.component';
+import {
+  GatewayConnectorBasicConfigDirective
+} from '@home/components/widget/lib/gateway/abstract/gateway-connector-basic-config.abstract';
+import { OpcVersionMappingUtil } from '@home/components/widget/lib/gateway/utils/opc-version-mapping.util';
 
 @Component({
-  selector: 'tb-modbus-basic-config',
-  templateUrl: './modbus-basic-config.component.html',
+  selector: 'tb-opc-ua-legacy-basic-config',
+  templateUrl: './opc-ua-basic-config.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => ModbusBasicConfigComponent),
+      useExisting: forwardRef(() => OpcUaLegacyBasicConfigComponent),
       multi: true
     },
     {
       provide: NG_VALIDATORS,
-      useExisting: forwardRef(() => ModbusBasicConfigComponent),
+      useExisting: forwardRef(() => OpcUaLegacyBasicConfigComponent),
       multi: true
     }
   ],
@@ -65,25 +70,34 @@ import {
   imports: [
     CommonModule,
     SharedModule,
-    ModbusSlaveConfigComponent,
-    ModbusMasterTableComponent,
-    EllipsisChipListDirective,
+    SecurityConfigComponent,
+    MappingTableComponent,
+    OpcServerConfigComponent,
   ],
-  styleUrls: ['./modbus-basic-config.component.scss'],
+  styleUrls: ['./opc-ua-basic-config.component.scss']
 })
-export class ModbusBasicConfigComponent extends ModbusBasicConfigDirective<ModbusBasicConfig_v3_5_2> {
+export class OpcUaLegacyBasicConfigComponent extends GatewayConnectorBasicConfigDirective<OPCBasicConfig_v3_5_2, OPCLegacyBasicConfig> {
 
-  protected override mapConfigToFormValue(config: ModbusBasicConfig_v3_5_2): ModbusBasicConfig_v3_5_2 {
+  mappingTypes = MappingType;
+  isLegacy = true;
+
+  protected override initBasicFormGroup(): FormGroup {
+    return this.fb.group({
+      mapping: [],
+      server: [],
+    });
+  }
+
+  protected override mapConfigToFormValue(config: OPCLegacyBasicConfig): OPCBasicConfig_v3_5_2 {
     return {
-      master: config.master ?? {} as ModbusMasterConfig,
-      slave: config.slave ?? {} as ModbusSlave,
+      server: config.server ? OpcVersionMappingUtil.mapServerToUpgradedVersion(config.server) : {} as ServerConfig,
+      mapping: config.server?.mapping ? OpcVersionMappingUtil.mapMappingToUpgradedVersion(config.server.mapping) : [],
     };
   }
 
-  protected override getMappedValue(value: ModbusBasicConfig_v3_5_2): ModbusBasicConfig_v3_5_2 {
+  protected override getMappedValue(value: OPCBasicConfig_v3_5_2): OPCLegacyBasicConfig {
     return {
-      master: value.master,
-      slave: value.slave,
+      server: OpcVersionMappingUtil.mapServerToDowngradedVersion(value),
     };
   }
 }
