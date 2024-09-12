@@ -33,31 +33,47 @@ package org.thingsboard.server.transport.mqtt.mqttv3.telemetry.timeseries;
 import com.fasterxml.jackson.core.type.TypeReference;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.TransportPayloadType;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.transport.mqtt.AbstractMqttIntegrationTest;
 import org.thingsboard.server.transport.mqtt.MqttTestConfigProperties;
+import org.thingsboard.server.transport.mqtt.gateway.GatewayLatencyService;
+import org.thingsboard.server.transport.mqtt.gateway.latency.GatewayLatencyData;
+import org.thingsboard.server.transport.mqtt.gateway.latency.GatewayLatencyState;
 import org.thingsboard.server.transport.mqtt.mqttv3.MqttTestCallback;
 import org.thingsboard.server.transport.mqtt.mqttv3.MqttTestClient;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_ATTRIBUTES_TOPIC;
 import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_TELEMETRY_SHORT_JSON_TOPIC;
 import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_TELEMETRY_SHORT_TOPIC;
 import static org.thingsboard.server.common.data.device.profile.MqttTopics.DEVICE_TELEMETRY_TOPIC;
 import static org.thingsboard.server.common.data.device.profile.MqttTopics.GATEWAY_CONNECT_TOPIC;
+import static org.thingsboard.server.common.data.device.profile.MqttTopics.GATEWAY_LATENCY_TOPIC;
 import static org.thingsboard.server.common.data.device.profile.MqttTopics.GATEWAY_TELEMETRY_TOPIC;
+import static org.thingsboard.server.transport.mqtt.mqttv3.credentials.BasicMqttCredentialsTest.CLIENT_ID;
 
 @Slf4j
 public abstract class AbstractMqttTimeseriesIntegrationTest extends AbstractMqttIntegrationTest {
@@ -67,6 +83,9 @@ public abstract class AbstractMqttTimeseriesIntegrationTest extends AbstractMqtt
 
     protected static final String MALFORMED_JSON_PAYLOAD = "{\"key1\":, \"key2\":true, \"key3\": 3.0, \"key4\": 4," +
             " \"key5\": {\"someNumber\": 42, \"someArray\": [1,2,3], \"someNestedObject\": {\"key\": \"value\"}}}";
+
+    @SpyBean
+    GatewayLatencyService gatewayLatencyService;
 
     @Before
     public void beforeTest() throws Exception {
@@ -126,6 +145,95 @@ public abstract class AbstractMqttTimeseriesIntegrationTest extends AbstractMqtt
 
         assertNotNull(device);
         client.disconnect();
+    }
+
+    @Test
+    public void testPushLatencyGateway() throws Exception {
+        MqttTestConfigProperties configProperties = MqttTestConfigProperties.builder()
+                .gatewayName("Test latency gateway")
+                .build();
+        processBeforeTest(configProperties);
+
+        MqttTestClient client = new MqttTestClient();
+        client.connectAndWait(gatewayAccessToken);
+
+        Map<String, List<Long>> gwLatencies = new HashMap<>();
+        Map<String, List<Long>> transportLatencies = new HashMap<>();
+
+        publishLatency(client, gwLatencies, transportLatencies, 5);
+
+        gatewayLatencyService.reportLatency();
+
+        List<String> actualKeys = getActualKeysList(savedGateway.getId(), List.of("latencyCheck"));
+        assertEquals("latencyCheck", actualKeys.get(0));
+
+        String telemetryUrl = String.format("/api/plugins/telemetry/DEVICE/%s/values/timeseries?startTs=%d&endTs=%d&keys=latencyCheck", savedGateway.getId(), 0, System.currentTimeMillis());
+
+        Map<String, List<Map<String, Object>>> gatewayTelemetry = doGetAsyncTyped(telemetryUrl, new TypeReference<>() {});
+        Map<String, Object> latencyCheckTelemetry = gatewayTelemetry.get("latencyCheck").get(0);
+        Map<String, GatewayLatencyState.ConnectorLatencyResult> latencyCheckValue = JacksonUtil.fromString((String) latencyCheckTelemetry.get("value"), new TypeReference<>() {});
+        assertNotNull(latencyCheckValue);
+
+        gwLatencies.forEach((connectorName, gwLatencyList) -> {
+            long avgGwLatency = (long) gwLatencyList.stream().mapToLong(Long::longValue).average().getAsDouble();
+            long minGwLatency = gwLatencyList.stream().mapToLong(Long::longValue).min().getAsLong();
+            long maxGwLatency = gwLatencyList.stream().mapToLong(Long::longValue).max().getAsLong();
+
+            List<Long> transportLatencyList = transportLatencies.get(connectorName);
+            assertNotNull(transportLatencyList);
+
+            long avgTransportLatency = (long) transportLatencyList.stream().mapToLong(Long::longValue).average().getAsDouble();
+            long minTransportLatency = transportLatencyList.stream().mapToLong(Long::longValue).min().getAsLong();
+            long maxTransportLatency = transportLatencyList.stream().mapToLong(Long::longValue).max().getAsLong();
+
+            GatewayLatencyState.ConnectorLatencyResult connectorLatencyResult = latencyCheckValue.get(connectorName);
+            assertNotNull(connectorLatencyResult);
+            checkConnectorLatencyResult(connectorLatencyResult, avgGwLatency, minGwLatency, maxGwLatency, avgTransportLatency, minTransportLatency, maxTransportLatency);
+        });
+
+        client.disconnect();
+
+        Awaitility.await()
+                .atMost(5, TimeUnit.SECONDS)
+                .untilAsserted(() -> verify(gatewayLatencyService).onDeviceDisconnect(savedGateway.getId()));
+    }
+
+    private void publishLatency(MqttTestClient client, Map<String, List<Long>> gwLatencies,  Map<String, List<Long>> transportLatencies, int n) throws Exception {
+        Random random = new Random();
+        for (int i = 0; i < n; i++) {
+            Map<String, GatewayLatencyData> data = new HashMap<>();
+            long publishedTs = System.currentTimeMillis() - 10;
+            long gatewayLatencyA = random.nextLong(100, 500);
+            data.put("connectorA", new GatewayLatencyData(publishedTs - gatewayLatencyA, publishedTs));
+            gwLatencies.computeIfAbsent("connectorA", key -> new ArrayList<>()).add(gatewayLatencyA);
+            boolean sendB = i % 2 == 0;
+            if (sendB) {
+                long gatewayLatencyB = random.nextLong(120, 450);
+                data.put("connectorB", new GatewayLatencyData(publishedTs - gatewayLatencyB, publishedTs));
+                gwLatencies.computeIfAbsent("connectorB", key -> new ArrayList<>()).add(gatewayLatencyB);
+            }
+
+            client.publishAndWait(GATEWAY_LATENCY_TOPIC, JacksonUtil.writeValueAsBytes(data));
+            ArgumentCaptor<Long> transportReceiveTsCaptor = ArgumentCaptor.forClass(Long.class);
+            verify(gatewayLatencyService).process(any(), eq(savedGateway.getId()), eq(data), transportReceiveTsCaptor.capture());
+            Long transportReceiveTs = transportReceiveTsCaptor.getValue();
+            Long transportLatency = transportReceiveTs - publishedTs;
+            transportLatencies.computeIfAbsent("connectorA", key -> new ArrayList<>()).add(transportLatency);
+            if (sendB) {
+                transportLatencies.computeIfAbsent("connectorB", key -> new ArrayList<>()).add(transportLatency);
+            }
+        }
+    }
+
+    private void checkConnectorLatencyResult(GatewayLatencyState.ConnectorLatencyResult result, long avgGwLatency, long minGwLatency, long maxGwLatency,
+                                             long avgTransportLatency, long minTransportLatency, long maxTransportLatency) {
+        assertNotNull(result);
+        assertEquals(avgGwLatency, result.avgGwLatency());
+        assertEquals(minGwLatency, result.minGwLatency());
+        assertEquals(maxGwLatency, result.maxGwLatency());
+        assertEquals(avgTransportLatency, result.transportLatencyAvg());
+        assertEquals(minTransportLatency, result.minTransportLatency());
+        assertEquals(maxTransportLatency, result.maxTransportLatency());
     }
 
     protected void processJsonPayloadTelemetryTest(String topic, List<String> expectedKeys, byte[] payload, boolean withTs) throws Exception {
