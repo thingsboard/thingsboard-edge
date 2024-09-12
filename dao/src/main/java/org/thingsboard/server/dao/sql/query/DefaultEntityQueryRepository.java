@@ -511,6 +511,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     public long countEntitiesByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityCountQuery query) {
         QueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter(), TenantId.SYS_TENANT_ID.equals(tenantId));
         MergedGroupTypePermissionInfo readPermissions = ctx.getSecurityCtx().getMergedReadPermissionsByEntityType();
+        if (readPermissions == null) {
+            return 0L;
+        }
         if (query.getEntityFilter().getType().equals(EntityFilterType.STATE_ENTITY_OWNER)) {
             if (ctx.getEntityType() == EntityType.TENANT && !ctx.isTenantUser()) {
                 return 0L;
@@ -611,6 +614,9 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
     public PageData<EntityData> findEntityDataByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions userPermissions, EntityDataQuery query, boolean ignorePermissionCheck) {
         QueryContext ctx = buildQueryContext(tenantId, customerId, userPermissions, query.getEntityFilter(), ignorePermissionCheck);
         MergedGroupTypePermissionInfo readPermissions = ctx.getSecurityCtx().getMergedReadPermissionsByEntityType();
+        if (readPermissions == null) {
+            return new PageData<>();
+        }
         if (query.getEntityFilter().getType().equals(EntityFilterType.STATE_ENTITY_OWNER)) {
             if (ctx.getEntityType() == EntityType.TENANT && !ctx.isTenantUser()) {
                 return new PageData<>();
