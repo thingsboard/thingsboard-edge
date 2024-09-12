@@ -30,13 +30,13 @@
  */
 package org.thingsboard.rule.engine.action;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.util.Pair;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
 import org.thingsboard.rule.engine.api.TbNode;
@@ -45,15 +45,22 @@ import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentType;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.exception.DataValidationException;
 
+import java.util.EnumSet;
+import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static org.thingsboard.common.util.DonAsynchron.withCallback;
 
@@ -62,123 +69,120 @@ import static org.thingsboard.common.util.DonAsynchron.withCallback;
         type = ComponentType.ACTION,
         name = "change owner",
         configClazz = TbChangeOwnerNodeConfiguration.class,
-        nodeDescription = "Changes Owner of the Originator entity to the selected Owner by type (Tenant, Customer)." +
-                "If selected Owner type - <b>Customer:</b></br>" +
-                "Rule node finds target Owner by owner name pattern and then change the owner of the originator entity.</br>" +
-                "Rule node can create new Owner if it doesn't exist and selected checkbox 'Create new owner if not exists'.",
-        nodeDetails = "If an entity already belongs to this owner or entity owner is successfully changed - " +
-                "Message sent via <b>Success</b> chain, otherwise, <b>Failure</b> chain will be used.",
+        version = 1,
+        nodeDescription = "Changes owner of the originator entity to the selected owner by type Tenant or Customer.",
+        nodeDetails = "If <b>Tenant</b> is selected, rule node changes the owner of the originator to the tenant.<br>" +
+                "If <b>Customer</b> is selected, rule node finds target owner by owner name pattern and then change the owner of the originator entity.</br>" +
+                "If the target owner does not exist and the 'Create new owner if not exists' toggle is enabled, the rule node will create a new owner.<br>" +
+                "If both 'Create new owner if not exists' and 'Create new owner as sub-customer of current owner' are enabled, the rule node creates a new owner as a sub-customer of the current owner.<br><br>" +
+                "Output connections: <code>Success</code> - if an entity already belongs to this owner or entity owner is successfully changed, otherwise - <code>Failure</code>.",
         uiResources = {"static/rulenode/rulenode-core-config.js"},
         configDirective = "tbActionNodeChangeOwnerConfig",
         icon = "assignment_ind"
 )
 public class TbChangeOwnerNode implements TbNode {
 
-    private TbChangeOwnerNodeConfiguration config;
-    private LoadingCache<OwnerKey, EntityId> ownerIdCache;
+    private static final Set<EntityType> supportedEntityTypes = EnumSet.of(EntityType.TENANT, EntityType.CUSTOMER);
+    private static final String supportedEntityTypesStr = supportedEntityTypes.stream().map(Enum::name).collect(Collectors.joining(", "));
 
+    private TbChangeOwnerNodeConfiguration config;
+    private EntityType ownerType;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
         config = TbNodeUtils.convert(configuration, TbChangeOwnerNodeConfiguration.class);
-        CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder();
-        if (config.getOwnerCacheExpiration() > 0) {
-            cacheBuilder.expireAfterWrite(this.config.getOwnerCacheExpiration(), TimeUnit.SECONDS);
+        ownerType = config.getOwnerType();
+        if (ownerType == null) {
+            throw new TbNodeException("Owner type should be specified!", true);
         }
-        ownerIdCache = cacheBuilder
-                .build(new OwnerCacheLoader(ctx, config.isCreateOwnerIfNotExists()));
+        if (!supportedEntityTypes.contains(ownerType)) {
+            throw new TbNodeException("Unsupported owner type '" + ownerType +
+                    "'! Only " + supportedEntityTypesStr + " types are allowed.", true);
+        }
+        if (EntityType.TENANT.equals(ownerType)) {
+            return;
+        }
+        if (StringUtils.isBlank(config.getOwnerNamePattern())) {
+            throw new TbNodeException("Owner name should be specified!", true);
+        }
     }
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException, TbNodeException {
-        processChangeOwner(ctx, msg);
-    }
-
-    @Override
-    public void destroy() {
-        if (ownerIdCache != null) {
-            ownerIdCache.invalidateAll();
-        }
-    }
-
-    private void processChangeOwner(TbContext ctx, TbMsg msg) {
-        ListenableFuture<EntityId> ownerIdListenableFuture = getNewOwner(ctx, msg);
-        withCallback(ownerIdListenableFuture, ownerId -> {
-            try {
-                doProcessChangeOwner(ctx, msg, ownerId);
-                ctx.tellSuccess(msg);
-            } catch (ThingsboardException e) {
-                ctx.tellFailure(msg, e);
+        EntityId originator = msg.getOriginator();
+        ListenableFuture<Void> changeOwnerFuture;
+        switch (ownerType) {
+            case TENANT -> changeOwnerFuture = changeOwnerAsync(ctx, originator, ctx.getTenantId(), false);
+            case CUSTOMER -> {
+                String ownerName = TbNodeUtils.processPattern(config.getOwnerNamePattern(), msg);
+                ListenableFuture<Pair<CustomerId, Boolean>> customerIdFuture = findOrCreateCustomerAsync(ctx, msg, ownerName);
+                changeOwnerFuture = Futures.transformAsync(customerIdFuture, customerId ->
+                        changeOwnerAsync(ctx, originator, customerId.getFirst(), customerId.getSecond()), MoreExecutors.directExecutor());
             }
-        }, t -> ctx.tellFailure(msg, t), ctx.getDbCallbackExecutor());
+            default -> throw new UnsupportedOperationException("Unsupported owner type '" + ownerType +
+                    "'! Only " + supportedEntityTypesStr + " types are allowed.");
+        }
+        withCallback(changeOwnerFuture, __ -> ctx.tellSuccess(msg), t -> ctx.tellFailure(msg, t), MoreExecutors.directExecutor());
     }
 
-    private ListenableFuture<EntityId> getNewOwner(TbContext ctx, TbMsg msg) {
-        String ownerName;
-        EntityType entityType = EntityType.valueOf(this.config.getOwnerType());
-        if (entityType.equals(EntityType.CUSTOMER)) {
-            ownerName = TbNodeUtils.processPattern(config.getOwnerNamePattern(), msg);
-        } else {
-            //Maybe set tenant name?
-            ownerName = null;
-        }
-        OwnerKey key = new OwnerKey(entityType, ownerName);
+    private ListenableFuture<Pair<CustomerId, Boolean>> findOrCreateCustomerAsync(TbContext ctx, TbMsg msg, String ownerName) {
+        CustomerService customerService = ctx.getCustomerService();
+        TenantId tenantId = ctx.getTenantId();
+        ListenableFuture<Optional<Customer>> optionalCustomerListenableFuture = customerService.findCustomerByTenantIdAndTitleAsync(tenantId, ownerName);
+        return Futures.transform(optionalCustomerListenableFuture, customerOpt -> {
+            if (customerOpt.isPresent()) {
+                return Pair.of(customerOpt.get().getId(), false);
+            }
+            if (config.isCreateOwnerIfNotExists()) {
+                try {
+                    Customer newCustomer = new Customer();
+                    newCustomer.setTitle(ownerName);
+                    newCustomer.setTenantId(tenantId);
+                    if (config.isCreateOwnerOnOriginatorLevel()) {
+                        EntityId currentOriginatorOwnerId = ctx.getPeContext()
+                                .getOwner(tenantId, msg.getOriginator());
+                        newCustomer.setOwnerId(currentOriginatorOwnerId);
+                    }
+                    Customer savedCustomer = customerService.saveCustomer(newCustomer);
+                    ctx.enqueue(ctx.customerCreatedMsg(savedCustomer, ctx.getSelfId()),
+                            () -> log.trace("Pushed Customer Created message: {}", savedCustomer),
+                            throwable -> log.warn("Failed to push Customer Created message: {}", savedCustomer, throwable));
+                    return Pair.of(savedCustomer.getId(), true);
+                } catch (DataValidationException e) {
+                    return customerService.findCustomerByTenantIdAndTitle(tenantId, ownerName)
+                            .map(customer -> Pair.of(customer.getId(), false))
+                            .orElseThrow(() -> new RuntimeException("Failed to create customer with title '" + ownerName + "'", e));
+                }
+            }
+            throw new NoSuchElementException("Customer with title '" + ownerName + "' doesn't exist!");
+        }, MoreExecutors.directExecutor());
+    }
+
+    private ListenableFuture<Void> changeOwnerAsync(TbContext ctx, EntityId originator, EntityId targetOwnerId, boolean newOwnerCreated) {
+        TenantId tenantId = ctx.getTenantId();
         return ctx.getDbCallbackExecutor().executeAsync(() -> {
-            EntityId newOwnerId = ownerIdCache.get(key);
-            if (newOwnerId == null) {
-                throw new RuntimeException("No owner found with type '" + key.getOwnerType() + "' and name '" + key.getOwnerName() + "'.");
+            if (newOwnerCreated || !ctx.getPeContext().getOwner(tenantId, originator).equals(targetOwnerId)) {
+                ctx.getPeContext().changeEntityOwner(tenantId, targetOwnerId, originator);
             }
-            return newOwnerId;
+            return null;
         });
     }
 
-    private void doProcessChangeOwner(TbContext ctx, TbMsg msg, EntityId ownerId) throws ThingsboardException {
-        if (!ctx.getPeContext().getOwner(ctx.getTenantId(), msg.getOriginator()).equals(ownerId)) {
-            ctx.getPeContext().changeEntityOwner(ctx.getTenantId(), ownerId, msg.getOriginator(), msg.getOriginator().getEntityType());
-        }
-    }
-
-    @Data
-    @AllArgsConstructor
-    private static class OwnerKey {
-        private EntityType ownerType;
-        private String ownerName;
-    }
-
-    private static class OwnerCacheLoader extends CacheLoader<OwnerKey, EntityId> {
-
-        private final TbContext ctx;
-        private final boolean createOwnerIfNotExists;
-
-        private OwnerCacheLoader(TbContext ctx, boolean createOwnerIfNotExists) {
-            this.ctx = ctx;
-            this.createOwnerIfNotExists = createOwnerIfNotExists;
-        }
-
-        @Override
-        public EntityId load(OwnerKey ownerKey) {
-            if (ownerKey.getOwnerType().equals(EntityType.CUSTOMER)) {
-                Customer customer;
-                CustomerService customerService = ctx.getCustomerService();
-                // TODO: refactor this node to use only cacheable service API and replace guava cache.
-                Optional<Customer> customerOptional = customerService.
-                        findCustomerByTenantIdAndTitle(ctx.getTenantId(), ownerKey.getOwnerName());
-                if (customerOptional.isPresent()) {
-                    customer = customerOptional.get();
-                    return customer.getId();
-                } else if (createOwnerIfNotExists) {
-                    Customer newCustomer = new Customer();
-                    newCustomer.setTitle(ownerKey.getOwnerName());
-                    newCustomer.setTenantId(ctx.getTenantId());
-                    customer = customerService.saveCustomer(newCustomer);
-                    return customer.getId();
-                } else {
-                    return null;
+    @Override
+    public TbPair<Boolean, JsonNode> upgrade(int fromVersion, JsonNode oldConfiguration) throws TbNodeException {
+        boolean hasChanges = false;
+        switch (fromVersion) {
+            case 0:
+                if (!oldConfiguration.has("createOwnerOnOriginatorLevel")) {
+                    hasChanges = true;
+                    ((ObjectNode) oldConfiguration).put("createOwnerOnOriginatorLevel", false)
+                            .remove("ownerCacheExpiration");
                 }
-            } else {
-                return ctx.getTenantId();
-            }
+                break;
+            default:
+                break;
         }
+        return new TbPair<>(hasChanges, oldConfiguration);
     }
-}
 
+}
