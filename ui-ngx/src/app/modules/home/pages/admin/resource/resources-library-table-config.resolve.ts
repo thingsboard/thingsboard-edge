@@ -38,7 +38,7 @@ import {
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
 import { Resolve, Router } from '@angular/router';
-import { Resource, ResourceInfo, ResourceTypeTranslationMap } from '@shared/models/resource.models';
+import { Resource, ResourceInfo, ResourceType, ResourceTypeTranslationMap } from '@shared/models/resource.models';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { DatePipe } from '@angular/common';
@@ -136,7 +136,7 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
     const authUser = getCurrentAuthUser(this.store);
     this.config.deleteEnabled = (resource) => this.isResourceEditable(resource, authUser.authority);
     this.config.entitySelectionEnabled = (resource) => this.isResourceEditable(resource, authUser.authority);
-    this.config.detailsReadonly = (resource) => !this.isResourceEditable(resource, authUser.authority);
+    this.config.detailsReadonly = (resource) => this.detailsReadonly(resource, authUser.authority);
     defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
@@ -166,6 +166,13 @@ export class ResourcesLibraryTableConfigResolver implements Resolve<EntityTableC
         return true;
     }
     return false;
+  }
+
+  private detailsReadonly(resource: ResourceInfo, authority: Authority): boolean {
+    if (resource?.resourceType === ResourceType.LWM2M_MODEL) {
+      return true;
+    }
+    return !this.isResourceEditable(resource, authority);
   }
 
   private isResourceEditable(resource: ResourceInfo, authority: Authority): boolean {
