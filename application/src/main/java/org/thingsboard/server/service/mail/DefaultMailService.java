@@ -167,13 +167,13 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void sendActivationEmail(TenantId tenantId, String activationLink, String email) throws ThingsboardException {
-
+    public void sendActivationEmail(TenantId tenantId, String activationLink, long ttlMs, String email) throws ThingsboardException {
         JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.ACTIVATION);
 
         Map<String, Object> model = new HashMap<>();
         model.put("activationLink", activationLink);
+        model.put("activationLinkTtlInHours", (int) Math.ceil(ttlMs / 3600000.0));
         model.put(TARGET_EMAIL, email);
 
         String message = body(mailTemplates, MailTemplates.ACTIVATION, model);
@@ -197,13 +197,13 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void sendResetPasswordEmail(TenantId tenantId, String passwordResetLink, String email) throws ThingsboardException {
-
+    public void sendResetPasswordEmail(TenantId tenantId, String passwordResetLink, long ttlMs, String email) throws ThingsboardException {
         JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.RESET_PASSWORD);
 
         Map<String, Object> model = new HashMap<>();
         model.put("passwordResetLink", passwordResetLink);
+        model.put("passwordResetLinkTtlInHours", (int) Math.ceil(ttlMs / 3600000.0));
         model.put(TARGET_EMAIL, email);
 
         String message = body(mailTemplates, MailTemplates.RESET_PASSWORD, model);
@@ -212,10 +212,10 @@ public class DefaultMailService implements MailService {
     }
 
     @Override
-    public void sendResetPasswordEmailAsync(TenantId tenantId, String passwordResetLink, String email) {
+    public void sendResetPasswordEmailAsync(TenantId tenantId, String passwordResetLink, long ttlMs, String email) {
         passwordResetExecutorService.execute(() -> {
             try {
-                this.sendResetPasswordEmail(tenantId, passwordResetLink, email);
+                this.sendResetPasswordEmail(tenantId, passwordResetLink, ttlMs, email);
             } catch (Exception e) {
                 log.error("Error occurred: {} ", e.getMessage());
             }

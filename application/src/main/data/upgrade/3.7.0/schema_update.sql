@@ -292,7 +292,7 @@ BEGIN
             END IF;
         END IF;
     ELSE
-        IF (json_element ? 'pages' AND jsonb_array_length(json_element #> '{pages}') != 0) THEN
+        IF (json_element ? 'pages' AND jsonb_typeof(json_element -> 'pages') = 'array' AND jsonb_array_length(json_element -> 'pages') != 0) THEN
             updated_element := json_element::jsonb || '{"visible":true, "type": "CUSTOM", "menuItemType": "SECTION"}'::jsonb;
         ELSE
             IF (json_element->'dashboardId' IS NOT NULL AND json_element->>'dashboardId' <> '') THEN
@@ -303,7 +303,7 @@ BEGIN
         END IF;
     END IF;
     -- If the element has 'childMenuItems', recursively apply the function
-    IF json_element ? 'pages' AND jsonb_array_length(json_element #> '{pages}') != 0 THEN
+    IF json_element ? 'pages' AND jsonb_typeof(json_element -> 'pages') = 'array' AND jsonb_array_length(json_element -> 'pages') != 0 THEN
         updated_element := jsonb_set(
                 updated_element,
                 '{pages}',
@@ -719,3 +719,20 @@ $$
 $$;
 
 -- CUSTOM MENU MIGRATION END
+
+-- USER CREDENTIALS UPDATE START
+
+ALTER TABLE user_credentials ADD COLUMN IF NOT EXISTS activate_token_exp_time BIGINT;
+-- Setting 24-hour TTL for existing activation tokens
+UPDATE user_credentials SET activate_token_exp_time = cast(extract(EPOCH FROM NOW()) * 1000 AS BIGINT) + 86400000
+    WHERE activate_token IS NOT NULL AND activate_token_exp_time IS NULL;
+
+ALTER TABLE user_credentials ADD COLUMN IF NOT EXISTS reset_token_exp_time BIGINT;
+-- Setting 24-hour TTL for existing password reset tokens
+UPDATE user_credentials SET reset_token_exp_time = cast(extract(EPOCH FROM NOW()) * 1000 AS BIGINT) + 86400000
+    WHERE reset_token IS NOT NULL AND reset_token_exp_time IS NULL;
+
+UPDATE admin_settings SET json_value = (json_value::jsonb || '{"userActivationTokenTtl":24,"passwordResetTokenTtl":24}'::jsonb)::varchar
+    WHERE key = 'securitySettings';
+
+-- USER CREDENTIALS UPDATE END

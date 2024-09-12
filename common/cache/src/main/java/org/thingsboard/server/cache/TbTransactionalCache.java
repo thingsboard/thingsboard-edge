@@ -44,8 +44,6 @@ public interface TbTransactionalCache<K extends Serializable, V extends Serializ
 
     TbCacheValueWrapper<V> get(K key);
 
-    TbCacheValueWrapper<V> get(K key, boolean transactionMode);
-
     void put(K key, V value);
 
     void putIfAbsent(K key, V value);
@@ -72,7 +70,7 @@ public interface TbTransactionalCache<K extends Serializable, V extends Serializ
         if (putToCache) {
             return getAndPutInTransaction(key, dbCall, cacheNullValue);
         } else {
-            TbCacheValueWrapper<V> cacheValueWrapper = get(key, true);
+            TbCacheValueWrapper<V> cacheValueWrapper = get(key);
             if (cacheValueWrapper != null) {
                 return cacheValueWrapper.get();
             }
@@ -85,7 +83,7 @@ public interface TbTransactionalCache<K extends Serializable, V extends Serializ
     }
 
     default <R> R getAndPutInTransaction(K key, Supplier<R> dbCall, Function<V, R> cacheValueToResult, Function<R, V> dbValueToCacheValue, boolean cacheNullValue) {
-        TbCacheValueWrapper<V> cacheValueWrapper = get(key, true);
+        TbCacheValueWrapper<V> cacheValueWrapper = get(key);
         if (cacheValueWrapper != null) {
             V cacheValue = cacheValueWrapper.get();
             return cacheValue != null ? cacheValueToResult.apply(cacheValue) : null;
@@ -111,7 +109,7 @@ public interface TbTransactionalCache<K extends Serializable, V extends Serializ
         if (putToCache) {
             return getAndPutInTransaction(key, dbCall, cacheValueToResult, dbValueToCacheValue, cacheNullValue);
         } else {
-            TbCacheValueWrapper<V> cacheValueWrapper = get(key, true);
+            TbCacheValueWrapper<V> cacheValueWrapper = get(key);
             if (cacheValueWrapper != null) {
                 var cacheValue = cacheValueWrapper.get();
                 return cacheValue == null ? null : cacheValueToResult.apply(cacheValue);

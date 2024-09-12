@@ -74,12 +74,16 @@ import {
   GatewayConnectorDefaultTypesTranslatesMap,
   GatewayLogLevel,
   noLeadTrailSpacesRegex,
+  GatewayVersion,
 } from './gateway-widget.models';
 import { MatDialog } from '@angular/material/dialog';
 import { AddConnectorDialogComponent } from '@home/components/widget/lib/gateway/dialog/add-connector-dialog.component';
 import { debounceTime, filter, switchMap, take, takeUntil, tap } from 'rxjs/operators';
 import { ErrorStateMatcher } from '@angular/material/core';
 import { PageData } from '@shared/models/page/page-data';
+import {
+  GatewayConnectorVersionMappingUtil
+} from '@home/components/widget/lib/gateway/utils/gateway-connector-version-mapping.util';
 
 export class ForceErrorStateMatcher implements ErrorStateMatcher {
   isErrorState(control: FormControl | null): boolean {
@@ -113,6 +117,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
   readonly displayedColumns = ['enabled', 'key', 'type', 'syncStatus', 'errors', 'actions'];
   readonly GatewayConnectorTypesTranslatesMap = GatewayConnectorDefaultTypesTranslatesMap;
   readonly ConnectorConfigurationModes = ConfigurationModes;
+  readonly GatewayVersion = GatewayVersion;
 
   pageLink: PageLink;
   dataSource: MatTableDataSource<GatewayAttributeData>;
@@ -121,6 +126,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
   mode: ConfigurationModes = this.ConnectorConfigurationModes.BASIC;
   initialConnector: GatewayConnector;
 
+  private gatewayVersion: string;
   private inactiveConnectors: Array<string>;
   private attributeDataSource: AttributeDatasource;
   private inactiveConnectorsDataSource: AttributeDatasource;
@@ -254,6 +260,10 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       delete value.class;
     }
 
+    if (this.gatewayVersion && !value.configVersion) {
+      value.configVersion = this.gatewayVersion;
+    }
+
     value.ts = Date.now();
 
     return value;
@@ -278,7 +288,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     });
   }
 
-  isConnectorSynced(attribute: GatewayAttributeData) {
+  isConnectorSynced(attribute: GatewayAttributeData): boolean {
     const connectorData = attribute.value;
     if (!connectorData.ts || attribute.skipSync) {
       return false;
@@ -355,7 +365,8 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       class: '',
       configuration: '',
       configurationJson: {},
-      basicConfig: {}
+      basicConfig: {},
+      configVersion: ''
     }, {emitEvent: false});
     this.connectorForm.markAsPristine();
   }
@@ -498,7 +509,10 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
     return this.dialog.open<AddConnectorDialogComponent, AddConnectorConfigData>(AddConnectorDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: { dataSourceData: this.dataSource.data }
+      data: {
+        dataSourceData: this.dataSource.data,
+        gatewayVersion: this.gatewayVersion,
+      }
     }).afterClosed();
   }
 
@@ -541,7 +555,8 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       class: [''],
       configuration: [''],
       configurationJson: [{}, [Validators.required]],
-      basicConfig: [{}]
+      basicConfig: [{}],
+      configVersion: [''],
     });
     this.connectorForm.disable();
   }
@@ -575,10 +590,12 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
 
     forkJoin([
       this.attributeService.getEntityAttributes(this.device, AttributeScope.SHARED_SCOPE, ['active_connectors']),
-      this.attributeService.getEntityAttributes(this.device, AttributeScope.SERVER_SCOPE, ['inactive_connectors'])
+      this.attributeService.getEntityAttributes(this.device, AttributeScope.SERVER_SCOPE, ['inactive_connectors']),
+      this.attributeService.getEntityAttributes(this.device, AttributeScope.CLIENT_SCOPE, ['Version'])
     ]).pipe(takeUntil(this.destroy$)).subscribe(attributes => {
       this.activeConnectors = this.parseConnectors(attributes[0]);
       this.inactiveConnectors = this.parseConnectors(attributes[1]);
+      this.gatewayVersion = attributes[2][0]?.value;
 
       this.updateData(true);
     });
@@ -736,12 +753,12 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       this.connectorForm.enable();
     }
 
-    const connectorState = {
+    const connectorState = GatewayConnectorVersionMappingUtil.getConfig({
       configuration: '',
       key: 'auto',
       configurationJson: {} as ConnectorBaseConfig,
       ...connector,
-    };
+    }, this.gatewayVersion);
 
     connectorState.basicConfig = connectorState.configurationJson;
     this.initialConnector = connectorState;
@@ -754,6 +771,7 @@ export class GatewayConnectorComponent extends PageComponent implements AfterVie
       case ConnectorType.OPCUA:
       case ConnectorType.MODBUS:
         this.connectorForm.get('mode').setValue(connector.mode || ConfigurationModes.BASIC, {emitEvent: false});
+        this.connectorForm.get('configVersion').setValue(connector.configVersion, {emitEvent: false});
         setTimeout(() => {
           this.connectorForm.patchValue(connector, {emitEvent: false});
           this.connectorForm.markAsPristine();

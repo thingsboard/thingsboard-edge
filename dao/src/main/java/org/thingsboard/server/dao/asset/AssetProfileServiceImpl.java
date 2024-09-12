@@ -263,8 +263,9 @@ public class AssetProfileServiceImpl extends CachedVersionedEntityService<AssetP
         log.trace("Executing findOrCreateAssetProfile");
         AssetProfile assetProfile = findAssetProfileByName(tenantId, name, false);
         if (assetProfile == null) {
+            boolean isDefault = "default".equals(name) && findDefaultAssetProfile(tenantId) == null;
             try {
-                assetProfile = this.doCreateDefaultAssetProfile(tenantId, name, name.equals("default"), true);
+                assetProfile = this.doCreateAssetProfile(tenantId, name, isDefault, true);
             } catch (DataValidationException e) {
                 if (ASSET_PROFILE_WITH_SUCH_NAME_ALREADY_EXISTS.equals(e.getMessage())) {
                     assetProfile = findAssetProfileByName(tenantId, name, false);
@@ -279,10 +280,10 @@ public class AssetProfileServiceImpl extends CachedVersionedEntityService<AssetP
     @Override
     public AssetProfile createDefaultAssetProfile(TenantId tenantId) {
         log.trace("Executing createDefaultAssetProfile tenantId [{}]", tenantId);
-        return doCreateDefaultAssetProfile(tenantId, "default", true, false);
+        return doCreateAssetProfile(tenantId, "default", true, false);
     }
 
-    private AssetProfile doCreateDefaultAssetProfile(TenantId tenantId, String profileName, boolean defaultProfile, boolean publishSaveEvent) {
+    private AssetProfile doCreateAssetProfile(TenantId tenantId, String profileName, boolean defaultProfile, boolean publishSaveEvent) {
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
         AssetProfile assetProfile = new AssetProfile();
         assetProfile.setTenantId(tenantId);
