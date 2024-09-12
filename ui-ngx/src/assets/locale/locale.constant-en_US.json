@@ -1369,7 +1369,9 @@
         "date-from": "Date from",
         "time-from": "Time from",
         "date-to": "Date to",
-        "time-to": "Time to"
+        "time-to": "Time to",
+        "from": "From",
+        "to": "To"
     },
     "dashboard": {
         "all": "All",
@@ -6549,6 +6551,7 @@
         "minutes": "Minutes",
         "seconds": "Seconds",
         "advanced": "Advanced",
+        "custom": "Custom",
         "predefined": {
           "yesterday": "Yesterday",
           "day-before-yesterday": "Day before yesterday",
@@ -6591,6 +6594,7 @@
     },
     "timewindow": {
         "timewindow": "Timewindow",
+        "timewindow-settings": "Timewindow settings",
         "years": "{ years, plural, =1 { year } other {# years } }",
         "years-short": "{{ years }}y",
         "months": "{ months, plural, =1 { month } other {# months } }",
@@ -6636,7 +6640,11 @@
         "font": "Font",
         "color": "Color",
         "displayTypePrefix": "Display Realtime/History prefix",
-        "preview": "Preview"
+        "preview": "Preview",
+        "relative": "Relative",
+        "range": "Range",
+        "hide-timewindow-section": "Hide timewindow section from end-users",
+        "disable-custom-interval": "Disable custom interval selection"
     },
     "tooltip": {
         "trigger": "Trigger",
