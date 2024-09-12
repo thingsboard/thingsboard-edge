@@ -30,5 +30,5 @@
  */
 package org.thingsboard.server.transport.mqtt.gateway.metrics;
 
-public record GatewayMetricsData(long receivedTs, long publishedTs) {
+public record GatewayMetricsData(String connector, long receivedTs, long publishedTs) {
 }
