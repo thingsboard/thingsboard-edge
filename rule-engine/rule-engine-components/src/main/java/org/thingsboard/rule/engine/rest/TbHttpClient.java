@@ -61,6 +61,7 @@ import org.thingsboard.server.common.data.id.BlobEntityId;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.transport.ProxyProvider;
 
 import javax.net.ssl.SSLException;
@@ -115,7 +116,12 @@ public class TbHttpClient {
                 semaphore = new Semaphore(config.getMaxParallelRequestsCount());
             }
 
-            HttpClient httpClient = HttpClient.create()
+            ConnectionProvider connectionProvider = ConnectionProvider
+                    .builder("rule-engine-http-client")
+                    .maxConnections(getPoolMaxConnections())
+                    .build();
+
+            HttpClient httpClient = HttpClient.create(connectionProvider)
                     .runOn(getSharedOrCreateEventLoopGroup(eventLoopGroupShared))
                     .doOnConnected(c ->
                             c.addHandlerLast(new ReadTimeoutHandler(config.getReadTimeoutMs(), TimeUnit.MILLISECONDS)));
@@ -161,6 +167,18 @@ public class TbHttpClient {
         } catch (SSLException e) {
             throw new TbNodeException(e);
         }
+    }
+
+    private int getPoolMaxConnections() {
+        String poolMaxConnectionsEnv = System.getenv("TB_RE_HTTP_CLIENT_POOL_MAX_CONNECTIONS");
+
+        int poolMaxConnections;
+        if (poolMaxConnectionsEnv != null) {
+            poolMaxConnections = Integer.parseInt(poolMaxConnectionsEnv);
+        } else {
+            poolMaxConnections = ConnectionProvider.DEFAULT_POOL_MAX_CONNECTIONS;
+        }
+        return poolMaxConnections;
     }
 
     private void validateMaxInMemoryBufferSize(TbRestApiCallNodeConfiguration config) throws TbNodeException {
