@@ -45,13 +45,13 @@ public interface MailService {
 
     void sendTestMail(TenantId tenantId, JsonNode config, String email) throws ThingsboardException;
 
-    void sendActivationEmail(TenantId tenantId, String activationLink, String email) throws ThingsboardException;
+    void sendActivationEmail(TenantId tenantId, String activationLink, long ttlMs, String email) throws ThingsboardException;
 
     void sendAccountActivatedEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException;
 
-    void sendResetPasswordEmail(TenantId tenantId, String passwordResetLink, String email) throws ThingsboardException;
+    void sendResetPasswordEmail(TenantId tenantId, String passwordResetLink, long ttlMs, String email) throws ThingsboardException;
 
-    void sendResetPasswordEmailAsync(TenantId tenantId, String passwordResetLink, String email);
+    void sendResetPasswordEmailAsync(TenantId tenantId, String passwordResetLink, long ttlMs, String email);
 
     void sendPasswordWasResetEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException;
 

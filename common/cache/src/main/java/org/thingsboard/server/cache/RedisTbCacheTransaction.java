@@ -46,7 +46,7 @@ public class RedisTbCacheTransaction<K extends Serializable, V extends Serializa
 
     @Override
     public void put(K key, V value) {
-        cache.put(key, value, connection, true);
+        cache.put(key, value, connection);
     }
 
     @Override

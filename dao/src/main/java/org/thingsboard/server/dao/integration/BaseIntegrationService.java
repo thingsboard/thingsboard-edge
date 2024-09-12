@@ -72,7 +72,7 @@ import static org.thingsboard.server.dao.service.Validator.validatePageLink;
 
 @Service("IntegrationDaoService")
 @Slf4j
-public class BaseIntegrationService extends CachedVersionedEntityService<IntegrationId, Integration, IntegrationCacheEvictEvent> implements IntegrationService {
+public class BaseIntegrationService extends CachedVersionedEntityService<IntegrationCacheKey, Integration, IntegrationCacheEvictEvent> implements IntegrationService {
 
     public static final String INCORRECT_TENANT_ID = "Incorrect tenantId ";
     public static final String INCORRECT_INTEGRATION_ID = "Incorrect integrationId ";
@@ -94,9 +94,9 @@ public class BaseIntegrationService extends CachedVersionedEntityService<Integra
     @Override
     public void handleEvictEvent(IntegrationCacheEvictEvent event) {
         if (event.getSavedIntegration() != null) {
-            cache.put(event.getSavedIntegration().getId(), event.getSavedIntegration());
+            cache.put(IntegrationCacheKey.forId(event.getSavedIntegration().getId()), event.getSavedIntegration());
         } else {
-            cache.evict(event.getIntegrationId());
+            cache.evict(IntegrationCacheKey.forId(event.getIntegrationId()));
         }
     }
 
@@ -124,7 +124,7 @@ public class BaseIntegrationService extends CachedVersionedEntityService<Integra
     public Integration findIntegrationById(TenantId tenantId, IntegrationId integrationId) {
         log.trace("Executing findIntegrationById [{}]", integrationId);
         validateId(integrationId, id -> INCORRECT_INTEGRATION_ID + id);
-        return cache.get(integrationId, () -> integrationDao.findById(tenantId, integrationId.getId()));
+        return cache.get(IntegrationCacheKey.forId(integrationId), () -> integrationDao.findById(tenantId, integrationId.getId()));
     }
 
     @Override

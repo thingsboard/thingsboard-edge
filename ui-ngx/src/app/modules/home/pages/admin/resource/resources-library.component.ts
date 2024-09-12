@@ -58,8 +58,7 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
   readonly resourceType = ResourceType;
   readonly resourceTypes: ResourceType[] = Object.values(this.resourceType);
   readonly resourceTypesTranslationMap = ResourceTypeTranslationMap;
-
-  maxResourceSize = getCurrentAuthState(this.store).maxResourceSize;
+  readonly maxResourceSize = getCurrentAuthState(this.store).maxResourceSize;
 
   private destroy$ = new Subject<void>();
 
@@ -72,20 +71,20 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     super.ngOnInit();
     if (this.isAdd) {
       this.observeResourceTypeChange();
     }
   }
 
-  ngOnDestroy() {
+  ngOnDestroy(): void {
     super.ngOnDestroy();
     this.destroy$.next();
     this.destroy$.complete();
   }
 
-  hideDelete() {
+  hideDelete(): boolean {
     if (this.entitiesTableConfig) {
       return !this.entitiesTableConfig.deleteEnabled(this.entity);
     } else {
@@ -102,19 +101,18 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
     });
   }
 
-  updateForm(entity: Resource) {
-    if (this.isEdit) {
-      this.entityForm.get('resourceType').disable({emitEvent: false});
-      if (entity.resourceType !== ResourceType.JS_MODULE) {
-        this.entityForm.get('fileName').disable({emitEvent: false});
+  updateForm(entity: Resource): void {
+    this.entityForm.patchValue(entity);
+  }
+
+  override updateFormState(): void {
+    super.updateFormState();
+    if (this.isEdit && this.entityForm) {
+      this.entityForm.get('resourceType').disable({ emitEvent: false });
+      if (this.entityForm.get('resourceType').value !== ResourceType.JS_MODULE) {
+        this.entityForm.get('fileName').disable({ emitEvent: false });
       }
     }
-    this.entityForm.patchValue({
-      resourceType: entity.resourceType,
-      fileName: entity.fileName,
-      title: entity.title,
-      data: entity.data
-    });
   }
 
   prepareFormValue(formValue: Resource): Resource {
@@ -124,7 +122,7 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
     return super.prepareFormValue(formValue);
   }
 
-  getAllowedExtensions() {
+  getAllowedExtensions(): string {
     try {
       return ResourceTypeExtension.get(this.entityForm.get('resourceType').value);
     } catch (e) {
@@ -132,7 +130,7 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
     }
   }
 
-  getAcceptType() {
+  getAcceptType(): string {
     try {
       return ResourceTypeMIMETypes.get(this.entityForm.get('resourceType').value);
     } catch (e) {
@@ -144,7 +142,7 @@ export class ResourcesLibraryComponent extends EntityComponent<Resource> impleme
     return window.btoa(data);
   }
 
-  onResourceIdCopied() {
+  onResourceIdCopied(): void {
     this.store.dispatch(new ActionNotificationShow(
       {
         message: this.translate.instant('resource.idCopiedMessage'),

@@ -32,6 +32,7 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
@@ -193,12 +194,12 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         // check all child menus are visible for customer
         loginCustomerAdminUser();
         CustomMenuInfo subCustomerMenuUnderCustomer = doGet("/api/customMenu/" + subCustomerMenu.getId() + "/info", CustomMenu.class);
-        assertThat(subCustomerMenuUnderCustomer).isEqualTo(subCustomerMenu);
+        assertThat(subCustomerMenuUnderCustomer.getName()).isEqualTo(subCustomerMenu.getName());
 
         // check all customer menus are visible for tenant
         loginTenantAdmin();
         CustomMenuInfo subCustomerMenuUnderTenant = doGet("/api/customMenu/" + subCustomerMenu.getId() + "/info", CustomMenu.class);
-        assertThat(subCustomerMenuUnderTenant).isEqualTo(subCustomerMenu);
+        assertThat(subCustomerMenuUnderTenant.getName()).isEqualTo(subCustomerMenu.getName());
 
         // delete subcustomer default menu
         loginCustomerAdminUser();
@@ -216,8 +217,8 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         loginTenantAdmin();
         // delete tenant default menu
         doDelete("/api/customMenu/" + tenantDefaultMenu.getId());
-        String currentTenantMenu2 = doGet("/api/customMenu", String.class);
-        assertThat(currentTenantMenu2).isEmpty();
+        JsonNode currentTenantMenu2 = doGet("/api/customMenu", JsonNode.class);
+        assertThat(currentTenantMenu2.get("items")).hasSize(0);
     }
 
     @Test
@@ -398,8 +399,8 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
 
         //change assignee to CUSTOMERS
         doPut("/api/customMenu/" + tenantMenu.getId() + "/assign/NO_ASSIGN", List.of());
-        String currentMenuAfterUpdate = doGet("/api/customMenu", String.class);
-        assertThat(currentMenuAfterUpdate).isEmpty();
+        JsonNode currentMenuAfterUpdate = doGet("/api/customMenu", JsonNode.class);
+        assertThat(currentMenuAfterUpdate.get("items")).hasSize(0);
 
         //change assignee to ALL
         String errorMessage = getErrorMessage(doPut("/api/customMenu/" + tenantMenu.getId() + "/assign/ALL", List.of())
@@ -445,8 +446,8 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         doPut("/api/customMenu/" + customerMenu.getId() + "/assign/NO_ASSIGN", List.of());
 
         loginCustomerUser();
-        String currentMenuAfterUpdate = doGet("/api/customMenu", String.class);
-        assertThat(currentMenuAfterUpdate).isEmpty();
+        JsonNode currentMenuAfterUpdate = doGet("/api/customMenu", JsonNode.class);
+        assertThat(currentMenuAfterUpdate.get("items")).hasSize(0);
 
         //change assignee to ALL
         loginTenantAdmin();
@@ -556,6 +557,7 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         customMenu.setName(name);
         customMenu.setScope(scope);
         customMenu.setAssigneeType(CMAssigneeType.ALL);
+        customMenu.setConfig(new CustomMenuConfig());
         return customMenu;
     }
 
