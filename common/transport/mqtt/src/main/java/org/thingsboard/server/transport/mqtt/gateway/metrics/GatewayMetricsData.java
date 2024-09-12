@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.transport.mqtt.gateway.latency;
+package org.thingsboard.server.transport.mqtt.gateway.metrics;
 
-public record GatewayLatencyData(long receivedTs, long publishedTs) {
+public record GatewayMetricsData(long receivedTs, long publishedTs) {
 }
