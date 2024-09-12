@@ -30,7 +30,7 @@
 ///
 
 import { TimeService } from '@core/services/time.service';
-import { deepClone, isDefined, isNumeric, isUndefined } from '@app/core/utils';
+import { deepClone, isDefined, isDefinedAndNotNull, isNumeric, isUndefined } from '@app/core/utils';
 import * as moment_ from 'moment';
 import * as momentTz from 'moment-timezone';
 import { IntervalType } from '@shared/models/telemetry/telemetry.models';
@@ -68,6 +68,17 @@ export enum HistoryWindowType {
   FOR_ALL_TIME
 }
 
+export const realtimeWindowTypeTranslations = new Map<RealtimeWindowType, string>([
+  [RealtimeWindowType.LAST_INTERVAL, 'timewindow.last'],
+  [RealtimeWindowType.INTERVAL, 'timewindow.relative']
+]);
+export const historyWindowTypeTranslations = new Map<HistoryWindowType, string>([
+  [HistoryWindowType.LAST_INTERVAL, 'timewindow.last'],
+  [HistoryWindowType.FIXED, 'timewindow.range'],
+  [HistoryWindowType.INTERVAL, 'timewindow.relative'],
+  [HistoryWindowType.FOR_ALL_TIME, 'timewindow.for-all-time']
+]);
+
 export type Interval = number | IntervalType;
 
 export class IntervalMath {
@@ -92,6 +103,12 @@ export interface IntervalWindow {
   interval?: Interval;
   timewindowMs?: number;
   quickInterval?: QuickTimeInterval;
+  disableCustomInterval?: boolean;
+  disableCustomGroupInterval?: boolean;
+  hideInterval?: boolean;
+  hideLastInterval?: boolean;
+  hideQuickInterval?: boolean;
+  hideFixedInterval?: boolean;
 }
 
 export interface RealtimeWindow extends IntervalWindow{
@@ -137,9 +154,6 @@ export interface Aggregation {
 export interface Timewindow {
   displayValue?: string;
   displayTimezoneAbbr?: string;
-  hideInterval?: boolean;
-  hideQuickInterval?: boolean;
-  hideLastInterval?: boolean;
   hideAggregation?: boolean;
   hideAggInterval?: boolean;
   hideTimezone?: boolean;
@@ -257,9 +271,6 @@ export const defaultTimewindow = (timeService: TimeService): Timewindow => {
   const currentTime = moment().valueOf();
   return {
     displayValue: '',
-    hideInterval: false,
-    hideLastInterval: false,
-    hideQuickInterval: false,
     hideAggregation: false,
     hideAggInterval: false,
     hideTimezone: false,
@@ -268,7 +279,10 @@ export const defaultTimewindow = (timeService: TimeService): Timewindow => {
       realtimeType: RealtimeWindowType.LAST_INTERVAL,
       interval: SECOND,
       timewindowMs: MINUTE,
-      quickInterval: QuickTimeInterval.CURRENT_DAY
+      quickInterval: QuickTimeInterval.CURRENT_DAY,
+      hideInterval: false,
+      hideLastInterval: false,
+      hideQuickInterval: false
     },
     history: {
       historyType: HistoryWindowType.LAST_INTERVAL,
@@ -278,7 +292,11 @@ export const defaultTimewindow = (timeService: TimeService): Timewindow => {
         startTimeMs: currentTime - DAY,
         endTimeMs: currentTime
       },
-      quickInterval: QuickTimeInterval.CURRENT_DAY
+      quickInterval: QuickTimeInterval.CURRENT_DAY,
+      hideInterval: false,
+      hideLastInterval: false,
+      hideFixedInterval: false,
+      hideQuickInterval: false
     },
     aggregation: {
       type: AggregationType.AVG,
@@ -299,14 +317,37 @@ export const initModelFromDefaultTimewindow = (value: Timewindow, quickIntervalO
                                                historyOnly: boolean, timeService: TimeService): Timewindow => {
   const model = defaultTimewindow(timeService);
   if (value) {
-    model.hideInterval = value.hideInterval;
-    model.hideLastInterval = value.hideLastInterval;
-    model.hideQuickInterval = value.hideQuickInterval;
     model.hideAggregation = value.hideAggregation;
     model.hideAggInterval = value.hideAggInterval;
     model.hideTimezone = value.hideTimezone;
     model.selectedTab = getTimewindowType(value);
+
+    // for backward compatibility
+    if (isDefinedAndNotNull((value as any).hideInterval)) {
+      model.realtime.hideInterval = (value as any).hideInterval;
+      model.history.hideInterval = (value as any).hideInterval;
+      delete (value as any).hideInterval;
+    }
+    if (isDefinedAndNotNull((value as any).hideLastInterval)) {
+      model.realtime.hideLastInterval = (value as any).hideLastInterval;
+      delete (value as any).hideLastInterval;
+    }
+    if (isDefinedAndNotNull((value as any).hideQuickInterval)) {
+      model.realtime.hideQuickInterval = (value as any).hideQuickInterval;
+      delete (value as any).hideQuickInterval;
+    }
+
     if (isDefined(value.realtime)) {
+      if (isDefinedAndNotNull(value.realtime.hideInterval)) {
+        model.realtime.hideInterval = value.realtime.hideInterval;
+      }
+      if (isDefinedAndNotNull(value.realtime.hideLastInterval)) {
+        model.realtime.hideLastInterval = value.realtime.hideLastInterval;
+      }
+      if (isDefinedAndNotNull(value.realtime.hideQuickInterval)) {
+        model.realtime.hideQuickInterval = value.realtime.hideQuickInterval;
+      }
+
       if (isDefined(value.realtime.interval)) {
         model.realtime.interval = value.realtime.interval;
       }
@@ -327,6 +368,19 @@ export const initModelFromDefaultTimewindow = (value: Timewindow, quickIntervalO
       }
     }
     if (isDefined(value.history)) {
+      if (isDefinedAndNotNull(value.history.hideInterval)) {
+        model.history.hideInterval = value.history.hideInterval;
+      }
+      if (isDefinedAndNotNull(value.history.hideLastInterval)) {
+        model.history.hideLastInterval = value.history.hideLastInterval;
+      }
+      if (isDefinedAndNotNull(value.history.hideFixedInterval)) {
+        model.history.hideFixedInterval = value.history.hideFixedInterval;
+      }
+      if (isDefinedAndNotNull(value.history.hideQuickInterval)) {
+        model.history.hideQuickInterval = value.history.hideQuickInterval;
+      }
+
       if (isDefined(value.history.interval)) {
         model.history.interval = value.history.interval;
       }
@@ -392,9 +446,6 @@ export const toHistoryTimewindow = (timewindow: Timewindow, startTimeMs: number,
     limit = timeService.getMaxDatapointsLimit();
   }
   return {
-    hideInterval: timewindow.hideInterval || false,
-    hideLastInterval: timewindow.hideLastInterval || false,
-    hideQuickInterval: timewindow.hideQuickInterval || false,
     hideAggregation: timewindow.hideAggregation || false,
     hideAggInterval: timewindow.hideAggInterval || false,
     hideTimezone: timewindow.hideTimezone || false,
@@ -405,7 +456,10 @@ export const toHistoryTimewindow = (timewindow: Timewindow, startTimeMs: number,
         startTimeMs,
         endTimeMs
       },
-      interval: timeService.boundIntervalToTimewindow(endTimeMs - startTimeMs, interval, AggregationType.AVG)
+      interval: timeService.boundIntervalToTimewindow(endTimeMs - startTimeMs, interval, AggregationType.AVG),
+      hideInterval: timewindow.history?.hideInterval || false,
+      hideLastInterval: timewindow.history?.hideLastInterval || false,
+      hideQuickInterval: timewindow.history?.hideQuickInterval || false,
     },
     aggregation: {
       type: aggType,
@@ -860,20 +914,14 @@ export const createTimewindowForComparison = (subscriptionTimewindow: Subscripti
 
 export const cloneSelectedTimewindow = (timewindow: Timewindow): Timewindow => {
   const cloned: Timewindow = {};
-  cloned.hideInterval = timewindow.hideInterval || false;
-  cloned.hideLastInterval = timewindow.hideLastInterval || false;
-  cloned.hideQuickInterval = timewindow.hideQuickInterval || false;
   cloned.hideAggregation = timewindow.hideAggregation || false;
   cloned.hideAggInterval = timewindow.hideAggInterval || false;
   cloned.hideTimezone = timewindow.hideTimezone || false;
   if (isDefined(timewindow.selectedTab)) {
     cloned.selectedTab = timewindow.selectedTab;
-    if (timewindow.selectedTab === TimewindowType.REALTIME) {
-      cloned.realtime = deepClone(timewindow.realtime);
-    } else if (timewindow.selectedTab === TimewindowType.HISTORY) {
-      cloned.history = deepClone(timewindow.history);
-    }
   }
+  cloned.realtime = deepClone(timewindow.realtime);
+  cloned.history = deepClone(timewindow.history);
   cloned.aggregation = deepClone(timewindow.aggregation);
   cloned.timezone = timewindow.timezone;
   return cloned;
