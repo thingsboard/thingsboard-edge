@@ -35,7 +35,6 @@ import {
   ModbusBasicConfig_v3_5_2,
   ModbusLegacyBasicConfig,
   ModbusLegacySlave,
-  ModbusMasterConfig,
   ModbusSlave,
 } from '../gateway-widget.models';
 import { GatewayConnectorVersionProcessor } from './gateway-connector-version-processor.abstract';
@@ -55,9 +54,9 @@ export class ModbusVersionProcessor extends GatewayConnectorVersionProcessor<any
     return {
       ...this.connector,
       configurationJson: {
-        master: configurationJson.master
+        master: configurationJson.master?.slaves
           ? ModbusVersionMappingUtil.mapMasterToUpgradedVersion(configurationJson.master)
-          : {} as ModbusMasterConfig,
+          : { slaves: [] },
         slave: configurationJson.slave
           ? ModbusVersionMappingUtil.mapSlaveToUpgradedVersion(configurationJson.slave as ModbusLegacySlave)
           : {} as ModbusSlave,

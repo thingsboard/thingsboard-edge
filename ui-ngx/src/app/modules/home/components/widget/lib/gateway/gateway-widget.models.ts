@@ -1180,14 +1180,15 @@ export interface ModbusSlave {
   pollPeriod: number;
   sendDataToThingsBoard: boolean;
   byteOrder: ModbusOrderType;
+  wordOrder: ModbusOrderType;
   identity: ModbusIdentity;
-  values: ModbusValuesState;
+  values?: ModbusValuesState;
   port: string | number;
   security: ModbusSecurity;
 }
 
 export interface ModbusLegacySlave extends Omit<ModbusSlave, 'values'> {
-  values: ModbusLegacyRegisterValues;
+  values?: ModbusLegacyRegisterValues;
 }
 
 export type ModbusValuesState = ModbusRegisterValues | ModbusValues;
