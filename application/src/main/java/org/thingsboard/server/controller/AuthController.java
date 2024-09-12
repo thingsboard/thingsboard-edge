@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -76,6 +77,9 @@ import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_DASHBOARD;
+import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD;
+
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
@@ -100,7 +104,13 @@ public class AuthController extends BaseController {
     @GetMapping(value = "/auth/user")
     public User getUser() throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
-        return userService.findUserById(securityUser.getTenantId(), securityUser.getId());
+        User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
+        if (user.getAdditionalInfo().isObject()) {
+            ObjectNode additionalInfo = (ObjectNode) user.getAdditionalInfo();
+            processDashboardIdFromAdditionalInfo(additionalInfo, DEFAULT_DASHBOARD);
+            processDashboardIdFromAdditionalInfo(additionalInfo, HOME_DASHBOARD);
+        }
+        return user;
     }
 
     @ApiOperation(value = "Logout (logout)",
