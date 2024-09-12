@@ -28,32 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.attributes;
+package org.thingsboard.server.dao.role;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Data;
 import org.thingsboard.server.cache.VersionedCacheKey;
-import org.thingsboard.server.common.data.AttributeScope;
-import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.RoleId;
 
 import java.io.Serial;
 
-@EqualsAndHashCode
-@Getter
-@AllArgsConstructor
-public class AttributeCacheKey implements VersionedCacheKey {
+@Data(staticConstructor = "forId")
+public class RoleCacheKey implements VersionedCacheKey {
 
     @Serial
-    private static final long serialVersionUID = 2013369077925351881L;
+    private static final long serialVersionUID = 3472395528434231465L;
 
-    private final AttributeScope scope;
-    private final EntityId entityId;
-    private final String key;
+    private final RoleId roleId;
 
     @Override
     public String toString() {
-        return "{" + entityId + "}" + scope + "_" + key;
+        return roleId.toString();
     }
 
     @Override
