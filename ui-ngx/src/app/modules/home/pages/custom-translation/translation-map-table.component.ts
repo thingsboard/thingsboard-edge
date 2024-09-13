@@ -60,7 +60,6 @@ import {
   CustomTranslationEditInfo,
   CustomTranslationState
 } from '@shared/models/custom-translation.model';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { MatPaginator } from '@angular/material/paginator';
 import { TranslateService } from '@ngx-translate/core';

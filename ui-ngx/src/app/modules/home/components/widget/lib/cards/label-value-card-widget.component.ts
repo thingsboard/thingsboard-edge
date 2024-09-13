@@ -55,7 +55,6 @@ import {
   resolveCssSize,
   textStyle
 } from '@shared/models/widget-settings.models';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { ImagePipe } from '@shared/pipe/image.pipe';
 import { DomSanitizer } from '@angular/platform-browser';
 import {
