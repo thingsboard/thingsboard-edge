@@ -55,6 +55,6 @@ public class KinesisPollingConfig implements RetrievalSpecificConfig {
 
     @Override
     public RetrievalFactory retrievalFactory() {
-        return new SynchronousBlockingRetrievalFactory(streamName, kinesisClient, recordsFetcherFactory, maxRecords, kinesisRequestTimeout);
+        return new SynchronousBlockingRetrievalFactory(streamName, kinesisClient, recordsFetcherFactory, maxRecords, kinesisRequestTimeout, null);
     }
 }
