@@ -29,7 +29,6 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BatteryLevelLayout } from '@home/components/widget/lib/indicator/battery-level-widget.models';
 import {
   BackgroundSettings,
   BackgroundType,
@@ -74,6 +73,7 @@ export interface WindSpeedDirectionWidgetSettings {
   minorTicksColor: string;
   minorTicksFont: Font;
   background: BackgroundSettings;
+  padding: string
 }
 
 export const windSpeedDirectionDefaultSettings: WindSpeedDirectionWidgetSettings = {
@@ -116,5 +116,6 @@ export const windSpeedDirectionDefaultSettings: WindSpeedDirectionWidgetSettings
       color: 'rgba(255,255,255,0.72)',
       blur: 3
     }
-  }
+  },
+  padding: ''
 };

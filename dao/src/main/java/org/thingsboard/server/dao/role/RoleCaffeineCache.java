@@ -35,12 +35,11 @@ import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.cache.VersionedCaffeineTbCache;
 import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.role.Role;
 
 @ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
 @Service("RoleCache")
-public class RoleCaffeineCache extends VersionedCaffeineTbCache<RoleId, Role> {
+public class RoleCaffeineCache extends VersionedCaffeineTbCache<RoleCacheKey, Role> {
 
     public RoleCaffeineCache(CacheManager cacheManager) {
         super(cacheManager, CacheConstants.ROLE_CACHE);

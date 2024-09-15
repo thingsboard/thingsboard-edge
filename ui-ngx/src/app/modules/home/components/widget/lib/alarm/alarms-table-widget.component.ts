@@ -135,7 +135,6 @@ import { DataKeyType } from '@shared/models/telemetry/telemetry.models';
 import { entityFields } from '@shared/models/entity.models';
 import { EntityService } from '@core/http/entity.service';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import {
   ALARM_ASSIGNEE_PANEL_DATA,

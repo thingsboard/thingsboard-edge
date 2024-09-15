@@ -66,7 +66,6 @@ import {
   GroupPermissionDialogData
 } from '@shared/components/role/group-permission-dialog.component';
 import { ViewRoleDialogComponent, ViewRoleDialogData } from '@home/components/role/view-role-dialog.component';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { FormBuilder } from '@angular/forms';
 

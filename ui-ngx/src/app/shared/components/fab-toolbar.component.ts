@@ -44,7 +44,6 @@ import {
 } from '@angular/core';
 import { WINDOW } from '@core/services/window.service';
 import { _Constructor, CanColor, mixinColor, ThemePalette } from '@angular/material/core';
-import { ResizeObserver } from '@juggle/resize-observer';
 
 export declare type FabToolbarDirection = 'left' | 'right';
 

@@ -51,4 +51,6 @@ public interface CustomMenuDao extends Dao<CustomMenu> {
     CustomMenu findDefaultMenuByScope(TenantId tenantId, CustomerId customerId, CMScope scope);
 
     void removeByTenantId(TenantId tenantId);
+
+    PageData<CustomMenu> findByTenantId(TenantId tenantId, PageLink pageLink);
 }

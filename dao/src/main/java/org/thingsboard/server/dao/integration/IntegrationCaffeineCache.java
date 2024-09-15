@@ -35,12 +35,11 @@ import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.cache.VersionedCaffeineTbCache;
 import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.integration.Integration;
 
 @ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
 @Service("IntegrationCache")
-public class IntegrationCaffeineCache extends VersionedCaffeineTbCache<IntegrationId, Integration> {
+public class IntegrationCaffeineCache extends VersionedCaffeineTbCache<IntegrationCacheKey, Integration> {
 
     public IntegrationCaffeineCache(CacheManager cacheManager) {
         super(cacheManager, CacheConstants.INTEGRATIONS_CACHE);

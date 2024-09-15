@@ -57,6 +57,8 @@ public interface CustomMenuService {
 
     void updateAssigneeList(CustomMenu oldCustomMenu, CMAssigneeType newAssigneeType, List<EntityId> newAssignToList, boolean force) throws ThingsboardException;
 
+    PageData<CustomMenu> findCustomMenusByTenantId(TenantId tenantId, PageLink pageLink);
+
     CustomMenuInfo findCustomMenuInfoById(TenantId tenantId, CustomMenuId customMenuId);
 
     CustomMenu findCustomMenuById(TenantId tenantId, CustomMenuId customMenuId);

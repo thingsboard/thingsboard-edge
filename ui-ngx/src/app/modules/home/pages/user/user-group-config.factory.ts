@@ -162,14 +162,14 @@ export class UserGroupConfigFactory implements EntityGroupStateConfigFactory<Use
     if ($event) {
       $event.stopPropagation();
     }
-    this.userService.getActivationLink(user.id.id).subscribe(
-      (activationLink) => {
+    this.userService.getActivationLinkInfo(user.id.id).subscribe(
+      (activationLinkInfo) => {
         this.dialog.open<ActivationLinkDialogComponent, ActivationLinkDialogData,
           void>(ActivationLinkDialogComponent, {
           disableClose: true,
           panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
           data: {
-            activationLink
+            activationLinkInfo
           }
         });
       }
