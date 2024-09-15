@@ -82,7 +82,7 @@
               </mat-option>
             </mat-select>
           </mat-form-field>
-          <section *ngIf="authState.whiteLabelingAllowed && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)"
+          <section *ngIf="resource.DASHBOARD | hasGenericPermission: operation.READ"
                    class="tb-home-dashboard" fxFlex fxLayout="column" fxLayout.gt-sm="row">
             <tb-dashboard-autocomplete
               fxFlex
