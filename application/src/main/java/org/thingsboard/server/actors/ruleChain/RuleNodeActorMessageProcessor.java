@@ -58,6 +58,7 @@ import org.thingsboard.server.gen.transport.TransportProtos;
 @Slf4j
 public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNodeId> {
 
+    private static final String UNKNOWN_NAME = "Unknown";
     private final String ruleChainName;
     private final TbApiUsageReportClient apiUsageClient;
     private final DefaultTbContext defaultCtx;
@@ -72,7 +73,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
         this.ruleChainName = ruleChainName;
         this.ruleNode = systemContext.getRuleChainService().findRuleNodeById(tenantId, entityId);
         this.defaultCtx = new DefaultTbContext(systemContext, ruleChainName, new RuleNodeCtx(tenantId, parent, self, ruleNode));
-        this.info = new RuleNodeInfo(ruleNodeId, ruleChainName, ruleNode != null ? ruleNode.getName() : "Unknown");
+        this.info = new RuleNodeInfo(ruleNodeId, ruleChainName, ruleNode != null ? ruleNode.getName() : UNKNOWN_NAME);
     }
 
     @Override
@@ -90,7 +91,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
     public void onUpdate(TbActorCtx context) throws Exception {
         RuleNode newRuleNode = systemContext.getRuleChainService().findRuleNodeById(tenantId, entityId);
         if (isMyNodePartition(newRuleNode)) {
-            this.info = new RuleNodeInfo(entityId, ruleChainName, newRuleNode != null ? newRuleNode.getName() : "Unknown");
+            this.info = new RuleNodeInfo(entityId, ruleChainName, newRuleNode != null ? newRuleNode.getName() : UNKNOWN_NAME);
             boolean restartRequired = state != ComponentLifecycleState.ACTIVE ||
                     !(ruleNode.getType().equals(newRuleNode.getType()) && ruleNode.getConfiguration().equals(newRuleNode.getConfiguration()));
             this.ruleNode = newRuleNode;
@@ -182,7 +183,7 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
 
     @Override
     public String getComponentName() {
-        return ruleNode.getName();
+        return ruleNode != null ? ruleNode.getName() : UNKNOWN_NAME;
     }
 
     private TbNode initComponent(RuleNode ruleNode) throws Exception {
