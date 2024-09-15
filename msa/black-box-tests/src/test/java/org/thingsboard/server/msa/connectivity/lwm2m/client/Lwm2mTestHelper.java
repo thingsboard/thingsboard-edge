@@ -40,7 +40,7 @@ import static org.eclipse.leshan.client.object.Security.noSec;
 public class Lwm2mTestHelper {
 
     // Models
-    public static final String[] resources = new String[]{ "0.xml", "1.xml", "2.xml", "3.xml", "5.xml"};
+    public static final String[] resources = new String[]{"0.xml", "1.xml", "2.xml", "3.xml", "5.xml", "19.xml"};
     public static final int serverId = 1;
 
     public static final int port = 5685;
@@ -59,19 +59,32 @@ public class Lwm2mTestHelper {
     public static final String CLIENT_PSK_IDENTITY = "SOME_PSK_ID";
     public static final String CLIENT_PSK_KEY = "73656372657450534b73656372657450";
 
+    public static final int BINARY_APP_DATA_CONTAINER = 19;
+
     public static  String OBSERVE_ATTRIBUTES_WITH_PARAMS =
 
             "    {\n" +
                     "    \"keyName\": {\n" +
-                    "      \"/3_1.2/0/9\": \"batteryLevel\"\n" +
+                    "      \"/3_1.2/0/9\": \"batteryLevel\",\n" +
+                    "      \"/3_1.2/0/14\": \"UtfOffset\",\n" +
+                    "      \"/19_1.1/0/0\": \"dataRead\",\n" +
+                    "      \"/19_1.1/1/0\": \"dataWrite\",\n" +
+                    "      \"/19_1.1/0/2\": \"dataCreationTime\"\n" +
                     "    },\n" +
                     "    \"observe\": [\n" +
-                    "      \"/3_1.2/0/9\"\n" +
+                    "      \"/3_1.2/0/9\",\n" +
+                    "      \"/19_1.1/0/0\",\n" +
+                    "      \"/19_1.1/1/0\",\n" +
+                    "      \"/19_1.1/0/2\"\n" +
                     "    ],\n" +
                     "    \"attribute\": [\n" +
+                    "      \"/3_1.2/0/14\",\n" +
+                    "      \"/19_1.1/0/2\"\n" +
                     "    ],\n" +
                     "    \"telemetry\": [\n" +
-                    "      \"/3_1.2/0/9\"\n" +
+                    "      \"/3_1.2/0/9\",\n" +
+                    "      \"/19_1.1/0/0\",\n" +
+                    "      \"/19_1.1/1/0\"\n" +
                     "    ],\n" +
                     "    \"attributeLwm2m\": {}\n" +
                     "  }";
@@ -87,10 +100,6 @@ public class Lwm2mTestHelper {
                     "    \"pagingTransmissionWindow\": null,\n" +
                     "    \"clientOnlyObserveAfterConnect\": 1\n" +
                     "  }";
-
-    public static final int BINARY_APP_DATA_CONTAINER = 19;
-    public static final int OBJECT_INSTANCE_ID_0 = 0;
-    public static final int OBJECT_INSTANCE_ID_1 = 1;
 
     public enum LwM2MClientState {
 
@@ -112,8 +121,8 @@ public class Lwm2mTestHelper {
         ON_DEREGISTRATION_FAILURE(14, "onDeregistrationFailure"),
         ON_DEREGISTRATION_TIMEOUT(15, "onDeregistrationTimeout"),
         ON_EXPECTED_ERROR(16, "onUnexpectedError"),
-        ON_READ_CONNECTION_ID (17, "onReadConnection"),
-        ON_WRITE_CONNECTION_ID (18, "onWriteConnection");
+        ON_READ_CONNECTION_ID(17, "onReadConnection"),
+        ON_WRITE_CONNECTION_ID(18, "onWriteConnection");
 
         public int code;
         public String type;
@@ -146,7 +155,7 @@ public class Lwm2mTestHelper {
         serverCoapConfig.setTransient(DTLS_CONNECTION_ID_LENGTH);
         serverCoapConfig.setTransient(DTLS_CONNECTION_ID_NODE_ID);
         serverCoapConfig.set(DTLS_CONNECTION_ID_LENGTH, cIdLength);
-        if ( cIdLength > 4) {
+        if (cIdLength > 4) {
             serverCoapConfig.set(DTLS_CONNECTION_ID_NODE_ID, 0);
         } else {
             serverCoapConfig.set(DTLS_CONNECTION_ID_NODE_ID, null);
