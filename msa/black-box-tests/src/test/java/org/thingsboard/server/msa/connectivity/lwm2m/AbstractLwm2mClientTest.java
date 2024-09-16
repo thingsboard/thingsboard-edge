@@ -220,6 +220,7 @@ public class AbstractLwm2mClientTest extends AbstractContainerTest {
         assertEquals(0, (Object) Optional.ofNullable(getCntObserveAll(deviceId.toString())).get());
     }
 
+
     public void basicTestConnection(LwM2MTestClient lwM2MTestClient, String alias) throws Exception {
         LwM2MClientState finishState = ON_REGISTRATION_SUCCESS;
         await(alias + " - " + ON_REGISTRATION_STARTED)
@@ -237,6 +238,7 @@ public class AbstractLwm2mClientTest extends AbstractContainerTest {
         assertThat(lwM2MTestClient.getClientStates()).containsAll(expectedStatusesRegistrationLwm2mSuccess);
 
     }
+
 
     public LwM2MTestClient createNewClient(Security security,
                                            String endpoint, ScheduledExecutorService executor) throws Exception {
