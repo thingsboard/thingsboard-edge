@@ -64,6 +64,7 @@ import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.DataValidationException;
 
@@ -90,7 +91,7 @@ public class CustomMenuServiceImpl extends AbstractCachedEntityService<CustomMen
     @Override
     public CustomMenu createCustomMenu(CustomMenuInfo customMenuInfo, List<EntityId> assignToList, boolean force) throws ThingsboardException {
         log.trace("Executing createCustomMenu [{}]", customMenuInfo);
-        return saveCustomMenu(new CustomMenu(customMenuInfo), assignToList, force);
+        return saveCustomMenu(new CustomMenu(customMenuInfo, new CustomMenuConfig()), assignToList, force);
     }
 
     @Override
@@ -124,6 +125,12 @@ public class CustomMenuServiceImpl extends AbstractCachedEntityService<CustomMen
         unassignCustomMenu(oldAssigneeType, toRemoveEntityIds);
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(customMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
                 .edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.UPDATED).build());
+    }
+
+    @Override
+    public PageData<CustomMenu> findCustomMenusByTenantId(TenantId tenantId, PageLink pageLink) {
+        log.trace("Executing findCustomMenusByTenantId [{}]", tenantId);
+        return customMenuDao.findByTenantId(tenantId, pageLink);
     }
 
     @Override
@@ -230,8 +237,20 @@ public class CustomMenuServiceImpl extends AbstractCachedEntityService<CustomMen
     @Override
     public void deleteByTenantId(TenantId tenantId) {
         log.trace("Executing deleteByTenantId, tenantId [{}]", tenantId);
-        customMenuDao.removeByTenantId(tenantId);
+        customMenusRemover.removeEntities(tenantId, tenantId);
     }
+
+    private final PaginatedRemover<TenantId, CustomMenu> customMenusRemover = new PaginatedRemover<>() {
+        @Override
+        protected PageData<CustomMenu> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+            return findCustomMenusByTenantId(tenantId, pageLink);
+        }
+
+        @Override
+        protected void removeEntity(TenantId tenantId, CustomMenu customMenu) {
+            deleteCustomMenu(customMenu, true);
+        }
+    };
 
     private CustomMenu saveCustomMenu(CustomMenu customMenu, List<EntityId> assignToList, boolean force) throws ThingsboardException {
 //         edge-only: we do not need to validate, validation is done on TB side
@@ -251,7 +270,7 @@ public class CustomMenuServiceImpl extends AbstractCachedEntityService<CustomMen
         if (CollectionUtils.isNotEmpty(assignToList)) {
             assignCustomMenu(savedCustomMenu.getId(), customMenu.getAssigneeType(), assignToList);
         }
-        publishEvictEvent(new CustomMenuCacheEvictEvent(savedCustomMenu.getId()));
+        publishEvictEvent(new CustomMenuCacheEvictEvent(savedCustomMenu.getTenantId(), savedCustomMenu.getId()));
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(savedCustomMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
                 .body(JacksonUtil.toString(savedCustomMenu)).edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.UPDATED).build());
         return savedCustomMenu;
@@ -287,17 +306,10 @@ public class CustomMenuServiceImpl extends AbstractCachedEntityService<CustomMen
     }
 
     private void deleteCustomMenu(CustomMenu customMenu) {
-        try {
-            customMenuDao.removeById(customMenu.getTenantId(), customMenu.getId().getId());
-            publishEvictEvent(new CustomMenuCacheEvictEvent(customMenu.getId()));
-            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(customMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
-                    .body(JacksonUtil.toString(customMenu)).edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.DELETED).build());
-        } catch (Exception e) {
-            checkConstraintViolation(e,
-                    Map.of("fk_user_custom_menu", "The custom menu referenced by the user cannot be deleted!",
-                            "fk_customer_custom_menu", "The custom menu referenced by the customer cannot be deleted!"));
-            throw e;
-        }
+        customMenuDao.removeById(customMenu.getTenantId(), customMenu.getId().getId());
+        publishEvictEvent(new CustomMenuCacheEvictEvent(customMenu.getTenantId(), customMenu.getId()));
+        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(customMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
+                .body(JacksonUtil.toString(customMenu)).edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.DELETED).build());
     }
 
     private static CustomMenuConfig getVisibleMenuItems(CustomMenu customMenu) {
@@ -355,7 +367,12 @@ public class CustomMenuServiceImpl extends AbstractCachedEntityService<CustomMen
         return customerId != null && !customerId.isNullUid() ? customerId : tenantId;
     }
 
-    @TransactionalEventListener(classes = CustomMenuCacheEvictEvent.class)
+    @Override
+    protected void publishEvictEvent(CustomMenuCacheEvictEvent customMenuCacheEvictEvent) {
+        eventPublisher.publishEvent(customMenuCacheEvictEvent);
+    }
+
+    @TransactionalEventListener(classes = CustomMenuCacheEvictEvent.class, fallbackExecution = true)
     @Override
     public void handleEvictEvent(CustomMenuCacheEvictEvent event) {
         cache.evict(event.customMenuId());

@@ -31,7 +31,6 @@
 package org.thingsboard.server.dao.user;
 
 import com.google.common.util.concurrent.ListenableFuture;
-import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.UserInfo;
 import org.thingsboard.server.common.data.id.CustomMenuId;
@@ -51,15 +50,14 @@ import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public interface UserService extends EntityDaoService {
 
-	User findUserById(TenantId tenantId, UserId userId);
+    User findUserById(TenantId tenantId, UserId userId);
 
     UserInfo findUserInfoById(TenantId tenantId, UserId userId);
 
-	ListenableFuture<User> findUserByIdAsync(TenantId tenantId, UserId userId);
+    ListenableFuture<User> findUserByIdAsync(TenantId tenantId, UserId userId);
 
     ListenableFuture<List<User>> findUsersByTenantIdAndIdsAsync(TenantId tenantId, List<UserId> userIds);
 
@@ -73,23 +71,27 @@ public interface UserService extends EntityDaoService {
 
     User saveUser(TenantId tenantId, User user);
 
-    User saveUser(TenantId tenantId, User user, boolean doValidate);
+    User saveUser(TenantId tenantId, User user, boolean validate);
 
-	UserCredentials findUserCredentialsByUserId(TenantId tenantId, UserId userId);
+    UserCredentials findUserCredentialsByUserId(TenantId tenantId, UserId userId);
 
-	UserCredentials findUserCredentialsByActivateToken(TenantId tenantId, String activateToken);
+    UserCredentials findUserCredentialsByActivateToken(TenantId tenantId, String activateToken);
 
     UserCredentials findUserCredentialsByResetToken(TenantId tenantId, String resetToken);
 
-	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
+    UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
 	UserCredentials saveUserCredentials(TenantId tenantId, UserCredentials userCredentials, boolean doValidate);
 
 	UserCredentials activateUserCredentials(TenantId tenantId, String activateToken, String password);
 
-	UserCredentials requestPasswordReset(TenantId tenantId, String email);
+    UserCredentials requestPasswordReset(TenantId tenantId, String email);
 
     UserCredentials requestExpiredPasswordReset(TenantId tenantId, UserCredentialsId userCredentialsId);
+
+    UserCredentials generatePasswordResetToken(UserCredentials userCredentials);
+
+    UserCredentials generateUserActivationToken(UserCredentials userCredentials);
 
     UserCredentials replaceUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
@@ -97,7 +99,7 @@ public interface UserService extends EntityDaoService {
 
     void deleteUser(TenantId tenantId, User user);
 
-	PageData<User> findTenantAdmins(TenantId tenantId, PageLink pageLink);
+    PageData<User> findTenantAdmins(TenantId tenantId, PageLink pageLink);
 
     PageData<User> findUsersByTenantId(TenantId tenantId, PageLink pageLink);
 
@@ -111,7 +113,7 @@ public interface UserService extends EntityDaoService {
 
     PageData<User> findAllUsers(PageLink pageLink);
 
-	void deleteTenantAdmins(TenantId tenantId);
+    void deleteTenantAdmins(TenantId tenantId);
 
     PageData<User> findAllCustomerUsers(TenantId tenantId, PageLink pageLink);
 

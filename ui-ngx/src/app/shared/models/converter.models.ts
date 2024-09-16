@@ -119,6 +119,34 @@ export interface ConverterDebugInput {
   inIntegrationMetadata: string;
 }
 
+export enum ConverterSourceType {
+  NEW = 'new',
+  EXIST = 'exist',
+  LIBRARY = 'library',
+}
+
+export interface ConverterLibraryValue {
+  vendor: string;
+  model: string;
+  converter: Converter
+}
+
+export interface Vendor {
+  name: string;
+  logo: string;
+}
+
+export interface Model {
+  name: string;
+  photo: string;
+  info: {
+    description: string;
+    label: string;
+    url: string;
+  };
+  searchText?: string;
+}
+
 export function getConverterHelpLink(converter: Converter) {
   let link = 'converters';
   if (converter && converter.type) {

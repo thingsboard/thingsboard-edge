@@ -449,7 +449,8 @@ public class DefaultTransportApiService implements TransportApiService {
                                     requestMsg.getCredentialsDataProto().getValidateDeviceX509CertRequestMsg().getHash()),
                             new ProvisionDeviceProfileCredentials(
                                     requestMsg.getProvisionDeviceCredentialsMsg().getProvisionDeviceKey(),
-                                    requestMsg.getProvisionDeviceCredentialsMsg().getProvisionDeviceSecret())));
+                                    requestMsg.getProvisionDeviceCredentialsMsg().getProvisionDeviceSecret()),
+                            requestMsg.getGateway()));
         } catch (ProvisionFailedException e) {
             return getTransportApiResponseMsg(new DeviceCredentials(), TransportProtos.ResponseStatus.valueOf(e.getMessage()));
         }
@@ -689,7 +690,7 @@ public class DefaultTransportApiService implements TransportApiService {
     private ProvisionRequest createProvisionRequest(String certificateValue) {
         return new ProvisionRequest(null, DeviceCredentialsType.X509_CERTIFICATE,
                 new ProvisionDeviceCredentialsData(null, null, null, null, certificateValue),
-                null);
+                null, null);
     }
 
 }

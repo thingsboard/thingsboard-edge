@@ -101,7 +101,6 @@ import {
   AddEntitiesToEdgeDialogData
 } from '@home/dialogs/add-entities-to-edge-dialog.component';
 import { EntityType } from '@shared/models/entity-type.models';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { asRoughMs, rangeContainsMarker } from '@fullcalendar/core/internal';
 import * as _moment from 'moment';

@@ -32,21 +32,21 @@ package org.thingsboard.server.cluster;
 
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.ToDeviceActorNotificationMsg;
@@ -141,11 +141,11 @@ public interface TbClusterService extends TbQueueClusterService {
     void sendNotificationMsgToEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId, String body, EdgeEventType type,
                                    EdgeEventActionType action, EntityType entityGroupType, EntityGroupId entityGroupId, EdgeId sourceEdgeId);
 
+    void onUserUpdated(User user, User oldUser);
+
+    void onCustomerUpdated(Customer customer, Customer oldCustomer);
+
     void sendNotificationMsgToCloud(TenantId tenantId, EntityId entityId, String entityBody, CloudEventType cloudEventType, EdgeEventActionType cloudEventAction,
                                     EntityGroupId entityGroupId);
-
-    void onUserUpdated(TenantId tenantId, UserId userId);
-
-    void onCustomerUpdated(TenantId tenantId, CustomerId customerId);
 
 }

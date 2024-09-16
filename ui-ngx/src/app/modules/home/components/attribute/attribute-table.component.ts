@@ -104,7 +104,6 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { Filters } from '@shared/models/query/query.models';
 import { hidePageSizePixelValue } from '@shared/models/constants';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { DeleteTimeseriesPanelComponent } from '@home/components/attribute/delete-timeseries-panel.component';
 import { FormBuilder } from '@angular/forms';
 

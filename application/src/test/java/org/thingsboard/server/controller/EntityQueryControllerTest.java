@@ -1226,6 +1226,27 @@ public class EntityQueryControllerTest extends AbstractControllerTest {
         checkEntitiesByQuery(customerEntitiesQuery, 0, null, null);
     }
 
+    @Test
+    public void testCountByQueryWithUnsuitableEntityType() {
+        EntityTypeFilter entityTypeFilter = new EntityTypeFilter();
+        EntityCountQuery entityTypeQuery = new EntityCountQuery(entityTypeFilter);
+        long count = doPost("/api/entitiesQuery/count", entityTypeQuery, Long.class);
+        Assert.assertEquals(0, count);
+
+        entityTypeFilter.setEntityType(EntityType.NOTIFICATION);
+        count = doPost("/api/entitiesQuery/count", entityTypeQuery, Long.class);
+        Assert.assertEquals(0, count);
+
+        EntityGroupNameFilter groupNameFilter = new EntityGroupNameFilter();
+        EntityCountQuery groupNameQuery = new EntityCountQuery(groupNameFilter);
+        count = doPost("/api/entitiesQuery/count", groupNameQuery, Long.class);
+        Assert.assertEquals(0, count);
+
+        groupNameFilter.setGroupType(EntityType.ALARM);
+        count = doPost("/api/entitiesQuery/count", groupNameQuery, Long.class);
+        Assert.assertEquals(0, count);
+    }
+
     private void clearCustomerAdminPermissionGroup() throws Exception {
         loginTenantAdmin();
         doDelete("/api/groupPermission/" + groupPermission.getUuidId())

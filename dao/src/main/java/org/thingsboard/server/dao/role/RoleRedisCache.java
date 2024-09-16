@@ -38,12 +38,11 @@ import org.thingsboard.server.cache.TBRedisCacheConfiguration;
 import org.thingsboard.server.cache.TbJsonRedisSerializer;
 import org.thingsboard.server.cache.VersionedRedisTbCache;
 import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.common.data.id.RoleId;
 import org.thingsboard.server.common.data.role.Role;
 
 @ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
 @Service("RoleCache")
-public class RoleRedisCache extends VersionedRedisTbCache<RoleId, Role> {
+public class RoleRedisCache extends VersionedRedisTbCache<RoleCacheKey, Role> {
 
     public RoleRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
         super(CacheConstants.ROLE_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbJsonRedisSerializer<>(Role.class));

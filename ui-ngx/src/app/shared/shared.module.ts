@@ -253,11 +253,16 @@ import { ImageGalleryDialogComponent } from '@shared/components/image/image-gall
 import { RuleChainSelectPanelComponent } from '@shared/components/rule-chain/rule-chain-select-panel.component';
 import { WidgetButtonComponent } from '@shared/components/button/widget-button.component';
 import { HexInputComponent } from '@shared/components/color-picker/hex-input.component';
+import { TimezoneComponent } from '@shared/components/time/timezone.component';
+import { TimezonePanelComponent } from '@shared/components/time/timezone-panel.component';
+import { TimewindowConfigDialogComponent } from '@shared/components/time/timewindow-config-dialog.component';
 import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 import { ScadaSymbolInputComponent } from '@shared/components/image/scada-symbol-input.component';
 import { CountryAutocompleteComponent } from '@shared/components/country-autocomplete.component';
 import { CountryData } from '@shared/models/country.models';
+import { SvgXmlComponent } from '@shared/components/svg-xml.component';
 import { CustomMenuAutocompleteComponent } from '@shared/components/custom-menu-autocomplete.component';
+import { DatapointsLimitComponent } from '@shared/components/time/datapoints-limit.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -346,8 +351,12 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     UserMenuComponent,
     TimewindowComponent,
     TimewindowPanelComponent,
+    TimewindowConfigDialogComponent,
     TimeintervalComponent,
+    TimezoneComponent,
+    TimezonePanelComponent,
     QuickTimeIntervalComponent,
+    DatapointsLimitComponent,
     DashboardSelectComponent,
     DashboardSelectPanelComponent,
     DatetimePeriodComponent,
@@ -382,6 +391,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     JsFuncComponent,
     CssComponent,
     HtmlComponent,
+    SvgXmlComponent,
     FabTriggerDirective,
     FabActionsDirective,
     FabToolbarComponent,
@@ -573,8 +583,12 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     UserMenuComponent,
     TimewindowComponent,
     TimewindowPanelComponent,
+    TimewindowConfigDialogComponent,
     TimeintervalComponent,
+    TimezoneComponent,
+    TimezonePanelComponent,
     QuickTimeIntervalComponent,
+    DatapointsLimitComponent,
     DashboardSelectComponent,
     DatetimePeriodComponent,
     DatetimeComponent,
@@ -607,6 +621,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     JsFuncComponent,
     CssComponent,
     HtmlComponent,
+    SvgXmlComponent,
     FabTriggerDirective,
     FabActionsDirective,
     TbJsonToStringDirective,

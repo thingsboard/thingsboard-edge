@@ -46,6 +46,7 @@ import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.CloudUtils;
 import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.Device;
@@ -58,6 +59,7 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
@@ -465,27 +467,29 @@ public class DefaultTbClusterService implements TbClusterService {
     }
 
     @Override
-    public void onUserUpdated(TenantId tenantId, UserId userId) {
-        broadcastToCore(TransportProtos.ToCoreNotificationMsg.newBuilder()
-                .setCustomMenuCacheInvalidateMsg(TransportProtos.CustomMenuCacheInvalidateMsg.newBuilder()
-                        .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
-                        .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
-                        .setUserIdMSB(userId.getId().getMostSignificantBits())
-                        .setUserIdLSB(userId.getId().getLeastSignificantBits())
-                        .build())
-                .build());
+    public void onUserUpdated(User user, User oldUser) {
+        if (!Objects.equals(user.getCustomMenuId(), oldUser.getCustomMenuId())) {
+            UserId userId = user.getId();
+            broadcastToCore(TransportProtos.ToCoreNotificationMsg.newBuilder()
+                    .setCustomMenuCacheInvalidateMsg(TransportProtos.CustomMenuCacheInvalidateMsg.newBuilder()
+                            .setUserIdMSB(userId.getId().getMostSignificantBits())
+                            .setUserIdLSB(userId.getId().getLeastSignificantBits())
+                            .build())
+                    .build());
+        }
     }
 
     @Override
-    public void onCustomerUpdated(TenantId tenantId, CustomerId customerId) {
-        broadcastToCore(TransportProtos.ToCoreNotificationMsg.newBuilder()
-                .setCustomMenuCacheInvalidateMsg(TransportProtos.CustomMenuCacheInvalidateMsg.newBuilder()
-                        .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
-                        .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
-                        .setCustomerIdMSB(customerId.getId().getMostSignificantBits())
-                        .setCustomerIdLSB(customerId.getId().getLeastSignificantBits())
-                        .build())
-                .build());
+    public void onCustomerUpdated(Customer customer, Customer oldCustomer) {
+        if (oldCustomer != null && !Objects.equals(customer.getCustomMenuId(), oldCustomer.getCustomMenuId())) {
+            CustomerId customerId = customer.getId();
+            broadcastToCore(TransportProtos.ToCoreNotificationMsg.newBuilder()
+                    .setCustomMenuCacheInvalidateMsg(TransportProtos.CustomMenuCacheInvalidateMsg.newBuilder()
+                            .setCustomerIdMSB(customerId.getId().getMostSignificantBits())
+                            .setCustomerIdLSB(customerId.getId().getLeastSignificantBits())
+                            .build())
+                    .build());
+        }
     }
 
     private <T> void broadcastEntityChangeToTransport(TenantId tenantId, EntityId entityid, T entity, TbQueueCallback callback) {

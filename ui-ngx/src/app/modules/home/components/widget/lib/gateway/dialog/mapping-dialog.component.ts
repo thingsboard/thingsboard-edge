@@ -58,15 +58,16 @@ import {
   MappingType,
   MappingTypeTranslationsMap,
   noLeadTrailSpacesRegex,
-  OPCUaSourceTypes,
+  OPCUaSourceType,
   QualityTypes,
   QualityTypeTranslationsMap,
+  RequestMappingData,
   RequestMappingFormValue,
   RequestType,
   RequestTypesTranslationsMap,
   RpcMethod,
   ServerSideRPCType,
-  SourceTypes,
+  SourceType,
   SourceTypeTranslationsMap,
   Timeseries
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
@@ -97,10 +98,10 @@ export class MappingDialogComponent extends DialogComponent<MappingDialogCompone
   ConvertorTypeEnum = ConvertorType;
   ConvertorTypeTranslationsMap = ConvertorTypeTranslationsMap;
 
-  sourceTypes: SourceTypes[] = Object.values(SourceTypes);
-  OPCUaSourceTypes = Object.values(OPCUaSourceTypes) as Array<OPCUaSourceTypes>;
-  OPCUaSourceTypesEnum = OPCUaSourceTypes;
-  sourceTypesEnum = SourceTypes;
+  sourceTypes: SourceType[] = Object.values(SourceType);
+  OPCUaSourceTypes = Object.values(OPCUaSourceType) as Array<OPCUaSourceType>;
+  OPCUaSourceTypesEnum = OPCUaSourceType;
+  sourceTypesEnum = SourceType;
   SourceTypeTranslationsMap = SourceTypeTranslationsMap;
 
   requestTypes: RequestType[] = Object.values(RequestType);
@@ -245,8 +246,8 @@ export class MappingDialogComponent extends DialogComponent<MappingDialogCompone
         noKeysText: MappingKeysNoKeysTextTranslationsMap.get(keysType)
       };
       if (this.data.mappingType === MappingType.OPCUA) {
-        ctx.valueTypeKeys = Object.values(OPCUaSourceTypes);
-        ctx.valueTypeEnum = OPCUaSourceTypes;
+        ctx.valueTypeKeys = Object.values(OPCUaSourceType);
+        ctx.valueTypeEnum = OPCUaSourceType;
         ctx.valueTypes = SourceTypeTranslationsMap;
       }
       this.keysPopupClosed = false;
@@ -308,8 +309,8 @@ export class MappingDialogComponent extends DialogComponent<MappingDialogCompone
             requestType: this.data.value.requestType,
             requestValue: {
               [this.data.value.requestType]: this.data.value.requestValue
-            }
-          } as RequestMappingFormValue;
+            } as Record<RequestType, RequestMappingData>
+          };
         default:
           return this.data.value as DeviceConnectorMapping;
       }
@@ -364,10 +365,10 @@ export class MappingDialogComponent extends DialogComponent<MappingDialogCompone
       attributeRequests: this.fb.group({
         topicFilter: ['', [Validators.required, Validators.pattern(noLeadTrailSpacesRegex)]],
         deviceInfo: this.fb.group({
-          deviceNameExpressionSource: [SourceTypes.MSG, []],
+          deviceNameExpressionSource: [SourceType.MSG, []],
           deviceNameExpression: ['', [Validators.required]],
         }),
-        attributeNameExpressionSource: [SourceTypes.MSG, []],
+        attributeNameExpressionSource: [SourceType.MSG, []],
         attributeNameExpression: ['', [Validators.required, Validators.pattern(noLeadTrailSpacesRegex)]],
         topicExpression: ['', [Validators.required, Validators.pattern(noLeadTrailSpacesRegex)]],
         valueExpression: ['', [Validators.required, Validators.pattern(noLeadTrailSpacesRegex)]],
@@ -422,7 +423,7 @@ export class MappingDialogComponent extends DialogComponent<MappingDialogCompone
 
   private createOPCUAMappingForm(): void {
     this.mappingForm = this.fb.group({
-      deviceNodeSource: [OPCUaSourceTypes.PATH, []],
+      deviceNodeSource: [OPCUaSourceType.PATH, []],
       deviceNodePattern: ['', [Validators.required]],
       deviceInfo: [{}, []],
       attributes: [[], []],

@@ -68,7 +68,6 @@ import { Operation, resourceByEntityType } from '@shared/models/security.models'
 import { EntityType } from '@shared/models/entity-type.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { hidePageSizePixelValue } from '@shared/models/constants';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { FormBuilder } from '@angular/forms';
 
 @Component({

@@ -50,10 +50,12 @@ import org.thingsboard.server.common.data.alarm.EntityAlarm;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.domain.Domain;
+import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.ota.DeviceGroupOtaPackage;
@@ -164,6 +166,17 @@ public class EdgeEventSourcingListener {
                     return;
                 }
             }
+            if (event.getEntityId().getEntityType().equals(EntityType.RULE_CHAIN) && event.getEdgeId() != null && event.getActionType().equals(ActionType.ASSIGNED_TO_EDGE)) {
+                try {
+                    Edge edge = JacksonUtil.fromString(event.getBody(), Edge.class);
+                    if (edge != null && new RuleChainId(event.getEntityId().getId()).equals(edge.getRootRuleChainId())) {
+                        log.trace("[{}] skipping ASSIGNED_TO_EDGE event of RULE_CHAIN entity in case Edge Root Rule Chain: {}", event.getTenantId(), event);
+                        return;
+                    }
+                } catch (Exception ignored) {
+                    return;
+                }
+            }
             EntityType entityGroupType = event.getEntityGroup() != null ? event.getEntityGroup().getType() : null;
             EntityGroupId entityGroupId = event.getEntityGroup() != null ? event.getEntityGroup().getId() : null;
             log.trace("[{}] ActionEntityEvent called: {}", event.getTenantId(), event);
@@ -248,6 +261,7 @@ public class EdgeEventSourcingListener {
                             log.trace("skipping entity in case of Edge 'All' group: {}", entityGroup);
                             return false;
                         }
+                        return !event.getCreated();
                     }
                     break;
                 case API_USAGE_STATE, EDGE:

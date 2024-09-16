@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.model.SecuritySettings;
 import org.thingsboard.server.common.data.security.model.UserPasswordPolicy;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.settings.SecuritySettingsService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -75,6 +76,7 @@ import java.util.UUID;
 public class RestAuthenticationProvider implements AuthenticationProvider {
 
     private final SystemSecurityService systemSecurityService;
+    private final SecuritySettingsService securitySettingsService;
     private final UserService userService;
     private final CustomerService customerService;
     private final UserPermissionsService userPermissionsService;
@@ -84,11 +86,13 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
     public RestAuthenticationProvider(final UserService userService, final CustomerService customerService,
                                       final UserPermissionsService userPermissionsService,
                                       final SystemSecurityService systemSecurityService,
+                                      SecuritySettingsService securitySettingsService,
                                       TwoFactorAuthService twoFactorAuthService) {
         this.userService = userService;
         this.customerService = customerService;
         this.userPermissionsService = userPermissionsService;
         this.systemSecurityService = systemSecurityService;
+        this.securitySettingsService = securitySettingsService;
         this.twoFactorAuthService = twoFactorAuthService;
     }
 
@@ -107,7 +111,7 @@ public class RestAuthenticationProvider implements AuthenticationProvider {
             String username = userPrincipal.getValue();
             String password = (String) authentication.getCredentials();
 
-            SecuritySettings securitySettings = systemSecurityService.getSecuritySettings();
+            SecuritySettings securitySettings = securitySettingsService.getSecuritySettings();
             UserPasswordPolicy passwordPolicy = securitySettings.getPasswordPolicy();
             if (Boolean.TRUE.equals(passwordPolicy.getForceUserToResetPasswordIfNotValid())) {
                 try {

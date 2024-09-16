@@ -233,6 +233,7 @@ import {
   SelectDashboardBreakpointComponent
 } from '@home/components/dashboard-page/layout/select-dashboard-breakpoint.component';
 import { EntityChipsComponent } from '@home/components/entity/entity-chips.component';
+import { ConverterLibraryComponent } from '@home/components/converter/converter-library.component';
 
 @NgModule({
   declarations:
@@ -405,7 +406,8 @@ import { EntityChipsComponent } from '@home/components/entity/entity-chips.compo
       ConverterComponent,
       ConverterTestDialogComponent,
       SendNotificationButtonComponent,
-      EntityChipsComponent
+      EntityChipsComponent,
+      ConverterLibraryComponent
     ],
   imports: [
     CommonModule,

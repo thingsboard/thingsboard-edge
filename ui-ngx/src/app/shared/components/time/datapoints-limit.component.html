@@ -30,16 +30,16 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-tab-group [formGroup]="basicFormGroup">
-  <mat-tab label="{{ 'gateway.general' | translate }}">
-    <ng-container [ngTemplateOutlet]="generalTabContent"></ng-container>
-  </mat-tab>
-  <mat-tab label="{{ 'gateway.server' | translate }}*">
-    <tb-opc-server-config formControlName="server"></tb-opc-server-config>
-  </mat-tab>
-  <mat-tab label="{{ 'gateway.data-mapping' | translate }}*">
-    <div class="tb-form-panel no-border no-padding padding-top tb-flex fill-height">
-      <tb-mapping-table formControlName="mapping" [required]="true" [mappingType]="mappingTypes.OPCUA"></tb-mapping-table>
-    </div>
-  </mat-tab>
-</mat-tab-group>
+<div [formGroup]="datapointsLimitFormGroup" class="limit-slider-container" fxLayout="row" fxLayoutAlign="start center">
+  <mat-slider fxFlex
+              min="{{minDatapointsLimit()}}"
+              max="{{maxDatapointsLimit()}}">
+    <input matSliderThumb formControlName="limit" [value]="datapointsLimitFormGroup.get('limit').value"/>
+  </mat-slider>
+  <mat-form-field class="limit-slider-value" subscriptSizing="dynamic" appearance="outline">
+    <input matInput formControlName="limit" type="number" step="1"
+           [value]="datapointsLimitFormGroup.get('limit').value"
+           min="{{minDatapointsLimit()}}"
+           max="{{maxDatapointsLimit()}}"/>
+  </mat-form-field>
+</div>
