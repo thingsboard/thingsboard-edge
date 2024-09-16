@@ -16,6 +16,7 @@
 package org.thingsboard.server.cache;
 
 import org.thingsboard.server.common.data.HasVersion;
+import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -51,6 +52,9 @@ public interface VersionedTbCache<K extends Serializable, V extends Serializable
     void evict(K key, Long version);
 
     default Long getVersion(V value) {
+        if (value instanceof BasicTsKvEntry) {
+            return null;
+        }
         return 0L;
         /* version on edge is static to update cache correctly
         if (value == null) {
