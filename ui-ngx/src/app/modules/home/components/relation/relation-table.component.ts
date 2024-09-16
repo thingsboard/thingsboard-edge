@@ -49,10 +49,9 @@ import { EntityId } from '@shared/models/id/entity-id';
 import { RelationsDatasource } from '../../models/datasource/relation-datasource';
 import { RelationDialogComponent, RelationDialogData } from '@home/components/relation/relation-dialog.component';
 import { hidePageSizePixelValue } from '@shared/models/constants';
-import { ResizeObserver } from '@juggle/resize-observer';
+import { FormBuilder } from '@angular/forms';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { EntityType } from '@shared/models/entity-type.models';
-import { FormBuilder } from '@angular/forms';
 
 @Component({
   selector: 'tb-relation-table',
