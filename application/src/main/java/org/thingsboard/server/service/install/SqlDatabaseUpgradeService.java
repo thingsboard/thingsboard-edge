@@ -157,11 +157,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
             case "ce" -> {
                 log.info("Updating schema ...");
                 try {
-                    Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "pe", SCHEMA_UPDATE_SQL);
-                    try {
-                        loadSql(schemaUpdateFile);
-                    } catch (Exception e) {
-                    }
+                    loadSql(getSchemaUpdateFile("pe"));
 
                     String[] tables = new String[]{"device"};
                     for (String table : tables) {
