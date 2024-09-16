@@ -43,4 +43,5 @@ public class ProvisionRequest {
     private DeviceCredentialsType credentialsType;
     private ProvisionDeviceCredentialsData credentialsData;
     private ProvisionDeviceProfileCredentials credentials;
+    private Boolean gateway;
 }

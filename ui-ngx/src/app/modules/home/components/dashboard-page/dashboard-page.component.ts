@@ -176,7 +176,6 @@ import { TbPopoverService } from '@shared/components/popover.service';
 import { catchError, distinctUntilChanged, map, skip, tap } from 'rxjs/operators';
 import { LayoutFixedSize, LayoutWidthType } from '@home/components/dashboard-page/layout/layout.models';
 import { TbPopoverComponent } from '@shared/components/popover.component';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { EntityType } from '@shared/models/entity-type.models';
 import { HasDirtyFlag } from '@core/guards/confirm-on-exit.guard';
 import {
@@ -477,15 +476,15 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
       ).pipe(
         map(value => this.parseBreakpointsResponse(value.breakpoints)),
         tap((value) => {
-          this.dashboardCtx.breakpoint = value.id;
-          this.changeMobileSize.next(this.isMobileSize(value));
+          this.dashboardCtx.breakpoint = value ? value.id : 'default';
+          this.changeMobileSize.next(value ? this.isMobileSize(value) : false);
         }),
         distinctUntilChanged((_, next) => {
           if (this.layouts.right.show || this.isEdit) {
             return true;
           }
           let nextBreakpointConfiguration: BreakpointId = 'default';
-          if (!!this.layouts.main.layoutCtx.layoutData?.[next.id]) {
+          if (next && !!this.layouts.main.layoutCtx.layoutData?.[next.id]) {
             nextBreakpointConfiguration = next.id;
           }
           return this.layouts.main.layoutCtx.breakpoint === nextBreakpointConfiguration;

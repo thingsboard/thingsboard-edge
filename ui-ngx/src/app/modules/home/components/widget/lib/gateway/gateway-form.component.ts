@@ -73,7 +73,6 @@ import { AttributeData, AttributeScope } from '@shared/models/telemetry/telemetr
 import { forkJoin, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { ImportExportService } from '@shared/import-export/import-export.service';
-import { ResizeObserver } from '@juggle/resize-observer';
 
 // @dynamic
 @Component({

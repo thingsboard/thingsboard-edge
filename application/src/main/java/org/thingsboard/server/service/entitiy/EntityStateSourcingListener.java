@@ -39,6 +39,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ApiUsageState;
+import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Device;
 import org.thingsboard.server.common.data.DeviceProfile;
 import org.thingsboard.server.common.data.EntityType;
@@ -46,6 +47,7 @@ import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -55,7 +57,6 @@ import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
@@ -151,12 +152,12 @@ public class EntityStateSourcingListener {
             }
             case CUSTOMER -> {
                 if (!isCreated) {
-                    tbClusterService.onCustomerUpdated(tenantId, (CustomerId) entityId);
+                    tbClusterService.onCustomerUpdated((Customer) event.getEntity(), (Customer) event.getOldEntity());
                 }
             }
             case USER -> {
                 if (!isCreated) {
-                    tbClusterService.onUserUpdated(tenantId, (UserId) entityId);
+                    tbClusterService.onUserUpdated((User) event.getEntity(), (User) event.getOldEntity());
                 }
             }
             default -> {}

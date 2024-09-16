@@ -31,5 +31,6 @@
 package org.thingsboard.server.dao.menu;
 
 import org.thingsboard.server.common.data.id.CustomMenuId;
+import org.thingsboard.server.common.data.id.TenantId;
 
-public record CustomMenuCacheEvictEvent (CustomMenuId customMenuId) { }
+public record CustomMenuCacheEvictEvent (TenantId tenantId, CustomMenuId customMenuId) {}

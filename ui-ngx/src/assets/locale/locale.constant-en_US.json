@@ -1369,7 +1369,9 @@
         "date-from": "Date from",
         "time-from": "Time from",
         "date-to": "Date to",
-        "time-to": "Time to"
+        "time-to": "Time to",
+        "from": "From",
+        "to": "To"
     },
     "dashboard": {
         "all": "All",
@@ -4801,6 +4803,7 @@
             "type-color-settings": "Color settings",
             "type-font": "Font",
             "type-units": "Units",
+            "type-icon": "Icon",
             "no-properties": "No properties configured",
             "add-property": "Add property",
             "property-settings": "Property settings",
@@ -5382,6 +5385,8 @@
         "type": "Type",
         "unread": "Unread",
         "updated": "Updated",
+        "use-deprecated-webhook-connectors": "Use deprecated Webhook connectors",
+        "use-old-api": "Use old API",
         "use-template": "Use template",
         "view-all": "View all",
         "view-notification-recipients-group": "View notification recipients group",
@@ -6546,6 +6551,7 @@
         "minutes": "Minutes",
         "seconds": "Seconds",
         "advanced": "Advanced",
+        "custom": "Custom",
         "predefined": {
           "yesterday": "Yesterday",
           "day-before-yesterday": "Day before yesterday",
@@ -6588,6 +6594,7 @@
     },
     "timewindow": {
         "timewindow": "Timewindow",
+        "timewindow-settings": "Timewindow settings",
         "years": "{ years, plural, =1 { year } other {# years } }",
         "years-short": "{{ years }}y",
         "months": "{ months, plural, =1 { month } other {# months } }",
@@ -6633,7 +6640,11 @@
         "font": "Font",
         "color": "Color",
         "displayTypePrefix": "Display Realtime/History prefix",
-        "preview": "Preview"
+        "preview": "Preview",
+        "relative": "Relative",
+        "range": "Range",
+        "hide-timewindow-section": "Hide timewindow section from end-users",
+        "disable-custom-interval": "Disable custom interval selection"
     },
     "tooltip": {
         "trigger": "Trigger",

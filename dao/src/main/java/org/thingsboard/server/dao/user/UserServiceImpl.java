@@ -213,14 +213,23 @@ public class UserServiceImpl extends AbstractCachedEntityService<UserCacheKey, U
         } else {
             throw new DataValidationException("Invalid target owner id. Must be either CUSTOMER or TENANT!");
         }
-        return userDao.save(user.getTenantId(), user);
+        return saveUser(user.getTenantId(), user, false); // not validating because validator forbids authority change
     }
 
     @Override
     @Transactional
     public User saveUser(TenantId tenantId, User user) {
+        return saveUser(tenantId, user, true);
+    }
+
+    private User saveUser(TenantId tenantId, User user, boolean validate) {
         log.trace("Executing saveUser [{}]", user);
-        User oldUser = userValidator.validate(user, User::getTenantId);
+        User oldUser;
+        if (validate) {
+            oldUser = userValidator.validate(user, User::getTenantId);
+        } else {
+            oldUser = findUserById(tenantId, user.getId());
+        }
         if (!userLoginCaseSensitive) {
             user.setEmail(user.getEmail().toLowerCase());
         }
