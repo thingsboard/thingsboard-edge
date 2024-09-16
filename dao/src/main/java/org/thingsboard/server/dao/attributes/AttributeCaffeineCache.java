@@ -30,4 +30,15 @@ public class AttributeCaffeineCache extends VersionedCaffeineTbCache<AttributeCa
         super(cacheManager, CacheConstants.ATTRIBUTES_CACHE);
     }
 
+    @Override
+    public Long getVersion(AttributeKvEntry value) {
+        if (value == null) {
+            return 0L;
+        } else if (value.getVersion() != null) {
+            return value.getVersion();
+        } else {
+            return null;
+        }
+    }
+
 }

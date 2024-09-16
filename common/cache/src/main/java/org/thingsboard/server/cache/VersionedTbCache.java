@@ -51,7 +51,7 @@ public interface VersionedTbCache<K extends VersionedCacheKey, V extends Seriali
     void evict(K key, Long version);
 
     default Long getVersion(V value) {
-        return 0L;
+        return null;
         /* version on edge is static to update cache correctly
         if (value == null) {
             return 0L;
