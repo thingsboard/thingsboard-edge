@@ -31,6 +31,7 @@
 package org.thingsboard.server.msa.connectivity.lwm2m;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.collect.Sets;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -40,6 +41,7 @@ import org.eclipse.leshan.client.object.Security;
 import org.eclipse.leshan.core.ResponseCode;
 import org.eclipse.leshan.core.util.Hex;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
+import org.testng.Assert;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.Device;
@@ -63,17 +65,21 @@ import org.thingsboard.server.common.data.device.profile.Lwm2mDeviceProfileTrans
 import org.thingsboard.server.common.data.device.profile.lwm2m.OtherConfiguration;
 import org.thingsboard.server.common.data.device.profile.lwm2m.TelemetryMappingConfiguration;
 import org.thingsboard.server.common.data.device.profile.lwm2m.bootstrap.LwM2MBootstrapServerCredential;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.DeviceProfileId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentialsType;
 import org.thingsboard.server.msa.AbstractContainerTest;
+import org.thingsboard.server.msa.WsClient;
 import org.thingsboard.server.msa.connectivity.lwm2m.client.LwM2MTestClient;
 import org.thingsboard.server.msa.connectivity.lwm2m.client.Lwm2mTestHelper.LwM2MClientState;
+import org.thingsboard.server.msa.mapper.WsTelemetryResponse;
 
 import java.net.ServerSocket;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -98,6 +104,11 @@ import static org.thingsboard.server.msa.connectivity.lwm2m.client.Lwm2mTestHelp
 import static org.thingsboard.server.msa.connectivity.lwm2m.client.Lwm2mTestHelper.LwM2MClientState.ON_REGISTRATION_SUCCESS;
 import static org.thingsboard.server.msa.connectivity.lwm2m.client.Lwm2mTestHelper.LwM2MClientState.ON_UPDATE_SUCCESS;
 import static org.thingsboard.server.msa.connectivity.lwm2m.client.Lwm2mTestHelper.OBSERVE_ATTRIBUTES_WITH_PARAMS;
+import static org.thingsboard.server.msa.connectivity.lwm2m.client.Lwm2mTestHelper.RESOURCE_ID_NAME_19_0_0;
+import static org.thingsboard.server.msa.connectivity.lwm2m.client.Lwm2mTestHelper.RESOURCE_ID_NAME_19_0_2;
+import static org.thingsboard.server.msa.connectivity.lwm2m.client.Lwm2mTestHelper.RESOURCE_ID_NAME_19_1_0;
+import static org.thingsboard.server.msa.connectivity.lwm2m.client.Lwm2mTestHelper.RESOURCE_ID_NAME_3_14;
+import static org.thingsboard.server.msa.connectivity.lwm2m.client.Lwm2mTestHelper.RESOURCE_ID_NAME_3_9;
 import static org.thingsboard.server.msa.connectivity.lwm2m.client.Lwm2mTestHelper.SECURE_URI;
 import static org.thingsboard.server.msa.connectivity.lwm2m.client.Lwm2mTestHelper.SECURITY_NO_SEC;
 import static org.thingsboard.server.msa.connectivity.lwm2m.client.Lwm2mTestHelper.resources;
@@ -150,62 +161,63 @@ public class AbstractLwm2mClientTest extends AbstractContainerTest {
      * ObserveCancelAl - Ok
      *
      * @param lwM2MTestClient
-     * @param deviceIdStr
+     * @param deviceId
      * @throws Exception
      */
-    public void observeResource_Update_AfterUpdateRegistration_test(LwM2MTestClient lwM2MTestClient, String deviceIdStr) throws Exception {
+    public void observeResource_Update_AfterUpdateRegistration_test(LwM2MTestClient lwM2MTestClient, DeviceId deviceId) throws Exception {
         awaitUpdateRegistrationSuccess(lwM2MTestClient, 5);
-        sendCancelObserveAllWithAwait(deviceIdStr);
+        sendCancelObserveAllWithAwait(deviceId.toString());
         awaitUpdateRegistrationSuccess(lwM2MTestClient, 1);
+        long tsBefore = Instant.now().toEpochMilli();
         String param = "/3_1.2/0/9";
-        sendRpcObserveWithContainsLwM2mSingleResource(param, deviceIdStr, 1);
+        sendRpcObserveWithContainsLwM2mSingleResource(param, deviceId.toString(), 1);
         awaitUpdateRegistrationSuccess(lwM2MTestClient, 1);
+        checkLatestTelemetryUploaded(deviceId, tsBefore, RESOURCE_ID_NAME_3_9);
         param = "/3_1.2/0/0";
-        sendRpcObserveWithContainsLwM2mSingleResource(param, deviceIdStr, 2);
+        sendRpcObserveWithContainsLwM2mSingleResource(param, deviceId.toString(), 2);
         awaitUpdateRegistrationSuccess(lwM2MTestClient, 2);
         param = "/3_1.2";
         String expected = "Could not find active Observe component with path: " + param;
-        String actual = sendObserveCancel_BadRequest("ObserveCancel", param, deviceIdStr);
+        String actual = sendObserveCancel_BadRequest("ObserveCancel", param, deviceId.toString());
         assertEquals(expected, actual);
         param = "/3_1.2/0/0";
-        sendObserveCancel_Ok("ObserveCancel", param, deviceIdStr);
-        sendCancelObserveAllWithAwait(deviceIdStr);
+        sendObserveCancel_Ok("ObserveCancel", param, deviceId.toString());
+        sendCancelObserveAllWithAwait(deviceId.toString());
         awaitUpdateRegistrationSuccess(lwM2MTestClient, 1);
     }
 
-    public void observeCompositeResource_Update_AfterUpdateRegistration_test(LwM2MTestClient lwM2MTestClient, String deviceIdStr) throws Exception {
-        String id_3_0_9 = " /3/0/9";
-        String id_3_0_14 = " /3/0/14";
+    public void observeCompositeResource_Update_AfterUpdateRegistration_test(LwM2MTestClient lwM2MTestClient, DeviceId deviceId) throws Exception {
+        String id_3_0_9 = "/3/0/9";
+        String id_3_0_14 = "/3/0/14";
         String id_19_0_0 = "/19/0/0";
         String id_19_1_0 = "/19/1/0";
         String id_19_0_2 = "/19/0/2";
-        String expectedKey3_0_9 = "batteryLevel";
-        String expectedKey3_0_14 = "UtfOffset";
-        String expectedKey19_0_0 = "dataRead";
-        String expectedKey19_1_0 = "dataWrite";
-        String expectedKey19_0_2 = "dataCreationTime";
 
         awaitUpdateRegistrationSuccess(lwM2MTestClient, 5);
-        sendCancelObserveAllWithAwait(deviceIdStr);
+        sendCancelObserveAllWithAwait(deviceId.toString());
         awaitUpdateRegistrationSuccess(lwM2MTestClient, 1);
-        String expectedKeys = "[\"" + expectedKey3_0_9 + "\", \"" + expectedKey3_0_14 + "\", \"" + expectedKey19_0_0 + "\", \"" + expectedKey19_1_0 + "\", \"" + expectedKey19_0_2 + "\", \"" + expectedKey3_0_9 + "\"]";
-        String actualResult = sendRpcObserveCompositeWithResultValue(expectedKeys, deviceIdStr);
+        long tsBefore = Instant.now().toEpochMilli();
+        String expectedKeys = "[\"" + RESOURCE_ID_NAME_3_9 + "\", \"" + RESOURCE_ID_NAME_3_14 + "\", \"" + RESOURCE_ID_NAME_19_0_0 + "\", \"" + RESOURCE_ID_NAME_19_0_2 + "\", \"" +RESOURCE_ID_NAME_19_1_0 + "\"]";
+        String actualResult = sendRpcObserveCompositeWithResultValue(expectedKeys, deviceId.toString());
         assertTrue(actualResult.contains(id_3_0_9 + "=LwM2mSingleResource"));
         assertTrue(actualResult.contains(id_3_0_14 + "=LwM2mSingleResource"));
         assertTrue(actualResult.contains(id_19_0_0 + "=LwM2mMultipleResource"));
         assertTrue(actualResult.contains(id_19_1_0 + "=LwM2mMultipleResource"));
         assertTrue(actualResult.contains(id_19_0_2 + "=LwM2mSingleResource"));
         // ObserveComposite: - verify
-        ObjectNode rpcActualResultBefore = sendRpcObserve("ObserveReadAll", null, deviceIdStr);
+        ObjectNode rpcActualResultBefore = sendRpcObserve("ObserveReadAll", null, deviceId.toString());
         assertEquals(ResponseCode.CONTENT.getName(), rpcActualResultBefore.get("result").asText());
         JsonElement element = JsonParser.parseString(rpcActualResultBefore.get("value").asText());
         assertEquals(1, ((JsonArray) element).size());
         actualResult = ((JsonArray) element).asList().get(0).getAsString();
         assertTrue(actualResult.contains("CompositeObservation:"));
+        checkLatestTelemetryUploaded(deviceId, tsBefore, RESOURCE_ID_NAME_3_9, RESOURCE_ID_NAME_3_14,
+                RESOURCE_ID_NAME_19_0_0, RESOURCE_ID_NAME_19_0_2, RESOURCE_ID_NAME_19_1_0);
+
         awaitUpdateRegistrationSuccess(lwM2MTestClient, 1);
-        sendCancelObserveAllWithAwait(deviceIdStr);
+        sendCancelObserveAllWithAwait(deviceId.toString());
         awaitUpdateRegistrationSuccess(lwM2MTestClient, 1);
-        assertEquals(0, (Object) Optional.ofNullable(getCntObserveAll(deviceIdStr)).get());
+        assertEquals(0, (Object) Optional.ofNullable(getCntObserveAll(deviceId.toString())).get());
     }
 
     public void basicTestConnection(LwM2MTestClient lwM2MTestClient, String alias) throws Exception {
@@ -480,5 +492,15 @@ public class AbstractLwm2mClientTest extends AbstractContainerTest {
         String method = "ObserveComposite";
         String sendRpcRequest = "{\"method\": \"" + method + "\", \"params\": {\"keys\":" + keys + "}}";
         return testRestClient.postRpcLwm2mParams(deviceIdStr, sendRpcRequest);
+    }
+
+    public void checkLatestTelemetryUploaded(DeviceId deviceId, long tsBefore, String... keyNames) throws Exception {
+        WsClient wsClient = subscribeToWebSocket(deviceId, "LATEST_TELEMETRY", CmdsType.TS_SUB_CMDS);
+        WsTelemetryResponse actualLatestTelemetry = wsClient.getLastMessage();
+        wsClient.closeBlocking();
+        Assert.assertEquals(actualLatestTelemetry.getData().size(), 1);
+        String actualKeyName = actualLatestTelemetry.getLatestValues().keySet().toArray()[0].toString();
+        Assert.assertTrue(Sets.newHashSet(keyNames).contains(actualKeyName));
+        Assert.assertTrue((Long) actualLatestTelemetry.getDataValuesByKey(actualKeyName).get(0) > tsBefore);
     }
 }

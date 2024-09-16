@@ -61,7 +61,13 @@ public class Lwm2mTestHelper {
 
     public static final int BINARY_APP_DATA_CONTAINER = 19;
 
-    public static  String OBSERVE_ATTRIBUTES_WITH_PARAMS =
+    public static final String RESOURCE_ID_NAME_3_9 = "batteryLevel";
+    public static final String RESOURCE_ID_NAME_3_14 = "UtfOffset";
+    public static final String RESOURCE_ID_NAME_19_0_0 = "dataRead";
+    public static final String RESOURCE_ID_NAME_19_0_2 = "dataCreationTime";
+    public static final String RESOURCE_ID_NAME_19_1_0 = "dataWrite";
+
+    public static String OBSERVE_ATTRIBUTES_WITH_PARAMS =
 
             "    {\n" +
                     "    \"keyName\": {\n" +
