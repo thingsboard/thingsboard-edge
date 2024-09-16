@@ -30,7 +30,6 @@
  */
 package org.thingsboard.server.dao.service.attributes.sql;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.cache.TbCacheValueWrapper;
@@ -61,7 +60,6 @@ public class AttributeCacheServiceSqlTest extends AbstractServiceTest {
     VersionedTbCache<AttributeCacheKey, AttributeKvEntry> cache;
 
     @Test
-    @Ignore("Edge is not updating the version of an entity")
     public void testPutAndGet() {
         AttributeCacheKey testKey = new AttributeCacheKey(AttributeScope.CLIENT_SCOPE, DEVICE_ID, TEST_KEY);
         AttributeKvEntry testValue = new BaseAttributeKvEntry(new StringDataEntry(TEST_KEY, TEST_VALUE), 1, 1L);

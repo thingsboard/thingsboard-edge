@@ -149,7 +149,7 @@ DELETE FROM domain d1 USING (
 ) d2 WHERE d1.name = d2.name AND d1.ctid <> d2.ctid;
 
 ALTER TABLE mobile_app ADD COLUMN IF NOT EXISTS oauth2_enabled boolean,
-    ADD COLUMN IF NOT EXISTS tenant_id uuid DEFAULT '13814000-1dd2-11b2-8080-808080808080';
+                       ADD COLUMN IF NOT EXISTS tenant_id uuid DEFAULT '13814000-1dd2-11b2-8080-808080808080';
 
 -- delete duplicated apps
 DELETE FROM mobile_app m1 USING (

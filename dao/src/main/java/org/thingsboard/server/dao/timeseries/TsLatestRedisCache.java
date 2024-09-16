@@ -67,4 +67,16 @@ public class TsLatestRedisCache extends VersionedRedisTbCache<TsLatestCacheKey, 
             }
         });
     }
+
+    @Override
+    public Long getVersion(TsKvEntry value) {
+        if (value == null) {
+            return 0L;
+        } else if (value.getVersion() != null) {
+            return value.getVersion();
+        } else {
+            return null;
+        }
+    }
+
 }
