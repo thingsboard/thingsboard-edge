@@ -360,14 +360,14 @@ public final class IntegrationGrpcSession implements Closeable {
                     event.setEntityId(entityId.getId());
                     saveEvent(tenantId, entityId, event);
                 } else {
-                    log.warn("[{}][{}] Failed to decode event. Remote integration [{}] version is not compatible with new event api", tenantId, entityId, configuration.getName());
+                    log.warn("[{}][{}] Failed to decode event. Remote integration [{}] version is not compatible with new event api", tenantId, configuration.getId(), configuration.getName());
                 }
             } else {
                 //TODO: support backward compatibility by parsing the incoming data and converting it to the corresponding event.
-                log.warn("[{}][{}] Remote integration [{}] version is not compatible with new event api", tenantId, entityId, configuration.getName());
+                log.warn("[{}][{}] Remote integration [{}] version is not compatible with new event api", tenantId, configuration.getId(), configuration.getName());
             }
         } catch (Exception e) {
-            log.warn("[{}][{}] Failed to convert event body from remote integration [{}]!", tenantId, entityId, configuration.getName(), e);
+            log.warn("[{}][{}] Failed to convert event body from remote integration [{}]!", tenantId, configuration.getId(), configuration.getName(), e);
         }
     }
 
