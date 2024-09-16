@@ -32,14 +32,21 @@ package org.thingsboard.server.transport.mqtt.session;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.handler.codec.mqtt.MqttPublishMessage;
+import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.adaptor.AdaptorException;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.transport.auth.GetOrCreateDeviceFromGatewayResponse;
+import org.thingsboard.server.gen.transport.TransportProtos;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Created by ashvayka on 19.01.17.
  */
+@Slf4j
 public class GatewaySessionHandler extends AbstractGatewaySessionHandler<GatewayDeviceSessionContext> {
 
     public GatewaySessionHandler(DeviceSessionCtx deviceSessionCtx, UUID sessionId, boolean overwriteDevicesActivity) {
@@ -66,7 +73,16 @@ public class GatewaySessionHandler extends AbstractGatewaySessionHandler<Gateway
 
     @Override
     protected GatewayDeviceSessionContext newDeviceSessionCtx(GetOrCreateDeviceFromGatewayResponse msg) {
-         return new GatewayDeviceSessionContext(this, msg.getDeviceInfo(), msg.getDeviceProfile(), mqttQoSMap, transportService);
+        return new GatewayDeviceSessionContext(this, msg.getDeviceInfo(), msg.getDeviceProfile(), mqttQoSMap, transportService);
+    }
+
+    public void onGatewayUpdate(TransportProtos.SessionInfoProto sessionInfo, Device device, Optional<DeviceProfile> deviceProfileOpt) {
+        this.onDeviceUpdate(sessionInfo, device, deviceProfileOpt);
+        gatewayMetricsService.onDeviceUpdate(sessionInfo, gateway.getDeviceId());
+    }
+
+    public void onGatewayDelete(DeviceId deviceId) {
+        gatewayMetricsService.onDeviceDelete(deviceId);
     }
 
 }
