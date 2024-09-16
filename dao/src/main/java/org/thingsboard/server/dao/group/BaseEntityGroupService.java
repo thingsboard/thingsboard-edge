@@ -220,7 +220,6 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
         if (entityGroup.getId() == null) {
             entityGroup.setOwnerId(parentEntityId);
         }
-
         EntityGroup old = null;
         if (doValidate) {
             old = validator.validate(entityGroup, data -> tenantId);
