@@ -71,6 +71,7 @@ import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
@@ -138,6 +139,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.dao.customer.CustomerServiceImpl.PUBLIC_CUSTOMER_SUFFIX;
 import static org.thingsboard.server.dao.model.ModelConstants.NULL_UUID;
@@ -1717,4 +1720,22 @@ public class EdgeControllerTest extends AbstractControllerTest {
         assertThat(savedCT).isEqualTo(esCustomTranslation);
     }
 
+    @Test
+    public void testSaveEntityGroup_noNotificationOnAdded_notificationOnlyOnUpdated() {
+        Mockito.reset(tbClusterService);
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName("Edge - No Notification On Added");
+        entityGroup.setType(EntityType.DEVICE);
+        EntityGroup savedEntityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
+        Mockito.verify(tbClusterService, never()).sendNotificationMsgToEdge(Mockito.eq(tenantId),
+                Mockito.isNull(), Mockito.eq(savedEntityGroup.getId()), Mockito.isNull(), Mockito.isNull(),
+                Mockito.eq(EdgeEventActionType.ADDED), Mockito.any());
+
+        Mockito.reset(tbClusterService);
+        savedEntityGroup.setName("Edge - Notification On Updated");
+        doPost("/api/entityGroup", savedEntityGroup, EntityGroup.class);
+        Mockito.verify(tbClusterService, times(1)).sendNotificationMsgToEdge(Mockito.eq(tenantId),
+                Mockito.isNull(), Mockito.eq(savedEntityGroup.getId()), Mockito.isNull(), Mockito.isNull(),
+                Mockito.eq(EdgeEventActionType.UPDATED), Mockito.any());
+    }
 }
