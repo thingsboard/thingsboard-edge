@@ -354,17 +354,21 @@ public final class IntegrationGrpcSession implements Closeable {
 
     private void saveEvent(TenantId tenantId, EntityId entityId, TbEventProto proto) {
         try {
-            if (proto.getEvent() != null && !proto.getEvent().isEmpty()) {
+            if (!proto.getEvent().isEmpty()) {
                 Event event = JavaSerDesUtil.decode(proto.getEvent().toByteArray());
-                event.setTenantId(tenantId);
-                event.setEntityId(entityId.getId());
-                saveEvent(tenantId, entityId, event);
+                if (event != null) {
+                    event.setTenantId(tenantId);
+                    event.setEntityId(entityId.getId());
+                    saveEvent(tenantId, entityId, event);
+                } else {
+                    log.warn("[{}][{}] Failed to decode event. Remote integration [{}] version is not compatible with new event api", tenantId, configuration.getId(), configuration.getName());
+                }
             } else {
                 //TODO: support backward compatibility by parsing the incoming data and converting it to the corresponding event.
-                log.warn("[{}][{}] Remote integration [{}] version is not compatible with new event api", configuration.getTenantId(), configuration.getId(), configuration.getName());
+                log.warn("[{}][{}] Remote integration [{}] version is not compatible with new event api", tenantId, configuration.getId(), configuration.getName());
             }
         } catch (Exception e) {
-            log.warn("[{}] Failed to convert event body!", proto.getEvent(), e);
+            log.warn("[{}][{}] Failed to convert event body from remote integration [{}]!", tenantId, configuration.getId(), configuration.getName(), e);
         }
     }
 
