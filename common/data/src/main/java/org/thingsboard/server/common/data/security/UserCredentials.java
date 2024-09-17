@@ -55,6 +55,8 @@ public class UserCredentials extends BaseDataWithAdditionalInfo<UserCredentialsI
     private Long activateTokenExpTime;
     private String resetToken;
     private Long resetTokenExpTime;
+    private Long lastLoginTs;
+    private Integer failedLoginAttempts;
 
     public UserCredentials() {
         super();
