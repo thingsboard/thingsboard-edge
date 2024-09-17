@@ -40,6 +40,7 @@ import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
 import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
@@ -103,13 +104,13 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     }
 
     @Override
-    public List<Vendor> getVendors(String integrationType) {
+    public List<Vendor> getVendors(IntegrationType integrationType) {
         return listFiles("VENDORS", 1, true).stream()
                 .filter(vendorDir -> {
                     Set<String> integrationTypes = listFiles(vendorDir.path(), 3, true).stream()
                             .map(RepoFile::name)
                             .collect(Collectors.toSet());
-                    return integrationTypes.contains(integrationType);
+                    return integrationTypes.contains(integrationType.getDirectory());
                 })
                 .map(vendorDir -> {
                     String logoFile = findFile(vendorDir.path(), 2, "logo");
@@ -119,10 +120,10 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     }
 
     @Override
-    public List<Model> getVendorModels(String integrationType, String converterType, String vendorName) {
+    public List<Model> getVendorModels(IntegrationType integrationType, String converterType, String vendorName) {
         return listFiles("VENDORS/" + vendorName, 3, true).stream()
                 .filter(integrationDir -> {
-                    if (!integrationDir.name().equals(integrationType)) {
+                    if (!integrationDir.name().equals(integrationType.getDirectory())) {
                         return false;
                     }
                     if (StringUtils.isEmpty(converterType)) {
@@ -145,17 +146,17 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
 
 
     @Override
-    public String getConverter(String integrationType, String converterType, String vendorName, String model) {
+    public String getConverter(IntegrationType integrationType, String converterType, String vendorName, String model) {
         return getFileContent(getConverterDir(integrationType, converterType, vendorName, model) + "/converter.json");
     }
 
     @Override
-    public String getConverterMetadata(String integrationType, String converterType, String vendorName, String model) {
+    public String getConverterMetadata(IntegrationType integrationType, String converterType, String vendorName, String model) {
         return getFileContent(getConverterDir(integrationType, converterType, vendorName, model) + "/metadata.json");
     }
 
     @Override
-    public String getPayload(String integrationType, String converterType, String vendorName, String model) {
+    public String getPayload(IntegrationType integrationType, String converterType, String vendorName, String model) {
         return getFileContent(getConverterDir(integrationType, converterType, vendorName, model) + "/payload.json");
     }
 
@@ -185,11 +186,16 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
         if (!enabled) {
             throw new IllegalArgumentException("Data converters library is disabled");
         }
-        return gitRepositoryService.getFileContentAtCommit(TenantId.SYS_TENANT_ID, path, "HEAD");
+        try {
+            return gitRepositoryService.getFileContentAtCommit(TenantId.SYS_TENANT_ID, path, "HEAD");
+        } catch (Exception e) {
+            log.warn("Failed to get file content for path {}: {}", path, e.getMessage());
+            return "{}";
+        }
     }
 
-    private String getConverterDir(String integrationType, String converterType, String vendorName, String model) {
-        return Path.of("VENDORS", vendorName, model, integrationType, converterType).toString();
+    private String getConverterDir(IntegrationType integrationType, String converterType, String vendorName, String model) {
+        return Path.of("VENDORS", vendorName, model, integrationType.getDirectory(), converterType).toString();
     }
 
 }

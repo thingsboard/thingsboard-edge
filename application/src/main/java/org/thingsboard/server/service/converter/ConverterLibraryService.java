@@ -30,18 +30,20 @@
  */
 package org.thingsboard.server.service.converter;
 
+import org.thingsboard.server.common.data.integration.IntegrationType;
+
 import java.util.List;
 
 public interface ConverterLibraryService {
 
-    List<Vendor> getVendors(String integrationType);
+    List<Vendor> getVendors(IntegrationType integrationType);
 
-    List<Model> getVendorModels(String integrationType, String converterType, String vendorName);
+    List<Model> getVendorModels(IntegrationType integrationType, String converterType, String vendorName);
 
-    String getConverter(String integrationType, String converterType, String vendorName, String model);
+    String getConverter(IntegrationType integrationType, String converterType, String vendorName, String model);
 
-    String getConverterMetadata(String integrationType, String converterType, String vendorName, String model);
+    String getConverterMetadata(IntegrationType integrationType, String converterType, String vendorName, String model);
 
-    String getPayload(String integrationType, String converterType, String vendorName, String model);
+    String getPayload(IntegrationType integrationType, String converterType, String vendorName, String model);
 
 }
