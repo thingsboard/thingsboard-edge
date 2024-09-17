@@ -168,6 +168,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
             case "3.7.0":
                 updateSchema("3.7.0", 3007000, "3.7.1", 3007001, null);
                 break;
+            case "3.7.1":
+                updateSchema("3.7.1", 3007001, "3.7.2", 3007002, null);
+                break;
             case "ce":
                 log.info("Updating schema ...");
                 Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "pe", SCHEMA_UPDATE_SQL);
