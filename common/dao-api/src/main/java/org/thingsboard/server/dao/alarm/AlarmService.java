@@ -130,7 +130,7 @@ public interface AlarmService extends EntityDaoService {
 
     Set<EntityId> getPropagationEntityIds(Alarm alarm, List<EntityType> types);
 
-    PageData<AlarmId> findAlarmIdsByAssigneeId(TenantId tenantId, UserId userId, PageLink pageLink);
+    List<TbPair<UUID, Long>> findAlarmIdsByAssigneeId(TenantId tenantId, UserId userId, long createdTimeOffset, AlarmId idOffset, int limit);
 
     List<TbPair<UUID, Long>> findAlarmIdsByOriginatorId(TenantId tenantId, EntityId originatorId, long createdTimeOffset, AlarmId idOffset, int limit);
 
@@ -141,4 +141,5 @@ public interface AlarmService extends EntityDaoService {
     long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions, AlarmCountQuery query);
 
     PageData<EntitySubtype> findAlarmTypesByTenantId(TenantId tenantId, PageLink pageLink);
+
 }
