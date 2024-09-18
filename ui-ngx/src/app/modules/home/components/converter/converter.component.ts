@@ -38,6 +38,7 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { TranslateService } from '@ngx-translate/core';
 import {
   Converter,
+  ConverterConfig,
   ConverterDebugInput,
   ConverterType,
   converterTypeTranslationMap,
@@ -84,7 +85,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this._integrationType = value;
     if (isDefinedAndNotNull(value)) {
       this.updatedOnlyKeysValue();
-      this.setupDefaultScriptBody(this.entityForm.get('type').value);
+      this.onSetDefaultScriptBody(this.entityForm.get('type').value);
     }
   }
 
@@ -115,6 +116,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   scriptLanguage = ScriptLanguage;
 
+  defaultLibraryConfig: ConverterConfig;
+
   private defaultUpdateOnlyKeysByIntegrationType: DefaultUpdateOnlyKeys = {};
   private destroy$ = new Subject<void>();
 
@@ -142,7 +145,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.entityForm.get('configuration.scriptLang').valueChanges.pipe(
         takeUntil(this.destroy$)
     ).subscribe(() => {
-      this.setupDefaultScriptBody(this.entityForm.get('type').value);
+      this.onSetDefaultScriptBody(this.entityForm.get('type').value);
     });
     this.checkIsNewConverter(this.entity, this.entityForm);
   }
@@ -226,11 +229,11 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
           tbelEncoder: null,
         }, {emitEvent: false});
       }
-      this.setupDefaultScriptBody(converterType);
+      this.onSetDefaultScriptBody(converterType);
     }
   }
 
-  private setupDefaultScriptBody(converterType: ConverterType) {
+  private onSetDefaultScriptBody(converterType: ConverterType): void {
     const scriptLang: ScriptLanguage = this.entityForm.get('configuration.scriptLang').value;
     let targetField: string;
     let targetTemplateUrl: string;
@@ -246,6 +249,18 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       }
     }
 
+    if (this.defaultLibraryConfig) {
+      this.setupLibraryScriptBody(targetField);
+    } else {
+      this.setupDefaultScriptBody(targetField, targetTemplateUrl);
+    }
+  }
+
+  private setupLibraryScriptBody(targetField: string): void {
+    this.entityForm.get('configuration').get(targetField).patchValue(this.defaultLibraryConfig[targetField], {emitEvent: false});
+  }
+
+  private setupDefaultScriptBody(targetField: string, targetTemplateUrl: string): void {
     const scriptBody: string = this.entityForm.get('configuration').get(targetField).value;
     if (!isNotEmptyStr(scriptBody) || isDefinedAndNotNull(this.integrationType)) {
       this.resourcesService.loadJsonResource<string>(targetTemplateUrl).subscribe((template) => {
@@ -272,6 +287,11 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
         description: entity.additionalInfo ? entity.additionalInfo.description : ''
       }
     }, {emitEvent: false});
+
+    if (this.libraryInfo) {
+      this.defaultLibraryConfig = {...entity.configuration};
+    }
+
     this.checkIsNewConverter(entity, this.entityForm);
   }
 
