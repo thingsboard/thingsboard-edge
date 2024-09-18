@@ -28,7 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.msa.connectivity.lwm2m;
+package org.thingsboard.server.msa.connectivity.lwm2m.client;
 
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.core.model.ResourceModel.Type;
