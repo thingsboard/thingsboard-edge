@@ -1289,7 +1289,7 @@
         "custom-item": "Custom item",
         "menu-item-name": "Menu item name",
         "menu-item-name-is-required": "Menu item name is required",
-        "reset-to-menu-item-defaults": "Reset to menu item defaults",
+        "reset-to-menu-item-defaults": "Reset menu item back to default",
         "delete-menu-item": "Delete menu item",
         "add-subitem": "Add subitem",
         "hide-all-menu-items": "Hide all menu items",

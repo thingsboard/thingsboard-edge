@@ -389,7 +389,7 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
     this.menuItemRowFormGroup.patchValue(
       {
         visible: menuItem.visible,
-        icon: menuItem.icon,
+        icon: menuItem.icon || this.defaultMenuSection.icon,
         name: menuItem.name
       }, {emitEvent: false}
     );
