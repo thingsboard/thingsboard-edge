@@ -188,13 +188,13 @@ public class RemoteIntegrationManagerService {
         serviceId = "[" + clientId + ":" + port + "]";
         rpcClient.connect(routingKey, routingSecret, serviceId, this::onConfigurationUpdate, this::onConverterConfigurationUpdate, this::onDownlink, this::scheduleReconnect);
         executor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service"));
-        reconnectScheduler = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-reconnect"));
-        schedulerService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-scheduler"));
+        reconnectScheduler = ThingsBoardExecutors.newSingleThreadScheduledExecutor("remote-integration-manager-service-reconnect");
+        schedulerService = ThingsBoardExecutors.newSingleThreadScheduledExecutor("remote-integration-manager-service-scheduler");
         generalExecutorService = ThingsBoardExecutors.newWorkStealingPool(Math.max(2, Runtime.getRuntime().availableProcessors()), "remote-integration-general");
         callBackExecutorService = ThingsBoardExecutors.newWorkStealingPool(Math.max(2, Runtime.getRuntime().availableProcessors()), "remote-integration-callback");
         processHandleMessages();
         if (statisticsEnabled) {
-            statisticsExecutorService = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("remote-integration-manager-service-stats"));
+            statisticsExecutorService = ThingsBoardExecutors.newSingleThreadScheduledExecutor("remote-integration-manager-service-stats");
             statisticsExecutorService.scheduleAtFixedRate(this::persistStatistics, statisticsPersistFrequency, statisticsPersistFrequency, TimeUnit.MILLISECONDS);
         }
     }

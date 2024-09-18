@@ -38,7 +38,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
@@ -48,7 +48,6 @@ import org.thingsboard.server.service.sync.vc.GitRepositoryService;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -74,7 +73,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
         if (!enabled) {
             return;
         }
-        executor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("data-converters-library"));
+        executor = ThingsBoardExecutors.newSingleThreadScheduledExecutor("data-converters-library");
         RepositorySettings settings = new RepositorySettings();
         settings.setRepositoryUri(repoUrl);
 
