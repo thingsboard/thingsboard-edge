@@ -734,7 +734,7 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
   }
 
   set x(x: number) {
-    if (!this.dashboard.isMobileSize) {
+    if (!this.dashboard.isMobileSize && this.dashboard.isEdit) {
       if (this.widgetLayout) {
         this.widgetLayout.col = x;
       } else {
@@ -755,7 +755,7 @@ export class DashboardWidget implements GridsterItem, IDashboardWidget {
   }
 
   set y(y: number) {
-    if (!this.dashboard.isMobileSize) {
+    if (!this.dashboard.isMobileSize && this.dashboard.isEdit) {
       if (this.widgetLayout) {
         this.widgetLayout.row = y;
       } else {

@@ -955,6 +955,16 @@ export const getOS = (): string => {
   return os;
 };
 
+export const isSafari = (): boolean => {
+  const userAgent = window.navigator.userAgent.toLowerCase();
+  return /^((?!chrome|android).)*safari/i.test(userAgent);
+};
+
+export const isFirefox = (): boolean => {
+  const userAgent = window.navigator.userAgent.toLowerCase();
+  return /^((?!seamonkey).)*firefox/i.test(userAgent);
+};
+
 export const plainColorFromVariable = (variable: string): string => {
   if (!variable || (!variable.startsWith('--') && !variable.startsWith('var('))) {
     return variable;
