@@ -141,7 +141,7 @@ export interface AlarmComment extends BaseData<AlarmCommentId> {
     text: string;
     edited?: boolean;
     editedOn?: number;
-  }
+  };
 }
 
 export interface AlarmCommentInfo extends AlarmComment {
@@ -187,9 +187,9 @@ export const simulatedAlarm: AlarmInfo = {
   originatorName: 'Simulated',
   originatorLabel: 'Simulated',
   assignee: {
-    firstName: "",
-    lastName: "",
-    email: "test@example.com",
+    firstName: '',
+    lastName: '',
+    email: 'test@example.com',
   },
   originator: {
     entityType: EntityType.DEVICE,
