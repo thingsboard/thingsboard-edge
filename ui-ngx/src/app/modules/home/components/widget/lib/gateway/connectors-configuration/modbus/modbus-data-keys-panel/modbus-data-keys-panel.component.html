@@ -180,6 +180,11 @@
                       </mat-form-field>
                     </div>
                   </div>
+                  <tb-report-strategy
+                    *ngIf="withReportStrategy"
+                    formControlName="reportStrategy"
+                    [isExpansionMode]="true"
+                  />
                 </div>
               </ng-template>
             </mat-expansion-panel>
