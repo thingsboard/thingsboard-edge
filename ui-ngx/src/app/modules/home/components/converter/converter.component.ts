@@ -234,38 +234,46 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   private onSetDefaultScriptBody(converterType: ConverterType): void {
-    const scriptLang: ScriptLanguage = this.entityForm.get('configuration.scriptLang').value;
-    let targetField: string;
-    let targetTemplateUrl: string;
-    if (scriptLang === ScriptLanguage.JS) {
-      targetField = converterType === ConverterType.UPLINK ? 'decoder' : 'encoder';
-      targetTemplateUrl = jsDefaultConvertorsUrl.get(converterType);
-    } else {
-      targetField = converterType === ConverterType.UPLINK ? 'tbelDecoder' : 'tbelEncoder';
-      if(converterType === ConverterType.UPLINK && IntegrationTbelDefaultConvertersUrl.has(this.integrationType)) {
-        targetTemplateUrl = IntegrationTbelDefaultConvertersUrl.get(this.integrationType);
-      } else {
-        targetTemplateUrl = tbelDefaultConvertorsUrl.get(converterType);
-      }
-    }
+    const scriptLang = this.entityForm.get('configuration.scriptLang').value;
+    const targetField = this.getTargetField(converterType, scriptLang);
 
-    if (this.defaultLibraryConfig) {
-      this.setupLibraryScriptBody(targetField);
+    this.defaultLibraryConfig
+      ? this.setupLibraryScriptBody(targetField)
+      : this.setupDefaultScriptBody(targetField, converterType, scriptLang);
+  }
+
+  private getTargetField(converterType: ConverterType, scriptLang: ScriptLanguage): string {
+    return scriptLang === ScriptLanguage.JS
+      ? (converterType === ConverterType.UPLINK ? 'decoder' : 'encoder')
+      : (converterType === ConverterType.UPLINK ? 'tbelDecoder' : 'tbelEncoder');
+  }
+
+  private getTargetTemplateUrl(converterType: ConverterType, scriptLang: ScriptLanguage): string {
+    if (scriptLang === ScriptLanguage.JS) {
+      return jsDefaultConvertorsUrl.get(converterType);
+    } else if (converterType === ConverterType.UPLINK && IntegrationTbelDefaultConvertersUrl.has(this.integrationType)) {
+      return IntegrationTbelDefaultConvertersUrl.get(this.integrationType);
     } else {
-      this.setupDefaultScriptBody(targetField, targetTemplateUrl);
+      return tbelDefaultConvertorsUrl.get(converterType);
     }
   }
 
   private setupLibraryScriptBody(targetField: string): void {
-    this.entityForm.get('configuration').get(targetField).patchValue(this.defaultLibraryConfig[targetField], {emitEvent: false});
+    this.entityForm.get('configuration').get(targetField)
+      .patchValue(this.defaultLibraryConfig[targetField], { emitEvent: false });
   }
 
-  private setupDefaultScriptBody(targetField: string, targetTemplateUrl: string): void {
-    const scriptBody: string = this.entityForm.get('configuration').get(targetField).value;
+  private setupDefaultScriptBody(targetField: string, converterType: ConverterType, scriptLang: ScriptLanguage): void {
+    const scriptBody = this.entityForm.get('configuration').get(targetField).value;
+
     if (!isNotEmptyStr(scriptBody) || isDefinedAndNotNull(this.integrationType)) {
-      this.resourcesService.loadJsonResource<string>(targetTemplateUrl).subscribe((template) => {
-        this.entityForm.get('configuration').get(targetField).patchValue(template, {emitEvent: false});
-      });
+      const targetTemplateUrl = this.getTargetTemplateUrl(converterType, scriptLang);
+      this.resourcesService.loadJsonResource(targetTemplateUrl)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(template => {
+          this.entityForm.get('configuration').get(targetField)
+            .patchValue(template, { emitEvent: false });
+        });
     }
   }
 

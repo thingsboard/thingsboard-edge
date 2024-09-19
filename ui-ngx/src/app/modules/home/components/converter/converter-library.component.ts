@@ -226,9 +226,8 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
   setDisabledState(isDisabled: boolean): void {
     isDisabled
       ? this.libraryFormGroup.disable({emitEvent: false})
-      : this.libraryFormGroup.enable({emitEvent: false});
+      : this.libraryFormGroup.enable();
     this.updateScriptLangEnable();
-    this.libraryFormGroup.updateValueAndValidity();
   }
 
   registerOnChange(fn: (converter: Converter) => void): void {
