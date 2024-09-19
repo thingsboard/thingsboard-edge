@@ -30,7 +30,15 @@
 ///
 
 import { inject, Injectable, NgModule } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve, ResolveFn, RouterModule, RouterStateSnapshot, Routes } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  Resolve,
+  ResolveFn,
+  Router,
+  RouterModule,
+  RouterStateSnapshot,
+  Routes
+} from '@angular/router';
 import { MailServerComponent } from '@modules/home/pages/admin/mail-server.component';
 import { SmsProviderComponent } from '@home/pages/admin/sms-provider.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
@@ -38,7 +46,7 @@ import { Authority } from '@shared/models/authority.enum';
 import { GeneralSettingsComponent } from '@home/pages/admin/general-settings.component';
 import { SecuritySettingsComponent } from '@modules/home/pages/admin/security-settings.component';
 import { MailTemplatesComponent } from '@home/pages/admin/mail-templates.component';
-import { forkJoin, Observable } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { MailTemplatesSettings } from '@shared/models/settings.models';
 import { WhiteLabelingComponent } from '@home/pages/admin/white-labeling.component';
 import { SelfRegistrationComponent } from '@home/pages/admin/self-registration.component';
@@ -67,6 +75,7 @@ import { ImageService } from '@core/http/image.service';
 import { ScadaSymbolData } from '@home/pages/scada-symbol/scada-symbol-editor.models';
 import { MenuId } from '@core/services/menu.models';
 import { CustomMenuRoutes } from '@home/pages/custom-menu/custom-menu-routing.module';
+import { catchError } from 'rxjs/operators';
 
 export const mailTemplateSettingsResolver: ResolveFn<MailTemplatesSettings> = (
   route: ActivatedRouteSnapshot,
@@ -77,13 +86,19 @@ export const mailTemplateSettingsResolver: ResolveFn<MailTemplatesSettings> = (
 export const scadaSymbolResolver: ResolveFn<ScadaSymbolData> =
   (route: ActivatedRouteSnapshot,
    state: RouterStateSnapshot,
+   router = inject(Router),
    imageService = inject(ImageService)) => {
     const type: ImageResourceType = route.params.type;
     const key = decodeURIComponent(route.params.key);
     return forkJoin({
       imageResource: imageService.getImageInfo(type, key),
       scadaSymbolContent: imageService.getImageString(`${IMAGES_URL_PREFIX}/${type}/${encodeURIComponent(key)}`)
-    });
+    }).pipe(
+      catchError(() => {
+        router.navigate(['/resources/scada-symbols']);
+        return of(null);
+      })
+    );
 };
 
 export const scadaSymbolBreadcumbLabelFunction: BreadCrumbLabelFunction<ScadaSymbolComponent>

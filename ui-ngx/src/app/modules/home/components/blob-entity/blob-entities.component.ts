@@ -63,7 +63,6 @@ import { DAY, historyInterval, HistoryWindowType, Timewindow } from '@shared/mod
 import { isDefined, isNotEmptyStr, isNumber } from '@core/utils';
 import { DialogService } from '@core/services/dialog.service';
 import { UtilsService } from '@core/services/utils.service';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { FormBuilder } from '@angular/forms';
 

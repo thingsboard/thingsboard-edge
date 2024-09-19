@@ -259,7 +259,7 @@ public class SignUpController extends BaseController {
         if (!StringUtils.isEmpty(pkgName)) {
             activationLink = String.format("%s&pkgName=%s", activationLink, pkgName);
         }
-        mailService.sendActivationEmail(tenantId, activationLink, targetEmail);
+        mailService.sendActivationEmail(tenantId, activationLink, userCredentials.getActivationTokenTtl(), targetEmail);
     }
 
     private void sendUserActivityNotification(TenantId tenantId, String userFullName, String userEmail, boolean activated, String infoMail) {

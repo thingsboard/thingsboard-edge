@@ -68,6 +68,12 @@ export enum IntegrationType {
   TUYA = 'TUYA'
 }
 
+export enum IntegrationDirectory {
+  CHIRPSTACK = 'ChirpStack',
+  TTI = 'ThingsStackIndustries',
+  TTN = 'ThingsStackIndustries'
+}
+
 export enum CoapSecurityMode {
   NO_SECURE = 'NO_SECURE',
   DTLS = 'DTLS',

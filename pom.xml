@@ -135,7 +135,7 @@
         <bucket4j.version>8.10.1</bucket4j.version>
         <antlr.version>3.5.3</antlr.version>
         <amazon-kinesis-producer>0.15.10</amazon-kinesis-producer>
-        <amazon-kinesis-client>2.2.4-TB</amazon-kinesis-client>
+        <amazon-kinesis-client>2.6.0</amazon-kinesis-client>
         <snakeyaml.version>2.2</snakeyaml.version>
         <aws.sdk.version>1.12.701</aws.sdk.version>
         <pubsub.client.version>1.128.1</pubsub.client.version>

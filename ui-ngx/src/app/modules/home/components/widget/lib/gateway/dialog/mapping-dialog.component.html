@@ -125,6 +125,8 @@
                       <button type="button"
                               mat-icon-button
                               color="primary"
+                              matTooltip="{{ 'action.edit' | translate }}"
+                              matTooltipPosition="above"
                               #attributesButton
                               (click)="manageKeys($event, attributesButton, MappingKeysType.ATTRIBUTES)">
                         <tb-icon matButtonIcon>edit</tb-icon>
@@ -145,6 +147,8 @@
                       <button type="button"
                               mat-icon-button
                               color="primary"
+                              matTooltip="{{ 'action.edit' | translate }}"
+                              matTooltipPosition="above"
                               #telemetryButton
                               (click)="manageKeys($event, telemetryButton, MappingKeysType.TIMESERIES)">
                         <tb-icon matButtonIcon>edit</tb-icon>
@@ -190,6 +194,8 @@
                         <button type="button"
                                 mat-icon-button
                                 color="primary"
+                                matTooltip="{{ 'action.edit' | translate }}"
+                                matTooltipPosition="above"
                                 #keysButton
                                 (click)="manageKeys($event, keysButton, MappingKeysType.CUSTOM)">
                           <tb-icon matButtonIcon>edit</tb-icon>
@@ -681,6 +687,8 @@
               <button type="button"
                       mat-icon-button
                       color="primary"
+                      matTooltip="{{ 'action.edit' | translate }}"
+                      matTooltipPosition="above"
                       #opcAttributesButton
                       (click)="manageKeys($event, opcAttributesButton, MappingKeysType.ATTRIBUTES)">
                 <tb-icon matButtonIcon>edit</tb-icon>
@@ -701,6 +709,8 @@
               <button type="button"
                       mat-icon-button
                       color="primary"
+                      matTooltip="{{ 'action.edit' | translate }}"
+                      matTooltipPosition="above"
                       #opcTelemetryButton
                       (click)="manageKeys($event, opcTelemetryButton, MappingKeysType.TIMESERIES)">
                 <tb-icon matButtonIcon>edit</tb-icon>
@@ -721,6 +731,8 @@
               <button type="button"
                       mat-icon-button
                       color="primary"
+                      matTooltip="{{ 'action.edit' | translate }}"
+                      matTooltipPosition="above"
                       #attributesUpdatesButton
                       (click)="manageKeys($event, attributesUpdatesButton, MappingKeysType.ATTRIBUTES_UPDATES)">
                 <tb-icon matButtonIcon>edit</tb-icon>
@@ -741,6 +753,8 @@
               <button type="button"
                       mat-icon-button
                       color="primary"
+                      matTooltip="{{ 'action.edit' | translate }}"
+                      matTooltipPosition="above"
                       #rpcMethodsButton
                       (click)="manageKeys($event, rpcMethodsButton, MappingKeysType.RPC_METHODS)">
                 <tb-icon matButtonIcon>edit</tb-icon>

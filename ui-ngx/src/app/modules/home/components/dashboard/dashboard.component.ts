@@ -71,7 +71,6 @@ import { SafeStyle } from '@angular/platform-browser';
 import { distinct, take } from 'rxjs/operators';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { UtilsService } from '@core/services/utils.service';
-import { ResizeObserver } from '@juggle/resize-observer';
 import { WidgetComponentAction, WidgetComponentActionType } from '@home/components/widget/widget-container.component';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { displayGrids } from 'angular-gridster2/lib/gridsterConfig.interface';

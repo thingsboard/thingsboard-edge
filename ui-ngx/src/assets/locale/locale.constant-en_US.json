@@ -229,6 +229,12 @@
         "max-failed-login-attempts": "Maximum number of failed login attempts, before account is locked",
         "minimum-max-failed-login-attempts-range": "Maximum number of failed login attempts can't be negative",
         "user-lockout-notification-email": "In case user account lockout, send notification to email",
+        "user-activation-token-ttl": "User activation link TTL in hours",
+        "user-activation-token-ttl-range": "User activation link TTL must be in range from 1 to 24 hours",
+        "password-reset-token-ttl": "Password reset link TTL in hours",
+        "password-reset-token-ttl-range": "Password reset link TTL must be in range from 1 to 24 hours",
+        "mobile-secret-key-length": "Mobile secret key length",
+        "mobile-secret-key-length-range": "Mobile secret key length must be positive",
         "domain-name": "Domain name",
         "domain-name-unique": "Domain name and protocol need to unique.",
         "domain-name-max-length": "Domain name should be less than 256",
@@ -1363,7 +1369,9 @@
         "date-from": "Date from",
         "time-from": "Time from",
         "date-to": "Date to",
-        "time-to": "Time to"
+        "time-to": "Time to",
+        "from": "From",
+        "to": "To"
     },
     "dashboard": {
         "all": "All",
@@ -4621,6 +4629,15 @@
         "max-num-messages-required": "Max number of messages is required.",
         "max-num-bytes": "Max number of bytes",
         "max-num-bytes-required": "Max number of bytes required.",
+        "model": "Model",
+        "select-model": "Select model",
+        "model-not-found": "Model not found",
+        "model-required": "Model is required",
+        "vendor": "Vendor",
+        "select-vendor": "Select Vendor",
+        "vendor-not-found": "Vendor not found",
+        "vendor-required": "Vendor is required",
+        "library": "Library",
         "timeout-in-ms": "Timeout in milliseconds",
         "timeout-in-ms-required": "Timeout in milliseconds is required.",
         "user-id": "User ID",
@@ -4786,6 +4803,7 @@
             "type-color-settings": "Color settings",
             "type-font": "Font",
             "type-units": "Units",
+            "type-icon": "Icon",
             "no-properties": "No properties configured",
             "add-property": "Add property",
             "property-settings": "Property settings",
@@ -5063,7 +5081,11 @@
         "email-auth-placeholder": "Email code",
         "backup-code-auth-description": "Please enter one of your backup codes.",
         "backup-code-auth-placeholder": "Backup code",
-        "version-mask": "{{name}} v.{{version}}"
+        "version-mask": "{{name}} v.{{version}}",
+        "activation-link-expired": "Activation link has expired",
+        "activation-link-expired-message": "The link to activate your profile has expired. You can return to the login page to receive a new email.",
+        "reset-password-link-expired": "Password reset link has expired",
+        "reset-password-link-expired-message": "The link to reset your password has expired. You can return to the login page to receive a new email."
     },
     "signup": {
         "firstname": "First name",
@@ -5363,6 +5385,8 @@
         "type": "Type",
         "unread": "Unread",
         "updated": "Updated",
+        "use-deprecated-webhook-connectors": "Use deprecated Webhook connectors",
+        "use-old-api": "Use old API",
         "use-template": "Use template",
         "view-all": "View all",
         "view-notification-recipients-group": "View notification recipients group",
@@ -6527,6 +6551,7 @@
         "minutes": "Minutes",
         "seconds": "Seconds",
         "advanced": "Advanced",
+        "custom": "Custom",
         "predefined": {
           "yesterday": "Yesterday",
           "day-before-yesterday": "Day before yesterday",
@@ -6569,6 +6594,7 @@
     },
     "timewindow": {
         "timewindow": "Timewindow",
+        "timewindow-settings": "Timewindow settings",
         "years": "{ years, plural, =1 { year } other {# years } }",
         "years-short": "{{ years }}y",
         "months": "{ months, plural, =1 { month } other {# months } }",
@@ -6614,7 +6640,11 @@
         "font": "Font",
         "color": "Color",
         "displayTypePrefix": "Display Realtime/History prefix",
-        "preview": "Preview"
+        "preview": "Preview",
+        "relative": "Relative",
+        "range": "Range",
+        "hide-timewindow-section": "Hide timewindow section from end-users",
+        "disable-custom-interval": "Disable custom interval selection"
     },
     "tooltip": {
         "trigger": "Trigger",
@@ -7089,7 +7119,7 @@
         "display-activation-link": "Display activation link",
         "send-activation-mail": "Send activation mail",
         "activation-link": "User activation link",
-        "activation-link-text": "In order to activate user use the following <a href='{{activationLink}}' target='_blank'>activation link</a> :",
+        "activation-link-text": "In order to activate user use the following <a href='{{activationLink}}' target='_blank'>activation link</a> (expires in {{activationLinkTtl}}) :",
         "copy-activation-link": "Copy activation link",
         "activation-link-copied-message": "User activation link has been copied to clipboard",
         "details": "Details",
@@ -7426,7 +7456,8 @@
         "search": "Search widget bundles",
         "selected-widgets-bundles": "{ count, plural, =1 {1 widgets bundle} other {# widgets bundles} } selected",
         "open-widgets-bundle": "Open widgets bundle",
-        "loading-widgets-bundles": "Loading widgets bundles..."
+        "loading-widgets-bundles": "Loading widgets bundles...",
+        "create-new": "Create new widget bundle"
     },
     "widget-config": {
         "data": "Data",

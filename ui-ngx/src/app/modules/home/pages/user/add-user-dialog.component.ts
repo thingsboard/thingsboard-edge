@@ -34,7 +34,7 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dial
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
-import { ActivationMethod, activationMethodTranslations, User } from '@shared/models/user.model';
+import { ActivationLinkInfo, ActivationMethod, activationMethodTranslations, User } from '@shared/models/user.model';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { UserService } from '@core/http/user.service';
 import { Observable, Subscription } from 'rxjs';
@@ -227,7 +227,7 @@ export class AddUserDialogComponent extends DialogComponent<AddUserDialogCompone
       this.userService.saveUser(this.user, sendActivationEmail, entityGroupIds).subscribe(
         (user) => {
           if (this.activationMethod === ActivationMethod.DISPLAY_ACTIVATION_LINK) {
-            this.userService.getActivationLink(user.id.id).subscribe(
+            this.userService.getActivationLinkInfo(user.id.id).subscribe(
               (activationLink) => {
                 this.displayActivationLink(activationLink).subscribe(
                   () => {
@@ -265,13 +265,13 @@ export class AddUserDialogComponent extends DialogComponent<AddUserDialogCompone
     }
   }
 
-  displayActivationLink(activationLink: string): Observable<void> {
+  displayActivationLink(activationLinkInfo: ActivationLinkInfo): Observable<void> {
     return this.dialog.open<ActivationLinkDialogComponent, ActivationLinkDialogData,
       void>(ActivationLinkDialogComponent, {
       disableClose: true,
       panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
       data: {
-        activationLink
+        activationLinkInfo
       }
     }).afterClosed();
   }
