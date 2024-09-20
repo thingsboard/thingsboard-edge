@@ -34,6 +34,7 @@ import { AttributeData } from '@shared/models/telemetry/telemetry.models';
 
 export const noLeadTrailSpacesRegex = /^\S+(?: \S+)*$/;
 export const integerRegex = /^[-+]?\d+$/;
+export const nonZeroFloat = /^-?(?!0(\.0+)?$)\d+(\.\d+)?$/;
 
 export enum StorageTypes {
   MEMORY = 'memory',
@@ -218,13 +219,12 @@ export type ConnectorLegacyConfig = ConnectorBaseInfo | MQTTLegacyBasicConfig | 
 
 export type ConnectorBaseConfig_v3_5_2 = ConnectorBaseInfo | MQTTBasicConfig_v3_5_2 | OPCBasicConfig_v3_5_2;
 
-export type ConnectorLegacyBaseConfig = ConnectorBaseInfo | MQTTLegacyBasicConfig;
-
 export interface ConnectorBaseInfo {
   name: string;
   id: string;
   enableRemoteLogging: boolean;
   logLevel: GatewayLogLevel;
+  configVersion: string | number;
   reportStrategy?: ReportStrategyConfig;
 }
 
@@ -930,6 +930,30 @@ export enum MappingValueType {
   BOOLEAN = 'boolean'
 }
 
+export enum ModifierType {
+  DIVIDER = 'divider',
+  MULTIPLIER = 'multiplier',
+}
+
+export const ModifierTypesMap = new Map<ModifierType, ValueTypeData>(
+  [
+    [
+      ModifierType.DIVIDER,
+      {
+        name: 'gateway.divider',
+        icon: 'mdi:division'
+      }
+    ],
+    [
+      ModifierType.MULTIPLIER,
+      {
+        name: 'gateway.multiplier',
+        icon: 'mdi:multiplication'
+      }
+    ],
+  ]
+);
+
 export const mappingValueTypesMap = new Map<MappingValueType, ValueTypeData>(
   [
     [
@@ -1179,6 +1203,13 @@ export interface ModbusValue {
   address: number;
   value?: string;
   reportStrategy?: ReportStrategyConfig;
+  multiplier?: number;
+  divider?: number;
+}
+
+export interface ModbusFormValue extends ModbusValue {
+  modifierType?: ModifierType;
+  modifierValue?: string;
 }
 
 export interface ModbusSecurity {
