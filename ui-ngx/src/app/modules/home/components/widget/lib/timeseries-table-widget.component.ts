@@ -35,7 +35,7 @@ import {
   Component,
   ElementRef,
   Injector,
-  Input,
+  Input, NgZone,
   OnDestroy,
   OnInit,
   QueryList,
@@ -244,7 +244,8 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
               private domSanitizer: DomSanitizer,
               private datePipe: DatePipe,
               private cd: ChangeDetectorRef,
-              private fb: FormBuilder) {
+              private fb: FormBuilder,
+              private zone: NgZone) {
     super(store);
   }
 
@@ -269,11 +270,13 @@ export class TimeseriesTableWidgetComponent extends PageComponent implements OnI
         }
       );
       this.widgetResize$ = new ResizeObserver(() => {
-        const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
-        if (showHidePageSize !== this.hidePageSize) {
-          this.hidePageSize = showHidePageSize;
-          this.cd.markForCheck();
-        }
+        this.zone.run(() => {
+          const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+          if (showHidePageSize !== this.hidePageSize) {
+            this.hidePageSize = showHidePageSize;
+            this.cd.markForCheck();
+          }
+        });
       });
       this.widgetResize$.observe(this.elementRef.nativeElement);
     }
