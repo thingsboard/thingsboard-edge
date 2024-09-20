@@ -388,7 +388,9 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
 
   ngAfterViewInit(): void {
     this.gridsterResize$ = new ResizeObserver(() => {
-      this.onGridsterParentResize();
+      this.ngZone.run(() => {
+        this.onGridsterParentResize();
+      });
     });
     this.gridsterResize$.observe(this.gridster.el.parentElement);
   }

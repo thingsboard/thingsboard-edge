@@ -37,7 +37,7 @@ import {
   ComponentFactoryResolver,
   ElementRef,
   EventEmitter,
-  Input,
+  Input, NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -161,6 +161,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
               private componentFactoryResolver: ComponentFactoryResolver,
               private elementRef: ElementRef,
               private fb: FormBuilder,
+              private zone: NgZone,
               public viewContainerRef: ViewContainerRef,
               public renderer: Renderer2) {
     super(store);
@@ -177,11 +178,13 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
       });
     }
     this.widgetResize$ = new ResizeObserver(() => {
-      const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
-      if (showHidePageSize !== this.hidePageSize) {
-        this.hidePageSize = showHidePageSize;
-        this.cd.markForCheck();
-      }
+      this.zone.run(() => {
+        const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+        if (showHidePageSize !== this.hidePageSize) {
+          this.hidePageSize = showHidePageSize;
+          this.cd.markForCheck();
+        }
+      });
     });
     this.widgetResize$.observe(this.elementRef.nativeElement);
   }
