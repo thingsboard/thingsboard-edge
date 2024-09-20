@@ -1224,7 +1224,7 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
       if (column.name === alarmFields.assignee.value) {
         let displayName = '';
         if (alarmData.assignee) {
-          displayName = this.getUserDisplayName(alarmData);
+          displayName = this.getUserDisplayName(alarmData.assignee);
         }
         dataObj[column.title] = displayName;
         return;
