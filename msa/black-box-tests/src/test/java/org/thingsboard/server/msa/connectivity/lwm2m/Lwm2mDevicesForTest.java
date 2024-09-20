@@ -28,33 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.msa.connectivity;
+package org.thingsboard.server.msa.connectivity.lwm2m;
 
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-import org.thingsboard.server.msa.AbstractLwm2mClientTest;
-import org.thingsboard.server.msa.DisableUIListeners;
 
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.DeviceProfile;
+import org.thingsboard.server.msa.connectivity.lwm2m.client.LwM2MTestClient;
 
-@DisableUIListeners
-public class Lwm2mClientNoSecTest extends AbstractLwm2mClientTest {
+@Slf4j
+@Data
+public class Lwm2mDevicesForTest {
 
-    @BeforeMethod
-    public void setUp() throws Exception {
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
-        initTest("lwm2m-NoSec");
-    }
-
-    @AfterMethod
-    public void tearDown() {
-        destroyAfter();
-    }
-
-    @Test
-    public void connectLwm2mClientNoSecWithLwm2mServer() throws Exception {
-        connectLwm2mClientNoSec();
+    Device lwM2MDeviceTest;
+    LwM2MTestClient lwM2MTestClient;
+    DeviceProfile lwm2mDeviceProfile;
+    public Lwm2mDevicesForTest(DeviceProfile deviceProfile) {
+        this.lwm2mDeviceProfile = deviceProfile;
     }
 }

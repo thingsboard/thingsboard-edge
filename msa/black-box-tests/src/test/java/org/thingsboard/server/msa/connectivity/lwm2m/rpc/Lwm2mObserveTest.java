@@ -28,35 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.alarm;
+package org.thingsboard.server.msa.connectivity.lwm2m.rpc;
 
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.alarm.Alarm;
-import org.thingsboard.server.common.data.alarm.AlarmInfo;
-import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import org.thingsboard.server.msa.connectivity.lwm2m.AbstractLwm2mClientTest;
+import org.thingsboard.server.msa.DisableUIListeners;
+import org.thingsboard.server.msa.connectivity.lwm2m.Lwm2mDevicesForTest;
 
-import java.util.List;
-import java.util.UUID;
+import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
+import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
 
-public interface TbAlarmService {
+@DisableUIListeners
+public class Lwm2mObserveTest extends AbstractLwm2mClientTest {
 
-    Alarm save(Alarm entity, User user) throws ThingsboardException;
+    private Lwm2mDevicesForTest lwm2mDevicesForTest;
 
-    AlarmInfo ack(Alarm alarm, User user) throws ThingsboardException;
+    private final static String name = "lwm2m-NoSec-Observe";
 
-    AlarmInfo ack(Alarm alarm, long ackTs, User user) throws ThingsboardException;
+    @BeforeMethod
+    public void setUp() throws Exception {
+        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
+        this.lwm2mDevicesForTest = new Lwm2mDevicesForTest(initTest(name + "-profile" +  RandomStringUtils.randomAlphanumeric(7)));
+    }
 
-    AlarmInfo clear(Alarm alarm, User user) throws ThingsboardException;
+    @AfterMethod
+    public void tearDown() {
+        destroyAfter(this.lwm2mDevicesForTest);
+    }
 
-    AlarmInfo clear(Alarm alarm, long clearTs, User user) throws ThingsboardException;
-
-    AlarmInfo assign(Alarm alarm, UserId assigneeId, long assignTs, User user) throws ThingsboardException;
-
-    AlarmInfo unassign(Alarm alarm, long unassignTs, User user) throws ThingsboardException;
-
-    void unassignDeletedUserAlarms(TenantId tenantId, UserId userId, String userTitle, List<UUID> alarms, long unassignTs);
-
-    Boolean delete(Alarm alarm, User user);
+    @Test
+    public void testObserveResource_Update_AfterUpdateRegistration() throws Exception {
+        createLwm2mDevicesForConnectNoSec( name + "-" +  RandomStringUtils.randomAlphanumeric(7), this.lwm2mDevicesForTest );
+        observeResource_Update_AfterUpdateRegistration_test(this.lwm2mDevicesForTest.getLwM2MTestClient(), this.lwm2mDevicesForTest.getLwM2MDeviceTest().getId());
+    }
 }
