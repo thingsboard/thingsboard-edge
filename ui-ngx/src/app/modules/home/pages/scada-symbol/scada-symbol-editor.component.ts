@@ -35,7 +35,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  Input,
+  Input, NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -117,7 +117,8 @@ export class ScadaSymbolEditorComponent implements OnInit, OnDestroy, AfterViewI
     this.updateEditorMode(value);
   }
 
-  constructor(private cd: ChangeDetectorRef) {
+  constructor(private cd: ChangeDetectorRef,
+              private zone: NgZone) {
   }
 
   ngOnInit(): void {
@@ -143,7 +144,7 @@ export class ScadaSymbolEditorComponent implements OnInit, OnDestroy, AfterViewI
     };
     this.scadaSymbolEditObject = new ScadaSymbolEditObject(this.scadaSymbolShape.nativeElement,
       this.tooltipsContainer.nativeElement,
-      this.tooltipsContainerComponent.viewContainerRef, this.editObjectCallbacks, this.readonly);
+      this.tooltipsContainerComponent.viewContainerRef, this.zone, this.editObjectCallbacks, this.readonly);
     if (this.data) {
       this.updateContent(this.data.scadaSymbolContent);
     }
