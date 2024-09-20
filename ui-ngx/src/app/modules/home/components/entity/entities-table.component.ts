@@ -459,8 +459,8 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     }
   }
 
-  private getTimePageLinkInterval(): {startTime?: number, endTime?: number} {
-    const interval: {startTime?: number, endTime?: number} = {};
+  private getTimePageLinkInterval(): {startTime?: number; endTime?: number} {
+    const interval: {startTime?: number; endTime?: number} = {};
     switch (this.timewindow.history.historyType) {
       case HistoryWindowType.LAST_INTERVAL:
         const currentTime = Date.now();
