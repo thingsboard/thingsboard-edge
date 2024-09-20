@@ -124,7 +124,9 @@ import {
   alarmFields,
   AlarmInfo,
   alarmSeverityColors,
-  AlarmStatus
+  AlarmStatus,
+  getUserDisplayName,
+  getUserInitials
 } from '@shared/models/alarm.models';
 import { DatePipe } from '@angular/common';
 import {
@@ -1248,11 +1250,11 @@ export class AlarmsTableWidgetComponent extends PageComponent implements OnInit,
   }
 
   getUserDisplayName(alarmAssignee: AlarmAssignee) {
-    return this.utils.getUserDisplayName(alarmAssignee);
+    return getUserDisplayName(alarmAssignee);
   }
 
   getUserInitials(alarmAssignee: AlarmAssignee): string {
-    return this.utils.getUserInitials(alarmAssignee);
+    return getUserInitials(alarmAssignee);
   }
 
   getAvatarBgColor(alarmAssignee: AlarmAssignee) {

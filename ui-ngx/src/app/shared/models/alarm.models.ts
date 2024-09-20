@@ -41,6 +41,7 @@ import { TableCellButtonActionDescriptor } from '@home/components/widget/lib/tab
 import { AlarmCommentId } from '@shared/models/id/alarm-comment-id';
 import { UserId } from '@shared/models/id/user-id';
 import { AlarmFilter } from '@shared/models/query/query.models';
+import { isNotEmptyStr } from '@core/utils';
 
 export enum AlarmsMode {
   ALL,
@@ -364,3 +365,36 @@ export class AlarmQueryV2 {
   }
 
 }
+
+export const getUserDisplayName = (alarmAssignee: AlarmAssignee |  AlarmCommentInfo) => {
+  let displayName = '';
+  if (isNotEmptyStr(alarmAssignee.firstName) || isNotEmptyStr(alarmAssignee.lastName)) {
+    if (alarmAssignee.firstName) {
+      displayName += alarmAssignee.firstName;
+    }
+    if (alarmAssignee.lastName) {
+      if (displayName.length > 0) {
+        displayName += ' ';
+      }
+      displayName += alarmAssignee.lastName;
+    }
+  } else {
+    displayName = alarmAssignee.email;
+  }
+  return displayName;
+};
+
+export const getUserInitials = (alarmAssignee: AlarmAssignee): string => {
+  let initials = '';
+  if (isNotEmptyStr(alarmAssignee.firstName) || isNotEmptyStr(alarmAssignee.lastName)) {
+    if (alarmAssignee.firstName) {
+      initials += alarmAssignee.firstName.charAt(0);
+    }
+    if (alarmAssignee.lastName) {
+      initials += alarmAssignee.lastName.charAt(0);
+    }
+  } else {
+    initials += alarmAssignee.email.charAt(0);
+  }
+  return initials.toUpperCase();
+};
