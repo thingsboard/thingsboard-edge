@@ -48,6 +48,6 @@ public interface ConverterLibraryService {
 
     String getPayload(IntegrationType integrationType, String converterType, String vendorName, String model);
 
-    Map<String, IntegrationConvertersInfo> getLibraryConvertersInfo();
+    Map<IntegrationType, IntegrationConvertersInfo> getLibraryConvertersInfo();
 
 }

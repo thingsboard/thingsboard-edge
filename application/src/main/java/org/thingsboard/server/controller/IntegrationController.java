@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -484,7 +485,7 @@ public class IntegrationController extends AutoCommitController {
             notes = "Returns a JSON object containing information about existing tenant converters and converters available in library. " + TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @GetMapping(value = "/integrations/converters/info")
-    public Map<String, IntegrationConvertersInfo> getIntegrationsConvertersInfo() throws ThingsboardException {
+    public Map<IntegrationType, IntegrationConvertersInfo> getIntegrationsConvertersInfo() throws ThingsboardException {
         return tbIntegrationService.getIntegrationsConvertersInfo(getTenantId());
     }
 

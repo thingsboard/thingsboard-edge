@@ -77,4 +77,13 @@ public enum IntegrationType {
         this(singleton, false, directory);
     }
 
+    public static IntegrationType forDirectory(String directory) {
+        for (IntegrationType type : values()) {
+            if (type.getDirectory() != null && type.getDirectory().equals(directory)) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("No IntegrationType with directory: " + directory);
+    }
+
 }

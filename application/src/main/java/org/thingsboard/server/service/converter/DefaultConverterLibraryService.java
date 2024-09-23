@@ -63,7 +63,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DefaultConverterLibraryService implements ConverterLibraryService {
 
-    private static Map<String, IntegrationConvertersInfo> integrationConvertersInfoMap;
+    private static Map<IntegrationType, IntegrationConvertersInfo> integrationConvertersInfoMap;
     private final GitRepositoryService gitRepositoryService;
 
     @Value("${integrations.converters.library.enabled:true}")
@@ -168,7 +168,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     }
 
     @Override
-    public Map<String, IntegrationConvertersInfo> getLibraryConvertersInfo() {
+    public Map<IntegrationType, IntegrationConvertersInfo> getLibraryConvertersInfo() {
         return new HashMap<>(integrationConvertersInfoMap);
     }
 
@@ -213,7 +213,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     private void collectLibraryConvertersInfo() {
         integrationConvertersInfoMap = listFiles("VENDORS", 4, true).stream()
                 .collect(Collectors.groupingBy(
-                        repoFile -> Path.of(repoFile.path()).getParent().getFileName().toString(),
+                        repoFile -> IntegrationType.forDirectory(Path.of(repoFile.path()).getParent().getFileName().toString()),
                         Collectors.collectingAndThen(
                                 Collectors.toList(),
                                 converters -> {

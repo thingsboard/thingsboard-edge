@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.converter.ConverterService;
@@ -91,10 +92,10 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
     }
 
     @Override
-    public Map<String, IntegrationConvertersInfo> getIntegrationsConvertersInfo(TenantId tenantId) {
+    public Map<IntegrationType, IntegrationConvertersInfo> getIntegrationsConvertersInfo(TenantId tenantId) {
         boolean hasUplink = converterService.hasConverterOfType(tenantId, ConverterType.UPLINK);
         boolean hasDownlink = converterService.hasConverterOfType(tenantId, ConverterType.DOWNLINK);
-        Map<String, IntegrationConvertersInfo> convertersInfo = converterLibraryService.getLibraryConvertersInfo();
+        Map<IntegrationType, IntegrationConvertersInfo> convertersInfo = converterLibraryService.getLibraryConvertersInfo();
         convertersInfo.values().forEach(info -> {
             info.getUplink().setExisting(hasUplink);
             info.getDownlink().setExisting(hasDownlink);

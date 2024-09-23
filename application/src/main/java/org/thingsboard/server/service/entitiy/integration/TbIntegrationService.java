@@ -34,6 +34,7 @@ import org.thingsboard.server.common.data.IntegrationConvertersInfo;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 
@@ -45,5 +46,5 @@ public interface TbIntegrationService {
 
     PageData<IntegrationInfo> findIntegrationInfosByTenantIdAndEdgeId(TenantId tenantId, EdgeId edgeId, PageLink pageLink);
 
-    Map<String, IntegrationConvertersInfo> getIntegrationsConvertersInfo(TenantId tenantId);
+    Map<IntegrationType, IntegrationConvertersInfo> getIntegrationsConvertersInfo(TenantId tenantId);
 }

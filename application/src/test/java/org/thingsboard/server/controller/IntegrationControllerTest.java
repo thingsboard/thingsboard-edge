@@ -671,10 +671,10 @@ public class IntegrationControllerTest extends AbstractControllerTest {
         for (Map.Entry<String, IntegrationConvertersInfo> integrationConverterInfo : convertersInfo.entrySet()) {
             assertThat(integrationConverterInfo.getValue().getUplink().hasExisting()).isTrue();
             assertThat(integrationConverterInfo.getValue().getDownlink().hasExisting()).isFalse();
-            if (integrationConverterInfo.getKey().equals("ChirpStack")) {
+            if (integrationConverterInfo.getKey().equals(IntegrationType.CHIRPSTACK.getDirectory())) {
                 assertThat(integrationConverterInfo.getValue().getUplink().hasLibrary()).isTrue();
                 assertThat(integrationConverterInfo.getValue().getDownlink().hasLibrary()).isTrue();
-            } else if (integrationConverterInfo.getKey().equals("ThingsStackIndustries")) {
+            } else if (integrationConverterInfo.getKey().equals(IntegrationType.TTN.getDirectory())) {
                 assertThat(integrationConverterInfo.getValue().getUplink().hasLibrary()).isTrue();
             }
         }
