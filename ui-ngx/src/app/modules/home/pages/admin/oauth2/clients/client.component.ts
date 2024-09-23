@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Inject, Input, Optional } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Input, OnDestroy, Optional } from '@angular/core';
 import { EntityComponent } from '@home/components/entity/entity.component';
 import {
   ClientAuthenticationMethod,
@@ -69,7 +69,7 @@ import { coerceBoolean } from '@app/shared/decorators/coercion';
   templateUrl: './client.component.html',
   styleUrls: ['./client.component.scss']
 })
-export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAuth2ClientInfo> {
+export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAuth2ClientInfo> implements OnDestroy {
 
   @Input()
   @coerceBoolean()
@@ -124,7 +124,8 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
               protected translate: TranslateService,
               private oauth2Service: OAuth2Service,
               @Optional() @Inject('entity') protected entityValue: OAuth2Client,
-              @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<OAuth2Client, PageLink, OAuth2ClientInfo>,
+              @Optional() @Inject('entitiesTableConfig')
+                protected entitiesTableConfigValue: EntityTableConfig<OAuth2Client, PageLink, OAuth2ClientInfo>,
               protected cd: ChangeDetectorRef,
               public fb: UntypedFormBuilder) {
     super(store, fb, entityValue, entitiesTableConfigValue, cd);
@@ -200,13 +201,13 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
     if (entity.scope.length === scopeControls.length) {
       scopeControls.patchValue(entity.scope, {emitEvent: false});
     } else {
-      const scopeControls: Array<AbstractControl> = [];
+      const newScopeControls: Array<AbstractControl> = [];
       if (entity.scope) {
         for (const scope of entity.scope) {
-          scopeControls.push(this.fb.control(scope, [Validators.required]));
+          newScopeControls.push(this.fb.control(scope, [Validators.required]));
         }
       }
-      this.entityForm.setControl('scope', this.fb.array(scopeControls));
+      this.entityForm.setControl('scope', this.fb.array(newScopeControls));
     }
   }
 

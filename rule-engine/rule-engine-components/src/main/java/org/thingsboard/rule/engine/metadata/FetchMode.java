@@ -28,62 +28,10 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../../scss/constants';
+package org.thingsboard.rule.engine.metadata;
 
-.tb-scada-symbol-editor {
-  width: 100%;
-  height: 100%;
-  .tb-scada-symbol-editor-details-drawer {
-    width: 50%;
-    .tb-scada-symbol-editor-preview-content {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      .tb-scada-symbol-editor-preview-header {
-        padding: 24px 24px 0;
-        display: flex;
-        gap: 12px;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .tb-scada-symbol-editor-preview-settings {
-        & > .mat-content {
-          padding-top: 8px;
-          @media #{$mat-xs} {
-            padding-left: 8px;
-            padding-right: 8px;
-          }
-        }
-        flex: 1;
-        overflow: auto;
-        & > div {
-          padding: 16px;
-        }
-        .mat-content {
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          @media #{$mat-xs} {
-            gap: 8px;
-          }
-        }
-      }
-    }
-  }
-  .tb-scada-symbol-editor-content {
-    flex: 1;
-    min-width: 0;
-    min-height: 0;
-    width: 50%;
-    max-width: 50%;
-    background: #fff;
-    &.preview {
-      #gridster-parent {
-        #gridster-background {
-          background-color: #eee;
-        }
-      }
-    }
-  }
+public enum FetchMode {
+
+    FIRST, ALL, LAST
+
 }

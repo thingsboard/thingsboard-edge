@@ -196,6 +196,8 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   LayoutType = LayoutType;
 
+  private destroyed = false;
+
   private forcePristine = false;
 
   get isDirty(): boolean {
@@ -509,7 +511,9 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
 
   ngAfterViewInit() {
     this.dashboardResize$ = new ResizeObserver(() => {
-      this.updateLayoutSizes();
+      this.ngZone.run(() => {
+        this.updateLayoutSizes();
+      });
     });
     this.dashboardResize$.observe(this.dashboardContainer.nativeElement);
     if (!this.widgetEditMode && !this.readonly && this.dashboardUtils.isEmptyDashboard(this.dashboard)) {
@@ -665,6 +669,7 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.cleanupDashboardCss();
     if (this.isMobileApp && this.syncStateWithQueryParam) {
       this.mobileService.unregisterToggleLayoutFunction();
@@ -1188,20 +1193,22 @@ export class DashboardPageComponent extends PageComponent implements IDashboardC
   }
 
   public openDashboardState(state: string, openRightLayout?: boolean) {
-    const layoutsData = this.dashboardUtils.getStateLayoutsData(this.dashboard, state);
-    let widgetsCount = 0;
-    if (layoutsData) {
-      this.dashboardCtx.state = state;
-      this.dashboardCtx.aliasController.dashboardStateChanged();
-      this.isRightLayoutOpened = openRightLayout ? true : false;
-      widgetsCount = this.updateLayouts(layoutsData);
-    }
-    setTimeout(() => {
-      this.mobileService.onDashboardLoaded(this.layouts.right.show, this.isRightLayoutOpened);
-      if (this.reportView) {
-        this.reportService.onDashboardLoaded(widgetsCount);
+    if (!this.destroyed) {
+      const layoutsData = this.dashboardUtils.getStateLayoutsData(this.dashboard, state);
+      let widgetsCount = 0;
+      if (layoutsData) {
+        this.dashboardCtx.state = state;
+        this.dashboardCtx.aliasController.dashboardStateChanged();
+        this.isRightLayoutOpened = openRightLayout ? true : false;
+        widgetsCount = this.updateLayouts(layoutsData);
       }
-    });
+      setTimeout(() => {
+        this.mobileService.onDashboardLoaded(this.layouts.right.show, this.isRightLayoutOpened);
+        if (this.reportView) {
+          this.reportService.onDashboardLoaded(widgetsCount);
+        }
+      });
+    }
   }
 
   private updateLayouts(layoutsData?: DashboardLayoutsInfo): number {
