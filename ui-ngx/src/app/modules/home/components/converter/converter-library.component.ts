@@ -106,13 +106,12 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
   private destroy$ = new Subject<void>();
 
   private onChange: (converter: Converter) => void = (_) => {};
-  private onTouched: () => void;
 
   constructor(
     private fb: FormBuilder,
     private converterLibraryService: ConverterLibraryService,
   ) {
-    this.libraryFormGroup = fb.group({
+    this.libraryFormGroup = this.fb.group({
       vendor: ['', Validators.required],
       model: ['', Validators.required],
     });
@@ -150,7 +149,8 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       distinctUntilChanged(),
       switchMap(() => {
           if (this.libraryFormGroup.get('vendor').value?.name) {
-            return this.converterLibraryService.getModels(this.integrationDir, this.libraryFormGroup.get('vendor').value.name, this.converterType)
+            return this.converterLibraryService
+              .getModels(this.integrationDir, this.libraryFormGroup.get('vendor').value.name, this.converterType);
           }
           return of([]);
         }
@@ -191,7 +191,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       startWith(''),
       debounce((value) => isNotEmptyStr(value) ? interval(300) : of(0)),
       distinctUntilChanged(),
-    )
+    );
   }
 
   get modelValueChanges(): Observable<Model | string> {
@@ -199,7 +199,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       startWith(''),
       debounce((value) => isNotEmptyStr(value) ? interval(300) : of(0)),
       distinctUntilChanged(),
-    )
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -224,9 +224,11 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
   }
 
   setDisabledState(isDisabled: boolean): void {
-    isDisabled
-      ? this.libraryFormGroup.disable({emitEvent: false})
-      : this.libraryFormGroup.enable();
+    if (isDisabled) {
+      this.libraryFormGroup.disable({emitEvent: false});
+    } else {
+      this.libraryFormGroup.enable();
+    }
     this.updateScriptLangEnable();
   }
 
@@ -234,8 +236,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
     this.onChange = fn;
   }
 
-  registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
+  registerOnTouched(_: any): void {
   }
 
   writeValue(converterLibraryValue: ConverterLibraryValue): void {
@@ -285,7 +286,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
   private updateScriptLangEnable(): void {
     const converterControl = this.libraryFormGroup.get('converter');
-    if (!converterControl) return;
+    if (!converterControl) {return;}
 
     const { decoder, encoder, tbelDecoder, tbelEncoder, type } = converterControl.value.configuration || {};
     const scriptLangControl = converterControl.get('configuration')?.get('scriptLang');

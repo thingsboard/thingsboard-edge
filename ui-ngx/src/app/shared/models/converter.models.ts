@@ -83,16 +83,15 @@ export interface Converter extends BaseData<ConverterId>, ExportableEntity<Conve
   configuration: ConverterConfig;
   additionalInfo?: any;
   edgeTemplate: boolean;
-  fromLib: boolean;
 }
 
 export interface ConverterConfig {
-  scriptLang: ScriptLanguage,
-  decoder: string,
-  tbelDecoder: string,
-  encoder: string,
-  tbelEncoder: string,
-  updateOnlyKeys: string[],
+  scriptLang: ScriptLanguage;
+  decoder: string;
+  tbelDecoder: string;
+  encoder: string;
+  tbelEncoder: string;
+  updateOnlyKeys: string[];
 }
 
 export interface TestUpLinkInputParams {
@@ -139,7 +138,7 @@ export enum ConverterSourceType {
 export interface ConverterLibraryValue {
   vendor: string;
   model: string;
-  converter: Converter
+  converter: Converter;
 }
 
 export interface Vendor {

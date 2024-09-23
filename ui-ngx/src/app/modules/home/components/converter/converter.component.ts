@@ -38,7 +38,6 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { TranslateService } from '@ngx-translate/core';
 import {
   Converter,
-  ConverterConfig,
   ConverterDebugInput,
   ConverterType,
   converterTypeTranslationMap,
@@ -101,7 +100,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   @Input()
-  libraryInfo: { vendorName: string, modelName: string };
+  libraryInfo: { vendorName: string; modelName: string };
 
   @Input()
   integrationName: string;
@@ -115,8 +114,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   tbelEnabled: boolean;
 
   scriptLanguage = ScriptLanguage;
-
-  defaultLibraryConfig: ConverterConfig;
 
   private defaultUpdateOnlyKeysByIntegrationType: DefaultUpdateOnlyKeys = {};
   private destroy$ = new Subject<void>();
@@ -166,36 +163,32 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   buildForm(entity: Converter): FormGroup {
     this.tbelEnabled = getCurrentAuthState(this.store).tbelEnabled;
-    const form = this.fb.group(
-      {
-        name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
-        type: [entity?.type ? entity.type : ConverterType.UPLINK, [Validators.required]],
-        debugMode: [isDefinedAndNotNull(entity?.debugMode) ? entity.debugMode : true],
-        configuration: this.fb.group(
-          {
-            scriptLang: [entity?.configuration ? entity.configuration.scriptLang : ScriptLanguage.JS],
-            decoder: [entity?.configuration ? entity.configuration.decoder : null],
-            tbelDecoder: [entity?.configuration ? entity.configuration.tbelDecoder : null],
-            encoder: [entity?.configuration ? entity.configuration.encoder : null],
-            tbelEncoder: [entity?.configuration ? entity.configuration.tbelEncoder : null],
-            updateOnlyKeys: [entity?.configuration ? entity.configuration.updateOnlyKeys : []],
-          }
-        ),
-        additionalInfo: this.fb.group(
-          {
-            description: [entity && entity.additionalInfo ? entity.additionalInfo.description : ''],
-          }
-        )
-      }
-    );
+    const form = this.fb.group({
+      name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
+      type: [entity?.type ? entity.type : ConverterType.UPLINK, [Validators.required]],
+      debugMode: [isDefinedAndNotNull(entity?.debugMode) ? entity.debugMode : true],
+      configuration: this.fb.group({
+        scriptLang: [entity?.configuration ? entity.configuration.scriptLang : ScriptLanguage.JS],
+        decoder: [entity?.configuration ? entity.configuration.decoder : null],
+        tbelDecoder: [entity?.configuration ? entity.configuration.tbelDecoder : null],
+        encoder: [entity?.configuration ? entity.configuration.encoder : null],
+        tbelEncoder: [entity?.configuration ? entity.configuration.tbelEncoder : null],
+        updateOnlyKeys: [entity?.configuration ? entity.configuration.updateOnlyKeys : []],
+      }),
+      additionalInfo: this.fb.group({
+        description: [entity && entity.additionalInfo ? entity.additionalInfo.description : ''],
+      })
+    });
     return form;
   }
 
   private checkIsNewConverter(entity: Converter, form: FormGroup) {
     if (entity && !entity.id) {
-      form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
-      form.get('configuration.scriptLang').patchValue(
-        this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent: true});
+      if (!this.libraryInfo) {
+        form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
+        form.get('configuration.scriptLang').patchValue(
+          this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent: true});
+      }
     } else {
       form.get('type').disable({emitEvent: false});
       let scriptLang: ScriptLanguage = form.get('configuration.scriptLang').value;
@@ -237,9 +230,9 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     const scriptLang = this.entityForm.get('configuration.scriptLang').value;
     const targetField = this.getTargetField(converterType, scriptLang);
 
-    this.defaultLibraryConfig
-      ? this.setupLibraryScriptBody(targetField)
-      : this.setupDefaultScriptBody(targetField, converterType, scriptLang);
+    if (!this.libraryInfo) {
+      this.setupDefaultScriptBody(targetField, converterType, scriptLang);
+    }
   }
 
   private getTargetField(converterType: ConverterType, scriptLang: ScriptLanguage): string {
@@ -258,12 +251,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     }
   }
 
-  private setupLibraryScriptBody(targetField: string): void {
-    this.entityForm.get('configuration').get(targetField)
-      .patchValue(this.defaultLibraryConfig[targetField], { emitEvent: false });
-  }
-
-  private setupDefaultScriptBody(targetField: string, converterType: ConverterType, scriptLang: ScriptLanguage): void {
+  private setupDefaultScriptBody(targetField: string, converterType: ConverterType, scriptLang: ScriptLanguage) {
     const scriptBody = this.entityForm.get('configuration').get(targetField).value;
 
     if (!isNotEmptyStr(scriptBody) || isDefinedAndNotNull(this.integrationType)) {
@@ -296,10 +284,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       }
     }, {emitEvent: false});
 
-    if (this.libraryInfo) {
-      this.defaultLibraryConfig = {...entity.configuration};
-    }
-
     this.checkIsNewConverter(entity, this.entityForm);
   }
 
@@ -327,14 +311,12 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
         .getConverterPayload(integrationDir, this.libraryInfo.vendorName, this.libraryInfo.modelName, this.entityForm.get('type').value),
       this.converterLibraryService
         .getConverterMetaData(integrationDir, this.libraryInfo.vendorName, this.libraryInfo.modelName, this.entityForm.get('type').value)
-    ])
-      .pipe(
-        map(([inContent, inMetadata]) => ({
-          inMetadata: JSON.stringify(inMetadata),
-          inContent: JSON.stringify(inContent),
-          inContentType: ContentType.JSON
-        } as ConverterDebugInput))
-      )
+    ]).pipe(
+      map(([inContent, inMetadata]) => ({
+        inMetadata: JSON.stringify(inMetadata),
+        inContent: JSON.stringify(inContent),
+        inContentType: ContentType.JSON
+      } as ConverterDebugInput)));
   }
 
   private getDefaultDebugIn(): Observable<ConverterDebugInput> {
