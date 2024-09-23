@@ -188,6 +188,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
         form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
         form.get('configuration.scriptLang').patchValue(
           this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent: true});
+      } else {
+        form.updateValueAndValidity();
       }
     } else {
       form.get('type').disable({emitEvent: false});
@@ -251,7 +253,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     }
   }
 
-  private setupDefaultScriptBody(targetField: string, converterType: ConverterType, scriptLang: ScriptLanguage) {
+  private setupDefaultScriptBody(targetField: string, converterType: ConverterType, scriptLang: ScriptLanguage): void {
     const scriptBody = this.entityForm.get('configuration').get(targetField).value;
 
     if (!isNotEmptyStr(scriptBody) || isDefinedAndNotNull(this.integrationType)) {

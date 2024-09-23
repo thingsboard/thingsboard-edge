@@ -118,7 +118,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
     this.libraryFormGroup.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe(value => this.onChange(value?.converter));
+      .subscribe(() => this.onChange(this.libraryFormGroup.get('converter')?.getRawValue()));
 
     this.vendors$ = this.vendorInputSubject.asObservable().pipe(
       switchMap(() => of(this.integrationDir)),
@@ -236,7 +236,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
     this.onChange = fn;
   }
 
-  registerOnTouched(_: any): void {
+  registerOnTouched(_): void {
   }
 
   writeValue(converterLibraryValue: ConverterLibraryValue): void {
