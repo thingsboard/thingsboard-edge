@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.converter;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.ConvertersByTypeInfo;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -62,5 +63,7 @@ public interface ConverterService extends EntityDaoService {
     void deleteConverter(TenantId tenantId, ConverterId converterId);
 
     void deleteConvertersByTenantId(TenantId tenantId);
+
+    ConvertersByTypeInfo getConvertersByTypeInfo(TenantId tenantId);
 
 }

@@ -42,6 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,6 +61,7 @@ import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.js.JsInvokeService;
 import org.thingsboard.script.api.tbel.TbelInvokeService;
+import org.thingsboard.server.common.data.ConvertersInfo;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
@@ -261,6 +263,14 @@ public class ConverterController extends AutoCommitController {
         }
 
         return createDefaultDebugIn(converter, converterType, integrationType, integrationName);
+    }
+
+    @ApiOperation(value = "Get Converters info (getConvertersInfo)",
+            notes = "Returns a JSON object containing information about existing tenant converters and converters available in library by integration. " + TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @GetMapping(value = "/converters/info")
+    public ConvertersInfo getConvertersInfo() throws ThingsboardException {
+        return tbConverterService.getConvertersInfo(getTenantId());
     }
 
     private JsonNode createDefaultDebugIn(Converter converter, String converterType, String integrationType, String integrationName) throws ThingsboardException {

@@ -28,18 +28,8 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.entitiy.converter;
+package org.thingsboard.server.common.data;
 
-import org.thingsboard.server.common.data.ConvertersInfo;
-import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.id.TenantId;
+import java.util.Map;
 
-public interface TbConverterService {
-
-    Converter save(Converter entity, User user) throws Exception;
-
-    void delete(Converter entity, User user);
-
-    ConvertersInfo getConvertersInfo(TenantId tenantId);
-}
+public record ConvertersInfo(ConvertersByTypeInfo existing, Map<String, ConvertersByTypeInfo> library) {}

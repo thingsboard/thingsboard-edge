@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.server.common.data.ConvertersByTypeInfo;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
@@ -47,6 +48,7 @@ import org.thingsboard.server.service.sync.vc.GitRepositoryService;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -58,6 +60,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DefaultConverterLibraryService implements ConverterLibraryService {
 
+    private static Map<String, ConvertersByTypeInfo> convertersByIntegrationInfoMap;
     private final GitRepositoryService gitRepositoryService;
 
     @Value("${integrations.converters.library.enabled:true}")
@@ -81,6 +84,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
         executor.execute(() -> {
             try {
                 gitRepositoryService.initRepository(TenantId.SYS_TENANT_ID, settings);
+                collectLibraryConvertersInfo();
                 log.info("Initialized data converters repository");
             } catch (Throwable e) {
                 log.error("Failed to init data converters repository for settings {}", settings, e);
@@ -89,6 +93,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
         executor.scheduleWithFixedDelay(() -> {
             try {
                 gitRepositoryService.fetch(TenantId.SYS_TENANT_ID);
+                collectLibraryConvertersInfo();
             } catch (Throwable e) {
                 log.error("Failed to fetch data converters repository", e);
             }
@@ -159,6 +164,11 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
         return getFileContent(getConverterDir(integrationType, converterType, vendorName, model) + "/payload.json");
     }
 
+    @Override
+    public Map<String, ConvertersByTypeInfo> getLibraryConvertersInfo() {
+        return convertersByIntegrationInfoMap;
+    }
+
     private String getGithubRawContentUrl(String path) {
         if (path == null) {
             return "";
@@ -190,6 +200,23 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
 
     private String getConverterDir(String integrationType, String converterType, String vendorName, String model) {
         return Path.of("VENDORS", vendorName, model, integrationType, converterType).toString();
+    }
+
+    private void collectLibraryConvertersInfo() {
+        convertersByIntegrationInfoMap = listFiles("VENDORS", 4, true).stream()
+                .collect(Collectors.groupingBy(
+                        repoFile -> Path.of(repoFile.path()).getParent().getFileName().toString(),
+                        Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                converters -> {
+                                    boolean hasUplink = converters.stream()
+                                            .anyMatch(converterPath -> "uplink".equals(Path.of(converterPath.path()).getFileName().toString()));
+                                    boolean hasDownlink = converters.stream()
+                                            .anyMatch(converterPath -> "downlink".equals(Path.of(converterPath.path()).getFileName().toString()));
+                                    return new ConvertersByTypeInfo(hasUplink, hasDownlink);
+                                }
+                        )
+                ));
     }
 
 }
