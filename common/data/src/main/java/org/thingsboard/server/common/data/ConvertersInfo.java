@@ -30,6 +30,23 @@
  */
 package org.thingsboard.server.common.data;
 
-import java.util.Map;
 
-public record ConvertersInfo(ConvertersByTypeInfo existing, Map<String, ConvertersByTypeInfo> library) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode
+@AllArgsConstructor
+public class ConvertersInfo {
+    private boolean existing;
+    private boolean library;
+
+    public boolean hasExisting() {
+        return existing;
+    }
+
+    public boolean hasLibrary() {
+        return library;
+    }
+}

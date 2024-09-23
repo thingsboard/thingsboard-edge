@@ -36,7 +36,6 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.common.data.ConvertersByTypeInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
@@ -196,11 +195,9 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     }
 
     @Override
-    public ConvertersByTypeInfo getConvertersByTypeInfo(TenantId tenantId) {
-        log.trace("Executing getConvertersByTypeInfo, tenantId [{}]", tenantId);
-        boolean hasUplink = converterDao.hasConverterOfType(tenantId.getId(), ConverterType.UPLINK);
-        boolean hasDownLink = converterDao.hasConverterOfType(tenantId.getId(), ConverterType.DOWNLINK);
-        return new ConvertersByTypeInfo(hasUplink, hasDownLink);
+    public boolean hasConverterOfType(TenantId tenantId, ConverterType converterType) {
+        log.trace("Executing hasConverterOfType, tenantId [{}], type [{}]", tenantId, converterType);
+        return converterDao.hasConverterOfType(tenantId.getId(), converterType);
     }
 
     @Override

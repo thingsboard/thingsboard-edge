@@ -35,16 +35,21 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.IntegrationConvertersInfo;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.converter.ConverterLibraryService;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -53,6 +58,8 @@ import java.util.List;
 public class DefaultTbIntegrationService extends AbstractTbEntityService implements TbIntegrationService {
 
     private final IntegrationService integrationService;
+    private final ConverterLibraryService converterLibraryService;
+    private final ConverterService converterService;
 
     @Override
     public PageData<IntegrationInfo> findTenantIntegrationInfos(TenantId tenantId, PageLink pageLink, boolean isEdgeTemplate) {
@@ -81,6 +88,18 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
         });
 
         return pageData;
+    }
+
+    @Override
+    public Map<String, IntegrationConvertersInfo> getIntegrationsConvertersInfo(TenantId tenantId) {
+        boolean hasUplink = converterService.hasConverterOfType(tenantId, ConverterType.UPLINK);
+        boolean hasDownlink = converterService.hasConverterOfType(tenantId, ConverterType.DOWNLINK);
+        Map<String, IntegrationConvertersInfo> convertersInfo = converterLibraryService.getLibraryConvertersInfo();
+        convertersInfo.values().forEach(info -> {
+            info.getUplink().setExisting(hasUplink);
+            info.getDownlink().setExisting(hasDownlink);
+        });
+        return convertersInfo;
     }
 
 }

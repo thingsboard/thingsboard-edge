@@ -30,4 +30,14 @@
  */
 package org.thingsboard.server.common.data;
 
-public record ConvertersByTypeInfo(boolean uplink, boolean downlink) {}
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode
+@AllArgsConstructor
+public final class IntegrationConvertersInfo {
+    private ConvertersInfo uplink;
+    private ConvertersInfo downlink;
+}

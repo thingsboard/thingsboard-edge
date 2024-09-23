@@ -30,7 +30,7 @@
  */
 package org.thingsboard.server.service.converter;
 
-import org.thingsboard.server.common.data.ConvertersByTypeInfo;
+import org.thingsboard.server.common.data.IntegrationConvertersInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -47,6 +47,6 @@ public interface ConverterLibraryService {
 
     String getPayload(String integrationType, String converterType, String vendorName, String model);
 
-    Map<String, ConvertersByTypeInfo> getLibraryConvertersInfo();
+    Map<String, IntegrationConvertersInfo> getLibraryConvertersInfo();
 
 }

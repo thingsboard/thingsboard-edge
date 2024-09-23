@@ -36,6 +36,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,6 +46,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.IntegrationConvertersInfo;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
@@ -68,6 +70,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -475,6 +478,14 @@ public class IntegrationController extends AutoCommitController {
         SecurityUser user = getCurrentUser();
         TenantId tenantId = user.getTenantId();
         return edgeService.findAllRelatedEdgesMissingAttributes(tenantId, integrationId);
+    }
+
+    @ApiOperation(value = "Get Integrations Converters info (getIntegrationsConvertersInfo)",
+            notes = "Returns a JSON object containing information about existing tenant converters and converters available in library. " + TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
+    @GetMapping(value = "/integrations/converters/info")
+    public Map<String, IntegrationConvertersInfo> getIntegrationsConvertersInfo() throws ThingsboardException {
+        return tbIntegrationService.getIntegrationsConvertersInfo(getTenantId());
     }
 
 }
