@@ -53,12 +53,12 @@ import {
 } from '@angular/forms';
 import { combineLatest, debounce, interval, Observable, of, shareReplay, Subject } from 'rxjs';
 import {
-  catchError, debounceTime,
+  catchError,
   distinctUntilChanged,
   map,
   startWith,
   switchMap,
-  takeUntil, tap,
+  takeUntil,
 } from 'rxjs/operators';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
 import { IntegrationDirectory, IntegrationType } from '@shared/models/integration.models';
@@ -105,8 +105,8 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
   private integrationDir: IntegrationDirectory;
   private destroy$ = new Subject<void>();
 
-  private onChange!: (converter: Converter) => void;
-  private onTouched!: () => void;
+  private onChange: (converter: Converter) => void = (_) => {};
+  private onTouched: () => void;
 
   constructor(
     private fb: FormBuilder,
@@ -135,7 +135,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       this.vendors$
     ]).pipe(
       map(([value, vendors]) => {
-        this.libraryFormGroup.get('model').patchValue('', {emitEvent: false});
+        this.libraryFormGroup.get('model').patchValue('');
         if (isEmptyStr(value)) {
           return vendors;
         }
@@ -226,7 +226,8 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
   setDisabledState(isDisabled: boolean): void {
     isDisabled
       ? this.libraryFormGroup.disable({emitEvent: false})
-      : this.libraryFormGroup.enable({emitEvent: false});
+      : this.libraryFormGroup.enable();
+    this.updateScriptLangEnable();
   }
 
   registerOnChange(fn: (converter: Converter) => void): void {
@@ -280,5 +281,19 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
   trackByName(_, item: Vendor | Model): string {
     return item.name;
+  }
+
+  private updateScriptLangEnable(): void {
+    const converterControl = this.libraryFormGroup.get('converter');
+    if (!converterControl) return;
+
+    const { decoder, encoder, tbelDecoder, tbelEncoder, type } = converterControl.value.configuration || {};
+    const scriptLangControl = converterControl.get('configuration')?.get('scriptLang');
+
+    if (type === ConverterType.UPLINK && (!decoder || !tbelDecoder)) {
+      scriptLangControl?.disable({ emitEvent: false });
+    } else if (!encoder || !tbelEncoder) {
+      scriptLangControl?.disable({ emitEvent: false });
+    }
   }
 }

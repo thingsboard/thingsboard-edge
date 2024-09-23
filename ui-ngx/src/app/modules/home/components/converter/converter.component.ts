@@ -38,6 +38,7 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { TranslateService } from '@ngx-translate/core';
 import {
   Converter,
+  ConverterConfig,
   ConverterDebugInput,
   ConverterType,
   converterTypeTranslationMap,
@@ -84,7 +85,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this._integrationType = value;
     if (isDefinedAndNotNull(value)) {
       this.updatedOnlyKeysValue();
-      this.setupDefaultScriptBody(this.entityForm.get('type').value);
+      this.onSetDefaultScriptBody(this.entityForm.get('type').value);
     }
   }
 
@@ -115,6 +116,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   scriptLanguage = ScriptLanguage;
 
+  defaultLibraryConfig: ConverterConfig;
+
   private defaultUpdateOnlyKeysByIntegrationType: DefaultUpdateOnlyKeys = {};
   private destroy$ = new Subject<void>();
 
@@ -142,7 +145,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.entityForm.get('configuration.scriptLang').valueChanges.pipe(
         takeUntil(this.destroy$)
     ).subscribe(() => {
-      this.setupDefaultScriptBody(this.entityForm.get('type').value);
+      this.onSetDefaultScriptBody(this.entityForm.get('type').value);
     });
     this.checkIsNewConverter(this.entity, this.entityForm);
   }
@@ -226,31 +229,51 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
           tbelEncoder: null,
         }, {emitEvent: false});
       }
-      this.setupDefaultScriptBody(converterType);
+      this.onSetDefaultScriptBody(converterType);
     }
   }
 
-  private setupDefaultScriptBody(converterType: ConverterType) {
-    const scriptLang: ScriptLanguage = this.entityForm.get('configuration.scriptLang').value;
-    let targetField: string;
-    let targetTemplateUrl: string;
-    if (scriptLang === ScriptLanguage.JS) {
-      targetField = converterType === ConverterType.UPLINK ? 'decoder' : 'encoder';
-      targetTemplateUrl = jsDefaultConvertorsUrl.get(converterType);
-    } else {
-      targetField = converterType === ConverterType.UPLINK ? 'tbelDecoder' : 'tbelEncoder';
-      if(converterType === ConverterType.UPLINK && IntegrationTbelDefaultConvertersUrl.has(this.integrationType)) {
-        targetTemplateUrl = IntegrationTbelDefaultConvertersUrl.get(this.integrationType);
-      } else {
-        targetTemplateUrl = tbelDefaultConvertorsUrl.get(converterType);
-      }
-    }
+  private onSetDefaultScriptBody(converterType: ConverterType): void {
+    const scriptLang = this.entityForm.get('configuration.scriptLang').value;
+    const targetField = this.getTargetField(converterType, scriptLang);
 
-    const scriptBody: string = this.entityForm.get('configuration').get(targetField).value;
+    this.defaultLibraryConfig
+      ? this.setupLibraryScriptBody(targetField)
+      : this.setupDefaultScriptBody(targetField, converterType, scriptLang);
+  }
+
+  private getTargetField(converterType: ConverterType, scriptLang: ScriptLanguage): string {
+    return scriptLang === ScriptLanguage.JS
+      ? (converterType === ConverterType.UPLINK ? 'decoder' : 'encoder')
+      : (converterType === ConverterType.UPLINK ? 'tbelDecoder' : 'tbelEncoder');
+  }
+
+  private getTargetTemplateUrl(converterType: ConverterType, scriptLang: ScriptLanguage): string {
+    if (scriptLang === ScriptLanguage.JS) {
+      return jsDefaultConvertorsUrl.get(converterType);
+    } else if (converterType === ConverterType.UPLINK && IntegrationTbelDefaultConvertersUrl.has(this.integrationType)) {
+      return IntegrationTbelDefaultConvertersUrl.get(this.integrationType);
+    } else {
+      return tbelDefaultConvertorsUrl.get(converterType);
+    }
+  }
+
+  private setupLibraryScriptBody(targetField: string): void {
+    this.entityForm.get('configuration').get(targetField)
+      .patchValue(this.defaultLibraryConfig[targetField], { emitEvent: false });
+  }
+
+  private setupDefaultScriptBody(targetField: string, converterType: ConverterType, scriptLang: ScriptLanguage): void {
+    const scriptBody = this.entityForm.get('configuration').get(targetField).value;
+
     if (!isNotEmptyStr(scriptBody) || isDefinedAndNotNull(this.integrationType)) {
-      this.resourcesService.loadJsonResource<string>(targetTemplateUrl).subscribe((template) => {
-        this.entityForm.get('configuration').get(targetField).patchValue(template, {emitEvent: false});
-      });
+      const targetTemplateUrl = this.getTargetTemplateUrl(converterType, scriptLang);
+      this.resourcesService.loadJsonResource(targetTemplateUrl)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(template => {
+          this.entityForm.get('configuration').get(targetField)
+            .patchValue(template, { emitEvent: false });
+        });
     }
   }
 
@@ -272,6 +295,11 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
         description: entity.additionalInfo ? entity.additionalInfo.description : ''
       }
     }, {emitEvent: false});
+
+    if (this.libraryInfo) {
+      this.defaultLibraryConfig = {...entity.configuration};
+    }
+
     this.checkIsNewConverter(entity, this.entityForm);
   }
 
