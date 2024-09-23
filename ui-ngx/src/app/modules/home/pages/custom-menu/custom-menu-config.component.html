@@ -42,24 +42,24 @@
         </button>
         <div class="title-section">
           <span tbTruncateWithTooltip class="tb-custom-menu-config-title">{{  customMenu.name }} </span>
-          <mat-slide-toggle fxHide.xs [formControl]="showHiddenItems">{{ 'custom-menu.show-hidden-items' | translate }}</mat-slide-toggle>
+          <mat-slide-toggle fxHide.xs class="tb-custom-menu-show-hidden-items" [formControl]="showHiddenItems">{{ 'custom-menu.show-hidden-items' | translate }}</mat-slide-toggle>
         </div>
         <span fxFlex></span>
-        <button *ngIf="!readonly"
+        <button *ngIf="!readonly" class="tb-custom-menu-button"
                 fxHide.lt-lg
                 mat-stroked-button
                 color="primary"
                 (click)="hideAll()">
           <tb-icon matButtonIcon>visibility_off</tb-icon>
-          {{'custom-menu.hide-all-menu-items' | translate}}
+          <div tbTruncateWithTooltip>{{'custom-menu.hide-all-menu-items' | translate}}</div>
         </button>
-        <button *ngIf="!readonly"
+        <button *ngIf="!readonly" class="tb-custom-menu-button"
                 fxHide.lt-lg
                 mat-stroked-button
                 color="primary"
                 (click)="resetToDefault()">
           <tb-icon matButtonIcon>mdi:broom</tb-icon>
-          {{'custom-menu.reset-to-default-menu' | translate}}
+          <div tbTruncateWithTooltip>{{'custom-menu.reset-to-default-menu' | translate}}</div>
         </button>
         <button *ngIf="!readonly"
                 fxHide.gt-md

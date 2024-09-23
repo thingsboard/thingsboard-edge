@@ -94,7 +94,7 @@ export class ScadaSymbolEditObject {
   constructor(private rootElement: HTMLElement,
               public tooltipsContainer: HTMLElement,
               public viewContainerRef: ViewContainerRef,
-              public zone: NgZone,
+              private zone: NgZone,
               private callbacks: ScadaSymbolEditObjectCallbacks,
               public readonly: boolean) {
     this.shapeResize$ = new ResizeObserver(() => {
@@ -209,7 +209,9 @@ export class ScadaSymbolEditObject {
       from(import('tooltipster')),
       from(import('tooltipster/dist/js/plugins/tooltipster/SVG/tooltipster-SVG.min.js'))
     ]).subscribe(() => {
-      this.setupElements();
+      this.zone.run(() => {
+        this.setupElements();
+      });
     });
   }
 
@@ -422,6 +424,10 @@ export class ScadaSymbolEditObject {
     .filter((v, i, a) => a.indexOf(v) === i)
     .sort();
     this.callbacks.tagsUpdated(this.tags);
+  }
+
+  public getTags(): string[] {
+    return this.tags;
   }
 
   public tagHasStateRenderFunction(tag: string): boolean {
@@ -774,9 +780,7 @@ export class ScadaSymbolElement {
   }
 
   private setupTagPanel() {
-    this.editObject.zone.run(() => {
-      setupTagPanelTooltip(this, this.editObject.viewContainerRef);
-    });
+    setupTagPanelTooltip(this, this.editObject.viewContainerRef);
   }
 
   private createAddTagTooltip() {
@@ -824,9 +828,7 @@ export class ScadaSymbolElement {
   }
 
   private setupAddTagPanel() {
-    this.editObject.zone.run(() => {
-      setupAddTagPanelTooltip(this, this.editObject.viewContainerRef);
-    });
+    setupAddTagPanelTooltip(this, this.editObject.viewContainerRef);
   }
 
   private innerTagTooltipPosition(_instance: ITooltipsterInstance, helper: ITooltipsterHelper,
