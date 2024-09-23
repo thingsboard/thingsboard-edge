@@ -59,7 +59,7 @@ import {
 } from '@home/components/converter/converter-test-dialog.component';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import { IntegrationDirectory, IntegrationType } from '@shared/models/integration.models';
+import { IntegrationType } from '@shared/models/integration.models';
 import { isDefinedAndNotNull, isNotEmptyStr } from '@core/utils';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { map, takeUntil } from 'rxjs/operators';
@@ -293,12 +293,11 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   private getLibraryDebugIn(): Observable<ConverterDebugInput> {
-    const integrationDir = IntegrationDirectory[this.integrationType] ?? this.integrationType;
     return forkJoin([
       this.converterLibraryService
-        .getConverterPayload(integrationDir, this.libraryInfo.vendorName, this.libraryInfo.modelName, this.entityForm.get('type').value),
+        .getConverterPayload(this.integrationType, this.libraryInfo.vendorName, this.libraryInfo.modelName, this.entityForm.get('type').value),
       this.converterLibraryService
-        .getConverterMetaData(integrationDir, this.libraryInfo.vendorName, this.libraryInfo.modelName, this.entityForm.get('type').value)
+        .getConverterMetaData(this.integrationType, this.libraryInfo.vendorName, this.libraryInfo.modelName, this.entityForm.get('type').value)
     ])
       .pipe(
         map(([inContent, inMetadata]) => ({
