@@ -34,49 +34,47 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @AllArgsConstructor
+@Getter
 public enum IntegrationType {
-    OCEANCONNECT(false),
-    SIGFOX(false),
-    THINGPARK(false),
-    TPE(false),
-    CHIRPSTACK(false),
-    PARTICLE(false),
-    TMOBILE_IOT_CDP(false),
-    HTTP(false),
-    MQTT(true),
-    PUB_SUB(true),
-    AWS_IOT(true),
-    AWS_SQS(true),
-    AWS_KINESIS(false),
-    IBM_WATSON_IOT(true),
-    TTN(true),
-    TTI(true),
-    AZURE_EVENT_HUB(true),
-    OPC_UA(true),
-    CUSTOM(false, true),
-    UDP(false, true),
-    TCP(false, true),
-    KAFKA(true),
-    AZURE_IOT_HUB(true),
-    APACHE_PULSAR(true),
-    RABBITMQ(false),
-    LORIOT(false),
-    COAP(false),
-    TUYA(true),
-    AZURE_SERVICE_BUS(true),
-    KPN(false);
+    OCEANCONNECT(false, null),
+    SIGFOX(false, "Sigfox"),
+    THINGPARK(false, "Actility ThingPark"),
+    TPE(false, "Actility ThingPark"),
+    CHIRPSTACK(false, "ChirpStack"),
+    PARTICLE(false, "Particle"),
+    TMOBILE_IOT_CDP(false, null),
+    HTTP(false, "HTTP"),
+    MQTT(true, "MQTT"),
+    PUB_SUB(true, "PubSub"),
+    AWS_IOT(true, "AWS IoT"),
+    AWS_SQS(true, "Amazon SQS"),
+    AWS_KINESIS(false, "Amazon Kinesis"),
+    IBM_WATSON_IOT(true, "IBM Watson IoT"),
+    TTN(true, "ThingsStackIndustries"),
+    TTI(true, "ThingsStackIndustries"),
+    AZURE_EVENT_HUB(true, "Azure Event Hub"),
+    OPC_UA(true, "OPC UA"),
+    CUSTOM(false, true, null),
+    UDP(false, true, "UDP"),
+    TCP(false, true, "TCP"),
+    KAFKA(true, "Apache Kafka"),
+    AZURE_IOT_HUB(true, "Azure IoT Hub"),
+    APACHE_PULSAR(true, "Apache Pulsar"),
+    RABBITMQ(false, "RabbitMQ"),
+    LORIOT(false, "LORIOT"),
+    COAP(false, "CoAP"),
+    TUYA(true, "Tuya"),
+    AZURE_SERVICE_BUS(true, "Azure Service Bus"),
+    KPN(false, "KPN");
 
-    IntegrationType(boolean singleton) {
-        this.singleton = singleton;
-        this.remoteOnly = false;
-    }
 
     //Identifies if the Integration instance is one per cluster.
-    @Getter
     private final boolean singleton;
-
-    @Getter
     private final boolean remoteOnly;
+    private final String directory;
 
+    IntegrationType(boolean singleton, String directory) {
+        this(singleton, false, directory);
+    }
 
 }
