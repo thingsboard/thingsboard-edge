@@ -185,7 +185,10 @@ export enum MenuId {
   converter_templates = 'converter_templates',
   scheduler = 'scheduler',
   roles = 'roles',
-  self_registration = 'self_registration'
+  self_registration = 'self_registration',
+  edge = 'edge',
+  edge_status = 'edge_status',
+  cloud_events = 'cloud_events'
 }
 
 declare type MenuFilter = (_authState: AuthState, userPermissionsService: UserPermissionsService) => boolean;
@@ -724,6 +727,36 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       type: 'link',
       path: '/usage',
       icon: 'insert_chart'
+    }
+  ],
+  [
+    MenuId.edge,
+    {
+      id: MenuId.edge,
+      name: 'edge.edge',
+      type: 'toggle',
+      path: '/edge',
+      icon: 'router'
+    }
+  ],
+  [
+    MenuId.edge_status,
+    {
+      id: MenuId.edge_status,
+      name: 'edge.status',
+      type: 'link',
+      path: '/edge/status',
+      icon: 'info'
+    }
+  ],
+  [
+    MenuId.cloud_events,
+    {
+      id: MenuId.cloud_events,
+      name: 'edge.cloud-events',
+      type: 'link',
+      path: '/edge/cloudEvents',
+      icon: 'date_range'
     }
   ],
   [
@@ -1385,6 +1418,22 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   [
     MenuId.audit_log, (_authState, userPermissionsService) =>
             userPermissionsService.hasReadGenericPermission(Resource.AUDIT_LOG)
+  ],
+  // merge comment: sections below should not be visible on edge
+  [
+    MenuId.version_control, () => false
+  ],
+  [
+    MenuId.repository_settings, () => false
+  ],
+  [
+    MenuId.auto_commit_settings, () => false
+  ],
+  [
+    MenuId.edge_instances, () => false
+  ],
+  [
+    MenuId.self_registration, () => false
   ]
 ]);
 
@@ -1461,6 +1510,13 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
     Authority.TENANT_ADMIN,
     [
       {id: MenuId.home},
+      {
+        id: MenuId.edge,
+        pages: [
+          {id: MenuId.edge_status},
+          {id: MenuId.cloud_events}
+        ]
+      },
       {id: MenuId.alarms},
       {
         id: MenuId.dashboards,
