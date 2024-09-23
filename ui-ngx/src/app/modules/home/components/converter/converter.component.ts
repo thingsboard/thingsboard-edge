@@ -229,12 +229,13 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   private onSetDefaultScriptBody(converterType: ConverterType): void {
+    if (this.libraryInfo) {
+      return;
+    }
+
     const scriptLang = this.entityForm.get('configuration.scriptLang').value;
     const targetField = this.getTargetField(converterType, scriptLang);
-
-    if (!this.libraryInfo) {
-      this.setupDefaultScriptBody(targetField, converterType, scriptLang);
-    }
+    this.setupDefaultScriptBody(targetField, converterType, scriptLang);
   }
 
   private getTargetField(converterType: ConverterType, scriptLang: ScriptLanguage): string {
