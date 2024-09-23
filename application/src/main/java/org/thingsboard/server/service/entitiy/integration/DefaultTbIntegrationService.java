@@ -35,7 +35,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.ConvertersInfo;
 import org.thingsboard.server.common.data.IntegrationConvertersInfo;
+import org.thingsboard.server.common.data.LibraryConvertersInfo;
 import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -51,6 +53,7 @@ import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -95,12 +98,19 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
     public Map<IntegrationType, IntegrationConvertersInfo> getIntegrationsConvertersInfo(TenantId tenantId) {
         boolean hasUplink = converterService.hasConverterOfType(tenantId, ConverterType.UPLINK);
         boolean hasDownlink = converterService.hasConverterOfType(tenantId, ConverterType.DOWNLINK);
-        Map<IntegrationType, IntegrationConvertersInfo> convertersInfo = converterLibraryService.getLibraryConvertersInfo();
-        convertersInfo.values().forEach(info -> {
-            info.getUplink().setExisting(hasUplink);
-            info.getDownlink().setExisting(hasDownlink);
-        });
-        return convertersInfo;
+
+        Map<String, LibraryConvertersInfo> libraryConvertersInfo = converterLibraryService.getLibraryConvertersInfo();
+        return libraryConvertersInfo.entrySet().stream()
+                .flatMap(libraryInfo -> IntegrationType.forDirectory(libraryInfo.getKey()).stream()
+                        .map(integrationType -> Map.entry(
+                                integrationType,
+                                new IntegrationConvertersInfo(
+                                        new ConvertersInfo(libraryInfo.getValue().uplink(), hasUplink),
+                                        new ConvertersInfo(libraryInfo.getValue().downlink(), hasDownlink)
+                                )
+                        ))
+                )
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
 }

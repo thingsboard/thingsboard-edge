@@ -39,8 +39,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
-import org.thingsboard.server.common.data.ConvertersInfo;
-import org.thingsboard.server.common.data.IntegrationConvertersInfo;
+import org.thingsboard.server.common.data.LibraryConvertersInfo;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
@@ -49,7 +48,6 @@ import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
 import org.thingsboard.server.service.sync.vc.GitRepositoryService;
 
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,7 +61,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DefaultConverterLibraryService implements ConverterLibraryService {
 
-    private static Map<IntegrationType, IntegrationConvertersInfo> integrationConvertersInfoMap;
+    private static Map<String, LibraryConvertersInfo> libraryConvertersInfoMap;
     private final GitRepositoryService gitRepositoryService;
 
     @Value("${integrations.converters.library.enabled:true}")
@@ -168,8 +166,8 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     }
 
     @Override
-    public Map<IntegrationType, IntegrationConvertersInfo> getLibraryConvertersInfo() {
-        return new HashMap<>(integrationConvertersInfoMap);
+    public Map<String, LibraryConvertersInfo> getLibraryConvertersInfo() {
+        return libraryConvertersInfoMap;
     }
 
     private String getGithubRawContentUrl(String path) {
@@ -211,9 +209,9 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     }
 
     private void collectLibraryConvertersInfo() {
-        integrationConvertersInfoMap = listFiles("VENDORS", 4, true).stream()
+        libraryConvertersInfoMap = listFiles("VENDORS", 4, true).stream()
                 .collect(Collectors.groupingBy(
-                        repoFile -> IntegrationType.forDirectory(Path.of(repoFile.path()).getParent().getFileName().toString()),
+                        repoFile -> Path.of(repoFile.path()).getParent().getFileName().toString(),
                         Collectors.collectingAndThen(
                                 Collectors.toList(),
                                 converters -> {
@@ -221,7 +219,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
                                             .anyMatch(converterPath -> "uplink".equals(Path.of(converterPath.path()).getFileName().toString()));
                                     boolean hasDownlink = converters.stream()
                                             .anyMatch(converterPath -> "downlink".equals(Path.of(converterPath.path()).getFileName().toString()));
-                                    return new IntegrationConvertersInfo(new ConvertersInfo(false, hasUplink), new ConvertersInfo(false, hasDownlink));
+                                    return new LibraryConvertersInfo(hasUplink, hasDownlink);
                                 }
                         )
                 ));

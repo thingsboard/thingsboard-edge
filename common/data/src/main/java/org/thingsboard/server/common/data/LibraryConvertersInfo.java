@@ -28,26 +28,6 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.converter;
+package org.thingsboard.server.common.data;
 
-import org.thingsboard.server.common.data.LibraryConvertersInfo;
-import org.thingsboard.server.common.data.integration.IntegrationType;
-
-import java.util.List;
-import java.util.Map;
-
-public interface ConverterLibraryService {
-
-    List<Vendor> getVendors(IntegrationType integrationType);
-
-    List<Model> getVendorModels(IntegrationType integrationType, String converterType, String vendorName);
-
-    String getConverter(IntegrationType integrationType, String converterType, String vendorName, String model);
-
-    String getConverterMetadata(IntegrationType integrationType, String converterType, String vendorName, String model);
-
-    String getPayload(IntegrationType integrationType, String converterType, String vendorName, String model);
-
-    Map<String, LibraryConvertersInfo> getLibraryConvertersInfo();
-
-}
+public record LibraryConvertersInfo(boolean uplink, boolean downlink) {}

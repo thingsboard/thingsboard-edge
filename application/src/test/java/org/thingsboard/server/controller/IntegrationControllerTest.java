@@ -667,15 +667,15 @@ public class IntegrationControllerTest extends AbstractControllerTest {
 
     @Test
     public void testGetConvertersInfo() throws Exception {
-        Map<String, IntegrationConvertersInfo> convertersInfo = readResponse(doGet("/api/integrations/converters/info"), new TypeReference<>() {});
-        for (Map.Entry<String, IntegrationConvertersInfo> integrationConverterInfo : convertersInfo.entrySet()) {
-            assertThat(integrationConverterInfo.getValue().getUplink().hasExisting()).isTrue();
-            assertThat(integrationConverterInfo.getValue().getDownlink().hasExisting()).isFalse();
-            if (integrationConverterInfo.getKey().equals(IntegrationType.CHIRPSTACK.getDirectory())) {
-                assertThat(integrationConverterInfo.getValue().getUplink().hasLibrary()).isTrue();
-                assertThat(integrationConverterInfo.getValue().getDownlink().hasLibrary()).isTrue();
-            } else if (integrationConverterInfo.getKey().equals(IntegrationType.TTN.getDirectory())) {
-                assertThat(integrationConverterInfo.getValue().getUplink().hasLibrary()).isTrue();
+        Map<IntegrationType, IntegrationConvertersInfo> convertersInfo = readResponse(doGet("/api/integrations/converters/info"), new TypeReference<>() {});
+        for (Map.Entry<IntegrationType, IntegrationConvertersInfo> integrationConverterInfo : convertersInfo.entrySet()) {
+            assertThat(integrationConverterInfo.getValue().uplink().existing()).isTrue();
+            assertThat(integrationConverterInfo.getValue().downlink().existing()).isFalse();
+            if (integrationConverterInfo.getKey() == IntegrationType.CHIRPSTACK) {
+                assertThat(integrationConverterInfo.getValue().uplink().library()).isTrue();
+                assertThat(integrationConverterInfo.getValue().downlink().library()).isTrue();
+            } else if (integrationConverterInfo.getKey() == IntegrationType.TTN || integrationConverterInfo.getKey() == IntegrationType.TTI) {
+                assertThat(integrationConverterInfo.getValue().uplink().library()).isTrue();
             }
         }
     }

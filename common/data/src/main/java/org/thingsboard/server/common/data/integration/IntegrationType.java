@@ -33,6 +33,10 @@ package org.thingsboard.server.common.data.integration;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @AllArgsConstructor
 @Getter
 public enum IntegrationType {
@@ -77,13 +81,10 @@ public enum IntegrationType {
         this(singleton, false, directory);
     }
 
-    public static IntegrationType forDirectory(String directory) {
-        for (IntegrationType type : values()) {
-            if (type.getDirectory() != null && type.getDirectory().equals(directory)) {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException("No IntegrationType with directory: " + directory);
+    public static Set<IntegrationType> forDirectory(String directory) {
+        return Arrays.stream(values())
+                .filter(type -> directory.equals(type.getDirectory()))
+                .collect(Collectors.toSet());
     }
 
 }
