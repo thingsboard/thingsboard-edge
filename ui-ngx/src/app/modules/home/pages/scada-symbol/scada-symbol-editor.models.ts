@@ -426,6 +426,10 @@ export class ScadaSymbolEditObject {
     this.callbacks.tagsUpdated(this.tags);
   }
 
+  public getTags(): string[] {
+    return this.tags;
+  }
+
   public tagHasStateRenderFunction(tag: string): boolean {
     return this.callbacks.tagHasStateRenderFunction(tag);
   }
