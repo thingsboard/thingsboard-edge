@@ -193,8 +193,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @TbCoreComponent
@@ -591,7 +589,7 @@ public class DefaultSolutionService implements SolutionService {
 
             template = template.replace("${" + credentialsInfo.getName() + "ACCESS_TOKEN}", credentialsInfo.getCredentials().getCredentialsId());
 
-            if (credentialsInfo.getName().equals("Gateway")) {
+            if (credentialsInfo.isGateway()) {
                 template = template.replace("${DOCKER_CONFIG}", prepareDockerComposeFile(ctx.getTenantId(), baseUrl, credentialsInfo.getCredentials().getDeviceId()));
             }
         }
@@ -659,20 +657,12 @@ public class DefaultSolutionService implements SolutionService {
     private String prepareDockerComposeFile(TenantId tenantId, String baseUrl, DeviceId deviceId) {
         Device device = new Device(deviceId);
         device.setTenantId(tenantId);
-        try (InputStream inputStream = deviceConnectivityService.createGatewayDockerComposeFile(baseUrl, device).getInputStream();
+        try (InputStream inputStream = deviceConnectivityService.createGatewayDockerComposeFile(baseUrl, device, false).getInputStream();
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
         ) {
-            String content = reader.lines().collect(Collectors.joining("\n"))
-                    .replaceAll("(?s)# Ports bindings - required by some connectors.*?# Necessary mapping for Linux", "# Necessary mapping for Linux")
-                    .replaceAll("image: (thingsboard/tb-gateway)", "image: $1:latest");
-            Matcher matcher = Pattern.compile("accessToken=\\S+").matcher(content);
-            if (matcher.find()) {
-                int endOfAccessToken = matcher.end();
-                content = content.substring(0, endOfAccessToken).trim();
-            } else {
-                throw new RuntimeException("Access token is not found");
-            }
-            return content;
+            return reader.lines().collect(Collectors.joining("\n"))
+                    .replaceAll("(image:\\s+([\\w\\-/]+))", "$1:latest")
+                    .replaceAll("(accessToken=\\S+)([\\s\\S]*)", "$1");
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to read or process the docker-compose.yml file.", e);
@@ -951,6 +941,7 @@ public class DefaultSolutionService implements SolutionService {
             DeviceId entityId = entity.getId();
             ctx.putIdToMap(entityDef, entityId);
 
+            // TODO: add attributes descriptor to generate values
             ObjectNode attributes = (ObjectNode) entityDef.getAttributes();
             if (attributes != null) {
                 LocalDateTime currentTime = LocalDateTime.now();
@@ -972,6 +963,9 @@ public class DefaultSolutionService implements SolutionService {
             deviceCredentialsInfo.setType(entity.getType());
             deviceCredentialsInfo.setCustomerName(entityDef.getCustomer());
             deviceCredentialsInfo.setCredentials(deviceCredentialsService.findDeviceCredentialsByDeviceId(ctx.getTenantId(), entityId));
+            JsonNode additionalInfo = entity.getAdditionalInfo();
+            boolean isGateway = additionalInfo != null && additionalInfo.hasNonNull("gateway") && additionalInfo.get("gateway").asBoolean();
+            deviceCredentialsInfo.setGateway(isGateway);
 
             ctx.addDeviceCredentials(deviceCredentialsInfo);
 
@@ -1458,20 +1452,23 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private void saveServerSideAttributes(TenantId tenantId, EntityId entityId, JsonNode attributes, RandomNameData randomNameData) {
-        if (attributes != null && !attributes.isNull() && attributes.size() > 0) {
-            log.info("[{}] Saving server attributes: {}", entityId, attributes);
-            if (randomNameData != null) {
-                attributes = JacksonUtil.toJsonNode(randomize(JacksonUtil.toString(attributes), randomNameData, null));
-            }
-            attributesService.save(tenantId, entityId, AttributeScope.SERVER_SCOPE,
-                    new ArrayList<>(JsonConverter.convertToAttributes(JsonParser.parseString(JacksonUtil.toString(attributes)))));
-        }
+        saveAttributes(tenantId, entityId, attributes, randomNameData, AttributeScope.SERVER_SCOPE);
     }
 
     private void saveSharedAttributes(TenantId tenantId, EntityId entityId, JsonNode attributes) {
+        if (!EntityType.DEVICE.equals(entityId.getEntityType())) {
+            throw new IllegalArgumentException(entityId.getEntityType() + " cannot have shared attributes.");
+        }
+        saveAttributes(tenantId, entityId, attributes, null, AttributeScope.SHARED_SCOPE);
+    }
+
+    private void saveAttributes(TenantId tenantId, EntityId entityId, JsonNode attributes, RandomNameData randomNameData, AttributeScope attributeScope) {
         if (attributes != null && !attributes.isNull() && attributes.size() > 0) {
-            log.info("[{}] Saving shared attributes: {}", entityId, attributes);
-            attributesService.save(tenantId, entityId, AttributeScope.SHARED_SCOPE,
+            log.info("[{}] Saving attributes: {}", entityId, attributes);
+            if (randomNameData != null) {
+                attributes = JacksonUtil.toJsonNode(randomize(JacksonUtil.toString(attributes), randomNameData, null));
+            }
+            attributesService.save(tenantId, entityId, attributeScope,
                     new ArrayList<>(JsonConverter.convertToAttributes(JsonParser.parseString(JacksonUtil.toString(attributes)))));
         }
     }
