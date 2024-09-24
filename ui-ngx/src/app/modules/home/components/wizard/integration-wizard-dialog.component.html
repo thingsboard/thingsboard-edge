@@ -86,7 +86,7 @@
         <div class="tb-form-panel" ngClass.gt-xs="stroked" ngClass.xs="no-padding no-border">
           <div class="tb-form-row no-border no-padding column-xs">
             <div fxFlex fxHide.xs class="tb-form-panel-title"><ng-container *ngTemplateOutlet=uplinkLabel></ng-container></div>
-            <tb-toggle-select [fxShow]="(integrationInfo$ | async)?.uplink?.existing || (integrationInfo$ | async)?.uplink?.library" fxFlex appearance="fill" formControlName="converterType">
+            <tb-toggle-select *ngIf="(integrationInfo$ | async)?.uplink?.existing || (integrationInfo$ | async)?.uplink?.library" fxFlex appearance="fill" formControlName="converterType">
               <tb-toggle-option [value]="ConverterSourceType.NEW">{{ 'integration.new-converter' | translate }}</tb-toggle-option>
               <tb-toggle-option *ngIf="(integrationInfo$ | async)?.uplink?.existing" [value]="ConverterSourceType.EXISTING">{{ 'integration.existing-converter' | translate }}</tb-toggle-option>
               <tb-toggle-option *ngIf="(integrationInfo$ | async)?.uplink?.library" [value]="ConverterSourceType.LIBRARY">{{ 'integration.library' | translate }}</tb-toggle-option>
@@ -123,7 +123,7 @@
         <div class="tb-form-panel" ngClass.gt-xs="stroked" ngClass.xs="no-padding no-border">
           <div class="tb-form-row no-border no-padding column-xs tb-flex space-between">
             <div fxHide.xs class="tb-form-panel-title"><ng-container *ngTemplateOutlet=downlinkLabel></ng-container></div>
-            <tb-toggle-select appearance="fill" formControlName="converterType">
+            <tb-toggle-select *ngIf="integrationWizardForm.get('type').value" appearance="fill" formControlName="converterType">
               <tb-toggle-option [value]="ConverterSourceType.NEW">{{ 'integration.new-converter' | translate }}</tb-toggle-option>
               <tb-toggle-option [value]="ConverterSourceType.SKIP">{{ 'integration.skip' | translate }}</tb-toggle-option>
               <tb-toggle-option *ngIf="(integrationInfo$ | async)?.downlink?.existing" [value]="ConverterSourceType.EXISTING">{{ 'integration.existing-converter' | translate }}</tb-toggle-option>

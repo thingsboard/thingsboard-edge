@@ -47,7 +47,7 @@ import { AddEntityDialogData } from '@home/models/entity/entity-component.models
 import { MatStepper, StepperOrientation } from '@angular/material/stepper';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { map, mergeMap, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, mergeMap, takeUntil, tap } from 'rxjs/operators';
 import { forkJoin, Observable, of, shareReplay, Subject, combineLatest } from 'rxjs';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { TranslateService } from '@ngx-translate/core';
@@ -441,17 +441,19 @@ export class IntegrationWizardDialogComponent extends
       this.integrationService.getIntegrationsConvertersInfo()
     ])
       .pipe(
+        filter(([selectedType, _]) => !!selectedType),
         map(([selectedType, integrationsInfo]: [IntegrationType, IntegrationsConvertersInfo]) => {
           const convertersInfo = integrationsInfo[selectedType];
           const downlinkConverterTypeControl = this.downlinkConverterForm.get('converterType');
           const uplinkConverterTypeControl = this.uplinkConverterForm.get('converterType');
 
-          if (uplinkConverterTypeControl.value !== ConverterSourceType.NEW && !convertersInfo?.uplink[uplinkConverterTypeControl.value]) {
+          if (uplinkConverterTypeControl.value !== ConverterSourceType.NEW && convertersInfo && !convertersInfo.uplink[uplinkConverterTypeControl.value]) {
             uplinkConverterTypeControl.patchValue(ConverterSourceType.NEW);
           }
-          if (downlinkConverterTypeControl.value !== ConverterSourceType.SKIP
+          if (convertersInfo
+            && downlinkConverterTypeControl.value !== ConverterSourceType.SKIP
             && downlinkConverterTypeControl.value !== ConverterSourceType.NEW
-            && !convertersInfo?.downlink[downlinkConverterTypeControl.value]) {
+            && !convertersInfo.downlink[downlinkConverterTypeControl.value]) {
             downlinkConverterTypeControl.patchValue(ConverterSourceType.SKIP);
           }
           return convertersInfo;
