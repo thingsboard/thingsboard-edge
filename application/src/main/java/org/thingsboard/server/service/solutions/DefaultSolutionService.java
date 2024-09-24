@@ -105,6 +105,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.DeviceConnectivityService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -168,11 +169,16 @@ import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemp
 import org.thingsboard.server.service.solutions.data.solution.TenantSolutionTemplateInstructions;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -187,6 +193,8 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @TbCoreComponent
@@ -241,6 +249,7 @@ public class DefaultSolutionService implements SolutionService {
     private final AlarmService alarmService;
     private final SchedulerEventService schedulerEventService;
     private final SchedulerService schedulerService;
+    private final DeviceConnectivityService deviceConnectivityService;
     private final ExecutorService emulatorExecutor = ThingsBoardExecutors.newWorkStealingPool(10, getClass());
 
     @PostConstruct
@@ -548,7 +557,8 @@ public class DefaultSolutionService implements SolutionService {
 
     private String prepareInstructions(SolutionInstallContext ctx, HttpServletRequest request) {
         String template = readFile(resolve(ctx.getSolutionId(), "instructions.md"));
-        template = template.replace("${BASE_URL}", systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request));
+        String baseUrl = systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request);
+        template = template.replace("${BASE_URL}", baseUrl);
         TenantSolutionTemplateInstructions solutionInstructions = ctx.getSolutionInstructions();
         template = template.replace("${MAIN_DASHBOARD_URL}",
                 getDashboardLink(solutionInstructions, solutionInstructions.getDashboardGroupId(), solutionInstructions.getDashboardId(), false));
@@ -580,6 +590,10 @@ public class DefaultSolutionService implements SolutionService {
             devList.append(System.lineSeparator());
 
             template = template.replace("${" + credentialsInfo.getName() + "ACCESS_TOKEN}", credentialsInfo.getCredentials().getCredentialsId());
+
+            if (credentialsInfo.getName().equals("Gateway")) {
+                template = template.replace("${DOCKER_CONFIG}", prepareDockerComposeFile(ctx.getTenantId(), baseUrl, credentialsInfo.getCredentials().getDeviceId()));
+            }
         }
 
         template = template.replace("${device_list_and_credentials}", devList.toString());
@@ -640,6 +654,29 @@ public class DefaultSolutionService implements SolutionService {
             dashboardLink = "/dashboardGroups/" + dashboardGroupId.getId() + "/" + dashboardId.getId();
         }
         return dashboardLink;
+    }
+
+    private String prepareDockerComposeFile(TenantId tenantId, String baseUrl, DeviceId deviceId) {
+        Device device = new Device(deviceId);
+        device.setTenantId(tenantId);
+        try (InputStream inputStream = deviceConnectivityService.createGatewayDockerComposeFile(baseUrl, device).getInputStream();
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
+        ) {
+            String content = reader.lines().collect(Collectors.joining("\n"))
+                    .replaceAll("(?s)# Ports bindings - required by some connectors.*?# Necessary mapping for Linux", "# Necessary mapping for Linux")
+                    .replaceAll("image: (thingsboard/tb-gateway)", "image: $1:latest");
+            Matcher matcher = Pattern.compile("accessToken=\\S+").matcher(content);
+            if (matcher.find()) {
+                int endOfAccessToken = matcher.end();
+                content = content.substring(0, endOfAccessToken).trim();
+            } else {
+                throw new RuntimeException("Access token is not found");
+            }
+            return content;
+
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read or process the docker-compose.yml file.", e);
+        }
     }
 
     private void provisionRoles(SolutionInstallContext ctx) {
@@ -904,6 +941,7 @@ public class DefaultSolutionService implements SolutionService {
             ensureDeviceProfileExists(ctx, deviceTypeSet, entityDef);
             entity.setType(entityDef.getType());
             entity.setCustomerId(customerId);
+            entity.setAdditionalInfo(entityDef.getAdditionalInfo());
             entity = deviceService.saveDevice(entity);
 
             entityActionService.logEntityAction(user, entity.getId(), entity, customerId, ActionType.ADDED, null);
@@ -912,7 +950,20 @@ public class DefaultSolutionService implements SolutionService {
             log.info("[{}] Saved device: {}", entity.getId(), entity);
             DeviceId entityId = entity.getId();
             ctx.putIdToMap(entityDef, entityId);
-            saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
+
+            ObjectNode attributes = (ObjectNode) entityDef.getAttributes();
+            if (attributes != null) {
+                LocalDateTime currentTime = LocalDateTime.now();
+                if (attributes.has("maintenance") && "${currentTime}".equals(attributes.get("maintenance").asText())) {
+                    attributes.put("maintenance", currentTime.toInstant(ZoneOffset.UTC).toEpochMilli());
+                }
+                if (attributes.has("expectedMaintenance") && "${expectedMaintenance}".equals(attributes.get("expectedMaintenance").asText())) {
+                    attributes.put("expectedMaintenance", currentTime.plusMonths(6).toInstant(ZoneOffset.UTC).toEpochMilli());
+                }
+            }
+
+            saveServerSideAttributes(ctx.getTenantId(), entityId, attributes);
+            saveSharedAttributes(ctx.getTenantId(), entityId, entityDef.getSharedAttributes());
             ctx.put(entityId, entityDef.getRelations());
             addEntityToGroup(ctx, entityDef, entityId);
 
@@ -1408,11 +1459,19 @@ public class DefaultSolutionService implements SolutionService {
 
     private void saveServerSideAttributes(TenantId tenantId, EntityId entityId, JsonNode attributes, RandomNameData randomNameData) {
         if (attributes != null && !attributes.isNull() && attributes.size() > 0) {
-            log.info("[{}] Saving attributes: {}", entityId, attributes);
+            log.info("[{}] Saving server attributes: {}", entityId, attributes);
             if (randomNameData != null) {
                 attributes = JacksonUtil.toJsonNode(randomize(JacksonUtil.toString(attributes), randomNameData, null));
             }
             attributesService.save(tenantId, entityId, AttributeScope.SERVER_SCOPE,
+                    new ArrayList<>(JsonConverter.convertToAttributes(JsonParser.parseString(JacksonUtil.toString(attributes)))));
+        }
+    }
+
+    private void saveSharedAttributes(TenantId tenantId, EntityId entityId, JsonNode attributes) {
+        if (attributes != null && !attributes.isNull() && attributes.size() > 0) {
+            log.info("[{}] Saving shared attributes: {}", entityId, attributes);
+            attributesService.save(tenantId, entityId, AttributeScope.SHARED_SCOPE,
                     new ArrayList<>(JsonConverter.convertToAttributes(JsonParser.parseString(JacksonUtil.toString(attributes)))));
         }
     }

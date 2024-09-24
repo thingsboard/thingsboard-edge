@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Swimming Pool SCADA System Rule Chain",
+    "file": "swimming_pool_scada_system_rule_chain.json",
+    "jsonId": "939b0510-7041-11ef-a4b8-c14490e86420"
+  },
+  {
+    "name": "Swimming Pool Device Rule Chain",
+    "file": "swimming_pool_device_rule_chain.json",
+    "jsonId": "8725c7c0-7041-11ef-a4b8-c14490e86420"
+  }
+]

@@ -1,0 +1,32 @@
+{
+  "name": "Water sensor",
+  "description": "",
+  "image": null,
+  "type": "DEFAULT",
+  "transportType": "DEFAULT",
+  "provisionType": "DISABLED",
+  "defaultRuleChainId": {
+    "entityType": "RULE_CHAIN",
+    "id": "8725c7c0-7041-11ef-a4b8-c14490e86420"
+  },
+  "defaultDashboardId": null,
+  "defaultQueueName": null,
+  "provisionDeviceKey": null,
+  "firmwareId": null,
+  "softwareId": null,
+  "defaultEdgeRuleChainId": null,
+  "default": false,
+  "profileData": {
+    "configuration": {
+      "type": "DEFAULT"
+    },
+    "transportConfiguration": {
+      "type": "DEFAULT"
+    },
+    "provisionConfiguration": {
+      "type": "DISABLED",
+      "provisionDeviceSecret": null
+    },
+    "alarms": null
+  }
+}
