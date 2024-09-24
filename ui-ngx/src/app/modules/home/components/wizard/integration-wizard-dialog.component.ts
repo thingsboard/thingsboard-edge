@@ -457,7 +457,7 @@ export class IntegrationWizardDialogComponent extends
           return convertersInfo;
         }),
         shareReplay(1)
-      )
+      );
   }
 
   private get isRemoteIntegration(): boolean {
