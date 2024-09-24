@@ -249,6 +249,8 @@ const svgPartsRegex = /(<svg.*?>)(.*)<\/svg>/gms;
 
 const tbNamespaceRegex = /<svg.*(xmlns:tb="https:\/\/thingsboard.io\/svg").*>/gms;
 
+const tbTagRegex = /tb:tag="([^"]*)"/gms;
+
 const generateElementId = () => {
   const id = guid();
   const firstChar = id.charAt(0);
@@ -292,6 +294,17 @@ export const parseScadaSymbolMetadataFromContent = (svgContent: string): ScadaSy
   } catch (_e) {
     return emptyMetadata();
   }
+};
+
+export const parseScadaSymbolsTagsFromContent = (svgContent: string): string[] => {
+  const tags: string[] = [];
+  tbTagRegex.lastIndex = 0;
+  let tagsMatch = tbTagRegex.exec(svgContent);
+  while (tagsMatch !== null) {
+    tags.push(tagsMatch[1]);
+    tagsMatch = tbTagRegex.exec(svgContent);
+  }
+  return tags.filter((v, i, arr) => arr.indexOf(v) === i);
 };
 
 const parseScadaSymbolMetadataFromDom = (svgDoc: Document): ScadaSymbolMetadata => {
@@ -982,11 +995,14 @@ export class ScadaSymbolObject {
       fontSetClasses.forEach(className => textElement.addClass(className));
       textElement.font({size: `${size}px`});
       textElement.attr({
-        'text-anchor': 'start',
-        'dominant-baseline': 'hanging',
         style: `font-size: ${size}px`
       });
       textElement.fill(color);
+      const tspan = textElement.first();
+      tspan.attr({
+        'text-anchor': 'start',
+        'dominant-baseline': 'hanging'
+      });
       return of(textElement);
     }
   }
@@ -1233,8 +1249,8 @@ class CssScadaSymbolAnimation implements ScadaSymbolAnimation {
     return this;
   }
 
-  public ease(easing: string): this {
-    this._easing = easing;
+  public ease(easing: string | EasingLiteral): this {
+    this._easing = this.easingLiteralToCssEasing(easing);
     this.updateAnimationStyle('animation-timing-function', this._easing);
     return this;
   }
@@ -1517,7 +1533,11 @@ class CssScadaSymbolAnimation implements ScadaSymbolAnimation {
     const transform = this._initialTransform;
     for (const key of Object.keys(this._transform)) {
       if (this._relative) {
-        transformed[key] = this.normFloat(transform[key] + this._transform[key]);
+        if (['scaleX', 'scaleY'].includes(key)) {
+          transformed[key] = this.normFloat(transform[key] * this._transform[key]);
+        } else {
+          transformed[key] = this.normFloat(transform[key] + this._transform[key]);
+        }
       } else {
         transformed[key] = this.normFloat(this._transform[key]);
       }
@@ -1579,6 +1599,21 @@ class CssScadaSymbolAnimation implements ScadaSymbolAnimation {
   private normFloat(num: number, digits = 2): number {
     const factor = Math.pow(10, digits);
     return Math.round((num + Number.EPSILON) * factor) / factor;
+  }
+
+  private easingLiteralToCssEasing(easing: string | EasingLiteral): string {
+    switch (easing) {
+      case '<>':
+        return 'ease-in-out';
+      case '-':
+        return 'linear';
+      case '>':
+        return 'ease-out';
+      case '<':
+        return 'ease-in';
+      default:
+        return easing;
+    }
   }
 
 }

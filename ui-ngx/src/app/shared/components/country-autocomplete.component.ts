@@ -215,7 +215,7 @@ export class CountryAutocompleteComponent implements OnInit, ControlValueAccesso
   private updateView(value: Country | null) {
     if (this.modelValue?.name !== value?.name) {
       this.modelValue = value;
-      this.propagateChange(this.modelValue);
+      this.propagateChange(this.modelValue?.name);
       if (value) {
         this.selectCountryCode.emit(value.iso2);
       }

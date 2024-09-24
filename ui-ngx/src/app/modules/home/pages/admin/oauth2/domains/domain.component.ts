@@ -41,7 +41,6 @@ import { Store } from '@ngrx/store';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { WINDOW } from '@core/services/window.service';
 import { isDefinedAndNotNull } from '@core/utils';
-import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { ClientDialogComponent } from '@home/pages/admin/oauth2/clients/client-dialog.component';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -53,7 +52,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 })
 export class DomainComponent extends EntityComponent<DomainInfo> {
 
-  private loginProcessingUrl: string = '';
+  private loginProcessingUrl = '';
 
   entityType = EntityType;
 
@@ -98,7 +97,7 @@ export class DomainComponent extends EntityComponent<DomainInfo> {
     return domainName !== '' ? `${domainName}${this.loginProcessingUrl}` : '';
   }
 
-  createClient($event: Event, button: MatButton) {
+  createClient($event: Event) {
     if ($event) {
       $event.stopPropagation();
       $event.preventDefault();
