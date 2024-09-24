@@ -35,6 +35,7 @@ import { ConverterId } from '@shared/models/id/converter-id';
 import { ContentType } from '@shared/models/constants';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { IntegrationType } from '@shared/models/integration.models';
+import { ScriptLanguage } from '@shared/models/rule-node.models';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
@@ -79,9 +80,18 @@ export interface Converter extends BaseData<ConverterId>, ExportableEntity<Conve
   name: string;
   type: ConverterType;
   debugMode: boolean;
-  configuration: any;
+  configuration: ConverterConfig;
   additionalInfo?: any;
   edgeTemplate: boolean;
+}
+
+export interface ConverterConfig {
+  scriptLang: ScriptLanguage;
+  decoder: string;
+  tbelDecoder: string;
+  encoder: string;
+  tbelEncoder: string;
+  updateOnlyKeys: string[];
 }
 
 export interface TestUpLinkInputParams {
@@ -128,7 +138,7 @@ export enum ConverterSourceType {
 export interface ConverterLibraryValue {
   vendor: string;
   model: string;
-  converter: Converter
+  converter: Converter;
 }
 
 export interface Vendor {
