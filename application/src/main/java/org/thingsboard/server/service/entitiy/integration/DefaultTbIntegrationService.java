@@ -51,9 +51,9 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.ConverterLibraryService;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -100,17 +100,16 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
         boolean hasDownlink = converterService.hasConverterOfType(tenantId, ConverterType.DOWNLINK);
 
         Map<String, LibraryConvertersInfo> libraryConvertersInfo = converterLibraryService.getLibraryConvertersInfo();
-        return libraryConvertersInfo.entrySet().stream()
-                .flatMap(libraryInfo -> IntegrationType.forDirectory(libraryInfo.getKey()).stream()
-                        .map(integrationType -> Map.entry(
-                                integrationType,
-                                new IntegrationConvertersInfo(
-                                        new ConvertersInfo(libraryInfo.getValue().uplink(), hasUplink),
-                                        new ConvertersInfo(libraryInfo.getValue().downlink(), hasDownlink)
-                                )
-                        ))
-                )
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<IntegrationType, IntegrationConvertersInfo> result = new HashMap<>();
+        for (IntegrationType integrationType : IntegrationType.values()) {
+            String directory = integrationType.getDirectory();
+            LibraryConvertersInfo libraryInfo = libraryConvertersInfo.getOrDefault(directory, new LibraryConvertersInfo(false, false));
+            result.put(integrationType, new IntegrationConvertersInfo(
+                    new ConvertersInfo(libraryInfo.uplink(), hasUplink),
+                    new ConvertersInfo(libraryInfo.downlink(), hasDownlink)
+            ));
+        }
+        return result;
     }
 
 }

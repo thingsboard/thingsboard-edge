@@ -56,6 +56,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.converter.ConverterType.DOWNLINK;
+import static org.thingsboard.server.common.data.converter.ConverterType.UPLINK;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -216,9 +219,9 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
                                 Collectors.toList(),
                                 converters -> {
                                     boolean hasUplink = converters.stream()
-                                            .anyMatch(converterPath -> "uplink".equals(Path.of(converterPath.path()).getFileName().toString()));
+                                            .anyMatch(converterPath -> UPLINK.getDirectory().equals(converterPath.name()));
                                     boolean hasDownlink = converters.stream()
-                                            .anyMatch(converterPath -> "downlink".equals(Path.of(converterPath.path()).getFileName().toString()));
+                                            .anyMatch(converterPath -> DOWNLINK.getDirectory().equals(converterPath.name()));
                                     return new LibraryConvertersInfo(hasUplink, hasDownlink);
                                 }
                         )

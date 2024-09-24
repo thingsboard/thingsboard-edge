@@ -33,10 +33,6 @@ package org.thingsboard.server.common.data.integration;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.Arrays;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 @AllArgsConstructor
 @Getter
 public enum IntegrationType {
@@ -80,11 +76,4 @@ public enum IntegrationType {
     IntegrationType(boolean singleton, String directory) {
         this(singleton, false, directory);
     }
-
-    public static Set<IntegrationType> forDirectory(String directory) {
-        return Arrays.stream(values())
-                .filter(type -> directory.equals(type.getDirectory()))
-                .collect(Collectors.toSet());
-    }
-
 }
