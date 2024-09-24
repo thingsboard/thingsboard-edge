@@ -123,6 +123,7 @@ export enum ConverterSourceType {
   NEW = 'new',
   EXISTING = 'existing',
   LIBRARY = 'library',
+  SKIP = 'skip',
 }
 
 export interface ConverterLibraryValue {
