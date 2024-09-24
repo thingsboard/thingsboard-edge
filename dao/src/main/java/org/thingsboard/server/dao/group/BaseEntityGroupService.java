@@ -745,13 +745,14 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
         log.trace("Executing addEntityToEntityGroup, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
+        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+        validator.validateEntityTypesMatch(entityGroup.getType(), entityId.getEntityType());
         EntityRelation entityRelation = new EntityRelation();
         entityRelation.setFrom(entityGroupId);
         entityRelation.setTo(entityId);
         entityRelation.setTypeGroup(RelationTypeGroup.FROM_ENTITY_GROUP);
         entityRelation.setType(EntityRelation.CONTAINS_TYPE);
         relationService.saveRelation(tenantId, entityRelation);
-        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
         eventPublisher.publishEvent(ActionEntityEvent.builder()
                 .tenantId(tenantId)
                 .entityId(entityId)
@@ -763,8 +764,10 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
     public void addEntitiesToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds) {
         log.trace("Executing addEntityToEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
         validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
+        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
         for (EntityId entityId : entityIds) {
             validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
+            validator.validateEntityTypesMatch(entityGroup.getType(), entityId.getEntityType());
         }
         var relations = entityIds.stream().map(entityId -> {
             EntityRelation entityRelation = new EntityRelation();
@@ -775,7 +778,6 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
             return entityRelation;
         }).collect(Collectors.toList());
         relationService.saveRelations(tenantId, relations);
-        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
         for (EntityId entityId : entityIds) {
             eventPublisher.publishEvent(ActionEntityEvent.builder()
                     .tenantId(tenantId)
@@ -1223,6 +1225,12 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
             }
             if (entityGroup.getOwnerId() == null || entityGroup.getOwnerId().isNullUid()) {
                 throw new DataValidationException("Entity group ownerId should be specified!");
+            }
+        }
+
+        protected void validateEntityTypesMatch(EntityType entityType, EntityType entityGroupType) {
+            if (!entityType.equals(entityGroupType)) {
+                throw new DataValidationException("Entity type should match the entity group type!");
             }
         }
     }

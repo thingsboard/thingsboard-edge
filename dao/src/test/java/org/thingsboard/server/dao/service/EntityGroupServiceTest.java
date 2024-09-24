@@ -54,6 +54,7 @@ import org.thingsboard.server.common.data.group.ColumnType;
 import org.thingsboard.server.common.data.group.EntityField;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
+import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
@@ -73,6 +74,7 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -82,12 +84,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DaoSqlTest
 public class EntityGroupServiceTest extends AbstractServiceTest {
@@ -509,6 +513,19 @@ public class EntityGroupServiceTest extends AbstractServiceTest {
         Assert.assertEquals(0, pageData.getData().size());
 
         edgeService.deleteEdge(tenantId, savedEdge.getId());
+    }
+
+    @Test
+    public void testAddEntityToEntityGroupWithDifferentEntityTypes() {
+        AssetId assetId = new AssetId(UUID.fromString("1ad3a1a3-b40f-4e1c-8ca1-097038758a3c"));
+        Optional<EntityGroup> dashboardGroupOptional =
+                entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME);
+        assertThat(dashboardGroupOptional.isPresent()).isTrue();
+        EntityGroup dashboardGroup = dashboardGroupOptional.get();
+
+        assertThatThrownBy(() -> entityGroupService.addEntityToEntityGroup(tenantId, dashboardGroup.getId(), assetId))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessage("Entity type should match the entity group type!");
     }
 
     private ListenableFuture<List<Long>> saveStringAttribute(EntityId entityId, String key, String value, AttributeScope scope) {
