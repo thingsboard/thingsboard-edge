@@ -111,10 +111,6 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
 
   @Input()
   @coerceBoolean()
-  colWidthInteger = false;
-
-  @Input()
-  @coerceBoolean()
   setGridSize = false;
 
   @Input()
@@ -287,13 +283,6 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
       itemChangeCallback: () => this.dashboardWidgets.sortWidgets(),
       itemInitCallback: (_, itemComponent) => {
         (itemComponent.item as DashboardWidget).gridsterItemComponent = itemComponent;
-      },
-      colWidthUpdateCallback: (colWidth) => {
-        if (this.colWidthInteger) {
-          return Math.floor(colWidth);
-        } else {
-          return colWidth;
-        }
       }
     };
 

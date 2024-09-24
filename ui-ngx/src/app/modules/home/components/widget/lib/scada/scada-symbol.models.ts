@@ -87,9 +87,6 @@ export interface ScadaSymbolApi {
   text: (element: Element | Element[], text: string) => void;
   font: (element: Element | Element[], font: Font, color: string) => void;
   icon: (element: Element | Element[], icon: string, size?: number, color?: string, center?: boolean) => void;
-  animate: (element: Element, duration: number) => Runner;
-  resetAnimation: (element: Element) => void;
-  finishAnimation: (element: Element) => void;
   cssAnimate: (element: Element, duration: number) => ScadaSymbolAnimation;
   cssAnimation: (element: Element) => ScadaSymbolAnimation | undefined;
   resetCssAnimation: (element: Element) => void;
@@ -672,9 +669,6 @@ export class ScadaSymbolObject {
         text: this.setElementText.bind(this),
         font: this.setElementFont.bind(this),
         icon: this.setElementIcon.bind(this),
-        animate: this.animate.bind(this),
-        resetAnimation: this.resetAnimation.bind(this),
-        finishAnimation: this.finishAnimation.bind(this),
         cssAnimate: this.cssAnimate.bind(this),
         cssAnimation: this.cssAnimation.bind(this),
         resetCssAnimation: this.resetCssAnimation.bind(this),
@@ -746,8 +740,6 @@ export class ScadaSymbolObject {
         const valueSetter = ValueSetter.fromSettings<any>(this.ctx, setValueSettings, this.simulated);
         this.valueSetters[setBehavior.id] = valueSetter;
         this.valueActions.push(valueSetter);
-      } else if (behavior.type === ScadaSymbolBehaviorType.widgetAction) {
-        // TODO:
       }
     }
     this.renderState();
@@ -995,28 +987,16 @@ export class ScadaSymbolObject {
       fontSetClasses.forEach(className => textElement.addClass(className));
       textElement.font({size: `${size}px`});
       textElement.attr({
-        'text-anchor': 'start',
-        'dominant-baseline': 'hanging',
         style: `font-size: ${size}px`
       });
       textElement.fill(color);
+      const tspan = textElement.first();
+      tspan.attr({
+        'text-anchor': 'start',
+        'dominant-baseline': 'hanging'
+      });
       return of(textElement);
     }
-  }
-
-  private animate(element: Element, duration: number): Runner {
-    this.finishAnimation(element);
-    return element.animate(duration, 0, 'now');
-  }
-
-  private resetAnimation(element: Element) {
-    element.timeline().stop();
-    element.timeline(new Timeline());
-  }
-
-  private finishAnimation(element: Element) {
-    element.timeline().finish();
-    element.timeline(new Timeline());
   }
 
   private cssAnimate(element: Element, duration: number): ScadaSymbolAnimation {
@@ -1530,7 +1510,11 @@ class CssScadaSymbolAnimation implements ScadaSymbolAnimation {
     const transform = this._initialTransform;
     for (const key of Object.keys(this._transform)) {
       if (this._relative) {
-        transformed[key] = this.normFloat(transform[key] + this._transform[key]);
+        if (['scaleX', 'scaleY'].includes(key)) {
+          transformed[key] = this.normFloat(transform[key] * this._transform[key]);
+        } else {
+          transformed[key] = this.normFloat(transform[key] + this._transform[key]);
+        }
       } else {
         transformed[key] = this.normFloat(this._transform[key]);
       }
