@@ -41,7 +41,7 @@
   <div class="tb-form-panel no-border no-padding" *ngIf="!mobileAppQRCodeWidgetSettingsForm.get('useSystemSettings').value">
     <div class="tb-form-panel" formGroupName="qrCodeConfig">
       <div class="tb-form-panel-title" translate>widget-config.card-style</div>
-      <div class="tb-form-hint tb-primary-fill">
+      <div *ngIf="displayConfigurationHint" class="tb-form-hint tb-primary-fill">
         {{ 'widgets.mobile-app-qr-code.configuration-hint' | translate }}
         <button mat-icon-button color="primary" class="tb-mat-24"
                 style="position: absolute;top: 9px"

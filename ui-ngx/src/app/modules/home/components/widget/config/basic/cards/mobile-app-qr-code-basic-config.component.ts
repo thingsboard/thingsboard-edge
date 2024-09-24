@@ -44,6 +44,8 @@ import {
   MobileAppQrCodeWidgetSettings
 } from '@home/components/widget/lib/cards/mobile-app-qr-code-widget.models';
 import { badgePositionTranslationsMap } from '@app/shared/models/mobile-app.models';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
 
 @Component({
   selector: 'tb-mobile-app-qr-code-basic-config',
@@ -54,6 +56,7 @@ export class MobileAppQrCodeBasicConfigComponent extends BasicWidgetConfigCompon
 
   mobileAppQrCodeWidgetConfigForm: UntypedFormGroup;
   badgePositionTranslationsMap = badgePositionTranslationsMap;
+  displayConfigurationHint = true;
 
   constructor(protected store: Store<AppState>,
               protected widgetConfigComponent: WidgetConfigComponent,
@@ -61,6 +64,7 @@ export class MobileAppQrCodeBasicConfigComponent extends BasicWidgetConfigCompon
               private $injector: Injector,
               private fb: UntypedFormBuilder) {
     super(store, widgetConfigComponent);
+    this.displayConfigurationHint = getCurrentAuthUser(this.store).authority !== Authority.CUSTOMER_USER;
   }
 
   protected configForm(): UntypedFormGroup {
