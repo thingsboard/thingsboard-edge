@@ -29,6 +29,9 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
+import { TbContextMenuEvent } from '@shared/models/jquery-event.models';
+
 interface JQuery {
   terminal(options?: any): any;
+  on(events: 'tbcontextmenu', handler: (e: TbContextMenuEvent) => void): this;
 }
