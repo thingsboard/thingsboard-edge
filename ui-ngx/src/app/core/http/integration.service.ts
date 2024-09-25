@@ -37,7 +37,12 @@ import { Observable } from 'rxjs';
 import { PageData } from '@shared/models/page/page-data';
 import { map } from 'rxjs/operators';
 import { sortEntitiesByIds } from '@shared/models/base-data';
-import { Integration, IntegrationInfo, IntegrationType } from '@shared/models/integration.models';
+import {
+  Integration,
+  IntegrationInfo,
+  IntegrationsConvertersInfo,
+  IntegrationType
+} from '@shared/models/integration.models';
 
 @Injectable({
   providedIn: 'root'
@@ -50,6 +55,10 @@ export class IntegrationService {
 
   public getIntegrations(pageLink: PageLink, config?: RequestConfig): Observable<PageData<Integration>> {
     return this.getIntegrationsByEdgeTemplate(pageLink, false, config);
+  }
+
+  public getIntegrationsConvertersInfo(config?: RequestConfig): Observable<IntegrationsConvertersInfo> {
+    return this.http.get<IntegrationsConvertersInfo>(`/api/integrations/converters/info`, defaultHttpOptionsFromConfig(config));
   }
 
   public getIntegrationsInfo(pageLink: PageLink, isEdgeTemplate: boolean,

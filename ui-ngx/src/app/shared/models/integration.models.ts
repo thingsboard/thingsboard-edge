@@ -68,16 +68,22 @@ export enum IntegrationType {
   TUYA = 'TUYA'
 }
 
-export enum IntegrationDirectory {
-  CHIRPSTACK = 'ChirpStack',
-  TTI = 'ThingsStackIndustries',
-  TTN = 'ThingsStackIndustries'
-}
-
 export enum CoapSecurityMode {
   NO_SECURE = 'NO_SECURE',
   DTLS = 'DTLS',
   MIXED = 'MIXED',
+}
+
+export type IntegrationsConvertersInfo = Record<IntegrationType, IntegrationConvertersInfo>;
+
+export interface IntegrationConvertersInfo {
+  uplink: ConverterInfo,
+  downlink: ConverterInfo,
+}
+
+export interface ConverterInfo {
+  library: boolean;
+  existing: boolean;
 }
 
 export const coapSecurityModeTranslationsMap = new Map<CoapSecurityMode, string>(
