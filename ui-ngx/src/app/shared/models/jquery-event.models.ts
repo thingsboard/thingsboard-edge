@@ -29,6 +29,61 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-export * from './truncate-with-tooltip.directive';
-export * from './ellipsis-chip-list.directive';
-export * from './context-menu.directive';
+import Timeout = NodeJS.Timeout;
+
+export interface TbContextMenuEvent extends Event {
+  clientX: number;
+  clientY: number;
+}
+
+const isIOSDevice = (): boolean =>
+  /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
+
+export const initCustomJQueryEvents = () => {
+  $.event.special.tbcontextmenu = {
+    setup(this: HTMLElement) {
+      const el = $(this);
+      if (isIOSDevice()) {
+        let timeoutId: Timeout;
+
+        el.on('touchstart', (e) => {
+          e.stopPropagation();
+          timeoutId = setTimeout(() => {
+            timeoutId = null;
+            e.stopPropagation();
+            const touch = e.originalEvent.changedTouches[0];
+            const event = $.Event('tbcontextmenu', {
+              clientX: touch.clientX,
+              clientY: touch.clientY
+            });
+            el.trigger(event, e);
+          }, 500);
+        });
+
+        el.on('touchend touchmove', () => {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+        });
+      } else {
+        el.on('contextmenu', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const event = $.Event('tbcontextmenu', {
+            clientX: e.originalEvent.clientX,
+            clientY: e.originalEvent.clientY
+          });
+          el.trigger(event, e);
+        });
+      }
+    },
+    teardown(this: HTMLElement) {
+      const el = $(this);
+      if (isIOSDevice()) {
+        el.off('touchstart touchend touchmove');
+      } else {
+        el.off('contextmenu');
+      }
+    }
+  };
+};
