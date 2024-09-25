@@ -131,8 +131,9 @@ export interface ConverterDebugInput {
 
 export enum ConverterSourceType {
   NEW = 'new',
-  EXIST = 'exist',
+  EXISTING = 'existing',
   LIBRARY = 'library',
+  SKIP = 'skip',
 }
 
 export interface ConverterLibraryValue {

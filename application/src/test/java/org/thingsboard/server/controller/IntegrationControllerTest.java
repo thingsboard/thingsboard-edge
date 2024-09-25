@@ -42,6 +42,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.testcontainers.shaded.org.awaitility.Awaitility;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.common.data.IntegrationConvertersInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
@@ -62,9 +63,11 @@ import org.thingsboard.server.service.integration.IntegrationManagerService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -659,6 +662,21 @@ public class IntegrationControllerTest extends AbstractControllerTest {
             defaultTenantProfile.getProfileData().setConfiguration(DefaultTenantProfileConfiguration.builder().maxIntegrations(0).build());
             loginSysAdmin();
             doPost("/api/tenantProfile", defaultTenantProfile, TenantProfile.class);
+        }
+    }
+
+    @Test
+    public void testGetConvertersInfo() throws Exception {
+        Map<IntegrationType, IntegrationConvertersInfo> convertersInfo = readResponse(doGet("/api/integrations/converters/info"), new TypeReference<>() {});
+        for (Map.Entry<IntegrationType, IntegrationConvertersInfo> integrationConverterInfo : convertersInfo.entrySet()) {
+            assertThat(integrationConverterInfo.getValue().uplink().existing()).isTrue();
+            assertThat(integrationConverterInfo.getValue().downlink().existing()).isFalse();
+            if (integrationConverterInfo.getKey() == IntegrationType.CHIRPSTACK) {
+                assertThat(integrationConverterInfo.getValue().uplink().library()).isTrue();
+                assertThat(integrationConverterInfo.getValue().downlink().library()).isTrue();
+            } else if (integrationConverterInfo.getKey() == IntegrationType.TTN || integrationConverterInfo.getKey() == IntegrationType.TTI) {
+                assertThat(integrationConverterInfo.getValue().uplink().library()).isTrue();
+            }
         }
     }
 
