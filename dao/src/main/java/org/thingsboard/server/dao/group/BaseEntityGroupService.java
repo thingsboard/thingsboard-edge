@@ -109,6 +109,7 @@ import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.extractConstraintViolationException;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+import static org.thingsboard.server.dao.service.Validator.checkNotNull;
 import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 import static org.thingsboard.server.dao.service.Validator.validateEntityIds;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -745,8 +746,10 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
         log.trace("Executing addEntityToEntityGroup, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
+        validator.validateIfGroupEntity(entityId);
         EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
-        validator.validateEntityTypesMatch(entityGroup.getType(), entityId.getEntityType());
+        checkNotNull(entityGroup, "Entity group with id '" + entityGroupId + "' does not exist.");
+        validator.validateEntityTypesMatch(entityId, entityGroup);
         EntityRelation entityRelation = new EntityRelation();
         entityRelation.setFrom(entityGroupId);
         entityRelation.setTo(entityId);
@@ -762,12 +765,14 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
 
     @Override
     public void addEntitiesToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds) {
-        log.trace("Executing addEntityToEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
+        log.trace("Executing addEntitiesToEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
         validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+        checkNotNull(entityGroup, "Entity group with id '" + entityGroupId + "' does not exist.");
         for (EntityId entityId : entityIds) {
             validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
-            validator.validateEntityTypesMatch(entityGroup.getType(), entityId.getEntityType());
+            validator.validateIfGroupEntity(entityId);
+            validator.validateEntityTypesMatch(entityId, entityGroup);
         }
         var relations = entityIds.stream().map(entityId -> {
             EntityRelation entityRelation = new EntityRelation();
@@ -1228,8 +1233,14 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
             }
         }
 
-        protected void validateEntityTypesMatch(EntityType entityType, EntityType entityGroupType) {
-            if (!entityType.equals(entityGroupType)) {
+        protected void validateIfGroupEntity(EntityId entityId) {
+            if (!entityId.getEntityType().isGroupEntityType()) {
+                throw new DataValidationException("Entity '" + entityId.getEntityType() + "' is not a group entity!");
+            }
+        }
+
+        protected void validateEntityTypesMatch(EntityId entityId, EntityGroup entityGroup) {
+            if (!entityId.getEntityType().equals(entityGroup.getType())) {
                 throw new DataValidationException("Entity type should match the entity group type!");
             }
         }

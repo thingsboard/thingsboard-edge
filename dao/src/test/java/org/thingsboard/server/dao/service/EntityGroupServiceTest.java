@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.group.EntityGroupConfiguration;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
@@ -526,6 +527,19 @@ public class EntityGroupServiceTest extends AbstractServiceTest {
         assertThatThrownBy(() -> entityGroupService.addEntityToEntityGroup(tenantId, dashboardGroup.getId(), assetId))
                 .isInstanceOf(DataValidationException.class)
                 .hasMessage("Entity type should match the entity group type!");
+    }
+
+    @Test
+    public void testAddEntityToEntityGroupWithNotGroupEntity() {
+        EntityGroupId entityGroupId = new EntityGroupId(UUID.fromString("226674d4-e2d0-4f81-8549-2f48216f2807"));
+        Optional<EntityGroup> dashboardGroupOptional =
+                entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME);
+        assertThat(dashboardGroupOptional.isPresent()).isTrue();
+        EntityGroup dashboardGroup = dashboardGroupOptional.get();
+
+        assertThatThrownBy(() -> entityGroupService.addEntityToEntityGroup(tenantId, dashboardGroup.getId(), entityGroupId))
+                .isInstanceOf(DataValidationException.class)
+                .hasMessage("Entity '" + entityGroupId.getEntityType() + "' is not a group entity!");
     }
 
     private ListenableFuture<List<Long>> saveStringAttribute(EntityId entityId, String key, String value, AttributeScope scope) {
