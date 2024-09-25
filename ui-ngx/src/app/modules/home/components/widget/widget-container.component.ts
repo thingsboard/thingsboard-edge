@@ -223,6 +223,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   }
 
   onMouseDown(event: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.widgetComponentAction.emit({
       event,
       actionType: WidgetComponentActionType.MOUSE_DOWN
@@ -230,6 +233,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   }
 
   onClicked(event: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.widgetComponentAction.emit({
       event,
       actionType: WidgetComponentActionType.CLICKED
@@ -237,6 +243,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   }
 
   onContextMenu(event: MouseEvent | TouchEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.widgetComponentAction.emit({
       event,
       actionType: WidgetComponentActionType.CONTEXT_MENU
@@ -244,6 +253,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   }
 
   onEdit(event: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.widgetComponentAction.emit({
       event,
       actionType: WidgetComponentActionType.EDIT
@@ -251,6 +263,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   }
 
   onReplaceReferenceWithWidgetCopy(event: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.widgetComponentAction.emit({
       event,
       actionType: WidgetComponentActionType.REPLACE_REFERENCE_WITH_WIDGET_COPY
@@ -258,6 +273,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   }
 
   onExport(event: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.widgetComponentAction.emit({
       event,
       actionType: WidgetComponentActionType.EXPORT
@@ -265,6 +283,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   }
 
   onRemove(event: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.widgetComponentAction.emit({
       event,
       actionType: WidgetComponentActionType.REMOVE

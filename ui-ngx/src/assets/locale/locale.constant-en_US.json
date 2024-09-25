@@ -3926,6 +3926,13 @@
             "memory-storage": "Memory storage",
             "sqlite": "SQLITE"
         },
+        "report-strategy": {
+            "label": "Report strategy",
+            "on-change": "On value change",
+            "on-report-period": "On report period",
+            "on-change-or-report-period": "On value change or report period",
+            "report-period": "Report period"
+        },
         "source-type": {
             "msg": "Extract from message",
             "topic": "Extract from topic",
@@ -4309,6 +4316,7 @@
         "base-url": "Base URL",
         "base-url-required": "Base URL is required",
         "security-key": "Security key",
+        "skip": "Skip",
         "http-endpoint": "HTTP endpoint URL",
         "replace-no-content-to-ok": "Replace response status from 'No-Content' to 'OK'",
         "copy-http-endpoint-url": "Copy HTTP endpoint URL",

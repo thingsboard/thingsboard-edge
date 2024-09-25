@@ -28,16 +28,6 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.converter;
+package org.thingsboard.server.common.data;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@Getter
-@AllArgsConstructor
-public enum ConverterType {
-    UPLINK("uplink"),
-    DOWNLINK("downlink");
-
-    private final String directory;
-}
+public record LibraryConvertersInfo(boolean uplink, boolean downlink) {}

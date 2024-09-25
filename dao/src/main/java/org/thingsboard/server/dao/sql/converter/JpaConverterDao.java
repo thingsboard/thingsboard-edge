@@ -105,6 +105,11 @@ public class JpaConverterDao extends JpaAbstractDao<ConverterEntity, Converter> 
     }
 
     @Override
+    public boolean hasConverterOfType(UUID tenantId, ConverterType type) {
+        return converterRepository.existsByTenantIdAndType(tenantId, type);
+    }
+
+    @Override
     protected Class<ConverterEntity> getEntityClass() {
         return ConverterEntity.class;
     }
