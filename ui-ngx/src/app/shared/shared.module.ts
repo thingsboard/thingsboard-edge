@@ -83,6 +83,7 @@ import { NgxHmCarouselModule } from 'ngx-hm-carousel';
 import { EditorModule, TINYMCE_SCRIPT_SRC } from '@tinymce/tinymce-angular';
 import { UserMenuComponent } from '@shared/components/user-menu.component';
 import { TruncateWithTooltipDirective } from '@shared/directives/truncate-with-tooltip.directive';
+import { ContextMenuDirective } from '@shared/directives/context-menu.directive';
 import { NospacePipe } from '@shared/pipe/nospace.pipe';
 import { TranslateModule } from '@ngx-translate/core';
 import { TbCheckboxComponent } from '@shared/components/tb-checkbox.component';
@@ -416,6 +417,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     LedLightComponent,
     MarkdownEditorComponent,
     TruncateWithTooltipDirective,
+    ContextMenuDirective,
     NospacePipe,
     MillisecondsToTimeStringPipe,
     EnumToArrayPipe,
@@ -698,6 +700,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     LedLightComponent,
     MarkdownEditorComponent,
     TruncateWithTooltipDirective,
+    ContextMenuDirective,
     NospacePipe,
     MillisecondsToTimeStringPipe,
     EnumToArrayPipe,

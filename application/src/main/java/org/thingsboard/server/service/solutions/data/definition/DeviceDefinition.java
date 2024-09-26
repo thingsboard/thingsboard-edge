@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.service.solutions.data.definition;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -43,6 +44,7 @@ public class DeviceDefinition extends CustomerEntityDefinition {
     private String type;
     private String label;
     private String emulator;
+    private JsonNode additionalInfo;
 
     @Override
     public EntityType getEntityType() {

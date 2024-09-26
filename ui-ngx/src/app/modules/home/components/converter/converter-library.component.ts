@@ -61,7 +61,7 @@ import {
   takeUntil,
 } from 'rxjs/operators';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
-import { IntegrationDirectory, IntegrationType } from '@shared/models/integration.models';
+import { IntegrationType } from '@shared/models/integration.models';
 import { Converter, ConverterLibraryValue, ConverterType, Model, Vendor } from '@shared/models/converter.models';
 import { ConverterComponent } from '@home/components/converter/converter.component';
 import { isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
@@ -102,7 +102,6 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
   vendorInputSubject = new Subject<void>();
   modelInputSubject = new Subject<void>();
 
-  private integrationDir: IntegrationDirectory;
   private destroy$ = new Subject<void>();
 
   private onChange: (converter: Converter) => void = (_) => {};
@@ -121,10 +120,10 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       .subscribe(() => this.onChange(this.libraryFormGroup.get('converter')?.getRawValue()));
 
     this.vendors$ = this.vendorInputSubject.asObservable().pipe(
-      switchMap(() => of(this.integrationDir)),
+      switchMap(() => of(this.integrationType)),
       distinctUntilChanged(),
       switchMap(() =>
-        this.converterLibraryService.getVendors(this.integrationDir)
+        this.converterLibraryService.getVendors(this.integrationType)
       ),
       shareReplay(1)
     );
@@ -149,8 +148,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       distinctUntilChanged(),
       switchMap(() => {
           if (this.libraryFormGroup.get('vendor').value?.name) {
-            return this.converterLibraryService
-              .getModels(this.integrationDir, this.libraryFormGroup.get('vendor').value.name, this.converterType);
+            return this.converterLibraryService.getModels(this.integrationType, this.libraryFormGroup.get('vendor').value.name, this.converterType);
           }
           return of([]);
         }
@@ -177,7 +175,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       .pipe(
         switchMap(([vendor, model]: [Vendor, Model]) =>
           vendor?.name && model?.name
-            ? this.converterLibraryService.getConverter(this.integrationDir, vendor.name, model.name, this.converterType)
+            ? this.converterLibraryService.getConverter(this.integrationType, vendor.name, model.name, this.converterType)
             : of(null)
         ),
         catchError(() => of(null)),
@@ -210,7 +208,6 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
     ) {
       this.libraryFormGroup.get('vendor').reset('');
       this.libraryFormGroup.get('model').reset('');
-      this.integrationDir = IntegrationDirectory[this.integrationType] ?? this.integrationType;
     }
   }
 

@@ -143,7 +143,7 @@ interface LogFormatterConfig {
 interface StreamHandlerConfig {
   class: string;
   formatter: string;
-  level: string;
+  level: string | number;
   stream: string;
 }
 

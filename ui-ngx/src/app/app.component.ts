@@ -48,6 +48,7 @@ import { ReportService } from '@core/http/report.service';
 import { svgIcons, svgIconsUrl } from '@shared/models/icon.models';
 import { ActionSettingsChangeLanguage } from '@core/settings/settings.actions';
 import { SETTINGS_KEY } from '@core/settings/settings.effects';
+import { initCustomJQueryEvents } from '@shared/models/jquery-event.models';
 import { TranslateDefaultLoader } from '@core/translate/translate-default-loader';
 
 @Component({
@@ -94,6 +95,8 @@ export class AppComponent implements OnInit {
 
     this.setupTranslate();
     this.setupAuth();
+
+    initCustomJQueryEvents();
   }
 
   setupTranslate() {

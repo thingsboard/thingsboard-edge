@@ -107,7 +107,7 @@ public class DeviceConnectivityUtil {
         return command.toString();
     }
 
-    public static Resource getGatewayDockerComposeFile(String baseUrl, DeviceConnectivityInfo properties, DeviceCredentials deviceCredentials, String mqttType) throws URISyntaxException {
+    public static Resource getGatewayDockerComposeFile(String baseUrl, DeviceConnectivityInfo properties, DeviceCredentials deviceCredentials, String mqttType, boolean includePortBindings) throws URISyntaxException {
         String host = getHost(baseUrl, properties, mqttType);
 
         StringBuilder dockerComposeBuilder = new StringBuilder();
@@ -119,15 +119,17 @@ public class DeviceConnectivityUtil {
         dockerComposeBuilder.append("    container_name: tb-gateway\n");
         dockerComposeBuilder.append("    restart: always\n");
         dockerComposeBuilder.append("\n");
-        dockerComposeBuilder.append("    # Ports bindings - required by some connectors\n");
-        dockerComposeBuilder.append("    ports:\n");
-        dockerComposeBuilder.append("        - \"5000:5000\" # Comment if you don't use REST connector and change if you use another port\n");
-        dockerComposeBuilder.append("        # Uncomment and modify the following ports based on connector usage:\n");
-        dockerComposeBuilder.append("#        - \"1052:1052\" # BACnet connector\n");
-        dockerComposeBuilder.append("#        - \"5026:5026\" # Modbus TCP connector (Modbus Slave)\n");
-        dockerComposeBuilder.append("#        - \"50000:50000/tcp\" # Socket connector with type TCP\n");
-        dockerComposeBuilder.append("#        - \"50000:50000/udp\" # Socket connector with type UDP\n");
-        dockerComposeBuilder.append("\n");
+        if (includePortBindings) {
+            dockerComposeBuilder.append("    # Ports bindings - required by some connectors\n");
+            dockerComposeBuilder.append("    ports:\n");
+            dockerComposeBuilder.append("        - \"5000:5000\" # Comment if you don't use REST connector and change if you use another port\n");
+            dockerComposeBuilder.append("        # Uncomment and modify the following ports based on connector usage:\n");
+            dockerComposeBuilder.append("#        - \"1052:1052\" # BACnet connector\n");
+            dockerComposeBuilder.append("#        - \"5026:5026\" # Modbus TCP connector (Modbus Slave)\n");
+            dockerComposeBuilder.append("#        - \"50000:50000/tcp\" # Socket connector with type TCP\n");
+            dockerComposeBuilder.append("#        - \"50000:50000/udp\" # Socket connector with type UDP\n");
+            dockerComposeBuilder.append("\n");
+        }
         dockerComposeBuilder.append("    # Necessary mapping for Linux\n");
         dockerComposeBuilder.append("    extra_hosts:\n");
         dockerComposeBuilder.append("      - \"host.docker.internal:host-gateway\"\n");

@@ -29,16 +29,17 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Directive, inject, Input, OnDestroy, TemplateRef } from '@angular/core';
+import { AfterViewInit, Directive, EventEmitter, inject, Input, OnDestroy, Output, TemplateRef } from '@angular/core';
 import { ControlValueAccessor, FormBuilder, FormGroup, ValidationErrors, Validator } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 @Directive()
 export abstract class GatewayConnectorBasicConfigDirective<InputBasicConfig, OutputBasicConfig>
-  implements ControlValueAccessor, Validator, OnDestroy {
+  implements AfterViewInit, ControlValueAccessor, Validator, OnDestroy {
 
   @Input() generalTabContent: TemplateRef<any>;
+  @Output() initialized = new EventEmitter<void>();
 
   basicFormGroup: FormGroup;
 
@@ -58,6 +59,10 @@ export abstract class GatewayConnectorBasicConfigDirective<InputBasicConfig, Out
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  ngAfterViewInit(): void {
+    this.initialized.emit();
   }
 
   validate(): ValidationErrors | null {
