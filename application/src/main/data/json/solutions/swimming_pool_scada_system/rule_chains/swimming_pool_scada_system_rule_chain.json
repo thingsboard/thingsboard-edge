@@ -37,7 +37,8 @@
             "drainValveOpened",
             "waterPumpRunning",
             "waterLevel",
-            "sandFilterMode"
+            "sandFilterMode",
+            "deviceActive"
           ],
           "latestTsKeyNames": [],
           "getLatestValueWithTs": false
@@ -58,7 +59,7 @@
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
-          "tbelScript": "var filterSegmentFlowing = calculateFilterSegment();\nvar drainSegmentFlowing = filterSegmentFlowing && msg.?ss_sandFilterMode == 2;\nvar heatSegmentFlowing = filterSegmentFlowing && !drainSegmentFlowing && msg.?ss_heatPumpIntakeValveOpened == 1;\nvar phFilterSegmentFlowing = calculatePhFilterSegment();\nvar fillSegmentFlowing = phFilterSegmentFlowing && msg.?ss_poolIntakeValveOpened == 1;\n\nvar newMsg = {};\n\nnewMsg.put(\"filterSegmentFlowing\", filterSegmentFlowing);\nnewMsg.put(\"drainSegmentFlowing\", drainSegmentFlowing);\nnewMsg.put(\"heatSegmentFlowing\", heatSegmentFlowing);\nnewMsg.put(\"phFilterSegmentFlowing\", phFilterSegmentFlowing);\nnewMsg.put(\"fillSegmentFlowing\", fillSegmentFlowing);\n\nreturn {msg: newMsg, metadata: metadata, msgType: msgType};\n\nfunction calculateFilterSegment() {\n    if (!(msg.?ss_waterPumpOutgoingValveOpened == 1 && msg.?ss_waterPumpRunning == 1)) {\n        return false;\n    }\n    if (msg.?ss_poolDrainValveOpened == 1 && msg.?ss_waterLevel > 0) {\n        return true;\n    } \n    if (msg.?ss_poolWeirValveOpened == 1 && msg.?ss_waterLevel > 88) {\n        return true;\n    }\n    if (msg.?ss_mainIntakeValveOpened == 1) {\n        return true;\n    }\n    return false;\n}\n\nfunction calculatePhFilterSegment() {\n    if (filterSegmentFlowing && !drainSegmentFlowing && msg.?ss_throughpassValveOpened == 1) {\n        return true;\n    }\n    if (heatSegmentFlowing && msg.?ss_heatPumpOutgoingValveOpened == 1) {\n        return true;\n    }\n    return false;\n}\n\n\n"
+          "tbelScript": "var filterSegmentFlowing = msg.?ss_deviceActive == true && calculateFilterSegment();\nvar drainSegmentFlowing = filterSegmentFlowing && msg.?ss_sandFilterMode == 2;\nvar heatSegmentFlowing = filterSegmentFlowing && !drainSegmentFlowing && msg.?ss_heatPumpIntakeValveOpened == 1;\nvar phFilterSegmentFlowing = calculatePhFilterSegment();\nvar fillSegmentFlowing = phFilterSegmentFlowing && msg.?ss_poolIntakeValveOpened == 1;\n\nvar newMsg = {};\n\nnewMsg.put(\"filterSegmentFlowing\", filterSegmentFlowing);\nnewMsg.put(\"drainSegmentFlowing\", drainSegmentFlowing);\nnewMsg.put(\"heatSegmentFlowing\", heatSegmentFlowing);\nnewMsg.put(\"phFilterSegmentFlowing\", phFilterSegmentFlowing);\nnewMsg.put(\"fillSegmentFlowing\", fillSegmentFlowing);\n\nreturn {msg: newMsg, metadata: metadata, msgType: msgType};\n\nfunction calculateFilterSegment() {\n    if (!(msg.?ss_waterPumpOutgoingValveOpened == 1 && msg.?ss_waterPumpRunning == 1)) {\n        return false;\n    }\n    if (msg.?ss_poolDrainValveOpened == 1 && msg.?ss_waterLevel > 0) {\n        return true;\n    } \n    if (msg.?ss_poolWeirValveOpened == 1 && msg.?ss_waterLevel > 88) {\n        return true;\n    }\n    if (msg.?ss_mainIntakeValveOpened == 1) {\n        return true;\n    }\n    return false;\n}\n\nfunction calculatePhFilterSegment() {\n    if (filterSegmentFlowing && !drainSegmentFlowing && msg.?ss_throughpassValveOpened == 1) {\n        return true;\n    }\n    if (heatSegmentFlowing && msg.?ss_heatPumpOutgoingValveOpened == 1) {\n        return true;\n    }\n    return false;\n}\n\n\n"
         },
         "additionalInfo": {
           "description": "",

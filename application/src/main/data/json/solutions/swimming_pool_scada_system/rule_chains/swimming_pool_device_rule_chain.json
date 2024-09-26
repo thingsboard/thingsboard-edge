@@ -25,8 +25,8 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 741,
-          "layoutY": 196
+          "layoutX": 554,
+          "layoutY": 320
         }
       },
       {
@@ -41,8 +41,8 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 61,
-          "layoutY": 318
+          "layoutX": 226,
+          "layoutY": 229
         }
       },
       {
@@ -55,12 +55,12 @@
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
-          "tbelScript": "var newMsg = {};\nvar prefix = metadata.deviceName; \nprefix = toCamelCase(prefix);\n\nif (msg.opened != null) {\n    newMsg[prefix + 'Opened'] = msg.opened;\n}\nif (msg.running != null) {\n    newMsg[prefix + 'Running'] = msg.running;\n}\nif (msg.mode != null) {\n    newMsg[prefix + 'Mode'] = msg.mode;\n}\nif (msg.waterLevel != null) {\n    newMsg.waterLevel =  msg.waterLevel;\n}\nreturn {msg: newMsg, metadata: metadata, msgType: \"POST_ATTRIBUTES_REQUEST\"};\n\nfunction toCamelCase(str) {\n    var arr = str.split(\" \");\n    var result = arr[0].toLowerCase();\n    for(var i = 1; i < arr.length; i++) {\n        var ch = arr[i].substring(0, 1).toUpperCase();\n        result += ch + arr[i].substring(1).toLowerCase();\n    }\n    return result;\n}"
+          "tbelScript": "var newMsg = {};\nvar prefix = metadata.deviceName; \nprefix = toCamelCase(prefix);\n\nif (msg.opened != null) {\n    newMsg[prefix + 'Opened'] = msg.opened;\n}\nif (msg.running != null) {\n    newMsg[prefix + 'Running'] = msg.running;\n}\nif (msg.mode != null) {\n    newMsg[prefix + 'Mode'] = msg.mode;\n}\nif (msg.waterLevel != null) {\n    newMsg.waterLevel =  msg.waterLevel;\n}\nif (msg.active != null) {\n    newMsg.deviceActive = msg.active;\n}\nreturn {msg: newMsg, metadata: metadata, msgType: \"POST_ATTRIBUTES_REQUEST\"};\n\nfunction toCamelCase(str) {\n    var arr = str.split(\" \");\n    var result = arr[0].toLowerCase();\n    for(var i = 1; i < arr.length; i++) {\n        var ch = arr[i].substring(0, 1).toUpperCase();\n        result += ch + arr[i].substring(1).toLowerCase();\n    }\n    return result;\n}"
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 1083,
-          "layoutY": 321
+          "layoutX": 853,
+          "layoutY": 460
         }
       },
       {
@@ -91,8 +91,8 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 1082,
-          "layoutY": 405
+          "layoutX": 850,
+          "layoutY": 552
         }
       },
       {
@@ -109,8 +109,8 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 434,
-          "layoutY": 194
+          "layoutX": 404,
+          "layoutY": 428
         }
       },
       {
@@ -128,8 +128,8 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 1086,
-          "layoutY": 491
+          "layoutX": 851,
+          "layoutY": 647
         }
       },
       {
@@ -145,8 +145,8 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 1088,
-          "layoutY": 580
+          "layoutX": 852,
+          "layoutY": 740
         }
       },
       {
@@ -162,8 +162,8 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 57,
-          "layoutY": 229
+          "layoutX": 228,
+          "layoutY": 51
         }
       },
       {
@@ -178,8 +178,8 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 592,
-          "layoutY": 474
+          "layoutX": 905,
+          "layoutY": 117
         }
       },
       {
@@ -196,8 +196,8 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 591,
-          "layoutY": 393
+          "layoutX": 902,
+          "layoutY": 203
         }
       },
       {
@@ -223,8 +223,42 @@
         },
         "additionalInfo": {
           "description": "",
-          "layoutX": 591,
-          "layoutY": 312
+          "layoutX": 900,
+          "layoutY": 287
+        }
+      },
+      {
+        "type": "org.thingsboard.rule.engine.filter.TbDeviceTypeSwitchNode",
+        "name": "filter water pump events",
+        "debugMode": true,
+        "singletonMode": false,
+        "queueName": null,
+        "configurationVersion": 0,
+        "configuration": {
+          "version": 0
+        },
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 82,
+          "layoutY": 554
+        }
+      },
+      {
+        "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
+        "name": "check device activity",
+        "debugMode": true,
+        "singletonMode": false,
+        "queueName": null,
+        "configurationVersion": 0,
+        "configuration": {
+          "scriptLang": "TBEL",
+          "jsScript": "return {msg: msg, metadata: metadata, msgType: msgType};",
+          "tbelScript": "var newMsg = {};\n\nnewMsg.deviceActive = msg.?active;\n\nreturn {msg: newMsg, metadata: metadata, msgType: \"POST_ATTRIBUTES_REQUEST\"};"
+        },
+        "additionalInfo": {
+          "description": "",
+          "layoutX": 455,
+          "layoutY": 553
         }
       }
     ],
@@ -265,6 +299,16 @@
         "type": "RPC Request to Device"
       },
       {
+        "fromIndex": 1,
+        "toIndex": 11,
+        "type": "Activity Event"
+      },
+      {
+        "fromIndex": 1,
+        "toIndex": 11,
+        "type": "Inactivity Event"
+      },
+      {
         "fromIndex": 2,
         "toIndex": 3,
         "type": "Success"
@@ -297,6 +341,16 @@
       {
         "fromIndex": 10,
         "toIndex": 9,
+        "type": "Success"
+      },
+      {
+        "fromIndex": 11,
+        "toIndex": 12,
+        "type": "Water pump"
+      },
+      {
+        "fromIndex": 12,
+        "toIndex": 3,
         "type": "Success"
       }
     ],

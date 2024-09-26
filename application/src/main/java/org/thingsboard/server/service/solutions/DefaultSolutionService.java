@@ -177,8 +177,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -193,6 +192,8 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @TbCoreComponent
@@ -941,19 +942,7 @@ public class DefaultSolutionService implements SolutionService {
             DeviceId entityId = entity.getId();
             ctx.putIdToMap(entityDef, entityId);
 
-            // TODO: add attributes descriptor to generate values
-            ObjectNode attributes = (ObjectNode) entityDef.getAttributes();
-            if (attributes != null) {
-                LocalDateTime currentTime = LocalDateTime.now();
-                if (attributes.has("maintenance") && "${currentTime}".equals(attributes.get("maintenance").asText())) {
-                    attributes.put("maintenance", currentTime.toInstant(ZoneOffset.UTC).toEpochMilli());
-                }
-                if (attributes.has("expectedMaintenance") && "${expectedMaintenance}".equals(attributes.get("expectedMaintenance").asText())) {
-                    attributes.put("expectedMaintenance", currentTime.plusMonths(6).toInstant(ZoneOffset.UTC).toEpochMilli());
-                }
-            }
-
-            saveServerSideAttributes(ctx.getTenantId(), entityId, attributes);
+            saveServerSideAttributes(ctx.getTenantId(), entityId, entityDef.getAttributes());
             saveSharedAttributes(ctx.getTenantId(), entityId, entityDef.getSharedAttributes());
             ctx.put(entityId, entityDef.getRelations());
             addEntityToGroup(ctx, entityDef, entityId);
@@ -1464,6 +1453,7 @@ public class DefaultSolutionService implements SolutionService {
 
     private void saveAttributes(TenantId tenantId, EntityId entityId, JsonNode attributes, RandomNameData randomNameData, AttributeScope attributeScope) {
         if (attributes != null && !attributes.isNull() && attributes.size() > 0) {
+            attributes = prepareAttributes(attributes);
             log.info("[{}] Saving attributes: {}", entityId, attributes);
             if (randomNameData != null) {
                 attributes = JacksonUtil.toJsonNode(randomize(JacksonUtil.toString(attributes), randomNameData, null));
@@ -1471,6 +1461,40 @@ public class DefaultSolutionService implements SolutionService {
             attributesService.save(tenantId, entityId, attributeScope,
                     new ArrayList<>(JsonConverter.convertToAttributes(JsonParser.parseString(JacksonUtil.toString(attributes)))));
         }
+    }
+
+    private JsonNode prepareAttributes(JsonNode attributes) {
+        Map<String, String> attributesMap = JacksonUtil.toFlatMap(attributes);
+        attributesMap.replaceAll((key, value) -> parseTimeExpression(value));
+        return JacksonUtil.valueToTree(attributesMap);
+    }
+
+    private String parseTimeExpression(String timeExpression) {
+        Pattern pattern = Pattern.compile("\\$\\{currentTime(?:([+-])(\\d+)([mwdh]|min))?}");
+        Matcher matcher = pattern.matcher(timeExpression);
+
+        if (!matcher.matches()) {
+            return timeExpression;
+        }
+
+        String operator = matcher.group(1);
+        String amountStr = matcher.group(2);
+        String unit = matcher.group(3);
+
+        ZonedDateTime now = ZonedDateTime.now();
+
+        if (operator != null && amountStr != null && unit != null) {
+            int amount = Integer.parseInt(amountStr);
+            now = switch (unit) {
+                case "m" -> operator.equals("+") ? now.plusMonths(amount) : now.minusMonths(amount);
+                case "w" -> operator.equals("+") ? now.plusWeeks(amount) : now.minusWeeks(amount);
+                case "d" -> operator.equals("+") ? now.plusDays(amount) : now.minusDays(amount);
+                case "h" -> operator.equals("+") ? now.plusHours(amount) : now.minusHours(amount);
+                case "min" -> operator.equals("+") ? now.plusMinutes(amount) : now.minusMinutes(amount);
+                default -> throw new IllegalArgumentException("Unsupported time unit: " + unit);
+            };
+        }
+        return String.valueOf(now.toInstant().toEpochMilli());
     }
 
     protected EntityGroup createEntityGroup(SolutionInstallContext ctx, EntityId ownerId, String name, EntityType type) {
