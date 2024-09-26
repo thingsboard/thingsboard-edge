@@ -1,8 +1,8 @@
-Template for swimming pool management that demonstrates the platform’s capabilities:
+The SCADA solution template for swimming pools integrates advanced monitoring and control functionalities to ensure energy efficiency and safety. Key features include:
 
-* A user-friendly dashboard interacting real-time pool conditions, including temperature and chemical levels.
-* Visual monitoring of device statuses like pumps, heaters, and filters.
-* Historical data trends for key parameters.
-* Seamless device management and alarm configuration.
+* Tracks water levels, temperature, pH balance, and equipment functionality.
+* Automated adjustments of heat pumps, filtration, and valves based on real-time data.
+* Monitors and manages energy consumption of critical components to reduce costs.
+* Enables state switching, valve control, and system adjustments from any location via a secure IoT gateway.
 
 Press Install button to get started!

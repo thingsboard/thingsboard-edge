@@ -869,6 +869,12 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
     "jsonId": "eea71820-7c0a-11ef-baac-dd7fa92789f4"
@@ -886,6 +892,12 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
     "jsonId": "eeaa2560-7c0a-11ef-baac-dd7fa92789f4"
@@ -904,6 +916,12 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
     "jsonId": "eead80c0-7c0a-11ef-baac-dd7fa92789f4"
@@ -919,6 +937,12 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
     "jsonId": "eeb0dc20-7c0a-11ef-baac-dd7fa92789f4"
@@ -936,6 +960,12 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
     "jsonId": "eeb34d20-7c0a-11ef-baac-dd7fa92789f4"
@@ -951,6 +981,12 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
     "jsonId": "eeb59710-7c0a-11ef-baac-dd7fa92789f4"
@@ -966,6 +1002,12 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
     "jsonId": "eeb87d40-7c0a-11ef-baac-dd7fa92789f4"
@@ -981,6 +1023,12 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
     "jsonId": "eebaa020-7c0a-11ef-baac-dd7fa92789f4"
@@ -996,6 +1044,12 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
     "jsonId": "eebcc300-7c0a-11ef-baac-dd7fa92789f4"
@@ -1011,6 +1065,12 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
     "jsonId": "eebf0cf0-7c0a-11ef-baac-dd7fa92789f4"
@@ -1026,6 +1086,12 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
     "jsonId": "eec156e0-7c0a-11ef-baac-dd7fa92789f4"
@@ -1041,6 +1107,12 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
     "jsonId": "eec352b0-7c0a-11ef-baac-dd7fa92789f4"
@@ -1056,6 +1128,12 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
     "jsonId": "eec54e80-7c0a-11ef-baac-dd7fa92789f4"
@@ -1071,6 +1149,12 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
     "jsonId": "eec77160-7c0a-11ef-baac-dd7fa92789f4"
