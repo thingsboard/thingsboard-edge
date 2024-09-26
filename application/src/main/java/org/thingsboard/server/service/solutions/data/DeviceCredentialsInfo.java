@@ -40,6 +40,6 @@ public class DeviceCredentialsInfo {
     String type;
     DeviceCredentials credentials;
     String customerName;
-
+    boolean gateway;
 
 }

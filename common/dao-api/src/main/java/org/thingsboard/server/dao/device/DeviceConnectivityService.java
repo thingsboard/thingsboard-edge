@@ -43,4 +43,6 @@ public interface DeviceConnectivityService {
     Resource getPemCertFile(String protocol);
 
     Resource createGatewayDockerComposeFile(String baseUrl, Device device) throws URISyntaxException;
+
+    Resource createGatewayDockerComposeFile(String baseUrl, Device device, boolean includePortBindings) throws URISyntaxException;
 }
