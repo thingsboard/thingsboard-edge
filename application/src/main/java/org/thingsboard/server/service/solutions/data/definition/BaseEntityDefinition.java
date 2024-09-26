@@ -48,6 +48,8 @@ public abstract class BaseEntityDefinition implements EntityDefinition {
     private String name;
     @JsonProperty("attributes")
     private JsonNode attributes;
+    @JsonProperty("sharedAttributes")
+    private JsonNode sharedAttributes;
     @JsonProperty("relations")
     private List<RelationDefinition> relations = Collections.emptyList();
     @JsonProperty("jsonId")
