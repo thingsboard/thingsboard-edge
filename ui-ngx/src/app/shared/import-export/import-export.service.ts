@@ -79,7 +79,7 @@ import { RuleChain, RuleChainImport, RuleChainMetaData, RuleChainType } from '@s
 import { RuleChainService } from '@core/http/rule-chain.service';
 import { CustomerId } from '@shared/models/id/customer-id';
 import { ConverterService } from '@core/http/converter.service';
-import { Converter, ConverterType } from '@shared/models/converter.models';
+import { Converter, ConverterConfig, ConverterType } from '@shared/models/converter.models';
 import { FiltersInfo } from '@shared/models/query/query.models';
 import { DeviceProfileService } from '@core/http/device-profile.service';
 import { DeviceProfile } from '@shared/models/device.models';
@@ -391,6 +391,7 @@ export class ImportExportService {
 
   public exportEntity(entityData: EntityInfoData | RuleChainMetaData): void {
     const id = (entityData as EntityInfoData).id ?? (entityData as RuleChainMetaData).ruleChainId;
+    let fileName = (entityData as EntityInfoData).name;
     let preparedData;
     switch (id.entityType) {
       case EntityType.DEVICE_PROFILE:
@@ -417,13 +418,13 @@ export class ImportExportService {
         preparedData = this.prepareDashboardExport(entityData as Dashboard);
         break;
       case EntityType.CUSTOMER:
-        preparedData = this.prepareExport({...entityData, name: (entityData as Customer).title});
-        (entityData as EntityInfoData).name = (entityData as Customer).title;
+        fileName = (entityData as Customer).title;
+        preparedData = this.prepareExport(entityData);
         break;
       default:
         preparedData = this.prepareExport(entityData);
     }
-    this.exportToPc(preparedData, (entityData as EntityInfoData).name);
+    this.exportToPc(preparedData, fileName);
   }
 
   private exportSelectedWidgetsBundle(widgetsBundle: WidgetsBundle): void {
@@ -708,7 +709,7 @@ export class ImportExportService {
     this.converterService.getConverter(converterId).subscribe({
       next: (converter) => {
         if (!converter.configuration) {
-          converter.configuration = {};
+          converter.configuration = {} as ConverterConfig;
         }
         let name = converter.name;
         name = name.toLowerCase().replace(/\W/g, '_');

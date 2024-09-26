@@ -53,15 +53,15 @@ import {
 } from '@angular/forms';
 import { combineLatest, debounce, interval, Observable, of, shareReplay, Subject } from 'rxjs';
 import {
-  catchError, debounceTime,
+  catchError,
   distinctUntilChanged,
   map,
   startWith,
   switchMap,
-  takeUntil, tap,
+  takeUntil,
 } from 'rxjs/operators';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
-import { IntegrationDirectory, IntegrationType } from '@shared/models/integration.models';
+import { IntegrationType } from '@shared/models/integration.models';
 import { Converter, ConverterLibraryValue, ConverterType, Model, Vendor } from '@shared/models/converter.models';
 import { ConverterComponent } from '@home/components/converter/converter.component';
 import { isDefinedAndNotNull, isEmptyStr, isNotEmptyStr } from '@core/utils';
@@ -102,30 +102,28 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
   vendorInputSubject = new Subject<void>();
   modelInputSubject = new Subject<void>();
 
-  private integrationDir: IntegrationDirectory;
   private destroy$ = new Subject<void>();
 
-  private onChange!: (converter: Converter) => void;
-  private onTouched!: () => void;
+  private onChange: (converter: Converter) => void = (_) => {};
 
   constructor(
     private fb: FormBuilder,
     private converterLibraryService: ConverterLibraryService,
   ) {
-    this.libraryFormGroup = fb.group({
+    this.libraryFormGroup = this.fb.group({
       vendor: ['', Validators.required],
       model: ['', Validators.required],
     });
 
     this.libraryFormGroup.valueChanges
       .pipe(takeUntil(this.destroy$))
-      .subscribe(value => this.onChange(value?.converter));
+      .subscribe(() => this.onChange(this.libraryFormGroup.get('converter')?.getRawValue()));
 
     this.vendors$ = this.vendorInputSubject.asObservable().pipe(
-      switchMap(() => of(this.integrationDir)),
+      switchMap(() => of(this.integrationType)),
       distinctUntilChanged(),
       switchMap(() =>
-        this.converterLibraryService.getVendors(this.integrationDir)
+        this.converterLibraryService.getVendors(this.integrationType)
       ),
       shareReplay(1)
     );
@@ -135,7 +133,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       this.vendors$
     ]).pipe(
       map(([value, vendors]) => {
-        this.libraryFormGroup.get('model').patchValue('', {emitEvent: false});
+        this.libraryFormGroup.get('model').patchValue('');
         if (isEmptyStr(value)) {
           return vendors;
         }
@@ -150,7 +148,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       distinctUntilChanged(),
       switchMap(() => {
           if (this.libraryFormGroup.get('vendor').value?.name) {
-            return this.converterLibraryService.getModels(this.integrationDir, this.libraryFormGroup.get('vendor').value.name, this.converterType)
+            return this.converterLibraryService.getModels(this.integrationType, this.libraryFormGroup.get('vendor').value.name, this.converterType);
           }
           return of([]);
         }
@@ -177,7 +175,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       .pipe(
         switchMap(([vendor, model]: [Vendor, Model]) =>
           vendor?.name && model?.name
-            ? this.converterLibraryService.getConverter(this.integrationDir, vendor.name, model.name, this.converterType)
+            ? this.converterLibraryService.getConverter(this.integrationType, vendor.name, model.name, this.converterType)
             : of(null)
         ),
         catchError(() => of(null)),
@@ -191,7 +189,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       startWith(''),
       debounce((value) => isNotEmptyStr(value) ? interval(300) : of(0)),
       distinctUntilChanged(),
-    )
+    );
   }
 
   get modelValueChanges(): Observable<Model | string> {
@@ -199,7 +197,7 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
       startWith(''),
       debounce((value) => isNotEmptyStr(value) ? interval(300) : of(0)),
       distinctUntilChanged(),
-    )
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -210,7 +208,6 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
     ) {
       this.libraryFormGroup.get('vendor').reset('');
       this.libraryFormGroup.get('model').reset('');
-      this.integrationDir = IntegrationDirectory[this.integrationType] ?? this.integrationType;
     }
   }
 
@@ -224,17 +221,19 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
   }
 
   setDisabledState(isDisabled: boolean): void {
-    isDisabled
-      ? this.libraryFormGroup.disable({emitEvent: false})
-      : this.libraryFormGroup.enable({emitEvent: false});
+    if (isDisabled) {
+      this.libraryFormGroup.disable({emitEvent: false});
+    } else {
+      this.libraryFormGroup.enable();
+    }
+    this.updateScriptLangEnable();
   }
 
   registerOnChange(fn: (converter: Converter) => void): void {
     this.onChange = fn;
   }
 
-  registerOnTouched(fn: () => void): void {
-    this.onTouched = fn;
+  registerOnTouched(_): void {
   }
 
   writeValue(converterLibraryValue: ConverterLibraryValue): void {
@@ -280,5 +279,19 @@ export class ConverterLibraryComponent implements ControlValueAccessor, Validato
 
   trackByName(_, item: Vendor | Model): string {
     return item.name;
+  }
+
+  private updateScriptLangEnable(): void {
+    const converterControl = this.libraryFormGroup.get('converter');
+    if (!converterControl) {return;}
+
+    const { decoder, encoder, tbelDecoder, tbelEncoder, type } = converterControl.value.configuration || {};
+    const scriptLangControl = converterControl.get('configuration')?.get('scriptLang');
+
+    if (type === ConverterType.UPLINK && (!decoder || !tbelDecoder)) {
+      scriptLangControl?.disable({ emitEvent: false });
+    } else if (!encoder || !tbelEncoder) {
+      scriptLangControl?.disable({ emitEvent: false });
+    }
   }
 }

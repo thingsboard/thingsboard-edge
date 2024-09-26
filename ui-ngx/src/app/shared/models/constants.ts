@@ -216,6 +216,7 @@ export const HelpLinks = {
     gatewayInstall: `${helpBaseUrl}/docs/iot-gateway/install/docker-installation`,
     scada: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/scada`,
     scadaSymbolDev: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/scada/symbols-dev-guide`,
+    scadaSymbolDevAnimation: `${helpBaseUrl}/docs${docPlatformPrefix}/user-guide/scada/scada-symbols-dev-guide/#scadasymbolanimation`,
     converters: `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/#data-converters`,
     uplinkConverters: `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/#uplink-data-converter`,
     downlinkConverters: `${helpBaseUrl}/docs${docIntegrationPrefix}/user-guide/integrations/#downlink-data-converter`,

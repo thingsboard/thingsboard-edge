@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, Injector } from '@angular/core';
+import { Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -44,6 +44,10 @@ import {
   MobileAppQrCodeWidgetSettings
 } from '@home/components/widget/lib/cards/mobile-app-qr-code-widget.models';
 import { badgePositionTranslationsMap } from '@app/shared/models/mobile-app.models';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-mobile-app-qr-code-basic-config',
@@ -54,13 +58,16 @@ export class MobileAppQrCodeBasicConfigComponent extends BasicWidgetConfigCompon
 
   mobileAppQrCodeWidgetConfigForm: UntypedFormGroup;
   badgePositionTranslationsMap = badgePositionTranslationsMap;
+  displayConfigurationHint = false;
 
   constructor(protected store: Store<AppState>,
               protected widgetConfigComponent: WidgetConfigComponent,
-              private cd: ChangeDetectorRef,
-              private $injector: Injector,
-              private fb: UntypedFormBuilder) {
+              private fb: UntypedFormBuilder,
+              private userPermissionsService: UserPermissionsService) {
     super(store, widgetConfigComponent);
+    this.displayConfigurationHint = getCurrentAuthUser(this.store).authority !== Authority.CUSTOMER_USER &&
+      (this.userPermissionsService.hasGenericPermission(Resource.MOBILE_APP_SETTINGS, Operation.WRITE) ||
+        this.userPermissionsService.hasGenericPermission(Resource.MOBILE_APP_SETTINGS, Operation.READ));
   }
 
   protected configForm(): UntypedFormGroup {
