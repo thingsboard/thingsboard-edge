@@ -6,8 +6,854 @@
       "gateway": true
     },
     "sharedAttributes": {
-      "active_connectors": "[\"Gateway connector\"]",
-      "Gateway connector": "{\n  \"master\": {\n    \"slaves\": [\n      {\n        \"name\": \"Main intake valve\",\n        \"host\": \"host.docker.internal\",\n        \"port\": 5021,\n        \"type\": \"tcp\",\n        \"method\": \"socket\",\n        \"timeout\": 3,\n        \"byteOrder\": \"BIG\",\n        \"wordOrder\": \"LITTLE\",\n        \"retries\": true,\n        \"retryOnEmpty\": true,\n        \"retryOnInvalid\": true,\n        \"pollPeriod\": 1000,\n        \"unitId\": 1,\n        \"deviceName\": \"Main intake valve\",\n        \"deviceType\": \"default\",\n        \"reportStrategy\": {\n          \"type\": \"ON_CHANGE_OR_REPORT_PERIOD\",\n          \"reportPeriod\": 30000\n        },\n        \"connectAttemptTimeMs\": 3000,\n        \"connectAttemptCount\": 3,\n        \"waitAfterFailedAttemptsMs\": 30000,\n        \"attributes\": [],\n        \"timeseries\": [\n          {\n            \"tag\": \"opened\",\n            \"type\": \"bits\",\n            \"functionCode\": 1,\n            \"objectsCount\": 8,\n            \"address\": 0,\n            \"bit\": 7\n          }\n        ],\n        \"attributeUpdates\": [],\n        \"rpc\": [\n          {\n            \"tag\": \"setOpened\",\n            \"type\": \"bits\",\n            \"functionCode\": 5,\n            \"objectsCount\": 1,\n            \"address\": 0\n          }\n        ]\n      },\n      {\n        \"name\": \"Water pump\",\n        \"host\": \"host.docker.internal\",\n        \"port\": 5022,\n        \"type\": \"tcp\",\n        \"method\": \"socket\",\n        \"timeout\": 3,\n        \"byteOrder\": \"BIG\",\n        \"wordOrder\": \"LITTLE\",\n        \"retries\": true,\n        \"retryOnEmpty\": true,\n        \"retryOnInvalid\": true,\n        \"pollPeriod\": 1000,\n        \"unitId\": 2,\n        \"deviceName\": \"Water pump\",\n        \"deviceType\": \"default\",\n        \"reportStrategy\": {\n          \"type\": \"ON_CHANGE_OR_REPORT_PERIOD\",\n          \"reportPeriod\": 30000\n        },\n        \"connectAttemptTimeMs\": 3000,\n        \"connectAttemptCount\": 3,\n        \"waitAfterFailedAttemptsMs\": 30000,\n        \"attributes\": [],\n        \"timeseries\": [\n          {\n            \"tag\": \"running\",\n            \"type\": \"bits\",\n            \"functionCode\": 1,\n            \"objectsCount\": 8,\n            \"address\": 0,\n            \"bit\": 7\n          },\n          {\n            \"tag\": \"flowRate\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 1,\n            \"reportStrategy\": {\n              \"type\": \"ON_REPORT_PERIOD\",\n              \"reportPeriod\": 5000\n            }\n          },\n          {\n            \"tag\": \"vibration\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 2,\n            \"reportStrategy\": {\n              \"type\": \"ON_REPORT_PERIOD\",\n              \"reportPeriod\": 10000\n            }\n          },\n          {\n            \"tag\": \"temperature\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 3,\n            \"divider\": 10,\n            \"reportStrategy\": {\n              \"type\": \"ON_REPORT_PERIOD\",\n              \"reportPeriod\": 10000\n            }\n          },\n          {\n            \"tag\": \"powerConsumption\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 4,\n            \"reportStrategy\": {\n              \"type\": \"ON_REPORT_PERIOD\",\n              \"reportPeriod\": 10000\n            }\n          },\n          {\n            \"tag\": \"rotationSpeed\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 5,\n            \"reportStrategy\": {\n              \"type\": \"ON_REPORT_PERIOD\",\n              \"reportPeriod\": 10000\n            }\n          },\n          {\n            \"tag\": \"pressure\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 6,\n            \"reportStrategy\": {\n              \"type\": \"ON_REPORT_PERIOD\",\n              \"reportPeriod\": 10000\n            }\n          }\n        ],\n        \"attributeUpdates\": [],\n        \"rpc\": [\n          {\n            \"tag\": \"setRunning\",\n            \"type\": \"bits\",\n            \"functionCode\": 5,\n            \"objectsCount\": 1,\n            \"address\": 0\n          }\n        ]\n      },\n      {\n        \"name\": \"Sand filter\",\n        \"host\": \"host.docker.internal\",\n        \"port\": 5023,\n        \"type\": \"tcp\",\n        \"method\": \"socket\",\n        \"timeout\": 3,\n        \"byteOrder\": \"BIG\",\n        \"wordOrder\": \"LITTLE\",\n        \"retries\": true,\n        \"retryOnEmpty\": true,\n        \"retryOnInvalid\": true,\n        \"pollPeriod\": 1000,\n        \"unitId\": 3,\n        \"deviceName\": \"Sand filter\",\n        \"deviceType\": \"default\",\n        \"reportStrategy\": {\n          \"type\": \"ON_CHANGE_OR_REPORT_PERIOD\",\n          \"reportPeriod\": 30000\n        },\n        \"connectAttemptTimeMs\": 3000,\n        \"connectAttemptCount\": 3,\n        \"waitAfterFailedAttemptsMs\": 30000,\n        \"attributes\": [],\n        \"timeseries\": [\n          {\n            \"tag\": \"flowRate\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 0,\n            \"reportStrategy\": {\n              \"type\": \"ON_REPORT_PERIOD\",\n              \"reportPeriod\": 5000\n            }\n          },\n          {\n            \"tag\": \"mode\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 1\n          },\n          {\n            \"tag\": \"filterLifeRemaining\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 2\n          },\n          {\n            \"tag\": \"rotationSpeed\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 3,\n            \"reportStrategy\": {\n              \"type\": \"ON_REPORT_PERIOD\",\n              \"reportPeriod\": 10000\n            }\n          },\n          {\n            \"tag\": \"pressure\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 5\n          },\n          {\n            \"tag\": \"vibration\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 6,\n            \"reportStrategy\": {\n              \"type\": \"ON_REPORT_PERIOD\",\n              \"reportPeriod\": 10000\n            }\n          }\n        ],\n        \"attributeUpdates\": [],\n        \"rpc\": [\n          {\n            \"tag\": \"setMode\",\n            \"type\": \"16uint\",\n            \"functionCode\": 6,\n            \"objectsCount\": 1,\n            \"address\": 1\n          },\n          {\n            \"tag\": \"setPressureUnits\",\n            \"type\": \"16uint\",\n            \"functionCode\": 6,\n            \"objectsCount\": 1,\n            \"address\": 4\n          }\n        ]\n      },\n      {\n        \"name\": \"Throughpass valve\",\n        \"host\": \"host.docker.internal\",\n        \"port\": 5024,\n        \"type\": \"tcp\",\n        \"method\": \"socket\",\n        \"timeout\": 3,\n        \"byteOrder\": \"BIG\",\n        \"wordOrder\": \"LITTLE\",\n        \"retries\": true,\n        \"retryOnEmpty\": true,\n        \"retryOnInvalid\": true,\n        \"pollPeriod\": 1000,\n        \"unitId\": 4,\n        \"deviceName\": \"Throughpass valve\",\n        \"deviceType\": \"default\",\n        \"reportStrategy\": {\n          \"type\": \"ON_CHANGE_OR_REPORT_PERIOD\",\n          \"reportPeriod\": 30000\n        },\n        \"connectAttemptTimeMs\": 3000,\n        \"connectAttemptCount\": 3,\n        \"waitAfterFailedAttemptsMs\": 30000,\n        \"attributes\": [],\n        \"timeseries\": [\n          {\n            \"tag\": \"opened\",\n            \"type\": \"bits\",\n            \"functionCode\": 1,\n            \"objectsCount\": 8,\n            \"address\": 0,\n            \"bit\": 7\n          }\n        ],\n        \"attributeUpdates\": [],\n        \"rpc\": [\n          {\n            \"tag\": \"setOpened\",\n            \"type\": \"bits\",\n            \"functionCode\": 5,\n            \"objectsCount\": 1,\n            \"address\": 0\n          }\n        ]\n      },\n      {\n        \"name\": \"Heat pump\",\n        \"host\": \"host.docker.internal\",\n        \"port\": 5025,\n        \"type\": \"tcp\",\n        \"method\": \"socket\",\n        \"timeout\": 3,\n        \"byteOrder\": \"BIG\",\n        \"wordOrder\": \"LITTLE\",\n        \"retries\": true,\n        \"retryOnEmpty\": true,\n        \"retryOnInvalid\": true,\n        \"pollPeriod\": 3000,\n        \"unitId\": 5,\n        \"deviceName\": \"Heat pump\",\n        \"deviceType\": \"default\",\n        \"reportStrategy\": {\n          \"type\": \"ON_CHANGE_OR_REPORT_PERIOD\",\n          \"reportPeriod\": 30000\n        },\n        \"connectAttemptTimeMs\": 3000,\n        \"connectAttemptCount\": 3,\n        \"waitAfterFailedAttemptsMs\": 30000,\n        \"attributes\": [],\n        \"timeseries\": [\n          {\n            \"tag\": \"running\",\n            \"type\": \"bits\",\n            \"functionCode\": 1,\n            \"objectsCount\": 8,\n            \"address\": 0,\n            \"bit\": 7\n          },\n          {\n            \"tag\": \"targetTemperature\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 0,\n            \"divider\": 10\n          },\n          {\n            \"tag\": \"currentInTemperature\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 1,\n            \"divider\": 10\n          },\n          {\n            \"tag\": \"currentOutTemperature\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 2,\n            \"divider\": 10\n          },\n          {\n            \"tag\": \"powerConsumption\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 3,\n            \"reportStrategy\": {\n              \"type\": \"ON_REPORT_PERIOD\",\n              \"reportPeriod\": 10000\n            }\n          },\n          {\n            \"tag\": \"ambientTemperature\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 4,\n            \"divider\": 10,\n            \"reportStrategy\": {\n              \"type\": \"ON_REPORT_PERIOD\",\n              \"reportPeriod\": 10000\n            }\n          },\n          {\n            \"tag\": \"rotationSpeed\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 5,\n            \"reportStrategy\": {\n              \"type\": \"ON_REPORT_PERIOD\",\n              \"reportPeriod\": 10000\n            }\n          },\n          {\n            \"tag\": \"compressorTemperature\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 6,\n            \"divider\": 10,\n            \"reportStrategy\": {\n              \"type\": \"ON_REPORT_PERIOD\",\n              \"reportPeriod\": 5000\n            }\n          },\n          {\n            \"tag\": \"vibration\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 7,\n            \"reportStrategy\": {\n              \"type\": \"ON_REPORT_PERIOD\",\n              \"reportPeriod\": 10000\n            }\n          },\n          {\n            \"tag\": \"refrigerantPressure\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 8\n          }\n        ],\n        \"attributeUpdates\": [\n          {\n            \"tag\": \"targetTemperature\",\n            \"type\": \"32int\",\n            \"functionCode\": 6,\n            \"objectsCount\": 1,\n            \"address\": 0,\n            \"multiplier\": 10\n          }\n        ],\n        \"rpc\": [\n          {\n            \"tag\": \"setRunning\",\n            \"type\": \"bits\",\n            \"functionCode\": 5,\n            \"objectsCount\": 1,\n            \"address\": 0\n          }\n        ]\n      },\n      {\n        \"name\": \"Filter PH sensor\",\n        \"host\": \"host.docker.internal\",\n        \"port\": 5026,\n        \"type\": \"tcp\",\n        \"method\": \"socket\",\n        \"timeout\": 3,\n        \"byteOrder\": \"BIG\",\n        \"wordOrder\": \"LITTLE\",\n        \"retries\": true,\n        \"retryOnEmpty\": true,\n        \"retryOnInvalid\": true,\n        \"pollPeriod\": 1000,\n        \"unitId\": 6,\n        \"deviceName\": \"Filter PH sensor\",\n        \"deviceType\": \"default\",\n        \"reportStrategy\": {\n          \"type\": \"ON_REPORT_PERIOD\",\n          \"reportPeriod\": 5000\n        },\n        \"connectAttemptTimeMs\": 3000,\n        \"connectAttemptCount\": 3,\n        \"waitAfterFailedAttemptsMs\": 30000,\n        \"attributes\": [],\n        \"timeseries\": [\n          {\n            \"tag\": \"phLevel\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 0,\n            \"divider\": 10\n          }\n        ],\n        \"attributeUpdates\": [],\n        \"rpc\": []\n      },\n      {\n        \"name\": \"Heat pump intake valve\",\n        \"host\": \"host.docker.internal\",\n        \"port\": 5027,\n        \"type\": \"tcp\",\n        \"method\": \"socket\",\n        \"timeout\": 3,\n        \"byteOrder\": \"BIG\",\n        \"wordOrder\": \"LITTLE\",\n        \"retries\": true,\n        \"retryOnEmpty\": true,\n        \"retryOnInvalid\": true,\n        \"pollPeriod\": 1000,\n        \"unitId\": 7,\n        \"deviceName\": \"Heat pump intake valve\",\n        \"deviceType\": \"default\",\n        \"reportStrategy\": {\n          \"type\": \"ON_CHANGE_OR_REPORT_PERIOD\",\n          \"reportPeriod\": 30000\n        },\n        \"connectAttemptTimeMs\": 3000,\n        \"connectAttemptCount\": 3,\n        \"waitAfterFailedAttemptsMs\": 30000,\n        \"attributes\": [],\n        \"timeseries\": [\n          {\n            \"tag\": \"opened\",\n            \"type\": \"bits\",\n            \"functionCode\": 1,\n            \"objectsCount\": 8,\n            \"address\": 0,\n            \"bit\": 7\n          }\n        ],\n        \"attributeUpdates\": [],\n        \"rpc\": [\n          {\n            \"tag\": \"setOpened\",\n            \"type\": \"bits\",\n            \"functionCode\": 5,\n            \"objectsCount\": 1,\n            \"address\": 0\n          }\n        ]\n      },\n      {\n        \"name\": \"Heat pump outgoing valve\",\n        \"host\": \"host.docker.internal\",\n        \"port\": 5028,\n        \"type\": \"tcp\",\n        \"method\": \"socket\",\n        \"timeout\": 3,\n        \"byteOrder\": \"BIG\",\n        \"wordOrder\": \"LITTLE\",\n        \"retries\": true,\n        \"retryOnEmpty\": true,\n        \"retryOnInvalid\": true,\n        \"pollPeriod\": 1000,\n        \"unitId\": 8,\n        \"deviceName\": \"Heat pump outgoing valve\",\n        \"deviceType\": \"default\",\n        \"reportStrategy\": {\n          \"type\": \"ON_CHANGE_OR_REPORT_PERIOD\",\n          \"reportPeriod\": 30000\n        },\n        \"connectAttemptTimeMs\": 3000,\n        \"connectAttemptCount\": 3,\n        \"waitAfterFailedAttemptsMs\": 30000,\n        \"attributes\": [],\n        \"timeseries\": [\n          {\n            \"tag\": \"opened\",\n            \"type\": \"bits\",\n            \"functionCode\": 1,\n            \"objectsCount\": 8,\n            \"address\": 0,\n            \"bit\": 7\n          }\n        ],\n        \"attributeUpdates\": [],\n        \"rpc\": [\n          {\n            \"tag\": \"setOpened\",\n            \"type\": \"bits\",\n            \"functionCode\": 5,\n            \"objectsCount\": 1,\n            \"address\": 0\n          }\n        ]\n      },\n      {\n        \"name\": \"Pool intake valve\",\n        \"host\": \"host.docker.internal\",\n        \"port\": 5029,\n        \"type\": \"tcp\",\n        \"method\": \"socket\",\n        \"timeout\": 3,\n        \"byteOrder\": \"BIG\",\n        \"wordOrder\": \"LITTLE\",\n        \"retries\": true,\n        \"retryOnEmpty\": true,\n        \"retryOnInvalid\": true,\n        \"pollPeriod\": 1000,\n        \"unitId\": 9,\n        \"deviceName\": \"Pool intake valve\",\n        \"deviceType\": \"default\",\n        \"reportStrategy\": {\n          \"type\": \"ON_CHANGE_OR_REPORT_PERIOD\",\n          \"reportPeriod\": 30000\n        },\n        \"connectAttemptTimeMs\": 3000,\n        \"connectAttemptCount\": 3,\n        \"waitAfterFailedAttemptsMs\": 30000,\n        \"attributes\": [],\n        \"timeseries\": [\n          {\n            \"tag\": \"opened\",\n            \"type\": \"bits\",\n            \"functionCode\": 1,\n            \"objectsCount\": 8,\n            \"address\": 0,\n            \"bit\": 7\n          }\n        ],\n        \"attributeUpdates\": [],\n        \"rpc\": [\n          {\n            \"tag\": \"setOpened\",\n            \"type\": \"bits\",\n            \"functionCode\": 5,\n            \"objectsCount\": 1,\n            \"address\": 0\n          }\n        ]\n      },\n      {\n        \"name\": \"Pool weir valve\",\n        \"host\": \"host.docker.internal\",\n        \"port\": 5030,\n        \"type\": \"tcp\",\n        \"method\": \"socket\",\n        \"timeout\": 3,\n        \"byteOrder\": \"BIG\",\n        \"wordOrder\": \"LITTLE\",\n        \"retries\": true,\n        \"retryOnEmpty\": true,\n        \"retryOnInvalid\": true,\n        \"pollPeriod\": 1000,\n        \"unitId\": 10,\n        \"deviceName\": \"Pool weir valve\",\n        \"deviceType\": \"default\",\n        \"reportStrategy\": {\n          \"type\": \"ON_CHANGE_OR_REPORT_PERIOD\",\n          \"reportPeriod\": 30000\n        },\n        \"connectAttemptTimeMs\": 3000,\n        \"connectAttemptCount\": 3,\n        \"waitAfterFailedAttemptsMs\": 30000,\n        \"attributes\": [],\n        \"timeseries\": [\n          {\n            \"tag\": \"opened\",\n            \"type\": \"bits\",\n            \"functionCode\": 1,\n            \"objectsCount\": 8,\n            \"address\": 0,\n            \"bit\": 7\n          }\n        ],\n        \"attributeUpdates\": [],\n        \"rpc\": [\n          {\n            \"tag\": \"setOpened\",\n            \"type\": \"bits\",\n            \"functionCode\": 5,\n            \"objectsCount\": 1,\n            \"address\": 0\n          }\n        ]\n      },\n      {\n        \"name\": \"Pool drain valve\",\n        \"host\": \"host.docker.internal\",\n        \"port\": 5031,\n        \"type\": \"tcp\",\n        \"method\": \"socket\",\n        \"timeout\": 3,\n        \"byteOrder\": \"BIG\",\n        \"wordOrder\": \"LITTLE\",\n        \"retries\": true,\n        \"retryOnEmpty\": true,\n        \"retryOnInvalid\": true,\n        \"pollPeriod\": 1000,\n        \"unitId\": 11,\n        \"deviceName\": \"Pool drain valve\",\n        \"deviceType\": \"default\",\n        \"reportStrategy\": {\n          \"type\": \"ON_CHANGE_OR_REPORT_PERIOD\",\n          \"reportPeriod\": 30000\n        },\n        \"connectAttemptTimeMs\": 3000,\n        \"connectAttemptCount\": 3,\n        \"waitAfterFailedAttemptsMs\": 30000,\n        \"attributes\": [],\n        \"timeseries\": [\n          {\n            \"tag\": \"opened\",\n            \"type\": \"bits\",\n            \"functionCode\": 1,\n            \"objectsCount\": 8,\n            \"address\": 0,\n            \"bit\": 7\n          }\n        ],\n        \"attributeUpdates\": [],\n        \"rpc\": [\n          {\n            \"tag\": \"setOpened\",\n            \"type\": \"bits\",\n            \"functionCode\": 5,\n            \"objectsCount\": 1,\n            \"address\": 0\n          }\n        ]\n      },\n      {\n        \"name\": \"Water level meter\",\n        \"host\": \"host.docker.internal\",\n        \"port\": 5032,\n        \"type\": \"tcp\",\n        \"method\": \"socket\",\n        \"timeout\": 3,\n        \"byteOrder\": \"BIG\",\n        \"wordOrder\": \"LITTLE\",\n        \"retries\": true,\n        \"retryOnEmpty\": true,\n        \"retryOnInvalid\": true,\n        \"pollPeriod\": 1000,\n        \"unitId\": 12,\n        \"deviceName\": \"Water level meter\",\n        \"deviceType\": \"default\",\n        \"reportStrategy\": {\n          \"type\": \"ON_CHANGE_OR_REPORT_PERIOD\",\n          \"reportPeriod\": 30000\n        },\n        \"connectAttemptTimeMs\": 3000,\n        \"connectAttemptCount\": 3,\n        \"waitAfterFailedAttemptsMs\": 30000,\n        \"attributes\": [],\n        \"timeseries\": [\n          {\n            \"tag\": \"waterLevel\",\n            \"type\": \"16uint\",\n            \"functionCode\": 3,\n            \"objectsCount\": 1,\n            \"address\": 0\n          }\n        ],\n        \"attributeUpdates\": [],\n        \"rpc\": []\n      },\n      {\n        \"name\": \"Water pump outgoing valve\",\n        \"host\": \"host.docker.internal\",\n        \"port\": 5033,\n        \"type\": \"tcp\",\n        \"method\": \"socket\",\n        \"timeout\": 3,\n        \"byteOrder\": \"BIG\",\n        \"wordOrder\": \"LITTLE\",\n        \"retries\": true,\n        \"retryOnEmpty\": true,\n        \"retryOnInvalid\": true,\n        \"pollPeriod\": 1000,\n        \"unitId\": 13,\n        \"deviceName\": \"Water pump outgoing valve\",\n        \"deviceType\": \"default\",\n        \"reportStrategy\": {\n          \"type\": \"ON_CHANGE_OR_REPORT_PERIOD\",\n          \"reportPeriod\": 30000\n        },\n        \"connectAttemptTimeMs\": 3000,\n        \"connectAttemptCount\": 3,\n        \"waitAfterFailedAttemptsMs\": 30000,\n        \"attributes\": [],\n        \"timeseries\": [\n          {\n            \"tag\": \"opened\",\n            \"type\": \"bits\",\n            \"functionCode\": 1,\n            \"objectsCount\": 8,\n            \"address\": 0,\n            \"bit\": 7\n          }\n        ],\n        \"attributeUpdates\": [],\n        \"rpc\": [\n          {\n            \"tag\": \"setOpened\",\n            \"type\": \"bits\",\n            \"functionCode\": 5,\n            \"objectsCount\": 1,\n            \"address\": 0\n          }\n        ]\n      },\n      {\n        \"name\": \"Drain valve\",\n        \"host\": \"host.docker.internal\",\n        \"port\": 5034,\n        \"type\": \"tcp\",\n        \"method\": \"socket\",\n        \"timeout\": 3,\n        \"byteOrder\": \"BIG\",\n        \"wordOrder\": \"LITTLE\",\n        \"retries\": true,\n        \"retryOnEmpty\": true,\n        \"retryOnInvalid\": true,\n        \"pollPeriod\": 1000,\n        \"unitId\": 14,\n        \"deviceName\": \"Drain valve\",\n        \"deviceType\": \"default\",\n        \"reportStrategy\": {\n          \"type\": \"ON_CHANGE_OR_REPORT_PERIOD\",\n          \"reportPeriod\": 30000\n        },\n        \"connectAttemptTimeMs\": 3000,\n        \"connectAttemptCount\": 3,\n        \"waitAfterFailedAttemptsMs\": 30000,\n        \"attributes\": [],\n        \"timeseries\": [\n          {\n            \"tag\": \"opened\",\n            \"type\": \"bits\",\n            \"functionCode\": 1,\n            \"objectsCount\": 8,\n            \"address\": 0,\n            \"bit\": 7\n          }\n        ],\n        \"attributeUpdates\": [],\n        \"rpc\": [\n          {\n            \"tag\": \"setOpened\",\n            \"type\": \"bits\",\n            \"functionCode\": 5,\n            \"objectsCount\": 1,\n            \"address\": 0\n          }\n        ]\n      }\n    ]\n  },\n  \"slave\": {},\n  \"logLevel\": \"INFO\",\n  \"name\": \"Gateway connector\",\n  \"enableRemoteLogging\": false,\n  \"id\": \"3867532e-dd61-43f6-8f56-da41b2b36428\"\n}"
+      "active_connectors": ["Gateway connector"],
+      "Gateway connector": {
+        "mode":"advanced",
+        "name":"Gateway connector",
+        "type":"modbus",
+        "enableRemoteLogging":false,
+        "logLevel":"INFO",
+        "sendDataOnlyOnChange":false,
+        "configuration": "gatewayConnector.json",
+        "configurationJson": {
+          "master": {
+            "slaves": [
+              {
+                "name": "Main intake valve",
+                "host": "host.docker.internal",
+                "port": 5021,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 1,
+                "deviceName": "Main intake valve",
+                "deviceType": "default",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 30000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "opened",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 8,
+                    "address": 0,
+                    "bit": 7
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setOpened",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 0
+                  }
+                ]
+              },
+              {
+                "name": "Water pump",
+                "host": "host.docker.internal",
+                "port": 5022,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 2,
+                "deviceName": "Water pump",
+                "deviceType": "default",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 30000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "running",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 8,
+                    "address": 0,
+                    "bit": 7
+                  },
+                  {
+                    "tag": "flowRate",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 5000
+                    }
+                  },
+                  {
+                    "tag": "vibration",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 10000
+                    }
+                  },
+                  {
+                    "tag": "temperature",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 10000
+                    }
+                  },
+                  {
+                    "tag": "powerConsumption",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 4,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 10000
+                    }
+                  },
+                  {
+                    "tag": "rotationSpeed",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 5,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 10000
+                    }
+                  },
+                  {
+                    "tag": "pressure",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 6,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 10000
+                    }
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setRunning",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 0
+                  }
+                ]
+              },
+              {
+                "name": "Sand filter",
+                "host": "host.docker.internal",
+                "port": 5023,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 3,
+                "deviceName": "Sand filter",
+                "deviceType": "default",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 30000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "flowRate",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 0,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 5000
+                    }
+                  },
+                  {
+                    "tag": "mode",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 1
+                  },
+                  {
+                    "tag": "filterLifeRemaining",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 2
+                  },
+                  {
+                    "tag": "rotationSpeed",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 10000
+                    }
+                  },
+                  {
+                    "tag": "pressure",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 5
+                  },
+                  {
+                    "tag": "vibration",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 6,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 10000
+                    }
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setMode",
+                    "type": "16uint",
+                    "functionCode": 6,
+                    "objectsCount": 1,
+                    "address": 1
+                  },
+                  {
+                    "tag": "setPressureUnits",
+                    "type": "16uint",
+                    "functionCode": 6,
+                    "objectsCount": 1,
+                    "address": 4
+                  }
+                ]
+              },
+              {
+                "name": "Throughpass valve",
+                "host": "host.docker.internal",
+                "port": 5024,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 4,
+                "deviceName": "Throughpass valve",
+                "deviceType": "default",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 30000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "opened",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 8,
+                    "address": 0,
+                    "bit": 7
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setOpened",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 0
+                  }
+                ]
+              },
+              {
+                "name": "Heat pump",
+                "host": "host.docker.internal",
+                "port": 5025,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 3000,
+                "unitId": 5,
+                "deviceName": "Heat pump",
+                "deviceType": "default",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 30000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "running",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 8,
+                    "address": 0,
+                    "bit": 7
+                  },
+                  {
+                    "tag": "targetTemperature",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 0,
+                    "divider": 10
+                  },
+                  {
+                    "tag": "currentInTemperature",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 1,
+                    "divider": 10
+                  },
+                  {
+                    "tag": "currentOutTemperature",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 2,
+                    "divider": 10
+                  },
+                  {
+                    "tag": "powerConsumption",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 3,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 10000
+                    }
+                  },
+                  {
+                    "tag": "ambientTemperature",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 4,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 10000
+                    }
+                  },
+                  {
+                    "tag": "rotationSpeed",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 5,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 10000
+                    }
+                  },
+                  {
+                    "tag": "compressorTemperature",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 6,
+                    "divider": 10,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 5000
+                    }
+                  },
+                  {
+                    "tag": "vibration",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 7,
+                    "reportStrategy": {
+                      "type": "ON_REPORT_PERIOD",
+                      "reportPeriod": 10000
+                    }
+                  },
+                  {
+                    "tag": "refrigerantPressure",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 8
+                  }
+                ],
+                "attributeUpdates": [
+                  {
+                    "tag": "targetTemperature",
+                    "type": "32int",
+                    "functionCode": 6,
+                    "objectsCount": 1,
+                    "address": 0,
+                    "multiplier": 10
+                  }
+                ],
+                "rpc": [
+                  {
+                    "tag": "setRunning",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 0
+                  }
+                ]
+              },
+              {
+                "name": "Filter PH sensor",
+                "host": "host.docker.internal",
+                "port": 5026,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 6,
+                "deviceName": "Filter PH sensor",
+                "deviceType": "default",
+                "reportStrategy": {
+                  "type": "ON_REPORT_PERIOD",
+                  "reportPeriod": 5000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "phLevel",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 0,
+                    "divider": 10
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": []
+              },
+              {
+                "name": "Heat pump intake valve",
+                "host": "host.docker.internal",
+                "port": 5027,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 7,
+                "deviceName": "Heat pump intake valve",
+                "deviceType": "default",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 30000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "opened",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 8,
+                    "address": 0,
+                    "bit": 7
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setOpened",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 0
+                  }
+                ]
+              },
+              {
+                "name": "Heat pump outgoing valve",
+                "host": "host.docker.internal",
+                "port": 5028,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 8,
+                "deviceName": "Heat pump outgoing valve",
+                "deviceType": "default",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 30000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "opened",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 8,
+                    "address": 0,
+                    "bit": 7
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setOpened",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 0
+                  }
+                ]
+              },
+              {
+                "name": "Pool intake valve",
+                "host": "host.docker.internal",
+                "port": 5029,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 9,
+                "deviceName": "Pool intake valve",
+                "deviceType": "default",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 30000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "opened",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 8,
+                    "address": 0,
+                    "bit": 7
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setOpened",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 0
+                  }
+                ]
+              },
+              {
+                "name": "Pool weir valve",
+                "host": "host.docker.internal",
+                "port": 5030,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 10,
+                "deviceName": "Pool weir valve",
+                "deviceType": "default",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 30000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "opened",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 8,
+                    "address": 0,
+                    "bit": 7
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setOpened",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 0
+                  }
+                ]
+              },
+              {
+                "name": "Pool drain valve",
+                "host": "host.docker.internal",
+                "port": 5031,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 11,
+                "deviceName": "Pool drain valve",
+                "deviceType": "default",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 30000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "opened",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 8,
+                    "address": 0,
+                    "bit": 7
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setOpened",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 0
+                  }
+                ]
+              },
+              {
+                "name": "Water level meter",
+                "host": "host.docker.internal",
+                "port": 5032,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 12,
+                "deviceName": "Water level meter",
+                "deviceType": "default",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 30000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "waterLevel",
+                    "type": "16uint",
+                    "functionCode": 3,
+                    "objectsCount": 1,
+                    "address": 0
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": []
+              },
+              {
+                "name": "Water pump outgoing valve",
+                "host": "host.docker.internal",
+                "port": 5033,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 13,
+                "deviceName": "Water pump outgoing valve",
+                "deviceType": "default",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 30000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "opened",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 8,
+                    "address": 0,
+                    "bit": 7
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setOpened",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 0
+                  }
+                ]
+              },
+              {
+                "name": "Drain valve",
+                "host": "host.docker.internal",
+                "port": 5034,
+                "type": "tcp",
+                "method": "socket",
+                "timeout": 3,
+                "byteOrder": "BIG",
+                "wordOrder": "LITTLE",
+                "retries": true,
+                "retryOnEmpty": true,
+                "retryOnInvalid": true,
+                "pollPeriod": 1000,
+                "unitId": 14,
+                "deviceName": "Drain valve",
+                "deviceType": "default",
+                "reportStrategy": {
+                  "type": "ON_CHANGE_OR_REPORT_PERIOD",
+                  "reportPeriod": 30000
+                },
+                "connectAttemptTimeMs": 3000,
+                "connectAttemptCount": 3,
+                "waitAfterFailedAttemptsMs": 30000,
+                "attributes": [],
+                "timeseries": [
+                  {
+                    "tag": "opened",
+                    "type": "bits",
+                    "functionCode": 1,
+                    "objectsCount": 8,
+                    "address": 0,
+                    "bit": 7
+                  }
+                ],
+                "attributeUpdates": [],
+                "rpc": [
+                  {
+                    "tag": "setOpened",
+                    "type": "bits",
+                    "functionCode": 5,
+                    "objectsCount": 1,
+                    "address": 0
+                  }
+                ]
+              }
+            ]
+          },
+          "slave": {}
+        },
+        "configVersion": "3.5.2"
+      }
     },
     "relations": [],
     "jsonId": "dd48f9e0-6124-4d5c-a915-7b6924eca716"

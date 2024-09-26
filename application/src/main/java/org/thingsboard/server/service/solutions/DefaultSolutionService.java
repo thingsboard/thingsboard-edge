@@ -183,6 +183,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -1464,9 +1465,15 @@ public class DefaultSolutionService implements SolutionService {
     }
 
     private JsonNode prepareAttributes(JsonNode attributes) {
-        Map<String, String> attributesMap = JacksonUtil.toFlatMap(attributes);
-        attributesMap.replaceAll((key, value) -> parseTimeExpression(value));
-        return JacksonUtil.valueToTree(attributesMap);
+        ObjectNode attributesObj = (ObjectNode) attributes;
+        attributes.fields().forEachRemaining(entry -> {
+            JsonNode value = entry.getValue();
+            if (value.isTextual()) {
+                value = JacksonUtil.toJsonNode(parseTimeExpression(value.asText()));
+            }
+            attributesObj.set(entry.getKey(), value);
+        });
+        return attributesObj;
     }
 
     private String parseTimeExpression(String timeExpression) {
