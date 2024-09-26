@@ -33,7 +33,7 @@ import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { DialogComponent } from '@shared/components/dialog.component';
 import {
   CMAssigneeType,
-  cmAssigneeTypeTranslations,
+  CmAssigneeTypeTranslations,
   CMScope,
   cmScopeTranslations,
   CustomMenu,
@@ -90,7 +90,7 @@ export class ManageCustomMenuDialogComponent
 
   cmScopeTranslations = cmScopeTranslations;
 
-  cmAssigneeTypeTranslations = cmAssigneeTypeTranslations;
+  cmAssigneeTypeTranslations = CmAssigneeTypeTranslations;
 
   authUser = getCurrentAuthUser(this.store);
 

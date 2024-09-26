@@ -70,7 +70,7 @@ export enum CMAssigneeType {
   USERS = 'USERS'
 }
 
-export const cmAssigneeTypeTranslations = new Map<CMAssigneeType, string>(
+const cmAssigneeTypeTranslationsMap = new Map<CMAssigneeType, string>(
   [
     [CMAssigneeType.NO_ASSIGN, 'custom-menu.assignee-no-assign'],
     [CMAssigneeType.ALL, 'custom-menu.assignee-all'],
@@ -78,6 +78,18 @@ export const cmAssigneeTypeTranslations = new Map<CMAssigneeType, string>(
     [CMAssigneeType.USERS, 'custom-menu.assignee-users']
   ]
 );
+
+export const CmAssigneeTypeTranslations = (assigneeType: CMAssigneeType, scope: CMScope) => {
+  if (assigneeType === CMAssigneeType.ALL) {
+    switch (scope) {
+      case CMScope.TENANT:
+        return 'custom-menu.assignee-tenant-all';
+      case CMScope.CUSTOMER:
+        return 'custom-menu.assignee-customer-all';
+    }
+  }
+  return cmAssigneeTypeTranslationsMap.get(assigneeType);
+};
 
 export interface CustomMenuInfo extends BaseData<CustomMenuId>, HasTenantId {
   tenantId?: TenantId;
