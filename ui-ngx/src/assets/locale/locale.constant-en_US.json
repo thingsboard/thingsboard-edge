@@ -1274,7 +1274,6 @@
         "scope-customer": "Customer",
         "assignee-type": "Assignee type",
         "assignee-no-assign": "Not assigned",
-        "assignee-all": "All users (Default)",
         "assignee-customer-all": "All customer users",
         "assignee-customers": "Customers list",
         "assignee-tenant-all": "All tenant users",

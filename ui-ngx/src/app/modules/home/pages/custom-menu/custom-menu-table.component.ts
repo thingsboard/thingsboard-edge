@@ -42,7 +42,7 @@ import {
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
 import {
-  CmAssigneeTypeTranslations,
+  cmAssigneeTypeTranslations,
   cmScopeTranslations,
   CustomMenu,
   CustomMenuDeleteResult,
@@ -154,7 +154,7 @@ export class CustomMenuTableComponent implements OnInit {
     if (authUser.authority !== Authority.SYS_ADMIN) {
       this.customMenuTableConfig.columns.push(new EntityTableColumn<CustomMenuInfo>('assigneeType',
         'custom-menu.assignee-type', mainColumnsWidth,
-        (menu) => this.translate.instant(CmAssigneeTypeTranslations(menu.assigneeType, menu.scope))));
+        (menu) => this.translate.instant(cmAssigneeTypeTranslations(menu.assigneeType, menu.scope))));
     }
     if (authUser.authority !== Authority.SYS_ADMIN) {
       if (!readonly) {
