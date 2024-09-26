@@ -1,6 +1,6 @@
 [
   {
-    "name": "Gateway",
+    "name": "Pool System Gateway",
     "type": "default",
     "additionalInfo": {
       "gateway": true
@@ -856,7 +856,7 @@
       }
     },
     "relations": [],
-    "jsonId": "dd48f9e0-6124-4d5c-a915-7b6924eca716"
+    "jsonId": "14889b50-7bec-11ef-b1fb-d35e9c24de58"
   },
   {
     "name": "Main intake valve",
@@ -871,7 +871,7 @@
         "type": "Contains"
       }
     ],
-    "jsonId": "b7c87dcd-18f2-44eb-a92d-65ca05dd0da9"
+    "jsonId": "14919c00-7bec-11ef-b1fb-d35e9c24de58"
   },
   {
     "name": "Water pump",
@@ -888,7 +888,7 @@
         "type": "Contains"
       }
     ],
-    "jsonId": "81191ed3-e7cf-48bb-8a6c-54f8ebea7f1c"
+    "jsonId": "1495bab0-7bec-11ef-b1fb-d35e9c24de58"
   },
   {
     "name": "Sand filter",
@@ -906,7 +906,7 @@
         "type": "Contains"
       }
     ],
-    "jsonId": "d495fdce-cf0c-41c3-b6c8-e7b43839119f"
+    "jsonId": "14982bb0-7bec-11ef-b1fb-d35e9c24de58"
   },
   {
     "name": "Throughpass valve",
@@ -921,7 +921,7 @@
         "type": "Contains"
       }
     ],
-    "jsonId": "e52bc888-f8ed-481a-a03b-08bac46b2824"
+    "jsonId": "149a2780-7bec-11ef-b1fb-d35e9c24de58"
   },
   {
     "name": "Heat pump",
@@ -938,7 +938,7 @@
         "type": "Contains"
       }
     ],
-    "jsonId": "34ac2e97-b564-4935-88f3-0eb821d69096"
+    "jsonId": "149c4a60-7bec-11ef-b1fb-d35e9c24de58"
   },
   {
     "name": "Filter PH sensor",
@@ -953,7 +953,7 @@
         "type": "Contains"
       }
     ],
-    "jsonId": "c4de24f6-877f-4afe-9bf1-d736a2569c91"
+    "jsonId": "149df811-7bec-11ef-b1fb-d35e9c24de58"
   },
   {
     "name": "Heat pump intake valve",
@@ -968,7 +968,7 @@
         "type": "Contains"
       }
     ],
-    "jsonId": "2cfd98e9-2868-4a51-a749-94896508ff0c"
+    "jsonId": "14a59930-7bec-11ef-b1fb-d35e9c24de58"
   },
   {
     "name": "Heat pump outgoing valve",
@@ -983,7 +983,7 @@
         "type": "Contains"
       }
     ],
-    "jsonId": "33dd97b3-ee43-4f19-8cd5-7a2db5d07e90"
+    "jsonId": "14ab6590-7bec-11ef-b1fb-d35e9c24de58"
   },
   {
     "name": "Pool intake valve",
@@ -998,7 +998,7 @@
         "type": "Contains"
       }
     ],
-    "jsonId": "8c82cb23-36f7-498d-8009-68fdd8622eb6"
+    "jsonId": "14aee800-7bec-11ef-b1fb-d35e9c24de58"
   },
   {
     "name": "Pool weir valve",
@@ -1013,7 +1013,7 @@
         "type": "Contains"
       }
     ],
-    "jsonId": "ed9fc21d-2c62-4bdf-a278-173ecf0dea91"
+    "jsonId": "14b1a720-7bec-11ef-b1fb-d35e9c24de58"
   },
   {
     "name": "Pool drain valve",
@@ -1028,7 +1028,7 @@
         "type": "Contains"
       }
     ],
-    "jsonId": "70e03080-ea58-468c-ae70-b83db04f21ef"
+    "jsonId": "14b354d0-7bec-11ef-b1fb-d35e9c24de58"
   },
   {
     "name": "Water level meter",
@@ -1043,7 +1043,7 @@
         "type": "Contains"
       }
     ],
-    "jsonId": "588c969f-77ab-465b-888d-402e8f498b9d"
+    "jsonId": "14b52990-7bec-11ef-b1fb-d35e9c24de58"
   },
   {
     "name": "Water pump outgoing valve",
@@ -1058,7 +1058,7 @@
         "type": "Contains"
       }
     ],
-    "jsonId": "5f51caeb-9764-42e7-b237-7523e2d73ce4"
+    "jsonId": "14b6d740-7bec-11ef-b1fb-d35e9c24de58"
   },
   {
     "name": "Drain valve",
@@ -1073,6 +1073,6 @@
         "type": "Contains"
       }
     ],
-    "jsonId": "274751c2-f763-41ab-a775-7ae31bb78f18"
+    "jsonId": "14b884f0-7bec-11ef-b1fb-d35e9c24de58"
   }
 ]

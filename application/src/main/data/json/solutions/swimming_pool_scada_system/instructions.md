@@ -1,9 +1,9 @@
 ## Solution instructions
 
 * Pull and run the Modbus pool emulator:
-    ```bash
-    docker run --rm -d --name tb-modbus-pool-emulator -p 5021-5034:5021-5034 thingsboard/tb-modbus-pool-emulator:latest{:copy-code}
-    ```
+```bash
+docker run --rm -d --name tb-modbus-pool-emulator -p 5021-5034:5021-5034 thingsboard/tb-modbus-pool-emulator:latest && docker logs -f tb-modbus-pool-emulator{:copy-code}
+```
 
 * Install Docker Compose by following the official [Docker Compose installation guide](https://docs.docker.com/compose/install/).
 
@@ -13,11 +13,11 @@ ${DOCKER_CONFIG}{:copy-code}
 ```
 
 * Pull and run the IoT Gateway using Docker Compose:
-    ```bash
-    docker-compose up{:copy-code}
-    ```
+```bash
+docker compose up{:copy-code}
+```
 
-As part of this solution, we have provided a <a href="${MAIN_DASHBOARD_URL}" target="_blank">Swimming Pool SCADA system</a> dashboard  to visualize and interact with the data from multiple devices. 
+As part of this solution, we have provided a <a href="${MAIN_DASHBOARD_URL}" target="_blank">Swimming Pool SCADA system</a> dashboard  to visualize and interact with the data from multiple devices.
 This dashboard allows you to:
 
 * view sensor data and their real-time states
