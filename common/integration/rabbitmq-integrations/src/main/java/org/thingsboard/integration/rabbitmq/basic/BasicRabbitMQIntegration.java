@@ -64,7 +64,7 @@ public class BasicRabbitMQIntegration extends AbstractRabbitMQIntegration<BasicR
                 } finally {
                     rabbitMQLock.unlock();
                     try {
-                        Thread.sleep(rabbitMQConsumerConfiguration.getPollPeriod());
+                        Thread.sleep(Math.max(200, rabbitMQConsumerConfiguration.getPollPeriod())); //no spam limit
                     } catch (InterruptedException e2) {
                         log.trace("Failed to wait until the server has capacity to handle new requests", e2);
                     }
