@@ -33,7 +33,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Converter, ConverterType, Model, Vendor } from '@shared/models/converter.models';
-import { IntegrationDirectory } from '@shared/models/integration.models';
+import { IntegrationType } from '@shared/models/integration.models';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
 
 @Injectable({
@@ -48,56 +48,56 @@ export class ConverterLibraryService {
   ) {
   }
 
-  getVendors(integrationDir: IntegrationDirectory, config?: RequestConfig): Observable<Vendor[]> {
-    return this.http.get(`${this.baseUrl}/${integrationDir}/vendors`, defaultHttpOptionsFromConfig(config)) as Observable<Vendor[]>;
+  getVendors(integrationType: IntegrationType, config?: RequestConfig): Observable<Vendor[]> {
+    return this.http.get(`${this.baseUrl}/${integrationType}/vendors`, defaultHttpOptionsFromConfig(config)) as Observable<Vendor[]>;
   }
 
   getModels(
-    integrationDir: IntegrationDirectory,
+    integrationType: IntegrationType,
     vendorName: string,
     converterType: ConverterType,
     config?: RequestConfig
   ): Observable<Model[]> {
     return this.http.get(
-      `${this.baseUrl}/${integrationDir}/${vendorName}/models?converterType=${converterType.toLowerCase()}`,
+      `${this.baseUrl}/${integrationType}/${vendorName}/models?converterType=${converterType.toLowerCase()}`,
       defaultHttpOptionsFromConfig(config)
     ) as Observable<Model[]>;
   }
 
   getConverter(
-    integrationDir: IntegrationDirectory,
+    integrationType: IntegrationType,
     vendorName: string, modelName: string,
     converterType: ConverterType,
     config?: RequestConfig
   ): Observable<Converter> {
     return this.http.get(
-      `${this.baseUrl}/${integrationDir}/${vendorName}/${modelName}/${converterType.toLowerCase()}`,
+      `${this.baseUrl}/${integrationType}/${vendorName}/${modelName}/${converterType.toLowerCase()}`,
       defaultHttpOptionsFromConfig(config)
     ) as Observable<Converter>;
   }
 
   getConverterMetaData(
-    integrationDir: IntegrationDirectory,
+    integrationType: IntegrationType,
     vendorName: string,
     modelName: string,
     converterType: ConverterType,
     config?: RequestConfig
   ) {
     return this.http.get(
-      `${this.baseUrl}/${integrationDir}/${vendorName}/${modelName}/${converterType.toLowerCase()}/metadata`,
+      `${this.baseUrl}/${integrationType}/${vendorName}/${modelName}/${converterType.toLowerCase()}/metadata`,
       defaultHttpOptionsFromConfig(config)
     );
   }
 
   getConverterPayload(
-    integrationDir: IntegrationDirectory,
+    integrationType: IntegrationType,
     vendorName: string,
     modelName: string,
     converterType: ConverterType,
     config?: RequestConfig
   ) {
     return this.http.get(
-      `${this.baseUrl}/${integrationDir}/${vendorName}/${modelName}/${converterType.toLowerCase()}/payload`,
+      `${this.baseUrl}/${integrationType}/${vendorName}/${modelName}/${converterType.toLowerCase()}/payload`,
       defaultHttpOptionsFromConfig(config)
     );
   }

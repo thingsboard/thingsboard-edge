@@ -196,3 +196,15 @@ tb-custom-menu-config {
     }
   }
 }
+.tb-custom-menu-show-hidden-items {
+  white-space: nowrap;
+}
+.tb-custom-menu-button.mdc-button {
+  min-width: 120px;
+  tb-icon {
+    min-width: 18px;
+  }
+  .mdc-button__label {
+    overflow: hidden;
+  }
+}

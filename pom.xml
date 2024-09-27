@@ -35,7 +35,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.thingsboard</groupId>
     <artifactId>thingsboard</artifactId>
-    <version>3.7.1PE-SNAPSHOT</version>
+    <version>3.9.0PE-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>ThingsBoard PE</name>
@@ -87,8 +87,8 @@
         <apache-httpcore.version>4.4.16</apache-httpcore.version>
         <apache-pulsar.version>3.2.2</apache-pulsar.version>
         <joda-time.version>2.12.7</joda-time.version>
-        <jackson.version>2.17.0</jackson.version>
-        <jackson-databind.version>2.17.0</jackson-databind.version>
+        <jackson.version>2.17.2</jackson.version>
+        <jackson-databind.version>2.17.2</jackson-databind.version>
         <fasterxml-classmate.version>1.7.0</fasterxml-classmate.version>
         <auth0-jwt.version>4.4.0</auth0-jwt.version>
         <json-schema-validator.version>2.2.14</json-schema-validator.version>
@@ -189,7 +189,7 @@
         <oshi.version>6.6.0</oshi.version>
         <azure-sdk-bom.version>1.2.22</azure-sdk-bom.version>
         <google-oauth-client.version>1.35.0</google-oauth-client.version>
-        <apache-xmlgraphics.version>1.17</apache-xmlgraphics.version>
+        <weisj-jsvg.version>1.6.1</weisj-jsvg.version>
         <drewnoakes-metadata-extractor.version>2.19.0</drewnoakes-metadata-extractor.version>
         <firebase-admin.version>9.2.0</firebase-admin.version>
     </properties>
@@ -2476,20 +2476,9 @@
                 <version>${google-oauth-client.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.xmlgraphics</groupId>
-                <artifactId>batik-transcoder</artifactId>
-                <version>${apache-xmlgraphics.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>commons-logging</groupId>
-                        <artifactId>commons-logging</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.xmlgraphics</groupId>
-                <artifactId>batik-codec</artifactId>
-                <version>${apache-xmlgraphics.version}</version>
+                <groupId>com.github.weisj</groupId>
+                <artifactId>jsvg</artifactId>
+                <version>${weisj-jsvg.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.drewnoakes</groupId>

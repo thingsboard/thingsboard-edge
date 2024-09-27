@@ -33,16 +33,20 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
-  Component, ComponentRef,
+  Component,
+  ComponentRef,
   ElementRef,
   EventEmitter,
   HostBinding,
-  Input, NgZone, OnChanges,
+  Input,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
-  Renderer2, SimpleChanges,
-  ViewChild, ViewContainerRef,
+  Renderer2,
+  SimpleChanges,
+  ViewChild,
+  ViewContainerRef,
   ViewEncapsulation
 } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
@@ -54,9 +58,10 @@ import { WidgetExportType, widgetExportTypeTranslationMap } from '@shared/models
 import { isNotEmptyStr } from '@core/utils';
 import { GridsterItemComponent } from 'angular-gridster2';
 import { UtilsService } from '@core/services/utils.service';
-import ITooltipsterInstance = JQueryTooltipster.ITooltipsterInstance;
 import { from } from 'rxjs';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
+import { TbContextMenuEvent } from '@shared/models/jquery-event.models';
+import ITooltipsterInstance = JQueryTooltipster.ITooltipsterInstance;
 
 export enum WidgetComponentActionType {
   MOUSE_DOWN,
@@ -69,7 +74,7 @@ export enum WidgetComponentActionType {
 }
 
 export class WidgetComponentAction {
-  event: MouseEvent;
+  event: MouseEvent | TbContextMenuEvent;
   actionType: WidgetComponentActionType;
 }
 
@@ -153,8 +158,7 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
               private renderer: Renderer2,
               private container: ViewContainerRef,
               private dashboardUtils: DashboardUtilsService,
-              private utils: UtilsService,
-              private zone: NgZone) {
+              private utils: UtilsService) {
     super(store);
   }
 
@@ -167,7 +171,7 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
     }
     $(this.gridsterItem.el).on('mousedown', (e) => this.onMouseDown(e.originalEvent));
     $(this.gridsterItem.el).on('click', (e) => this.onClicked(e.originalEvent));
-    $(this.gridsterItem.el).on('contextmenu', (e) => this.onContextMenu(e.originalEvent));
+    $(this.gridsterItem.el).on('tbcontextmenu', (e: TbContextMenuEvent) => this.onContextMenu(e));
     const dashboardContentElement = this.widget.widgetContext.dashboardContentElement;
     if (dashboardContentElement) {
       this.initEditWidgetActionTooltip(dashboardContentElement);
@@ -196,6 +200,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
     if (this.editWidgetActionsTooltip && !this.editWidgetActionsTooltip.status().destroyed) {
       this.editWidgetActionsTooltip.destroy();
     }
+    $(this.gridsterItem.el).off('mousedown');
+    $(this.gridsterItem.el).off('click');
+    $(this.gridsterItem.el).off('tbcontextmenu');
   }
 
   isHighlighted(widget: DashboardWidget) {
@@ -216,6 +223,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   }
 
   onMouseDown(event: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.widgetComponentAction.emit({
       event,
       actionType: WidgetComponentActionType.MOUSE_DOWN
@@ -223,13 +233,19 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   }
 
   onClicked(event: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.widgetComponentAction.emit({
       event,
       actionType: WidgetComponentActionType.CLICKED
     });
   }
 
-  onContextMenu(event: MouseEvent) {
+  onContextMenu(event: TbContextMenuEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.widgetComponentAction.emit({
       event,
       actionType: WidgetComponentActionType.CONTEXT_MENU
@@ -237,6 +253,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   }
 
   onEdit(event: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.widgetComponentAction.emit({
       event,
       actionType: WidgetComponentActionType.EDIT
@@ -244,6 +263,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   }
 
   onReplaceReferenceWithWidgetCopy(event: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.widgetComponentAction.emit({
       event,
       actionType: WidgetComponentActionType.REPLACE_REFERENCE_WITH_WIDGET_COPY
@@ -251,6 +273,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   }
 
   onExport(event: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.widgetComponentAction.emit({
       event,
       actionType: WidgetComponentActionType.EXPORT
@@ -258,6 +283,9 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
   }
 
   onRemove(event: MouseEvent) {
+    if (event) {
+      event.stopPropagation();
+    }
     this.widgetComponentAction.emit({
       event,
       actionType: WidgetComponentActionType.REMOVE
@@ -299,7 +327,7 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
         functionPosition: (instance, helper, position) => {
           const clientRect = helper.origin.getBoundingClientRect();
           const container = parent.getBoundingClientRect();
-          position.coord.left = clientRect.right - position.size.width - container.left;
+          position.coord.left = Math.max(0,clientRect.right - position.size.width - container.left);
           position.coord.top = position.coord.top - container.top;
           position.target = clientRect.right;
           return position;
@@ -326,26 +354,24 @@ export class WidgetContainerComponent extends PageComponent implements OnInit, O
         }
       });
       this.editWidgetActionsTooltip = $(this.gridsterItem.el).tooltipster('instance');
-      this.zone.run(() => {
-        componentRef = this.container.createComponent(EditWidgetActionsTooltipComponent);
-        componentRef.instance.container = this;
-        componentRef.instance.viewInited.subscribe(() => {
-          if (this.editWidgetActionsTooltip.status().open) {
-            this.editWidgetActionsTooltip.reposition();
-          }
-        });
-        this.editWidgetActionsTooltip.on('destroyed', () => {
-          componentRef.destroy();
-        });
-        const parentElement = componentRef.instance.element.nativeElement;
-        const content = parentElement.firstChild;
-        parentElement.removeChild(content);
-        parentElement.style.display = 'none';
-        this.editWidgetActionsTooltip.content(content);
-        this.updateEditWidgetActionsTooltipState();
-        this.widget.onSelected((selected) =>
-          this.updateEditWidgetActionsTooltipSelectedState(selected));
+      componentRef = this.container.createComponent(EditWidgetActionsTooltipComponent);
+      componentRef.instance.container = this;
+      componentRef.instance.viewInited.subscribe(() => {
+        if (this.editWidgetActionsTooltip.status().open) {
+          this.editWidgetActionsTooltip.reposition();
+        }
       });
+      this.editWidgetActionsTooltip.on('destroyed', () => {
+        componentRef.destroy();
+      });
+      const parentElement = componentRef.instance.element.nativeElement;
+      const content = parentElement.firstChild;
+      parentElement.removeChild(content);
+      parentElement.style.display = 'none';
+      this.editWidgetActionsTooltip.content(content);
+      this.updateEditWidgetActionsTooltipState();
+      this.widget.onSelected((selected) =>
+        this.updateEditWidgetActionsTooltipSelectedState(selected));
     });
   }
 

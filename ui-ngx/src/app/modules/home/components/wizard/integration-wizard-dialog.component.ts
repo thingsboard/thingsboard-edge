@@ -34,6 +34,8 @@ import { DialogComponent } from '@shared/components/dialog.component';
 import {
   getIntegrationHelpLink,
   Integration,
+  IntegrationConvertersInfo,
+  IntegrationsConvertersInfo,
   IntegrationType,
   integrationTypeInfoMap
 } from '@shared/models/integration.models';
@@ -45,8 +47,8 @@ import { AddEntityDialogData } from '@home/models/entity/entity-component.models
 import { MatStepper, StepperOrientation } from '@angular/material/stepper';
 import { MediaBreakpoints } from '@shared/models/constants';
 import { BreakpointObserver } from '@angular/cdk/layout';
-import { map, mergeMap, takeUntil, tap } from 'rxjs/operators';
-import { forkJoin, Observable, of, Subject } from 'rxjs';
+import { filter, map, mergeMap, takeUntil, tap } from 'rxjs/operators';
+import { forkJoin, Observable, of, shareReplay, Subject, combineLatest } from 'rxjs';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { TranslateService } from '@ngx-translate/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
@@ -91,6 +93,7 @@ export class IntegrationWizardDialogComponent extends
   uplinkConverterForm: UntypedFormGroup;
   downlinkConverterForm: UntypedFormGroup;
   integrationConfigurationForm: UntypedFormGroup;
+  integrationInfo$: Observable<IntegrationConvertersInfo>;
 
   uplinkConverter = {
     type: ConverterType.UPLINK
@@ -162,7 +165,7 @@ export class IntegrationWizardDialogComponent extends
 
     this.downlinkConverterForm = this.fb.group({
       downlinkConverterId: [null],
-      converterType: [ConverterSourceType.EXIST],
+      converterType: [ConverterSourceType.SKIP],
       newDownlinkConverter: [{
         value: {
           type: ConverterType.DOWNLINK
@@ -188,38 +191,53 @@ export class IntegrationWizardDialogComponent extends
     this.uplinkConverterForm.get('converterType').valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe((value) => {
-      if (value === ConverterSourceType.EXIST) {
-        this.uplinkConverterForm.get('uplinkConverterId').enable({emitEvent: false});
-        this.uplinkConverterForm.get('newUplinkConverter').disable({emitEvent: false});
-        this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
-      } else if (value === ConverterSourceType.LIBRARY) {
-        this.uplinkConverterForm.get('uplinkConverterId').disable({emitEvent: false});
-        this.uplinkConverterForm.get('newUplinkConverter').disable({emitEvent: false});
-        this.uplinkConverterForm.get('libraryUplinkConverter').enable({emitEvent: false});
-      } else {
-        this.uplinkConverterForm.get('uplinkConverterId').disable({emitEvent: false});
-        this.uplinkConverterForm.get('newUplinkConverter').enable({emitEvent: false});
-        this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
+      switch (value) {
+        case ConverterSourceType.EXISTING:
+          this.uplinkConverterForm.get('uplinkConverterId').enable({emitEvent: false});
+          this.uplinkConverterForm.get('newUplinkConverter').disable({emitEvent: false});
+          this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
+          break;
+        case ConverterSourceType.LIBRARY:
+          this.uplinkConverterForm.get('uplinkConverterId').disable({emitEvent: false});
+          this.uplinkConverterForm.get('newUplinkConverter').disable({emitEvent: false});
+          this.uplinkConverterForm.get('libraryUplinkConverter').enable({emitEvent: false});
+          break;
+        default:
+          this.uplinkConverterForm.get('uplinkConverterId').disable({emitEvent: false});
+          this.uplinkConverterForm.get('newUplinkConverter').enable({emitEvent: false});
+          this.uplinkConverterForm.get('libraryUplinkConverter').disable({emitEvent: false});
+          break;
       }
     });
 
     this.downlinkConverterForm.get('converterType').valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe((value) => {
-      if (value === ConverterSourceType.EXIST) {
-        this.downlinkConverterForm.get('downlinkConverterId').enable({emitEvent: false});
-        this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
-        this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
-      } else if (value === ConverterSourceType.LIBRARY) {
-        this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
-        this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
-        this.downlinkConverterForm.get('libraryDownlinkConverter').enable({emitEvent: false});
-      } else {
-        this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
-        this.downlinkConverterForm.get('newDownlinkConverter').enable({emitEvent: false});
-        this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
+      switch (value) {
+        case ConverterSourceType.EXISTING:
+          this.downlinkConverterForm.get('downlinkConverterId').enable({emitEvent: false});
+          this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
+          this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
+          break;
+        case ConverterSourceType.LIBRARY:
+          this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
+          this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
+          this.downlinkConverterForm.get('libraryDownlinkConverter').enable({emitEvent: false});
+          break;
+        case ConverterSourceType.NEW:
+          this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
+          this.downlinkConverterForm.get('newDownlinkConverter').enable({emitEvent: false});
+          this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
+          break;
+        default:
+          this.downlinkConverterForm.get('downlinkConverterId').disable({emitEvent: false});
+          this.downlinkConverterForm.get('newDownlinkConverter').disable({emitEvent: false});
+          this.downlinkConverterForm.get('libraryDownlinkConverter').disable({emitEvent: false});
+          break;
       }
     });
+
+    this.updateIntegrationsInfo();
   }
 
   ngAfterViewInit() {
@@ -267,7 +285,7 @@ export class IntegrationWizardDialogComponent extends
 
   private createUplinkConverter(): Observable<ConverterId> {
     const converterType = this.uplinkConverterForm.get('converterType').value;
-    if (converterType === ConverterSourceType.EXIST) {
+    if (converterType === ConverterSourceType.EXISTING) {
       return of(this.uplinkConverterForm.get('uplinkConverterId').value);
     } else {
       const converterConfig: Converter = deepTrim(converterType === ConverterSourceType.NEW
@@ -278,7 +296,7 @@ export class IntegrationWizardDialogComponent extends
       return this.converterService.saveConverter(converterConfig).pipe(
         tap(converter => {
           this.uplinkConverterForm.patchValue({
-            converterType: ConverterSourceType.EXIST,
+            converterType: ConverterSourceType.EXISTING,
             uplinkConverterId: converter.id
           });
         }),
@@ -289,10 +307,9 @@ export class IntegrationWizardDialogComponent extends
 
   private createDownlinkConverter(): Observable<ConverterId> {
     const converterType = this.downlinkConverterForm.get('converterType').value;
-    if (!this.showDownlinkStep || this.downlinkConverterForm.get('downlinkConverterId').pristine &&
-      converterType === ConverterSourceType.EXIST) {
+    if (converterType === ConverterSourceType.SKIP) {
       return of(null);
-    } else if (converterType === ConverterSourceType.EXIST) {
+    } else if (converterType === ConverterSourceType.EXISTING) {
       return of(this.downlinkConverterForm.get('downlinkConverterId').value);
     } else {
       const converterConfig: Converter = deepTrim(converterType === ConverterSourceType.NEW
@@ -303,7 +320,7 @@ export class IntegrationWizardDialogComponent extends
       return this.converterService.saveConverter(converterConfig).pipe(
         tap(converter => {
           this.downlinkConverterForm.patchValue({
-            converterType: ConverterSourceType.EXIST,
+            converterType: ConverterSourceType.EXISTING,
             downlinkConverterId: converter.id
           });
         }),
@@ -367,8 +384,7 @@ export class IntegrationWizardDialogComponent extends
   }
 
   nextStepLabel(): string {
-    if (this.showDownlinkStep && this.selectedIndex === 2 && this.downlinkConverterForm.get('downlinkConverterId').pristine &&
-      this.downlinkConverterForm.get('converterType').value === ConverterSourceType.EXIST) {
+    if (this.showDownlinkStep && this.selectedIndex === 2 && this.downlinkConverterForm.get('converterType').value === ConverterSourceType.SKIP) {
       return 'action.skip';
     }
     if (this.selectedIndex >= this.maxStep) {
@@ -417,6 +433,33 @@ export class IntegrationWizardDialogComponent extends
 
   get isCheckConnectionAvailable(): boolean {
     return !this.isEdgeTemplate && this.checkConnectionAllow && !this.isRemoteIntegration && this.isConnectionStep;
+  }
+
+  private updateIntegrationsInfo(): void {
+    this.integrationInfo$ = combineLatest([
+      this.integrationWizardForm.get('type').valueChanges,
+      this.integrationService.getIntegrationsConvertersInfo()
+    ])
+      .pipe(
+        filter(([selectedType, _]) => !!selectedType),
+        map(([selectedType, integrationsInfo]: [IntegrationType, IntegrationsConvertersInfo]) => {
+          const convertersInfo = integrationsInfo[selectedType];
+          const downlinkConverterTypeControl = this.downlinkConverterForm.get('converterType');
+          const uplinkConverterTypeControl = this.uplinkConverterForm.get('converterType');
+
+          if (uplinkConverterTypeControl.value !== ConverterSourceType.NEW && convertersInfo && !convertersInfo.uplink[uplinkConverterTypeControl.value]) {
+            uplinkConverterTypeControl.patchValue(ConverterSourceType.NEW);
+          }
+          if (convertersInfo
+            && downlinkConverterTypeControl.value !== ConverterSourceType.SKIP
+            && downlinkConverterTypeControl.value !== ConverterSourceType.NEW
+            && !convertersInfo.downlink[downlinkConverterTypeControl.value]) {
+            downlinkConverterTypeControl.patchValue(ConverterSourceType.SKIP);
+          }
+          return convertersInfo;
+        }),
+        shareReplay(1)
+      );
   }
 
   private get isRemoteIntegration(): boolean {

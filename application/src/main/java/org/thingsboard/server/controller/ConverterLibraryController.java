@@ -39,6 +39,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.converter.ConverterLibraryService;
@@ -60,7 +61,7 @@ public class ConverterLibraryController extends BaseController {
             notes = "Returns a list of vendors for the integration type")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping(value = "/{integrationType}/vendors")
-    public List<Vendor> getVendors(@PathVariable String integrationType) {
+    public List<Vendor> getVendors(@PathVariable IntegrationType integrationType) {
         return converterLibraryService.getVendors(integrationType);
     }
 
@@ -68,7 +69,7 @@ public class ConverterLibraryController extends BaseController {
             notes = "Returns a list of models for the vendor, integration type and converter type")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping(value = "/{integrationType}/{vendorName}/models")
-    public List<Model> getVendorModels(@PathVariable String integrationType,
+    public List<Model> getVendorModels(@PathVariable IntegrationType integrationType,
                                        @PathVariable String vendorName,
                                        @RequestParam(required = false) String converterType) {
         return converterLibraryService.getVendorModels(integrationType, converterType, vendorName);
@@ -78,7 +79,7 @@ public class ConverterLibraryController extends BaseController {
             notes = "Returns uplink converter body for the vendor, integration type and model")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping(value = "/{integrationType}/{vendorName}/{model}/uplink", produces = "text/plain")
-    public String getUplinkConverter(@PathVariable String integrationType,
+    public String getUplinkConverter(@PathVariable IntegrationType integrationType,
                                      @PathVariable String vendorName,
                                      @PathVariable String model) {
         return converterLibraryService.getConverter(integrationType, "uplink", vendorName, model);
@@ -88,7 +89,7 @@ public class ConverterLibraryController extends BaseController {
             notes = "Returns uplink converter metadata for the vendor, integration type and model")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping(value = "/{integrationType}/{vendorName}/{model}/uplink/metadata", produces = "text/plain")
-    public String getUplinkConverterMetadata(@PathVariable String integrationType,
+    public String getUplinkConverterMetadata(@PathVariable IntegrationType integrationType,
                                              @PathVariable String vendorName,
                                              @PathVariable String model) {
         return converterLibraryService.getConverterMetadata(integrationType, "uplink", vendorName, model);
@@ -98,7 +99,7 @@ public class ConverterLibraryController extends BaseController {
             notes = "Returns payload example for the uplink converter for the vendor, integration type and model")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping(value = "/{integrationType}/{vendorName}/{model}/uplink/payload", produces = "text/plain")
-    public String getUplinkPayload(@PathVariable String integrationType,
+    public String getUplinkPayload(@PathVariable IntegrationType integrationType,
                                    @PathVariable String vendorName,
                                    @PathVariable String model) {
         return converterLibraryService.getPayload(integrationType, "uplink", vendorName, model);
@@ -108,7 +109,7 @@ public class ConverterLibraryController extends BaseController {
             notes = "Returns downlink converter body for the vendor, integration type and model")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping(value = "/{integrationType}/{vendorName}/{model}/downlink", produces = "text/plain")
-    public String getDownlinkConverter(@PathVariable String integrationType,
+    public String getDownlinkConverter(@PathVariable IntegrationType integrationType,
                                        @PathVariable String vendorName,
                                        @PathVariable String model) {
         return converterLibraryService.getConverter(integrationType, "downlink", vendorName, model);
@@ -118,7 +119,7 @@ public class ConverterLibraryController extends BaseController {
             notes = "Returns downlink converter metadata for the vendor, integration type and model")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping(value = "/{integrationType}/{vendorName}/{model}/downlink/metadata", produces = "text/plain")
-    public String getDownlinkConverterMetadata(@PathVariable String integrationType,
+    public String getDownlinkConverterMetadata(@PathVariable IntegrationType integrationType,
                                                @PathVariable String vendorName,
                                                @PathVariable String model) {
         return converterLibraryService.getConverterMetadata(integrationType, "downlink", vendorName, model);
@@ -128,7 +129,7 @@ public class ConverterLibraryController extends BaseController {
             notes = "Returns payload example for the downlink converter for the vendor, integration type and model")
     @PreAuthorize("hasAuthority('TENANT_ADMIN')")
     @GetMapping(value = "/{integrationType}/{vendorName}/{model}/downlink/payload", produces = "text/plain")
-    public String getDownlinkPayload(@PathVariable String integrationType,
+    public String getDownlinkPayload(@PathVariable IntegrationType integrationType,
                                      @PathVariable String vendorName,
                                      @PathVariable String model) {
         return converterLibraryService.getPayload(integrationType, "downlink", vendorName, model);
