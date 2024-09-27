@@ -167,6 +167,13 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
                                 log.warn("[{}] Failed to persist debug message", this.configuration.getName(), e);
                             }
                         }
+
+                        // cooldown period
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                     return null;
                 }).filter(Objects::nonNull).collect(Collectors.toList());
