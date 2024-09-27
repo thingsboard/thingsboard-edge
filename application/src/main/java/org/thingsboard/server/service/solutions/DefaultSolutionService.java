@@ -1468,7 +1468,7 @@ public class DefaultSolutionService implements SolutionService {
         ObjectNode attributesObj = (ObjectNode) attributes;
         attributes.fields().forEachRemaining(entry -> {
             JsonNode value = entry.getValue();
-            if (value.isTextual()) {
+            if (value.isTextual() && isTimeExpression(value.asText())) {
                 value = JacksonUtil.toJsonNode(parseTimeExpression(value.asText()));
             }
             attributesObj.set(entry.getKey(), value);
@@ -1476,9 +1476,12 @@ public class DefaultSolutionService implements SolutionService {
         return attributesObj;
     }
 
+    private boolean isTimeExpression(String text) {
+        return Pattern.matches("\\$\\{currentTime(?:([+-])(\\d+)([mwdh]|min))?}", text);
+    }
+
     private String parseTimeExpression(String timeExpression) {
-        Pattern pattern = Pattern.compile("\\$\\{currentTime(?:([+-])(\\d+)([mwdh]|min))?}");
-        Matcher matcher = pattern.matcher(timeExpression);
+        Matcher matcher = Pattern.compile("\\$\\{currentTime(?:([+-])(\\d+)([mwdh]|min))?}").matcher(timeExpression);
 
         if (!matcher.matches()) {
             return timeExpression;
