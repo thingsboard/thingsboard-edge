@@ -41,6 +41,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.thingsboard.common.util.DockerComposeBuilder;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -666,13 +667,11 @@ public class DefaultSolutionService implements SolutionService {
     private String prepareDockerComposeFile(TenantId tenantId, String baseUrl, DeviceId deviceId) {
         Device device = new Device(deviceId);
         device.setTenantId(tenantId);
-        try (InputStream inputStream = deviceConnectivityService.createGatewayDockerComposeFile(baseUrl, device, false).getInputStream();
+        DockerComposeBuilder builder = new DockerComposeBuilder(false, true, false, false);
+        try (InputStream inputStream = deviceConnectivityService.createGatewayDockerComposeFile(baseUrl, device, builder).getInputStream();
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
         ) {
-            return reader.lines().collect(Collectors.joining("\n"))
-                    .replaceAll("(image:\\s+([\\w\\-/]+))", "$1:latest")
-                    .replaceAll("(accessToken=\\S+)([\\s\\S]*)", "$1");
-
+            return reader.lines().collect(Collectors.joining("\n")).replaceAll("(image:\\s+([\\w\\-/]+))", "$1:latest");
         } catch (Exception e) {
             throw new RuntimeException("Failed to read or process the docker-compose.yml file.", e);
         }

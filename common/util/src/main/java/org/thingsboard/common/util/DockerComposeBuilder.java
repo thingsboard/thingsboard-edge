@@ -28,22 +28,7 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.device;
+package org.thingsboard.common.util;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.springframework.core.io.Resource;
-import org.thingsboard.common.util.DockerComposeBuilder;
-import org.thingsboard.server.common.data.Device;
-
-import java.net.URISyntaxException;
-
-public interface DeviceConnectivityService {
-
-    JsonNode findDevicePublishTelemetryCommands(String baseUrl, Device device) throws URISyntaxException;
-
-    Resource getPemCertFile(String protocol);
-
-    Resource createGatewayDockerComposeFile(String baseUrl, Device device) throws URISyntaxException;
-
-    Resource createGatewayDockerComposeFile(String baseUrl, Device device, DockerComposeBuilder builder) throws URISyntaxException;
+public record DockerComposeBuilder(boolean includePortBindings, boolean includeExtraHosts, boolean includeVolumesBind, boolean includeVolumesDeclaration) {
 }
