@@ -123,6 +123,7 @@ public class CustomMenuServiceImpl extends AbstractCachedEntityService<CustomMen
         }
         assignCustomMenu(customMenu.getId(), newAssigneeType, toAddEntityIds);
         unassignCustomMenu(oldAssigneeType, toRemoveEntityIds);
+        publishEvictEvent(new CustomMenuCacheEvictEvent(customMenu.getTenantId(), customMenu.getId()));
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(customMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
                 .edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.UPDATED).build());
     }
