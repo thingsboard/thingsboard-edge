@@ -187,7 +187,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
         if (path == null) {
             return "";
         }
-        return StringUtils.removeEnd(repoUrl, ".git") + "/blob/master/" + path + "?raw=true";
+        return StringUtils.removeEnd(repoUrl, ".git") + "/blob/" + MAIN_BRANCH + "/" + path + "?raw=true";
     }
 
     private String findFile(String dir, int depth, String prefix) {
