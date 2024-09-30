@@ -468,7 +468,7 @@ public class DefaultTbClusterService implements TbClusterService {
 
     @Override
     public void onUserUpdated(User user, User oldUser) {
-        if (!Objects.equals(user.getCustomMenuId(), oldUser.getCustomMenuId())) {
+        if (oldUser != null && !Objects.equals(user.getCustomMenuId(), oldUser.getCustomMenuId())) {
             UserId userId = user.getId();
             broadcastToCore(TransportProtos.ToCoreNotificationMsg.newBuilder()
                     .setCustomMenuCacheInvalidateMsg(TransportProtos.CustomMenuCacheInvalidateMsg.newBuilder()
