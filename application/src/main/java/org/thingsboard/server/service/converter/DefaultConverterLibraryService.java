@@ -74,9 +74,11 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     @Value("${integrations.converters.library.fetch_frequency:24}")
     private int fetchFrequencyHours;
 
+    private ScheduledExecutorService executor;
     private Map<String, LibraryConvertersInfo> convertersInfo;
 
-    private ScheduledExecutorService executor;
+    private static final String MAIN_BRANCH = "main";
+    private static final String MAIN_BRANCH_REF = "refs/remotes/origin/" + MAIN_BRANCH;
 
     @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
     public void init() throws Exception {
@@ -198,7 +200,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
         if (!enabled) {
             throw new IllegalArgumentException("Data converters library is disabled");
         }
-        return gitRepositoryService.listFiles(TenantId.SYS_TENANT_ID, "HEAD", path, depth).stream()
+        return gitRepositoryService.listFiles(TenantId.SYS_TENANT_ID, MAIN_BRANCH_REF, path, depth).stream()
                 .filter(file -> file.isDirectory() == isDirectory)
                 .toList();
     }
@@ -208,7 +210,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
             throw new IllegalArgumentException("Data converters library is disabled");
         }
         try {
-            return gitRepositoryService.getFileContentAtCommit(TenantId.SYS_TENANT_ID, path, "HEAD");
+            return gitRepositoryService.getFileContentAtCommit(TenantId.SYS_TENANT_ID, path, MAIN_BRANCH_REF);
         } catch (Exception e) {
             log.warn("Failed to get file content for path {}: {}", path, e.getMessage());
             return "{}";
