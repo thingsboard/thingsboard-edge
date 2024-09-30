@@ -62,7 +62,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Slf4j
-@Component(value="customerUserPermissions")
+@Component(value = "customerUserPermissions")
 public class CustomerUserPermissions extends AbstractPermissions {
 
     @Autowired
@@ -151,7 +151,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         }
 
         @Override
-        public  boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
+        public boolean hasPermission(SecurityUser user, Operation operation, EntityId entityId, TenantEntity entity) {
             if (!user.getTenantId().equals(entity.getTenantId())) {
                 return false;
             }
@@ -161,7 +161,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
             }
             Resource resource = Resource.resourceFromEntityType(entity.getEntityType());
             if (entityId != null) {
-                if (ownersCacheService.getOwners(user.getTenantId(), entityId, ((HasOwnerId)entity)).contains(user.getOwnerId())) {
+                if (ownersCacheService.getOwners(user.getTenantId(), entityId, ((HasOwnerId) entity)).contains(user.getOwnerId())) {
                     // This entity does not have groups, so we are checking only generic level permissions
                     return user.getUserPermissions().hasGenericPermission(resource, operation);
                 } else {
@@ -181,7 +181,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         }
 
         @Override
-        public  boolean hasPermission(SecurityUser user, Operation operation, GroupPermissionId groupPermissionId, GroupPermission groupPermission) {
+        public boolean hasPermission(SecurityUser user, Operation operation, GroupPermissionId groupPermissionId, GroupPermission groupPermission) {
             if (!user.getTenantId().equals(groupPermission.getTenantId())) {
                 return false;
             }
@@ -459,4 +459,5 @@ public class CustomerUserPermissions extends AbstractPermissions {
             }
         }
     };
+
 }

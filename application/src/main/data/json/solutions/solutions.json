@@ -52,7 +52,7 @@
     "videoPreviewImageUrl": "https://img.thingsboard.io/usecases/waste-monitoring/video/waste-monitoring.png",
     "previewMp4Url": "https://video.thingsboard.io/usecases/waste-monitoring.mp4",
     "previewWebmUrl": "https://video.thingsboard.io/usecases/waste-monitoring.webm",
-    "imageUrls": ["https://img.thingsboard.io/solutions/waste_monitoring/waste-monitoring-1.png", "https://img.thingsboard.io/solutions/waste_monitoring/waste-monitoring-2.png", "https://img.thingsboard.io/solutions/waste_monitoring/waste-monitoring-3.png", "https://img.thingsboard.io/solutions/waste_monitoring/waste-monitoring-4.png", "https://img.thingsboard.io/solutions/waste_monitoring/waste-monitoring-5.png", "https://img.thingsboard.io/solutions/waste_monitoring/waste-monitoring-6.png"],
+    "imageUrls": ["https://img.thingsboard.io/solutions/swimming_pool_scada_system/swimming-pool-1.png", "https://img.thingsboard.io/solutions/swimming_pool_scada_system/swimming-pool-2.png", "https://img.thingsboard.io/solutions/swimming_pool_scada_system/swimming-pool-3.png", "https://img.thingsboard.io/solutions/swimming_pool_scada_system/swimming-pool-4.png"],
     "tenantTelemetryKeys": [],
     "tenantAttributeKeys": []
   },
