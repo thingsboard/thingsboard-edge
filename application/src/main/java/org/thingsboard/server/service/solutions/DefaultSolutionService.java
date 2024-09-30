@@ -183,7 +183,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -574,6 +573,14 @@ public class DefaultSolutionService implements SolutionService {
                 template = template.replace("${" + dashboardLinkInfo.getName() + "DASHBOARD_PUBLIC_URL}",
                         getDashboardLink(solutionInstructions, dashboardLinkInfo.getEntityGroupId(), dashboardLinkInfo.getDashboardId(), true));
             }
+        }
+
+        if (template.contains("${GATEWAYS_DASHBOARD_URL}")) {
+            TenantId tenantId = ctx.getTenantId();
+            DashboardInfo thingsBoardIoTGateways = dashboardService.findFirstDashboardInfoByTenantIdAndName(tenantId, "ThingsBoard IoT Gateways");
+            EntityGroup dashboardGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME)
+                    .orElseThrow(() -> new RuntimeException("Could not find entity group by name 'All'."));
+            template = template.replace("${GATEWAYS_DASHBOARD_URL}", getDashboardLink(solutionInstructions, dashboardGroup.getId(), thingsBoardIoTGateways.getId(), false));
         }
 
         StringBuilder devList = new StringBuilder();

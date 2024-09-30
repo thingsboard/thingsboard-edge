@@ -39,3 +39,5 @@ This dashboard allows you to:
 - Control valves, heating and motor pumps.
 
 For further customization of the <a href="${MAIN_DASHBOARD_URL}" target="_blank">Swimming Pool SCADA system</a> dashboard refer to the <a href="https://thingsboard.io/docs/pe/user-guide/dashboards/" target="_blank">dashboard development guide</a>.
+
+For real-time monitoring of device data received from Modbus servers, you can access the <a href="${GATEWAYS_DASHBOARD_URL}" target="_blank">ThingsBoard IoT Gateways</a> dashboard to view the status and data of connected devices.
