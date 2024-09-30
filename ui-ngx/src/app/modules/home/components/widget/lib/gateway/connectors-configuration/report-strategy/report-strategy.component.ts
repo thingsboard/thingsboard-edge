@@ -49,6 +49,7 @@ import {
 } from '@angular/forms';
 import {
   ReportStrategyConfig,
+  ReportStrategyDefaultValue,
   ReportStrategyType,
   ReportStrategyTypeTranslationsMap
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
@@ -58,7 +59,7 @@ import { CommonModule } from '@angular/common';
 import {
   ModbusSecurityConfigComponent
 } from '@home/components/widget/lib/gateway/connectors-configuration/modbus/modbus-security-config/modbus-security-config.component';
-import { coerceBoolean } from '@shared/decorators/coercion';
+import { coerceBoolean, coerceNumber } from '@shared/decorators/coercion';
 
 @Component({
   selector: 'tb-report-strategy',
@@ -88,6 +89,9 @@ export class ReportStrategyComponent implements ControlValueAccessor, OnDestroy 
   @coerceBoolean()
   @Input() isExpansionMode = false;
 
+  @coerceNumber()
+  @Input() defaultValue = ReportStrategyDefaultValue.Key;
+
   reportStrategyFormGroup: UntypedFormGroup;
   showStrategyControl: FormControl<boolean>;
 
@@ -105,7 +109,7 @@ export class ReportStrategyComponent implements ControlValueAccessor, OnDestroy 
 
     this.reportStrategyFormGroup = this.fb.group({
       type: [{ value: ReportStrategyType.OnReportPeriod, disabled: true }, []],
-      reportPeriod: [{ value: 5000, disabled: true }, [Validators.required]],
+      reportPeriod: [{ value: this.defaultValue, disabled: true }, [Validators.required]],
     });
 
     this.observeStrategyFormChange();
@@ -124,7 +128,7 @@ export class ReportStrategyComponent implements ControlValueAccessor, OnDestroy 
     if (reportStrategyConfig) {
       this.reportStrategyFormGroup.enable({emitEvent: false});
     }
-    const { type = ReportStrategyType.OnReportPeriod, reportPeriod = 5000 } = reportStrategyConfig ?? {};
+    const { type = ReportStrategyType.OnReportPeriod, reportPeriod = this.defaultValue } = reportStrategyConfig ?? {};
     this.reportStrategyFormGroup.setValue({ type, reportPeriod }, {emitEvent: false});
     this.onTypeChange(type);
   }

@@ -238,6 +238,7 @@
                   </div>
                   <tb-report-strategy
                     *ngIf="withReportStrategy"
+                    [defaultValue]="ReportStrategyDefaultValue.Key"
                     formControlName="reportStrategy"
                     [isExpansionMode]="true"
                   />
