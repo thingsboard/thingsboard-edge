@@ -255,6 +255,9 @@ public class DefaultTbApiUsageStateService extends AbstractPartitionBasedService
     public void onTenantProfileUpdate(TenantProfileId tenantProfileId) {
         log.info("[{}] On Tenant Profile Update", tenantProfileId);
         TenantProfile tenantProfile = tenantProfileCache.get(tenantProfileId);
+        if (tenantProfile == null) {
+            return;
+        }
         updateLock.lock();
         try {
             myUsageStates.values().stream()
