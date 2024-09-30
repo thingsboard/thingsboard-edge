@@ -69,6 +69,7 @@ import {
 import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 import { IAliasController } from '@core/api/widget-api.models';
 import { WidgetActionCallbacks } from '@home/components/widget/action/manage-widget-actions.component.models';
+import { WhiteLabelingService } from '@core/http/white-labeling.service';
 
 @Component({
   selector: 'tb-scada-symbol-metadata',
@@ -141,7 +142,8 @@ export class ScadaSymbolMetadataComponent extends PageComponent implements OnIni
   constructor(protected store: Store<AppState>,
               private fb: UntypedFormBuilder,
               private translate: TranslateService,
-              private customTranslate: CustomTranslatePipe) {
+              private customTranslate: CustomTranslatePipe,
+              private wl: WhiteLabelingService) {
     super(store);
   }
 
@@ -236,7 +238,7 @@ export class ScadaSymbolMetadataComponent extends PageComponent implements OnIni
   }
 
   private updateFunctionCompleters(metadata: ScadaSymbolMetadata) {
-    const contextCompleter = scadaSymbolContextCompletion(metadata, this.tags, this.customTranslate);
+    const contextCompleter = scadaSymbolContextCompletion(metadata, this.tags, this.customTranslate, this.wl);
     const generalStateRender = generalStateRenderFunctionCompletions(contextCompleter);
     if (!this.generalStateRenderFunctionCompleter) {
       this.generalStateRenderFunctionCompleter = new TbEditorCompleter(generalStateRender);

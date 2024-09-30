@@ -101,7 +101,6 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
-import org.thingsboard.server.service.security.system.SystemSecurityService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -116,10 +115,8 @@ import static org.thingsboard.server.controller.ControllerConstants.ALARM_ID_PAR
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.DASHBOARD_ID_PARAM_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_DASHBOARD;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID;
 import static org.thingsboard.server.controller.ControllerConstants.ENTITY_GROUP_ID_PARAM_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD;
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD_HIDE_TOOLBAR;
 import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD_ID;
 import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_CUSTOMERS_OR_SUB_CUSTOMERS;
@@ -133,7 +130,6 @@ import static org.thingsboard.server.controller.ControllerConstants.RBAC_WRITE_C
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_AUTHORITY_PARAGRAPH;
-import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_ID_PARAM_DESCRIPTION;
@@ -142,8 +138,6 @@ import static org.thingsboard.server.controller.ControllerConstants.USER_ID_PARA
 import static org.thingsboard.server.controller.ControllerConstants.USER_TEXT_SEARCH_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 import static org.thingsboard.server.dao.entity.BaseEntityService.NULL_CUSTOMER_ID;
-import static org.thingsboard.server.dao.user.UserServiceImpl.LAST_LOGIN_TS;
-import static org.thingsboard.server.dao.user.UserServiceImpl.USER_CREDENTIALS_ENABLED;
 
 @RequiredArgsConstructor
 @RestController
@@ -162,7 +156,6 @@ public class UserController extends BaseController {
     private final MailService mailService;
     private final UserPermissionsService userPermissionsService;
     private final JwtTokenFactory tokenFactory;
-    private final SystemSecurityService systemSecurityService;
     private final ApplicationEventPublisher eventPublisher;
     private final TbUserService tbUserService;
     private final EntityQueryService entityQueryService;
@@ -182,16 +175,7 @@ public class UserController extends BaseController {
         checkParameter(USER_ID, strUserId);
         UserId userId = new UserId(toUUID(strUserId));
         User user = checkUserId(userId, Operation.READ);
-        if (user.getAdditionalInfo().isObject()) {
-            ObjectNode additionalInfo = (ObjectNode) user.getAdditionalInfo();
-            processDashboardIdFromAdditionalInfo(additionalInfo, DEFAULT_DASHBOARD);
-            processDashboardIdFromAdditionalInfo(additionalInfo, HOME_DASHBOARD);
-            UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
-            if (userCredentials.isEnabled() && !additionalInfo.has(USER_CREDENTIALS_ENABLED)) {
-                additionalInfo.put(USER_CREDENTIALS_ENABLED, true);
-            }
-            additionalInfo.put(LAST_LOGIN_TS, userCredentials.getLastLoginTs());
-        }
+        checkUserInfo(user);
         return user;
     }
 
@@ -209,15 +193,7 @@ public class UserController extends BaseController {
         checkParameter(USER_ID, strUserId);
         UserId userId = new UserId(toUUID(strUserId));
         UserInfo user = checkUserInfoId(userId, Operation.READ);
-        if (user.getAdditionalInfo().isObject()) {
-            ObjectNode additionalInfo = (ObjectNode) user.getAdditionalInfo();
-            processDashboardIdFromAdditionalInfo(additionalInfo, DEFAULT_DASHBOARD);
-            processDashboardIdFromAdditionalInfo(additionalInfo, HOME_DASHBOARD);
-            UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
-            if (userCredentials.isEnabled() && !additionalInfo.has("userCredentialsEnabled")) {
-                additionalInfo.put("userCredentialsEnabled", true);
-            }
-        }
+        checkUserInfo(user);
         return user;
     }
 

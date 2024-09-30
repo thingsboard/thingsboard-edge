@@ -119,7 +119,7 @@ export class TypeValuePanelComponent implements ControlValueAccessor, Validator,
         dataKeyFormGroup.disable({emitEvent: false});
         dataKeyFormGroup.get('type').enable({emitEvent: false});
         dataKeyFormGroup.get(type).enable({emitEvent: false});
-      })
+      });
   }
 
   deleteKey($event: Event, index: number): void {

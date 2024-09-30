@@ -119,9 +119,7 @@ public class CustomerController extends BaseController {
         checkParameter(CUSTOMER_ID, strCustomerId);
         CustomerId customerId = new CustomerId(toUUID(strCustomerId));
         Customer customer = checkCustomerId(customerId, Operation.READ);
-        if (!customer.getAdditionalInfo().isNull()) {
-            processDashboardIdFromAdditionalInfo((ObjectNode) customer.getAdditionalInfo(), HOME_DASHBOARD);
-        }
+        checkDashboardInfo(customer.getAdditionalInfo(), HOME_DASHBOARD);
         return customer;
     }
 
@@ -137,9 +135,7 @@ public class CustomerController extends BaseController {
         checkParameter(CUSTOMER_ID, strCustomerId);
         CustomerId customerId = new CustomerId(toUUID(strCustomerId));
         CustomerInfo customer = checkCustomerInfoId(customerId, Operation.READ);
-        if (!customer.getAdditionalInfo().isNull()) {
-            processDashboardIdFromAdditionalInfo((ObjectNode) customer.getAdditionalInfo(), HOME_DASHBOARD);
-        }
+        checkDashboardInfo(customer.getAdditionalInfo(), HOME_DASHBOARD);
         return customer;
     }
 
@@ -426,4 +422,5 @@ public class CustomerController extends BaseController {
             }
         }).collect(Collectors.toList());
     }
+
 }
