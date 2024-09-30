@@ -116,16 +116,17 @@ public class CustomMenuServiceImpl extends AbstractCachedEntityService<CustomMen
                 .toList();
 
         CMAssigneeType oldAssigneeType = customMenu.getAssigneeType();
+        assignCustomMenu(customMenu.getId(), newAssigneeType, toAddEntityIds);
+        unassignCustomMenu(oldAssigneeType, toRemoveEntityIds);
         if (oldAssigneeType != newAssigneeType) {
             CustomMenu newCustomMenu = new CustomMenu(customMenu);
             newCustomMenu.setAssigneeType(newAssigneeType);
             updateCustomMenu(newCustomMenu, force);
+        } else {
+            publishEvictEvent(new CustomMenuCacheEvictEvent(customMenu.getTenantId(), customMenu.getId()));
+            eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(customMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
+                    .edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.UPDATED).build());
         }
-        assignCustomMenu(customMenu.getId(), newAssigneeType, toAddEntityIds);
-        unassignCustomMenu(oldAssigneeType, toRemoveEntityIds);
-        publishEvictEvent(new CustomMenuCacheEvictEvent(customMenu.getTenantId(), customMenu.getId()));
-        eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(customMenu.getTenantId()).entityId(getEntityIdForEvent(customMenu.getTenantId(), customMenu.getCustomerId()))
-                .edgeEventType(EdgeEventType.CUSTOM_MENU).actionType(ActionType.UPDATED).build());
     }
 
     @Override
