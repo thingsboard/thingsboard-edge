@@ -42,6 +42,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.UserActivationLink;
+import org.thingsboard.server.common.data.UserInfo;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
@@ -100,6 +101,9 @@ public class AuthControllerTest extends AbstractControllerTest {
         assertThat(user.getAdditionalInfo().get("userCredentialsEnabled").asBoolean()).isTrue();
         user = getUser(customerUserId);
         assertThat(user.getAdditionalInfo().get("lastLoginTs").asLong()).isCloseTo(System.currentTimeMillis(), within(10000L));
+        UserInfo userInfo = getUserInfo(customerUserId);
+        assertThat(userInfo.getAdditionalInfo().get("lastLoginTs").asLong()).isCloseTo(System.currentTimeMillis(), within(10000L));
+        assertThat(userInfo.getOwnerName()).isEqualTo("Customer");
     }
 
     @Test
@@ -325,6 +329,10 @@ public class AuthControllerTest extends AbstractControllerTest {
 
     private User getUser(UserId id) throws Exception {
         return doGet("/api/user/" + id, User.class);
+    }
+
+    private UserInfo getUserInfo(UserId id) throws Exception {
+        return doGet("/api/user/info/" + id, UserInfo.class);
     }
 
     private String getActivationLink(User user) throws Exception {
