@@ -142,6 +142,16 @@ public abstract class DataValidator<D extends BaseData<?>> {
         }
     }
 
+    public static void validateJsonKeys(JsonNode newCustomTranslation) {
+        Iterator<String> fieldNames = newCustomTranslation.fieldNames();
+        while (fieldNames.hasNext()) {
+            String fieldExpression = fieldNames.next();
+            if (fieldExpression.endsWith(".")) {
+                throw new DataValidationException("The key can`t end with '.'");
+            }
+        }
+    }
+
     public static boolean doValidateLocaleCode(String localeCode) {
         if (localeCode == null) {
             return false;
