@@ -62,7 +62,7 @@ import java.util.UUID;
 public class CustomMenuEdgeProcessor extends BaseEdgeProcessor {
 
     public DownlinkMsg convertCustomMenuEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
-        if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_7_1)) {
+        if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_8_0)) {
             return null;
         }
         CustomMenu customMenu = JacksonUtil.convertValue(edgeEvent.getBody(), CustomMenu.class);
