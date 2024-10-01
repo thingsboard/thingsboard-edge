@@ -48,6 +48,7 @@ import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
 import org.thingsboard.server.service.sync.vc.GitRepositoryService;
 
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,7 +65,6 @@ import static org.thingsboard.server.common.data.converter.ConverterType.UPLINK;
 @Slf4j
 public class DefaultConverterLibraryService implements ConverterLibraryService {
 
-    private static Map<String, LibraryConvertersInfo> libraryConvertersInfoMap;
     private final GitRepositoryService gitRepositoryService;
 
     @Value("${integrations.converters.library.enabled:true}")
@@ -75,6 +75,10 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     private int fetchFrequencyHours;
 
     private ScheduledExecutorService executor;
+    private Map<String, LibraryConvertersInfo> convertersInfo;
+
+    private static final String MAIN_BRANCH = "main";
+    private static final String MAIN_BRANCH_REF = "refs/remotes/origin/" + MAIN_BRANCH;
 
     @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
     public void init() throws Exception {
@@ -87,8 +91,8 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
 
         executor.execute(() -> {
             try {
-                gitRepositoryService.initRepository(TenantId.SYS_TENANT_ID, settings);
-                collectLibraryConvertersInfo();
+                gitRepositoryService.initRepository(TenantId.SYS_TENANT_ID, settings, true);
+                updateConvertersInfo();
                 log.info("Initialized data converters repository");
             } catch (Throwable e) {
                 log.error("Failed to init data converters repository for settings {}", settings, e);
@@ -96,8 +100,9 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
         });
         executor.scheduleWithFixedDelay(() -> {
             try {
+                log.debug("Fetching data converters repository");
                 gitRepositoryService.fetch(TenantId.SYS_TENANT_ID);
-                collectLibraryConvertersInfo();
+                updateConvertersInfo();
             } catch (Throwable e) {
                 log.error("Failed to fetch data converters repository", e);
             }
@@ -113,6 +118,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
 
     @Override
     public List<Vendor> getVendors(IntegrationType integrationType) {
+        log.trace("Executing getVendors [{}]", integrationType);
         return listFiles("VENDORS", 1, true).stream()
                 .filter(vendorDir -> {
                     Set<String> integrationTypes = listFiles(vendorDir.path(), 3, true).stream()
@@ -129,6 +135,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
 
     @Override
     public List<Model> getVendorModels(IntegrationType integrationType, String converterType, String vendorName) {
+        log.trace("Executing getVendorModels [{}][{}][{}]", integrationType, converterType, vendorName);
         return listFiles("VENDORS/" + vendorName, 3, true).stream()
                 .filter(integrationDir -> {
                     if (!integrationDir.name().equals(integrationType.getDirectory())) {
@@ -155,29 +162,32 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
 
     @Override
     public String getConverter(IntegrationType integrationType, String converterType, String vendorName, String model) {
+        log.trace("Executing getConverter [{}][{}][{}][{}]", integrationType, converterType, vendorName, model);
         return getFileContent(getConverterDir(integrationType, converterType, vendorName, model) + "/converter.json");
     }
 
     @Override
     public String getConverterMetadata(IntegrationType integrationType, String converterType, String vendorName, String model) {
+        log.trace("Executing getConverterMetadata [{}][{}][{}][{}]", integrationType, converterType, vendorName, model);
         return getFileContent(getConverterDir(integrationType, converterType, vendorName, model) + "/metadata.json");
     }
 
     @Override
     public String getPayload(IntegrationType integrationType, String converterType, String vendorName, String model) {
+        log.trace("Executing getPayload [{}][{}][{}][{}]", integrationType, converterType, vendorName, model);
         return getFileContent(getConverterDir(integrationType, converterType, vendorName, model) + "/payload.json");
     }
 
     @Override
-    public Map<String, LibraryConvertersInfo> getLibraryConvertersInfo() {
-        return libraryConvertersInfoMap;
+    public Map<String, LibraryConvertersInfo> getConvertersInfo() {
+        return convertersInfo != null ? convertersInfo : Collections.emptyMap();
     }
 
     private String getGithubRawContentUrl(String path) {
         if (path == null) {
             return "";
         }
-        return StringUtils.removeEnd(repoUrl, ".git") + "/blob/master/" + path + "?raw=true";
+        return StringUtils.removeEnd(repoUrl, ".git") + "/blob/" + MAIN_BRANCH + "/" + path + "?raw=true";
     }
 
     private String findFile(String dir, int depth, String prefix) {
@@ -190,7 +200,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
         if (!enabled) {
             throw new IllegalArgumentException("Data converters library is disabled");
         }
-        return gitRepositoryService.listFiles(TenantId.SYS_TENANT_ID, "HEAD", path, depth).stream()
+        return gitRepositoryService.listFiles(TenantId.SYS_TENANT_ID, MAIN_BRANCH_REF, path, depth).stream()
                 .filter(file -> file.isDirectory() == isDirectory)
                 .toList();
     }
@@ -200,7 +210,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
             throw new IllegalArgumentException("Data converters library is disabled");
         }
         try {
-            return gitRepositoryService.getFileContentAtCommit(TenantId.SYS_TENANT_ID, path, "HEAD");
+            return gitRepositoryService.getFileContentAtCommit(TenantId.SYS_TENANT_ID, path, MAIN_BRANCH_REF);
         } catch (Exception e) {
             log.warn("Failed to get file content for path {}: {}", path, e.getMessage());
             return "{}";
@@ -211,8 +221,9 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
         return Path.of("VENDORS", vendorName, model, integrationType.getDirectory(), converterType).toString();
     }
 
-    private void collectLibraryConvertersInfo() {
-        libraryConvertersInfoMap = listFiles("VENDORS", 4, true).stream()
+    private void updateConvertersInfo() {
+        log.debug("Updating converters info");
+        convertersInfo = listFiles("VENDORS", 4, true).stream()
                 .collect(Collectors.groupingBy(
                         repoFile -> Path.of(repoFile.path()).getParent().getFileName().toString(),
                         Collectors.collectingAndThen(

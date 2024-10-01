@@ -856,7 +856,7 @@
       }
     },
     "relations": [],
-    "jsonId": "14889b50-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eea4f540-7c0a-11ef-baac-dd7fa92789f4"
   },
   {
     "name": "Main intake valve",
@@ -869,9 +869,15 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
-    "jsonId": "14919c00-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eea71820-7c0a-11ef-baac-dd7fa92789f4"
   },
   {
     "name": "Water pump",
@@ -886,9 +892,15 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
-    "jsonId": "1495bab0-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eeaa2560-7c0a-11ef-baac-dd7fa92789f4"
   },
   {
     "name": "Sand filter",
@@ -904,9 +916,15 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
-    "jsonId": "14982bb0-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eead80c0-7c0a-11ef-baac-dd7fa92789f4"
   },
   {
     "name": "Throughpass valve",
@@ -919,9 +937,15 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
-    "jsonId": "149a2780-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eeb0dc20-7c0a-11ef-baac-dd7fa92789f4"
   },
   {
     "name": "Heat pump",
@@ -936,9 +960,15 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
-    "jsonId": "149c4a60-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eeb34d20-7c0a-11ef-baac-dd7fa92789f4"
   },
   {
     "name": "Filter PH sensor",
@@ -951,9 +981,15 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
-    "jsonId": "149df811-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eeb59710-7c0a-11ef-baac-dd7fa92789f4"
   },
   {
     "name": "Heat pump intake valve",
@@ -966,9 +1002,15 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
-    "jsonId": "14a59930-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eeb87d40-7c0a-11ef-baac-dd7fa92789f4"
   },
   {
     "name": "Heat pump outgoing valve",
@@ -981,9 +1023,15 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
-    "jsonId": "14ab6590-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eebaa020-7c0a-11ef-baac-dd7fa92789f4"
   },
   {
     "name": "Pool intake valve",
@@ -996,9 +1044,15 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
-    "jsonId": "14aee800-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eebcc300-7c0a-11ef-baac-dd7fa92789f4"
   },
   {
     "name": "Pool weir valve",
@@ -1011,9 +1065,15 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
-    "jsonId": "14b1a720-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eebf0cf0-7c0a-11ef-baac-dd7fa92789f4"
   },
   {
     "name": "Pool drain valve",
@@ -1026,9 +1086,15 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
-    "jsonId": "14b354d0-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eec156e0-7c0a-11ef-baac-dd7fa92789f4"
   },
   {
     "name": "Water level meter",
@@ -1041,9 +1107,15 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
-    "jsonId": "14b52990-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eec352b0-7c0a-11ef-baac-dd7fa92789f4"
   },
   {
     "name": "Water pump outgoing valve",
@@ -1056,9 +1128,15 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
-    "jsonId": "14b6d740-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eec54e80-7c0a-11ef-baac-dd7fa92789f4"
   },
   {
     "name": "Drain valve",
@@ -1071,8 +1149,14 @@
         "entityName": "Swimming pool SCADA system",
         "direction": "FROM",
         "type": "Contains"
+      },
+      {
+        "entityType": "DEVICE",
+        "entityName": "Pool System Gateway",
+        "direction": "FROM",
+        "type": "Created"
       }
     ],
-    "jsonId": "14b884f0-7bec-11ef-b1fb-d35e9c24de58"
+    "jsonId": "eec77160-7c0a-11ef-baac-dd7fa92789f4"
   }
 ]

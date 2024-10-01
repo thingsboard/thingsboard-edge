@@ -535,7 +535,7 @@
               {
                 "key": {
                   "type": "TIME_SERIES",
-                  "key": "compressorTemperature"
+                  "key": "refrigerantPressure"
                 },
                 "valueType": "NUMERIC",
                 "value": null,
@@ -552,7 +552,7 @@
               {
                 "key": {
                   "type": "TIME_SERIES",
-                  "key": "compressorTemperature"
+                  "key": "refrigerantPressure"
                 },
                 "valueType": "NUMERIC",
                 "value": null,

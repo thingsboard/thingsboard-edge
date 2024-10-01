@@ -1,11 +1,15 @@
 The Swimming Pool SCADA template provides a comprehensive monitoring and control solution specifically designed for swimming pool operations. 
 With this template, you get a feature-rich dashboard, offering real-time device management and intuitive alarm configuration.
 
-Solution automatically creates an asset and 15 devices.
+Solution automatically configures the IoT gateway, creates an asset and 14 devices.
 
-#### Solution structure
+**Hardware Components**:
 
-* "Swimming Pool SCADA system" dashboard;
-* "Swimming pool SCADA system" asset and their asset profile;  
-* 15 devices and their device profile;
-* 2 rule chains
+* **Sensors**: Water level, temperature (outdoor, pool), flow rate, vibration, and pressure sensors.
+* **Actuators**: Valves and switches for managing the filtration system, heat pump states, and flow control in pump segments.
+
+**Software Components**:
+
+* **IoT Gateway**: Utilizes ModBus protocol to communicate with physical devices.
+* **Device Emulators**: Docker images that simulate real device responses for testing and demonstration.
+* **SCADA Dashboard**: Customizable dashboard for real-time data visualization and control.

@@ -99,7 +99,7 @@ public class DefaultTbIntegrationService extends AbstractTbEntityService impleme
         boolean hasUplink = converterService.hasConverterOfType(tenantId, ConverterType.UPLINK);
         boolean hasDownlink = converterService.hasConverterOfType(tenantId, ConverterType.DOWNLINK);
 
-        Map<String, LibraryConvertersInfo> libraryConvertersInfo = converterLibraryService.getLibraryConvertersInfo();
+        Map<String, LibraryConvertersInfo> libraryConvertersInfo = converterLibraryService.getConvertersInfo();
         Map<IntegrationType, IntegrationConvertersInfo> result = new HashMap<>();
         for (IntegrationType integrationType : IntegrationType.values()) {
             String directory = integrationType.getDirectory();
