@@ -138,6 +138,9 @@ export interface GatewayConnectorBase {
   class?: string;
   mode?: ConfigurationModes;
   configVersion?: string;
+  reportStrategy?: ReportStrategyConfig;
+  sendDataOnlyOnChange?: boolean;
+  ts?: number;
 }
 
 export interface GatewayConnector<BaseConfig = ConnectorBaseConfig> extends GatewayConnectorBase {
@@ -658,6 +661,12 @@ export enum ReportStrategyType {
   OnChange = 'ON_CHANGE',
   OnReportPeriod = 'ON_REPORT_PERIOD',
   OnChangeOrReportPeriod = 'ON_CHANGE_OR_REPORT_PERIOD'
+}
+
+export enum ReportStrategyDefaultValue {
+  Connector = 60000,
+  Device = 30000,
+  Key = 15000
 }
 
 export const ReportStrategyTypeTranslationsMap = new Map<ReportStrategyType, string>(

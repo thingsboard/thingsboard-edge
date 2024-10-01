@@ -69,7 +69,9 @@
         <div class="tb-form-row">
           <mat-slide-toggle *ngIf="!quickIntervalOnly"
                             class="mat-slide" formControlName="hideLastInterval">
-            {{ 'timewindow.hide' | translate }}
+            <div tb-hint-tooltip-icon="{{'timewindow.hide-last-interval' | translate}}">
+              {{ 'timewindow.hide' | translate }}
+            </div>
           </mat-slide-toggle>
           <tb-timeinterval
             formControlName="timewindowMs"
@@ -86,7 +88,9 @@
            class="tb-form-row">
         <mat-slide-toggle *ngIf="!quickIntervalOnly"
                           class="mat-slide" formControlName="hideQuickInterval">
-          {{ 'timewindow.hide' | translate }}
+          <div tb-hint-tooltip-icon="{{'timewindow.hide-relative-interval' | translate}}">
+            {{ 'timewindow.hide' | translate }}
+          </div>
         </mat-slide-toggle>
         <tb-quick-time-interval
           displayLabel="false"
@@ -120,7 +124,9 @@
         </div>
         <div class="tb-form-row">
           <mat-slide-toggle class="mat-slide" formControlName="hideLastInterval">
-            {{ 'timewindow.hide' | translate }}
+            <div tb-hint-tooltip-icon="{{'timewindow.hide-last-interval' | translate}}">
+              {{ 'timewindow.hide' | translate }}
+            </div>
           </mat-slide-toggle>
           <tb-timeinterval
             formControlName="timewindowMs"
@@ -135,7 +141,9 @@
 
       <div *ngIf="timewindowForm.get('history.historyType').value === historyTypes.FIXED" class="tb-form-row">
         <mat-slide-toggle class="mat-slide" formControlName="hideFixedInterval">
-          {{ 'timewindow.hide' | translate }}
+          <div tb-hint-tooltip-icon="{{'timewindow.hide-fixed-interval' | translate}}">
+            {{ 'timewindow.hide' | translate }}
+          </div>
         </mat-slide-toggle>
         <tb-datetime-period
           formControlName="fixedTimewindow"
@@ -149,7 +157,9 @@
 
       <div *ngIf="timewindowForm.get('history.historyType').value === historyTypes.INTERVAL" class="tb-form-row">
           <mat-slide-toggle class="mat-slide" formControlName="hideQuickInterval">
-            {{ 'timewindow.hide' | translate }}
+            <div tb-hint-tooltip-icon="{{'timewindow.hide-relative-interval' | translate}}">
+              {{ 'timewindow.hide' | translate }}
+            </div>
           </mat-slide-toggle>
           <tb-quick-time-interval
             displayLabel="false"
@@ -167,7 +177,9 @@
         <div class="tb-form-panel-title">{{ 'aggregation.aggregation' | translate }}</div>
         <div class="tb-form-row column-xs">
           <mat-slide-toggle class="mat-slide" formControlName="hideAggregation">
-            {{ 'timewindow.hide' | translate }}
+            <div tb-hint-tooltip-icon="{{'timewindow.hide-aggregation' | translate}}">
+              {{ 'timewindow.hide' | translate }}
+            </div>
           </mat-slide-toggle>
           <ng-container formGroupName="aggregation">
             <mat-form-field class="flex" subscriptSizing="dynamic" appearance="outline">
@@ -186,7 +198,9 @@
         <div class="tb-form-panel-title">{{ 'aggregation.limit' | translate }}</div>
         <div class="tb-form-row column-xs">
           <mat-slide-toggle class="mat-slide" formControlName="hideAggInterval">
-            {{ 'timewindow.hide' | translate }}
+            <div tb-hint-tooltip-icon="{{'timewindow.hide-max-values' | translate}}">
+              {{ 'timewindow.hide' | translate }}
+            </div>
           </mat-slide-toggle>
           <ng-container formGroupName="aggregation">
             <tb-datapoints-limit formControlName="limit"
@@ -244,7 +258,9 @@
 
         <ng-template #hideAggInterval>
           <mat-slide-toggle class="mat-slide" formControlName="hideAggInterval">
-            {{ 'timewindow.hide' | translate }}
+            <div tb-hint-tooltip-icon="{{'timewindow.hide-group-interval' | translate}}">
+              {{ 'timewindow.hide' | translate }}
+            </div>
           </mat-slide-toggle>
         </ng-template>
       </section>
@@ -254,7 +270,9 @@
       <div class="tb-form-panel-title">{{ 'timezone.timezone' | translate }}</div>
       <div class="tb-form-row column-xs">
         <mat-slide-toggle class="mat-slide" formControlName="hideTimezone">
-          {{ 'timewindow.hide' | translate }}
+          <div tb-hint-tooltip-icon="{{'timewindow.hide-timezone' | translate}}">
+            {{ 'timewindow.hide' | translate }}
+          </div>
         </mat-slide-toggle>
         <tb-timezone-select [localBrowserTimezonePlaceholderOnEmpty]="true"
                             formControlName="timezone"
