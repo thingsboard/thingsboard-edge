@@ -214,7 +214,7 @@ public abstract class BaseUplinkMessageService {
     public TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart) {
         try {
             long queueStartTs = getQueueStartTs(tenantId).get();
-            long queueEndTs = queueStartTs + TimeUnit.DAYS.toMillis(1);
+            long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
             TimePageLink pageLink = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
                     0, null, null, queueStartTs, queueEndTs);
             PageData<CloudEvent> cloudEvents = findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
