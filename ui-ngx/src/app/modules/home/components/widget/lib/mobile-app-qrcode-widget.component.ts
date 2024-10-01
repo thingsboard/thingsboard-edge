@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ChangeDetectorRef, Component, ElementRef, Input, OnDestroy, OnInit, TemplateRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnInit, TemplateRef } from '@angular/core';
 import { PageComponent } from '@shared/components/page.component';
 import { AppState } from '@core/core.state';
 import { Store } from '@ngrx/store';
@@ -96,7 +96,8 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
               private utilsService: UtilsService,
               private elementRef: ElementRef,
               private imagePipe: ImagePipe,
-              private sanitizer: DomSanitizer,) {
+              private sanitizer: DomSanitizer,
+              private zone: NgZone) {
     super(store);
   }
 
@@ -116,11 +117,13 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
         }
 
         this.widgetResize$ = new ResizeObserver(() => {
-          const showHideBadgeContainer = this.elementRef.nativeElement.offsetWidth > 250;
-          if (showHideBadgeContainer !== this.showBadgeContainer) {
-            this.showBadgeContainer = showHideBadgeContainer;
-            this.cd.markForCheck();
-          }
+          this.zone.run(() => {
+            const showHideBadgeContainer = this.elementRef.nativeElement.offsetWidth > 250;
+            if (showHideBadgeContainer !== this.showBadgeContainer) {
+              this.showBadgeContainer = showHideBadgeContainer;
+              this.cd.markForCheck();
+            }
+          });
         });
 
         this.widgetResize$.observe(this.elementRef.nativeElement);

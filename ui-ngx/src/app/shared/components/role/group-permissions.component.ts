@@ -35,7 +35,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  Input,
+  Input, NgZone, OnDestroy,
   OnInit,
   Output,
   ViewChild
@@ -74,7 +74,7 @@ import { FormBuilder } from '@angular/forms';
   templateUrl: './group-permissions.component.html',
   styleUrls: ['./group-permissions.component.scss']
 })
-export class GroupPermissionsComponent extends PageComponent implements AfterViewInit, OnInit {
+export class GroupPermissionsComponent extends PageComponent implements AfterViewInit, OnInit, OnDestroy {
 
   groupPermissionsMode: 'group' | 'registration';
 
@@ -180,7 +180,8 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
               private dialogService: DialogService,
               private cd: ChangeDetectorRef,
               private elementRef: ElementRef,
-              private fb: FormBuilder) {
+              private fb: FormBuilder,
+              private zone: NgZone) {
     super(store);
     this.dirtyValue = !this.activeValue;
     const sortOrder: SortOrder = { property: 'roleName', direction: Direction.ASC };
@@ -190,11 +191,13 @@ export class GroupPermissionsComponent extends PageComponent implements AfterVie
 
   ngOnInit() {
     this.widgetResize$ = new ResizeObserver(() => {
-      const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
-      if (showHidePageSize !== this.hidePageSize) {
-        this.hidePageSize = showHidePageSize;
-        this.cd.markForCheck();
-      }
+      this.zone.run(() => {
+        const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+        if (showHidePageSize !== this.hidePageSize) {
+          this.hidePageSize = showHidePageSize;
+          this.cd.markForCheck();
+        }
+      });
     });
     this.widgetResize$.observe(this.elementRef.nativeElement);
   }

@@ -153,13 +153,13 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.warn("Failed to execute update script for device profile rule nodes due to: ", e);
                 }
             }
-            case "3.7.1" -> updateSchema("3.7.1", 3007001, "3.7.2", 3007002);
+            case "3.8.0" -> updateSchema("3.8.0", 3008000, "3.9.0", 3009000);
             case "ce" -> {
                 log.info("Updating schema ...");
                 try {
                     loadSql(getSchemaUpdateFile("pe"));
 
-                    String[] tables = new String[]{"device"};
+                    String[] tables = new String[]{"device", "converter", "integration", "scheduler_event", "blob_entity", "role"};
                     for (String table : tables) {
                         execute("ALTER TABLE " + table + " DROP COLUMN IF EXISTS search_text CASCADE");
                     }
@@ -183,6 +183,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                             "ALTER TABLE alarm ADD COLUMN propagate_to_owner_hierarchy boolean DEFAULT false;",
                             "ALTER TABLE edge ADD COLUMN edge_license_key varchar(30) DEFAULT 'PUT_YOUR_EDGE_LICENSE_HERE';",
                             "ALTER TABLE edge ADD COLUMN cloud_endpoint varchar(255) DEFAULT 'PUT_YOUR_CLOUD_ENDPOINT_HERE';",
+                            "ALTER TABLE converter ADD CONSTRAINT converter_external_id_unq_key UNIQUE (tenant_id, external_id)",
+                            "ALTER TABLE integration ADD CONSTRAINT integration_external_id_unq_key UNIQUE (tenant_id, external_id)",
+                            "ALTER TABLE role ADD CONSTRAINT role_external_id_unq_key UNIQUE (tenant_id, external_id)",
                             "ALTER TABLE scheduler_event ADD COLUMN originator_id uuid;",
                             "ALTER TABLE scheduler_event ADD COLUMN originator_type varchar(255);",
                             "UPDATE scheduler_event set originator_id = ((configuration::json)->'originatorId'->>'id')::uuid, " +

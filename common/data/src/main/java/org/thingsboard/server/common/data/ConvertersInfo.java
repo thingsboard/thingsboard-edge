@@ -28,33 +28,6 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.msa.connectivity;
+package org.thingsboard.server.common.data;
 
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-import org.thingsboard.server.msa.AbstractLwm2mClientTest;
-import org.thingsboard.server.msa.DisableUIListeners;
-
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_EMAIL;
-import static org.thingsboard.server.msa.ui.utils.Const.TENANT_PASSWORD;
-
-@DisableUIListeners
-public class Lwm2mClientPskTest extends AbstractLwm2mClientTest {
-
-    @BeforeMethod
-    public void setUp() throws Exception {
-        testRestClient.login(TENANT_EMAIL, TENANT_PASSWORD);
-        initTest("lwm2m-Psk");
-    }
-
-    @AfterMethod
-    public void tearDown() {
-        destroyAfter();
-    }
-
-    @Test
-    public void connectLwm2mClientPskWithLwm2mServer() throws Exception {
-        connectLwm2mClientPsk();
-    }
-}
+public record ConvertersInfo(boolean library, boolean existing) {}

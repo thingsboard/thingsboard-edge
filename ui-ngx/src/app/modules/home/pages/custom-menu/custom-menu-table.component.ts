@@ -60,7 +60,8 @@ import { Authority } from '@shared/models/authority.enum';
 import { Observable, of, switchMap } from 'rxjs';
 import {
   ManageCustomMenuDialogComponent,
-  ManageCustomMenuDialogData, ManageCustomMenuDialogResult
+  ManageCustomMenuDialogData,
+  ManageCustomMenuDialogResult
 } from '@home/pages/custom-menu/manage-custom-menu-dialog.component';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { EditCustomMenuNamePanelComponent } from '@home/pages/custom-menu/edit-custom-menu-name-panel.component';
@@ -153,7 +154,7 @@ export class CustomMenuTableComponent implements OnInit {
     if (authUser.authority !== Authority.SYS_ADMIN) {
       this.customMenuTableConfig.columns.push(new EntityTableColumn<CustomMenuInfo>('assigneeType',
         'custom-menu.assignee-type', mainColumnsWidth,
-        (menu) => this.translate.instant(cmAssigneeTypeTranslations.get(menu.assigneeType))));
+        (menu) => this.translate.instant(cmAssigneeTypeTranslations(menu.assigneeType, menu.scope))));
     }
     if (authUser.authority !== Authority.SYS_ADMIN) {
       if (!readonly) {

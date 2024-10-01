@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.Before;
 import org.junit.Test;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.converter.Model;
 import org.thingsboard.server.service.converter.Vendor;
@@ -53,21 +54,21 @@ public class ConverterLibraryControllerTest extends AbstractControllerTest {
 
     @Test
     public void testChirpStack() throws Exception {
-        String integrationType = "ChirpStack";
+        IntegrationType integrationType = IntegrationType.CHIRPSTACK;
         String vendor = "Milesight";
         List<String> expectedModels_uplink = List.of("AT101", "WT201", "WS302");
         List<String> expectedModels_downlink = List.of("WT201");
         test(integrationType, List.of(vendor),
                 Map.of(vendor, expectedModels_uplink),
                 Map.of(vendor, expectedModels_downlink),
-                integrationType,
+                integrationType.getDirectory(),
                 "\"applicationName\": \"Chirpstack application\"",
                 "freeze_protection_config");
     }
 
     @Test
     public void testThingsStackIndustries() throws Exception {
-        String integrationType = "ThingsStackIndustries";
+        IntegrationType integrationType = IntegrationType.TTI;
         String vendor = "Netvox";
         List<String> expectedModels_uplink = List.of("R718N3");
         List<String> expectedModels_downlink = List.of();
@@ -79,7 +80,7 @@ public class ConverterLibraryControllerTest extends AbstractControllerTest {
                 "");
     }
 
-    private void test(String integrationType, List<String> expectedVendors,
+    private void test(IntegrationType integrationType, List<String> expectedVendors,
                       Map<String, List<String>> expectedUplinkModels,
                       Map<String, List<String>> expectedDownlinkModels,
                       String expectedIntegrationName,

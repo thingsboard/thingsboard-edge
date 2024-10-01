@@ -64,7 +64,7 @@
       <mat-label translate>custom-menu.assignee-type</mat-label>
       <mat-select formControlName="assigneeType">
         <mat-option *ngFor="let assigneeType of assigneeTypes" [value]="assigneeType">
-          {{ cmAssigneeTypeTranslations.get(assigneeType) | translate }}
+          {{ cmAssigneeTypeTranslations(assigneeType, customMenuFormGroup.get('scope').value) | translate }}
         </mat-option>
       </mat-select>
     </mat-form-field>

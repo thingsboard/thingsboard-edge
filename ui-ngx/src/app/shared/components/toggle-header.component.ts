@@ -40,7 +40,7 @@ import {
   ElementRef,
   EventEmitter,
   HostBinding,
-  Input,
+  Input, NgZone,
   OnDestroy,
   OnInit,
   Output,
@@ -228,7 +228,8 @@ export class ToggleHeaderComponent extends _ToggleBase implements OnInit, AfterV
   constructor(protected store: Store<AppState>,
               private cd: ChangeDetectorRef,
               private platform: Platform,
-              private breakpointObserver: BreakpointObserver) {
+              private breakpointObserver: BreakpointObserver,
+              private zone: NgZone) {
     super(store);
   }
 
@@ -311,7 +312,9 @@ export class ToggleHeaderComponent extends _ToggleBase implements OnInit, AfterV
 
   private startObservePagination() {
     this.toggleGroupResize$ = new ResizeObserver(() => {
-      this.updatePagination();
+      this.zone.run(() => {
+        this.updatePagination();
+      });
     });
     this.toggleGroupResize$.observe(this.toggleGroupContainer.nativeElement);
   }

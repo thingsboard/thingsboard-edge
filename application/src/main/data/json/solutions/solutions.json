@@ -44,6 +44,19 @@
     "imageUrls": ["https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-1.png", "https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-2.png", "https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-3.png", "https://img.thingsboard.io/solutions/fuel_level_monitoring/fuel-monitoring-4.png"]
   },
   {
+    "id": "swimming_pool_scada_system",
+    "title": "Swimming Pool SCADA system",
+    "level": "MAKER",
+    "installTimeoutMs": 0,
+    "previewImageUrl": "https://img.thingsboard.io/solutions/waste_monitoring/waste-monitoring-preview.png",
+    "videoPreviewImageUrl": "https://img.thingsboard.io/usecases/waste-monitoring/video/waste-monitoring.png",
+    "previewMp4Url": "https://video.thingsboard.io/usecases/waste-monitoring.mp4",
+    "previewWebmUrl": "https://video.thingsboard.io/usecases/waste-monitoring.webm",
+    "imageUrls": ["https://img.thingsboard.io/solutions/swimming_pool_scada_system/swimming-pool-1.png", "https://img.thingsboard.io/solutions/swimming_pool_scada_system/swimming-pool-2.png", "https://img.thingsboard.io/solutions/swimming_pool_scada_system/swimming-pool-3.png", "https://img.thingsboard.io/solutions/swimming_pool_scada_system/swimming-pool-4.png"],
+    "tenantTelemetryKeys": [],
+    "tenantAttributeKeys": []
+  },
+  {
     "id": "air_quality_index",
     "title": "Air Quality Monitoring",
     "level": "PROTOTYPE",

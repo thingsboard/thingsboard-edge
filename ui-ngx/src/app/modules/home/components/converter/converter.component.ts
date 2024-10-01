@@ -59,7 +59,7 @@ import {
 } from '@home/components/converter/converter-test-dialog.component';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
-import { IntegrationDirectory, IntegrationType } from '@shared/models/integration.models';
+import { IntegrationType } from '@shared/models/integration.models';
 import { isDefinedAndNotNull, isNotEmptyStr } from '@core/utils';
 import { NULL_UUID } from '@shared/models/id/has-uuid';
 import { map, takeUntil } from 'rxjs/operators';
@@ -84,7 +84,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this._integrationType = value;
     if (isDefinedAndNotNull(value)) {
       this.updatedOnlyKeysValue();
-      this.setupDefaultScriptBody(this.entityForm.get('type').value);
+      this.onSetDefaultScriptBody(this.entityForm.get('type').value);
     }
   }
 
@@ -100,7 +100,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   @Input()
-  libraryInfo: { vendorName: string, modelName: string };
+  libraryInfo: { vendorName: string; modelName: string };
 
   @Input()
   integrationName: string;
@@ -142,7 +142,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.entityForm.get('configuration.scriptLang').valueChanges.pipe(
         takeUntil(this.destroy$)
     ).subscribe(() => {
-      this.setupDefaultScriptBody(this.entityForm.get('type').value);
+      this.onSetDefaultScriptBody(this.entityForm.get('type').value);
     });
     this.checkIsNewConverter(this.entity, this.entityForm);
   }
@@ -163,36 +163,34 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
 
   buildForm(entity: Converter): FormGroup {
     this.tbelEnabled = getCurrentAuthState(this.store).tbelEnabled;
-    const form = this.fb.group(
-      {
-        name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
-        type: [entity?.type ? entity.type : ConverterType.UPLINK, [Validators.required]],
-        debugMode: [isDefinedAndNotNull(entity?.debugMode) ? entity.debugMode : true],
-        configuration: this.fb.group(
-          {
-            scriptLang: [entity?.configuration ? entity.configuration.scriptLang : ScriptLanguage.JS],
-            decoder: [entity?.configuration ? entity.configuration.decoder : null],
-            tbelDecoder: [entity?.configuration ? entity.configuration.tbelDecoder : null],
-            encoder: [entity?.configuration ? entity.configuration.encoder : null],
-            tbelEncoder: [entity?.configuration ? entity.configuration.tbelEncoder : null],
-            updateOnlyKeys: [entity?.configuration ? entity.configuration.updateOnlyKeys : []],
-          }
-        ),
-        additionalInfo: this.fb.group(
-          {
-            description: [entity && entity.additionalInfo ? entity.additionalInfo.description : ''],
-          }
-        )
-      }
-    );
+    const form = this.fb.group({
+      name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
+      type: [entity?.type ? entity.type : ConverterType.UPLINK, [Validators.required]],
+      debugMode: [isDefinedAndNotNull(entity?.debugMode) ? entity.debugMode : true],
+      configuration: this.fb.group({
+        scriptLang: [entity?.configuration ? entity.configuration.scriptLang : ScriptLanguage.JS],
+        decoder: [entity?.configuration ? entity.configuration.decoder : null],
+        tbelDecoder: [entity?.configuration ? entity.configuration.tbelDecoder : null],
+        encoder: [entity?.configuration ? entity.configuration.encoder : null],
+        tbelEncoder: [entity?.configuration ? entity.configuration.tbelEncoder : null],
+        updateOnlyKeys: [entity?.configuration ? entity.configuration.updateOnlyKeys : []],
+      }),
+      additionalInfo: this.fb.group({
+        description: [entity && entity.additionalInfo ? entity.additionalInfo.description : ''],
+      })
+    });
     return form;
   }
 
   private checkIsNewConverter(entity: Converter, form: FormGroup) {
     if (entity && !entity.id) {
-      form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
-      form.get('configuration.scriptLang').patchValue(
-        this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent: true});
+      if (!this.libraryInfo) {
+        form.get('type').patchValue(entity.type || ConverterType.UPLINK, {emitEvent: true});
+        form.get('configuration.scriptLang').patchValue(
+          this.tbelEnabled ? ScriptLanguage.TBEL : ScriptLanguage.JS, {emitEvent: true});
+      } else {
+        form.updateValueAndValidity();
+      }
     } else {
       form.get('type').disable({emitEvent: false});
       let scriptLang: ScriptLanguage = form.get('configuration.scriptLang').value;
@@ -226,31 +224,47 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
           tbelEncoder: null,
         }, {emitEvent: false});
       }
-      this.setupDefaultScriptBody(converterType);
+      this.onSetDefaultScriptBody(converterType);
     }
   }
 
-  private setupDefaultScriptBody(converterType: ConverterType) {
-    const scriptLang: ScriptLanguage = this.entityForm.get('configuration.scriptLang').value;
-    let targetField: string;
-    let targetTemplateUrl: string;
-    if (scriptLang === ScriptLanguage.JS) {
-      targetField = converterType === ConverterType.UPLINK ? 'decoder' : 'encoder';
-      targetTemplateUrl = jsDefaultConvertorsUrl.get(converterType);
-    } else {
-      targetField = converterType === ConverterType.UPLINK ? 'tbelDecoder' : 'tbelEncoder';
-      if(converterType === ConverterType.UPLINK && IntegrationTbelDefaultConvertersUrl.has(this.integrationType)) {
-        targetTemplateUrl = IntegrationTbelDefaultConvertersUrl.get(this.integrationType);
-      } else {
-        targetTemplateUrl = tbelDefaultConvertorsUrl.get(converterType);
-      }
+  private onSetDefaultScriptBody(converterType: ConverterType): void {
+    if (this.libraryInfo) {
+      return;
     }
 
-    const scriptBody: string = this.entityForm.get('configuration').get(targetField).value;
+    const scriptLang = this.entityForm.get('configuration.scriptLang').value;
+    const targetField = this.getTargetField(converterType, scriptLang);
+    this.setupDefaultScriptBody(targetField, converterType, scriptLang);
+  }
+
+  private getTargetField(converterType: ConverterType, scriptLang: ScriptLanguage): string {
+    return scriptLang === ScriptLanguage.JS
+      ? (converterType === ConverterType.UPLINK ? 'decoder' : 'encoder')
+      : (converterType === ConverterType.UPLINK ? 'tbelDecoder' : 'tbelEncoder');
+  }
+
+  private getTargetTemplateUrl(converterType: ConverterType, scriptLang: ScriptLanguage): string {
+    if (scriptLang === ScriptLanguage.JS) {
+      return jsDefaultConvertorsUrl.get(converterType);
+    } else if (converterType === ConverterType.UPLINK && IntegrationTbelDefaultConvertersUrl.has(this.integrationType)) {
+      return IntegrationTbelDefaultConvertersUrl.get(this.integrationType);
+    } else {
+      return tbelDefaultConvertorsUrl.get(converterType);
+    }
+  }
+
+  private setupDefaultScriptBody(targetField: string, converterType: ConverterType, scriptLang: ScriptLanguage): void {
+    const scriptBody = this.entityForm.get('configuration').get(targetField).value;
+
     if (!isNotEmptyStr(scriptBody) || isDefinedAndNotNull(this.integrationType)) {
-      this.resourcesService.loadJsonResource<string>(targetTemplateUrl).subscribe((template) => {
-        this.entityForm.get('configuration').get(targetField).patchValue(template, {emitEvent: false});
-      });
+      const targetTemplateUrl = this.getTargetTemplateUrl(converterType, scriptLang);
+      this.resourcesService.loadJsonResource(targetTemplateUrl)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(template => {
+          this.entityForm.get('configuration').get(targetField)
+            .patchValue(template, { emitEvent: false });
+        });
     }
   }
 
@@ -272,6 +286,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
         description: entity.additionalInfo ? entity.additionalInfo.description : ''
       }
     }, {emitEvent: false});
+
     this.checkIsNewConverter(entity, this.entityForm);
   }
 
@@ -293,12 +308,11 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   }
 
   private getLibraryDebugIn(): Observable<ConverterDebugInput> {
-    const integrationDir = IntegrationDirectory[this.integrationType] ?? this.integrationType;
     return forkJoin([
       this.converterLibraryService
-        .getConverterPayload(integrationDir, this.libraryInfo.vendorName, this.libraryInfo.modelName, this.entityForm.get('type').value),
+        .getConverterPayload(this.integrationType, this.libraryInfo.vendorName, this.libraryInfo.modelName, this.entityForm.get('type').value),
       this.converterLibraryService
-        .getConverterMetaData(integrationDir, this.libraryInfo.vendorName, this.libraryInfo.modelName, this.entityForm.get('type').value)
+        .getConverterMetaData(this.integrationType, this.libraryInfo.vendorName, this.libraryInfo.modelName, this.entityForm.get('type').value)
     ])
       .pipe(
         map(([inContent, inMetadata]) => ({
@@ -306,7 +320,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
           inContent: JSON.stringify(inContent),
           inContentType: ContentType.JSON
         } as ConverterDebugInput))
-      )
+      );
   }
 
   private getDefaultDebugIn(): Observable<ConverterDebugInput> {

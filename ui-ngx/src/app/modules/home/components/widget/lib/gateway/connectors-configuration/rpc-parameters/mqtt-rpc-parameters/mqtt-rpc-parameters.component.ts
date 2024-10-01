@@ -42,35 +42,32 @@ import {
   NG_VALUE_ACCESSOR,
   UntypedFormGroup,
   ValidationErrors,
-  Validator,
-  Validators
+  Validator, Validators,
 } from '@angular/forms';
 import { SharedModule } from '@shared/shared.module';
 import { CommonModule } from '@angular/common';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { takeUntil, tap } from 'rxjs/operators';
 import {
-  ModbusDataType,
-  ModbusEditableDataTypes,
-  ModbusFunctionCodeTranslationsMap,
-  ModbusObjectCountByDataType,
-  ModbusValue,
+  integerRegex,
   noLeadTrailSpacesRegex,
+  RPCTemplateConfigMQTT
 } from '@home/components/widget/lib/gateway/gateway-widget.models';
 
 @Component({
-  selector: 'tb-modbus-rpc-parameters',
-  templateUrl: './modbus-rpc-parameters.component.html',
+  selector: 'tb-mqtt-rpc-parameters',
+  templateUrl: './mqtt-rpc-parameters.component.html',
+  styleUrls: ['./mqtt-rpc-parameters.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => ModbusRpcParametersComponent),
+      useExisting: forwardRef(() => MqttRpcParametersComponent),
       multi: true
     },
     {
       provide: NG_VALIDATORS,
-      useExisting: forwardRef(() => ModbusRpcParametersComponent),
+      useExisting: forwardRef(() => MqttRpcParametersComponent),
       multi: true
     }
   ],
@@ -80,40 +77,27 @@ import {
     SharedModule,
   ],
 })
-export class ModbusRpcParametersComponent implements ControlValueAccessor, Validator, OnDestroy {
+export class MqttRpcParametersComponent implements ControlValueAccessor, Validator, OnDestroy {
 
   rpcParametersFormGroup: UntypedFormGroup;
-  functionCodes: Array<number>;
 
-  readonly ModbusEditableDataTypes = ModbusEditableDataTypes;
-  readonly ModbusFunctionCodeTranslationsMap = ModbusFunctionCodeTranslationsMap;
-
-  readonly modbusDataTypes = Object.values(ModbusDataType) as ModbusDataType[];
-  readonly writeFunctionCodes = [5, 6, 15, 16];
-
-  private readonly defaultFunctionCodes = [3, 4, 6, 16];
-  private readonly readFunctionCodes = [1, 2, 3, 4];
-  private readonly bitsFunctionCodes = [...this.readFunctionCodes, ...this.writeFunctionCodes];
-
-  private onChange: (value: ModbusValue) => void;
-  private onTouched: () => void;
+  private onChange: (value: RPCTemplateConfigMQTT) => void = (_) => {};
+  private onTouched: () => void = () => {};
 
   private destroy$ = new Subject<void>();
 
   constructor(private fb: FormBuilder) {
     this.rpcParametersFormGroup = this.fb.group({
-      tag: ['', [Validators.required, Validators.pattern(noLeadTrailSpacesRegex)]],
-      type: [ModbusDataType.BYTES, [Validators.required]],
-      functionCode: [this.defaultFunctionCodes[0], [Validators.required]],
-      value: [{value: '', disabled: true}, [Validators.required, Validators.pattern(noLeadTrailSpacesRegex)]],
-      address: [null, [Validators.required]],
-      objectsCount: [1, [Validators.required]],
+      methodFilter: [null, [Validators.required, Validators.pattern(noLeadTrailSpacesRegex)]],
+      requestTopicExpression: [null, [Validators.required, Validators.pattern(noLeadTrailSpacesRegex)]],
+      responseTopicExpression: [{ value: null, disabled: true }, [Validators.required, Validators.pattern(noLeadTrailSpacesRegex)]],
+      responseTimeout: [{ value: null, disabled: true }, [Validators.min(10), Validators.pattern(integerRegex)]],
+      valueExpression: [null, [Validators.required, Validators.pattern(noLeadTrailSpacesRegex)]],
+      withResponse: [false, []],
     });
 
-    this.updateFunctionCodes(this.rpcParametersFormGroup.get('type').value);
     this.observeValueChanges();
-    this.observeKeyDataType();
-    this.observeFunctionCode();
+    this.observeWithResponse();
   }
 
   ngOnDestroy(): void {
@@ -121,7 +105,7 @@ export class ModbusRpcParametersComponent implements ControlValueAccessor, Valid
     this.destroy$.complete();
   }
 
-  registerOnChange(fn: (value: ModbusValue) => void): void {
+  registerOnChange(fn: (value: RPCTemplateConfigMQTT) => void): void {
     this.onChange = fn;
   }
 
@@ -135,8 +119,9 @@ export class ModbusRpcParametersComponent implements ControlValueAccessor, Valid
     };
   }
 
-  writeValue(value: ModbusValue): void {
+  writeValue(value: RPCTemplateConfigMQTT): void {
     this.rpcParametersFormGroup.patchValue(value, {emitEvent: false});
+    this.toggleResponseFields(value.withResponse);
   }
 
   private observeValueChanges(): void {
@@ -148,34 +133,22 @@ export class ModbusRpcParametersComponent implements ControlValueAccessor, Valid
     });
   }
 
-  private observeKeyDataType(): void {
-    this.rpcParametersFormGroup.get('type').valueChanges.pipe(takeUntil(this.destroy$)).subscribe(dataType => {
-      if (!this.ModbusEditableDataTypes.includes(dataType)) {
-        this.rpcParametersFormGroup.get('objectsCount').patchValue(ModbusObjectCountByDataType[dataType], {emitEvent: false});
-      }
-      this.updateFunctionCodes(dataType);
-    });
+  private observeWithResponse(): void {
+    this.rpcParametersFormGroup.get('withResponse').valueChanges.pipe(
+      tap((isActive: boolean) => this.toggleResponseFields(isActive)),
+      takeUntil(this.destroy$),
+    ).subscribe();
   }
 
-  private observeFunctionCode(): void {
-    this.rpcParametersFormGroup.get('functionCode').valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(code => this.updateValueEnabling(code));
-  }
-
-  private updateValueEnabling(code: number): void {
-    if (this.writeFunctionCodes.includes(code)) {
-      this.rpcParametersFormGroup.get('value').enable({emitEvent: false});
+  private toggleResponseFields(enabled: boolean): void {
+    const responseTopicControl = this.rpcParametersFormGroup.get('responseTopicExpression');
+    const responseTimeoutControl = this.rpcParametersFormGroup.get('responseTimeout');
+    if (enabled) {
+      responseTopicControl.enable();
+      responseTimeoutControl.enable();
     } else {
-      this.rpcParametersFormGroup.get('value').setValue(null);
-      this.rpcParametersFormGroup.get('value').disable({emitEvent: false});
-    }
-  }
-
-  private updateFunctionCodes(dataType: ModbusDataType): void {
-    this.functionCodes = dataType === ModbusDataType.BITS ? this.bitsFunctionCodes : this.defaultFunctionCodes;
-    if (!this.functionCodes.includes(this.rpcParametersFormGroup.get('functionCode').value)) {
-      this.rpcParametersFormGroup.get('functionCode').patchValue(this.functionCodes[0], {emitEvent: false});
+      responseTopicControl.disable();
+      responseTimeoutControl.disable();
     }
   }
 }
