@@ -187,9 +187,9 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                 Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", "pe", SCHEMA_UPDATE_SQL);
                 try (Connection conn = DriverManager.getConnection(dbUrl, dbUserName, dbPassword)) {
                     try {
-                        String[] entityNames = new String[]{"device"};
+                        String[] entityNames = new String[]{"device", "converter", "integration", "scheduler_event", "blob_entity", "role"};
                         for (String entityName : entityNames) {
-                            conn.createStatement().execute("ALTER TABLE " + entityName + " DROP COLUMN search_text CASCADE");
+                            conn.createStatement().execute("ALTER TABLE " + entityName + " DROP COLUMN IF EXISTS search_text CASCADE");
                         }
                     } catch (Exception e) {}
                     try {
@@ -267,6 +267,16 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     try {
                         conn.createStatement().execute("ALTER TABLE edge ADD COLUMN cloud_endpoint varchar(255) DEFAULT 'PUT_YOUR_CLOUD_ENDPOINT_HERE';"); //NOSONAR, ignoring because method used to execute thingsboard database upgrade script
                     } catch (Exception ignored) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE converter ADD CONSTRAINT converter_external_id_unq_key UNIQUE (tenant_id, external_id)");
+                    } catch (Exception ignored) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE integration ADD CONSTRAINT integration_external_id_unq_key UNIQUE (tenant_id, external_id)");
+                    } catch (Exception ignored) {}
+                    try {
+                        conn.createStatement().execute("ALTER TABLE role ADD CONSTRAINT role_external_id_unq_key UNIQUE (tenant_id, external_id)");
+                    } catch (Exception ignored) {}
+
                     integrationRepository.findAll().forEach(integration -> {
                         if (integration.getType().equals(IntegrationType.LORIOT)) {
                             ObjectNode credentials = (ObjectNode) integration.getConfiguration().get("credentials");
