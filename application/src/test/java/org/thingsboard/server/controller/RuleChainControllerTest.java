@@ -361,6 +361,7 @@ public class RuleChainControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    @Ignore("HasVersion check is ignored for Edge")
     public void testSaveRuleChainWithOutdatedVersion() throws Exception {
         RuleChain ruleChain = createRuleChain("My rule chain");
 
