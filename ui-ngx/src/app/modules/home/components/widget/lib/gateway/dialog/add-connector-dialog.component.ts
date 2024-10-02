@@ -52,6 +52,7 @@ import { Observable, Subject } from 'rxjs';
 import { ResourcesService } from '@core/services/resources.service';
 import { takeUntil, tap } from 'rxjs/operators';
 import { helpBaseUrl } from '@shared/models/constants';
+import { LatestVersionConfigPipe } from '@home/components/widget/lib/gateway/pipes/latest-version-config.pipe';
 
 @Component({
   selector: 'tb-add-connector-dialog',
@@ -78,6 +79,7 @@ export class AddConnectorDialogComponent
               @Inject(MAT_DIALOG_DATA) public data: AddConnectorConfigData,
               public dialogRef: MatDialogRef<AddConnectorDialogComponent, CreatedConnectorConfigData>,
               private fb: FormBuilder,
+              private isLatestVersionConfig: LatestVersionConfigPipe,
               private resourcesService: ResourcesService) {
     super(store, router, dialogRef);
     this.connectorForm = this.fb.group({
@@ -118,9 +120,9 @@ export class AddConnectorDialogComponent
         if (gatewayVersion) {
           value.configVersion = gatewayVersion;
         }
-        value.configurationJson = (gatewayVersion === GatewayVersion.Current
-          ? defaultConfig[this.data.gatewayVersion]
-          : defaultConfig.legacy)
+        value.configurationJson = (this.isLatestVersionConfig.transform(gatewayVersion)
+          ? defaultConfig[GatewayVersion.Current]
+          : defaultConfig[GatewayVersion.Legacy])
           ?? defaultConfig;
         if (this.connectorForm.valid) {
           this.dialogRef.close(value);
