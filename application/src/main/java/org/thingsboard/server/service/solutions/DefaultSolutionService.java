@@ -41,7 +41,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.DockerComposeBuilder;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.cluster.TbClusterService;
@@ -110,6 +109,7 @@ import org.thingsboard.server.dao.device.DeviceConnectivityService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.device.DockerComposeParams;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -673,7 +673,7 @@ public class DefaultSolutionService implements SolutionService {
     private String prepareDockerComposeFile(TenantId tenantId, String baseUrl, DeviceId deviceId) {
         Device device = new Device(deviceId);
         device.setTenantId(tenantId);
-        DockerComposeBuilder builder = new DockerComposeBuilder(false, true, false, false);
+        DockerComposeParams builder = new DockerComposeParams(false, true, false, false);
         try (InputStream inputStream = deviceConnectivityService.createGatewayDockerComposeFile(baseUrl, device, builder).getInputStream();
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
         ) {

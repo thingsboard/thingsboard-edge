@@ -41,7 +41,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.DockerComposeBuilder;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.Device;
@@ -170,12 +169,12 @@ public class DeviceConnectivityServiceImpl implements DeviceConnectivityService 
 
     @Override
     public Resource createGatewayDockerComposeFile(String baseUrl, Device device) throws URISyntaxException {
-        DockerComposeBuilder builder = new DockerComposeBuilder(true, true, true, true);
+        DockerComposeParams builder = new DockerComposeParams(true, true, true, true);
         return createGatewayDockerComposeFile(baseUrl, device, builder);
     }
 
     @Override
-    public Resource createGatewayDockerComposeFile(String baseUrl, Device device, DockerComposeBuilder builder) throws URISyntaxException {
+    public Resource createGatewayDockerComposeFile(String baseUrl, Device device, DockerComposeParams builder) throws URISyntaxException {
         String mqttType = isEnabled(MQTTS) ? MQTTS : MQTT;
         DeviceConnectivityInfo properties = getConnectivity(mqttType);
         DeviceCredentials creds = deviceCredentialsService.findDeviceCredentialsByDeviceId(device.getTenantId(), device.getId());

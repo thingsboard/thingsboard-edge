@@ -32,7 +32,6 @@ package org.thingsboard.server.dao.device;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.core.io.Resource;
-import org.thingsboard.common.util.DockerComposeBuilder;
 import org.thingsboard.server.common.data.Device;
 
 import java.net.URISyntaxException;
@@ -45,5 +44,5 @@ public interface DeviceConnectivityService {
 
     Resource createGatewayDockerComposeFile(String baseUrl, Device device) throws URISyntaxException;
 
-    Resource createGatewayDockerComposeFile(String baseUrl, Device device, DockerComposeBuilder builder) throws URISyntaxException;
+    Resource createGatewayDockerComposeFile(String baseUrl, Device device, DockerComposeParams builder) throws URISyntaxException;
 }
