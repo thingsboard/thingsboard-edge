@@ -57,12 +57,9 @@ import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
-import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.translation.TbTranslationService;
-
-import java.util.Iterator;
 
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_END;
 import static org.thingsboard.server.controller.ControllerConstants.MARKDOWN_CODE_BLOCK_START;
@@ -163,7 +160,7 @@ public class CustomTranslationController extends BaseController {
                                                     @RequestBody JsonNode newCustomTranslation) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
-        DataValidator.validateJsonKeys(newCustomTranslation);
+        DataValidator.validateCustomTranslation(newCustomTranslation);
         SecurityUser currentUser = getCurrentUser();
         tbTranslationService.patchCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
                 localeCode, newCustomTranslation);

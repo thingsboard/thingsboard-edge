@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.collect.Streams;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -142,14 +143,12 @@ public abstract class DataValidator<D extends BaseData<?>> {
         }
     }
 
-    public static void validateJsonKeys(JsonNode newCustomTranslation) {
-        Iterator<String> fieldNames = newCustomTranslation.fieldNames();
-        while (fieldNames.hasNext()) {
-            String fieldExpression = fieldNames.next();
-            if (fieldExpression.endsWith(".")) {
+    public static void validateCustomTranslation(JsonNode customTranslation) {
+        Streams.stream(customTranslation.fieldNames()).forEach(key -> {
+            if (key.endsWith(".")) {
                 throw new DataValidationException("The key can`t end with '.'");
             }
-        }
+        });
     }
 
     public static boolean doValidateLocaleCode(String localeCode) {
