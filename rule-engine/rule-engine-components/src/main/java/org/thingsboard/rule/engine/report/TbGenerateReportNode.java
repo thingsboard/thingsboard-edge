@@ -76,12 +76,11 @@ public class TbGenerateReportNode extends TbAbstractExternalNode {
 
     @Override
     public void onMsg(TbContext ctx, TbMsg msg) {
-        var tbMsg = ackIfNeeded(ctx, msg);
         ReportConfig reportConfig;
         try {
             if (this.config.isUseReportConfigFromMessage()) {
                 try {
-                    JsonNode msgJson = JacksonUtil.toJsonNode(tbMsg.getData());
+                    JsonNode msgJson = JacksonUtil.toJsonNode(msg.getData());
                     JsonNode reportConfigJson = msgJson.get("reportConfig");
                     reportConfig = JacksonUtil.treeToValue(reportConfigJson, ReportConfig.class);
                 } catch (Exception e) {
@@ -94,6 +93,9 @@ public class TbGenerateReportNode extends TbAbstractExternalNode {
             if (!this.config.isUseSystemReportsServer()) {
                 reportsServerEndpointUrl = this.config.getReportsServerEndpointUrl();
             }
+
+            var tbMsg = ackIfNeeded(ctx, msg);
+
             ctx.getPeContext().getReportService().generateReport(
                     ctx.getTenantId(),
                     reportConfig,
@@ -122,7 +124,7 @@ public class TbGenerateReportNode extends TbAbstractExternalNode {
                     throwable -> tellFailure(ctx, tbMsg, throwable)
             );
         } catch (Throwable t) {
-            tellFailure(ctx, tbMsg, t);
+            ctx.tellFailure(msg, t);
         }
     }
 
