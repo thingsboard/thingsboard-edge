@@ -514,6 +514,28 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
         assertThat(getUserCustomMenu(eTagAfterTenantUpdate).getResponse().getStatus()).isEqualTo(HttpStatus.NOT_MODIFIED.value());
     }
 
+    @Test
+    public void testShouldInvalidateCacheAfterAssignListUpdate() throws Exception {
+        loginTenantAdmin();
+
+        CustomMenu customMenu = new CustomMenu();
+        customMenu.setName(RandomStringUtils.randomAlphabetic(10));
+        customMenu.setScope(CMScope.TENANT);
+        customMenu.setAssigneeType(CMAssigneeType.NO_ASSIGN);
+        customMenu = doPost("/api/customMenu", customMenu, CustomMenu.class);
+        idsToRemove.add(customMenu.getUuidId());
+        CustomMenuConfig tenantMenuConfig = putRandomMenuConfig(customMenu.getId());
+
+        JsonNode currentMenu = doGet("/api/customMenu", JsonNode.class);
+        assertThat(currentMenu.get("items")).isEmpty();
+
+        //assign menu to user
+        doPut("/api/customMenu/" + customMenu.getId() + "/assign/USERS", List.of(tenantAdminUserId.getId()));
+
+        JsonNode currentMenuAfterAssign = doGet("/api/customMenu", JsonNode.class);
+        assertCustomMenuConfig(currentMenuAfterAssign, tenantMenuConfig);
+    }
+
     private MvcResult getUserCustomMenu() throws Exception {
         return getUserCustomMenu(null);
     }
