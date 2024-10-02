@@ -30,7 +30,7 @@
     "alarms": [
       {
         "id": "72f24169-b9b2-2e46-2176-7b99630b65f0",
-        "alarmType": "Vibration alarm",
+        "alarmType": "Vibration",
         "createRules": {
           "CRITICAL": {
             "condition": {
@@ -139,7 +139,7 @@
       },
       {
         "id": "db4e3ea1-c1a9-15a5-0a53-150e5472a615",
-        "alarmType": "Power consumption alarm",
+        "alarmType": "Power consumption",
         "createRules": {
           "WARNING": {
             "condition": {
@@ -508,7 +508,7 @@
       },
       {
         "id": "6137cf42-03f2-ec69-df67-f6bc7ab12f08",
-        "alarmType": "Temperature alarm",
+        "alarmType": "Temperature",
         "createRules": {
           "CRITICAL": {
             "condition": {
