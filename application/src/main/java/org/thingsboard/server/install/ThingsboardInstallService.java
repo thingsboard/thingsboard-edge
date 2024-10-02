@@ -177,6 +177,7 @@ public class ThingsboardInstallService {
                     if (installScripts.isUpdateImages()) {
                         installScripts.updateImages();
                     }
+                    systemDataLoaderService.createDefaultCustomMenu();
                 }
                 log.info("Upgrade finished successfully!");
 
