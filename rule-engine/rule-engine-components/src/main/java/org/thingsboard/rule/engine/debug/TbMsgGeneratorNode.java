@@ -44,8 +44,8 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.AssetId;
 import org.thingsboard.server.common.data.id.BlobEntityId;
@@ -59,6 +59,7 @@ import org.thingsboard.server.common.data.id.EntityIdFactory;
 import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.RoleId;
+import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.SchedulerEventId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
@@ -155,8 +156,12 @@ public class TbMsgGeneratorNode implements TbNode {
                     m -> {
                         log.trace("onMsg onSuccess callback, took {}ms, config {}, msg {}", sw.stopAndGetTotalTimeMillis(), config, msg);
                         if (initialized.get() && (config.getMsgCount() == TbMsgGeneratorNodeConfiguration.UNLIMITED_MSG_COUNT || currentMsgCount < config.getMsgCount())) {
-                            if (getEntityByEntityType(ctx, originatorId.getEntityType()) != null) {
+                            if (getEntityByEntityType(ctx, msg, originatorId.getEntityType()) != null) {
                                 ctx.enqueueForTellNext(m, TbNodeConnectionType.SUCCESS);
+                                scheduleTickMsg(ctx, msg);
+                                currentMsgCount++;
+                            } else {
+                                ctx.tellFailure(msg, new RuntimeException("Unsupported originator entity type " + originatorId.getEntityType()));
                                 scheduleTickMsg(ctx, msg);
                                 currentMsgCount++;
                             }
@@ -173,53 +178,59 @@ public class TbMsgGeneratorNode implements TbNode {
         }
     }
 
-    private HasTenantId getEntityByEntityType(TbContext ctx, EntityType entityType) {
-        TenantId tenantId = ctx.getTenantId();
-        HasTenantId entity;
-        switch (entityType) {
-            case DEVICE:
-                entity = ctx.getDeviceService().findDeviceById(tenantId, (DeviceId) originatorId);
-                break;
-            case ASSET:
-                entity = ctx.getAssetService().findAssetById(tenantId, (AssetId) originatorId);
-                break;
-            case ENTITY_VIEW:
-                entity = ctx.getEntityViewService().findEntityViewById(tenantId, (EntityViewId) originatorId);
-                break;
-            case TENANT:
-                entity = ctx.getTenantService().findTenantById(tenantId);
-                break;
-            case CUSTOMER:
-                entity = ctx.getCustomerService().findCustomerById(tenantId, (CustomerId) originatorId);
-                break;
-            case DASHBOARD:
-                entity = ctx.getDashboardService().findDashboardById(tenantId, (DashboardId) originatorId);
-                break;
-            case USER:
-                entity = ctx.getUserService().findUserById(tenantId, (UserId) originatorId);
-                break;
-            case CONVERTER:
-                entity = ctx.getPeContext().getConverterService().findConverterById(tenantId, (ConverterId) originatorId);
-                break;
-            case INTEGRATION:
-                entity = ctx.getPeContext().getIntegrationService().findIntegrationById(tenantId, (IntegrationId) originatorId);
-                break;
-            case SCHEDULER_EVENT:
-                entity = ctx.getPeContext().getSchedulerEventService().findSchedulerEventById(tenantId, (SchedulerEventId) originatorId);
-                break;
-            case BLOB_ENTITY:
-                entity = ctx.getPeContext().getBlobEntityService().findBlobEntityById(tenantId, (BlobEntityId) originatorId);
-                break;
-            case ROLE:
-                entity = ctx.getPeContext().getRoleService().findRoleById(tenantId, (RoleId) originatorId);
-                break;
-            case EDGE:
-                entity = ctx.getEdgeService().findEdgeById(tenantId, (EdgeId) originatorId);
-                break;
-            default:
-                throw new RuntimeException("Unsupported originator entity type");
-        }
-        return entity;
+    private BaseData getEntityByEntityType(TbContext ctx, TbMsg msg, EntityType entityType) {
+        try {
+            TenantId tenantId = ctx.getTenantId();
+            BaseData entity;
+            switch (entityType) {
+                case DEVICE:
+                    entity = ctx.getDeviceService().findDeviceById(tenantId, (DeviceId) originatorId);
+                    break;
+                case ASSET:
+                    entity = ctx.getAssetService().findAssetById(tenantId, (AssetId) originatorId);
+                    break;
+                case ENTITY_VIEW:
+                    entity = ctx.getEntityViewService().findEntityViewById(tenantId, (EntityViewId) originatorId);
+                    break;
+                case TENANT:
+                    entity = ctx.getTenantService().findTenantById(tenantId);
+                    break;
+                case CUSTOMER:
+                    entity = ctx.getCustomerService().findCustomerById(tenantId, (CustomerId) originatorId);
+                    break;
+                case DASHBOARD:
+                    entity = ctx.getDashboardService().findDashboardById(tenantId, (DashboardId) originatorId);
+                    break;
+                case USER:
+                    entity = ctx.getUserService().findUserById(tenantId, (UserId) originatorId);
+                    break;
+                case CONVERTER:
+                    entity = ctx.getPeContext().getConverterService().findConverterById(tenantId, (ConverterId) originatorId);
+                    break;
+                case INTEGRATION:
+                    entity = ctx.getPeContext().getIntegrationService().findIntegrationById(tenantId, (IntegrationId) originatorId);
+                    break;
+                case SCHEDULER_EVENT:
+                    entity = ctx.getPeContext().getSchedulerEventService().findSchedulerEventById(tenantId, (SchedulerEventId) originatorId);
+                    break;
+                case BLOB_ENTITY:
+                    entity = ctx.getPeContext().getBlobEntityService().findBlobEntityById(tenantId, (BlobEntityId) originatorId);
+                    break;
+                case ROLE:
+                    entity = ctx.getPeContext().getRoleService().findRoleById(tenantId, (RoleId) originatorId);
+                    break;
+                case EDGE:
+                    entity = ctx.getEdgeService().findEdgeById(tenantId, (EdgeId) originatorId);
+                    break;
+                case RULE_NODE:
+                    entity = ctx.getRuleChainService().findRuleNodeById(tenantId, (RuleNodeId) originatorId);
+                    break;
+                default:
+                    return null;
+            }
+            return entity;
+        } catch (Exception ignored) {}
+        return null;
     }
 
     private void scheduleTickMsg(TbContext ctx, TbMsg msg) {

@@ -58,10 +58,12 @@ import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.msg.TbMsgType;
 import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
+import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.script.ScriptLanguage;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
+import org.thingsboard.server.dao.rule.RuleChainService;
 
 import java.util.EnumSet;
 import java.util.Map;
@@ -84,6 +86,7 @@ import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class TbMsgGeneratorNodeTest extends AbstractRuleNodeUpgradeTest {
@@ -200,11 +203,18 @@ public class TbMsgGeneratorNodeTest extends AbstractRuleNodeUpgradeTest {
         then(ctxMock).should().isLocalEntity(entityId);
     }
 
+    @Mock
+    private RuleChainService ruleChainService;
+
     @Test
     public void givenMsgCountAndDelay_whenInit_thenVerifyInvocationOfOnMsgMethod() throws TbNodeException, InterruptedException {
         // GIVEN
         var awaitTellSelfLatch = new CountDownLatch(5);
         config.setMsgCount(5);
+
+        when(ctxMock.getTenantId()).thenReturn(TENANT_ID);
+        when(ctxMock.getRuleChainService()).thenReturn(ruleChainService);
+        when(ruleChainService.findRuleNodeById(TENANT_ID, RULE_NODE_ID)).thenReturn(new RuleNode());
 
         given(ctxMock.getSelfId()).willReturn(RULE_NODE_ID);
         given(ctxMock.isLocalEntity(any())).willReturn(true);
