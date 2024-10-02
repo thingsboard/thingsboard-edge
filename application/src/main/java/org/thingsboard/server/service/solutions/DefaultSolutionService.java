@@ -578,10 +578,16 @@ public class DefaultSolutionService implements SolutionService {
 
         if (template.contains("${GATEWAYS_DASHBOARD_URL}")) {
             TenantId tenantId = ctx.getTenantId();
-            DashboardInfo thingsBoardIoTGateways = dashboardService.findFirstDashboardInfoByTenantIdAndName(tenantId, "ThingsBoard IoT Gateways");
-            EntityGroup dashboardGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME)
-                    .orElseThrow(() -> new RuntimeException("Could not find entity group by name 'All'."));
-            template = template.replace("${GATEWAYS_DASHBOARD_URL}", getDashboardLink(solutionInstructions, dashboardGroup.getId(), thingsBoardIoTGateways.getId(), false));
+            String dashboardLink;
+            try {
+                DashboardInfo thingsBoardIoTGateways = dashboardService.findFirstDashboardInfoByTenantIdAndName(tenantId, "ThingsBoard IoT Gateways");
+                EntityGroup dashboardGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME)
+                        .orElseThrow(() -> new RuntimeException("Could not find entity group by name 'All'."));
+                dashboardLink = getDashboardLink(solutionInstructions, dashboardGroup.getId(), thingsBoardIoTGateways.getId(), false);
+            } catch (Exception e) {
+                dashboardLink = "/dashboards";
+            }
+            template = template.replace("${GATEWAYS_DASHBOARD_URL}", dashboardLink);
         }
 
         StringBuilder devList = new StringBuilder();
