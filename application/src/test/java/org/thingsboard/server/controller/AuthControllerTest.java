@@ -98,8 +98,8 @@ public class AuthControllerTest extends AbstractControllerTest {
         user = getCurrentUser();
         assertThat(user.getAuthority()).isEqualTo(Authority.CUSTOMER_USER);
         assertThat(user.getEmail()).isEqualTo(CUSTOMER_USER_EMAIL);
-        assertThat(user.getAdditionalInfo().get("userCredentialsEnabled").asBoolean()).isTrue();
         user = getUser(customerUserId);
+        assertThat(user.getAdditionalInfo().get("userCredentialsEnabled").asBoolean()).isTrue();
         assertThat(user.getAdditionalInfo().get("lastLoginTs").asLong()).isCloseTo(System.currentTimeMillis(), within(10000L));
         UserInfo userInfo = getUserInfo(customerUserId);
         assertThat(userInfo.getAdditionalInfo().get("lastLoginTs").asLong()).isCloseTo(System.currentTimeMillis(), within(10000L));
