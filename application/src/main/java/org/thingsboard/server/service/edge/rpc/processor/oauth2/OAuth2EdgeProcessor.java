@@ -53,7 +53,7 @@ import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 public class OAuth2EdgeProcessor extends BaseEdgeProcessor {
 
     public DownlinkMsg convertOAuth2DomainEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
-        if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_7_1)) {
+        if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_8_0)) {
             return null;
         }
         DomainId domainId = new DomainId(edgeEvent.getEntityId());
@@ -88,7 +88,7 @@ public class OAuth2EdgeProcessor extends BaseEdgeProcessor {
     }
 
     public DownlinkMsg convertOAuth2ClientEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
-        if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_7_1)) {
+        if (EdgeVersionUtils.isEdgeVersionOlderThan(edgeVersion, EdgeVersion.V_3_8_0)) {
             return null;
         }
         OAuth2ClientId oAuth2ClientId = new OAuth2ClientId(edgeEvent.getEntityId());

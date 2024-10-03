@@ -28,21 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.device;
+package org.thingsboard.server.transport.coap.efento.utils;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.springframework.core.io.Resource;
-import org.thingsboard.server.common.data.Device;
+public enum PulseCounterType {
 
-import java.net.URISyntaxException;
+    WATER_CNT_ACC("water_cnt_acc_", 100),
+    PULSE_CNT_ACC("pulse_cnt_acc_", 1000),
+    ELEC_METER_ACC("elec_meter_acc_", 1000),
+    PULSE_CNT_ACC_WIDE("pulse_cnt_acc_wide_", 1000000);
 
-public interface DeviceConnectivityService {
+    private final String prefix;
+    private final int majorResolution;
 
-    JsonNode findDevicePublishTelemetryCommands(String baseUrl, Device device) throws URISyntaxException;
+    PulseCounterType(String prefix, int majorResolution) {
+        this.prefix = prefix;
+        this.majorResolution = majorResolution;
+    }
 
-    Resource getPemCertFile(String protocol);
+    public String getPrefix() {
+        return prefix;
+    }
 
-    Resource createGatewayDockerComposeFile(String baseUrl, Device device) throws URISyntaxException;
-
-    Resource createGatewayDockerComposeFile(String baseUrl, Device device, DockerComposeParams params) throws URISyntaxException;
+    public int getMajorResolution() {
+        return majorResolution;
+    }
 }
