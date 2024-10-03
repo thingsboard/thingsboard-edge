@@ -30,8 +30,6 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.fasterxml.jackson.databind.type.MapType;
@@ -74,16 +72,23 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private UserPermissionsService userPermissionsService;
 
-    private final Set<Operation> allowedEntityGroupOperations = new HashSet<>(Arrays.asList(Operation.READ,
-            Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY));
+    private final Set<Operation> groupRoleOperations = new HashSet<>(Arrays.asList(Operation.RPC_CALL,
+            Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_CREDENTIALS, Operation.READ_TELEMETRY,
+            Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY, Operation.WRITE_CREDENTIALS));
 
-    private final Set<Operation> allowedGenericOperations = new HashSet<>(Arrays.asList(Operation.READ,
-            Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY, Operation.RPC_CALL,
-            Operation.READ_CREDENTIALS, Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY));
+    private final Set<Operation> genericRoleOperations = new HashSet<>(Arrays.asList(Operation.RPC_CALL,
+            Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_CREDENTIALS, Operation.READ_TELEMETRY,
+            Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY, Operation.WRITE_CREDENTIALS));
 
-    private final Set<Operation> allowedAllOperationsExceptDelete = new HashSet<>(Arrays.asList(Operation.READ, Operation.WRITE,
-            Operation.CREATE, Operation.READ_ATTRIBUTES, Operation.WRITE_ATTRIBUTES, Operation.READ_TELEMETRY,
-            Operation.WRITE_TELEMETRY, Operation.CHANGE_OWNER));
+    private final Set<Operation> profilesAndResourceOperations = new HashSet<>(Arrays.asList(
+            Operation.CHANGE_OWNER, Operation.CREATE,
+            Operation.READ, Operation.READ_ATTRIBUTES ,Operation.READ_TELEMETRY,
+            Operation.WRITE, Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY));
+
+    private final Set<Operation> entityGroupOperations = new HashSet<>(Arrays.asList(
+            Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP,
+            Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_TELEMETRY,
+            Operation.WRITE_ATTRIBUTES, Operation.WRITE_CREDENTIALS));
 
     public ListenableFuture<Void> processRoleMsgFromCloud(TenantId tenantId, RoleProto roleProto) {
         try {
@@ -139,10 +144,10 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
             }
             List<Operation> operations;
             if (originOperations.contains(Operation.ALL)) {
-                operations = new ArrayList<>(allowedEntityGroupOperations);
+                operations = new ArrayList<>(groupRoleOperations);
             } else {
                 operations = originOperations.stream()
-                        .filter(allowedEntityGroupOperations::contains)
+                        .filter(groupRoleOperations::contains)
                         .collect(Collectors.toList());
             }
             role.setPermissions(JacksonUtil.valueToTree(operations));
@@ -164,43 +169,65 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
                     case ENTITY_VIEW:
                     case DASHBOARD:
                     case ALARM:
+                    case NOTIFICATION:
                         newOperations = entry.getValue();
                         break;
-                    case PROFILE:
-                        newPermissions.put(Resource.PROFILE, new ArrayList<>(allowedAllOperationsExceptDelete));
-                        newOperations = new ArrayList<>(allowedGenericOperations);
-                        break;
-                    case ALL:
+                    case DEVICE_GROUP:
+                    case ASSET_GROUP:
+                    case ENTITY_VIEW_GROUP:
+                    case DASHBOARD_GROUP:
                         if (originOperations.contains(Operation.ALL)) {
-                            newPermissions.put(Resource.ALARM, Collections.singletonList(Operation.ALL));
-                            newPermissions.put(Resource.DEVICE, Collections.singletonList(Operation.ALL));
-                            newPermissions.put(Resource.DEVICE_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
-                            newPermissions.put(Resource.ASSET, Collections.singletonList(Operation.ALL));
-                            newPermissions.put(Resource.ASSET_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
-                            newPermissions.put(Resource.ENTITY_VIEW, Collections.singletonList(Operation.ALL));
-                            newPermissions.put(Resource.ENTITY_VIEW_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
-                            newPermissions.put(Resource.DASHBOARD, Collections.singletonList(Operation.ALL));
-                            newPermissions.put(Resource.DASHBOARD_GROUP, Arrays.asList(Operation.ADD_TO_GROUP, Operation.REMOVE_FROM_GROUP));
-                            newPermissions.put(Resource.DEVICE_PROFILE, new ArrayList<>(allowedAllOperationsExceptDelete));
-                            newPermissions.put(Resource.ASSET_PROFILE, new ArrayList<>(allowedAllOperationsExceptDelete));
-                            newPermissions.put(Resource.TB_RESOURCE, new ArrayList<>(allowedAllOperationsExceptDelete));
-                            newPermissions.put(Resource.NOTIFICATION, Collections.singletonList(Operation.ALL));
-                            newOperations = new ArrayList<>(allowedGenericOperations);
+                            newOperations = new ArrayList<>(entityGroupOperations);
                         } else {
                             newOperations = originOperations.stream()
-                                    .filter(allowedGenericOperations::contains)
+                                    .filter(entityGroupOperations::contains)
                                     .collect(Collectors.toList());
                         }
                         break;
+                    case PROFILE:
                     case VERSION_CONTROL:
                         newOperations = new ArrayList<>();
                         break;
-                    default:
+                    case DEVICE_PROFILE:
+                    case ASSET_PROFILE:
+                    case TB_RESOURCE:
                         if (originOperations.contains(Operation.ALL)) {
-                            newOperations = new ArrayList<>(allowedGenericOperations);
+                            newOperations = new ArrayList<>(profilesAndResourceOperations);
                         } else {
                             newOperations = originOperations.stream()
-                                    .filter(allowedGenericOperations::contains)
+                                    .filter(profilesAndResourceOperations::contains)
+                                    .collect(Collectors.toList());
+                        }
+                        break;
+                    case ALL:
+                        if (originOperations.contains(Operation.ALL)) {
+                            newPermissions.put(Resource.PROFILE, new ArrayList<>());
+                            newPermissions.put(Resource.DEVICE, Collections.singletonList(Operation.ALL));
+                            newPermissions.put(Resource.ASSET, Collections.singletonList(Operation.ALL));
+                            newPermissions.put(Resource.ENTITY_VIEW, Collections.singletonList(Operation.ALL));
+                            newPermissions.put(Resource.DASHBOARD, Collections.singletonList(Operation.ALL));
+                            newPermissions.put(Resource.ALARM, Collections.singletonList(Operation.ALL));
+                            newPermissions.put(Resource.NOTIFICATION, Collections.singletonList(Operation.ALL));
+                            newPermissions.put(Resource.DEVICE_GROUP, new ArrayList<>(entityGroupOperations));
+                            newPermissions.put(Resource.ASSET_GROUP, new ArrayList<>(entityGroupOperations));
+                            newPermissions.put(Resource.ENTITY_VIEW_GROUP, new ArrayList<>(entityGroupOperations));
+                            newPermissions.put(Resource.DASHBOARD_GROUP, new ArrayList<>(entityGroupOperations));
+                            newPermissions.put(Resource.DEVICE_PROFILE, new ArrayList<>(profilesAndResourceOperations));
+                            newPermissions.put(Resource.ASSET_PROFILE, new ArrayList<>(profilesAndResourceOperations));
+                            newPermissions.put(Resource.TB_RESOURCE, new ArrayList<>(profilesAndResourceOperations));
+                            newOperations = new ArrayList<>(genericRoleOperations);
+                        } else {
+                            newOperations = originOperations.stream()
+                                    .filter(genericRoleOperations::contains)
+                                    .collect(Collectors.toList());
+                        }
+                        break;
+                    default:
+                        if (originOperations.contains(Operation.ALL)) {
+                            newOperations = new ArrayList<>(genericRoleOperations);
+                        } else {
+                            newOperations = originOperations.stream()
+                                    .filter(genericRoleOperations::contains)
                                     .collect(Collectors.toList());
                         }
                         break;
