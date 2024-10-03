@@ -108,18 +108,20 @@ public class DeviceConnectivityUtil {
         return command.toString();
     }
 
-    public static Resource getGatewayDockerComposeFile(String baseUrl, DeviceConnectivityInfo properties, DeviceCredentials deviceCredentials, String mqttType, DockerComposeParams builder) throws URISyntaxException {
+    public static Resource getGatewayDockerComposeFile(String baseUrl, DeviceConnectivityInfo properties, DeviceCredentials deviceCredentials, String mqttType, DockerComposeParams params) throws URISyntaxException {
         String host = getHost(baseUrl, properties, mqttType);
 
         StringBuilder dockerComposeBuilder = new StringBuilder();
-        dockerComposeBuilder.append("version: '3.4'\n");
+        if (params.includeVersion()) {
+            dockerComposeBuilder.append("version: '3.4'\n");
+        }
         dockerComposeBuilder.append("services:\n");
         dockerComposeBuilder.append("  # ThingsBoard IoT Gateway Service Configuration\n");
         dockerComposeBuilder.append("  tb-gateway:\n");
         dockerComposeBuilder.append("    image: thingsboard/tb-gateway\n");
         dockerComposeBuilder.append("    container_name: tb-gateway\n");
         dockerComposeBuilder.append("    restart: always\n");
-        if (builder.includePortBindings()) {
+        if (params.includePortBindings()) {
             dockerComposeBuilder.append("\n");
             dockerComposeBuilder.append("    # Ports bindings - required by some connectors\n");
             dockerComposeBuilder.append("    ports:\n");
@@ -130,7 +132,7 @@ public class DeviceConnectivityUtil {
             dockerComposeBuilder.append("#        - \"50000:50000/tcp\" # Socket connector with type TCP\n");
             dockerComposeBuilder.append("#        - \"50000:50000/udp\" # Socket connector with type UDP\n");
         }
-        if (builder.includeExtraHosts()) {
+        if (params.includeExtraHosts()) {
             dockerComposeBuilder.append("\n");
             dockerComposeBuilder.append("    # Necessary mapping for Linux\n");
             dockerComposeBuilder.append("    extra_hosts:\n");
@@ -161,7 +163,7 @@ public class DeviceConnectivityUtil {
                 }
                 break;
         }
-        if (builder.includeVolumesBind()) {
+        if (params.includeVolumesBind()) {
             dockerComposeBuilder.append("\n");
             dockerComposeBuilder.append("    # Volumes bind\n");
             dockerComposeBuilder.append("    volumes:\n");
@@ -169,7 +171,7 @@ public class DeviceConnectivityUtil {
             dockerComposeBuilder.append("      - tb-gw-logs:/thingsboard_gateway/logs\n");
             dockerComposeBuilder.append("      - tb-gw-extensions:/thingsboard_gateway/extensions\n");
         }
-        if (builder.includeVolumesDeclaration()) {
+        if (params.includeVolumesDeclaration()) {
             dockerComposeBuilder.append("\n");
             dockerComposeBuilder.append("# Volumes declaration for configurations, extensions and configuration\n");
             dockerComposeBuilder.append("volumes:\n");
