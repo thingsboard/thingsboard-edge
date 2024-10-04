@@ -85,6 +85,7 @@ import org.thingsboard.server.service.executors.NotificationExecutorService;
 import org.thingsboard.server.service.notification.channels.NotificationChannel;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 import org.thingsboard.server.service.telemetry.AbstractSubscriptionService;
+import org.thingsboard.server.service.translation.TbTranslationService;
 import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
 import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;
 
@@ -114,6 +115,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
     private final TopicService topicService;
     private final TbQueueProducerProvider producerProvider;
     private final RateLimitService rateLimitService;
+    private final TbTranslationService translationService;
 
     private Map<NotificationDeliveryMethod, NotificationChannel> channels;
 
@@ -195,6 +197,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
                 .template(notificationTemplate)
                 .settings(settings)
                 .systemSettings(systemSettings)
+                .translationProvider(locale -> translationService.getFullTranslation(tenantId, null, locale))
                 .build();
 
         processNotificationRequestAsync(ctx, targets, callback);
