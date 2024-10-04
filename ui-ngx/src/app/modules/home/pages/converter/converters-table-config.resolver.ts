@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
   DateEntityTableColumn,
   defaultEntityTablePermissions,
@@ -59,7 +59,7 @@ import { isUndefined } from '@core/utils';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 
 @Injectable()
-export class ConvertersTableConfigResolver implements Resolve<EntityTableConfig<Converter>> {
+export class ConvertersTableConfigResolver  {
 
   private readonly config: EntityTableConfig<Converter> = new EntityTableConfig<Converter>();
 
