@@ -496,6 +496,7 @@ actors:
       duration: "${ACTORS_RULE_TRANSACTION_DURATION:60000}"
     external:
       # Force acknowledgment of the incoming message for external rule nodes to decrease processing latency.
+      # The Generate Report node also adheres to this forced acknowledgment, as it operates similarly to a REST API call.
       # Enqueue the result of external node processing as a separate message to the rule engine.
       force_ack: "${ACTORS_RULE_EXTERNAL_NODE_FORCE_ACK:false}"
   rpc:

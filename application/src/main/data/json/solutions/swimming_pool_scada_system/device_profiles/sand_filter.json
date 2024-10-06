@@ -30,7 +30,7 @@
     "alarms": [
       {
         "id": "02162bcb-71b1-d7c5-b294-b77ef7206142",
-        "alarmType": "Rotation speed alarm",
+        "alarmType": "Rotation speed",
         "createRules": {
           "CRITICAL": {
             "condition": {
@@ -342,7 +342,7 @@
       },
       {
         "id": "6ee3c7e5-91fb-29f1-5398-64ef50c46e2b",
-        "alarmType": "Vibration alarm",
+        "alarmType": "Vibration",
         "createRules": {
           "CRITICAL": {
             "condition": {
