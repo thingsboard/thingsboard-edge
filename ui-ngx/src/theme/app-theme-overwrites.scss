@@ -30,18 +30,21 @@
  */
 @use '@angular/material' as mat;
 @use '@angular/material/core/tokens/token-utils';
-@use '@angular/material/core/tokens/m2/mdc/filled-button' as tokens-mdc-filled-button;
-@use '@angular/material/core/tokens/m2/mdc/protected-button' as tokens-mdc-protected-button;
+@use '@angular/material/core/tokens/m2/mat/select' as tokens-mat-select;
 @use '@angular/material/core/tokens/m2/mdc/fab' as tokens-mdc-fab;
-@use '@angular/material/core/tokens/m2/mdc/checkbox' as tokens-mdc-checkbox;
+@use '@angular/material/core/tokens/m2/mat/fab' as tokens-mat-fab;
+@use '@angular/material/core/tokens/m2/mdc/fab-small' as tokens-mdc-fab-small;
+@use '@angular/material/core/tokens/m2/mat/fab-small' as tokens-mat-fab-small;
+@use '@angular/material/core/tokens/m2/mdc/linear-progress' as tokens-mdc-linear-progress;
 @use 'sass:meta';
 @use 'sass:color';
 
 @mixin app-theme-overwrites($primary, $config-or-theme) {
   @include _mat-form-field-overwrites($primary, $config-or-theme);
   @include _mat-button-overwrites($primary, $config-or-theme);
+  @include _mat-icon-overwrites();
+  @include _mat-select-overwrites($primary, $config-or-theme);
   @include _mat-fab-overwrites($primary, $config-or-theme);
-  @include _mat-checkbox-overwrites($primary, $config-or-theme);
   @include _mat-progress-bar-overwrites($primary, $config-or-theme);
 }
 
@@ -85,41 +88,28 @@
 }
 
 @mixin _mat-button-overwrites($primary, $config-or-theme) {
-  $config: mat.m2-get-color-config($config-or-theme);
-  $accent: map_get($config, accent);
   .mat-toolbar {
     .mat-mdc-outlined-button {
       --mdc-outlined-button-outline-color: inherit;
       &:not(:disabled) {
-        border-color: var(--mdc-outlined-button-outline-color, inherit);
+        border-color: inherit;
       }
     }
   }
-  .mat-mdc-unelevated-button {
-    &.mat-primary {
-      @include _unelevated-button-variant(
-          mat.m2-get-color-from-palette($primary, default-contrast),
-          mat.m2-get-color-from-palette($primary)
-      );
-    }
-    &.mat-accent {
-      @include _unelevated-button-variant(
-          mat.m2-get-color-from-palette($accent, default-contrast),
-          mat.m2-get-color-from-palette($accent)
-      );
-    }
+}
+
+@mixin _mat-icon-overwrites() {
+  .mat-icon, .mat-icon.mat-primary, .mat-icon.mat-accent, .mat-icon.mat-warn {
+    color: var(--mat-icon-color);
   }
-  .mat-mdc-raised-button {
+}
+
+@mixin _mat-select-overwrites($primary, $config-or-theme) {
+  .mat-toolbar {
     &.mat-primary {
-      @include _raised-button-variant(
+      @include _select-variant(
           mat.m2-get-color-from-palette($primary, default-contrast),
           mat.m2-get-color-from-palette($primary)
-      );
-    }
-    &.mat-accent {
-      @include _raised-button-variant(
-          mat.m2-get-color-from-palette($accent, default-contrast),
-          mat.m2-get-color-from-palette($accent)
       );
     }
   }
@@ -128,7 +118,7 @@
 @mixin _mat-fab-overwrites($primary, $config-or-theme) {
   $config: mat.m2-get-color-config($config-or-theme);
   $accent: map_get($config, accent);
-  .mat-mdc-fab, .mat-mdc-mini-fab {
+  .mat-mdc-fab {
     &.mat-primary {
       @include _fab-variant(
           mat.m2-get-color-from-palette($primary, default-contrast),
@@ -142,29 +132,15 @@
       );
     }
   }
-}
-
-@mixin _mat-checkbox-overwrites($primary, $config-or-theme) {
-  $config: mat.m2-get-color-config($config-or-theme);
-  $accent: map_get($config, accent);
-  .mat-mdc-checkbox {
+  .mat-mdc-mini-fab {
     &.mat-primary {
-      @include private-checkbox-styles-with-color(
-          mat.m2-get-color-from-palette($primary, default-contrast),
-          mat.m2-get-color-from-palette($primary)
-      );
-      @include _selected-ripple-colors(
+      @include _fab-small-variant(
           mat.m2-get-color-from-palette($primary, default-contrast),
           mat.m2-get-color-from-palette($primary)
       );
     }
-
     &.mat-accent {
-      @include private-checkbox-styles-with-color(
-          mat.m2-get-color-from-palette($accent, default-contrast),
-          mat.m2-get-color-from-palette($accent)
-      );
-      @include _selected-ripple-colors(
+      @include _fab-small-variant(
           mat.m2-get-color-from-palette($accent, default-contrast),
           mat.m2-get-color-from-palette($accent)
       );
@@ -179,68 +155,52 @@
 
   .mat-mdc-progress-bar {
 
-    .mdc-linear-progress__buffer-bar {
-      background-color: _get-buffer-color($primary, $background);
-    }
+    @include _progress-bar-palette-styles-overwrite($primary, $background);
 
     &.mat-accent {
-      .mdc-linear-progress__buffer-bar {
-        background-color: _get-buffer-color($accent, $background);
-      }
+      @include _progress-bar-palette-styles-overwrite($accent, $background);
     }
   }
 }
 
-@mixin _raised-button-variant($foreground, $background) {
-  @include token-utils.create-token-values(tokens-mdc-protected-button.$prefix,
-  (
-    container-color: $background,
-    label-text-color: $foreground
-  ));
-}
-
-@mixin _unelevated-button-variant($foreground, $background) {
-  @include token-utils.create-token-values(tokens-mdc-filled-button.$prefix,
-  (
-    container-color: $background,
-    label-text-color: $foreground
-  ));
+@mixin _select-variant($foreground, $background) {
+  @include token-utils.create-token-values(tokens-mat-select.$prefix,
+    (
+      enabled-trigger-text-color: $foreground
+    ));
 }
 
 @mixin _fab-variant($foreground, $background) {
   @include token-utils.create-token-values(tokens-mdc-fab.$prefix,
     (
       container-color: $background,
-      icon-color: $foreground
+      foreground-color: $foreground
     ));
-  --mat-mdc-fab-color: #{$foreground};
-}
-
-@mixin private-checkbox-styles-with-color($foreground, $background) {
-  @include token-utils.create-token-values(tokens-mdc-checkbox.$prefix,
+  @include token-utils.create-token-values(tokens-mat-fab.$prefix,
     (
-      selected-checkmark-color: $foreground,
-      selected-focus-icon-color: $background,
-      selected-hover-icon-color: $background,
-      selected-icon-color: $background,
-      selected-pressed-icon-color: $background
+      container-color: $background,
+      foreground-color: $foreground
     ));
 }
 
-@mixin _selected-ripple-colors($foreground, $background) {
-  .mdc-checkbox--selected ~ {
-    .mat-mdc-checkbox-ripple {
-      @include mat.ripple-color((
-        foreground: (
-          base: $foreground
-        ),
-      ));
-    }
+@mixin _fab-small-variant($foreground, $background) {
+  @include token-utils.create-token-values(tokens-mdc-fab-small.$prefix,
+    (
+      container-color: $background,
+      foreground-color: $foreground
+    ));
+  @include token-utils.create-token-values(tokens-mat-fab-small.$prefix,
+    (
+      container-color: $background,
+      foreground-color: $foreground
+    ));
+}
 
-    .mdc-checkbox__ripple {
-      background: $background;
-    }
-  }
+@mixin _progress-bar-palette-styles-overwrite($theme, $background) {
+  @include token-utils.create-token-values(tokens-mdc-linear-progress.$prefix,
+    (
+      track-color: _get-buffer-color($theme, $background)
+    ));
 }
 
 @function _get-buffer-color($theme, $background) {
