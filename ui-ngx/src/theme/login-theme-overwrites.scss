@@ -29,7 +29,8 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 @use '@angular/material' as mat;
-@use '@material/card/elevated-card-theme' as mdc-elevated-card-theme;
+@use '@angular/material/core/tokens/m2/mdc/elevated-card' as tokens-mdc-elevated-card;
+@use '@angular/material/core/tokens/token-utils';
 
 @mixin login-theme-overwrites($primary, $config-or-theme) {
   @include _mat-card-overwrites($primary, $config-or-theme);
@@ -38,9 +39,11 @@
 
 @mixin _mat-card-overwrites($primary, $config-or-theme) {
   .mat-mdc-card {
-    @include mdc-elevated-card-theme.theme((
-      container-color: mat.m2-get-color-from-palette($primary)
-    ));
+    @include token-utils.create-token-values(tokens-mdc-elevated-card.$prefix,
+      (
+        // The background color of the card.
+        container-color: mat.m2-get-color-from-palette($primary)
+      ));
   }
 }
 

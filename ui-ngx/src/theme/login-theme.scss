@@ -29,9 +29,9 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 @use '@angular/material' as mat;
-@use 'login-theme-overwrites' as overwrites;
-@use 'app-theme-overwrites' as app-overwrites;
-@import 'login-theme-constants';
+@use './login-theme-overwrites' as overwrites;
+@use './app-theme-overwrites' as app-overwrites;
+@import './login-theme-constants';
 
 @include mat.core();
 

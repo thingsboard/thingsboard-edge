@@ -29,9 +29,9 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 @use '@angular/material' as mat;
-@use 'app-theme-overwrites' as overwrites;
-@import 'datepicker-theme';
-@import 'theme-constants';
+@use './app-theme-overwrites' as overwrites;
+@import './datepicker-theme';
+@import './theme-constants';
 
 @include mat.core();
 

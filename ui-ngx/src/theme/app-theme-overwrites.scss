@@ -29,10 +29,11 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 @use '@angular/material' as mat;
-@use '@material/button/button-filled-theme' as mdc-button-filled-theme;
-@use '@material/button/button-protected-theme' as mdc-button-protected-theme;
-@use '@material/fab/fab-theme' as mdc-fab-theme;
-@use '@material/checkbox/checkbox-theme' as mdc-checkbox-theme;
+@use '@angular/material/core/tokens/token-utils';
+@use '@angular/material/core/tokens/m2/mdc/filled-button' as tokens-mdc-filled-button;
+@use '@angular/material/core/tokens/m2/mdc/protected-button' as tokens-mdc-protected-button;
+@use '@angular/material/core/tokens/m2/mdc/fab' as tokens-mdc-fab;
+@use '@angular/material/core/tokens/m2/mdc/checkbox' as tokens-mdc-checkbox;
 @use 'sass:meta';
 @use 'sass:color';
 
@@ -191,36 +192,39 @@
 }
 
 @mixin _raised-button-variant($foreground, $background) {
-  @include mdc-button-protected-theme.theme((
+  @include token-utils.create-token-values(tokens-mdc-protected-button.$prefix,
+  (
     container-color: $background,
-    label-text-color: $foreground,
+    label-text-color: $foreground
   ));
 }
 
 @mixin _unelevated-button-variant($foreground, $background) {
-  @include mdc-button-filled-theme.theme((
+  @include token-utils.create-token-values(tokens-mdc-filled-button.$prefix,
+  (
     container-color: $background,
-    label-text-color: $foreground,
+    label-text-color: $foreground
   ));
 }
 
 @mixin _fab-variant($foreground, $background) {
-  @include mdc-fab-theme.theme((
-    container-color: $background,
-    icon-color: $foreground,
-  ));
-
+  @include token-utils.create-token-values(tokens-mdc-fab.$prefix,
+    (
+      container-color: $background,
+      icon-color: $foreground
+    ));
   --mat-mdc-fab-color: #{$foreground};
 }
 
 @mixin private-checkbox-styles-with-color($foreground, $background) {
-  @include mdc-checkbox-theme.theme((
-    selected-checkmark-color: $foreground,
-    selected-focus-icon-color: $background,
-    selected-hover-icon-color: $background,
-    selected-icon-color: $background,
-    selected-pressed-icon-color: $background
-  ));
+  @include token-utils.create-token-values(tokens-mdc-checkbox.$prefix,
+    (
+      selected-checkmark-color: $foreground,
+      selected-focus-icon-color: $background,
+      selected-hover-icon-color: $background,
+      selected-icon-color: $background,
+      selected-pressed-icon-color: $background
+    ));
 }
 
 @mixin _selected-ripple-colors($foreground, $background) {

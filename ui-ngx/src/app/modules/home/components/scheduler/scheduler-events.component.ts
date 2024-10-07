@@ -103,7 +103,7 @@ import {
 import { EntityType } from '@shared/models/entity-type.models';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { asRoughMs, rangeContainsMarker } from '@fullcalendar/core/internal';
-import * as _moment from 'moment';
+import _moment from 'moment';
 import { FormBuilder } from '@angular/forms';
 
 @Component({
