@@ -31,62 +31,62 @@
 @use '@angular/material' as mat;
 
 :root {
-  --tb-primary-50: #{map_get(mat.$teal-palette, 50)};
-  --tb-primary-100: #{map_get(mat.$teal-palette, 100)};
-  --tb-primary-200: #{map_get(mat.$teal-palette, 200)};
-  --tb-primary-300: #{map_get(mat.$teal-palette, 300)};
-  --tb-primary-400: #{map_get(mat.$teal-palette, 400)};
-  --tb-primary-500: #{map_get(mat.$teal-palette, 800)};
-  --tb-primary-600: #{map_get(mat.$teal-palette, 600)};
-  --tb-primary-700: #{map_get(mat.$teal-palette, 700)};
-  --tb-primary-800: #{map_get(mat.$teal-palette, 800)};
-  --tb-primary-900: #{map_get(mat.$teal-palette, 900)};
-  --tb-primary-A100: #{map_get(mat.$teal-palette, A100)};
-  --tb-primary-A200: #{map_get(mat.$teal-palette, A200)};
-  --tb-primary-A400: #{map_get(mat.$teal-palette, A400)};
-  --tb-primary-A700: #{map_get(mat.$teal-palette, A700)};
-  --tb-primary-contrast-50: #{mat.get-contrast-color-from-palette(mat.$teal-palette, 50)};
-  --tb-primary-contrast-100: #{mat.get-contrast-color-from-palette(mat.$teal-palette, 100)};
-  --tb-primary-contrast-200: #{mat.get-contrast-color-from-palette(mat.$teal-palette, 200)};
-  --tb-primary-contrast-300: #{mat.get-contrast-color-from-palette(mat.$teal-palette, 300)};
-  --tb-primary-contrast-400: #{mat.get-contrast-color-from-palette(mat.$teal-palette, 400)};
-  --tb-primary-contrast-500: #{mat.get-contrast-color-from-palette(mat.$teal-palette, 500)};
-  --tb-primary-contrast-600: #{mat.get-contrast-color-from-palette(mat.$teal-palette, 600)};
-  --tb-primary-contrast-700: #{mat.get-contrast-color-from-palette(mat.$teal-palette, 700)};
-  --tb-primary-contrast-800: #{mat.get-contrast-color-from-palette(mat.$teal-palette, 800)};
-  --tb-primary-contrast-900: #{mat.get-contrast-color-from-palette(mat.$teal-palette, 900)};
-  --tb-primary-contrast-A100: #{mat.get-contrast-color-from-palette(mat.$teal-palette, A100)};
-  --tb-primary-contrast-A200: #{mat.get-contrast-color-from-palette(mat.$teal-palette, A200)};
-  --tb-primary-contrast-A400: #{mat.get-contrast-color-from-palette(mat.$teal-palette, A400)};
-  --tb-primary-contrast-A700: #{mat.get-contrast-color-from-palette(mat.$teal-palette, A700)};
-  --tb-accent-50: #{map_get(mat.$deep-orange-palette, 50)};
-  --tb-accent-100: #{map_get(mat.$deep-orange-palette, 100)};
-  --tb-accent-200: #{map_get(mat.$deep-orange-palette, 200)};
-  --tb-accent-300: #{map_get(mat.$deep-orange-palette, 300)};
-  --tb-accent-400: #{map_get(mat.$deep-orange-palette, 400)};
-  --tb-accent-500: #{map_get(mat.$deep-orange-palette, 500)};
-  --tb-accent-600: #{map_get(mat.$deep-orange-palette, 600)};
-  --tb-accent-700: #{map_get(mat.$deep-orange-palette, 700)};
-  --tb-accent-800: #{map_get(mat.$deep-orange-palette, 800)};
-  --tb-accent-900: #{map_get(mat.$deep-orange-palette, 900)};
-  --tb-accent-A100: #{map_get(mat.$deep-orange-palette, A100)};
-  --tb-accent-A200: #{map_get(mat.$deep-orange-palette, A200)};
-  --tb-accent-A400: #{map_get(mat.$deep-orange-palette, A400)};
-  --tb-accent-A700: #{map_get(mat.$deep-orange-palette, A700)};
-  --tb-accent-contrast-50: #{mat.get-contrast-color-from-palette(mat.$deep-orange-palette, 50)};
-  --tb-accent-contrast-100: #{mat.get-contrast-color-from-palette(mat.$deep-orange-palette, 100)};
-  --tb-accent-contrast-200: #{mat.get-contrast-color-from-palette(mat.$deep-orange-palette, 200)};
-  --tb-accent-contrast-300: #{mat.get-contrast-color-from-palette(mat.$deep-orange-palette, 300)};
-  --tb-accent-contrast-400: #{mat.get-contrast-color-from-palette(mat.$deep-orange-palette, 400)};
-  --tb-accent-contrast-500: #{mat.get-contrast-color-from-palette(mat.$deep-orange-palette, 500)};
-  --tb-accent-contrast-600: #{mat.get-contrast-color-from-palette(mat.$deep-orange-palette, 600)};
-  --tb-accent-contrast-700: #{mat.get-contrast-color-from-palette(mat.$deep-orange-palette, 700)};
-  --tb-accent-contrast-800: #{mat.get-contrast-color-from-palette(mat.$deep-orange-palette, 800)};
-  --tb-accent-contrast-900: #{mat.get-contrast-color-from-palette(mat.$deep-orange-palette, 900)};
-  --tb-accent-contrast-A100: #{mat.get-contrast-color-from-palette(mat.$deep-orange-palette, A100)};
-  --tb-accent-contrast-A200: #{mat.get-contrast-color-from-palette(mat.$deep-orange-palette, A200)};
-  --tb-accent-contrast-A400: #{mat.get-contrast-color-from-palette(mat.$deep-orange-palette, A400)};
-  --tb-accent-contrast-A700: #{mat.get-contrast-color-from-palette(mat.$deep-orange-palette, A700)};
+  --tb-primary-50: #{map_get(mat.$m2-teal-palette, 50)};
+  --tb-primary-100: #{map_get(mat.$m2-teal-palette, 100)};
+  --tb-primary-200: #{map_get(mat.$m2-teal-palette, 200)};
+  --tb-primary-300: #{map_get(mat.$m2-teal-palette, 300)};
+  --tb-primary-400: #{map_get(mat.$m2-teal-palette, 400)};
+  --tb-primary-500: #{map_get(mat.$m2-teal-palette, 800)};
+  --tb-primary-600: #{map_get(mat.$m2-teal-palette, 600)};
+  --tb-primary-700: #{map_get(mat.$m2-teal-palette, 700)};
+  --tb-primary-800: #{map_get(mat.$m2-teal-palette, 800)};
+  --tb-primary-900: #{map_get(mat.$m2-teal-palette, 900)};
+  --tb-primary-A100: #{map_get(mat.$m2-teal-palette, A100)};
+  --tb-primary-A200: #{map_get(mat.$m2-teal-palette, A200)};
+  --tb-primary-A400: #{map_get(mat.$m2-teal-palette, A400)};
+  --tb-primary-A700: #{map_get(mat.$m2-teal-palette, A700)};
+  --tb-primary-contrast-50: #{mat.m2-get-contrast-color-from-palette(mat.$m2-teal-palette, 50)};
+  --tb-primary-contrast-100: #{mat.m2-get-contrast-color-from-palette(mat.$m2-teal-palette, 100)};
+  --tb-primary-contrast-200: #{mat.m2-get-contrast-color-from-palette(mat.$m2-teal-palette, 200)};
+  --tb-primary-contrast-300: #{mat.m2-get-contrast-color-from-palette(mat.$m2-teal-palette, 300)};
+  --tb-primary-contrast-400: #{mat.m2-get-contrast-color-from-palette(mat.$m2-teal-palette, 400)};
+  --tb-primary-contrast-500: #{mat.m2-get-contrast-color-from-palette(mat.$m2-teal-palette, 500)};
+  --tb-primary-contrast-600: #{mat.m2-get-contrast-color-from-palette(mat.$m2-teal-palette, 600)};
+  --tb-primary-contrast-700: #{mat.m2-get-contrast-color-from-palette(mat.$m2-teal-palette, 700)};
+  --tb-primary-contrast-800: #{mat.m2-get-contrast-color-from-palette(mat.$m2-teal-palette, 800)};
+  --tb-primary-contrast-900: #{mat.m2-get-contrast-color-from-palette(mat.$m2-teal-palette, 900)};
+  --tb-primary-contrast-A100: #{mat.m2-get-contrast-color-from-palette(mat.$m2-teal-palette, A100)};
+  --tb-primary-contrast-A200: #{mat.m2-get-contrast-color-from-palette(mat.$m2-teal-palette, A200)};
+  --tb-primary-contrast-A400: #{mat.m2-get-contrast-color-from-palette(mat.$m2-teal-palette, A400)};
+  --tb-primary-contrast-A700: #{mat.m2-get-contrast-color-from-palette(mat.$m2-teal-palette, A700)};
+  --tb-accent-50: #{map_get(mat.$m2-deep-orange-palette, 50)};
+  --tb-accent-100: #{map_get(mat.$m2-deep-orange-palette, 100)};
+  --tb-accent-200: #{map_get(mat.$m2-deep-orange-palette, 200)};
+  --tb-accent-300: #{map_get(mat.$m2-deep-orange-palette, 300)};
+  --tb-accent-400: #{map_get(mat.$m2-deep-orange-palette, 400)};
+  --tb-accent-500: #{map_get(mat.$m2-deep-orange-palette, 500)};
+  --tb-accent-600: #{map_get(mat.$m2-deep-orange-palette, 600)};
+  --tb-accent-700: #{map_get(mat.$m2-deep-orange-palette, 700)};
+  --tb-accent-800: #{map_get(mat.$m2-deep-orange-palette, 800)};
+  --tb-accent-900: #{map_get(mat.$m2-deep-orange-palette, 900)};
+  --tb-accent-A100: #{map_get(mat.$m2-deep-orange-palette, A100)};
+  --tb-accent-A200: #{map_get(mat.$m2-deep-orange-palette, A200)};
+  --tb-accent-A400: #{map_get(mat.$m2-deep-orange-palette, A400)};
+  --tb-accent-A700: #{map_get(mat.$m2-deep-orange-palette, A700)};
+  --tb-accent-contrast-50: #{mat.m2-get-contrast-color-from-palette(mat.$m2-deep-orange-palette, 50)};
+  --tb-accent-contrast-100: #{mat.m2-get-contrast-color-from-palette(mat.$m2-deep-orange-palette, 100)};
+  --tb-accent-contrast-200: #{mat.m2-get-contrast-color-from-palette(mat.$m2-deep-orange-palette, 200)};
+  --tb-accent-contrast-300: #{mat.m2-get-contrast-color-from-palette(mat.$m2-deep-orange-palette, 300)};
+  --tb-accent-contrast-400: #{mat.m2-get-contrast-color-from-palette(mat.$m2-deep-orange-palette, 400)};
+  --tb-accent-contrast-500: #{mat.m2-get-contrast-color-from-palette(mat.$m2-deep-orange-palette, 500)};
+  --tb-accent-contrast-600: #{mat.m2-get-contrast-color-from-palette(mat.$m2-deep-orange-palette, 600)};
+  --tb-accent-contrast-700: #{mat.m2-get-contrast-color-from-palette(mat.$m2-deep-orange-palette, 700)};
+  --tb-accent-contrast-800: #{mat.m2-get-contrast-color-from-palette(mat.$m2-deep-orange-palette, 800)};
+  --tb-accent-contrast-900: #{mat.m2-get-contrast-color-from-palette(mat.$m2-deep-orange-palette, 900)};
+  --tb-accent-contrast-A100: #{mat.m2-get-contrast-color-from-palette(mat.$m2-deep-orange-palette, A100)};
+  --tb-accent-contrast-A200: #{mat.m2-get-contrast-color-from-palette(mat.$m2-deep-orange-palette, A200)};
+  --tb-accent-contrast-A400: #{mat.m2-get-contrast-color-from-palette(mat.$m2-deep-orange-palette, A400)};
+  --tb-accent-contrast-A700: #{mat.m2-get-contrast-color-from-palette(mat.$m2-deep-orange-palette, A700)};
 }
 
 $mat-tb-primary: (
@@ -164,25 +164,25 @@ $mat-tb-accent: (
 
   mat-fab-toolbar {
     .mat-fab-toolbar-background {
-      background: mat.get-color-from-palette($background, app-bar);
-      color: mat.get-color-from-palette($foreground, text);
+      background: mat.m2-get-color-from-palette($background, app-bar);
+      color: mat.m2-get-color-from-palette($foreground, text);
     }
     &.mat-primary {
       .mat-fab-toolbar-background {
-        background: mat.get-color-from-palette($primary);
-        color: mat.get-color-from-palette($primary, default-contrast);
+        background: mat.m2-get-color-from-palette($primary);
+        color: mat.m2-get-color-from-palette($primary, default-contrast);
       }
     }
     &.mat-accent {
       .mat-fab-toolbar-background {
-        background: mat.get-color-from-palette($accent);
-        color: mat.get-color-from-palette($accent, default-contrast);
+        background: mat.m2-get-color-from-palette($accent);
+        color: mat.m2-get-color-from-palette($accent, default-contrast);
       }
     }
     &.mat-warn {
       .mat-fab-toolbar-background {
-        background: mat.get-color-from-palette($warn);
-        color: mat.get-color-from-palette($warn, default-contrast);
+        background: mat.m2-get-color-from-palette($warn);
+        color: mat.m2-get-color-from-palette($warn, default-contrast);
       }
     }
   }
@@ -203,7 +203,7 @@ $mat-tb-accent: (
   mat-fab-toolbar {
     .mat-fab-toolbar-background {
       background: #fff;
-      color: mat.get-color-from-palette($foreground, text);
+      color: mat.m2-get-color-from-palette($foreground, text);
     }
     &.mat-primary {
       .mat-fab-toolbar-background {
@@ -215,7 +215,7 @@ $mat-tb-accent: (
         @include _mat-toolbar-inverse-color($primary);
         button.mat-mdc-icon-button {
           .mat-icon {
-            color: mat.get-color-from-palette($primary);
+            color: mat.m2-get-color-from-palette($primary);
           }
         }
       }
@@ -223,7 +223,7 @@ $mat-tb-accent: (
     .mat-mdc-fab {
       &.mat-primary {
         background: #fff;
-        color: mat.get-color-from-palette($primary);
+        color: mat.m2-get-color-from-palette($primary);
       }
     }
   }
@@ -236,7 +236,7 @@ $mat-tb-accent: (
 
   mat-toolbar{
     &.mat-hue-3 {
-      background-color: mat.get-color-from-palette($primary, 'A100');
+      background-color: mat.m2-get-color-from-palette($primary, 'A100');
     }
   }
 

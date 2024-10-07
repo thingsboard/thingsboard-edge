@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { Resolve, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
@@ -49,7 +49,7 @@ import { roleTypeTranslationMap } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
-export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>> {
+export class RolesTableConfigResolver  {
 
   private readonly config: EntityTableConfig<Role> = new EntityTableConfig<Role>();
 

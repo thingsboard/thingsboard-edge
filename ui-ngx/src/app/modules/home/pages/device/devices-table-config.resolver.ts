@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRoute, ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRoute, ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   checkBoxCell,
@@ -101,7 +101,7 @@ interface DevicePageQueryParams extends PageQueryParam {
 }
 
 @Injectable()
-export class DevicesTableConfigResolver implements Resolve<EntityTableConfig<DeviceInfo>> {
+export class DevicesTableConfigResolver  {
 
   constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<DeviceInfo>,
               private store: Store<AppState>,

@@ -31,8 +31,8 @@
 @use '@angular/material' as mat;
 @import "../theme/app-theme.scss";
 
-$tb-primary-50: map_get(mat.$teal-palette, 50);
-$tb-warn: mat.get-color-from-palette(map-get($tb-theme, warn), text);
+$tb-primary-50: map_get(mat.$m2-teal-palette, 50);
+$tb-warn: mat.m2-get-color-from-palette(map-get($tb-theme, warn), text);
 
 :host {
   .tb-layout-fixed-container {
