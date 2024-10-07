@@ -32,7 +32,7 @@
 -->
 <ng-container [formGroup]="axisSettingsFormGroup">
   <div class="tb-form-panel stroked tb-slide-toggle">
-    <mat-expansion-panel class="tb-settings" [expanded]="alwaysExpanded || settingsExpanded" (expandedChange)="alwaysExpanded || (settingsExpanded = $event)"
+    <mat-expansion-panel class="tb-settings" [expanded]="alwaysExpanded || settingsExpanded"
                          [disabled]="alwaysExpanded || !axisSettingsFormGroup.get('show').value">
       <mat-expansion-panel-header fxLayout="row wrap">
         <mat-panel-title>

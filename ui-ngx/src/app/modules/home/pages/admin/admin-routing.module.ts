@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { inject, Injectable, NgModule } from '@angular/core';
+import { inject, NgModule } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn, Router, RouterModule, RouterStateSnapshot, Routes } from '@angular/router';
 import { MailServerComponent } from '@modules/home/pages/admin/mail-server.component';
 import { SmsProviderComponent } from '@home/pages/admin/sms-provider.component';

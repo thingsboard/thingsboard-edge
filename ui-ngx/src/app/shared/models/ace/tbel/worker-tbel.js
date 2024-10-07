@@ -5044,7 +5044,6 @@ var JSHINT = (function() {
     }, 20);
   }
   function nullSafeProperty(s) {
-    console.log("test " + s);
     symbol(s, 20).exps = true;
     return infix(s, function(context, left, that) {
       if (state.option.bitwise) {

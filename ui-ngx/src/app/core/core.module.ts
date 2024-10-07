@@ -30,7 +30,7 @@
 ///
 
 import { NgModule } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, IMAGE_CONFIG } from '@angular/common';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
@@ -95,8 +95,9 @@ import { EntityConflictInterceptor } from '@core/interceptors/entity-conflict.in
         env.production
             ? []
             : StoreDevtoolsModule.instrument({
-                name: env.appTitle
-            , connectInZone: true})], providers: [
+                name: env.appTitle,
+                connectInZone: true
+            })], providers: [
         {
             provide: HTTP_INTERCEPTORS,
             useClass: GlobalHttpInterceptor,
@@ -115,7 +116,14 @@ import { EntityConflictInterceptor } from '@core/interceptors/entity-conflict.in
             }
         },
         WINDOW_PROVIDERS,
-        provideHttpClient(withInterceptorsFromDi())
+        provideHttpClient(withInterceptorsFromDi()),
+       {
+            provide: IMAGE_CONFIG,
+            useValue: {
+              disableImageSizeWarning: true,
+              disableImageLazyLoadWarning: true
+            }
+       }
     ] })
 export class CoreModule {
 }
