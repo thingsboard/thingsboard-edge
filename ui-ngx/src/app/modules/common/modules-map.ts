@@ -212,6 +212,7 @@ import * as HintTooltipIconComponent from '@shared/components/hint-tooltip-icon.
 import * as ScrollGridComponent from '@shared/components/grid/scroll-grid.component';
 import * as GalleryImageInputComponent from '@shared/components/image/gallery-image-input.component';
 import * as MultipleGalleryImageInputComponent from '@shared/components/image/multiple-gallery-image-input.component';
+import * as TbPopoverService from '@shared/components/popover.service';
 import * as EntityGroupAutocompleteComponent from '@shared/components/group/entity-group-autocomplete.component';
 import * as OwnerAutocompleteComponent from '@shared/components/group/owner-autocomplete.component';
 import * as EntityGroupSelectComponent from '@shared/components/group/entity-group-select.component';
@@ -272,6 +273,7 @@ import * as CustomActionPrettyEditorComponent from '@home/components/widget/lib/
 import * as MobileActionEditorComponent from '@home/components/widget/lib/settings/common/action/mobile-action-editor.component';
 import * as CustomDialogService from '@home/components/widget/dialog/custom-dialog.service';
 import * as CustomDialogContainerComponent from '@home/components/widget/dialog/custom-dialog-container.component';
+import * as ImportExportService from '@shared/import-export/import-export.service';
 import * as ImportDialogComponent from '@shared/import-export/import-dialog.component';
 import * as AddWidgetToDashboardDialogComponent from '@home/components/attribute/add-widget-to-dashboard-dialog.component';
 import * as ImportDialogCsvComponent from '@shared/import-export/import-dialog-csv.component';
@@ -491,6 +493,7 @@ class ModulesMap implements IModulesMap {
     '@shared/decorators/enumerable': enumerable,
     '@shared/decorators/tb-inject': TbInject,
 
+    '@shared/import-export/import-export.service': ImportExportService,
     '@shared/import-export/import-dialog.component': ImportDialogComponent,
     '@shared/import-export/import-dialog-csv.component': ImportDialogCsvComponent,
     '@shared/import-export/table-columns-assignment.component': TableColumnsAssignmentComponent,
@@ -598,6 +601,7 @@ class ModulesMap implements IModulesMap {
     '@shared/components/role/group-permissions.component': GroupPermissionsComponent,
     '@shared/components/role/group-permission-dialog.component': GroupPermissionDialogComponent,
     '@shared/components/group/share-entity-group.component': ShareEntityGroupComponent,
+    '@shared/components/popover.service': TbPopoverService,
 
     '@home/components/alarm/alarm-filter-config.component': AlarmFilterConfigComponent,
     '@home/components/alarm/alarm-comment-dialog.component': AlarmCommentDialogComponent,
