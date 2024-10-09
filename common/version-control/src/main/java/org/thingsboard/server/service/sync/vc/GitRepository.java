@@ -91,6 +91,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.ArrayList;
@@ -150,6 +151,24 @@ public class GitRepository {
         Git git = Git.open(directory);
         AuthHandler authHandler = AuthHandler.createFor(settings, directory);
         return new GitRepository(git, settings, authHandler, directory.getAbsolutePath());
+    }
+
+    public static GitRepository openOrClone(Path directory, RepositorySettings settings, boolean fetch) throws IOException, GitAPIException {
+        GitRepository repository;
+        if (Files.exists(directory)) {
+            repository = GitRepository.open(directory.toFile(), settings);
+            if (fetch) {
+                repository.fetch();
+            }
+        } else {
+            Files.createDirectories(directory);
+            if (settings.isLocalOnly()) {
+                repository = GitRepository.create(settings, directory.toFile());
+            } else {
+                repository = GitRepository.clone(settings, directory.toFile());
+            }
+        }
+        return repository;
     }
 
     public static void test(RepositorySettings settings, File directory) throws Exception {
@@ -272,7 +291,7 @@ public class GitRepository {
             treeWalk.setRecursive(!fixedDepth);
             while (treeWalk.next()) {
                 if (!fixedDepth || treeWalk.getDepth() == depth) {
-                    files.add(new RepoFile(treeWalk.getPathString(), treeWalk.getNameString(), treeWalk.isSubtree()));
+                    files.add(new RepoFile(treeWalk.getPathString(), treeWalk.getNameString(), treeWalk.isSubtree() ? FileType.DIRECTORY : FileType.FILE));
                 }
                 if (fixedDepth && treeWalk.getDepth() < depth) {
                     treeWalk.enterSubtree();
@@ -612,6 +631,10 @@ public class GitRepository {
         private String diffStringValue;
     }
 
-    public record RepoFile(String path, String name, boolean isDirectory) {}
+    public record RepoFile(String path, String name, FileType type) {}
+
+    public enum FileType {
+        FILE, DIRECTORY
+    }
 
 }
