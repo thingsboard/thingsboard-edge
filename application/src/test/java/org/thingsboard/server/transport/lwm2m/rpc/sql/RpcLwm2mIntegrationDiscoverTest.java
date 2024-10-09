@@ -37,6 +37,8 @@ import org.eclipse.leshan.core.link.Link;
 import org.eclipse.leshan.core.link.LinkParseException;
 import org.eclipse.leshan.core.node.LwM2mPath;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.test.context.event.annotation.BeforeTestClass;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.transport.lwm2m.config.TbLwM2mVersion;
@@ -45,8 +47,10 @@ import org.thingsboard.server.transport.lwm2m.rpc.AbstractRpcLwM2MIntegrationTes
 import java.util.Arrays;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -58,6 +62,11 @@ import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.RESOURCE_ID
 
 
 public class RpcLwm2mIntegrationDiscoverTest extends AbstractRpcLwM2MIntegrationTest {
+
+    @BeforeEach
+    public void beforeTest () throws Exception {
+        testInit();
+    }
 
     /**
      * DiscoverAll
@@ -216,5 +225,11 @@ public class RpcLwm2mIntegrationDiscoverTest extends AbstractRpcLwM2MIntegration
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public void testInit() throws Exception {
+        await("Update Registration at-least-once after start")
+                .atMost(50, TimeUnit.SECONDS)
+                .until(() -> countUpdateReg() > 0);
     }
 }
