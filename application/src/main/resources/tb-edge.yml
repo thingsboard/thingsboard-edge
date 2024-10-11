@@ -101,14 +101,20 @@ server:
 
 # Cloud configuration
 cloud:
+  # Routing key for edge instance, typically a UUID
   routingKey: "${CLOUD_ROUTING_KEY:}"
+  # Secret key for secure communication with the cloud
   secret: "${CLOUD_ROUTING_SECRET:}"
-  reconnect_timeout: "${CLOUD_RECONNECT_TIMEOUT:3000}" # in milliseconds
-  uplink_pack_timeout_sec: "${CLOUD_UPLINK_PACK_TIMEOUT_SEC:60}" # in seconds
+  # Reconnection timeout in milliseconds if cloud connectivity is lost
+  reconnect_timeout: "${CLOUD_RECONNECT_TIMEOUT:3000}"
+  # Timeout in seconds for packaging uplink data to the cloud
+  uplink_pack_timeout_sec: "${CLOUD_UPLINK_PACK_TIMEOUT_SEC:60}"
   rpc:
+    # Hostname or IP of the ThingsBoard platform, e.g. thingsboard.cloud, demo.thingsboard.io, X.X.X.X or localhost
     host: "${CLOUD_RPC_HOST:localhost}"
+    # Port for RPC communication with the ThingsBoard server
     port: "${CLOUD_RPC_PORT:7070}"
-    # Timeout in seconds for channel termination
+    # Timeout in seconds for terminating an RPC channel
     timeout: "${CLOUD_RPC_TIMEOUT:5}"
     # Specifies the amount of time in seconds the client waits in idle (with no read operations on the connection) before sending a keepalive ping to the server.
     # This setting is crucial for ensuring that the connection remains alive during periods of inactivity and helps prevent the server from closing the connection due to a timeout.
@@ -120,18 +126,29 @@ cloud:
     # If the server does not respond to a keepalive ping within this period, the client will consider the connection as lost and may attempt to reconnect or take other recovery actions.
     keep_alive_timeout_sec: "${CLOUD_RPC_KEEP_ALIVE_TIMEOUT_SEC:5}"
     ssl:
+      # Enables TLS for secure communication
       enabled: "${CLOUD_RPC_SSL_ENABLED:false}"
+      # Path to the TLS certificate for secure communication
       cert: "${CLOUD_RPC_SSL_CERT:}"
     storage:
+      # Maximum number of cloud event records to read from the local DB for sending
       max_read_records_count: "${CLOUD_RPC_STORAGE_MAX_READ_RECORDS_COUNT:50}"
+      # Interval in milliseconds to check for new cloud events in the local DB
       no_read_records_sleep: "${CLOUD_RPC_NO_READ_RECORDS_SLEEP:1000}"
+      # Interval in milliseconds to retry sending a failed batch of cloud events
       sleep_between_batches: "${CLOUD_RPC_SLEEP_BETWEEN_BATCHES:1000}"
+    # Maximum size in bytes of inbound messages from the cloud
     max_inbound_message_size: "${CLOUD_RPC_MAX_INBOUND_MESSAGE_SIZE:4194304}"
     proxy:
+      # Enable or disable the use of a proxy server
       enabled: "${CLOUD_RPC_PROXY_ENABLED:false}"
+      # Hostname or IP of the proxy server
       host: "${CLOUD_RPC_PROXY_HOST:}"
+      # Port number of the proxy server
       port: "${CLOUD_RPC_PROXY_PORT:0}"
+      # Username for proxy server authentication
       username: "${CLOUD_RPC_PROXY_USERNAME:}"
+      # Password for proxy server authentication
       password: "${CLOUD_RPC_PROXY_PASSWORD:}"
 
 # Application info parameters
@@ -271,24 +288,24 @@ sql:
     batch_threads: "${SQL_TS_LATEST_BATCH_THREADS:3}" # batch thread count has to be a prime number like 3 or 5 to gain perfect hash distribution
     update_by_latest_ts: "${SQL_TS_UPDATE_BY_LATEST_TIMESTAMP:true}" # Update latest values only if the timestamp of the new record is greater or equals the timestamp of the previously saved latest value. The latest values are stored separately from historical values for fast lookup from DB. Insert of historical value happens in any case
   events:
-    batch_size: "${SQL_EVENTS_BATCH_SIZE:10000}" # Batch size for persisting latest telemetry updates
-    batch_max_delay: "${SQL_EVENTS_BATCH_MAX_DELAY_MS:100}" # Max timeout for latest telemetry entries queue polling. The value set in milliseconds
-    stats_print_interval_ms: "${SQL_EVENTS_BATCH_STATS_PRINT_MS:10000}" # Interval in milliseconds for printing latest telemetry updates statistic
+    batch_size: "${SQL_EVENTS_BATCH_SIZE:10000}" # Batch size for persisting events inserts
+    batch_max_delay: "${SQL_EVENTS_BATCH_MAX_DELAY_MS:100}" # Max timeout for events entries queue polling. The value set in milliseconds
+    stats_print_interval_ms: "${SQL_EVENTS_BATCH_STATS_PRINT_MS:10000}" # Interval in milliseconds for printing events insert statistic
     batch_threads: "${SQL_EVENTS_BATCH_THREADS:3}" # batch thread count has to be a prime number like 3 or 5 to gain perfect hash distribution
     partition_size: "${SQL_EVENTS_REGULAR_PARTITION_SIZE_HOURS:168}" # Number of hours to partition the events. The current value corresponds to one week.
     debug_partition_size: "${SQL_EVENTS_DEBUG_PARTITION_SIZE_HOURS:1}" # Number of hours to partition the debug events. The current value corresponds to one hour.
   edge_events:
-    batch_size: "${SQL_EDGE_EVENTS_BATCH_SIZE:1000}" # Batch size for persisting latest telemetry updates
-    batch_max_delay: "${SQL_EDGE_EVENTS_BATCH_MAX_DELAY_MS:100}" # Max timeout for latest telemetry entries queue polling. The value set in milliseconds
-    stats_print_interval_ms: "${SQL_EDGE_EVENTS_BATCH_STATS_PRINT_MS:10000}" # Interval in milliseconds for printing latest telemetry updates statistic
-    partition_size: "${SQL_EDGE_EVENTS_PARTITION_SIZE_HOURS:168}" # Number of hours to partition the events. The current value corresponds to one week.
+    batch_size: "${SQL_EDGE_EVENTS_BATCH_SIZE:1000}" # Batch size for persisting edge events inserts
+    batch_max_delay: "${SQL_EDGE_EVENTS_BATCH_MAX_DELAY_MS:100}" # Max timeout for edge events entries queue polling. The value set in milliseconds
+    stats_print_interval_ms: "${SQL_EDGE_EVENTS_BATCH_STATS_PRINT_MS:10000}" # Interval in milliseconds for printing edge events insert statistic
+    partition_size: "${SQL_EDGE_EVENTS_PARTITION_SIZE_HOURS:168}" # Number of hours to partition the edge events. The current value corresponds to one week.
   audit_logs:
     partition_size: "${SQL_AUDIT_LOGS_PARTITION_SIZE_HOURS:168}" # Default value - 1 week
   cloud_events:
-    batch_size: "${SQL_CLOUD_EVENTS_BATCH_SIZE:1000}"
-    batch_max_delay: "${SQL_CLOUD_EVENTS_BATCH_MAX_DELAY_MS:100}"
-    stats_print_interval_ms: "${SQL_CLOUD_EVENTS_BATCH_STATS_PRINT_MS:10000}"
-    partition_size: "${SQL_CLOUD_EVENTS_PARTITION_SIZE_HOURS:24}" # Number of hours to partition the events. The current value corresponds to one day.
+    batch_size: "${SQL_CLOUD_EVENTS_BATCH_SIZE:1000}"  # Batch size for persisting cloud events inserts
+    batch_max_delay: "${SQL_CLOUD_EVENTS_BATCH_MAX_DELAY_MS:100}"  # Max timeout for cloud events entries queue polling. The value set in milliseconds
+    stats_print_interval_ms: "${SQL_CLOUD_EVENTS_BATCH_STATS_PRINT_MS:10000}" # Interval in milliseconds for printing cloud events insert statistic
+    partition_size: "${SQL_CLOUD_EVENTS_PARTITION_SIZE_HOURS:24}" # Number of hours to partition the cloud events. The current value corresponds to one week.
   alarm_comments:
     partition_size: "${SQL_ALARM_COMMENTS_PARTITION_SIZE_HOURS:168}" # Default value - 1 week
   notifications:
@@ -343,7 +360,7 @@ sql:
       ttl: "${SQL_TTL_AUDIT_LOGS_SECS:0}" # Disabled by default. The accuracy of the cleanup depends on the sql.audit_logs.partition_size
       checking_interval_ms: "${SQL_TTL_AUDIT_LOGS_CHECKING_INTERVAL_MS:86400000}" # Default value - 1 day
     cloud_events:
-      enabled: "${SQL_TTL_CLOUD_EVENTS_ENABLED:true}"
+      enabled: "${SQL_TTL_CLOUD_EVENTS_ENABLED:true}"  # Enable/disable TTL (Time To Live) for cloud event records
       execution_interval_ms: "${SQL_TTL_CLOUD_EVENTS_EXECUTION_INTERVAL:86400000}" # Number of milliseconds. The current value corresponds to one day
       cloud_events_ttl: "${SQL_TTL_CLOUD_EVENTS_TTL:2628000}" # Number of seconds. The current value corresponds to one month
     notifications:
