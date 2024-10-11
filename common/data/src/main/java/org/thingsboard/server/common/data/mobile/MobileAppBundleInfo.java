@@ -28,19 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.mobile;
+package org.thingsboard.server.common.data.mobile;
 
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.MobileAppSettings;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.id.MobileAppBundleId;
+import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
 
-public interface MobileAppSettingsService {
+import java.util.List;
 
-    MobileAppSettings saveMobileAppSettings(TenantId tenantId, MobileAppSettings settings);
+@EqualsAndHashCode(callSuper = true)
+@Data
+@Schema
+public class MobileAppBundleInfo extends MobileAppBundle {
 
-    MobileAppSettings getMobileAppSettings(TenantId tenantId);
+    @Schema(description = "Android package name")
+    private String androidPkgName;
+    @Schema(description = "IOS package name")
+    private String iosPkgName;
+    @Schema(description = "List of available oauth2 clients")
+    private List<OAuth2ClientInfo> oauth2ClientInfos;
 
-    MobileAppSettings getMergedMobileAppSettings(TenantId tenantId);
+    public MobileAppBundleInfo(MobileAppBundle mobileApp, String androidPkgName, String iosPkgName) {
+        super(mobileApp);
+        this.androidPkgName = androidPkgName;
+        this.iosPkgName = iosPkgName;
+    }
 
-    void deleteByTenantId(TenantId tenantId);
+    public MobileAppBundleInfo(MobileAppBundle mobileApp, String androidPkgName, String iosPkgName, List<OAuth2ClientInfo> oauth2ClientInfos) {
+        super(mobileApp);
+        this.androidPkgName = androidPkgName;
+        this.iosPkgName = iosPkgName;
+        this.oauth2ClientInfos = oauth2ClientInfos;
+    }
+
+    public MobileAppBundleInfo() {
+        super();
+    }
+
+    public MobileAppBundleInfo(MobileAppBundleId mobileAppBundleId) {
+        super(mobileAppBundleId);
+    }
 
 }

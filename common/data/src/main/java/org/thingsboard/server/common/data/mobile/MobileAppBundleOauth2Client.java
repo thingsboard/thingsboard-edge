@@ -28,25 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
+package org.thingsboard.server.common.data.mobile;
 
-import jakarta.persistence.Transient;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.id.MobileAppBundleId;
+import org.thingsboard.server.common.data.id.OAuth2ClientId;
 
-import java.io.Serializable;
-import java.util.UUID;
-
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-public class MobileAppOauth2ClientCompositeKey implements Serializable {
+public class MobileAppBundleOauth2Client {
 
-    @Transient
-    private static final long serialVersionUID = -245388185894468455L;
-
-    private UUID mobileAppBundleId;
-    private UUID oauth2ClientId;
+    private MobileAppBundleId mobileAppBundleId;
+    private OAuth2ClientId oAuth2ClientId;
 
 }

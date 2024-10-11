@@ -28,25 +28,22 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.id;
+package org.thingsboard.server.dao.mobile;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.cache.CacheManager;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CaffeineTbTransactionalCache;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.mobile.QrCodeSettings;
 
-import java.util.UUID;
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "caffeine", matchIfMissing = true)
+@Service("QrCodeSettingsCache")
+public class QrCodeSettingsCaffeineCache extends CaffeineTbTransactionalCache<TenantId, QrCodeSettings> {
 
-@Schema
-public class MobileAppSettingsId extends UUIDBased {
-
-    private static final long serialVersionUID = 1L;
-
-    @JsonCreator
-    public MobileAppSettingsId(@JsonProperty("id") UUID id) {
-        super(id);
+    public QrCodeSettingsCaffeineCache(CacheManager cacheManager) {
+        super(cacheManager, CacheConstants.QR_CODE_SETTINGS_CACHE);
     }
 
-    public static MobileAppSettingsId fromString(String mobileAppSettingsId) {
-        return new MobileAppSettingsId(UUID.fromString(mobileAppSettingsId));
-    }
 }

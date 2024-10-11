@@ -28,24 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.mobile;
+package org.thingsboard.server.common.data.mobile;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.cache.CacheSpecsMap;
-import org.thingsboard.server.cache.RedisTbTransactionalCache;
-import org.thingsboard.server.cache.TBRedisCacheConfiguration;
-import org.thingsboard.server.cache.TbJsonRedisSerializer;
-import org.thingsboard.server.common.data.CacheConstants;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.MobileAppSettings;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
-@Service("MobileAppCache")
-public class MobileAppSettingsRedisCache extends RedisTbTransactionalCache<TenantId, MobileAppSettings> {
+import java.util.ArrayList;
+import java.util.List;
 
-    public MobileAppSettingsRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
-        super(CacheConstants.MOBILE_APP_SETTINGS_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbJsonRedisSerializer<>(MobileAppSettings.class));
-    }
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+public class MobileLayoutConfig {
+
+    @Schema(description = "List of custom menu items", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Valid
+    private List<MobileMenuItem> items = new ArrayList<>();
+
 }

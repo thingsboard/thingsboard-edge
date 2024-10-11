@@ -28,52 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.mobile;
+package org.thingsboard.server.common.data.id;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.Valid;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.BaseData;
-import org.thingsboard.server.common.data.HasTenantId;
-import org.thingsboard.server.common.data.id.MobileAppSettingsId;
-import org.thingsboard.server.common.data.id.TenantId;
+
+import java.util.UUID;
 
 @Schema
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class MobileAppSettings extends BaseData<MobileAppSettingsId> implements HasTenantId {
+public class QrCodeSettingsId extends UUIDBased {
 
-    private static final long serialVersionUID = 2628323657987010348L;
+    private static final long serialVersionUID = 1L;
 
-    @Schema(description = "JSON object with Tenant Id.", accessMode = Schema.AccessMode.READ_ONLY)
-    private TenantId tenantId;
-    @Schema(description = "Use settings from system level", example = "true")
-    private boolean useSystemSettings;
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Type of application: true means use default Thingsboard app", example = "true")
-    private boolean useDefaultApp;
-    @Valid
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Android mobile app configuration.")
-    private AndroidConfig androidConfig;
-    @Valid
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Ios mobile app configuration.")
-    private IosConfig iosConfig;
-    @Valid
-    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "QR code config configuration.")
-    private QRCodeConfig qrCodeConfig;
-
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private String defaultGooglePlayLink;
-
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private String defaultAppStoreLink;
-
-    public MobileAppSettings() {
-    }
-
-    public MobileAppSettings(MobileAppSettingsId id) {
+    @JsonCreator
+    public QrCodeSettingsId(@JsonProperty("id") UUID id) {
         super(id);
     }
 
+    public static QrCodeSettingsId fromString(String qrCodeSettingsId) {
+        return new QrCodeSettingsId(UUID.fromString(qrCodeSettingsId));
+    }
 }

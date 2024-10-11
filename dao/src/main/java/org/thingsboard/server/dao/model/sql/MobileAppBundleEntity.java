@@ -28,35 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.mobile;
+package org.thingsboard.server.dao.model.sql;
 
-import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.id.MobileAppId;
-import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
+import org.thingsboard.server.common.data.mobile.MobileAppBundle;
 
-import java.util.List;
+import static org.thingsboard.server.dao.model.ModelConstants.MOBILE_APP_BUNDLE_TABLE_NAME;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
-@Schema
-public class MobileAppInfo extends MobileApp {
+@EqualsAndHashCode(callSuper = true)
+@Entity
+@Table(name = MOBILE_APP_BUNDLE_TABLE_NAME)
+public final class MobileAppBundleEntity extends AbstractMobileAppBundleEntity<MobileAppBundle> {
 
-    @Schema(description = "List of available oauth2 clients")
-    private List<OAuth2ClientInfo> oauth2ClientInfos;
-
-    public MobileAppInfo(MobileApp mobileApp, List<OAuth2ClientInfo> oauth2ClientInfos) {
-        super(mobileApp);
-        this.oauth2ClientInfos = oauth2ClientInfos;
-    }
-
-    public MobileAppInfo() {
+    public MobileAppBundleEntity() {
         super();
     }
 
-    public MobileAppInfo(MobileAppId mobileAppId) {
-        super(mobileAppId);
+    public MobileAppBundleEntity(MobileAppBundle mobileAppBundle) {
+        super(mobileAppBundle);
     }
 
+    @Override
+    public MobileAppBundle toData() {
+        return super.toMobileAppBundle();
+    }
 }

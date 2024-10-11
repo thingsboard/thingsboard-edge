@@ -58,6 +58,7 @@ public enum Resource {
     OAUTH2_CLIENT(EntityType.OAUTH2_CLIENT),
     DOMAIN(EntityType.DOMAIN),
     MOBILE_APP(EntityType.MOBILE_APP),
+    MOBILE_APP_BUNDLE(EntityType.MOBILE_APP_BUNDLE),
     OAUTH2_CONFIGURATION_TEMPLATE(),
     TENANT_PROFILE(EntityType.TENANT_PROFILE),
     DEVICE_PROFILE(EntityType.DEVICE_PROFILE),
@@ -85,7 +86,7 @@ public enum Resource {
     VERSION_CONTROL,
     NOTIFICATION(EntityType.NOTIFICATION_TARGET, EntityType.NOTIFICATION_TEMPLATE,
             EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE),
-    MOBILE_APP_SETTINGS,
+    QR_CODE_SETTINGS,
     CUSTOM_MENU;
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
@@ -161,7 +162,7 @@ public enum Resource {
         operationsByResource.put(Resource.QUEUE_STATS, Set.of(Operation.ALL, Operation.READ));
         operationsByResource.put(Resource.VERSION_CONTROL, Set.of(Operation.ALL, Operation.READ, Operation.WRITE, Operation.DELETE));
         operationsByResource.put(Resource.NOTIFICATION, Operation.crudOperations);
-        operationsByResource.put(Resource.MOBILE_APP_SETTINGS, Set.of(Operation.ALL, Operation.READ, Operation.WRITE));
+        operationsByResource.put(Resource.QR_CODE_SETTINGS, Set.of(Operation.ALL, Operation.READ, Operation.WRITE));
 
         resourcesByAuthority.put(Authority.SYS_ADMIN, Set.of(
                 Resource.ALL,
@@ -184,7 +185,7 @@ public enum Resource {
                 Resource.QUEUE,
                 Resource.QUEUE_STATS,
                 Resource.NOTIFICATION,
-                Resource.MOBILE_APP_SETTINGS
+                Resource.QR_CODE_SETTINGS
         ));
 
         resourcesByAuthority.put(Authority.TENANT_ADMIN, Set.of(
@@ -226,7 +227,7 @@ public enum Resource {
                 Resource.QUEUE_STATS,
                 Resource.VERSION_CONTROL,
                 Resource.NOTIFICATION,
-                Resource.MOBILE_APP_SETTINGS
+                Resource.QR_CODE_SETTINGS
         ));
 
         resourcesByAuthority.put(Authority.CUSTOMER_USER, Set.of(
@@ -257,7 +258,7 @@ public enum Resource {
                 Resource.AUDIT_LOG,
                 Resource.DEVICE_PROFILE,
                 Resource.ASSET_PROFILE,
-                Resource.MOBILE_APP_SETTINGS
+                Resource.QR_CODE_SETTINGS
         ));
 
     }

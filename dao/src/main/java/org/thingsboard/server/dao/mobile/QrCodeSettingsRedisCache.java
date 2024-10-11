@@ -28,25 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
+package org.thingsboard.server.dao.mobile;
 
-import jakarta.persistence.Transient;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.stereotype.Service;
+import org.thingsboard.server.cache.CacheSpecsMap;
+import org.thingsboard.server.cache.RedisTbTransactionalCache;
+import org.thingsboard.server.cache.TBRedisCacheConfiguration;
+import org.thingsboard.server.cache.TbJsonRedisSerializer;
+import org.thingsboard.server.common.data.CacheConstants;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.mobile.QrCodeSettings;
 
-import java.io.Serializable;
-import java.util.UUID;
+@ConditionalOnProperty(prefix = "cache", value = "type", havingValue = "redis")
+@Service("QrCodeSettingsCache")
+public class QrCodeSettingsRedisCache extends RedisTbTransactionalCache<TenantId, QrCodeSettings> {
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
-public class MobileAppOauth2ClientCompositeKey implements Serializable {
-
-    @Transient
-    private static final long serialVersionUID = -245388185894468455L;
-
-    private UUID mobileAppBundleId;
-    private UUID oauth2ClientId;
-
+    public QrCodeSettingsRedisCache(TBRedisCacheConfiguration configuration, CacheSpecsMap cacheSpecsMap, RedisConnectionFactory connectionFactory) {
+        super(CacheConstants.QR_CODE_SETTINGS_CACHE, cacheSpecsMap, connectionFactory, configuration, new TbJsonRedisSerializer<>(QrCodeSettings.class));
+    }
 }

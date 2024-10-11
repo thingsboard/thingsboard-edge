@@ -28,49 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.mobile;
+package org.thingsboard.server.dao.mobile;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.MobileAppSettings;
-import org.thingsboard.server.dao.DaoUtil;
-import org.thingsboard.server.dao.mobile.MobileAppSettingsDao;
-import org.thingsboard.server.dao.model.sql.MobileAppSettingsEntity;
-import org.thingsboard.server.dao.sql.JpaAbstractDao;
-import org.thingsboard.server.dao.util.SqlDao;
+import org.thingsboard.server.common.data.mobile.QrCodeConfig;
+import org.thingsboard.server.common.data.mobile.QrCodeSettings;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
 
-import java.util.UUID;
+public interface QrCodeSettingService {
 
+    QrCodeSettings saveQrCodeSettings(TenantId tenantId, QrCodeSettings qrCodeSettings);
 
-@Component
-@Slf4j
-@SqlDao
-public class JpaMobileAppSettingsDao extends JpaAbstractDao<MobileAppSettingsEntity, MobileAppSettings> implements MobileAppSettingsDao {
+    QrCodeSettings findQrCodeSettings(TenantId tenantId);
 
-    @Autowired
-    private MobileAppSettingsRepository mobileAppSettingsRepository;
+    QrCodeConfig findAppQrCodeConfig(TenantId sysTenantId, PlatformType platformType);
 
+    QrCodeSettings getMergedQrCodeSettings(TenantId tenantId);
 
-    @Override
-    public MobileAppSettings findByTenantId(TenantId tenantId) {
-        return DaoUtil.getData(mobileAppSettingsRepository.findByTenantId(tenantId.getId()));
-    }
+    void deleteByTenantId(TenantId tenantId);
 
-    @Override
-    public void removeByTenantId(TenantId tenantId) {
-        mobileAppSettingsRepository.deleteByTenantId(tenantId.getId());
-    }
-
-    @Override
-    protected Class<MobileAppSettingsEntity> getEntityClass() {
-        return MobileAppSettingsEntity.class;
-    }
-
-    @Override
-    protected JpaRepository<MobileAppSettingsEntity, UUID> getRepository() {
-        return mobileAppSettingsRepository;
-    }
 }

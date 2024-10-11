@@ -28,25 +28,37 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.model.sql;
+package org.thingsboard.server.common.data.mobile;
 
-import jakarta.persistence.Transient;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.validation.Length;
 
-import java.io.Serializable;
-import java.util.UUID;
-
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-public class MobileAppOauth2ClientCompositeKey implements Serializable {
+@EqualsAndHashCode
+public class MobileAppVersionInfo {
 
-    @Transient
-    private static final long serialVersionUID = -245388185894468455L;
+    @Schema(description = "Minimum supported version")
+    @Length(fieldName = "minVersion", max = 20)
+    private String minVersion;
 
-    private UUID mobileAppBundleId;
-    private UUID oauth2ClientId;
+    @Schema(description = "Release notes of minimum supported version")
+    @Length(fieldName = "minVersionReleaseNotes", max = 10000)
+    private String minVersionReleaseNotes;
+
+    @Schema(description = "Latest supported version")
+    @Length(fieldName = "latestVersion", max = 20)
+    private String latestVersion;
+
+    @Schema(description = "Release notes of latest supported version")
+    @Length(fieldName = "latestVersionReleaseNotes", max = 10000)
+    private String latestVersionReleaseNotes;
 
 }

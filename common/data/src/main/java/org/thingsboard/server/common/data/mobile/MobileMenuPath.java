@@ -28,24 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.sql.mobile;
+package org.thingsboard.server.common.data.mobile;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
-import org.thingsboard.server.dao.model.sql.MobileAppSettingsEntity;
+public enum MobileMenuPath {
 
-import java.util.UUID;
-
-
-public interface MobileAppSettingsRepository extends JpaRepository<MobileAppSettingsEntity, UUID> {
-
-    MobileAppSettingsEntity findByTenantId(@Param("tenantId") UUID tenantId);
-
-    @Transactional
-    @Modifying
-    @Query("DELETE FROM MobileAppSettingsEntity r WHERE r.tenantId = :tenantId")
-    void deleteByTenantId(@Param("tenantId") UUID tenantId);
+    HOME,
+    ASSETS,
+    DEVICES,
+    DEVICE_LIST,
+    ALARMS,
+    DASHBOARDS,
+    DASHBOARD,
+    AUDIT_LOGS,
+    CUSTOMERS,
+    CUSTOMER,
+    NOTIFICATION,
+    CUSTOM
 }

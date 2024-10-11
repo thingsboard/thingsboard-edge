@@ -28,16 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.mobile;
+package org.thingsboard.server.dao.sql.mobile;
 
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.MobileAppSettings;
-import org.thingsboard.server.dao.Dao;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.server.dao.model.sql.QrCodeSettingsEntity;
+
+import java.util.UUID;
 
 
-public interface MobileAppSettingsDao extends Dao<MobileAppSettings> {
+public interface QrCodeSettingsRepository extends JpaRepository<QrCodeSettingsEntity, UUID> {
 
-    MobileAppSettings findByTenantId(TenantId tenantId);
+    QrCodeSettingsEntity findByTenantId(@Param("tenantId") UUID tenantId);
 
-    void removeByTenantId(TenantId tenantId);
+    @Transactional
+    @Modifying
+    @Query("DELETE FROM QrCodeSettingsEntity r WHERE r.tenantId = :tenantId")
+    void deleteByTenantId(@Param("tenantId") UUID tenantId);
 }

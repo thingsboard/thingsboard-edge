@@ -1,0 +1,274 @@
+/**
+ * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+ *
+ * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+ *
+ * NOTICE: All information contained herein is, and remains
+ * the property of ThingsBoard, Inc. and its suppliers,
+ * if any.  The intellectual and technical concepts contained
+ * herein are proprietary to ThingsBoard, Inc.
+ * and its suppliers and may be covered by U.S. and Foreign Patents,
+ * patents in process, and are protected by trade secret or copyright law.
+ *
+ * Dissemination of this information or reproduction of this material is strictly forbidden
+ * unless prior written permission is obtained from COMPANY.
+ *
+ * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+ * managers or contractors who have executed Confidentiality and Non-disclosure agreements
+ * explicitly covering such access.
+ *
+ * The copyright notice above does not evidence any actual or intended publication
+ * or disclosure  of  this source code, which includes
+ * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+ * ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+ * OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+ * THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+ * AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+ * THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+ * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+ * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+ */
+package org.thingsboard.server.controller;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Value;
+import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.mobile.AndroidQrCodeConfig;
+import org.thingsboard.server.common.data.mobile.IosQrCodeConfig;
+import org.thingsboard.server.common.data.mobile.MobileApp;
+import org.thingsboard.server.common.data.mobile.MobileAppBundle;
+import org.thingsboard.server.common.data.mobile.MobileAppBundleInfo;
+import org.thingsboard.server.common.data.mobile.QRCodeConfig;
+import org.thingsboard.server.common.data.mobile.QrCodeSettings;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.security.model.JwtPair;
+import org.thingsboard.server.dao.service.DaoSqlTest;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@Slf4j
+@DaoSqlTest
+public class QrCodeSettingsControllerTest extends AbstractControllerTest {
+
+    @Value("${cache.specs.mobileSecretKey.timeToLiveInMinutes:2}")
+    private int mobileSecretKeyTtl;
+
+    static final TypeReference<PageData<MobileAppBundleInfo>> PAGE_DATA_MOBILE_APP_BUNDLE_TYPE_REF = new TypeReference<>() {
+    };
+    static final TypeReference<PageData<MobileApp>> PAGE_DATA_MOBILE_APP_TYPE_REF = new TypeReference<>() {
+    };
+    private static final String ANDROID_PACKAGE_NAME = "testAppPackage";
+    private static final String ANDROID_APP_SHA256 = "DF:28:32:66:8B:A7:D3:EC:7D:73:CF:CC";
+    private static final String ANDROID_STORE_LINK = "https://store.link.com";
+    private static final String APPLE_APP_ID = "testId";
+    private static final String TEST_LABEL = "Test label";
+    private static final String IOS_STORE_LINK = "https://store.link.com";
+
+    private MobileAppBundle mobileAppBundle;
+
+    @Before
+    public void setUp() throws Exception {
+        loginSysAdmin();
+
+        MobileApp androidApp = validMobileApp( "my.android.package", PlatformType.ANDROID);
+        AndroidQrCodeConfig androidQrCodeConfig = AndroidQrCodeConfig.builder()
+                .appPackage(ANDROID_PACKAGE_NAME)
+                .sha256CertFingerprints(ANDROID_APP_SHA256)
+                .storeLink(ANDROID_STORE_LINK)
+                .enabled(true)
+                .build();
+        androidApp.setQrCodeConfig(androidQrCodeConfig);
+        MobileApp savedAndroidApp = doPost("/api/mobile/app", androidApp, MobileApp.class);
+
+        MobileApp iosApp = validMobileApp( "my.ios.package", PlatformType.IOS);
+        IosQrCodeConfig iosQrCodeConfig = IosQrCodeConfig.builder()
+                .appId(APPLE_APP_ID)
+                .enabled(true)
+                .storeLink(IOS_STORE_LINK)
+                .build();
+        iosApp.setQrCodeConfig(iosQrCodeConfig);
+        MobileApp savedIosApp = doPost("/api/mobile/app", iosApp, MobileApp.class);
+
+        mobileAppBundle = new MobileAppBundle();
+        mobileAppBundle.setTitle("Test bundle");
+        mobileAppBundle.setAndroidAppId(savedAndroidApp.getId());
+        mobileAppBundle.setIosAppId(savedIosApp.getId());
+
+        mobileAppBundle = doPost("/api/mobile/bundle", mobileAppBundle, MobileAppBundle.class);
+
+        QrCodeSettings qrCodeSettings = doGet("/api/mobile/qr/settings", QrCodeSettings.class);
+        QRCodeConfig qrCodeConfig = new QRCodeConfig();
+        qrCodeConfig.setQrCodeLabel(TEST_LABEL);
+        qrCodeSettings.setUseDefaultApp(true);
+        qrCodeSettings.setMobileAppBundleId(null);
+        qrCodeSettings.setQrCodeConfig(qrCodeConfig);
+
+        doPost("/api/mobile/qr/settings", qrCodeSettings)
+                .andExpect(status().isOk());
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        loginSysAdmin();
+        PageData<MobileAppBundleInfo> pageData2 = doGetTypedWithPageLink("/api/mobile/bundle/infos?", PAGE_DATA_MOBILE_APP_BUNDLE_TYPE_REF, new PageLink(10, 0));
+        for (MobileAppBundleInfo appBundleInfo : pageData2.getData()) {
+            doDelete("/api/mobile/bundle/" + appBundleInfo.getId().getId())
+                    .andExpect(status().isOk());
+        }
+        PageData<MobileApp> pageData = doGetTypedWithPageLink("/api/mobile/app?", PAGE_DATA_MOBILE_APP_TYPE_REF, new PageLink(10, 0));
+        for (MobileApp mobileApp : pageData.getData()) {
+            doDelete("/api/mobile/app/" + mobileApp.getId().getId())
+                    .andExpect(status().isOk());
+        }
+    }
+
+    @Test
+    public void testSaveQrCodeSettings() throws Exception {
+        loginSysAdmin();
+        QrCodeSettings qrCodeSettings = doGet("/api/mobile/qr/settings", QrCodeSettings.class);
+        assertThat(qrCodeSettings.getQrCodeConfig().getQrCodeLabel()).isEqualTo(TEST_LABEL);
+        assertThat(qrCodeSettings.isUseDefaultApp()).isTrue();
+
+        qrCodeSettings.setUseDefaultApp(false);
+        qrCodeSettings.setMobileAppBundleId(mobileAppBundle.getId());
+
+        doPost("/api/mobile/qr/settings", qrCodeSettings)
+                .andExpect(status().isOk());
+
+        QrCodeSettings updatedQrCodeSettings = doGet("/api/mobile/qr/settings", QrCodeSettings.class);
+        assertThat(updatedQrCodeSettings.isUseDefaultApp()).isFalse();
+    }
+
+    @Test
+    public void testShouldNotSaveQrCodeSettingsWithoutRequiredConfig() throws Exception {
+        loginSysAdmin();
+        QrCodeSettings qrCodeSettings = doGet("/api/mobile/qr/settings", QrCodeSettings.class);
+
+        qrCodeSettings.setUseDefaultApp(false);
+        qrCodeSettings.setQrCodeConfig(null);
+        qrCodeSettings.setMobileAppBundleId(null);
+
+        doPost("/api/mobile/qr/settings", qrCodeSettings)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Mobile app bundle is required to use custom application!")));
+
+        qrCodeSettings.setMobileAppBundleId(mobileAppBundle.getId());
+        doPost("/api/mobile/qr/settings", qrCodeSettings)
+                .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Qr code configuration is required!")));
+
+        qrCodeSettings.setQrCodeConfig(QRCodeConfig.builder().showOnHomePage(false).build());
+        doPost("/api/mobile/qr/settings", qrCodeSettings)
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testShouldSaveQrCodeSettingsForDefaultApp() throws Exception {
+        loginSysAdmin();
+        QrCodeSettings qrCodeSettings = doGet("/api/mobile/qr/settings", QrCodeSettings.class);
+        qrCodeSettings.setUseDefaultApp(true);
+        qrCodeSettings.setMobileAppBundleId(null);
+
+        doPost("/api/mobile/qr/settings", qrCodeSettings)
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void testGetApplicationAssociations() throws Exception {
+        loginSysAdmin();
+        QrCodeSettings qrCodeSettings = doGet("/api/mobile/qr/settings", QrCodeSettings.class);
+        qrCodeSettings.setUseDefaultApp(true);
+        qrCodeSettings.setMobileAppBundleId(mobileAppBundle.getId());
+        doPost("/api/mobile/qr/settings", qrCodeSettings)
+                .andExpect(status().isOk());
+
+        JsonNode assetLinks = doGet("/.well-known/assetlinks.json", JsonNode.class);
+        assertThat(assetLinks.get(0).get("target").get("package_name").asText()).isEqualTo(ANDROID_PACKAGE_NAME);
+        assertThat(assetLinks.get(0).get("target").get("sha256_cert_fingerprints").get(0).asText()).isEqualTo(ANDROID_APP_SHA256);
+
+        JsonNode appleAssociation = doGet("/.well-known/apple-app-site-association", JsonNode.class);
+        assertThat(appleAssociation.get("applinks").get("details").get(0).get("appID").asText()).isEqualTo(APPLE_APP_ID);
+    }
+
+    @Test
+    public void testGetMobileDeepLink() throws Exception {
+        loginSysAdmin();
+        String deepLink = doGet("/api/mobile/qr/deepLink", String.class);
+
+        Pattern expectedPattern = Pattern.compile("\"https://([^/]+)/api/noauth/qr\\?secret=([^&]+)&ttl=([^&]+)&host=([^&]+)\"");
+        Matcher parsedDeepLink = expectedPattern.matcher(deepLink);
+        assertThat(parsedDeepLink.matches()).isTrue();
+        String appHost = parsedDeepLink.group(1);
+        String secret = parsedDeepLink.group(2);
+        String ttl = parsedDeepLink.group(3);
+        assertThat(appHost).isEqualTo("thingsboard.cloud");
+        assertThat(ttl).isEqualTo(String.valueOf(mobileSecretKeyTtl));
+
+        JwtPair jwtPair = doGet("/api/noauth/qr/" + secret, JwtPair.class);
+        assertThat(jwtPair).isNotNull();
+
+        loginTenantAdmin();
+        String tenantDeepLink = doGet("/api/mobile/qr/deepLink", String.class);
+        Matcher tenantParsedDeepLink = expectedPattern.matcher(tenantDeepLink);
+        assertThat(tenantParsedDeepLink.matches()).isTrue();
+        String tenantSecret = tenantParsedDeepLink.group(2);
+
+        JwtPair tenantJwtPair =  doGet("/api/noauth/qr/" + tenantSecret, JwtPair.class);
+        assertThat(tenantJwtPair).isNotNull();
+
+        loginCustomerUser();
+        String customerDeepLink = doGet("/api/mobile/qr/deepLink", String.class);
+        Matcher customerParsedDeepLink = expectedPattern.matcher(customerDeepLink);
+        assertThat(customerParsedDeepLink.matches()).isTrue();
+        String customerSecret = customerParsedDeepLink.group(2);
+
+        JwtPair customerJwtPair = doGet("/api/noauth/qr/" + customerSecret, JwtPair.class);
+        assertThat(customerJwtPair).isNotNull();
+
+        // update mobile setting to use custom one
+        loginSysAdmin();
+        QrCodeSettings qrCodeSettings = doGet("/api/mobile/qr/settings", QrCodeSettings.class);
+        qrCodeSettings.setUseDefaultApp(false);
+        qrCodeSettings.setMobileAppBundleId(mobileAppBundle.getId());
+        doPost("/api/mobile/qr/settings", qrCodeSettings);
+
+        String customAppDeepLink = doGet("/api/mobile/qr/deepLink", String.class);
+        Pattern customAppExpectedPattern = Pattern.compile("\"https://([^/]+)/api/noauth/qr\\?secret=([^&]+)&ttl=([^&]+)\"");
+        Matcher customAppParsedDeepLink = customAppExpectedPattern.matcher(customAppDeepLink);
+        assertThat(customAppParsedDeepLink.matches()).isTrue();
+        assertThat(customAppParsedDeepLink.group(1)).isEqualTo("localhost");
+
+        loginTenantAdmin();
+        String tenantCustomAppDeepLink = doGet("/api/mobile/qr/deepLink", String.class);
+        Matcher tenantCustomAppParsedDeepLink = customAppExpectedPattern.matcher(tenantCustomAppDeepLink);
+        assertThat(tenantCustomAppParsedDeepLink.matches()).isTrue();
+        assertThat(tenantCustomAppParsedDeepLink.group(1)).isEqualTo("localhost");
+
+        loginCustomerUser();
+        String customerCustomAppDeepLink = doGet("/api/mobile/qr/deepLink", String.class);
+        Matcher customerCustomAppParsedDeepLink = customAppExpectedPattern.matcher(customerCustomAppDeepLink);
+        assertThat(customerCustomAppParsedDeepLink.matches()).isTrue();
+        assertThat(customerCustomAppParsedDeepLink.group(1)).isEqualTo("localhost");
+    }
+
+    private MobileApp validMobileApp(String mobileAppName, PlatformType platformType) {
+        MobileApp mobileApp = new MobileApp();
+        mobileApp.setTenantId(tenantId);
+        mobileApp.setPkgName(mobileAppName);
+        mobileApp.setPlatformType(platformType);
+        mobileApp.setAppSecret(StringUtils.randomAlphanumeric(24));
+        return mobileApp;
+    }
+}

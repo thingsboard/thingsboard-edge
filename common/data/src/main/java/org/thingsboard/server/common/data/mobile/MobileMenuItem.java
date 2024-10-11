@@ -30,26 +30,27 @@
  */
 package org.thingsboard.server.common.data.mobile;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode
-public class AndroidConfig {
+public class MobileMenuItem {
 
-    private boolean enabled;
-    @NoXss
-    private String appPackage;
-    @NoXss
-    private String sha256CertFingerprints;
-    @NoXss
-    private String storeLink;
+    @Schema(description = "Menu item label", example = "Ar quality", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String label;
+    @Schema(description = "URL of the menu item icon", example = "home_icon")
+    private String icon;
+    @Schema(description = "Path to open, when user clicks the menu item", example = "/dashboard")
+    private MobileMenuPath path;
+    @Schema(description = "Id of the resource to open, when user clicks the menu item", example = "8a8d81b0-5975-11ef-83b1-d3209c242a36")
+    private String id;
 
 }

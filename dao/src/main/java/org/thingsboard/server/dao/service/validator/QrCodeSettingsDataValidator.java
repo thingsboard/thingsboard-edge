@@ -32,37 +32,26 @@ package org.thingsboard.server.dao.service.validator;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.id.MobileAppBundleId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.AndroidConfig;
-import org.thingsboard.server.common.data.mobile.IosConfig;
-import org.thingsboard.server.common.data.mobile.MobileAppSettings;
 import org.thingsboard.server.common.data.mobile.QRCodeConfig;
+import org.thingsboard.server.common.data.mobile.QrCodeSettings;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.exception.DataValidationException;
 
 @Component
 @AllArgsConstructor
-public class MobileAppSettingsDataValidator extends DataValidator<MobileAppSettings> {
+public class QrCodeSettingsDataValidator extends DataValidator<QrCodeSettings> {
 
     @Override
-    protected void validateDataImpl(TenantId tenantId, MobileAppSettings mobileAppSettings) {
-        AndroidConfig androidConfig = mobileAppSettings.getAndroidConfig();
-        IosConfig iosConfig = mobileAppSettings.getIosConfig();
-        QRCodeConfig qrCodeConfig = mobileAppSettings.getQrCodeConfig();
-        if (!mobileAppSettings.isUseSystemSettings() || tenantId.isSysTenantId()) {
-            if (!mobileAppSettings.isUseDefaultApp() && (androidConfig == null || iosConfig == null)) {
-                throw new DataValidationException("Android/ios settings are required to use custom application!");
-            }
-            if (qrCodeConfig == null) {
-                throw new DataValidationException("Qr code configuration is required!");
-            }
-            if (androidConfig != null && androidConfig.isEnabled() && !mobileAppSettings.isUseDefaultApp() &&
-                    (androidConfig.getAppPackage() == null || androidConfig.getSha256CertFingerprints() == null)) {
-                throw new DataValidationException("Application package and sha256 cert fingerprints are required for custom android application!");
-            }
-            if (iosConfig != null && iosConfig.isEnabled() && !mobileAppSettings.isUseDefaultApp() && iosConfig.getAppId() == null) {
-                throw new DataValidationException("Application id is required for custom ios application!");
-            }
+    protected void validateDataImpl(TenantId tenantId, QrCodeSettings qrCodeSettings) {
+        MobileAppBundleId mobileAppBundleId = qrCodeSettings.getMobileAppBundleId();
+        QRCodeConfig qrCodeConfig = qrCodeSettings.getQrCodeConfig();
+        if (!qrCodeSettings.isUseDefaultApp() && (mobileAppBundleId == null)) {
+            throw new DataValidationException("Mobile app bundle is required to use custom application!");
+        }
+        if (qrCodeConfig == null) {
+            throw new DataValidationException("Qr code configuration is required!");
         }
     }
 }

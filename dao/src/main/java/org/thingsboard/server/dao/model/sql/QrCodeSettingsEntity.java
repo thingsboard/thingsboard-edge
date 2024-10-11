@@ -38,11 +38,10 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.id.MobileAppSettingsId;
+import org.thingsboard.server.common.data.id.MobileAppBundleId;
+import org.thingsboard.server.common.data.id.QrCodeSettingsId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.AndroidConfig;
-import org.thingsboard.server.common.data.mobile.IosConfig;
-import org.thingsboard.server.common.data.mobile.MobileAppSettings;
+import org.thingsboard.server.common.data.mobile.QrCodeSettings;
 import org.thingsboard.server.common.data.mobile.QRCodeConfig;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -54,52 +53,44 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @Entity
-@Table(name = ModelConstants.MOBILE_APP_SETTINGS_TABLE_NAME)
-public class MobileAppSettingsEntity extends BaseSqlEntity<MobileAppSettings> {
+@Table(name = ModelConstants.QR_CODE_SETTINGS_TABLE_NAME)
+public class QrCodeSettingsEntity extends BaseSqlEntity<QrCodeSettings> {
 
     @Column(name = ModelConstants.TENANT_ID_COLUMN, columnDefinition = "uuid")
     protected UUID tenantId;
 
-    @Column(name = ModelConstants.MOBILE_APP_SETTINGS_USE_SYSTEM_SETTINGS_PROPERTY)
-    private boolean useSystemSettings;
-
-    @Column(name = ModelConstants.MOBILE_APP_SETTINGS_USE_DEFAULT_APP_PROPERTY)
+    @Column(name = ModelConstants.QR_CODE_SETTINGS_USE_DEFAULT_APP_PROPERTY)
     private boolean useDefaultApp;
 
-    @Convert(converter = JsonConverter.class)
-    @Column(name = ModelConstants.MOBILE_APP_SETTINGS_ANDROID_CONFIG_PROPERTY)
-    private JsonNode androidConfig;
+    @Column(name = ModelConstants.QR_CODE_SETTINGS_BUNDLE_ID_PROPERTY)
+    private UUID mobileAppBundleId;
 
     @Convert(converter = JsonConverter.class)
-    @Column(name = ModelConstants.MOBILE_APP_SETTINGS_IOS_CONFIG_PROPERTY)
-    private JsonNode iosConfig;
-
-    @Convert(converter = JsonConverter.class)
-    @Column(name = ModelConstants.MOBILE_APP_SETTINGS_QR_CODE_CONFIG_PROPERTY)
+    @Column(name = ModelConstants.QR_CODE_SETTINGS_CONFIG_PROPERTY)
     private JsonNode qrCodeConfig;
 
-    public MobileAppSettingsEntity(MobileAppSettings mobileAppSettings) {
-        this.setId(mobileAppSettings.getUuidId());
-        this.setCreatedTime(mobileAppSettings.getCreatedTime());
-        this.tenantId = mobileAppSettings.getTenantId().getId();
-        this.useSystemSettings = mobileAppSettings.isUseSystemSettings();
-        this.useDefaultApp = mobileAppSettings.isUseDefaultApp();
-        this.androidConfig = toJson(mobileAppSettings.getAndroidConfig());
-        this.iosConfig = toJson(mobileAppSettings.getIosConfig());
-        this.qrCodeConfig = toJson(mobileAppSettings.getQrCodeConfig());
+    public QrCodeSettingsEntity(QrCodeSettings qrCodeSettings) {
+        this.setId(qrCodeSettings.getUuidId());
+        this.setCreatedTime(qrCodeSettings.getCreatedTime());
+        this.tenantId = qrCodeSettings.getTenantId().getId();
+        this.useDefaultApp = qrCodeSettings.isUseDefaultApp();
+        if (qrCodeSettings.getMobileAppBundleId() != null) {
+            this.mobileAppBundleId = qrCodeSettings.getMobileAppBundleId().getId();
+        }
+        this.qrCodeConfig = toJson(qrCodeSettings.getQrCodeConfig());
     }
 
     @Override
-    public MobileAppSettings toData() {
-        MobileAppSettings mobileAppSettings = new MobileAppSettings(new MobileAppSettingsId(getUuid()));
-        mobileAppSettings.setCreatedTime(createdTime);
-        mobileAppSettings.setTenantId(TenantId.fromUUID(tenantId));
-        mobileAppSettings.setUseSystemSettings(useSystemSettings);
-        mobileAppSettings.setUseDefaultApp(useDefaultApp);
-        mobileAppSettings.setAndroidConfig(fromJson(androidConfig, AndroidConfig.class));
-        mobileAppSettings.setIosConfig(fromJson(iosConfig, IosConfig.class));
-        mobileAppSettings.setQrCodeConfig(fromJson(qrCodeConfig, QRCodeConfig.class));
-        return mobileAppSettings;
+    public QrCodeSettings toData() {
+        QrCodeSettings qrCodeSettings = new QrCodeSettings(new QrCodeSettingsId(getUuid()));
+        qrCodeSettings.setCreatedTime(createdTime);
+        qrCodeSettings.setTenantId(TenantId.fromUUID(tenantId));
+        qrCodeSettings.setUseDefaultApp(useDefaultApp);
+        if (mobileAppBundleId != null) {
+            qrCodeSettings.setMobileAppBundleId(new MobileAppBundleId(mobileAppBundleId));
+        }
+        qrCodeSettings.setQrCodeConfig(fromJson(qrCodeConfig, QRCodeConfig.class));
+        return qrCodeSettings;
     }
 
 }

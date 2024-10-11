@@ -28,23 +28,50 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.mobile;
+package org.thingsboard.server.common.data.mobile;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.BaseData;
+import org.thingsboard.server.common.data.HasTenantId;
 import org.thingsboard.server.common.data.id.MobileAppBundleId;
+import org.thingsboard.server.common.data.id.MobileAppId;
+import org.thingsboard.server.common.data.id.QrCodeSettingsId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.MobileApp;
-import org.thingsboard.server.common.data.oauth2.PlatformType;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
 
-public interface MobileAppDao extends Dao<MobileApp> {
+@Schema
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class QrCodeSettings extends BaseData<QrCodeSettingsId> implements HasTenantId {
 
-    MobileApp findByBundleIdAndPlatformType(TenantId tenantId, MobileAppBundleId mobileAppBundleId, PlatformType platformType);
+    private static final long serialVersionUID = 2628323657987010348L;
 
-    PageData<MobileApp> findByTenantId(TenantId tenantId, PlatformType platformType, PageLink pageLink);
+    @Schema(description = "JSON object with Tenant Id.", accessMode = Schema.AccessMode.READ_ONLY)
+    private TenantId tenantId;
+    @Schema(description = "Use settings from system level", example = "true")
+    private boolean useSystemSettings;
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Type of application: true means use default Thingsboard app", example = "true")
+    private boolean useDefaultApp;
+    @Schema(description = "Mobile app bundle.")
+    private MobileAppBundleId mobileAppBundleId;
+    @Valid
+    @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "QR code config configuration.")
+    private QRCodeConfig qrCodeConfig;
 
-    void deleteByTenantId(TenantId tenantId);
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String defaultGooglePlayLink;
 
-    MobileApp findByPkgNameAndPlatformType(TenantId tenantId, String pkgName, PlatformType platform);
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String defaultAppStoreLink;
+
+    public QrCodeSettings() {
+    }
+
+    public QrCodeSettings(QrCodeSettingsId id) {
+        super(id);
+    }
+
 }

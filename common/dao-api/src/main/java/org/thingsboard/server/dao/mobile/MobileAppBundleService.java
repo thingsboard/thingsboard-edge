@@ -30,10 +30,33 @@
  */
 package org.thingsboard.server.dao.mobile;
 
-import lombok.Data;
+import org.thingsboard.server.common.data.id.MobileAppBundleId;
+import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.mobile.MobileAppBundle;
+import org.thingsboard.server.common.data.mobile.MobileAppBundleInfo;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
+import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.dao.entity.EntityDaoService;
 
-@Data
-public class MobileAppSettingsEvictEvent {
-    private final TenantId tenantId;
+import java.util.List;
+
+public interface MobileAppBundleService extends EntityDaoService {
+
+    MobileAppBundle saveMobileAppBundle(TenantId tenantId, MobileAppBundle mobileAppBundle);
+
+    MobileAppBundle findMobileAppBundleById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
+
+    PageData<MobileAppBundleInfo> findMobileAppBundleInfosByTenantId(TenantId tenantId, PageLink pageLink);
+
+    MobileAppBundleInfo findMobileAppBundleInfoById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
+
+    void updateOauth2Clients(TenantId tenantId, MobileAppBundleId mobileAppBundleId, List<OAuth2ClientId> oAuth2ClientIds);
+
+    MobileAppBundle findMobileAppBundleByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platform);
+
+    void deleteMobileAppBundleById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
+
+    void deleteMobileAppBundlesByTenantId(TenantId tenantId);
 }

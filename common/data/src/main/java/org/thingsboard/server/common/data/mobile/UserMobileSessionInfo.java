@@ -30,18 +30,13 @@
  */
 package org.thingsboard.server.common.data.mobile;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.id.MobileAppId;
-import org.thingsboard.server.common.data.id.OAuth2ClientId;
+
+import java.util.Map;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class MobileAppOauth2Client {
+public class UserMobileSessionInfo {
 
-    private MobileAppId mobileAppId;
-    private OAuth2ClientId oAuth2ClientId;
+    private Map<String, MobileSessionInfo> sessions;
 
 }
