@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.service.DataValidator;
 
 import java.util.Map;
 import java.util.Optional;
@@ -57,10 +58,13 @@ public class MobileAppServiceImpl extends AbstractEntityService implements Mobil
 
     @Autowired
     private MobileAppDao mobileAppDao;
+    @Autowired
+    private DataValidator<MobileApp> mobileAppDataValidator;
 
     @Override
     public MobileApp saveMobileApp(TenantId tenantId, MobileApp mobileApp) {
         log.trace("Executing saveMobileApp [{}]", mobileApp);
+        mobileAppDataValidator.validate(mobileApp, a -> tenantId);
         try {
             MobileApp savedMobileApp = mobileAppDao.save(tenantId, mobileApp);
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(savedMobileApp).build());

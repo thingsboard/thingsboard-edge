@@ -804,7 +804,7 @@ CREATE TABLE IF NOT EXISTS mobile_app (
     platform_type varchar(32),
     status varchar(32),
     version_info varchar(16384),
-    qr_code_config varchar(16384),
+    store_info varchar(16384),
     CONSTRAINT pkg_platform_unique UNIQUE (pkg_name, platform_type)
 );
 
@@ -1124,5 +1124,5 @@ CREATE TABLE IF NOT EXISTS qr_code_settings (
     use_default_app boolean,
     mobile_app_bundle_id uuid,
     qr_code_config VARCHAR(100000),
-    CONSTRAINT mobile_app_settings_tenant_id_unq_key UNIQUE (tenant_id)
+    CONSTRAINT qr_code_settings_tenant_id_unq_key UNIQUE (tenant_id)
 );

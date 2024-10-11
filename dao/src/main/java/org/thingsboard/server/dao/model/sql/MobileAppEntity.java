@@ -44,7 +44,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.mobile.MobileAppStatus;
 import org.thingsboard.server.common.data.mobile.MobileApp;
 import org.thingsboard.server.common.data.mobile.MobileAppVersionInfo;
-import org.thingsboard.server.common.data.mobile.QrCodeConfig;
+import org.thingsboard.server.common.data.mobile.StoreInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
@@ -82,8 +82,8 @@ public class MobileAppEntity extends BaseSqlEntity<MobileApp> {
     private JsonNode versionInfo;
 
     @Convert(converter = JsonConverter.class)
-    @Column(name = ModelConstants.MOBILE_APP_QR_CODE_CONFIG_PROPERTY)
-    private JsonNode qrCodeConfig;
+    @Column(name = ModelConstants.MOBILE_APP_STORE_INFO_PROPERTY)
+    private JsonNode storeInfo;
 
     public MobileAppEntity() {
         super();
@@ -99,7 +99,7 @@ public class MobileAppEntity extends BaseSqlEntity<MobileApp> {
         this.platformType = mobile.getPlatformType();
         this.status = mobile.getStatus();
         this.versionInfo = toJson(mobile.getVersionInfo());
-        this.qrCodeConfig = toJson(mobile.getQrCodeConfig());
+        this.storeInfo = toJson(mobile.getStoreInfo());
     }
 
     @Override
@@ -115,7 +115,7 @@ public class MobileAppEntity extends BaseSqlEntity<MobileApp> {
         mobile.setPlatformType(platformType);
         mobile.setStatus(status);
         mobile.setVersionInfo(fromJson(versionInfo, MobileAppVersionInfo.class));
-        mobile.setQrCodeConfig(fromJson(qrCodeConfig, QrCodeConfig.class));
+        mobile.setStoreInfo(fromJson(storeInfo, StoreInfo.class));
         return mobile;
     }
 }

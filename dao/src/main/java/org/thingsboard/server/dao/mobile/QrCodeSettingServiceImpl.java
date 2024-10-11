@@ -37,7 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.mobile.BadgePosition;
-import org.thingsboard.server.common.data.mobile.QrCodeConfig;
+import org.thingsboard.server.common.data.mobile.MobileApp;
 import org.thingsboard.server.common.data.mobile.QrCodeSettings;
 import org.thingsboard.server.common.data.mobile.QRCodeConfig;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
@@ -75,7 +75,7 @@ public class QrCodeSettingServiceImpl extends AbstractCachedEntityService<Tenant
         } catch (Exception e) {
             handleEvictEvent(new QrCodeSettingsEvictEvent(tenantId));
             checkConstraintViolation(e, Map.of(
-                    "mobile_app_settings_tenant_id_unq_key", "Mobile application for specified tenant already exists!"
+                    "qr_code_settings_tenant_id_unq_key", "Mobile application for specified tenant already exists!"
             ));
             throw e;
         }
@@ -90,10 +90,10 @@ public class QrCodeSettingServiceImpl extends AbstractCachedEntityService<Tenant
     }
 
     @Override
-    public QrCodeConfig findAppQrCodeConfig(TenantId tenantId, PlatformType platformType) {
+    public MobileApp findAppFromQrCodeSettings(TenantId tenantId, PlatformType platformType) {
         log.trace("Executing findAppQrCodeConfig for tenant [{}] ", tenantId);
         QrCodeSettings qrCodeSettings = getMergedQrCodeSettings(tenantId);
-        return qrCodeSettings.getMobileAppBundleId() != null ? mobileAppService.findByBundleIdAndPlatformType(tenantId, qrCodeSettings.getMobileAppBundleId(), platformType).getQrCodeConfig() : null;
+        return qrCodeSettings.getMobileAppBundleId() != null ? mobileAppService.findByBundleIdAndPlatformType(tenantId, qrCodeSettings.getMobileAppBundleId(), platformType) : null;
     }
 
     @Override

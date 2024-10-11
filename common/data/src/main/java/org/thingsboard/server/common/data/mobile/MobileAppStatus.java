@@ -32,6 +32,7 @@ package org.thingsboard.server.common.data.mobile;
 
 public enum MobileAppStatus {
 
+    DRAFT,
     PUBLISHED,
     DEPRECATED,
     SUSPENDED

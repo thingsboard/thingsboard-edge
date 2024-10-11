@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnI
 import { PageComponent } from '@shared/components/page.component';
 import { AppState } from '@core/core.state';
 import { Store } from '@ngrx/store';
-import { BadgePosition, MobileAppSettings } from '@shared/models/mobile-app.models';
+import { BadgePosition, QrCodeSettings } from '@shared/models/mobile-app.models';
 import { MobileApplicationService } from '@core/http/mobile-application.service';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { UtilsService } from '@core/services/utils.service';
@@ -54,7 +54,7 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
   private readonly destroy$ = new Subject<void>();
   private widgetResize$: ResizeObserver;
 
-  private mobileAppSettingsValue: MobileAppSettings;
+  private mobileAppSettingsValue: QrCodeSettings;
   private deepLink: string;
   private deepLinkTTL: number;
   private deepLinkTTLTimeoutID: NodeJS.Timeout;
@@ -80,13 +80,13 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
   widgetTitlePanel: TemplateRef<any>;
 
   @Input()
-  set mobileAppSettings(settings: MobileAppSettings) {
+  set mobileAppSettings(settings: QrCodeSettings) {
     if (settings) {
       this.mobileAppSettingsValue = settings;
     }
   };
 
-  get mobileAppSettings(): MobileAppSettings {
+  get mobileAppSettings(): QrCodeSettings {
     return this.mobileAppSettingsValue;
   }
 
