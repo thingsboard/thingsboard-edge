@@ -32,7 +32,6 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.After;
 import org.junit.Before;
@@ -42,9 +41,12 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.group.EntityGroupInfo;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMItemLinkType;
@@ -534,6 +536,27 @@ public class CustomMenuControllerTest extends AbstractControllerTest {
 
         JsonNode currentMenuAfterAssign = doGet("/api/customMenu", JsonNode.class);
         assertCustomMenuConfig(currentMenuAfterAssign, tenantMenuConfig);
+    }
+
+    @Test
+    public void testGetCustomMenuViaPublicCustomer() throws Exception {
+        loginCustomerAdminUser();
+
+        EntityGroupInfo dashboardGroup = createSharedPublicEntityGroup(
+                "Public dashboard",
+                EntityType.DASHBOARD,
+                customerId
+        );
+        String publicId = dashboardGroup.getAdditionalInfo().get("publicCustomerId").asText();
+
+        resetTokens();
+
+        JsonNode publicLoginRequest = JacksonUtil.toJsonNode("{\"publicId\": \"" + publicId + "\"}");
+        JsonNode tokens = doPost("/api/auth/login/public", publicLoginRequest, JsonNode.class);
+        this.token = tokens.get("token").asText();
+
+        JsonNode currentMenu = doGet("/api/customMenu", JsonNode.class);
+        assertThat(currentMenu.get("items")).isEmpty();
     }
 
     private MvcResult getUserCustomMenu() throws Exception {
