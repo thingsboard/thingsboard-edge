@@ -241,7 +241,7 @@ public class AuthController extends BaseController {
             try {
                 mailService.sendAccountActivatedEmail(user.getTenantId(), loginUrl, email);
             } catch (Exception e) {
-                log.info("Unable to send account activation email [{}]", e.getMessage());
+                log.warn("Unable to send account activation email [{}]", e.getMessage());
             }
         }
 
@@ -280,7 +280,11 @@ public class AuthController extends BaseController {
             String baseUrl = systemSecurityService.getBaseUrl(user.getAuthority(), user.getTenantId(), user.getCustomerId(), request);
             String loginUrl = String.format("%s/login", baseUrl);
             String email = user.getEmail();
-            mailService.sendPasswordWasResetEmail(user.getTenantId(), loginUrl, email);
+            try {
+                mailService.sendPasswordWasResetEmail(user.getTenantId(), loginUrl, email);
+            } catch (Exception e) {
+                log.warn("Couldn't send password was reset email: {}", e.getMessage());
+            }
 
             eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(securityUser.getId()));
 
