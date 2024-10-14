@@ -137,7 +137,9 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
                 log.error("Failed to close Connection.", e);
             }
         }
-        loopExecutor.shutdownNow();
+        if (loopExecutor != null) {
+            loopExecutor.shutdownNow();
+        }
     }
 
     @Override
@@ -159,13 +161,20 @@ public abstract class AbstractRabbitMQIntegration<T extends RabbitMQIntegrationM
                     try {
                         return channel.basicGet(queue, true);
                     } catch (IOException | ShutdownSignalException exception) {
-                        log.error("Channel was closed with the error: {}", exception.getMessage());
+                        log.error("[{}][{}] Channel was closed with the error: {}", this.configuration.getTenantId().getId(), this.configuration.getId().getId(), exception.getMessage());
                         if (configuration.isDebugMode()) {
                             try {
                                 persistDebug(context, "Uplink", getDefaultUplinkContentType(), "", "ERROR", exception);
                             } catch (Exception e) {
                                 log.warn("[{}] Failed to persist debug message", this.configuration.getName(), e);
                             }
+                        }
+
+                        // cooldown period
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
                         }
                     }
                     return null;
