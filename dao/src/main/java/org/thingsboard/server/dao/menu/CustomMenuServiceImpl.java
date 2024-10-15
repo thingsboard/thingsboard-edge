@@ -40,6 +40,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.CustomMenuDeleteResult;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -343,8 +344,11 @@ public class CustomMenuServiceImpl extends AbstractCachedEntityService<CustomMen
     }
 
     private CustomMenu findCustomMenuByUserId(TenantId tenantId, UserId userId) {
-        CustomMenuId customMenuId = userService.findUserById(tenantId, userId).getCustomMenuId();
-        return customMenuId == null ? null : findCustomMenuById(tenantId, customMenuId);
+        User user = userService.findUserById(tenantId, userId);
+        if (user != null && user.getCustomMenuId() != null) {
+            return findCustomMenuById(tenantId, user.getCustomMenuId());
+        }
+        return null;
     }
 
     private CustomMenu findCustomerHierarchyCustomMenu(TenantId tenantId, CustomerId customerId) {

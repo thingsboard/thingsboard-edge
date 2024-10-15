@@ -137,7 +137,11 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             throw new IllegalArgumentException("Integration configuration is empty!");
         }
         if (!integration.isRemote()) {
-            doCheckConnection(integration, ctx);
+            try {
+                doCheckConnection(integration, ctx);
+            } finally {
+                destroy();
+            }
         }
     }
 
