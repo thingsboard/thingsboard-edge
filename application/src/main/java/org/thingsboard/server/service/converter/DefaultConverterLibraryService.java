@@ -40,6 +40,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.LibraryConvertersInfo;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.queue.util.AfterStartUp;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.sync.GitSyncService;
 import org.thingsboard.server.service.sync.vc.GitRepository.FileType;
 import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
@@ -55,6 +56,7 @@ import java.util.stream.Collectors;
 import static org.thingsboard.server.common.data.converter.ConverterType.DOWNLINK;
 import static org.thingsboard.server.common.data.converter.ConverterType.UPLINK;
 
+@TbCoreComponent
 @Service
 @RequiredArgsConstructor
 @Slf4j

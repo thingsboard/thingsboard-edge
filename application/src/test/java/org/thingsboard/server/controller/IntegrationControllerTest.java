@@ -74,6 +74,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @TestPropertySource(properties = {
         "js.evaluator=local",
         "service.integrations.supported=ALL",
+        "integrations.converters.library.enabled=true"
 })
 @DaoSqlTest
 public class IntegrationControllerTest extends AbstractControllerTest {
