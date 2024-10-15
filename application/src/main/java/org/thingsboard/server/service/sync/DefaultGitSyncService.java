@@ -31,19 +31,18 @@
 package org.thingsboard.server.service.sync;
 
 import jakarta.annotation.PreDestroy;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.sync.vc.GitRepository;
 import org.thingsboard.server.service.sync.vc.GitRepository.FileType;
 import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
 
 import java.net.URI;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -52,8 +51,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+@TbCoreComponent
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class DefaultGitSyncService implements GitSyncService {
 
@@ -79,17 +78,17 @@ public class DefaultGitSyncService implements GitSyncService {
 
         executor.scheduleWithFixedDelay(() -> {
             GitRepository repository = repositories.get(key);
-            if (repository == null || Files.notExists(Path.of(repository.getDirectory()))) {
+            if (repository == null || !GitRepository.exists(repository.getDirectory())) {
                 initRepository(key, settings);
                 return;
             }
 
             try {
-                log.debug("Fetching {} repository", key);
+                log.debug("[{}] Fetching repository", key);
                 repository.fetch();
                 onUpdate(key);
             } catch (Throwable e) {
-                log.error("Failed to fetch {} repository", key, e);
+                log.error("[{}] Failed to fetch repository", key, e);
             }
         }, fetchFrequencyMs, fetchFrequencyMs, TimeUnit.MILLISECONDS);
     }
@@ -109,7 +108,7 @@ public class DefaultGitSyncService implements GitSyncService {
         try {
             return repository.getFileContentAtCommit(path, getBranchRef(repository));
         } catch (Exception e) {
-            log.warn("Failed to get file content for path {} for {} repository: {}", path, key, e.getMessage());
+            log.warn("[{}] Failed to get file content for path {}: {}", key, path, e.getMessage());
             return "{}";
         }
     }
@@ -126,7 +125,7 @@ public class DefaultGitSyncService implements GitSyncService {
     private GitRepository getRepository(String key) {
         GitRepository repository = repositories.get(key);
         if (repository != null) {
-            if (Files.notExists(Path.of(repository.getDirectory()))) {
+            if (!GitRepository.exists(repository.getDirectory())) {
                 // reinitializing the repository because folder was deleted
                 initRepository(key, repository.getSettings());
             }
@@ -134,7 +133,7 @@ public class DefaultGitSyncService implements GitSyncService {
 
         repository = repositories.get(key);
         if (repository == null) {
-            throw new IllegalStateException("{} repository is not initialized");
+            throw new IllegalStateException(key + " repository is not initialized");
         }
         return repository;
     }
@@ -146,18 +145,23 @@ public class DefaultGitSyncService implements GitSyncService {
 
             GitRepository repository = GitRepository.openOrClone(directory, settings, true);
             repositories.put(key, repository);
-            log.info("Initialized {} repository", key);
+            log.info("[{}] Initialized repository", key);
 
             onUpdate(key);
         } catch (Throwable e) {
-            log.error("Failed to init {} repository for settings {}", key, settings, e);
+            log.error("[{}] Failed to initialize repository with settings {}", key, settings, e);
         }
     }
 
     private void onUpdate(String key) {
         Runnable listener = updateListeners.get(key);
         if (listener != null) {
-            listener.run();
+            log.debug("[{}] Handling repository update", key);
+            try {
+                listener.run();
+            } catch (Throwable e) {
+                log.error("[{}] Failed to handle repository update", key, e);
+            }
         }
     }
 
