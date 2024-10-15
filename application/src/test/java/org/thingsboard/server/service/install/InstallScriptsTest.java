@@ -53,8 +53,8 @@ import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.usagerecord.ApiLimitService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
-import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.service.entitiy.widgets.bundle.TbWidgetsBundleService;
 import org.thingsboard.server.service.install.update.ImagesUpdater;
 
 import java.io.IOException;
@@ -78,7 +78,7 @@ class InstallScriptsTest {
     @MockBean
     WidgetTypeService widgetTypeService;
     @MockBean
-    WidgetsBundleService widgetsBundleService;
+    TbWidgetsBundleService tbWidgetsBundleService;
     @MockBean
     AdminSettingsService adminSettingsService;
     @MockBean
