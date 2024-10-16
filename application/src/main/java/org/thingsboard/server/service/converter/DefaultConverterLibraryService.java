@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
 import org.thingsboard.server.queue.util.AfterStartUp;
+import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
 import org.thingsboard.server.service.sync.vc.GitRepositoryService;
 
@@ -60,6 +61,7 @@ import java.util.stream.Collectors;
 import static org.thingsboard.server.common.data.converter.ConverterType.DOWNLINK;
 import static org.thingsboard.server.common.data.converter.ConverterType.UPLINK;
 
+@TbCoreComponent
 @Service
 @RequiredArgsConstructor
 @Slf4j

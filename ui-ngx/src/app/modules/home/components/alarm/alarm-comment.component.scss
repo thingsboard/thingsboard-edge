@@ -32,8 +32,8 @@
 @import "../theme/app-theme.scss";
 @import '../../../../../scss/constants';
 
-$primary-color: mat.get-color-from-palette($tb-primary);
-$border: 1px solid mat.get-color-from-palette($tb-primary);
+$primary-color: mat.m2-get-color-from-palette($tb-primary);
+$border: 1px solid mat.m2-get-color-from-palette($tb-primary);
 @mixin primary-theme-background {
   &:before {
     content: "";

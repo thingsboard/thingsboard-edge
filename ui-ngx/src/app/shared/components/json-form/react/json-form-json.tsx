@@ -36,7 +36,7 @@ import { beautifyJs } from '@shared/models/beautify.models';
 
 class ThingsboardJson extends React.Component<JsonFormFieldProps, JsonFormFieldState> {
 
-    constructor(props) {
+    constructor(props: JsonFormFieldProps) {
         super(props);
         this.onTidyJson = this.onTidyJson.bind(this);
     }

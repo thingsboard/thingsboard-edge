@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRoute, ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRoute, ActivatedRouteSnapshot, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { UtilsService } from '@core/services/utils.service';
@@ -47,7 +47,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { EdgeService } from '@core/http/edge.service';
 
 @Injectable()
-export class EntityGroupsTableConfigResolver implements Resolve<EntityGroupsTableConfig> {
+export class EntityGroupsTableConfigResolver  {
 
   constructor(private entityGroupService: EntityGroupService,
               private customerService: CustomerService,

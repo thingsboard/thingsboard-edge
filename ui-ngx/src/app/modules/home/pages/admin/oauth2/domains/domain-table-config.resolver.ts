@@ -30,7 +30,7 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { ActivatedRouteSnapshot } from '@angular/router';
 import {
   DateEntityTableColumn,
   EntityActionTableColumn,
@@ -51,7 +51,7 @@ import { Direction } from '@app/shared/models/page/sort-order';
 import { map, Observable, of, mergeMap } from 'rxjs';
 
 @Injectable()
-export class DomainTableConfigResolver implements Resolve<EntityTableConfig<DomainInfo>> {
+export class DomainTableConfigResolver  {
 
   private readonly config: EntityTableConfig<DomainInfo> = new EntityTableConfig<DomainInfo>();
 

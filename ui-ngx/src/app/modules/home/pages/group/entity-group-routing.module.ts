@@ -30,14 +30,7 @@
 ///
 
 import { Injectable, NgModule } from '@angular/core';
-import {
-  ActivatedRouteSnapshot,
-  CanActivate,
-  Router,
-  RouterModule,
-  RouterStateSnapshot,
-  Routes
-} from '@angular/router';
+import { ActivatedRouteSnapshot, Router, RouterModule, RouterStateSnapshot, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
 import { EntityType } from '@shared/models/entity-type.models';
 import { of } from 'rxjs';
@@ -56,7 +49,7 @@ import _ from 'lodash';
 import { EntityGroupResolver } from '@home/pages/group/entity-group.shared';
 
 @Injectable()
-export class RedirectToEntityGroup implements CanActivate {
+export class RedirectToEntityGroup  {
   constructor(private router: Router,
               private entityGroupService: EntityGroupService,
               private store: Store<AppState>) {

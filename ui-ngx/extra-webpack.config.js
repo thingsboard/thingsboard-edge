@@ -29,7 +29,7 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 const CompressionPlugin = require("compression-webpack-plugin");
-const JavaScriptOptimizerPlugin = require("@angular-devkit/build-angular/src/webpack/plugins/javascript-optimizer-plugin").JavaScriptOptimizerPlugin;
+const JavaScriptOptimizerPlugin = require("@angular-devkit/build-angular/src/tools/webpack/plugins/javascript-optimizer-plugin").JavaScriptOptimizerPlugin;
 const webpack = require("webpack");
 const dirTree = require("directory-tree");
 const ngWebpack = require('@ngtools/webpack');
