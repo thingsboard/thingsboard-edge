@@ -228,8 +228,9 @@ CREATE TABLE IF NOT EXISTS ts_kv_cloud_event (
     cloud_event_action varchar(255),
     entity_body varchar(10000000),
     tenant_id uuid,
+    entity_group_id uuid,
     ts bigint NOT NULL
-    ) PARTITION BY RANGE(created_time);
+) PARTITION BY RANGE(created_time);
 
 ALTER TABLE IF EXISTS ts_kv_cloud_event ALTER COLUMN seq_id SET CYCLE;
 
