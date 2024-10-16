@@ -103,6 +103,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiConsumer;
 
+import static org.thingsboard.server.service.cloud.MessageConstants.RATE_LIMIT_REACHED;
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_START_SEQ_ID_ATTR_KEY;
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_START_TS_ATTR_KEY;
+
 @Slf4j
 @Data
 public final class EdgeGrpcSession implements Closeable {
@@ -110,11 +114,7 @@ public final class EdgeGrpcSession implements Closeable {
     private static final ReentrantLock downlinkMsgLock = new ReentrantLock();
     private static final ConcurrentLinkedQueue<EdgeEvent> highPriorityQueue = new ConcurrentLinkedQueue<>();
 
-    private static final int MAX_DOWNLINK_ATTEMPTS = 10; // max number of attempts to send downlink message if edge connected
-
-    private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
-    private static final String QUEUE_START_SEQ_ID_ATTR_KEY = "queueStartSeqId";
-    private static final String RATE_LIMIT_REACHED = "Rate limit reached";
+    private static final int MAX_SEND_DOWNLINK_ATTEMPTS = 10;
 
     private final UUID sessionId;
     private final BiConsumer<EdgeId, EdgeGrpcSession> sessionOpenListener;
@@ -544,15 +544,15 @@ public final class EdgeGrpcSession implements Closeable {
                                     .build());
                         }
                     }
-                    if (attempt < MAX_DOWNLINK_ATTEMPTS) {
+                    if (attempt < MAX_SEND_DOWNLINK_ATTEMPTS) {
                         scheduleDownlinkMsgsPackSend(attempt + 1);
                     } else {
                         String failureMsg = String.format("Failed to deliver messages: %s", copy);
                         log.warn("[{}][{}] Failed to deliver the batch after {} attempts. Next messages are going to be discarded {}",
-                                this.tenantId, this.sessionId, MAX_DOWNLINK_ATTEMPTS, copy);
+                                this.tenantId, this.sessionId, MAX_SEND_DOWNLINK_ATTEMPTS, copy);
                         ctx.getNotificationRuleProcessor().process(EdgeCommunicationFailureTrigger.builder().tenantId(tenantId).edgeId(edge.getId())
                                 .customerId(edge.getCustomerId()).edgeName(edge.getName()).failureMsg(failureMsg)
-                                .error("Failed to deliver messages after " + MAX_DOWNLINK_ATTEMPTS + " attempts").build());
+                                .error("Failed to deliver messages after " + MAX_SEND_DOWNLINK_ATTEMPTS + " attempts").build());
                         stopCurrentSendDownlinkMsgsTask(false);
                     }
                 } else {
@@ -583,9 +583,11 @@ public final class EdgeGrpcSession implements Closeable {
             DownlinkMsg downlinkMsg = null;
             try {
                 switch (edgeEvent.getAction()) {
-                    case UPDATED, ADDED, DELETED, ASSIGNED_TO_EDGE, UNASSIGNED_FROM_EDGE, ALARM_ACK, ALARM_CLEAR, ALARM_DELETE,
-                            CREDENTIALS_UPDATED, RELATION_ADD_OR_UPDATE, RELATION_DELETED, RPC_CALL,
-                            ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER, ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT -> {
+                    case UPDATED, ADDED, DELETED, ASSIGNED_TO_EDGE, UNASSIGNED_FROM_EDGE, ALARM_ACK, ALARM_CLEAR,
+                         ALARM_DELETE,
+                         CREDENTIALS_UPDATED, RELATION_ADD_OR_UPDATE, RELATION_DELETED, RPC_CALL,
+                         ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER, ADDED_COMMENT, UPDATED_COMMENT,
+                         DELETED_COMMENT -> {
                         downlinkMsg = convertEntityEventToDownlink(edgeEvent);
                         if (downlinkMsg != null && downlinkMsg.getWidgetTypeUpdateMsgCount() > 0) {
                             log.trace("[{}][{}] widgetTypeUpdateMsg message processed, downlinkMsgId = {}", this.tenantId, this.sessionId, downlinkMsg.getDownlinkMsgId());
@@ -595,7 +597,8 @@ public final class EdgeGrpcSession implements Closeable {
                     }
                     case ATTRIBUTES_UPDATED, POST_ATTRIBUTES, ATTRIBUTES_DELETED, TIMESERIES_UPDATED ->
                             downlinkMsg = ctx.getTelemetryProcessor().convertTelemetryEventToDownlink(edge, edgeEvent);
-                    default -> log.warn("[{}][{}] Unsupported action type [{}]", this.tenantId, this.sessionId, edgeEvent.getAction());
+                    default ->
+                            log.warn("[{}][{}] Unsupported action type [{}]", this.tenantId, this.sessionId, edgeEvent.getAction());
                 }
             } catch (Exception e) {
                 log.error("[{}][{}] Exception during converting edge event to downlink msg", this.tenantId, this.sessionId, e);

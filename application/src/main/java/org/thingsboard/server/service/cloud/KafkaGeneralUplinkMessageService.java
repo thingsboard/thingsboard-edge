@@ -16,6 +16,7 @@
 package org.thingsboard.server.service.cloud;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
@@ -24,37 +25,34 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
-import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_SEQ_ID_OFFSET_ATTR_KEY;
-import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_START_TS_ATTR_KEY;
-
 @Slf4j
 @Service
-@ConditionalOnExpression("'${queue.type:null}'!='kafka'")
-public class DefaultGeneralUplinkMessageService extends PostgresUplinkMessageService implements GeneralUplinkMessageService {
+@ConditionalOnExpression("'${queue.type:null}'=='kafka'")
+public class KafkaGeneralUplinkMessageService extends KafkaUplinkMessageService implements GeneralUplinkMessageService {
 
     @Override
-    protected String getTableName() {
-        return "cloud_event";
+    protected PageData<CloudEvent> findCloudEvents(TenantId tenantId) {
+        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, null, null, null);
+
+        cloudEventService.commit(false);
+
+        return cloudEvents;
     }
 
     @Override
-    protected ListenableFuture<Long> getQueueSeqIdStart(TenantId tenantId) {
-        return getLongAttrByKey(tenantId, QUEUE_SEQ_ID_OFFSET_ATTR_KEY);
-    }
+    public TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart) {
+        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, null, null, null);
 
-    @Override
-    protected PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
-        return cloudEventService.findCloudEvents(tenantId, seqIdStart, seqIdEnd, pageLink);
+        return cloudEvents.getTotalElements() != 0 ? new TimePageLink(0) : null;
     }
 
     @Override
     public ListenableFuture<Long> getQueueStartTs(TenantId tenantId) {
-        return getLongAttrByKey(tenantId, QUEUE_START_TS_ATTR_KEY);
-    }
+        SettableFuture<Long> futureToSet = SettableFuture.create();
 
-    @Override
-    protected void updateQueueStartTsSeqIdOffset(TenantId tenantId, Long newStartTs, Long newSeqId) {
-        updateQueueStartTsSeqIdOffset(tenantId, QUEUE_START_TS_ATTR_KEY, QUEUE_SEQ_ID_OFFSET_ATTR_KEY, newStartTs, newSeqId);
+        futureToSet.set(0L);
+
+        return futureToSet;
     }
 
     @Override

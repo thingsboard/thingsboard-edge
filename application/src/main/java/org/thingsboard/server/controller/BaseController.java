@@ -65,8 +65,6 @@ import org.thingsboard.server.common.data.alarm.AlarmComment;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
 import org.thingsboard.server.common.data.asset.Asset;
 import org.thingsboard.server.common.data.asset.AssetInfo;
-import org.thingsboard.server.common.data.audit.ActionType;
-import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.domain.Domain;
@@ -127,9 +125,9 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
-import org.thingsboard.server.dao.device.ClaimDevicesService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
@@ -165,16 +163,12 @@ import org.thingsboard.server.service.action.EntityActionService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.entitiy.TbLogEntityActionService;
 import org.thingsboard.server.service.entitiy.user.TbUserSettingsService;
-import org.thingsboard.server.service.ota.OtaPackageStateService;
-import org.thingsboard.server.service.profile.TbAssetProfileCache;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
 import org.thingsboard.server.service.security.permission.Operation;
 import org.thingsboard.server.service.security.permission.Resource;
-import org.thingsboard.server.service.state.DeviceStateService;
 import org.thingsboard.server.service.sync.ie.exporting.ExportableEntitiesService;
-import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
 import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
 
@@ -284,9 +278,6 @@ public abstract class BaseController {
     protected AuditLogService auditLogService;
 
     @Autowired
-    protected DeviceStateService deviceStateService;
-
-    @Autowired
     protected EntityViewService entityViewService;
 
     @Autowired
@@ -296,10 +287,10 @@ public abstract class BaseController {
     protected AttributesService attributesService;
 
     @Autowired
-    protected ClaimDevicesService claimDevicesService;
+    protected CloudEventService cloudEventService;
 
     @Autowired
-    protected CloudEventService cloudEventService;
+    protected EdgeSettingsService edgeSettingsService;
 
     @Autowired
     protected PartitionService partitionService;
@@ -309,9 +300,6 @@ public abstract class BaseController {
 
     @Autowired
     protected OtaPackageService otaPackageService;
-
-    @Autowired
-    protected OtaPackageStateService otaPackageStateService;
 
     @Autowired
     protected RpcService rpcService;
@@ -325,9 +313,6 @@ public abstract class BaseController {
     @Autowired
     protected TbDeviceProfileCache deviceProfileCache;
 
-    @Autowired
-    protected TbAssetProfileCache assetProfileCache;
-
     @Autowired(required = false)
     protected EdgeService edgeService;
 
@@ -339,9 +324,6 @@ public abstract class BaseController {
 
     @Autowired
     protected QueueService queueService;
-
-    @Autowired
-    protected EntitiesVersionControlService vcService;
 
     @Autowired
     protected ExportableEntitiesService entitiesService;

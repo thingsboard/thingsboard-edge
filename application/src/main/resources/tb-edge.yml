@@ -137,6 +137,8 @@ cloud:
       no_read_records_sleep: "${CLOUD_RPC_NO_READ_RECORDS_SLEEP:1000}"
       # Interval in milliseconds to retry sending a failed batch of cloud events
       sleep_between_batches: "${CLOUD_RPC_SLEEP_BETWEEN_BATCHES:1000}"
+    # queue:
+    # TODO: check if queue.cloud_event and queue.cloud_event_ts fits here
     # Maximum size in bytes of inbound messages from the cloud
     max_inbound_message_size: "${CLOUD_RPC_MAX_INBOUND_MESSAGE_SIZE:4194304}"
     proxy:
@@ -1513,6 +1515,10 @@ queue:
       housekeeper-reprocessing: "${TB_QUEUE_KAFKA_HOUSEKEEPER_REPROCESSING_TOPIC_PROPERTIES:retention.ms:7776000000;segment.bytes:52428800;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
       # Kafka properties for Edge topic
       edge: "${TB_QUEUE_KAFKA_EDGE_TOPIC_PROPERTIES:retention.ms:604800000;segment.bytes:52428800;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
+      # Kafka properties for CloudEvent topic
+      cloud_event: "${TB_QUEUE_KAFKA_CLOUD_EVENT_TOPIC_PROPERTIES:retention.ms:2678400000;segment.bytes:52428800;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
+      # Kafka properties for CloudEvent topic
+      cloud_event_ts: "${TB_QUEUE_KAFKA_CLOUD_EVENT_TS_TOPIC_PROPERTIES:retention.ms:2678400000;segment.bytes:52428800;retention.bytes:1048576000;partitions:1;min.insync.replicas:1}"
     consumer-stats:
       # Prints lag between consumer group offset and last messages offset in Kafka topics
       enabled: "${TB_QUEUE_KAFKA_CONSUMER_STATS_ENABLED:true}"
@@ -1772,6 +1778,42 @@ queue:
       enabled: "${TB_QUEUE_EDGE_STATS_ENABLED:true}"
       # Statistics printing interval for Edge services
       print-interval-ms: "${TB_QUEUE_EDGE_STATS_PRINT_INTERVAL_MS:60000}"
+  cloud-event:
+    # Default topic name for Kafka, RabbitMQ, etc.
+    topic: "${TB_QUEUE_CLOUD_EVENT_TOPIC:tb_cloud_event}"
+    # Amount of partitions used by Cloud Event services
+    partitions: "${TB_QUEUE_CLOUD_EVENT_PARTITIONS:10}"
+    # Poll interval for topics related to Cloud Event services
+    poll-interval: "${TB_QUEUE_CLOUD_EVENT_POLL_INTERVAL_MS:25}"
+    # Timeout for processing a message pack by Cloud Event services
+    pack-processing-timeout: "${TB_QUEUE_CLOUD_EVENT_PACK_PROCESSING_TIMEOUT_MS:10000}"
+    # Retries for processing a failure message pack by Cloud Event services
+    pack-processing-retries: "${TB_QUEUE_CLOUD_EVENT_MESSAGE_PROCESSING_RETRIES:3}"
+    # Enable/disable a separate consumer per partition for Cloud Event queue
+    consumer-per-partition: "${TB_QUEUE_CLOUD_EVENT_CONSUMER_PER_PARTITION:false}"
+    stats:
+      # Enable/disable statistics for Cloud Event services
+      enabled: "${TB_QUEUE_CLOUD_EVENT_STATS_ENABLED:true}"
+      # Statistics printing interval for Cloud Event services
+      print-interval-ms: "${TB_QUEUE_CLOUD_EVENT_STATS_PRINT_INTERVAL_MS:60000}"
+  cloud-event-ts:
+    # Default topic name for Kafka, RabbitMQ, etc.
+    topic: "${TB_QUEUE_CLOUD_EVENT_TS_TOPIC:tb_cloud_event_ts}"
+    # Amount of partitions used by Cloud Event services
+    partitions: "${TB_QUEUE_CLOUD_EVENT_TS_PARTITIONS:10}"
+    # Poll interval for topics related to Cloud Event services
+    poll-interval: "${TB_QUEUE_CLOUD_EVENT_TS_POLL_INTERVAL_MS:25}"
+    # Timeout for processing a message pack by Cloud Event services
+    pack-processing-timeout: "${TB_QUEUE_CLOUD_EVENT_TS_PACK_PROCESSING_TIMEOUT_MS:10000}"
+    # Retries for processing a failure message pack by Cloud Event services
+    pack-processing-retries: "${TB_QUEUE_CLOUD_EVENT_TS_MESSAGE_PROCESSING_RETRIES:3}"
+    # Enable/disable a separate consumer per partition for Cloud Event queue
+    consumer-per-partition: "${TB_QUEUE_CLOUD_EVENT_TS_CONSUMER_PER_PARTITION:false}"
+    stats:
+      # Enable/disable statistics for Cloud Event services
+      enabled: "${TB_QUEUE_CLOUD_EVENT_TS_STATS_ENABLED:true}"
+      # Statistics printing interval for Cloud Event services
+      print-interval-ms: "${TB_QUEUE_CLOUD_EVENT_TS_STATS_PRINT_INTERVAL_MS:60000}"
 
 # Event configuration parameters
 event:

@@ -20,49 +20,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.ApiUsageState;
-import org.thingsboard.server.common.data.ApiUsageStateValue;
-import org.thingsboard.server.common.data.Device;
-import org.thingsboard.server.common.data.DeviceProfile;
-import org.thingsboard.server.common.data.DeviceProfileProvisionType;
-import org.thingsboard.server.common.data.DeviceProfileType;
-import org.thingsboard.server.common.data.DeviceTransportType;
-import org.thingsboard.server.common.data.EdgeUtils;
-import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.ResourceSubType;
-import org.thingsboard.server.common.data.ResourceType;
-import org.thingsboard.server.common.data.TbResource;
-import org.thingsboard.server.common.data.Tenant;
-import org.thingsboard.server.common.data.TenantProfile;
+import org.thingsboard.server.common.data.*;
+import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.cloud.CloudEventType;
 import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.Lwm2mDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.PowerMode;
 import org.thingsboard.server.common.data.device.data.PowerSavingConfiguration;
 import org.thingsboard.server.common.data.edge.EdgeEventActionType;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
-import org.thingsboard.server.common.data.id.ApiUsageStateId;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.DeviceCredentialsId;
-import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.DeviceProfileId;
-import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.EntityIdFactory;
-import org.thingsboard.server.common.data.id.OtaPackageId;
-import org.thingsboard.server.common.data.id.RuleChainId;
-import org.thingsboard.server.common.data.id.TbResourceId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.TenantProfileId;
-import org.thingsboard.server.common.data.kv.AttributeKey;
-import org.thingsboard.server.common.data.kv.AttributeKvEntry;
-import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
-import org.thingsboard.server.common.data.kv.BooleanDataEntry;
-import org.thingsboard.server.common.data.kv.DoubleDataEntry;
-import org.thingsboard.server.common.data.kv.JsonDataEntry;
-import org.thingsboard.server.common.data.kv.KvEntry;
-import org.thingsboard.server.common.data.kv.LongDataEntry;
-import org.thingsboard.server.common.data.kv.StringDataEntry;
+import org.thingsboard.server.common.data.id.*;
+import org.thingsboard.server.common.data.kv.*;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.data.rpc.RpcError;
 import org.thingsboard.server.common.data.rpc.ToDeviceRpcRequestBody;
@@ -76,23 +44,11 @@ import org.thingsboard.server.common.msg.edge.EdgeHighPriorityMsg;
 import org.thingsboard.server.common.msg.edge.FromEdgeSyncResponse;
 import org.thingsboard.server.common.msg.edge.ToEdgeSyncRequest;
 import org.thingsboard.server.common.msg.plugin.ComponentLifecycleMsg;
-import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponse;
-import org.thingsboard.server.common.msg.rpc.FromDeviceRpcResponseActorMsg;
-import org.thingsboard.server.common.msg.rpc.RemoveRpcActorMsg;
-import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequest;
-import org.thingsboard.server.common.msg.rpc.ToDeviceRpcRequestActorMsg;
-import org.thingsboard.server.common.msg.rule.engine.DeviceAttributesEventNotificationMsg;
-import org.thingsboard.server.common.msg.rule.engine.DeviceCredentialsUpdateNotificationMsg;
-import org.thingsboard.server.common.msg.rule.engine.DeviceDeleteMsg;
-import org.thingsboard.server.common.msg.rule.engine.DeviceEdgeUpdateMsg;
-import org.thingsboard.server.common.msg.rule.engine.DeviceNameOrTypeUpdateMsg;
+import org.thingsboard.server.common.msg.rpc.*;
+import org.thingsboard.server.common.msg.rule.engine.*;
 import org.thingsboard.server.gen.transport.TransportProtos;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -179,6 +135,43 @@ public class ProtoUtils {
                 proto.getSuccess(),
                 proto.getError()
         );
+    }
+
+    public static TransportProtos.CloudEventMsgProto toProto(CloudEvent cloudEvent) {
+        TransportProtos.CloudEventMsgProto.Builder builder = TransportProtos.CloudEventMsgProto.newBuilder();
+
+        builder.setTenantIdMSB(cloudEvent.getTenantId().getId().getMostSignificantBits());
+        builder.setTenantIdLSB(cloudEvent.getTenantId().getId().getLeastSignificantBits());
+        builder.setEntityType(cloudEvent.getType().name());
+        builder.setAction(cloudEvent.getAction().name());
+
+        if (cloudEvent.getEntityId() != null) {
+            builder.setEntityIdMSB(cloudEvent.getEntityId().getMostSignificantBits());
+            builder.setEntityIdLSB(cloudEvent.getEntityId().getLeastSignificantBits());
+        }
+        if (cloudEvent.getEntityBody() != null) {
+            builder.setEntityBody(JacksonUtil.toString(cloudEvent.getEntityBody()));
+        }
+
+        return builder.build();
+    }
+
+    public static CloudEvent fromProto(TransportProtos.CloudEventMsgProto proto) {
+        CloudEvent cloudEvent = new CloudEvent();
+        TenantId tenantId = new TenantId(new UUID(proto.getTenantIdMSB(), proto.getTenantIdLSB()));
+        cloudEvent.setTenantId(tenantId);
+        cloudEvent.setType(CloudEventType.valueOf(proto.getEntityType()));
+        cloudEvent.setAction(EdgeEventActionType.valueOf(proto.getAction()));
+
+        if (proto.hasEntityIdMSB() && proto.hasEntityIdLSB()) {
+            cloudEvent.setEntityId(new UUID(proto.getEntityIdMSB(), proto.getEntityIdLSB()));
+        }
+
+        if (proto.hasEntityBody()) {
+            cloudEvent.setEntityBody(JacksonUtil.fromString(proto.getEntityBody(), JsonNode.class));
+        }
+
+        return cloudEvent;
     }
 
     public static TransportProtos.EdgeHighPriorityMsgProto toProto(EdgeHighPriorityMsg msg) {

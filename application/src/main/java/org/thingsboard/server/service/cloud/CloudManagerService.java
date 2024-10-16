@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.DownlinkResponseMsg;
@@ -69,15 +70,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_SEQ_ID_OFFSET_ATTR_KEY;
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_START_TS_ATTR_KEY;
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_TS_KV_START_TS_ATTR_KEY;
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY;
+
 @Service
 @Slf4j
 public class CloudManagerService {
-
-    private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
-    private static final String QUEUE_SEQ_ID_OFFSET_ATTR_KEY = "queueSeqIdOffset";
-    private static final String QUEUE_TS_KV_START_TS_ATTR_KEY = "queueTsKvStartTs";
-    private static final String QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY = "queueTsKvSeqIdOffset";
-
 
     @Value("${cloud.routingKey}")
     private String routingKey;
@@ -125,15 +125,14 @@ public class CloudManagerService {
     @Autowired
     private CustomerCloudProcessor customerProcessor;
 
-
-
     @Autowired
     private CloudEventService cloudEventService;
 
     @Autowired
+    private EdgeSettingsService edgeSettingsService;
+
+    @Autowired
     private ConfigurableApplicationContext context;
-
-
 
     private EdgeSettings currentEdgeSettings;
 
@@ -268,7 +267,7 @@ public class CloudManagerService {
     private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
         this.tenantId = new TenantId(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
 
-        this.currentEdgeSettings = cloudEventService.findEdgeSettings(this.tenantId);
+        this.currentEdgeSettings = edgeSettingsService.findEdgeSettings(this.tenantId);
         EdgeSettings newEdgeSettings = constructEdgeSettings(edgeConfiguration);
         if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSettings.getEdgeId())) {
             tenantProcessor.cleanUp();
@@ -290,7 +289,7 @@ public class CloudManagerService {
         edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired());
         this.syncInProgress = true;
 
-        cloudEventService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
+        edgeSettingsService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
 
         saveOrUpdateEdge(tenantId, edgeConfiguration);
 
