@@ -464,7 +464,7 @@ public class LwM2mClient {
     }
 
     public LwM2m.Version getSupportedObjectVersion(Integer objectid) {
-        return this.supportedClientObjects.get(objectid);
+        return this.supportedClientObjects != null ? this.supportedClientObjects.get(objectid) : null;
     }
 
     private void setSupportedClientObjects(){
