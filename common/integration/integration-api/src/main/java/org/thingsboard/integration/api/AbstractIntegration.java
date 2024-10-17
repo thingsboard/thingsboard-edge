@@ -303,7 +303,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected ListenableFuture<List<UplinkData>> convertToUplinkDataListAsync(IntegrationContext context, byte[] data, UplinkMetaData md) {
         try {
             Optional<IntegrationRateLimitService> rateLimitService = context.getRateLimitService();
-            rateLimitService.ifPresent(s -> s.checkLimit(configuration.getTenantId(), () -> JacksonUtil.toString(JacksonUtil.fromBytes(data))));
+            rateLimitService.ifPresent(s -> s.checkLimit(configuration.getTenantId(), () -> new String(data)));
             return this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md, context.getCallBackExecutorService());
         } catch (Throwable t) {
             if (log.isDebugEnabled()) {
