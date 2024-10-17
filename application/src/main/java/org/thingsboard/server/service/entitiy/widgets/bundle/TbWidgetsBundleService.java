@@ -30,15 +30,12 @@
  */
 package org.thingsboard.server.service.entitiy.widgets.bundle;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.User;
-import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 public interface TbWidgetsBundleService {
 
@@ -50,6 +47,5 @@ public interface TbWidgetsBundleService {
 
     void updateWidgetsBundleWidgetFqns(WidgetsBundleId widgetsBundleId, List<String> widgetFqns, User user) throws Exception;
 
-    void updateWidgets(TenantId tenantId, Stream<JsonNode> bundles, Stream<JsonNode> widgets);
 
 }
