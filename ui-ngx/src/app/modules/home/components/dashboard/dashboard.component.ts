@@ -557,7 +557,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
     return dashboardWidget ? dashboardWidget.widget : null;
   }
 
-  getEventGridPosition(event: Event): WidgetPosition {
+  getEventGridPosition(event: TbContextMenuEvent | KeyboardEvent): WidgetPosition {
     const pos: WidgetPosition = {
       row: 0,
       column: 0
@@ -565,7 +565,7 @@ export class DashboardComponent extends PageComponent implements IDashboardCompo
     const parentElement = $(this.gridster.el);
     let pageX = 0;
     let pageY = 0;
-    if (event instanceof MouseEvent) {
+    if ('pageX' in event && 'pageY' in event) {
       pageX = event.pageX;
       pageY = event.pageY;
     }
