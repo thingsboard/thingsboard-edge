@@ -56,6 +56,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ContactBased;
@@ -161,10 +162,10 @@ import org.thingsboard.server.common.data.rpc.Rpc;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
-import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.util.ThrowingBiFunction;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
@@ -1318,14 +1319,18 @@ public abstract class BaseController {
     }
 
     protected void checkUserInfo(User user) throws ThingsboardException {
+        ObjectNode info;
         if (user.getAdditionalInfo() instanceof ObjectNode additionalInfo) {
-            checkDashboardInfo(additionalInfo);
-
-            UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
-            if (userCredentials.isEnabled() && !additionalInfo.has("userCredentialsEnabled")) {
-                additionalInfo.put("userCredentialsEnabled", true);
-            }
+            info = additionalInfo;
+            checkDashboardInfo(info);
+        } else {
+            info = JacksonUtil.newObjectNode();
+            user.setAdditionalInfo(info);
         }
+
+        UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
+        info.put("userCredentialsEnabled", userCredentials.isEnabled());
+        info.put("lastLoginTs", userCredentials.getLastLoginTs());
     }
 
     protected void checkDashboardInfo(JsonNode additionalInfo) throws ThingsboardException {
