@@ -35,15 +35,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.RuleNode;
 import org.thingsboard.rule.engine.api.TbContext;
-import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.rule.engine.external.TbAbstractExternalNode;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 import org.thingsboard.server.common.data.plugin.ComponentType;
 import org.thingsboard.server.common.data.report.ReportConfig;
 import org.thingsboard.server.common.msg.TbMsg;
@@ -64,13 +63,14 @@ import java.util.UUID;
         icon = "description"
 )
 
-public class TbGenerateReportNode implements TbNode {
+public class TbGenerateReportNode extends TbAbstractExternalNode {
     private static final String ATTACHMENTS = "attachments";
 
     private TbGenerateReportNodeConfiguration config;
 
     @Override
     public void init(TbContext ctx, TbNodeConfiguration configuration) throws TbNodeException {
+        super.init(ctx);
         this.config = TbNodeUtils.convert(configuration, TbGenerateReportNodeConfiguration.class);
     }
 
@@ -93,6 +93,9 @@ public class TbGenerateReportNode implements TbNode {
             if (!this.config.isUseSystemReportsServer()) {
                 reportsServerEndpointUrl = this.config.getReportsServerEndpointUrl();
             }
+
+            var tbMsg = ackIfNeeded(ctx, msg);
+
             ctx.getPeContext().getReportService().generateReport(
                     ctx.getTenantId(),
                     reportConfig,
@@ -107,7 +110,7 @@ public class TbGenerateReportNode implements TbNode {
                         reportBlobEntity.setTenantId(user.getTenantId());
                         reportBlobEntity.setCustomerId(user.getCustomerId());
                         reportBlobEntity = ctx.getPeContext().getBlobEntityService().saveBlobEntity(reportBlobEntity);
-                        TbMsgMetaData metaData = msg.getMetaData().copy();
+                        TbMsgMetaData metaData = tbMsg.getMetaData().copy();
                         String attachments = metaData.getValue(ATTACHMENTS);
                         if (!StringUtils.isEmpty(attachments)) {
                             attachments += "," + reportBlobEntity.getId().toString();
@@ -115,13 +118,13 @@ public class TbGenerateReportNode implements TbNode {
                             attachments = reportBlobEntity.getId().toString();
                         }
                         metaData.putValue(ATTACHMENTS, attachments);
-                        TbMsg newMsg = TbMsg.transformMsgMetadata(msg, metaData);
-                        ctx.tellNext(newMsg, TbNodeConnectionType.SUCCESS);
+                        TbMsg newMsg = TbMsg.transformMsgMetadata(tbMsg, metaData);
+                        tellSuccess(ctx, newMsg);
                     },
-                    throwable -> ctx.tellFailure(msg, throwable)
+                    throwable -> tellFailure(ctx, tbMsg, throwable)
             );
-        } catch (Exception e) {
-            ctx.tellFailure(msg, e);
+        } catch (Throwable t) {
+            ctx.tellFailure(msg, t);
         }
     }
 

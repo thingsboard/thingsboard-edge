@@ -85,4 +85,5 @@ public class BasicRabbitMQIntegration extends AbstractRabbitMQIntegration<BasicR
             }
         }
     }
+
 }

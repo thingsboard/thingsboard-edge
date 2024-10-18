@@ -129,9 +129,6 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
             throw new ThingsboardException(e.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         } catch (Exception e) {
             log.error(e.getMessage());
-        } finally {
-            if (mqttClient != null)
-                mqttClient.disconnect();
         }
     }
 

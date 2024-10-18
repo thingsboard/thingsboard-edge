@@ -623,5 +623,6 @@ public class OtaPackageControllerTest extends AbstractControllerTest {
         user.setEmail(email);
         return createUser(user, pwd, savedUserGroupInfo.getId());
     }
+
 }
 

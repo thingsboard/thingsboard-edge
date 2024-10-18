@@ -1,4 +1,4 @@
-/*
+/**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
  *
  * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
@@ -28,31 +28,28 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-// Protractor configuration file, see link for more information
-// https://github.com/angular/protractor/blob/master/lib/config.ts
+package org.thingsboard.server.transport.coap.efento.utils;
 
-const { SpecReporter } = require("jasmine-spec-reporter");
+public enum PulseCounterType {
 
-exports.config = {
-  allScriptsTimeout: 11000,
-  specs: [
-    "./src/**/*.e2e-spec.ts",
-  ],
-  capabilities: {
-    "browserName": "chrome",
-  },
-  directConnect: true,
-  baseUrl: "http://localhost:4200/",
-  framework: "jasmine",
-  jasmineNodeOpts: {
-    showColors: true,
-    defaultTimeoutInterval: 30000,
-    print: function() {},
-  },
-  onPrepare() {
-    require("ts-node").register({
-      project: require("path").join(__dirname, "./tsconfig.e2e.json"),
-    });
-    jasmine.getEnv().addReporter(new SpecReporter({ spec: { displayStacktrace: true } }));
-  },
-};
+    WATER_CNT_ACC("water_cnt_acc_", 100),
+    PULSE_CNT_ACC("pulse_cnt_acc_", 1000),
+    ELEC_METER_ACC("elec_meter_acc_", 1000),
+    PULSE_CNT_ACC_WIDE("pulse_cnt_acc_wide_", 1000000);
+
+    private final String prefix;
+    private final int majorResolution;
+
+    PulseCounterType(String prefix, int majorResolution) {
+        this.prefix = prefix;
+        this.majorResolution = majorResolution;
+    }
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public int getMajorResolution() {
+        return majorResolution;
+    }
+}

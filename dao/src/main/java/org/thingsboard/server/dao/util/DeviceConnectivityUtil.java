@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.device.credentials.BasicMqttCredentials;
 import org.thingsboard.server.common.data.security.DeviceCredentials;
 import org.thingsboard.server.dao.device.DeviceConnectivityInfo;
+import org.thingsboard.server.dao.device.DockerComposeParams;
 
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -107,19 +108,21 @@ public class DeviceConnectivityUtil {
         return command.toString();
     }
 
-    public static Resource getGatewayDockerComposeFile(String baseUrl, DeviceConnectivityInfo properties, DeviceCredentials deviceCredentials, String mqttType, boolean includePortBindings) throws URISyntaxException {
+    public static Resource getGatewayDockerComposeFile(String baseUrl, DeviceConnectivityInfo properties, DeviceCredentials deviceCredentials, String mqttType, DockerComposeParams params) throws URISyntaxException {
         String host = getHost(baseUrl, properties, mqttType);
 
         StringBuilder dockerComposeBuilder = new StringBuilder();
-        dockerComposeBuilder.append("version: '3.4'\n");
+        if (params.includeVersion()) {
+            dockerComposeBuilder.append("version: '3.4'\n");
+        }
         dockerComposeBuilder.append("services:\n");
         dockerComposeBuilder.append("  # ThingsBoard IoT Gateway Service Configuration\n");
         dockerComposeBuilder.append("  tb-gateway:\n");
         dockerComposeBuilder.append("    image: thingsboard/tb-gateway\n");
         dockerComposeBuilder.append("    container_name: tb-gateway\n");
         dockerComposeBuilder.append("    restart: always\n");
-        dockerComposeBuilder.append("\n");
-        if (includePortBindings) {
+        if (params.includePortBindings()) {
+            dockerComposeBuilder.append("\n");
             dockerComposeBuilder.append("    # Ports bindings - required by some connectors\n");
             dockerComposeBuilder.append("    ports:\n");
             dockerComposeBuilder.append("        - \"5000:5000\" # Comment if you don't use REST connector and change if you use another port\n");
@@ -128,11 +131,13 @@ public class DeviceConnectivityUtil {
             dockerComposeBuilder.append("#        - \"5026:5026\" # Modbus TCP connector (Modbus Slave)\n");
             dockerComposeBuilder.append("#        - \"50000:50000/tcp\" # Socket connector with type TCP\n");
             dockerComposeBuilder.append("#        - \"50000:50000/udp\" # Socket connector with type UDP\n");
-            dockerComposeBuilder.append("\n");
         }
-        dockerComposeBuilder.append("    # Necessary mapping for Linux\n");
-        dockerComposeBuilder.append("    extra_hosts:\n");
-        dockerComposeBuilder.append("      - \"host.docker.internal:host-gateway\"\n");
+        if (params.includeExtraHosts()) {
+            dockerComposeBuilder.append("\n");
+            dockerComposeBuilder.append("    # Necessary mapping for Linux\n");
+            dockerComposeBuilder.append("    extra_hosts:\n");
+            dockerComposeBuilder.append("      - \"host.docker.internal:host-gateway\"\n");
+        }
         dockerComposeBuilder.append("\n");
         dockerComposeBuilder.append("    # Environment variables\n");
         dockerComposeBuilder.append("    environment:\n");
@@ -158,21 +163,25 @@ public class DeviceConnectivityUtil {
                 }
                 break;
         }
-        dockerComposeBuilder.append("\n");
-        dockerComposeBuilder.append("    # Volumes bind\n");
-        dockerComposeBuilder.append("    volumes:\n");
-        dockerComposeBuilder.append("      - tb-gw-config:/thingsboard_gateway/config\n");
-        dockerComposeBuilder.append("      - tb-gw-logs:/thingsboard_gateway/logs\n");
-        dockerComposeBuilder.append("      - tb-gw-extensions:/thingsboard_gateway/extensions\n");
-        dockerComposeBuilder.append("\n");
-        dockerComposeBuilder.append("# Volumes declaration for configurations, extensions and configuration\n");
-        dockerComposeBuilder.append("volumes:\n");
-        dockerComposeBuilder.append("  tb-gw-config:\n");
-        dockerComposeBuilder.append("    name: tb-gw-config\n");
-        dockerComposeBuilder.append("  tb-gw-logs:\n");
-        dockerComposeBuilder.append("    name: tb-gw-logs\n");
-        dockerComposeBuilder.append("  tb-gw-extensions:\n");
-        dockerComposeBuilder.append("    name: tb-gw-extensions\n");
+        if (params.includeVolumesBind()) {
+            dockerComposeBuilder.append("\n");
+            dockerComposeBuilder.append("    # Volumes bind\n");
+            dockerComposeBuilder.append("    volumes:\n");
+            dockerComposeBuilder.append("      - tb-gw-config:/thingsboard_gateway/config\n");
+            dockerComposeBuilder.append("      - tb-gw-logs:/thingsboard_gateway/logs\n");
+            dockerComposeBuilder.append("      - tb-gw-extensions:/thingsboard_gateway/extensions\n");
+        }
+        if (params.includeVolumesDeclaration()) {
+            dockerComposeBuilder.append("\n");
+            dockerComposeBuilder.append("# Volumes declaration for configurations, extensions and configuration\n");
+            dockerComposeBuilder.append("volumes:\n");
+            dockerComposeBuilder.append("  tb-gw-config:\n");
+            dockerComposeBuilder.append("    name: tb-gw-config\n");
+            dockerComposeBuilder.append("  tb-gw-logs:\n");
+            dockerComposeBuilder.append("    name: tb-gw-logs\n");
+            dockerComposeBuilder.append("  tb-gw-extensions:\n");
+            dockerComposeBuilder.append("    name: tb-gw-extensions\n");
+        }
 
         return new ByteArrayResource(dockerComposeBuilder.toString().getBytes(StandardCharsets.UTF_8));
     }

@@ -30,7 +30,7 @@
 ///
 
 import { Injectable, NgModule } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve, RouterModule, Routes } from '@angular/router';
+import { ActivatedRouteSnapshot, RouterModule, Routes } from '@angular/router';
 
 import { Authority } from '@shared/models/authority.enum';
 import { DashboardPageComponent } from '@home/components/dashboard-page/dashboard-page.component';
@@ -46,7 +46,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 
 @Injectable()
-export class WidgetEditorDashboardResolver implements Resolve<Dashboard> {
+export class WidgetEditorDashboardResolver  {
 
   constructor(private dashboardService: DashboardService,
               private dashboardUtils: DashboardUtilsService,

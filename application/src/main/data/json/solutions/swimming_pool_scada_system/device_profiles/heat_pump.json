@@ -30,7 +30,7 @@
     "alarms": [
       {
         "id": "e7d51cca-b9d7-7f95-dacd-c72f6cc60129",
-        "alarmType": "Vibration alarm",
+        "alarmType": "Vibration",
         "createRules": {
           "CRITICAL": {
             "condition": {
@@ -535,7 +535,7 @@
               {
                 "key": {
                   "type": "TIME_SERIES",
-                  "key": "compressorTemperature"
+                  "key": "refrigerantPressure"
                 },
                 "valueType": "NUMERIC",
                 "value": null,
@@ -552,7 +552,7 @@
               {
                 "key": {
                   "type": "TIME_SERIES",
-                  "key": "compressorTemperature"
+                  "key": "refrigerantPressure"
                 },
                 "valueType": "NUMERIC",
                 "value": null,

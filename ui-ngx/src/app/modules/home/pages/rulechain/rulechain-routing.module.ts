@@ -30,16 +30,7 @@
 ///
 
 import { Inject, Injectable, NgModule, Optional } from '@angular/core';
-import {
-  ActivatedRouteSnapshot,
-  CanActivate,
-  Resolve,
-  Router,
-  RouterModule,
-  RouterStateSnapshot,
-  Routes,
-  UrlTree
-} from '@angular/router';
+import { ActivatedRouteSnapshot, Router, RouterModule, RouterStateSnapshot, Routes, UrlTree } from '@angular/router';
 
 import { EntitiesTableComponent } from '../../components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
@@ -60,7 +51,7 @@ import { MODULES_MAP } from '@shared/public-api';
 import { IModulesMap } from '@modules/common/modules-map.models';
 
 @Injectable()
-export class RuleChainResolver implements Resolve<RuleChain> {
+export class RuleChainResolver  {
 
   constructor(private ruleChainService: RuleChainService) {
   }
@@ -72,7 +63,7 @@ export class RuleChainResolver implements Resolve<RuleChain> {
 }
 
 @Injectable()
-export class RuleChainMetaDataResolver implements Resolve<RuleChainMetaData> {
+export class RuleChainMetaDataResolver  {
 
   constructor(private ruleChainService: RuleChainService) {
   }
@@ -84,7 +75,7 @@ export class RuleChainMetaDataResolver implements Resolve<RuleChainMetaData> {
 }
 
 @Injectable()
-export class RuleNodeComponentsResolver implements Resolve<Array<RuleNodeComponentDescriptor>> {
+export class RuleNodeComponentsResolver  {
 
   constructor(private ruleChainService: RuleChainService,
               @Optional() @Inject(MODULES_MAP) private modulesMap: IModulesMap) {
@@ -96,7 +87,7 @@ export class RuleNodeComponentsResolver implements Resolve<Array<RuleNodeCompone
 }
 
 @Injectable()
-export class TooltipsterResolver implements Resolve<any> {
+export class TooltipsterResolver  {
 
   constructor() {
   }
@@ -107,7 +98,7 @@ export class TooltipsterResolver implements Resolve<any> {
 }
 
 @Injectable()
-export class RuleChainImportGuard implements CanActivate {
+export class RuleChainImportGuard  {
 
   constructor(private itembuffer: ItemBufferService,
               private router: Router) {

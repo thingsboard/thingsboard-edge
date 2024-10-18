@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
@@ -70,7 +70,7 @@ import { AuthUser } from '@shared/models/user.model';
 import { CustomerId } from '@shared/models/id/customer-id';
 
 @Injectable()
-export class AssetsTableConfigResolver implements Resolve<EntityTableConfig<AssetInfo>> {
+export class AssetsTableConfigResolver  {
 
   constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<AssetInfo>,
               private store: Store<AppState>,

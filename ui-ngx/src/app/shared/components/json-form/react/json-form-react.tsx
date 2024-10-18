@@ -29,8 +29,8 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 import * as React from 'react';
-import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 import createThingsboardTheme from './styles/thingsboardTheme';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import ThingsboardSchemaForm from './json-form-schema-form';
 import { JsonFormProps } from './json-form.models';
 

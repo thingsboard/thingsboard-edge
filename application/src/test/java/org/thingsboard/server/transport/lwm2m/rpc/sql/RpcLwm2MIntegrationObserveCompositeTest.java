@@ -35,11 +35,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.leshan.core.ResponseCode;
 import org.junit.Test;
-import org.mockito.Mockito;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.transport.lwm2m.rpc.AbstractRpcLwM2MIntegrationObserveTest;
-import org.thingsboard.server.transport.lwm2m.server.uplink.DefaultLwM2mUplinkMsgHandler;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -70,17 +67,12 @@ import static org.thingsboard.server.transport.lwm2m.utils.LwM2MTransportUtil.fr
 @Slf4j
 public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MIntegrationObserveTest {
 
-    @SpyBean
-    DefaultLwM2mUplinkMsgHandler defaultUplinkMsgHandlerTest;
-
-
     /**
      *  ObserveComposite {"ids":["5/0/7", "5/0/5", "5/0/3", "3/0/9", "19/1/0/0"]} - Ok
      * @throws Exception
      */
     @Test
     public void testObserveCompositeAnyResources_Result_CONTENT_Value_LwM2mSingleResource_LwM2mResourceInstance() throws Exception {
-        sendObserveCancelAllWithAwait(deviceId);
         String expectedIdVer5_0_7 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_7;
         String expectedIdVer5_0_5 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_5;
         String expectedIdVer5_0_3 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_3;
@@ -103,7 +95,6 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
      */
     @Test
     public void testObserveComposite_ObjectInstanceWithOtherObjectResourceInstance_Result_CONTENT_Ok() throws Exception {
-        sendObserveCancelAllWithAwait(deviceId);
         String expectedIdVer19_1_0 = objectIdVer_19 + "/" + OBJECT_INSTANCE_ID_1 + "/" + RESOURCE_ID_0;
         String expectedIdVer5_0 = objectInstanceIdVer_5;
         String expectedIds = "[\"" + expectedIdVer19_1_0 + "\", \"" + expectedIdVer5_0 + "\"]";
@@ -122,7 +113,6 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
      */
     @Test
     public void testObserveReadAll_AfterCompositeObservation_WithResourceNotReadable_Result_CONTENT_ObserveResourceNotReadableIsNull() throws Exception {
-        sendObserveCancelAllWithAwait(deviceId);
         String expectedIdVer5_0_7 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_7;
         String expectedIdVer5_0_2 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_2;
         String expectedIds = "[\"" + expectedIdVer5_0_7 + "\", \"" + expectedIdVer5_0_2 + "\"]";
@@ -142,7 +132,6 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
      */
     @Test
     public void testObserveComposite_Result_BAD_REQUEST_ONE_PATH_CONTAINCE_OTHER() throws Exception {
-        sendObserveCancelAllWithAwait(deviceId);
         String expectedIdVer5_0 = objectInstanceIdVer_5;
         String expectedIdVer5_0_2 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_2;
         String expectedIds = "[\"" + expectedIdVer5_0 + "\", \"" + expectedIdVer5_0_2 + "\"]";
@@ -155,7 +144,7 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
     }
 
     /**
-     *  Previous -> "3/0/9", "19/0/2", "19/1/0", "19/0/0", All only SingleObservation;
+     *  Previous -> "3/0/9" SingleObservation;
      *  if at least one of the resource objectIds (Composite) in SingleObservation or CompositeObservation is already registered - return BAD REQUEST
      *  ObserveComposite {"ids":["5/0/7", "5/0/5", "5/0/3", "3/0/9"]}
      * @throws Exception
@@ -167,13 +156,8 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
         ObjectNode rpcActualResultReadAll = JacksonUtil.fromString(actualResultReadAll, ObjectNode.class);
         assertEquals(ResponseCode.CONTENT.getName(), rpcActualResultReadAll.get("result").asText());
         String actualValues = rpcActualResultReadAll.get("value").asText();
-        String expectedIdVer19_0_2 = objectIdVer_19 + "/" + OBJECT_INSTANCE_ID_0 + "/" + RESOURCE_ID_2;
-        String expectedIdVer19_1_0 = objectIdVer_19 + "/" + OBJECT_INSTANCE_ID_1 + "/" + RESOURCE_ID_0;
-        assertTrue(actualValues.contains("SingleObservation:" + fromVersionedIdToObjectId(idVer_3_0_9)));
-        assertTrue(actualValues.contains("SingleObservation:" + fromVersionedIdToObjectId(expectedIdVer19_0_2)));
-        assertTrue(actualValues.contains("SingleObservation:" + fromVersionedIdToObjectId(expectedIdVer19_1_0)));
-        assertTrue(actualValues.contains("SingleObservation:" + fromVersionedIdToObjectId(idVer_19_0_0)));
-        // Send Observe composite with "/3/0/9"
+        assertTrue(actualValues.contains("[]"));
+        sendRpcObserveWithContainsLwM2mSingleResource(idVer_3_0_9);
         String expectedIdVer5_0_7 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_7;
         String expectedIdVer5_0_5 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_5;
         String expectedIdVer5_0_3 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_3;
@@ -189,9 +173,6 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
         assertEquals(ResponseCode.CONTENT.getName(), rpcActualResultReadAll.get("result").asText());
         actualValues = rpcActualResultReadAll.get("value").asText();
         assertTrue(actualValues.contains("SingleObservation:" + fromVersionedIdToObjectId(idVer_3_0_9)));
-        assertTrue(actualValues.contains("SingleObservation:" + fromVersionedIdToObjectId(expectedIdVer19_0_2)));
-        assertTrue(actualValues.contains("SingleObservation:" + fromVersionedIdToObjectId(expectedIdVer19_1_0)));
-        assertTrue(actualValues.contains("SingleObservation:" + fromVersionedIdToObjectId(idVer_19_0_0)));
     }
 
     /**
@@ -229,12 +210,6 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
         ObjectNode rpcActualResultReadAll = JacksonUtil.fromString(actualResultReadAll, ObjectNode.class);
         assertEquals(ResponseCode.CONTENT.getName(), rpcActualResultReadAll.get("result").asText());
         actualValues = rpcActualResultReadAll.get("value").asText();
-        String expectedIdVer19_0_2 = objectIdVer_19 + "/" + OBJECT_INSTANCE_ID_0 + "/" + RESOURCE_ID_2;
-        String expectedIdVer19_1_0 = objectIdVer_19 + "/" + OBJECT_INSTANCE_ID_1 + "/" + RESOURCE_ID_0;
-        assertTrue(actualValues.contains("SingleObservation:" + fromVersionedIdToObjectId(idVer_3_0_9)));
-        assertTrue(actualValues.contains("SingleObservation:" + fromVersionedIdToObjectId(expectedIdVer19_0_2)));
-        assertTrue(actualValues.contains("SingleObservation:" + fromVersionedIdToObjectId(expectedIdVer19_1_0)));
-        assertTrue(actualValues.contains("SingleObservation:" + fromVersionedIdToObjectId(idVer_19_0_0)));
         assertTrue(actualValues.contains("CompositeObservation:"));
         assertTrue(actualValues.contains(expectedId5_0_7));
         assertTrue(actualValues.contains(expectedId5_0_5));
@@ -247,8 +222,6 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
      */
     @Test
     public void testObserveCompositeAnyResources_Result_CONTENT_Value_LwM2mSingleResource_LwM2mMultipleResource() throws Exception {
-        sendObserveCancelAllWithAwait(deviceId);
-
         String expectedIdVer5_0_7 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_7;
         String expectedIdVer5_0_5 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_5;
         String expectedIdVer5_0_3 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_3;
@@ -271,8 +244,6 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
      */
     @Test
     public void testObserveCompositeWithKeyName_Result_CONTENT_Value_SingleResources() throws Exception {
-        sendObserveCancelAllWithAwait(deviceId);
-
         String expectedKey3_0_9 = RESOURCE_ID_NAME_3_9;
         String expectedKey3_0_14 = RESOURCE_ID_NAME_3_14;
         String expectedKey19_0_0 = RESOURCE_ID_NAME_19_0_0;
@@ -297,6 +268,7 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
      */
     @Test
     public void testObserveCompositeWithKeyName_IfLeastOneResourceIsAlreadyRegistered_return_BadRequest() throws Exception {
+        sendRpcObserveWithContainsLwM2mSingleResource(idVer_3_0_9);
         String expectedKey3_0_9 = RESOURCE_ID_NAME_3_9;
         String expectedKey3_0_14 = RESOURCE_ID_NAME_3_14;
         String expectedKey19_0_0 = RESOURCE_ID_NAME_19_0_0;
@@ -314,9 +286,7 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
      * @throws Exception
      */
     @Test
-    public void testObserveReadAll_AfterObserveCancelAllAndCompositeObservation_Result_CONTENT_Value_CompositeObservation_Only() throws Exception {
-        sendObserveCancelAllWithAwait(deviceId);
-
+    public void testObserveReadAll_AfterbserveCancelAllAndCompositeObservation_Result_CONTENT_Value_CompositeObservation_Only() throws Exception {
         String expectedKey3_0_9 = RESOURCE_ID_NAME_3_9;
         String expectedKey3_0_14 = RESOURCE_ID_NAME_3_14;
         String expectedKey19_0_0 = RESOURCE_ID_NAME_19_0_0;
@@ -346,7 +316,6 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
      */
     @Test
     public void testObserveCancelAllThenObserveCompositeAnyResources_Result_CONTENT_CancelObserveComposite_This_Result_Content_Count_1() throws Exception {
-        sendObserveCancelAllWithAwait(deviceId);
         // ObserveComposite
         String expectedIdVer5_0_7 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_7;
         String expectedIdVer5_0_5 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_5;
@@ -372,7 +341,6 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
      */
     @Test
     public void testObserveCompositeFiveResources_Result_CONTENT_CancelObserveComposite_TwoAnyResource_Result_BadRequest() throws Exception {
-        sendObserveCancelAllWithAwait(deviceId);
         // ObserveComposite five
         String expectedIdVer5_0_7 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_7;
         String expectedIdVer5_0_5 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_5;
@@ -400,7 +368,6 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
      */
     @Test
     public void testObserveOneObjectAnyResources_Result_CONTENT_Cancel_OneResourceFromObjectAnyResource_Result_BAD_REQUEST_Cancel_OneObject_Result_CONTENT() throws Exception {
-        sendObserveCancelAllWithAwait(deviceId);
         // ObserveComposite
         String expectedIdVer5_0_3 = objectInstanceIdVer_5 + "/" + RESOURCE_ID_3;
         String expectedIdVer19_1_0_0 = objectIdVer_19 + "/" + OBJECT_INSTANCE_ID_1 + "/" + RESOURCE_ID_0 + "/" + RESOURCE_INSTANCE_ID_0;
@@ -434,17 +401,25 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
         String idVer_19_0_2 = objectIdVer_19 + "/" + OBJECT_INSTANCE_ID_0 + "/" + RESOURCE_ID_2;
         String id_19_0_2 = fromVersionedIdToObjectId(idVer_19_0_2);
 
-        // 1 - "ObserveReadAll": at least one update value of all resources we observe - after connection
+        // 1 - Verify after start
         String actualResultReadAll = sendCompositeRPCByKeys("ObserveReadAll", null);
         ObjectNode rpcActualResultReadAll = JacksonUtil.fromString(actualResultReadAll, ObjectNode.class);
         assertEquals(ResponseCode.CONTENT.getName(), rpcActualResultReadAll.get("result").asText());
-        String rpcActualVValuesReadAll = rpcActualResultReadAll.get("value").asText();
-        ArrayNode rpcactualValues = JacksonUtil.fromString(rpcActualVValuesReadAll, ArrayNode.class);
-        assertEquals(rpcactualValues.size(), 4);
-        assertTrue(actualResultReadAll.contains("SingleObservation:" + id_3_0_9));
-        assertTrue(actualResultReadAll.contains("SingleObservation:" + id_19_1_0));
-        assertTrue(actualResultReadAll.contains("SingleObservation:" + id_19_0_2));
-        assertTrue(actualResultReadAll.contains("SingleObservation:" + id_19_0_0));
+        String actualValues = rpcActualResultReadAll.get("value").asText();
+        assertTrue(actualValues.contains("[]"));
+        sendRpcObserveWithContainsLwM2mSingleResource(idVer_3_0_9);
+        sendRpcObserveWithContainsLwM2mSingleResource(idVer_19_0_0);
+        sendRpcObserveWithContainsLwM2mSingleResource(idVer_19_1_0);
+        sendRpcObserveWithContainsLwM2mSingleResource(idVer_19_0_2);
+
+        actualResultReadAll = sendCompositeRPCByKeys("ObserveReadAll", null);
+        rpcActualResultReadAll = JacksonUtil.fromString(actualResultReadAll, ObjectNode.class);
+        assertEquals(ResponseCode.CONTENT.getName(), rpcActualResultReadAll.get("result").asText());
+        actualValues = rpcActualResultReadAll.get("value").asText();
+        assertTrue(actualValues.contains("SingleObservation:" + id_3_0_9));
+        assertTrue(actualValues.contains("SingleObservation:" + id_19_1_0));
+        assertTrue(actualValues.contains("SingleObservation:" + id_19_0_2));
+        assertTrue(actualValues.contains("SingleObservation:" + id_19_0_0));
         long initAttrTelemetryAtCount = countUpdateAttrTelemetryAll();
         long initAttrTelemetryAtCount_3_0_9 = countUpdateAttrTelemetryResource(idVer_3_0_9);
         long initAttrTelemetryAtCount_19_0_0 = countUpdateAttrTelemetryResource(idVer_19_0_0);
@@ -463,8 +438,8 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
         actualResultReadAll = sendCompositeRPCByKeys("ObserveReadAll", null);
         rpcActualResultReadAll = JacksonUtil.fromString(actualResultReadAll, ObjectNode.class);
         assertEquals(ResponseCode.CONTENT.getName(), rpcActualResultReadAll.get("result").asText());
-        rpcActualVValuesReadAll = rpcActualResultReadAll.get("value").asText();
-        rpcactualValues = JacksonUtil.fromString(rpcActualVValuesReadAll, ArrayNode.class);
+        String rpcActualVValuesReadAll = rpcActualResultReadAll.get("value").asText();
+        ArrayNode rpcactualValues = JacksonUtil.fromString(rpcActualVValuesReadAll, ArrayNode.class);
         assertEquals(rpcactualValues.size(), 0);
         // 2.1 - ObserveComposite: observeCancelAll verify"
         initAttrTelemetryAtCount = countUpdateAttrTelemetryAll();
@@ -482,7 +457,7 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
         // 3 - ObserveComposite: at least one update value of all resources we observe - after ObserveComposite"
         String expectedKeys = "[\"" + RESOURCE_ID_NAME_3_9 + "\", \"" + RESOURCE_ID_NAME_19_0_0 + "\", \"" + RESOURCE_ID_NAME_19_0_2 + "\", \"" + RESOURCE_ID_NAME_19_1_0 + "\"]";
         String actualResult = sendCompositeRPCByKeys("ObserveComposite", expectedKeys);
-        assertTrue(actualResult.contains(id_3_0_9 + "=LwM2mSingleResource"));
+        assertTrue(actualResult.contains(id_3_0_9  + "=LwM2mSingleResource"));
         assertTrue(actualResult.contains(id_19_0_0 + "=LwM2mMultipleResource"));
         assertTrue(actualResult.contains(id_19_1_0 + "=LwM2mMultipleResource"));
         assertTrue(actualResult.contains(id_19_0_2 + "=LwM2mSingleResource"));
@@ -532,13 +507,6 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
         return doPostAsync("/api/plugins/rpc/twoway/" + deviceId, sendRpcRequest, String.class, status().isOk());
     }
 
-    private long countUpdateAttrTelemetryAll() {
-        return Mockito.mockingDetails(defaultUplinkMsgHandlerTest)
-                .getInvocations().stream()
-                .filter(invocation -> invocation.getMethod().getName().equals("updateAttrTelemetry"))
-                .count();
-    }
-
     private void updateAttrTelemetryAllAtLeastOnceAfterAction(long initialInvocationCount) {
         AtomicLong newInvocationCount = new AtomicLong(initialInvocationCount);
         log.warn("countUpdateAttrTelemetryAllAtLeastOnceAfterAction: initialInvocationCount [{}]", initialInvocationCount);
@@ -551,17 +519,6 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
         log.warn("countUpdateAttrTelemetryAllAtLeastOnceAfterAction: newInvocationCount [{}]", newInvocationCount.get());
     }
 
-    private long countUpdateAttrTelemetryResource(String idVerRez) {
-        return Mockito.mockingDetails(defaultUplinkMsgHandlerTest)
-                .getInvocations().stream()
-                .filter(invocation ->
-                        invocation.getMethod().getName().equals("updateAttrTelemetry") &&
-                                invocation.getArguments().length > 1 &&
-                                idVerRez.equals(invocation.getArguments()[1])
-                )
-                .count();
-    }
-
     private void updateAttrTelemetryResourceAtLeastOnceAfterAction(long initialInvocationCount, String idVerRez) {
         AtomicLong newInvocationCount = new AtomicLong(initialInvocationCount);
         log.warn("countUpdateAttrTelemetryResourceAtLeastOnceAfterAction: initialInvocationCount [{}]", initialInvocationCount);
@@ -572,25 +529,5 @@ public class RpcLwm2MIntegrationObserveCompositeTest extends AbstractRpcLwM2MInt
                     return newInvocationCount.get() > initialInvocationCount;
                 });
         log.warn("countUpdateAttrTelemetryResourceAtLeastOnceAfterAction: newInvocationCount [{}]", newInvocationCount.get());
-    }
-
-    private long countUpdateReg() {
-        return Mockito.mockingDetails(defaultUplinkMsgHandlerTest)
-                .getInvocations().stream()
-                .filter(invocation -> invocation.getMethod().getName().equals("updatedReg"))
-                .count();
-    }
-
-    private void updateRegAtLeastOnceAfterAction() {
-        long initialInvocationCount = countUpdateReg();
-        AtomicLong newInvocationCount = new AtomicLong(initialInvocationCount);
-        log.warn("updateRegAtLeastOnceAfterAction: initialInvocationCount [{}]", initialInvocationCount);
-        await("Update Registration at-least-once after action")
-                .atMost(50, TimeUnit.SECONDS)
-                .until(() -> {
-                    newInvocationCount.set(countUpdateReg());
-                    return newInvocationCount.get() > initialInvocationCount;
-                });
-        log.warn("updateRegAtLeastOnceAfterAction: newInvocationCount [{}]", newInvocationCount.get());
     }
 }

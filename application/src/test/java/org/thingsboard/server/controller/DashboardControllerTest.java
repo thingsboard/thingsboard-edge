@@ -94,6 +94,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
         public DashboardDao dashboardDao(DashboardDao dashboardDao) {
             return Mockito.mock(DashboardDao.class, AdditionalAnswers.delegatesTo(dashboardDao));
         }
+
     }
 
     @Before

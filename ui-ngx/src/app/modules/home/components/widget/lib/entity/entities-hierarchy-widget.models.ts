@@ -31,7 +31,7 @@
 
 import { BaseData } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
-import { NavTreeNode, NodesCallback } from '@shared/components/nav-tree.component';
+import { NavTreeNode } from '@shared/components/nav-tree.component';
 import { Datasource } from '@shared/models/widget.models';
 import { isDefined, isUndefined } from '@core/utils';
 import {
@@ -41,7 +41,6 @@ import {
   RelationTypeGroup
 } from '@shared/models/relation.models';
 import { EntityType } from '@shared/models/entity-type.models';
-import { EntityGroupInfo } from '@shared/models/entity-group.models';
 import { WidgetContext } from '@home/models/widget-component.models';
 
 export interface EntitiesHierarchyWidgetSettings {
@@ -142,7 +141,7 @@ export const defaultNodeIconFunction: NodeIconFunction = (widgetContext, nodeCtx
   if (entity && entity.id && entity.id.entityType) {
     const entityType = entity.id.entityType;
     if (entityType === EntityType.ENTITY_GROUP) {
-      materialIcon = materialIconByEntityType((entity as EntityGroupInfo).type);
+      materialIcon = materialIconByEntityType(getEntityGroupType(widgetContext, nodeCtx));
     } else {
       materialIcon = materialIconByEntityType(entityType);
     }
@@ -203,11 +202,15 @@ export const defaultNodesSortFunction: NodesSortFunction = (widgetCtx, nodeCtx1,
   }
   if (result === 0) {
     if (nodeCtx1.entity.id.entityType === EntityType.ENTITY_GROUP) {
-      result = (nodeCtx1.entity as EntityGroupInfo).type.localeCompare((nodeCtx2.entity as EntityGroupInfo).type);
+      result = getEntityGroupType(widgetCtx, nodeCtx1)?.localeCompare(getEntityGroupType(widgetCtx, nodeCtx2));
     }
-    if (result === 0) {
+    if (result === 0 || isUndefined(result)) {
       result = nodeCtx1.entity.name.localeCompare(nodeCtx2.entity.name);
     }
   }
   return result;
 };
+
+function getEntityGroupType(widgetContext: WidgetContext, nodeCtx: HierarchyNodeContext): string | undefined {
+  return widgetContext.datasources?.find(ds => ds.entityId === nodeCtx.entity.id.id)?.entityFilter?.groupType;
+}
