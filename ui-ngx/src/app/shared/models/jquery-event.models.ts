@@ -34,6 +34,8 @@ import Timeout = NodeJS.Timeout;
 export interface TbContextMenuEvent extends Event {
   clientX: number;
   clientY: number;
+  pageX: number;
+  pageY: number;
   ctrlKey: boolean;
   metaKey: boolean;
 }
@@ -56,6 +58,8 @@ export const initCustomJQueryEvents = () => {
             const event = $.Event('tbcontextmenu', {
               clientX: touch.clientX,
               clientY: touch.clientY,
+              pageX: touch.pageX,
+              pageY: touch.pageY,
               ctrlKey: false,
               metaKey: false,
               originalEvent: e
@@ -74,6 +78,8 @@ export const initCustomJQueryEvents = () => {
           const event = $.Event('tbcontextmenu', {
             clientX: e.originalEvent.clientX,
             clientY: e.originalEvent.clientY,
+            pageX: e.originalEvent.pageX,
+            pageY: e.originalEvent.pageY,
             ctrlKey: e.originalEvent.ctrlKey,
             metaKey: e.originalEvent.metaKey,
             originalEvent: e
