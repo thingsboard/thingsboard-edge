@@ -39,6 +39,7 @@ import org.thingsboard.integration.service.api.IntegrationApiService;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.queue.discovery.TbServiceInfoProvider;
 import org.thingsboard.server.queue.util.TbIntegrationExecutorComponent;
+import org.thingsboard.server.service.integration.EventStorageService;
 import org.thingsboard.server.service.integration.IntegrationContextProvider;
 
 @TbIntegrationExecutorComponent
@@ -51,12 +52,13 @@ public class TbIntegrationExecutorContextProvider implements IntegrationContextP
     private final IntegrationStatisticsService statisticsService;
     private final TbIntegrationExecutorContextComponent contextComponent;
     private final LogSettingsComponent logSettingsComponent;
+    private final EventStorageService eventStorageService;
 
     @Override
     public IntegrationContext buildIntegrationContext(Integration configuration) {
         return new TbIntegrationExecutorIntegrationContext(
                 serviceInfoProvider.getServiceId(), apiService, statisticsService,
-                contextComponent, logSettingsComponent, configuration);
+                contextComponent, logSettingsComponent, configuration, eventStorageService);
     }
 
 }

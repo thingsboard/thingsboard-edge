@@ -36,6 +36,7 @@ import org.thingsboard.integration.api.converter.ConverterContext;
 import org.thingsboard.integration.api.data.DownLinkMsg;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
@@ -95,6 +96,8 @@ public interface IntegrationContext {
      * Saves event to ThingsBoard based on provided type and body on behalf of the integration
      */
     void saveEvent(IntegrationDebugEvent event, IntegrationCallback<Void> callback);
+
+    void saveLifecycleEvent(ComponentLifecycleEvent lcEvent, Exception e);
 
     void saveRawDataEvent(String deviceName, String type, String uid, JsonNode body, IntegrationCallback<Void> callback);
 

@@ -82,7 +82,7 @@ public class IntegrationUtil {
             case KAFKA:
                 return newInstance("org.thingsboard.integration.kafka.basic.BasicKafkaIntegration");
             case RABBITMQ:
-                return newInstance("org.thingsboard.integration.rabbitmq.basic.BasicRabbitMQIntegration");
+                return newInstance("org.thingsboard.integration.rabbitmq.RabbitMQIntegration");
             case APACHE_PULSAR:
                 return newInstance("org.thingsboard.integration.apache.pulsar.basic.BasicPulsarIntegration");
             case TUYA:
