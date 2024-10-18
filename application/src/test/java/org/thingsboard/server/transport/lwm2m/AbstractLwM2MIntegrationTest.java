@@ -36,9 +36,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.eclipse.leshan.client.LeshanClient;
 import org.eclipse.leshan.client.object.Security;
 import org.eclipse.leshan.core.ResponseCode;
+import org.eclipse.leshan.server.registration.Registration;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -105,6 +105,8 @@ import static org.awaitility.Awaitility.await;
 import static org.eclipse.leshan.client.object.Security.noSec;
 import static org.hamcrest.core.IsInstanceOf.instanceOf;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_BOOTSTRAP_STARTED;
 import static org.thingsboard.server.transport.lwm2m.Lwm2mTestHelper.LwM2MClientState.ON_BOOTSTRAP_SUCCESS;
@@ -463,5 +465,10 @@ public abstract class AbstractLwM2MIntegrationTest extends AbstractTransportInte
                 .getInvocations().stream()
                 .filter(invocation -> invocation.getMethod().getName().equals("updatedReg"))
                 .count();
+    }
+
+    protected void awaitUpdateReg(int cntUpdate) {
+        verify(defaultUplinkMsgHandlerTest, timeout(50000).atLeast(cntUpdate))
+                .updatedReg(Mockito.any(Registration.class));
     }
 }
