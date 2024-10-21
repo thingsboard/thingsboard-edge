@@ -28,15 +28,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.UUID;
 
-import static org.thingsboard.server.msa.AbstractContainerTest.CLOUD_ROUTING_KEYS;
-import static org.thingsboard.server.msa.AbstractContainerTest.CLOUD_ROUTING_SECRETS;
-import static org.thingsboard.server.msa.AbstractContainerTest.TB_EDGE_SERVICE_NAME;
-import static org.thingsboard.server.msa.AbstractContainerTest.TB_MONOLITH_SERVICE_NAME;
+import static org.thingsboard.server.msa.AbstractContainerTest.*;
 
 @RunWith(ClasspathSuite.class)
 @ClasspathSuite.ClassnameFilters({"org.thingsboard.server.msa.edge.*Test"})
 @Slf4j
-public class ContainerTestSuite {
+public class KafkaContainerTestSuite {
     public static Boolean started = false;
     public static DockerComposeContainer<?> testContainer;
 
@@ -48,8 +45,8 @@ public class ContainerTestSuite {
     @ClassRule
     public static DockerComposeContainer getTestContainer() {
         HashMap<String, String> env = new HashMap<>();
-        env.put("CLOUD_ROUTING_KEY_" + 1, CLOUD_ROUTING_KEYS.get(0));
-        env.put("CLOUD_ROUTING_SECRET_" + 1, CLOUD_ROUTING_SECRETS.get(0));
+        env.put("CLOUD_ROUTING_KEY_" + 2, CLOUD_ROUTING_KEYS.get(1));
+        env.put("CLOUD_ROUTING_SECRET_" + 2, CLOUD_ROUTING_SECRETS.get(1));
         env.put("CLOUD_RPC_HOST", TB_MONOLITH_SERVICE_NAME);
 
         if (testContainer == null) {
@@ -84,7 +81,9 @@ public class ContainerTestSuite {
                         .withEnv(installTb.getEnv())
                         .withEnv(env)
                         .withExposedService(TB_MONOLITH_SERVICE_NAME, 8080)
-                        .withExposedService(TB_EDGE_SERVICE_NAME + "-1", 8082);
+                        .withExposedService(TB_EDGE_SERVICE_NAME + "-2", 8083)
+                        .withExposedService("zookeeper", 2181)
+                        .withExposedService("kafka", 9092);
             } catch (Exception e) {
                 log.error("Failed to create test container", e);
                 Assert.fail("Failed to create test container");

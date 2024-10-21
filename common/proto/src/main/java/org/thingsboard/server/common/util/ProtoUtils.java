@@ -168,7 +168,7 @@ public class ProtoUtils {
         }
 
         if (proto.hasEntityBody()) {
-            cloudEvent.setEntityBody(JacksonUtil.fromString(proto.getEntityBody(), JsonNode.class));
+            cloudEvent.setEntityBody(JacksonUtil.toJsonNode(proto.getEntityBody()));
         }
 
         return cloudEvent;

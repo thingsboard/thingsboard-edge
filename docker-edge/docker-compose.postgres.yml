@@ -23,7 +23,7 @@ services:
     ports:
     - "5432"
     environment:
-      POSTGRES_MULTIPLE_DATABASES: '"thingsboard","tb_edge"'
+      POSTGRES_MULTIPLE_DATABASES: '"thingsboard","tb_edge_1","tb_edge_2"'
       POSTGRES_PASSWORD: postgres
     volumes:
       - ./tb-node/postgres:/var/lib/postgresql/data
@@ -34,7 +34,12 @@ services:
       - tb-node.env
     depends_on:
       - postgres
-  tb-edge:
+  tb-edge-1:
+    env_file:
+      - tb-edge.env
+    depends_on:
+      - postgres
+  tb-edge-2:
     env_file:
       - tb-edge.env
     depends_on:
