@@ -41,8 +41,8 @@
       integration.url-private
     </mat-error>
   </mat-form-field>
-  <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
-    <mat-form-field class="mat-block" fxFlex>
+  <div class="flex flex-row items-center justify-start gap-2">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.http-endpoint</mat-label>
       <input matInput formControlName="httpEndpoint">
     </mat-form-field>
@@ -78,7 +78,7 @@
 
   <mat-expansion-panel class="configuration-panel">
     <mat-expansion-panel-header>
-      <mat-panel-description fxLayoutAlign="end" translate>
+      <mat-panel-description class="flex items-stretch justify-end" translate>
         integration.advanced-settings
       </mat-panel-description>
     </mat-expansion-panel-header>

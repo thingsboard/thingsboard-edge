@@ -46,8 +46,8 @@
     <input matInput formControlName="destinationSharedSecret" type="password" >
     <tb-toggle-password matSuffix></tb-toggle-password>
   </mat-form-field>
-  <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
-    <mat-form-field class="mat-block" fxFlex>
+  <div class="flex flex-row items-center justify-start gap-2">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.http-endpoint</mat-label>
       <input matInput formControlName="httpEndpoint">
     </mat-form-field>
@@ -61,7 +61,7 @@
 
   <mat-expansion-panel class="expansion-panel-setting" [expanded]="kpnIntegrationConfigForm.get('allowDownlink').value">
     <mat-expansion-panel-header>
-      <mat-panel-title fxLayout="column" fxLayoutAlign="start start" fxLayoutGap="8px">
+      <mat-panel-title class="flex flex-col items-start justify-start gap-2">
         <mat-slide-toggle formControlName="allowDownlink" (click)="$event.stopPropagation()">
           {{ 'integration.allow-downlink' | translate }}
         </mat-slide-toggle>
@@ -71,17 +71,17 @@
       <section class="expansion-panel-setting-content">
         <fieldset class="fields-group">
           <legend class="group-title" translate>integration.credentials</legend>
-          <div fxLayout="column" fxLayoutGap.gt-xs="8px">
-            <mat-form-field fxFlex class="mat-block">
+          <div class="flex flex-col gt-xs:gap-2">
+            <mat-form-field class="mat-block flex-1">
               <mat-label translate>integration.grip-tenant-id</mat-label>
               <input matInput formControlName="gripTenantId" type="text">
             </mat-form-field>
-            <mat-form-field fxFlex class="mat-block">
+            <mat-form-field class="mat-block flex-1">
               <mat-label translate>integration.api-id</mat-label>
               <input matInput formControlName="apiId" type="password" autocomplete="new-password" >
               <tb-toggle-password matSuffix></tb-toggle-password>
             </mat-form-field>
-            <mat-form-field fxFlex class="mat-block">
+            <mat-form-field class="mat-block flex-1">
               <mat-label translate>integration.api-key</mat-label>
               <input matInput formControlName="apiKey" type="password" autocomplete="new-password" >
               <tb-toggle-password matSuffix></tb-toggle-password>
@@ -95,7 +95,7 @@
   <mat-expansion-panel class="expansion-panel-setting"
                        [expanded]="kpnIntegrationConfigForm.get('enableSecurity').value">
 
-    <mat-expansion-panel-header fxLayout="row">
+    <mat-expansion-panel-header class="flex flex-row">
       <mat-panel-title>
         <mat-slide-toggle [aria-label]="'integration.enable-security' | translate"
                           formControlName="enableSecurity"
@@ -119,7 +119,7 @@
   </ng-container>
   <mat-expansion-panel class="configuration-panel">
     <mat-expansion-panel-header>
-      <mat-panel-description fxLayoutAlign="end" translate>
+      <mat-panel-description class="flex items-stretch justify-end" translate>
         integration.advanced-settings
       </mat-panel-description>
     </mat-expansion-panel-header>
