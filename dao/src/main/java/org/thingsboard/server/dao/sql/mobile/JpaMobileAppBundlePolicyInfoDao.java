@@ -28,37 +28,49 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.signup;
+package org.thingsboard.server.dao.sql.mobile;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.ToString;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Component;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.mobile.MobileAppBundlePolicyInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
-import org.thingsboard.server.common.data.selfregistration.SignUpFieldId;
+import org.thingsboard.server.dao.DaoUtil;
+import org.thingsboard.server.dao.mobile.MobileAppBundlePolicyInfoDao;
+import org.thingsboard.server.dao.model.sql.MobileAppBundlePolicyInfoEntity;
+import org.thingsboard.server.dao.sql.JpaAbstractDao;
+import org.thingsboard.server.dao.util.SqlDao;
 
-import java.util.Map;
+import java.util.UUID;
 
-/**
- * Created by igor on 12/13/16.
- */
-@Schema
-@Data
-@ToString
-public class SignUpRequest {
+@Component
+@RequiredArgsConstructor
+@SqlDao
+public class JpaMobileAppBundlePolicyInfoDao extends JpaAbstractDao<MobileAppBundlePolicyInfoEntity, MobileAppBundlePolicyInfo> implements MobileAppBundlePolicyInfoDao {
 
-    @Schema(description = "List of sign-up form fields")
-    protected Map<SignUpFieldId, String> fields;
-    @Schema(description = "Response from reCAPTCHA validation")
-    private String recaptchaResponse;
-    @Schema(description = "For mobile apps only. Mobile app package name")
-    private String pkgName;
-    @Schema(description = "For mobile apps only. Mobile app package platform")
-    private PlatformType platform;
-    @Schema(description = "For mobile apps only. Mobile app secret")
-    private String appSecret;
+    private final MobileAppBundlePolicyInfoRepository mobileAppBundlePolicyInfoRepository;
 
-    public SignUpRequest() {
-        super();
+    @Override
+    protected Class<MobileAppBundlePolicyInfoEntity> getEntityClass() {
+        return MobileAppBundlePolicyInfoEntity.class;
+    }
+
+    @Override
+    protected JpaRepository<MobileAppBundlePolicyInfoEntity, UUID> getRepository() {
+        return mobileAppBundlePolicyInfoRepository;
+    }
+
+    @Override
+    public MobileAppBundlePolicyInfo findPolicyInfoByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platform) {
+        return DaoUtil.getData(mobileAppBundlePolicyInfoRepository.findByPkgNameAndPlatformType(pkgName, platform));
+    }
+
+    @Override
+    public EntityType getEntityType() {
+        return EntityType.MOBILE_APP_BUNDLE;
     }
 
 }
+

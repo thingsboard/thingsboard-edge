@@ -28,27 +28,46 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.selfregistration;
+package org.thingsboard.server.common.data.mobile;
 
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+import org.thingsboard.server.common.data.id.MobileAppBundleId;
 
-public interface SelfRegistrationService {
+@EqualsAndHashCode(callSuper = true)
+@Data
+@ToString
+public class MobileAppBundlePolicyInfo extends MobileAppBundle {
 
-    SelfRegistrationParams saveTenantSelfRegistrationParams(TenantId tenantId, SelfRegistrationParams selfRegistrationParams);
+    @Schema(description = "Terms of use")
+    private String termsOfUse;
+    @Schema(description = "Privacy policy")
+    private String privacyPolicy;
 
-    SelfRegistrationParams getTenantSelfRegistrationParams(TenantId tenantId);
+    public MobileAppBundlePolicyInfo() {
+        super();
+    }
 
-    SelfRegistrationParams getSelfRegistrationParams(TenantId sysTenantId, String domainName, String pkgName);
+    public MobileAppBundlePolicyInfo(MobileAppBundleId id) {
+        super(id);
+    }
 
-    String getPrivacyPolicy(TenantId sysTenantId, String domainName);
+    public MobileAppBundlePolicyInfo(MobileAppBundle mobileAppBundle) {
+        super(mobileAppBundle);
+    }
 
-    String getTenantPrivacyPolicy(TenantId tenantId);
+    public MobileAppBundlePolicyInfo(MobileAppBundlePolicyInfo appBundlePolicyInfo) {
+        super(appBundlePolicyInfo);
+        this.privacyPolicy = appBundlePolicyInfo.getPrivacyPolicy();
+        this.termsOfUse = appBundlePolicyInfo.getTermsOfUse();
+    }
 
-    String getTermsOfUse(TenantId sysTenantId, String domainName);
-
-    String getTenantTermsOfUse(TenantId tenantId);
-
-    TenantId getTenantIdByDomainName(TenantId sysTenantId, String domainName);
+    public MobileAppBundlePolicyInfo(MobileAppBundle mobileAppBundle, String termsOfUse, String privacyPolicy) {
+        super(mobileAppBundle);
+        this.termsOfUse = termsOfUse;
+        this.privacyPolicy = privacyPolicy;
+    }
 
 }

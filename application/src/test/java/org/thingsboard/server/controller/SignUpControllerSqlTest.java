@@ -41,6 +41,7 @@ import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.selfregistration.SignUpFieldId;
 import org.thingsboard.server.common.data.signup.SignUpRequest;
 import org.thingsboard.server.common.data.signup.SignUpResult;
 import org.thingsboard.server.dao.customer.CustomerService;
@@ -49,6 +50,8 @@ import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.service.entitiy.TbLogEntityActionService;
+
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -179,10 +182,10 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
 
     protected SignUpRequest getTestSignUpRequest() {
         var signUpRequest = new SignUpRequest();
-        signUpRequest.setEmail(TEST_EMAIL);
-        signUpRequest.setFirstName("Test");
-        signUpRequest.setLastName("Test");
-        signUpRequest.setPassword("abcdef123");
+        signUpRequest.setFields(Map.of(SignUpFieldId.EMAIL, TEST_EMAIL,
+                SignUpFieldId.FIRST_NAME,"Test",
+                SignUpFieldId.LAST_NAME,"Test",
+                SignUpFieldId.PASSWORD,"abcdef123"));
         signUpRequest.setRecaptchaResponse(RECAPTCHA_DUMMY_RESPONSE);
         return signUpRequest;
     }

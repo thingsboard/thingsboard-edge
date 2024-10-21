@@ -71,6 +71,7 @@ import java.net.URISyntaxException;
 
 import static org.thingsboard.server.common.data.oauth2.PlatformType.ANDROID;
 import static org.thingsboard.server.common.data.oauth2.PlatformType.IOS;
+import static org.thingsboard.server.common.data.wl.WhiteLabelingType.LOGIN;
 import static org.thingsboard.server.controller.ControllerConstants.AVAILABLE_FOR_ANY_AUTHORIZED_USER;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
 
@@ -121,7 +122,7 @@ public class QrCodeSettingsController extends BaseController {
     @GetMapping(value = "/.well-known/assetlinks.json")
     public ResponseEntity<JsonNode> getAssetLinks(HttpServletRequest request) {
         String domainName = request.getServerName();
-        WhiteLabeling loginWL = whiteLabelingService.findByDomainName(domainName);
+        WhiteLabeling loginWL = whiteLabelingService.findWhiteLabelingByDomainAndType(domainName, LOGIN);
         MobileApp mobileApp = qrCodeSettingService.findAppFromQrCodeSettings(loginWL != null ? loginWL.getTenantId() : TenantId.SYS_TENANT_ID, ANDROID);
         StoreInfo storeInfo = mobileApp != null ? mobileApp.getStoreInfo() : null;
         if (storeInfo != null && storeInfo.isEnabled() && storeInfo.getSha256CertFingerprints() != null) {
@@ -135,7 +136,7 @@ public class QrCodeSettingsController extends BaseController {
     @GetMapping(value = "/.well-known/apple-app-site-association")
     public ResponseEntity<JsonNode> getAppleAppSiteAssociation(HttpServletRequest request) {
         String domainName = request.getServerName();
-        WhiteLabeling loginWL = whiteLabelingService.findByDomainName(domainName);
+        WhiteLabeling loginWL = whiteLabelingService.findWhiteLabelingByDomainAndType(domainName, LOGIN);
         MobileApp mobileApp = qrCodeSettingService.findAppFromQrCodeSettings(loginWL != null ? loginWL.getTenantId() : TenantId.SYS_TENANT_ID, IOS);
         StoreInfo storeInfo = mobileApp != null ? mobileApp.getStoreInfo() : null;
         if (storeInfo != null && storeInfo.isEnabled() && storeInfo.getAppId() != null) {
@@ -218,7 +219,7 @@ public class QrCodeSettingsController extends BaseController {
     @GetMapping(value = "/api/noauth/qr")
     public ResponseEntity<?> getApplicationRedirect(@RequestHeader(value = "User-Agent") String userAgent, HttpServletRequest request) {
         String domainName = request.getServerName();
-        WhiteLabeling loginWL = whiteLabelingService.findByDomainName(domainName);
+        WhiteLabeling loginWL = whiteLabelingService.findWhiteLabelingByDomainAndType(domainName, LOGIN);
         QrCodeSettings qrCodeSettings;
         if (loginWL != null) {
             qrCodeSettings = qrCodeSettingService.getMergedQrCodeSettings(loginWL.getTenantId());

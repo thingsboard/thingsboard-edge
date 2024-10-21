@@ -28,37 +28,40 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.signup;
+package org.thingsboard.server.common.data.mobile;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.thingsboard.server.common.data.oauth2.PlatformType;
-import org.thingsboard.server.common.data.selfregistration.SignUpFieldId;
+import org.thingsboard.server.common.data.id.MobileAppBundleId;
+import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
 
-import java.util.Map;
+import java.util.List;
 
-/**
- * Created by igor on 12/13/16.
- */
-@Schema
+@EqualsAndHashCode(callSuper = true)
 @Data
 @ToString
-public class SignUpRequest {
+public class MobileAppBundleFullInfo extends MobileAppBundlePolicyInfo {
 
-    @Schema(description = "List of sign-up form fields")
-    protected Map<SignUpFieldId, String> fields;
-    @Schema(description = "Response from reCAPTCHA validation")
-    private String recaptchaResponse;
-    @Schema(description = "For mobile apps only. Mobile app package name")
-    private String pkgName;
-    @Schema(description = "For mobile apps only. Mobile app package platform")
-    private PlatformType platform;
-    @Schema(description = "For mobile apps only. Mobile app secret")
-    private String appSecret;
+    @Schema(description = "List of available oauth2 clients")
+    private List<OAuth2ClientInfo> oauth2ClientInfos;
 
-    public SignUpRequest() {
+    public MobileAppBundleFullInfo(MobileAppBundlePolicyInfo mobileApp) {
+        super(mobileApp);
+    }
+
+    public MobileAppBundleFullInfo(MobileAppBundlePolicyInfo mobileAppBundlePolicyInfo, List<OAuth2ClientInfo> oauth2ClientInfos) {
+        super(mobileAppBundlePolicyInfo);
+        this.oauth2ClientInfos = oauth2ClientInfos;
+    }
+
+    public MobileAppBundleFullInfo() {
         super();
+    }
+
+    public MobileAppBundleFullInfo(MobileAppBundleId mobileAppBundleId) {
+        super(mobileAppBundleId);
     }
 
 }

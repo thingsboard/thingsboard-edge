@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.mobile.MobileApp;
 import org.thingsboard.server.common.data.mobile.MobileAppBundle;
 import org.thingsboard.server.common.data.mobile.MobileAppBundleInfo;
+import org.thingsboard.server.common.data.mobile.MobileAppBundlePolicyInfo;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
@@ -103,25 +104,24 @@ public class MobileAppBundleControllerTest extends AbstractControllerTest {
 
     @Test
     public void testSaveMobileAppBundle() {
-        MobileAppBundle mobileAppBundle = new MobileAppBundle();
-        mobileAppBundle.setTitle("Test bundle");
-        mobileAppBundle.setAndroidAppId(androidApp.getId());
-        mobileAppBundle.setIosAppId(iosApp.getId());
+        MobileAppBundlePolicyInfo mobileAppBundlePolicyInfo = new MobileAppBundlePolicyInfo();
+        mobileAppBundlePolicyInfo.setTitle("Test bundle");
+        mobileAppBundlePolicyInfo.setAndroidAppId(androidApp.getId());
+        mobileAppBundlePolicyInfo.setIosAppId(iosApp.getId());
 
-        MobileAppBundle createdMobileAppBundle = doPost("/api/mobile/bundle", mobileAppBundle, MobileAppBundle.class);
+        MobileAppBundlePolicyInfo createdMobileAppBundle = doPost("/api/mobile/bundle", mobileAppBundlePolicyInfo, MobileAppBundlePolicyInfo.class);
         assertThat(createdMobileAppBundle.getAndroidAppId()).isEqualTo(androidApp.getId());
         assertThat(createdMobileAppBundle.getIosAppId()).isEqualTo(iosApp.getId());
     }
 
-
     @Test
     public void testUpdateMobileAppBundleOauth2Clients() throws Exception {
-        MobileAppBundle mobileAppBundle = new MobileAppBundle();
-        mobileAppBundle.setTitle("Test bundle");
-        mobileAppBundle.setAndroidAppId(androidApp.getId());
-        mobileAppBundle.setIosAppId(iosApp.getId());
+        MobileAppBundlePolicyInfo mobileAppBundlePolicyInfo = new MobileAppBundlePolicyInfo();
+        mobileAppBundlePolicyInfo.setTitle("Test bundle");
+        mobileAppBundlePolicyInfo.setAndroidAppId(androidApp.getId());
+        mobileAppBundlePolicyInfo.setIosAppId(iosApp.getId());
 
-        MobileAppBundle savedAppBundle = doPost("/api/mobile/bundle", mobileAppBundle, MobileAppBundle.class);
+        MobileAppBundle savedAppBundle = doPost("/api/mobile/bundle", mobileAppBundlePolicyInfo, MobileAppBundlePolicyInfo.class);
 
         OAuth2Client oAuth2Client = createOauth2Client(TenantId.SYS_TENANT_ID, "test google client");
         OAuth2Client savedOAuth2Client = doPost("/api/oauth2/client", oAuth2Client, OAuth2Client.class);

@@ -28,37 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.signup;
+package org.thingsboard.server.common.data.selfregistration;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.ToString;
-import org.thingsboard.server.common.data.oauth2.PlatformType;
-import org.thingsboard.server.common.data.selfregistration.SignUpFieldId;
+import lombok.EqualsAndHashCode;
 
-import java.util.Map;
-
-/**
- * Created by igor on 12/13/16.
- */
-@Schema
 @Data
-@ToString
-public class SignUpRequest {
+@EqualsAndHashCode(callSuper = true)
+public class WebSelfRegistrationParams extends AbstractSelfRegistrationParams {
 
-    @Schema(description = "List of sign-up form fields")
-    protected Map<SignUpFieldId, String> fields;
-    @Schema(description = "Response from reCAPTCHA validation")
-    private String recaptchaResponse;
-    @Schema(description = "For mobile apps only. Mobile app package name")
-    private String pkgName;
-    @Schema(description = "For mobile apps only. Mobile app package platform")
-    private PlatformType platform;
-    @Schema(description = "For mobile apps only. Mobile app secret")
-    private String appSecret;
+    @Schema(description = "Privacy policy text. Supports HTML.")
+    protected String privacyPolicy;
+    @Schema(description = "Terms of User text. Supports HTML.")
+    protected String termsOfUse;
+    @Schema(description = "Domain name for self registration URL. Typically this matches the domain name from the Login White Labeling page.")
+    @NotNull
+    private String domainName;
+    @Schema(description = "Default dashboard params")
+    protected DefaultDashboardParams defaultDashboard;
+    @Schema(description = "Home dashboard params")
+    protected HomeDashboardParams homeDashboard;
 
-    public SignUpRequest() {
-        super();
+    @Override
+    public SelfRegistrationType getType() {
+        return SelfRegistrationType.WEB;
     }
-
 }

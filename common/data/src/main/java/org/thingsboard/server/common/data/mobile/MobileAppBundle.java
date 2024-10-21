@@ -44,7 +44,7 @@ import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.id.MobileAppBundleId;
 import org.thingsboard.server.common.data.id.MobileAppId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
+import org.thingsboard.server.common.data.selfregistration.MobileSelfRegistrationParams;
 import org.thingsboard.server.common.data.validation.Length;
 
 @EqualsAndHashCode(callSuper = true)
@@ -70,7 +70,7 @@ public class MobileAppBundle extends BaseData<MobileAppBundleId> implements HasN
     private MobileLayoutConfig layoutConfig;
     @Schema(description = "Application self registration configuration")
     @Valid
-    private SelfRegistrationParams selfRegistrationParams;
+    private MobileSelfRegistrationParams selfRegistrationParams;
     @Schema(description = "Whether OAuth2 settings are enabled or not")
     private Boolean oauth2Enabled;
 

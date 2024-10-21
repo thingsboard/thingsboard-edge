@@ -215,6 +215,7 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
 import org.thingsboard.server.queue.discovery.PartitionService;
@@ -297,6 +298,9 @@ public abstract class BaseController {
 
     @Autowired
     protected UserService userService;
+
+    @Autowired
+    protected WhiteLabelingService whiteLabelingService;
 
     @Autowired
     protected TbUserSettingsService userSettingsService;

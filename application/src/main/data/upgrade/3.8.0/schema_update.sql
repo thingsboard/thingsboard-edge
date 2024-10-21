@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS mobile_app_bundle (
     ios_app_id uuid UNIQUE,
     layout_config varchar(16384),
     self_registration_config varchar(16384),
+    terms_of_use varchar(10000000),
+    privacy_policy varchar(10000000),
     oauth2_enabled boolean,
     CONSTRAINT fk_android_app_id FOREIGN KEY (android_app_id) REFERENCES mobile_app(id),
     CONSTRAINT fk_ios_app_id FOREIGN KEY (ios_app_id) REFERENCES mobile_app(id)
@@ -104,7 +106,7 @@ $$;
 ALTER TABLE IF EXISTS mobile_app_settings RENAME TO qr_code_settings;
 ALTER TABLE qr_code_settings ADD COLUMN IF NOT EXISTS mobile_app_bundle_id uuid;
 
--- migrate mobile apps from qr code settings to mobile_app, create mobile app bundle for the pair of apps
+-- migrate qr code settings to mobile_app, create mobile app bundle for the pair of apps if needed
 DO
 $$
     DECLARE
@@ -162,7 +164,7 @@ $$
     END;
 $$;
 
--- migrate self-registration attributes to white-labeling
+-- migrate self-registration for web to white-labeling
 ALTER TABLE white_labeling DROP CONSTRAINT IF EXISTS white_labeling_domain_name_key;
 ALTER TABLE white_labeling ALTER COLUMN type TYPE varchar(30);
 
@@ -175,11 +177,27 @@ $$
     END;
 $$;
 
--- migrate tenant self-registration attributes to white_labeling
 INSERT INTO white_labeling(tenant_id, customer_id, type, settings, domain_name)
     (SELECT a.entity_id, '13814000-1dd2-11b2-8080-808080808080', 'SELF_REGISTRATION', a.str_v, a.str_v::jsonb ->> 'domainName' FROM tenant t
-        INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary  where key = 'selfRegistrationParams'))
+        INNER JOIN admin_settings s ON s.key LIKE 'selfRegistrationDomainNamePrefix%' AND s.json_value::jsonb ->> 'entityId' = t.id::text
+        INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary where key = 'selfRegistrationParams'))
 ON CONFLICT DO NOTHING;
+
+INSERT INTO white_labeling(tenant_id, customer_id, type, settings, domain_name)
+    (SELECT a.entity_id, '13814000-1dd2-11b2-8080-808080808080', 'TERMS_OF_USE', a.str_v, a.str_v::jsonb ->> 'domainName' FROM tenant t
+        INNER JOIN admin_settings s ON s.key LIKE 'selfRegistrationDomainNamePrefix%' AND s.json_value::jsonb ->> 'entityId' = t.id::text
+        INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary where key = 'termsOfUse'))
+ON CONFLICT DO NOTHING;
+
+INSERT INTO white_labeling(tenant_id, customer_id, type, settings, domain_name)
+    (SELECT a.entity_id, '13814000-1dd2-11b2-8080-808080808080', 'PRIVACY_POLICY', a.str_v, a.str_v::jsonb ->> 'domainName' FROM tenant t
+        INNER JOIN admin_settings s ON s.key LIKE 'selfRegistrationDomainNamePrefix%' AND s.json_value::jsonb ->> 'entityId' = t.id::text
+        INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary where key = 'privacyPolicy'))
+ON CONFLICT DO NOTHING;
+
+-- DELETE FROM attribute_kv WHERE attribute_key = (select key_id from key_dictionary where key = 'selfRegistrationParams') OR
+--         attribute_key = (select key_id from key_dictionary where key = 'termsOfUse') OR
+--         attribute_key = (select key_id from key_dictionary where key = 'privacyPolicy');
 
 -- migrate mobile self-registration attributes
 DO
@@ -191,7 +209,7 @@ $$
         iosAppId uuid;
         generatedBundleId uuid;
     BEGIN
-       FOR wlRecord IN SELECT * FROM white_labeling
+       FOR wlRecord IN SELECT * FROM white_labeling WHERE type = 'SELF_REGISTRATION'
             LOOP
                generatedBundleId := NULL;
                IF (wlRecord.settings::jsonb -> 'pkgName' IS NOT NULL AND wlRecord.settings::jsonb->> 'pkgName' <> '') THEN
@@ -202,10 +220,15 @@ $$
                        INSERT INTO mobile_app(id, created_time, tenant_id, pkg_name, platform_type, status)
                        VALUES (androidAppId, (extract(epoch from now()) * 1000), wlRecord.tenant_id, pkgName, 'ANDROID', 'PUBLISHED');
                        generatedBundleId := uuid_generate_v4();
-                       INSERT INTO mobile_app_bundle(id, created_time, tenant_id, title, android_app_id, self_registration_config)
-                       VALUES (generatedBundleId, (extract(epoch from now()) * 1000), wlRecord.tenant_id, androidAppId, wlRecord.settings);
+                       INSERT INTO mobile_app_bundle(id, created_time, tenant_id, title, android_app_id, self_registration_config, terms_of_use, privacy_policy)
+                       VALUES (generatedBundleId, (extract(epoch from now()) * 1000), wlRecord.tenant_id, androidAppId, wlRecord.settings,
+                               (SELECT settings FROM white_labeling WHERE type = 'TERMS_OF_USE' AND tenant_id = wlRecord.tenant_id),
+                               (SELECT settings FROM white_labeling WHERE type = 'PRIVACY_POLICY' AND tenant_id = wlRecord.tenant_id));
                    ELSE
-                       UPDATE mobile_app_bundle SET self_registration_config = wlRecord.settings WHERE android_app_id = androidAppId;
+                       UPDATE mobile_app_bundle SET self_registration_config = wlRecord.settings,
+                                                    terms_of_use = (SELECT settings FROM white_labeling WHERE type = 'TERMS_OF_USE' AND tenant_id = wlRecord.tenant_id),
+                                                    privacy_policy = (SELECT settings FROM white_labeling WHERE type = 'PRIVACY_POLICY' AND tenant_id = wlRecord.tenant_id)
+                                                WHERE android_app_id = androidAppId;
                    END IF;
 
                    SELECT id into iosAppId FROM mobile_app WHERE pkg_name = pkgName AND platform_type = 'IOS';
@@ -215,15 +238,86 @@ $$
                        VALUES (iosAppId, (extract(epoch from now()) * 1000), wlRecord.tenant_id, pkgName, 'IOS', 'PUBLISHED');
                        IF generatedBundleId IS NULL THEN
                            generatedBundleId := uuid_generate_v4();
-                           INSERT INTO mobile_app_bundle(id, created_time, tenant_id, title, ios_app_id, self_registration_config)
-                           VALUES (generatedBundleId, (extract(epoch from now()) * 1000), wlRecord.tenant_id, iosAppId, wlRecord.settings);
+                           INSERT INTO mobile_app_bundle(id, created_time, tenant_id, title, ios_app_id, self_registration_config, terms_of_use, privacy_policy)
+                           VALUES (generatedBundleId, (extract(epoch from now()) * 1000), wlRecord.tenant_id, iosAppId, wlRecord.settings,
+                                   (SELECT settings FROM white_labeling WHERE type = 'TERMS_OF_USE' AND tenant_id = wlRecord.tenant_id),
+                                   (SELECT settings FROM white_labeling WHERE type = 'PRIVACY_POLICY' AND tenant_id = wlRecord.tenant_id));
                        ELSE
-                           UPDATE mobile_app_bundle SET ios_app_id = iosAppId, self_registration_config = wlRecord.settings WHERE id = generatedBundleId;
+                           UPDATE mobile_app_bundle SET ios_app_id = iosAppId, self_registration_config = wlRecord.settings,
+                                                        terms_of_use = (SELECT settings FROM white_labeling WHERE type = 'TERMS_OF_USE' AND tenant_id = wlRecord.tenant_id),
+                                                        privacy_policy = (SELECT settings FROM white_labeling WHERE type = 'PRIVACY_POLICY' AND tenant_id = wlRecord.tenant_id)
+                                                    WHERE id = generatedBundleId;
                        END IF;
                    ELSE
-                       UPDATE mobile_app_bundle SET self_registration_config = wlRecord.settings WHERE ios_app_id = iosAppId;
+                       UPDATE mobile_app_bundle SET self_registration_config = wlRecord.settings,
+                                                    terms_of_use = (SELECT settings FROM white_labeling WHERE type = 'TERMS_OF_USE' AND tenant_id = wlRecord.tenant_id),
+                                                    privacy_policy = (SELECT settings FROM white_labeling WHERE type = 'PRIVACY_POLICY' AND tenant_id = wlRecord.tenant_id)
+                                                WHERE ios_app_id = iosAppId;
                    END IF;
                END IF;
        END LOOP;
+    END;
+$$;
+
+-- convert WEB self-registration settings to new structure
+DO
+$$
+    BEGIN
+        -- in case of running the upgrade script a second time
+        IF (SELECT settings::jsonb -> 'captcha' FROM white_labeling WHERE white_labeling.type = 'SELF_REGISTRATION' LIMIT 1) IS NULL THEN
+            UPDATE white_labeling SET settings = json_build_object(
+                    'type', 'WEB',
+                    'title', settings::jsonb ->> 'signUpTextMessage',
+                    'signUpFields', jsonb_build_array(json_build_object('id', 'EMAIL', 'label', 'Email', 'required', true),
+                                                      json_build_object('id', 'FIRST_NAME', 'label', 'First name', 'required', false),
+                                                      json_build_object('id', 'LAST_NAME', 'label', 'Last name', 'required', false),
+                                                      json_build_object('id', 'PASSWORD', 'label', 'Create password', 'required',true),
+                                                      json_build_object('id', 'REPEAT_PASSWORD', 'Repeat your password', 'Email', 'required',true)),
+                    'domain', settings::jsonb ->> 'domain',
+                    'notificationEmail', settings::jsonb ->> 'notificationEmail',
+                    'showPrivacyPolicy', settings::jsonb ->> 'showPrivacyPolicy',
+                    'showTermsOfUse', settings::jsonb ->> 'showTermsOfUse',
+                    'permissions', settings::jsonb -> 'permissions',
+                    'captcha', json_object(ARRAY['siteKey', 'version', 'logActionName', 'secretKey'],
+                                           ARRAY[settings::jsonb ->> 'captchaSiteKey',
+                                                   settings::jsonb ->> 'captchaVersion',
+                                                   settings::jsonb ->> 'captchaAction',
+                                                   settings::jsonb ->> 'captchaSecretKey']),
+                    'defaultDashboard', json_object(ARRAY['id', 'fullscreen'],
+                                                    ARRAY[settings::jsonb ->> 'defaultDashboardId',
+                                                            settings::jsonb ->> 'defaultDashboardFullscreen']))
+            WHERE type = 'SELF_REGISTRATION' AND settings IS NOT NULL;
+        END IF;
+    END;
+$$;
+
+-- convert MOBILE self-registration settings to new structure
+DO
+$$
+    BEGIN
+        -- in case of running the upgrade script a second time
+        IF (SELECT self_registration_config::jsonb -> 'captcha' FROM mobile_app_bundle WHERE self_registration_config IS NOT NULL LIMIT 1) IS NULL THEN
+            UPDATE mobile_app_bundle SET self_registration_config = json_build_object(
+                    'type', 'MOBILE',
+                    'title', self_registration_config::jsonb ->> 'signUpTextMessage',
+                    'signUpFields', jsonb_build_array(json_build_object('id', 'EMAIL', 'label', 'Email', 'required', true),
+                                                      json_build_object('id', 'FIRST_NAME', 'label', 'First name', 'required', false),
+                                                      json_build_object('id', 'LAST_NAME', 'label', 'Last name', 'required', false),
+                                                      json_build_object('id', 'PASSWORD', 'label', 'Create password', 'required',true),
+                                                      json_build_object('id', 'REPEAT_PASSWORD', 'Repeat your password', 'Email', 'required',true)),
+                    'notificationEmail', self_registration_config::jsonb ->> 'notificationEmail',
+                    'showPrivacyPolicy', self_registration_config::jsonb ->> 'showPrivacyPolicy',
+                    'showTermsOfUse', self_registration_config::jsonb ->> 'showTermsOfUse',
+                    'permissions', self_registration_config::jsonb -> 'permissions',
+                    'captcha', json_object(ARRAY['siteKey', 'version', 'logActionName', 'secretKey'],
+                                           ARRAY[self_registration_config::jsonb ->> 'captchaSiteKey',
+                                                   self_registration_config::jsonb ->> 'captchaVersion',
+                                                   self_registration_config::jsonb ->> 'captchaAction',
+                                                   self_registration_config::jsonb ->> 'captchaSecretKey']),
+                    'redirect', json_object(ARRAY['scheme', 'host'],
+                                            ARRAY[self_registration_config::jsonb ->> 'appScheme',
+                                                    self_registration_config::jsonb ->> 'appHost']))
+            WHERE self_registration_config IS NOT NULL;
+        END IF;
     END;
 $$;

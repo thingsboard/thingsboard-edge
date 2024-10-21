@@ -633,6 +633,8 @@ public class ModelConstants {
     public static final String MOBILE_APP_BUNDLE_IOS_APP_ID_PROPERTY = "ios_app_id";
     public static final String MOBILE_APP_BUNDLE_LAYOUT_CONFIG_PROPERTY = "layout_config";
     public static final String MOBILE_APP_BUNDLE_SELF_REGISTRATION_CONFIG_PROPERTY = "self_registration_config";
+    public static final String MOBILE_APP_BUNDLE_TERMS_OF_USE_PROPERTY = "terms_of_use";
+    public static final String MOBILE_APP_BUNDLE_PRIVACY_POLICY_PROPERTY = "privacy_policy";
     public static final String MOBILE_APP_BUNDLE_OAUTH2_ENABLED_PROPERTY = "oauth2_enabled";
 
     public static final String MOBILE_APP_BUNDLE_OAUTH2_CLIENT_TABLE_NAME = "mobile_app_bundle_oauth2_client";

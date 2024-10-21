@@ -41,6 +41,7 @@ import org.thingsboard.server.common.data.id.MobileAppId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.mobile.MobileAppBundle;
 import org.thingsboard.server.common.data.mobile.MobileLayoutConfig;
+import org.thingsboard.server.common.data.selfregistration.MobileSelfRegistrationParams;
 import org.thingsboard.server.dao.model.BaseSqlEntity;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.dao.util.mapping.JsonConverter;
@@ -129,6 +130,7 @@ public abstract class AbstractMobileAppBundleEntity<T extends MobileAppBundle> e
             mobileAppBundle.setIosAppId(new MobileAppId(iosAppID));
         }
         mobileAppBundle.setLayoutConfig(fromJson(layoutConfig, MobileLayoutConfig.class));
+        mobileAppBundle.setSelfRegistrationParams(fromJson(selfRegistrationConfig, MobileSelfRegistrationParams.class));
         mobileAppBundle.setOauth2Enabled(oauth2Enabled);
         return mobileAppBundle;
     }

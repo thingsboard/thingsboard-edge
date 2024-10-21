@@ -28,37 +28,19 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.signup;
+package org.thingsboard.server.common.data.selfregistration;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.ToString;
-import org.thingsboard.server.common.data.oauth2.PlatformType;
-import org.thingsboard.server.common.data.selfregistration.SignUpFieldId;
+import lombok.EqualsAndHashCode;
 
-import java.util.Map;
-
-/**
- * Created by igor on 12/13/16.
- */
-@Schema
 @Data
-@ToString
-public class SignUpRequest {
+@EqualsAndHashCode
+public class HomeDashboardParams {
 
-    @Schema(description = "List of sign-up form fields")
-    protected Map<SignUpFieldId, String> fields;
-    @Schema(description = "Response from reCAPTCHA validation")
-    private String recaptchaResponse;
-    @Schema(description = "For mobile apps only. Mobile app package name")
-    private String pkgName;
-    @Schema(description = "For mobile apps only. Mobile app package platform")
-    private PlatformType platform;
-    @Schema(description = "For mobile apps only. Mobile app secret")
-    private String appSecret;
-
-    public SignUpRequest() {
-        super();
-    }
+    @Schema(description = "Home dashboard Id to assign for the new user.", example = "784f394c-42b6-435a-983c-b7beff2784f9")
+    private String id;
+    @Schema(description = "Indicates if hide toolbar should be hidden.")
+    private boolean hideToolbar;
 
 }

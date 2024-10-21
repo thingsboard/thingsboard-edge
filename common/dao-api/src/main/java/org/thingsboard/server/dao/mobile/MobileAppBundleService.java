@@ -35,6 +35,7 @@ import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.mobile.MobileAppBundle;
 import org.thingsboard.server.common.data.mobile.MobileAppBundleInfo;
+import org.thingsboard.server.common.data.mobile.MobileAppBundlePolicyInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -44,13 +45,13 @@ import java.util.List;
 
 public interface MobileAppBundleService extends EntityDaoService {
 
-    MobileAppBundle saveMobileAppBundle(TenantId tenantId, MobileAppBundle mobileAppBundle);
+    MobileAppBundlePolicyInfo saveMobileAppBundle(TenantId tenantId, MobileAppBundlePolicyInfo mobileAppBundlePolicyInfo);
 
     MobileAppBundle findMobileAppBundleById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
 
     PageData<MobileAppBundleInfo> findMobileAppBundleInfosByTenantId(TenantId tenantId, PageLink pageLink);
 
-    MobileAppBundleInfo findMobileAppBundleInfoById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
+    MobileAppBundlePolicyInfo findMobileAppBundlePolicyInfoById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
 
     void updateOauth2Clients(TenantId tenantId, MobileAppBundleId mobileAppBundleId, List<OAuth2ClientId> oAuth2ClientIds);
 
@@ -59,4 +60,6 @@ public interface MobileAppBundleService extends EntityDaoService {
     void deleteMobileAppBundleById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
 
     void deleteMobileAppBundlesByTenantId(TenantId tenantId);
+
+    MobileAppBundlePolicyInfo findMobileAppBundlePolicyInfoByPkgNameAndPlatform(TenantId sysTenantId, String pkgName, PlatformType platform);
 }

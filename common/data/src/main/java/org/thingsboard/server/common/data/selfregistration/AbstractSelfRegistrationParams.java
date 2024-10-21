@@ -28,37 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.signup;
+package org.thingsboard.server.common.data.selfregistration;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.ToString;
-import org.thingsboard.server.common.data.oauth2.PlatformType;
-import org.thingsboard.server.common.data.selfregistration.SignUpFieldId;
+import lombok.EqualsAndHashCode;
+import org.thingsboard.server.common.data.permission.GroupPermission;
 
-import java.util.Map;
+import java.util.List;
 
-/**
- * Created by igor on 12/13/16.
- */
-@Schema
 @Data
-@ToString
-public class SignUpRequest {
+@EqualsAndHashCode
+public abstract class AbstractSelfRegistrationParams implements SelfRegistrationParams {
 
+    @Schema(description = "The text message to appear on login form")
+    protected String title;
+    @Schema(description = "Captcha site key for 'I'm not a robot' validation")
+    protected CaptchaParams captcha;
     @Schema(description = "List of sign-up form fields")
-    protected Map<SignUpFieldId, String> fields;
-    @Schema(description = "Response from reCAPTCHA validation")
-    private String recaptchaResponse;
-    @Schema(description = "For mobile apps only. Mobile app package name")
-    private String pkgName;
-    @Schema(description = "For mobile apps only. Mobile app package platform")
-    private PlatformType platform;
-    @Schema(description = "For mobile apps only. Mobile app secret")
-    private String appSecret;
-
-    public SignUpRequest() {
-        super();
-    }
+    protected List<SignUpField> signUpFields;
+    @Schema(description = "Show or hide 'Privacy Policy'")
+    protected Boolean showPrivacyPolicy;
+    @Schema(description = "Show or hide 'Terms of Use'")
+    protected Boolean showTermsOfUse;
+    @Schema(description = "Email to use for notifications when new user self-registered.")
+    protected String notificationEmail;
+    @Schema(description = "Prefix to add to created customer")
+    protected String customerTitlePrefix;
+    @Schema(description = "Id of the customer group customer wil be added to.")
+    protected String customerGroupId;
+    @Schema(description = "Group Permissions to assign for the new customer user.")
+    protected List<GroupPermission> permissions;
 
 }

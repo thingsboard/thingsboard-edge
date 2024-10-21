@@ -41,8 +41,10 @@ import org.thingsboard.server.common.data.id.MobileAppBundleId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.mobile.MobileAppBundle;
+import org.thingsboard.server.common.data.mobile.MobileAppBundleFullInfo;
 import org.thingsboard.server.common.data.mobile.MobileAppBundleInfo;
 import org.thingsboard.server.common.data.mobile.MobileAppBundleOauth2Client;
+import org.thingsboard.server.common.data.mobile.MobileAppBundlePolicyInfo;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageData;
@@ -69,15 +71,16 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
     @Autowired
     private MobileAppBundleDao mobileAppBundleDao;
     @Autowired
+    private MobileAppBundlePolicyInfoDao mobileAppBundlePolicyInfoDao;
+    @Autowired
     private DataValidator<MobileAppBundle> mobileAppBundleDataValidator;
 
-
     @Override
-    public MobileAppBundle saveMobileAppBundle(TenantId tenantId, MobileAppBundle mobileAppBundle) {
-        log.trace("Executing saveMobileAppBundle [{}]", mobileAppBundle);
-        mobileAppBundleDataValidator.validate(mobileAppBundle, b -> tenantId);
+    public MobileAppBundlePolicyInfo saveMobileAppBundle(TenantId tenantId, MobileAppBundlePolicyInfo mobileAppBundlePolicyInfo) {
+        log.trace("Executing saveMobileAppBundle [{}]", mobileAppBundlePolicyInfo);
+        mobileAppBundleDataValidator.validate(mobileAppBundlePolicyInfo, b -> tenantId);
         try {
-            MobileAppBundle savedMobileApp = mobileAppBundleDao.save(tenantId, mobileAppBundle);
+            MobileAppBundlePolicyInfo savedMobileApp = mobileAppBundlePolicyInfoDao.save(tenantId, mobileAppBundlePolicyInfo);
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(savedMobileApp).build());
             return savedMobileApp;
         } catch (Exception e) {
@@ -119,13 +122,17 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
     }
 
     @Override
-    public MobileAppBundleInfo findMobileAppBundleInfoById(TenantId tenantId, MobileAppBundleId mobileAppIdBundle) {
+    public MobileAppBundlePolicyInfo findMobileAppBundlePolicyInfoById(TenantId tenantId, MobileAppBundleId mobileAppIdBundle) {
         log.trace("Executing findMobileAppBundleInfoById [{}] [{}]", tenantId, mobileAppIdBundle);
-        MobileAppBundleInfo mobileAppBundleInfo = mobileAppBundleDao.findInfoById(tenantId, mobileAppIdBundle);
-        if (mobileAppBundleInfo != null) {
-            fetchOauth2Clients(mobileAppBundleInfo);
+        MobileAppBundlePolicyInfo mobileAppBundleInfo = mobileAppBundlePolicyInfoDao.findById(tenantId, mobileAppIdBundle.getId());
+        if (mobileAppBundleInfo == null) {
+            return null;
         }
-        return mobileAppBundleInfo;
+        List<OAuth2ClientInfo> clients = oauth2ClientDao.findByMobileAppBundleId(mobileAppBundleInfo.getUuidId()).stream()
+                .map(OAuth2ClientInfo::new)
+                .sorted(Comparator.comparing(OAuth2ClientInfo::getTitle))
+                .collect(Collectors.toList());
+        return new MobileAppBundleFullInfo(mobileAppBundleInfo, clients);
     }
 
     @Override
@@ -172,6 +179,12 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
     public void deleteMobileAppBundlesByTenantId(TenantId tenantId) {
         log.trace("Executing deleteMobileAppsByTenantId, tenantId [{}]", tenantId);
         mobileAppBundleDao.deleteByTenantId(tenantId);
+    }
+
+    @Override
+    public MobileAppBundlePolicyInfo findMobileAppBundlePolicyInfoByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platform) {
+        log.trace("Executing findMobileAppBundlePolicyInfoByPkgNameAndPlatform, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platform);
+        return  mobileAppBundlePolicyInfoDao.findPolicyInfoByPkgNameAndPlatform(tenantId, pkgName, platform);
     }
 
     @Override

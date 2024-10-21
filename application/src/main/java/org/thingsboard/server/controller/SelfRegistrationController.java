@@ -30,13 +30,13 @@
  */
 package org.thingsboard.server.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,16 +55,20 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.DataConstants;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.mobile.MobileAppBundle;
+import org.thingsboard.server.common.data.mobile.MobileAppBundlePolicyInfo;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpSelfRegistrationParams;
+import org.thingsboard.server.common.data.selfregistration.WebSelfRegistrationParams;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.selfregistration.SelfRegistrationService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
@@ -90,9 +94,6 @@ public class SelfRegistrationController extends BaseController {
             "Ability to white-label the login and main pages helps to brand the platform.";
 
     @Autowired
-    private SelfRegistrationService selfRegistrationService;
-
-    @Autowired
     private AdminSettingsService adminSettingsService;
 
     @Autowired
@@ -108,20 +109,20 @@ public class SelfRegistrationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/selfRegistration/selfRegistrationParams", method = RequestMethod.POST)
     @ResponseStatus(value = HttpStatus.OK)
-    public SelfRegistrationParams saveSelfRegistrationParams(
+    public WebSelfRegistrationParams saveSelfRegistrationParams(
             @Parameter(description = "A JSON value representing the Self Registration Parameters.", required = true)
-            @RequestBody SelfRegistrationParams selfRegistrationParams) throws ThingsboardException, JsonProcessingException {
+            @RequestBody WebSelfRegistrationParams selfRegistrationParams) throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
         Authority authority = securityUser.getAuthority();
         checkSelfRegistrationPermissions(Operation.WRITE);
-        SelfRegistrationParams savedSelfRegistrationParams = null;
+        WebSelfRegistrationParams savedSelfRegistrationParams = null;
         if (Authority.TENANT_ADMIN.equals(authority)) {
-            savedSelfRegistrationParams = selfRegistrationService.saveTenantSelfRegistrationParams(getTenantId(), selfRegistrationParams);
-            JsonNode privacyPolicyNode = JacksonUtil.toJsonNode(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
+            savedSelfRegistrationParams = whiteLabelingService.saveTenantSelfRegistrationParams(getTenantId(), selfRegistrationParams);
+            JsonNode privacyPolicyNode = whiteLabelingService.getTenantPrivacyPolicy(securityUser.getTenantId());
             if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
                 savedSelfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
             }
-            JsonNode termsOfUseNode = JacksonUtil.toJsonNode(selfRegistrationService.getTenantTermsOfUse(securityUser.getTenantId()));
+            JsonNode termsOfUseNode = whiteLabelingService.getTenantTermsOfUse(securityUser.getTenantId());
             if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
                 savedSelfRegistrationParams.setTermsOfUse(termsOfUseNode.get(TERMS_OF_USE).asText());
             }
@@ -135,17 +136,17 @@ public class SelfRegistrationController extends BaseController {
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
     @RequestMapping(value = "/selfRegistration/selfRegistrationParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
-    public SelfRegistrationParams getSelfRegistrationParams() throws ThingsboardException, JsonProcessingException {
+    public SelfRegistrationParams getSelfRegistrationParams() throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
         checkSelfRegistrationPermissions(Operation.READ);
-        SelfRegistrationParams selfRegistrationParams = null;
+        WebSelfRegistrationParams selfRegistrationParams = null;
         if (Authority.TENANT_ADMIN.equals(securityUser.getAuthority())) {
-            selfRegistrationParams = selfRegistrationService.getTenantSelfRegistrationParams(securityUser.getTenantId());
-            JsonNode privacyPolicyNode = JacksonUtil.toJsonNode(selfRegistrationService.getTenantPrivacyPolicy(securityUser.getTenantId()));
+            selfRegistrationParams = whiteLabelingService.getTenantSelfRegistrationParams(securityUser.getTenantId());
+            JsonNode privacyPolicyNode = whiteLabelingService.getTenantPrivacyPolicy(securityUser.getTenantId());
             if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
                 selfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
             }
-            JsonNode termsOfUseNode = JacksonUtil.toJsonNode(selfRegistrationService.getTenantTermsOfUse(securityUser.getTenantId()));
+            JsonNode termsOfUseNode = whiteLabelingService.getTenantTermsOfUse(securityUser.getTenantId());
             if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
                 selfRegistrationParams.setTermsOfUse(termsOfUseNode.get(TERMS_OF_USE).asText());
             }
@@ -193,28 +194,37 @@ public class SelfRegistrationController extends BaseController {
     @ResponseBody
     public SignUpSelfRegistrationParams getSignUpSelfRegistrationParams(
             @RequestParam(required = false) String pkgName,
+            @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}))
+            @RequestParam(required = false) PlatformType platform,
             HttpServletRequest request) throws ThingsboardException {
-        SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
-                request.getServerName(), pkgName);
-
-        SignUpSelfRegistrationParams result = new SignUpSelfRegistrationParams();
-        result.setSignUpTextMessage(selfRegistrationParams.getSignUpTextMessage());
-        result.setCaptchaSiteKey(selfRegistrationParams.getCaptchaSiteKey());
-        result.setCaptchaVersion(selfRegistrationParams.getCaptchaVersion());
-        result.setCaptchaAction(selfRegistrationParams.getCaptchaAction());
-        result.setShowPrivacyPolicy(selfRegistrationParams.getShowPrivacyPolicy());
-        result.setShowTermsOfUse(selfRegistrationParams.getShowTermsOfUse());
-
-        return result;
+        SelfRegistrationParams sf;
+        if (!StringUtils.isEmpty(pkgName)) {
+            checkNotNull(platform, "Platform type is required if package name is specified");
+            MobileAppBundle bundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
+            sf = bundle != null ? bundle.getSelfRegistrationParams() : null;
+        } else {
+            sf = whiteLabelingService.getSelfRegistrationParamsByDomain(request.getServerName());
+        }
+        checkNotNull(sf);
+        return new SignUpSelfRegistrationParams(sf.getTitle(), sf.getCaptcha(), sf.getSignUpFields(),
+                sf.getShowPrivacyPolicy(), sf.getShowTermsOfUse());
     }
 
     @ApiOperation(value = "Get Privacy Policy for Self Registration form (getPrivacyPolicy)",
             notes = "Fetch the Privacy Policy based on the domain name from the request. Available for non-authorized users. ")
     @RequestMapping(value = "/noauth/selfRegistration/privacyPolicy", method = RequestMethod.GET)
     @ResponseBody
-    public String getPrivacyPolicy(HttpServletRequest request) throws ThingsboardException, JsonProcessingException {
-        JsonNode privacyPolicyNode = JacksonUtil.toJsonNode(selfRegistrationService.getPrivacyPolicy(TenantId.SYS_TENANT_ID,
-                request.getServerName()));
+    public String getPrivacyPolicy(@RequestParam(required = false) String pkgName,
+                                   @RequestParam(required = false) PlatformType platform,
+                                   HttpServletRequest request) throws ThingsboardException {
+        JsonNode privacyPolicyNode;
+        if (!StringUtils.isEmpty(pkgName)) {
+            checkNotNull(platform, "Platform type is required if package name is specified");
+            MobileAppBundlePolicyInfo policyInfo = mobileAppBundleService.findMobileAppBundlePolicyInfoByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
+            privacyPolicyNode = JacksonUtil.toJsonNode(policyInfo != null ? policyInfo.getPrivacyPolicy() : null);
+        } else {
+            privacyPolicyNode = whiteLabelingService.getPrivacyPolicyByDomainName(request.getServerName());
+        }
         if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
             return privacyPolicyNode.get(PRIVACY_POLICY).toString();
         }
@@ -225,11 +235,19 @@ public class SelfRegistrationController extends BaseController {
             notes = "Fetch the Terms of Use based on the domain name from the request. Available for non-authorized users. ")
     @RequestMapping(value = "/noauth/selfRegistration/termsOfUse", method = RequestMethod.GET)
     @ResponseBody
-    public String getTermsOfUse(HttpServletRequest request) throws ThingsboardException, JsonProcessingException {
-        JsonNode termsOfUse = JacksonUtil.toJsonNode(selfRegistrationService.getTermsOfUse(TenantId.SYS_TENANT_ID,
-                request.getServerName()));
-        if (termsOfUse != null && termsOfUse.has(TERMS_OF_USE)) {
-            return termsOfUse.get(TERMS_OF_USE).toString();
+    public String getTermsOfUse(@RequestParam(required = false) String pkgName,
+                                @RequestParam(required = false) PlatformType platform,
+                                HttpServletRequest request) throws ThingsboardException {
+        JsonNode termsOfUseNode;
+        if (!StringUtils.isEmpty(pkgName)) {
+            checkNotNull(platform, "Platform type is required if package name is specified");
+            MobileAppBundlePolicyInfo termsOfUseInfo = mobileAppBundleService.findMobileAppBundlePolicyInfoByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
+            termsOfUseNode = JacksonUtil.toJsonNode(termsOfUseInfo != null ? termsOfUseInfo.getTermsOfUse() : null);
+        } else {
+            termsOfUseNode = whiteLabelingService.getTermsOfUseByDomainName(request.getServerName());
+        }
+        if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
+            return termsOfUseNode.get(TERMS_OF_USE).toString();
         }
         return "";
     }
