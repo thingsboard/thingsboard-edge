@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-card-content" fxLayout="column" fxLayoutGap="8px">
+<div class="tb-card-content flex flex-col gap-2">
   <div class="tb-card-header">
     <a class="tb-title-link" [href]="docsLink" target="_blank">{{ 'widgets.documentation.title' | translate }}</a>
     <button class="tb-title-icon"
@@ -41,9 +41,9 @@
       <tb-icon>edit</tb-icon>
     </button>
   </div>
-  <mat-grid-list class="tb-links-list" fxFlex [cols]="columns" [rowHeight]="rowHeight" [gutterSize]="gutterSize">
+  <mat-grid-list class="tb-links-list flex-1" [cols]="columns" [rowHeight]="rowHeight" [gutterSize]="gutterSize">
     <mat-grid-tile class="tb-links-tile" *ngFor="let docLink of documentationLinks?.links">
-      <a fxFlex class="tb-link-button"
+      <a class="tb-link-button flex-1"
          [href]="docLink.link" target="_blank">
         <div class="tb-link-container">
           <div class="tb-link-icon-container">
@@ -54,7 +54,7 @@
       </a>
     </mat-grid-tile>
     <mat-grid-tile class="tb-links-tile">
-      <div fxFlex class="tb-add-link-button"
+      <div class="tb-add-link-button flex-1"
            matTooltip="{{ 'widgets.documentation.add-link' | translate }}"
            matTooltipPosition="above"
            (click)="addLink()">

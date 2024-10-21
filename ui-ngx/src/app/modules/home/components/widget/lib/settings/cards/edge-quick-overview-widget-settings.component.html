@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section class="tb-widget-settings" [formGroup]="edgeQuickOverviewWidgetSettingsForm" fxLayout="column">
+<section class="tb-widget-settings flex flex-col" [formGroup]="edgeQuickOverviewWidgetSettingsForm">
   <mat-slide-toggle class="mat-slide" formControlName="enableDefaultTitle">
     {{ 'widgets.edge.display-default-title' | translate }}
   </mat-slide-toggle>
