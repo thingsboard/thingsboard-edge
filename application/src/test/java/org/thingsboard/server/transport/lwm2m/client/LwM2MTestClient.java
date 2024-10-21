@@ -152,9 +152,11 @@ public class LwM2MTestClient {
     private Map<LwM2MClientState, Integer> clientDtlsCid;
     private LwM2mUplinkMsgHandler defaultLwM2mUplinkMsgHandlerTest;
     private LwM2mClientContext clientContext;
+    private LwM2mTemperatureSensor lwM2mTemperatureSensor12;
+
     public void init(Security security, Security securityBs, int port, boolean isRpc,
                      LwM2mUplinkMsgHandler defaultLwM2mUplinkMsgHandler,
-                     LwM2mClientContext clientContext, boolean isWriteAttribute, Integer cIdLength, boolean queueMode,
+                     LwM2mClientContext clientContext, Integer cIdLength, boolean queueMode,
                      boolean supportFormatOnly_SenMLJSON_SenMLCBOR) throws InvalidDDFFileException, IOException {
         Assert.assertNull("client already initialized", leshanClient);
         this.defaultLwM2mUplinkMsgHandlerTest = defaultLwM2mUplinkMsgHandler;
@@ -164,7 +166,7 @@ public class LwM2MTestClient {
             models.addAll(ObjectLoader.loadDdfFile(LwM2MTestClient.class.getClassLoader().getResourceAsStream("lwm2m/" + resourceName), resourceName));
         }
         LwM2mModel model = new StaticModel(models);
-        ObjectsInitializer initializer = isWriteAttribute ? new TbObjectsInitializer(model) : new ObjectsInitializer(model);
+        ObjectsInitializer initializer = new ObjectsInitializer(model);
         if (securityBs != null && security != null) {
             // SECURITY
             security.setId(serverId);
@@ -204,7 +206,7 @@ public class LwM2MTestClient {
         locationParams.getPos();
         initializer.setInstancesForObject(LOCATION, new LwM2mLocation(locationParams.getLatitude(), locationParams.getLongitude(), locationParams.getScaleFactor(), executor, OBJECT_INSTANCE_ID_0));
         LwM2mTemperatureSensor lwM2mTemperatureSensor0 = new LwM2mTemperatureSensor(executor, OBJECT_INSTANCE_ID_0);
-        LwM2mTemperatureSensor lwM2mTemperatureSensor12 = new LwM2mTemperatureSensor(executor, OBJECT_INSTANCE_ID_12);
+        lwM2mTemperatureSensor12 = new LwM2mTemperatureSensor(executor, OBJECT_INSTANCE_ID_12);
         initializer.setInstancesForObject(TEMPERATURE_SENSOR, lwM2mTemperatureSensor0, lwM2mTemperatureSensor12);
 
         List<LwM2mObjectEnabler> enablers = initializer.createAll();
@@ -330,7 +332,6 @@ public class LwM2MTestClient {
         clientDtlsCid = new HashMap<>();
         clientStates.add(ON_INIT);
         leshanClient = builder.build();
-        lwM2mTemperatureSensor12.setLeshanClient(leshanClient);
 
         LwM2mClientObserver observer = new LwM2mClientObserver() {
             @Override
@@ -467,6 +468,7 @@ public class LwM2MTestClient {
             if (isStartLw) {
                 this.awaitClientAfterStartConnectLw();
             }
+            lwM2mTemperatureSensor12.setLeshanClient(leshanClient);
         }
     }
 

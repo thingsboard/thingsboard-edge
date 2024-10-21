@@ -441,7 +441,13 @@ export class WidgetContext {
         this.dashboardWidget.updateWidgetParams();
       }
       try {
-        this.changeDetectorValue.detectChanges();
+        if (this.ngZone) {
+          this.ngZone.run(() => {
+            this.changeDetectorValue?.detectChanges();
+          });
+        } else {
+          this.changeDetectorValue?.detectChanges();
+        }
       } catch (e) {
         // console.log(e);
       }
@@ -451,7 +457,13 @@ export class WidgetContext {
   detectContainerChanges() {
     if (!this.destroyed) {
       try {
-        this.containerChangeDetectorValue.detectChanges();
+        if (this.ngZone) {
+          this.ngZone.run(() => {
+            this.containerChangeDetectorValue?.detectChanges();
+          });
+        } else {
+          this.containerChangeDetectorValue?.detectChanges();
+        }
       } catch (e) {
         // console.log(e);
       }

@@ -78,7 +78,6 @@ export class RabbitMqIntegrationFormComponent extends IntegrationForm implements
       password: ['', []],
       downlinkTopic: ['', []],
       queues: ['my-queue', [Validators.required]],
-      routingKeys: ['my-routing-key', []],
       connectionTimeout: [60000, [Validators.min(0)]],
       handshakeTimeout: [10000, [Validators.min(0)]],
       pollPeriod: [5000, [Validators.min(0)]],
