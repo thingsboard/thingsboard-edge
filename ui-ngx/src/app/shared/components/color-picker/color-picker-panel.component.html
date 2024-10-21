@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-color-picker-panel" [ngClass]="{'singleTab': !useThemePalette}">
+<div class="tb-color-picker-panel" [class.singleTab]="!useThemePalette">
   <mat-tab-group *ngIf="useThemePalette; else colorPicker"
                  [selectedIndex]="colorMode === 'color' ? 0 : (colorMode === 'primary' ? 1 : 2)" (selectedIndexChange)="selectedIndexChange($event)">
     <mat-tab label="{{ 'color.color-picker' | translate }}">

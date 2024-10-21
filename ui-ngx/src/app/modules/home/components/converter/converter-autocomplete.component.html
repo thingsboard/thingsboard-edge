@@ -38,7 +38,7 @@
          (focusin)="onFocus()"
          [required]="required"
          [matAutocomplete]="entityAutocomplete"
-         [fxShow]="!showDetailsPageLink || !disabled || !selectConverterFormGroup.get('entity').value">
+         [class.!hidden]="showDetailsPageLink && disabled && selectConverterFormGroup.get('entity').value">
   <a *ngIf="showDetailsPageLink && selectConverterFormGroup.get('entity').value && disabled" aria-label="Open converter" [routerLink]=converterURL>
     {{ displayEntityFn(selectConverterFormGroup.get('entity').value) }}
   </a>
