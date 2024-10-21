@@ -27,7 +27,7 @@ sudo yum install google-roboto-fonts -y
 ```
 $ mkdir ~/noto
 $ cd ~/noto
-$ wget https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip
+$ wget https://noto-website-2.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip
 $ unzip NotoSansCJKjp-hinted.zip
 $ sudo mkdir -p /usr/share/fonts/noto
 $ sudo cp *.otf /usr/share/fonts/noto
@@ -66,7 +66,7 @@ sudo apt install fonts-roboto
 ```
 $ mkdir ~/noto
 $ cd ~/noto
-$ wget https://noto-website.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip
+$ wget https://noto-website-2.storage.googleapis.com/pkgs/NotoSansCJKjp-hinted.zip
 $ unzip NotoSansCJKjp-hinted.zip
 $ sudo mkdir -p /usr/share/fonts/noto
 $ sudo cp *.otf /usr/share/fonts/noto

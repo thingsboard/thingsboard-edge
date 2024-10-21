@@ -153,7 +153,7 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
                     log.warn("Failed to execute update script for device profile rule nodes due to: ", e);
                 }
             }
-            case "3.8.0" -> updateSchema("3.8.0", 3008000, "3.9.0", 3009000);
+            case "3.8.1" -> updateSchema("3.8.1", 3008001, "3.9.0", 3009000);
             case "ce" -> {
                 log.info("Updating schema ...");
                 try {

@@ -58,6 +58,7 @@ import { enumerable } from '@shared/decorators/enumerable';
 import { UtilsService } from '@core/services/utils.service';
 import { TbPopoverComponent } from '@shared/components/popover.component';
 import { ComponentStyle, iconStyle, textStyle } from '@shared/models/widget-settings.models';
+import { TbContextMenuEvent } from '@shared/models/jquery-event.models';
 
 export interface WidgetsData {
   widgets: Array<Widget>;
@@ -72,11 +73,11 @@ export interface ContextMenuItem {
 }
 
 export interface DashboardContextMenuItem extends ContextMenuItem {
-  action: (contextMenuEvent: MouseEvent) => void;
+  action: (contextMenuEvent: TbContextMenuEvent) => void;
 }
 
 export interface WidgetContextMenuItem extends ContextMenuItem {
-  action: (contextMenuEvent: MouseEvent, widget: Widget) => void;
+  action: (contextMenuEvent: TbContextMenuEvent, widget: Widget) => void;
 }
 
 export interface DashboardCallbacks {
@@ -110,7 +111,7 @@ export interface IDashboardComponent {
   highlightWidget(widgetId: string, delay?: number);
   selectWidget(widgetId: string, delay?: number);
   getSelectedWidget(): Widget;
-  getEventGridPosition(event: Event): WidgetPosition;
+  getEventGridPosition(event: TbContextMenuEvent | KeyboardEvent): WidgetPosition;
   notifyGridsterOptionsChanged();
   pauseChangeNotifications();
   resumeChangeNotifications();
