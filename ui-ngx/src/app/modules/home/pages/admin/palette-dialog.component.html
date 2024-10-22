@@ -48,13 +48,13 @@
          style="height: 48px; cursor: pointer; font-weight: 500; outline: none;"
          (click)="editColor(hue)">
       <div class="flex flex-1 flex-row" [style]="hueStyle(hue)" style="padding: 10px;">
-        <div class="flex w-full flex-row items-center justify-start">
+        <div class="flex flex-row items-center justify-start" style="width: 100px;">
           <span>{{hue}}</span>
         </div>
         <div class="flex flex-1 flex-col items-center justify-center">
           <span>{{hueName(hue)}}</span>
         </div>
-        <div class="flex w-full flex-row items-center justify-end">
+        <div class="flex flex-row items-center justify-end" style="width: 100px;">
           <span>{{colors[hue]}}</span>
         </div>
       </div>

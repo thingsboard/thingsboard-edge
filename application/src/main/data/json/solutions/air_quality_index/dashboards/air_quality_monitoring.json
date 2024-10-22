@@ -922,7 +922,7 @@
           "padding": "0px",
           "settings": {
             "useMarkdownTextFunction": true,
-            "markdownTextFunction": "return '<div class=\"aqi-section flex flex-col\">' +\n  '<tb-dashboard-state [style.max-width]=\"ctx.stateController.getStateParams().selectedSensor ? \\'75%\\' : \\'60%\\'\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"aqi_info_section\" class=\"aqi-info-section flex-full\"></tb-dashboard-state>' +\n  '<tb-dashboard-state [style.max-width]=\"ctx.stateController.getStateParams().selectedSensor ? \\'25%\\' : \\'40%\\'\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"aqi_charts_section\" class=\"flex-full\"></tb-dashboard-state>' +\n  '</div>';",
+            "markdownTextFunction": "return '<div class=\"aqi-section flex flex-col\">' +\n  '<tb-dashboard-state [style.max-height]=\"ctx.stateController.getStateParams().selectedSensor ? \\'75%\\' : \\'60%\\'\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"aqi_info_section\" class=\"aqi-info-section flex-full\"></tb-dashboard-state>' +\n  '<tb-dashboard-state [style.max-height]=\"ctx.stateController.getStateParams().selectedSensor ? \\'25%\\' : \\'40%\\'\" [ctx]=\"ctx\" [syncParentStateParams]=\"true\" stateId=\"aqi_charts_section\" class=\"flex-full\"></tb-dashboard-state>' +\n  '</div>';",
             "applyDefaultMarkdownStyle": false,
             "markdownCss": ".aqi-section {\n    width: 100%;\n    height: 100%;\n    padding: 0;\n}\n\n.aqi-info-section {\n    margin-bottom: 16px;\n}"
           },
