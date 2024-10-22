@@ -46,10 +46,6 @@ public class WebSelfRegistrationParams extends AbstractSelfRegistrationParams {
     @Schema(description = "Domain name for self registration URL. Typically this matches the domain name from the Login White Labeling page.")
     @NotNull
     private String domainName;
-    @Schema(description = "Default dashboard params")
-    protected DefaultDashboardParams defaultDashboard;
-    @Schema(description = "Home dashboard params")
-    protected HomeDashboardParams homeDashboard;
 
     @Override
     public SelfRegistrationType getType() {

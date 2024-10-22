@@ -59,5 +59,9 @@ public abstract class AbstractSelfRegistrationParams implements SelfRegistration
     protected String customerGroupId;
     @Schema(description = "Group Permissions to assign for the new customer user.")
     protected List<GroupPermission> permissions;
+    @Schema(description = "Default dashboard params")
+    protected DefaultDashboardParams defaultDashboard;
+    @Schema(description = "Home dashboard params")
+    protected HomeDashboardParams homeDashboard;
 
 }
