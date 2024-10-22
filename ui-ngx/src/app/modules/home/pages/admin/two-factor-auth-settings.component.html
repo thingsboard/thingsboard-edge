@@ -48,7 +48,7 @@
           <mat-checkbox *ngIf="isTenantAdmin()" formControlName="useSystemTwoFactorAuthSettings" style="padding-bottom: 16px;">
             {{ 'admin.2fa.use-system-two-factor-auth-settings' | translate }}
           </mat-checkbox>
-          <div [fxShow]="!isTenantAdmin() || !twoFaFormGroup.get('useSystemTwoFactorAuthSettings').value">
+          <div [class.!hidden]="isTenantAdmin() && twoFaFormGroup.get('useSystemTwoFactorAuthSettings').value">
             <fieldset class="fields-group" formArrayName="providers">
               <legend class="group-title" translate>admin.2fa.available-providers</legend>
               <ng-container *ngFor="let provider of providersForm.controls; let i = index; let $last = last; trackBy: trackByElement">

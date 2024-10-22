@@ -31,22 +31,22 @@
 
 -->
 <form (ngSubmit)="select()" class="tb-select-dashboard-state-dialog">
-  <mat-toolbar fxLayout="row" color="primary">
+  <mat-toolbar class="flex flex-row" color="primary">
     <h2 translate>scheduler.select-dashboard-state</h2>
-    <span fxFlex></span>
+    <span class="flex-1"></span>
     <button mat-icon-button
             (click)="cancel()"
             type="button">
       <mat-icon class="material-icons">close</mat-icon>
     </button>
   </mat-toolbar>
-  <div mat-dialog-content fxFlex style="position: relative; overflow: hidden;">
+  <div mat-dialog-content class="flex-1" style="position: relative; overflow: hidden;">
     <div class="tb-absolute-fill">
       <iframe #selectDashboardFrame frameborder="0" height="100%" width="100%"></iframe>
     </div>
   </div>
-  <div mat-dialog-actions fxLayout="row">
-    <span fxFlex></span>
+  <div mat-dialog-actions class="flex flex-row">
+    <span class="flex-1"></span>
     <button mat-button color="primary"
             type="button"
             [disabled]="(isLoading$ | async)"
