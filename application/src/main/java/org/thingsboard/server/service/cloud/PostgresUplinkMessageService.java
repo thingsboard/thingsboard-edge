@@ -87,7 +87,7 @@ public abstract class PostgresUplinkMessageService extends BaseUplinkMessageServ
     private TimePageLink tryFindNewTimePageLink(TenantId tenantId, Long queueSeqIdStart) throws InterruptedException, ExecutionException {
         int maxReadRecordsCount = cloudEventStorageSettings.getMaxReadRecordsCount();
         long queueStartTs = getQueueStartTs(tenantId).get();
-        long queueEndTs = queueStartTs + TimeUnit.DAYS.toMillis(1);
+        long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
         TimePageLink pageLink =
                 new TimePageLink(maxReadRecordsCount, 0, null, null, queueStartTs, queueEndTs);
 
