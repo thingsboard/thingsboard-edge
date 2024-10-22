@@ -38,6 +38,9 @@ import { Observable } from 'rxjs';
 export function updateUserLang(translate: TranslateService, userLang: string,
                                translations = env.supportedLangs, reload = false): Observable<any> {
   let targetLang = userLang;
+  if (!translations) {
+    translations = env.supportedLangs;
+  }
   if (!env.production) {
     console.log(`User lang: ${targetLang}`);
   }
