@@ -34,15 +34,15 @@
 
   <fieldset class="fields-group">
     <legend class="group-title" translate>integration.credentials</legend>
-    <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-      <mat-form-field fxFlex class="mat-block">
+    <div class="flex flex-row xs:flex-col gt-xs:gap-2">
+      <mat-form-field class="mat-block flex-1">
         <mat-label translate>integration.project-id</mat-label>
         <input matInput formControlName="projectId" required>
         <mat-error translate *ngIf="pubSubIntegrationConfigForm.get('projectId').hasError('required')">
           integration.project-id-required
         </mat-error>
       </mat-form-field>
-      <mat-form-field fxFlex class="mat-block">
+      <mat-form-field class="mat-block flex-1">
         <mat-label translate>integration.subscription-id</mat-label>
         <input matInput formControlName="subscriptionId" required>
         <mat-error translate *ngIf="pubSubIntegrationConfigForm.get('subscriptionId').hasError('required')">
@@ -67,7 +67,7 @@
 
   <mat-expansion-panel class="configuration-panel">
     <mat-expansion-panel-header>
-      <mat-panel-description fxLayoutAlign="end" translate>
+      <mat-panel-description class="flex items-stretch justify-end" translate>
         integration.advanced-settings
       </mat-panel-description>
     </mat-expansion-panel-header>

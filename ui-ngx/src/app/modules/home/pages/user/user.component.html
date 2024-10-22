@@ -30,73 +30,73 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-details-buttons" fxLayout.xs="column">
+<div class="tb-details-buttons xs:flex xs:flex-col">
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'open')"
-          [fxShow]="!isEdit && !isDetailsPage">
+          [class.!hidden]="isEdit || isDetailsPage">
     {{'common.open-details-page' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'disableAccount')"
           *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.USER: operation.WRITE"
-          [fxShow]="!isEdit && !isCurrentUser() && isUserCredentialPresent() && isUserCredentialsEnabled()">
+          [class.!hidden]="isEdit || isCurrentUser() || !isUserCredentialPresent() || !isUserCredentialsEnabled()">
     {{'user.disable-account' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'enableAccount')"
           *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.USER: operation.WRITE"
-          [fxShow]="!isEdit && !isCurrentUser() && isUserCredentialPresent() && !isUserCredentialsEnabled()">
+          [class.!hidden]="isEdit || isCurrentUser() || !isUserCredentialPresent() || isUserCredentialsEnabled()">
     {{'user.enable-account' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'displayActivationLink')"
-          [fxShow]="!isEdit && !isUserCredentialPresent()">
+          [class.!hidden]="isEdit || isUserCredentialPresent()">
     {{'user.display-activation-link' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'resendActivation')"
-          [fxShow]="!isEdit && !isUserCredentialPresent()">
+          [class.!hidden]="isEdit || isUserCredentialPresent()">
     {{'user.resend-activation' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async) || isCurrentUser()"
           (click)="onEntityAction($event, 'loginAsUser')"
           *ngIf="(loginAsUserEnabled$ | async) && resource.USER | hasGenericPermission: operation.IMPERSONATE"
-          [fxShow]="!isEdit">
+          [class.!hidden]="isEdit">
     {{ (entity?.authority === authority.TENANT_ADMIN ? 'user.login-as-tenant-admin' : 'user.login-as-customer-user') | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageOwnerAndGroups')"
           *ngIf="(isSysAdmin$ | async) === false && canManageOwnerAndGroups()"
-          [fxShow]="!isEdit">
+          [class.!hidden]="isEdit">
     {{'entity-group.manage-owner-and-groups' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
           *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.USER: operation.DELETE"
-          [fxShow]="!hideDelete() && !isEdit">
+          [class.!hidden]="hideDelete() || isEdit">
     {{'user.delete' | translate }}
   </button>
-  <div fxLayout="row" fxLayout.xs="column">
+  <div class="flex flex-row xs:flex-col">
     <button mat-raised-button
             ngxClipboard
             (cbOnSuccess)="onUserIdCopied($event)"
             [cbContent]="entity?.id?.id"
             [disabled]="(isLoading$ | async)"
-            [fxShow]="!isEdit">
+            [class.!hidden]="isEdit">
       <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
       <span translate>user.copyId</span>
     </button>
   </div>
 </div>
-<div class="mat-padding" fxLayout="column">
+<div class="mat-padding flex flex-col">
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <mat-form-field class="mat-block">
@@ -122,33 +122,33 @@
                       [enableFlagsSelect]="true"
                       formControlName="phone">
       </tb-phone-input>
-      <div formGroupName="additionalInfo" fxLayout="column">
+      <div formGroupName="additionalInfo" class="flex flex-col">
         <mat-form-field class="mat-block">
           <mat-label translate>user.description</mat-label>
           <textarea matInput formControlName="description" rows="2"></textarea>
         </mat-form-field>
-        <section class="tb-default-dashboard" fxFlex fxLayout="column" *ngIf="entity?.id">
-          <section fxFlex fxLayout="column" fxLayout.gt-sm="row">
+        <section class="tb-default-dashboard flex flex-1 flex-col" *ngIf="entity?.id">
+          <section class="flex flex-1 flex-col gt-sm:flex-row">
             <tb-dashboard-autocomplete
-              fxFlex
+              class="flex-1"
               label="{{ 'user.default-dashboard' | translate }}"
               formControlName="defaultDashboardId"
               [userId]="entity?.id.id"
               [selectFirstDashboard]="false"
             ></tb-dashboard-autocomplete>
-            <mat-checkbox fxFlex formControlName="defaultDashboardFullscreen">
+            <mat-checkbox class="flex-1" formControlName="defaultDashboardFullscreen">
               {{ 'user.always-fullscreen' | translate }}
             </mat-checkbox>
           </section>
-          <section *ngIf="(isSysAdmin$ | async) || (whiteLabelingAllowed$ | async) && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)" fxFlex fxLayout="column" fxLayout.gt-sm="row">
+          <section *ngIf="(isSysAdmin$ | async) || (whiteLabelingAllowed$ | async) && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)" class="flex flex-1 flex-col gt-sm:flex-row">
             <tb-dashboard-autocomplete
-              fxFlex
+              class="flex-1"
               label="{{ 'dashboard.home-dashboard' | translate }}"
               formControlName="homeDashboardId"
               [userId]="entity?.id.id"
               [selectFirstDashboard]="false"
             ></tb-dashboard-autocomplete>
-            <mat-checkbox fxFlex formControlName="homeDashboardHideToolbar">
+            <mat-checkbox class="flex-1" formControlName="homeDashboardHideToolbar">
               {{ 'dashboard.home-dashboard-hide-toolbar' | translate }}
             </mat-checkbox>
           </section>
@@ -156,7 +156,7 @@
       </div>
       <tb-custom-menu-autocomplete *ngIf="entity?.id &&
                                           (isSysAdmin$ | async) === false && (whiteLabelingAllowed$ | async) && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)"
-                                   fxFlex
+                                   class="flex-1"
                                    formControlName="customMenuId"
                                    [scope]="isUserTenantAdmin() ? CMScope.TENANT : CMScope.CUSTOMER"
                                    [assigneeType]="CMAssigneeType.USERS">

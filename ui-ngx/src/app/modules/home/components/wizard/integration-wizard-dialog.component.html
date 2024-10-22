@@ -32,7 +32,7 @@
 -->
 <mat-toolbar color="primary">
   <h2 translate>integration.add</h2>
-  <span fxFlex></span>
+  <span class="flex-1"></span>
   <div [tb-help]="helpLinkId"></div>
   <button mat-icon-button
           (click)="cancel()"
@@ -53,11 +53,11 @@
       <form [formGroup]="integrationWizardForm">
         <ng-template matStepLabel>
           {{ "integration.basic-settings" | translate }}<br>
-          <div class="mat-step-optional" [fxHide]="selectedIndex === 0">{{integrationType}}</div>
+          <div class="mat-step-optional" [class.!hidden]="selectedIndex === 0">{{integrationType}}</div>
         </ng-template>
-        <tb-integration-type-select formControlName="type" required fxFlex>
+        <tb-integration-type-select formControlName="type" required class="flex-1">
         </tb-integration-type-select>
-        <mat-form-field fxFlex class="mat-block">
+        <mat-form-field class="mat-block flex-1">
           <mat-label translate>integration.name</mat-label>
           <input matInput formControlName="name" required>
           <mat-error *ngIf="integrationWizardForm.get('name').hasError('required') || integrationWizardForm.get('name').hasError('pattern')">
@@ -67,7 +67,7 @@
             {{ 'integration.name-max-length' | translate }}
           </mat-error>
         </mat-form-field>
-        <div class="row" fxLayout="column" fxLayoutGap="8px">
+        <div class="row flex flex-col gap-2">
           <mat-slide-toggle formControlName="enabled">
             {{ 'integration.enabled' | translate }}
           </mat-slide-toggle>
@@ -83,16 +83,16 @@
     <mat-step [stepControl]="uplinkConverterForm">
       <form [formGroup]="uplinkConverterForm">
         <ng-template #uplinkLabel matStepLabel>{{ "integration.uplink-converter" | translate }}</ng-template>
-        <div class="tb-form-panel" ngClass.gt-xs="stroked" ngClass.xs="no-padding no-border">
+        <div class="tb-form-panel tb-converter-panel">
           <div class="tb-form-row no-border no-padding column-xs">
-            <div fxFlex fxHide.xs class="tb-form-panel-title"><ng-container *ngTemplateOutlet=uplinkLabel></ng-container></div>
-            <tb-toggle-select *ngIf="(integrationInfo$ | async)?.uplink?.existing || (integrationInfo$ | async)?.uplink?.library" fxFlex appearance="fill" formControlName="converterType">
+            <div class="tb-form-panel-title flex-1 xs:!hidden"><ng-container *ngTemplateOutlet=uplinkLabel></ng-container></div>
+            <tb-toggle-select *ngIf="(integrationInfo$ | async)?.uplink?.existing || (integrationInfo$ | async)?.uplink?.library" class="flex-1" appearance="fill" formControlName="converterType">
               <tb-toggle-option [value]="ConverterSourceType.NEW">{{ 'integration.new-converter' | translate }}</tb-toggle-option>
               <tb-toggle-option *ngIf="(integrationInfo$ | async)?.uplink?.existing" [value]="ConverterSourceType.EXISTING">{{ 'integration.existing-converter' | translate }}</tb-toggle-option>
               <tb-toggle-option *ngIf="(integrationInfo$ | async)?.uplink?.library" [value]="ConverterSourceType.LIBRARY">{{ 'integration.library' | translate }}</tb-toggle-option>
             </tb-toggle-select>
           </div>
-          <tb-converter-autocomplete fxFlex formControlName="uplinkConverterId" required
+          <tb-converter-autocomplete class="flex-1" formControlName="uplinkConverterId" required
                                      *ngIf="uplinkConverterForm.get('converterType').value === ConverterSourceType.EXISTING"
                                      labelText="integration.uplink-converter"
                                      requiredText="integration.uplink-converter-required"
@@ -101,7 +101,7 @@
                                      [isEdgeTemplate]="isEdgeTemplate">
           </tb-converter-autocomplete>
           <tb-converter #uplinkDataConverter
-                        [fxShow]="uplinkConverterForm.get('converterType').value === ConverterSourceType.NEW"
+                        [class.!hidden]="uplinkConverterForm.get('converterType').value !== ConverterSourceType.NEW"
                         hideType="true"
                         [integrationType]="integrationWizardForm.get('type').value"
                         [integrationName]="integrationWizardForm.get('name').value"
@@ -111,7 +111,7 @@
           ></tb-converter>
           <tb-converter-library
             formControlName="libraryUplinkConverter"
-            [fxShow]="uplinkConverterForm.get('converterType').value === ConverterSourceType.LIBRARY"
+            [class.!hidden]="uplinkConverterForm.get('converterType').value !== ConverterSourceType.LIBRARY"
             [integrationType]="integrationWizardForm.get('type').value"
           />
         </div>
@@ -120,9 +120,9 @@
     <mat-step [stepControl]="downlinkConverterForm" optional="true" *ngIf="showDownlinkStep">
       <form [formGroup]="downlinkConverterForm">
         <ng-template #downlinkLabel matStepLabel>{{ "integration.downlink-converter" | translate }}</ng-template>
-        <div class="tb-form-panel" ngClass.gt-xs="stroked" ngClass.xs="no-padding no-border">
+        <div class="tb-form-panel tb-converter-panel">
           <div class="tb-form-row no-border no-padding column-xs tb-flex space-between">
-            <div fxHide.xs class="tb-form-panel-title"><ng-container *ngTemplateOutlet=downlinkLabel></ng-container></div>
+            <div class="tb-form-panel-title xs:!hidden"><ng-container *ngTemplateOutlet=downlinkLabel></ng-container></div>
             <tb-toggle-select *ngIf="integrationWizardForm.get('type').value" appearance="fill" formControlName="converterType">
               <tb-toggle-option [value]="ConverterSourceType.NEW">{{ 'integration.new-converter' | translate }}</tb-toggle-option>
               <tb-toggle-option [value]="ConverterSourceType.SKIP">{{ 'integration.skip' | translate }}</tb-toggle-option>
@@ -130,7 +130,7 @@
               <tb-toggle-option *ngIf="(integrationInfo$ | async)?.downlink?.library" [value]="ConverterSourceType.LIBRARY">{{ 'integration.library' | translate }}</tb-toggle-option>
             </tb-toggle-select>
           </div>
-          <tb-converter-autocomplete fxFlex formControlName="downlinkConverterId"
+          <tb-converter-autocomplete class="flex-1" formControlName="downlinkConverterId"
                                      *ngIf="downlinkConverterForm.get('converterType').value === ConverterSourceType.EXISTING"
                                      labelText="integration.downlink-converter"
                                      [converterType]="converterType.DOWNLINK"
@@ -138,7 +138,7 @@
                                      [isEdgeTemplate]="isEdgeTemplate">
           </tb-converter-autocomplete>
           <tb-converter #downlinkDataConverter
-                        [fxShow]="downlinkConverterForm.get('converterType').value === ConverterSourceType.NEW"
+                        [class.!hidden]="downlinkConverterForm.get('converterType').value !== ConverterSourceType.NEW"
                         [integrationType]="integrationWizardForm.get('type').value"
                         [integrationName]="integrationWizardForm.get('name').value"
                         [convertorName]="createConvertorName(converterType.DOWNLINK)"
@@ -148,7 +148,7 @@
           ></tb-converter>
           <tb-converter-library
             formControlName="libraryDownlinkConverter"
-            [fxShow]="downlinkConverterForm.get('converterType').value === ConverterSourceType.LIBRARY"
+            [class.!hidden]="downlinkConverterForm.get('converterType').value !== ConverterSourceType.LIBRARY"
             [integrationType]="integrationWizardForm.get('type').value"
             [converterType]="converterType.DOWNLINK"
           />
@@ -170,7 +170,7 @@
         ></tb-integration-configuration>
         <ng-template #genericAdditionalInfo>
           <section [formGroup]="integrationConfigurationForm">
-            <div formGroupName="additionalInfo" fxLayout="column">
+            <div formGroupName="additionalInfo" class="flex flex-col">
               <mat-form-field class="mat-block">
                 <mat-label translate>integration.description</mat-label>
                 <textarea matInput formControlName="description" cdkTextareaAutosize
@@ -186,7 +186,7 @@
         <ng-template #executeRemotely>
           <section [formGroup]="integrationConfigurationForm">
             <mat-expansion-panel class="remote-integration-setting" [expanded]="integrationConfigurationForm.get('remote').value">
-              <mat-expansion-panel-header fxLayout="row">
+              <mat-expansion-panel-header class="flex flex-row">
                 <mat-panel-title>
                   <mat-slide-toggle formControlName="remote" (click)="$event.stopPropagation()">
                     {{'integration.execute-remotely' | translate}}
@@ -195,8 +195,8 @@
               </mat-expansion-panel-header>
               <ng-template matExpansionPanelContent>
                 <section class="remote-integration-setting-content">
-                  <div fxLayout="row" fxLayoutAlign="start center">
-                    <mat-form-field class="mat-block" fxFlex>
+                  <div class="flex flex-row items-center justify-start">
+                    <mat-form-field class="mat-block flex-1">
                       <mat-label translate>integration.integration-key</mat-label>
                       <input matInput formControlName="routingKey">
                     </mat-form-field>
@@ -207,8 +207,8 @@
                       <mat-icon class="tb-mat-20">content_copy</mat-icon>
                     </button>
                   </div>
-                  <div fxLayout="row" fxLayoutAlign="start center">
-                    <mat-form-field class="mat-block" fxFlex>
+                  <div class="flex flex-row items-center justify-start">
+                    <mat-form-field class="mat-block flex-1">
                       <mat-label translate>integration.integration-secret</mat-label>
                       <input matInput formControlName="secret">
                     </mat-form-field>
@@ -228,18 +228,18 @@
     </mat-step>
     <mat-step optional="true" *ngIf="showCheckConnection">
       <ng-template matStepLabel>{{ "integration.check-connection" | translate }}</ng-template>
-      <div fxFlex fxLayout="column" fxLayoutAlign="center center" style="height: 100%">
+      <div class="flex h-full flex-1 flex-col items-center justify-center">
         <mat-progress-spinner color="warn" mode="indeterminate"
                               strokeWidth="5" *ngIf="!showCheckSuccess && !checkErrMsg">
         </mat-progress-spinner>
         <div *ngIf="showCheckSuccess">
-          <div fxFlex fxLayoutAlign="center center">
+          <div class="flex flex-1 items-center justify-center">
             <mat-icon class="success connection-icon">check_circle</mat-icon>
           </div>
           <span class="connection-status success">{{ "integration.connected" | translate }}</span>
         </div>
         <div *ngIf="checkErrMsg">
-          <div fxFlex fxLayoutAlign="center center">
+          <div class="flex flex-1 items-center justify-center">
             <mat-icon class="error connection-icon">cancel</mat-icon>
           </div>
           <div class="connection-status error">{{ "integration.not-connected" | translate }}</div>
@@ -250,11 +250,11 @@
   </mat-stepper>
 </div>
 <mat-divider></mat-divider>
-<div mat-dialog-actions fxLayout="row">
+<div mat-dialog-actions class="flex flex-row">
   <button mat-stroked-button *ngIf="selectedIndex > 0"
           [disabled]="(isLoading$ | async)"
           (click)="backStep()">{{ 'action.back' | translate }}</button>
-  <span fxFlex></span>
+  <span class="flex-1"></span>
   <button *ngIf="isCheckConnectionAvailable && selectedIndex === 3"
           mat-button mat-stroked-button color="primary"
           (click)="onIntegrationCheck()"

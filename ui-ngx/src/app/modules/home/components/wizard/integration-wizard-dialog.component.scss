@@ -100,6 +100,20 @@
     padding: 8px 12px;
     color: rgba(0, 0, 0, 0.54);
   }
+
+  .tb-form-panel.tb-converter-panel {
+    @media #{$mat-gt-xs} {
+      box-shadow: none;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 6px;
+    }
+    @media #{$mat-xs} {
+      padding: 0;
+      box-shadow: none;
+      border-radius: 0;
+    }
+  }
+
 }
 
 :host ::ng-deep {

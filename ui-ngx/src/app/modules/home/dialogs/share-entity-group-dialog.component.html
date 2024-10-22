@@ -33,7 +33,7 @@
 <form (ngSubmit)="share()" style="width: 500px;">
   <mat-toolbar color="primary">
     <h2 translate>entity-group.share</h2>
-    <span fxFlex></span>
+    <span class="flex-1"></span>
     <button mat-icon-button
             (click)="cancel()"
             type="button">
@@ -48,7 +48,7 @@
       formControlName="shareGroupRequest">
     </tb-share-entity-group>
   </div>
-  <div mat-dialog-actions fxLayoutAlign="end center">
+  <div mat-dialog-actions class="flex items-center justify-end">
     <button mat-button color="primary"
             type="button"
             cdkFocusInitial

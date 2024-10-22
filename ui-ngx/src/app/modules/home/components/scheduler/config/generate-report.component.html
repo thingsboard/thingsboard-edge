@@ -31,7 +31,7 @@
 
 -->
 <section [formGroup]="generateReportFormGroup">
-  <div formGroupName="msgBody" class="tb-form-panel no-border no-padding" fxLayout="column">
+  <div formGroupName="msgBody" class="tb-form-panel no-border no-padding flex flex-col">
     <tb-report-config
       formControlName="reportConfig">
     </tb-report-config>
@@ -42,12 +42,12 @@
                            [disabled]="!generateReportFormGroup.get('msgBody.sendEmail').value">
         <mat-expansion-panel-header>
           <mat-panel-title>
-            <mat-slide-toggle formControlName="sendEmail" class="mat-slide" fxFlex (click)="$event.stopPropagation()">
+            <mat-slide-toggle formControlName="sendEmail" class="mat-slide flex-1" (click)="$event.stopPropagation()">
               {{ 'report.email-config' | translate }}
             </mat-slide-toggle>
           </mat-panel-title>
         </mat-expansion-panel-header>
-        <div [fxShow]="generateReportFormGroup.get('msgBody.sendEmail').value">
+        <div [class.!hidden]="!generateReportFormGroup.get('msgBody.sendEmail').value">
           <tb-email-config
             formControlName="emailConfig">
           </tb-email-config>

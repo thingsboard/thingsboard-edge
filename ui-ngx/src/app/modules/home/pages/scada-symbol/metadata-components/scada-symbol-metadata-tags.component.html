@@ -39,7 +39,7 @@
     </div>
     <div *ngIf="tagsFormArray().controls.length; else noTags" class="tb-form-table-body">
       <div *ngFor="let tagControl of tagsFormArray().controls; trackBy: trackByTag; let $index = index; let $last = last">
-        <tb-scada-symbol-metadata-tag fxFlex
+        <tb-scada-symbol-metadata-tag class="flex-1"
                                       [elementStateRenderFunctionCompleter]="elementStateRenderFunctionCompleter"
                                       [clickActionFunctionCompleter]="clickActionFunctionCompleter"
                                       [formControl]="tagControl">
@@ -50,6 +50,5 @@
   </div>
 </div>
 <ng-template #noTags>
-  <span fxLayoutAlign="center center"
-        class="tb-prompt">{{ 'scada.tag.no-tags' | translate }}</span>
+  <span class="tb-prompt flex items-center justify-center">{{ 'scada.tag.no-tags' | translate }}</span>
 </ng-template>

@@ -30,29 +30,29 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxLayout="column" class="tb-permission-list" [formGroup]="permissionListFormGroup">
-  <div class="header" fxFlex fxLayout="row">
-    <span class="cell" fxFlex="30" translate>permission.resource.resource</span>
-    <span class="cell" fxFlex="70" translate>permission.operation.operations</span>
-    <span [fxShow]="!disabled" style="width: 48px; min-width: 48px;">&nbsp;</span>
+<div class="tb-permission-list flex flex-col" [formGroup]="permissionListFormGroup">
+  <div class="header flex flex-1 flex-row">
+    <span class="cell max-w-30% flex-full" translate>permission.resource.resource</span>
+    <span class="cell max-w-70% flex-full" translate>permission.operation.operations</span>
+    <span [class.!hidden]="disabled" style="width: 48px; min-width: 48px;">&nbsp;</span>
   </div>
   <div class="body">
-    <div class="row" fxFlex fxLayout="row"
-         fxLayoutAlign="start center" formArrayName="permissions"
+    <div class="row flex flex-1 flex-row items-center justify-start"
+         formArrayName="permissions"
          *ngFor="let permissionControl of permissionsFormArray().controls; let $index = index">
       <tb-resource-type-autocomplete
-        class="cell mat-block" fxFlex="30"
+        class="cell mat-block max-w-30% flex-full"
         required
         [formControl]="permissionControl.get('resource')">
       </tb-resource-type-autocomplete>
       <tb-operation-type-list
-        class="cell mat-block" fxFlex="70"
+        class="cell mat-block max-w-70% flex-full"
         required
         [resource]="permissionControl.get('resource').value"
         [formControl]="permissionControl.get('operations')">
       </tb-operation-type-list>
       <button mat-icon-button color="primary"
-              [fxShow]="!disabled"
+              [class.!hidden]="disabled"
               type="button"
               (click)="removePermission($index)"
               [disabled]="isLoading$ | async"
@@ -67,7 +67,7 @@
   </tb-error>
   <div>
     <button mat-button mat-raised-button color="primary"
-            [fxShow]="!disabled"
+            [class.!hidden]="disabled"
             [disabled]="isLoading$ | async"
             (click)="addPermission()"
             type="button"

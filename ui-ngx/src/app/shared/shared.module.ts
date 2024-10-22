@@ -73,7 +73,6 @@ import { MatListModule } from '@angular/material/list';
 import { DatetimeAdapter, MatDatetimepickerModule, MatNativeDatetimeModule } from '@mat-datetimepicker/core';
 import { NgxDaterangepickerMd } from 'ngx-daterangepicker-material';
 import { GridsterModule } from 'angular-gridster2';
-import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { ShareButtonDirective } from 'ngx-sharebuttons';
@@ -211,17 +210,6 @@ import { NotificationComponent } from '@shared/components/notification/notificat
 import { TemplateAutocompleteComponent } from '@shared/components/notification/template-autocomplete.component';
 import { SlackConversationAutocompleteComponent } from '@shared/components/slack-conversation-autocomplete.component';
 import { DateAgoPipe } from '@shared/pipe/date-ago.pipe';
-import {
-  GtMdLgLayoutAlignDirective,
-  GtMdLgLayoutDirective,
-  GtMdLgLayoutGapDirective,
-  GtMdLgShowHideDirective,
-  MdLgLayoutAlignDirective,
-  MdLgLayoutDirective,
-  MdLgLayoutGapDirective,
-  MdLgShowHideDirective,
-  TbBreakPointsProvider
-} from '@shared/layout/layout.directives';
 import { ColorPickerComponent } from '@shared/components/color-picker/color-picker.component';
 import { ThemeColorSelectComponent } from '@shared/components/theme-color-select.component';
 import { ResourceAutocompleteComponent } from '@shared/components/resource/resource-autocomplete.component';
@@ -324,7 +312,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
         disableTooltipInteractivity: true
       }
     },
-    TbBreakPointsProvider,
     CountryData
   ],
   declarations: [
@@ -458,14 +445,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     NotificationComponent,
     TemplateAutocompleteComponent,
     SlackConversationAutocompleteComponent,
-    MdLgLayoutDirective,
-    MdLgLayoutAlignDirective,
-    MdLgLayoutGapDirective,
-    MdLgShowHideDirective,
-    GtMdLgLayoutDirective,
-    GtMdLgLayoutAlignDirective,
-    GtMdLgLayoutGapDirective,
-    GtMdLgShowHideDirective,
     ThemeColorSelectComponent,
     ColorPickerComponent,
     ColorPickerPanelComponent,
@@ -540,7 +519,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     DragDropModule,
     GridsterModule,
     ClipboardModule,
-    FlexLayoutModule.withConfig({addFlexToParent: false}),
     FormsModule,
     ReactiveFormsModule,
     OverlayModule,
@@ -669,7 +647,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     DragDropModule,
     GridsterModule,
     ClipboardModule,
-    FlexLayoutModule,
     FormsModule,
     ReactiveFormsModule,
     OverlayModule,
@@ -745,14 +722,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     NotificationComponent,
     TemplateAutocompleteComponent,
     SlackConversationAutocompleteComponent,
-    MdLgLayoutDirective,
-    MdLgLayoutAlignDirective,
-    MdLgLayoutGapDirective,
-    MdLgShowHideDirective,
-    GtMdLgLayoutDirective,
-    GtMdLgLayoutAlignDirective,
-    GtMdLgLayoutGapDirective,
-    GtMdLgShowHideDirective,
     ThemeColorSelectComponent,
     ColorPickerComponent,
     ColorPickerPanelComponent,

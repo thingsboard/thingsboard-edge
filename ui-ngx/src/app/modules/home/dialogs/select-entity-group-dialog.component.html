@@ -33,7 +33,7 @@
 <form [formGroup]="selectEntityGroupFormGroup" (ngSubmit)="selectEntityGroup()" style="width: 800px;">
   <mat-toolbar color="primary">
     <h2>{{ selectEntityGroupTitle | translate }}</h2>
-    <span fxFlex></span>
+    <span class="flex-1"></span>
     <button mat-icon-button
             (click)="cancel()"
             type="button">
@@ -47,7 +47,7 @@
     <fieldset [disabled]="isLoading$ | async">
       <mat-radio-group formControlName="addToGroupType" color="primary">
         <mat-radio-button [value]="0" color="primary">
-          <section fxLayout="column">
+          <section class="flex flex-col">
             <span translate style="padding-bottom: 10px;">entity-group.select-existing</span>
             <tb-entity-group-autocomplete
               formControlName="targetEntityGroupId"
@@ -63,7 +63,7 @@
           </section>
         </mat-radio-button>
         <mat-radio-button *ngIf="createEnabled" [value]="1" color="primary">
-          <section fxLayout="column">
+          <section class="flex flex-col">
             <span translate>entity-group.create-new</span>
             <mat-form-field class="mat-block">
               <mat-label translate>entity-group.new-entity-group-name</mat-label>
@@ -80,7 +80,7 @@
       </mat-radio-group>
     </fieldset>
   </div>
-  <div mat-dialog-actions fxLayout="row" fxLayoutAlign="end center">
+  <div mat-dialog-actions class="flex flex-row items-center justify-end">
     <button mat-button color="primary"
             type="button"
             [disabled]="(isLoading$ | async)"

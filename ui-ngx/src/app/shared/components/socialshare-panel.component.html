@@ -30,7 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxLayout="row" fxLayoutGap="12px" [fxHide]="isShareLinkLocal()">
+<div class="flex flex-row gap-3"
+     [class.!hidden]="isShareLinkLocal()">
   <button mat-mini-fab color="primary"
           shareButton="facebook"
           title="{{ shareTitle }}"
