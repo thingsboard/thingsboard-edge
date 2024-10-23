@@ -28,25 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.service.sync;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.thingsboard.server.service.sync.vc.GitRepository.FileType;
+import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
 
-@RequiredArgsConstructor
-public enum ResourceType {
-    LWM2M_MODEL("application/xml", false, false),
-    JKS("application/x-java-keystore", false, false),
-    PKCS_12("application/x-pkcs12", false, false),
-    JS_MODULE("application/javascript", true, true),
-    IMAGE(null, true, true),
-    DASHBOARD("application/json", true, true);
+import java.util.List;
 
-    @Getter
-    private final String mediaType;
-    @Getter
-    private final boolean customerAccess;
-    @Getter
-    private final boolean updatable;
+public interface GitSyncService {
+
+    void registerSync(String key, String repoUri, String branch, long fetchFrequencyMs, Runnable onUpdate);
+
+    List<RepoFile> listFiles(String key, String path, int depth, FileType type);
+
+    String getFileContent(String key, String path);
+
+    String getGithubRawContentUrl(String key, String path);
 
 }

@@ -28,25 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.service.entitiy.dashboard;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.junit.Test;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.context.TestPropertySource;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.Dashboard;
+import org.thingsboard.server.controller.AbstractControllerTest;
+import org.thingsboard.server.dao.service.DaoSqlTest;
 
-@RequiredArgsConstructor
-public enum ResourceType {
-    LWM2M_MODEL("application/xml", false, false),
-    JKS("application/x-java-keystore", false, false),
-    PKCS_12("application/x-pkcs12", false, false),
-    JS_MODULE("application/javascript", true, true),
-    IMAGE(null, true, true),
-    DASHBOARD("application/json", true, true);
+import java.util.concurrent.TimeUnit;
 
-    @Getter
-    private final String mediaType;
-    @Getter
-    private final boolean customerAccess;
-    @Getter
-    private final boolean updatable;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@DaoSqlTest
+@TestPropertySource(properties = {
+        "transport.gateway.dashboard.sync.enabled=true"
+})
+public class DashboardSyncServiceTest extends AbstractControllerTest {
+
+    @Test
+    public void testGatewaysDashboardSync() throws Exception {
+        loginTenantAdmin();
+        await().atMost(60, TimeUnit.SECONDS).untilAsserted(() -> {
+            MockHttpServletResponse response = doGet("/api/resource/dashboard/system/gateways_dashboard.json")
+                    .andExpect(status().isOk())
+                    .andReturn().getResponse();
+            String dashboardJson = response.getContentAsString();
+            String etag = response.getHeader("ETag");
+
+            Dashboard dashboard = JacksonUtil.fromString(dashboardJson, Dashboard.class);
+            assertThat(dashboard).isNotNull();
+            assertThat(dashboard.getTitle()).containsIgnoringCase("gateway");
+            assertThat(etag).isNotBlank();
+        });
+    }
 
 }

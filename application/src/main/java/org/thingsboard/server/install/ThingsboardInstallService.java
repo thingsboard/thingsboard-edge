@@ -176,6 +176,7 @@ public class ThingsboardInstallService {
                     dataUpdateService.updateData("ce");
                     log.info("Updating system data...");
                     dataUpdateService.upgradeRuleNodes();
+                    installScripts.loadSystemResources();
                     systemDataLoaderService.loadSystemWidgets();
                     installScripts.loadSystemLwm2mResources();
                     installScripts.loadSystemImages();
@@ -218,6 +219,7 @@ public class ThingsboardInstallService {
                 systemDataLoaderService.createDefaultTenantProfiles();
                 systemDataLoaderService.createAdminSettings();
                 systemDataLoaderService.createRandomJwtSettings();
+                installScripts.loadSystemResources();
                 systemDataLoaderService.loadSystemWidgets();
                 systemDataLoaderService.createOAuth2Templates();
                 systemDataLoaderService.createQueues();
