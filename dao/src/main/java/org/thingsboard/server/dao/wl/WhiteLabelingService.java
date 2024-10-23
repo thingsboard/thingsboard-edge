@@ -81,7 +81,7 @@ public interface WhiteLabelingService {
 
     WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams);
 
-    void deleteDomainWhiteLabelingByEntityId(TenantId tenantId, CustomerId customerId);
+    void deleteTenantWhiteLabeling(TenantId tenantId);
 
     boolean isWhiteLabelingAllowed(TenantId tenantId, CustomerId customerId);
 
@@ -114,5 +114,7 @@ public interface WhiteLabelingService {
     JsonNode getTermsOfUseByDomainName(String domainName);
 
     JsonNode getTenantTermsOfUse(TenantId tenantId);
+
+    void deleteWhiteLabeling(TenantId tenantId, CustomerId customerId, WhiteLabelingType type);
 
 }

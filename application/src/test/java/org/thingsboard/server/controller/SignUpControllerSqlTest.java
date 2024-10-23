@@ -38,21 +38,40 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.thingsboard.common.util.JacksonUtil;
+import org.testcontainers.shaded.org.apache.commons.lang3.RandomStringUtils;
+import org.thingsboard.server.common.data.Customer;
+import org.thingsboard.server.common.data.CustomerInfo;
+import org.thingsboard.server.common.data.EntityInfo;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.menu.CMAssigneeType;
+import org.thingsboard.server.common.data.menu.CMScope;
+import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.selfregistration.CaptchaParams;
+import org.thingsboard.server.common.data.selfregistration.SignUpField;
 import org.thingsboard.server.common.data.selfregistration.SignUpFieldId;
+import org.thingsboard.server.common.data.selfregistration.WebSelfRegistrationParams;
 import org.thingsboard.server.common.data.signup.SignUpRequest;
 import org.thingsboard.server.common.data.signup.SignUpResult;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.menu.CustomMenuDao;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.dao.user.UserService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.entitiy.TbLogEntityActionService;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -60,24 +79,6 @@ import static org.mockito.Mockito.verify;
 
 @DaoSqlTest
 public class SignUpControllerSqlTest extends AbstractControllerTest {
-
-    public static final String SELF_REG_SETTINGS = "{\"signUpTextMessage\":null," +
-            "\"captchaSiteKey\":\"6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI\"," +
-            "\"showPrivacyPolicy\":false," +
-            "\"showTermsOfUse\":false," +
-            "\"adminSettingsId\":null," +
-            "\"domainName\":\"localhost\"," +
-            "\"captchaSecretKey\":\"6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe\"," +
-            "\"privacyPolicy\":null," +
-            "\"termsOfUse\":null," +
-            "\"notificationEmail\":\"test@test.com\"," +
-            "\"defaultDashboardId\":null," +
-            "\"defaultDashboardFullscreen\":false," +
-            "\"permissions\":[]," +
-            "\"pkgName\":null," +
-            "\"appSecret\":null," +
-            "\"appScheme\":null," +
-            "\"appHost\":null}";
 
     public static final String RECAPTCHA_DUMMY_RESPONSE =
             "03AGdBq25eKTPJzWYaCnIx7JLlcQIEIZHX8IMiXbWb39HnZPMb8fE61JxA_xA-UAcPZhFvWJo00-VukIJXky" +
@@ -87,12 +88,20 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
                     "-IEW8wcD-zZW5TBpagv7p0V08ebdqxCkvb-7p4QrgNXQA_psw4SEHIg";
 
     public static final String TEST_EMAIL = "force_push@junior.com";
+    public static final String CUSTOMER_TITLE_PREFIX = "Prefix-";
+    private static List<UUID> idsToRemove = new ArrayList<>();
+
+    private EntityGroup customerGroup;
+    private CustomMenu customMenu;
 
     @SpyBean
     protected TbLogEntityActionService logEntityActionService;
 
     @Autowired
     protected UserService userService;
+
+    @Autowired
+    private CustomMenuDao customMenuDao;
 
     @Autowired
     protected CustomerService customerService;
@@ -103,34 +112,90 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
     @Autowired
     protected AdminSettingsService adminSettingsService;
 
+    @Autowired
+    protected WhiteLabelingService whiteLabelingService;
+
     @Before
     public void beforeTest() throws Exception {
         loginTenantAdmin();
+
+        customMenu = new CustomMenu();
+        customMenu.setName(RandomStringUtils.randomAlphabetic(10));
+        customMenu.setScope(CMScope.CUSTOMER);
+        customMenu.setAssigneeType(CMAssigneeType.CUSTOMERS);
+
+        customMenu = doPost("/api/customMenu", customMenu, CustomMenu.class);
+        idsToRemove.add(customMenu.getUuidId());
+
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName("Test customer group");
+        entityGroup.setType(EntityType.CUSTOMER);
+        customerGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
+
+        WebSelfRegistrationParams selfRegistrationParams = new WebSelfRegistrationParams();
+        selfRegistrationParams.setTitle("Please sign up");
+        CaptchaParams captcha = new CaptchaParams();
+        captcha.setSiteKey("6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI");
+        captcha.setSecretKey("6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe");
+        selfRegistrationParams.setCaptcha(captcha);
+        selfRegistrationParams.setShowTermsOfUse(true);
+        selfRegistrationParams.setShowPrivacyPolicy(true);
+        selfRegistrationParams.setDomainName("localhost");
+        selfRegistrationParams.setCustomerTitlePrefix(CUSTOMER_TITLE_PREFIX);
+        selfRegistrationParams.setCustomerGroupId(customerGroup.getId());
+        selfRegistrationParams.setCustomMenuId(customMenu.getId());
+        selfRegistrationParams.setPermissions(Collections.emptyList());
+        selfRegistrationParams.setSignUpFields(List.of(new SignUpField(SignUpFieldId.EMAIL, "email", true),
+                new SignUpField(SignUpFieldId.PASSWORD, "password", true)));
+
         doPost("/api/selfRegistration/selfRegistrationParams",
-                JacksonUtil.toJsonNode(SELF_REG_SETTINGS), JsonNode.class);
+                selfRegistrationParams, JsonNode.class);
     }
 
     @After
     public void afterTest() throws Exception {
         loginSysAdmin();
-        adminSettingsService.deleteAdminSettingsByKey(tenantId,
-                "selfRegistrationDomainNamePrefix_localhost");
+        whiteLabelingService.deleteTenantWhiteLabeling(tenantId);
+
+        customMenuDao.removeAllByIds(idsToRemove);
+        idsToRemove = new ArrayList<>();
     }
 
     @Test
     public void testSelfRegisterUser() throws Exception {
-        doSignUp(getTestSignUpRequest());
+        List<Customer> customers = customerService.findCustomersByTenantId(tenantId, new PageLink(10)).getData();
 
-        var user = userService.findUserByEmail(tenantId, TEST_EMAIL);
-        Assert.assertNotNull(user);
-        Assert.assertEquals(TEST_EMAIL, user.getEmail());
+        SignUpRequest signUpRequest = createSignUpRequest();
+        doSignUp(signUpRequest);
+
+        List<Customer> customersAfterSignUp = customerService.findCustomersByTenantId(tenantId, new PageLink(10)).getData();
+        assertThat(customersAfterSignUp.size()).isEqualTo(customers.size() + 1);
+        Customer createdCustomer = customersAfterSignUp.stream().filter(customer -> customer.getName().equals(CUSTOMER_TITLE_PREFIX + TEST_EMAIL)).findAny()
+                .orElseThrow(() -> new RuntimeException("Customer was not found"));
+
+        assertThat(createdCustomer.getEmail()).isEqualTo(TEST_EMAIL);
+        assertThat(createdCustomer.getName()).isEqualTo(CUSTOMER_TITLE_PREFIX + TEST_EMAIL);
+        assertThat(createdCustomer.getAddress()).isEqualTo(signUpRequest.getFields().get(SignUpFieldId.ADDRESS));
+        assertThat(createdCustomer.getAddress2()).isEqualTo(signUpRequest.getFields().get(SignUpFieldId.ADDRESS2));
+        assertThat(createdCustomer.getCountry()).isEqualTo(signUpRequest.getFields().get(SignUpFieldId.COUNTRY));
+        assertThat(createdCustomer.getCity()).isEqualTo(signUpRequest.getFields().get(SignUpFieldId.CITY));
+        assertThat(createdCustomer.getState()).isEqualTo(signUpRequest.getFields().get(SignUpFieldId.STATE));
+        assertThat(createdCustomer.getPhone()).isEqualTo(signUpRequest.getFields().get(SignUpFieldId.PHONE));
+        assertThat(createdCustomer.getCustomMenuId()).isEqualTo(customMenu.getId());
+
+        CustomerInfo customerInfoById = customerService.findCustomerInfoById(tenantId, createdCustomer.getId());
+        assertThat(customerInfoById.getGroups()).containsExactly(new EntityInfo(customerGroup.getId(), customerGroup.getName()));
+
+        User user = userService.findUserByEmail(tenantId, TEST_EMAIL);
+        assertThat(user).isNotNull();
+        assertThat(user.getEmail()).isEqualTo(TEST_EMAIL);
 
         removeCreatedUser(user);
     }
 
     @Test
     public void testSelfRegistrationCreateMessageInRuleChain() throws Exception {
-        var signUpRequest = getTestSignUpRequest();
+        var signUpRequest = createSignUpRequest();
         doSignUp(signUpRequest);
 
         var user = userService.findUserByEmail(tenantId, TEST_EMAIL);
@@ -180,12 +245,18 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         removeCreatedUser(user);
     }
 
-    protected SignUpRequest getTestSignUpRequest() {
+    protected SignUpRequest createSignUpRequest() {
         var signUpRequest = new SignUpRequest();
         signUpRequest.setFields(Map.of(SignUpFieldId.EMAIL, TEST_EMAIL,
-                SignUpFieldId.FIRST_NAME,"Test",
-                SignUpFieldId.LAST_NAME,"Test",
-                SignUpFieldId.PASSWORD,"abcdef123"));
+                SignUpFieldId.FIRST_NAME,"John",
+                SignUpFieldId.LAST_NAME,"Gilmore",
+                SignUpFieldId.PASSWORD,"abcdef123",
+                SignUpFieldId.COUNTRY, "Ukraine",
+                SignUpFieldId.STATE, "Kyiv",
+                SignUpFieldId.PHONE, "5555555555",
+                SignUpFieldId.ADDRESS, "test address",
+                SignUpFieldId.ADDRESS2, "test address2",
+                SignUpFieldId.CITY, "Kyiv"));
         signUpRequest.setRecaptchaResponse(RECAPTCHA_DUMMY_RESPONSE);
         return signUpRequest;
     }

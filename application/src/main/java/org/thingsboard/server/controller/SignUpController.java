@@ -100,10 +100,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.ADDRESS;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.ADDRESS2;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.CITY;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.COUNTRY;
 import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.EMAIL;
 import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.FIRST_NAME;
 import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.LAST_NAME;
 import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.PASSWORD;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.PHONE;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.STATE;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.ZIP;
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.SELF_REGISTRATION;
 
 @RestController
@@ -111,6 +118,16 @@ import static org.thingsboard.server.common.data.wl.WhiteLabelingType.SELF_REGIS
 @RequestMapping("/api")
 @Slf4j
 public class SignUpController extends BaseController {
+
+    private static final String MOBILE_PLATFORM_IS_REQUIRED = "Mobile platform type is required for mobile signup";
+
+    private static final String SELF_REGISTRATION_SETTINGS_WAS_NOT_FOUND = "Self registration settings was not found";
+
+    private static final String WL_SETTINGS_WAS_NOT_FOUND = "White labeling settings was not found";
+
+    private static final String INVALID_APP_SECRET = "Invalid Application Secret!";
+
+    private static final String MOBILE_APP_BUNDLE_WAS_NOT_FOUND = "Mobile app bundle was not found";
 
     private static final String PRIVACY_POLICY_ACCEPTED = "privacyPolicyAccepted";
 
@@ -160,25 +177,15 @@ public class SignUpController extends BaseController {
         SelfRegistrationParams selfRegistrationParams;
         TenantId tenantId;
         if (!StringUtils.isEmpty(signUpRequest.getPkgName())) {
-            checkNotNull(signUpRequest.getPlatform(), "Mobile platform type is required for mobile signup");
-            MobileApp mobileApp = mobileAppService.findMobileAppByPkgNameAndPlatformType(signUpRequest.getPkgName(), signUpRequest.getPlatform());
-            if (StringUtils.isEmpty(signUpRequest.getAppSecret())) {
-                throw new DataValidationException("Invalid Application Secret!");
-            }
-            if (!signUpRequest.getAppSecret().equals(mobileApp.getAppSecret())) {
-                throw new DataValidationException("Invalid Application Secret!");
-            }
-            MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, signUpRequest.getPkgName(), signUpRequest.getPlatform());
-            checkNotNull(mobileAppBundle, "Mobile application bundle was not found");
+            validateAppSecret(signUpRequest);
+            MobileAppBundle mobileAppBundle = findMobileAppBundle(signUpRequest.getPkgName(), signUpRequest.getPlatform());
             selfRegistrationParams = mobileAppBundle.getSelfRegistrationParams();
             tenantId = mobileAppBundle.getTenantId();
         } else {
-            WhiteLabeling whiteLabeling = whiteLabelingService.findWhiteLabelingByDomainAndType(request.getServerName(), SELF_REGISTRATION);
-            checkNotNull(whiteLabeling, "No settings is configured for the domain");
+            WhiteLabeling whiteLabeling = findSelfRegistrationWL(request.getServerName());
             selfRegistrationParams = JacksonUtil.treeToValue(whiteLabeling.getSettings(), WebSelfRegistrationParams.class);
             tenantId = whiteLabeling.getTenantId();
         }
-        checkNotNull(selfRegistrationParams);
 
         //validate required fields
         validateRequiredFields(signUpRequest, selfRegistrationParams);
@@ -209,26 +216,36 @@ public class SignUpController extends BaseController {
         customer.setTitle(customerTitlePrefix + signUpRequest.getFields().get(EMAIL));
         customer.setOwnerId(tenantId);
         customer.setEmail(signUpRequest.getFields().get(EMAIL));
+        customer.setCountry(signUpRequest.getFields().get(COUNTRY));
+        customer.setState(signUpRequest.getFields().get(STATE));
+        customer.setCity(signUpRequest.getFields().get(CITY));
+        customer.setAddress(signUpRequest.getFields().get(ADDRESS));
+        customer.setAddress2(signUpRequest.getFields().get(ADDRESS2));
+        customer.setZip(signUpRequest.getFields().get(ZIP));
+        customer.setPhone(signUpRequest.getFields().get(PHONE));
+        customer.setCustomMenuId(selfRegistrationParams.getCustomMenuId());
 
         Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
+        if (selfRegistrationParams.getCustomerGroupId() != null) {
+            entityGroupService.addEntityToEntityGroup(tenantId, selfRegistrationParams.getCustomerGroupId(), savedCustomer.getId());
+        }
 
         User user = new User();
         user.setFirstName(signUpRequest.getFields().get(FIRST_NAME));
         user.setLastName(signUpRequest.getFields().get(LAST_NAME));
         user.setEmail(signUpRequest.getFields().get(EMAIL));
+        user.setPhone(signUpRequest.getFields().get(PHONE));
         user.setAuthority(Authority.CUSTOMER_USER);
         user.setTenantId(tenantId);
         user.setCustomerId(savedCustomer.getId());
         ObjectNode objectNode = JacksonUtil.newObjectNode();
         objectNode.put("lang", "en_US");
-        if (selfRegistrationParams instanceof WebSelfRegistrationParams) {
-            WebSelfRegistrationParams webParams = (WebSelfRegistrationParams) selfRegistrationParams;
-            Optional.ofNullable(webParams.getDefaultDashboard())
-                    .ifPresent(dashboard -> {
-                        objectNode.put("defaultDashboardId", dashboard.getId());
-                        objectNode.put("defaultDashboardFullscreen", dashboard.isFullscreen());
-                    });
-        }
+
+        Optional.ofNullable(selfRegistrationParams.getDefaultDashboard())
+                .ifPresent(dashboard -> {
+                    objectNode.put("defaultDashboardId", dashboard.getId());
+                    objectNode.put("defaultDashboardFullscreen", dashboard.isFullscreen());
+                });
         user.setAdditionalInfo(objectNode);
 
         User savedUser = checkNotNull(userService.saveUser(tenantId, user));
@@ -316,13 +333,10 @@ public class SignUpController extends BaseController {
             HttpServletRequest request) throws ThingsboardException, IOException {
         TenantId tenantId;
         if (!StringUtils.isEmpty(pkgName)) {
-            MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
-            checkNotNull(mobileAppBundle, "Mobile app bundle was not found");
-            checkNotNull(mobileAppBundle.getSelfRegistrationParams(), "Self-registration settings was not found");
+            MobileAppBundle mobileAppBundle = findMobileAppBundle(pkgName, platform);
             tenantId = mobileAppBundle.getTenantId();
         } else {
-            WhiteLabeling whiteLabeling = whiteLabelingService.findWhiteLabelingByDomainAndType(request.getServerName(), SELF_REGISTRATION);
-            checkNotNull(whiteLabeling);
+            WhiteLabeling whiteLabeling = findSelfRegistrationWL(request.getServerName());
             tenantId = whiteLabeling.getTenantId();
         }
 
@@ -361,10 +375,7 @@ public class SignUpController extends BaseController {
             String emailVerifiedURI = null;
             try {
                 if (!StringUtils.isEmpty(pkgName)) {
-                    checkNotNull(platform, "Mobile platform is required");
-                    MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
-                    checkNotNull(mobileAppBundle, "Mobile app bundle was not found");
-                    checkNotNull(mobileAppBundle.getSelfRegistrationParams(), "Self registration settings wa not found");
+                    MobileAppBundle mobileAppBundle = findMobileAppBundle(pkgName, platform);
                     MobileRedirectParams redirect = mobileAppBundle.getSelfRegistrationParams().getRedirect();
                     emailVerifiedURI = redirect.getScheme() + "://" + redirect.getHost() + "/signup/emailVerified";
                 } else {
@@ -394,9 +405,7 @@ public class SignUpController extends BaseController {
             HttpServletRequest request) throws ThingsboardException {
         HttpHeaders headers = new HttpHeaders();
         HttpStatus responseStatus;
-        MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
-        checkNotNull(mobileAppBundle, "Mobile app bundle was not found");
-        checkNotNull(mobileAppBundle.getSelfRegistrationParams(), "Self registration settings wa not found");
+        MobileAppBundle mobileAppBundle = findMobileAppBundle(pkgName, platform);
         MobileSelfRegistrationParams selfRegistrationParams = mobileAppBundle.getSelfRegistrationParams();
         String redirectURI = selfRegistrationParams.getRedirect().getScheme() + "://" + selfRegistrationParams.getRedirect().getHost() + "/login";
         try {
@@ -428,15 +437,11 @@ public class SignUpController extends BaseController {
         SelfRegistrationParams selfRegistrationParams;
         TenantId tenantId;
         if (!StringUtils.isEmpty(pkgName)) {
-            checkNotNull(platform, "Platform type is required for specified package name");
-            MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
-            checkNotNull(mobileAppBundle, "Mobile app bundle was not found");
-            checkNotNull(mobileAppBundle.getSelfRegistrationParams(), "Self registration settings wa not found");            selfRegistrationParams = mobileAppBundle.getSelfRegistrationParams();
+            MobileAppBundle mobileAppBundle = findMobileAppBundle(pkgName, platform);
             selfRegistrationParams = mobileAppBundle.getSelfRegistrationParams();
             tenantId = mobileAppBundle.getTenantId();
         } else {
-            WhiteLabeling whiteLabeling = whiteLabelingService.findWhiteLabelingByDomainAndType(request.getServerName(), SELF_REGISTRATION);
-            checkNotNull(whiteLabeling);
+            WhiteLabeling whiteLabeling = findSelfRegistrationWL(request.getServerName());
             selfRegistrationParams = JacksonUtil.treeToValue(whiteLabeling.getSettings(), WebSelfRegistrationParams.class);
             tenantId = whiteLabeling.getTenantId();
         }
@@ -596,10 +601,33 @@ public class SignUpController extends BaseController {
     private void validateRequiredFields(SignUpRequest signUpRequest, SelfRegistrationParams selfRegistrationParams) {
         Map<SignUpFieldId, String> signUpRequestFields = signUpRequest.getFields();
         for (SignUpField field : selfRegistrationParams.getSignUpFields()) {
-            if (field.isRequired() && signUpRequestFields.get(field.getId()) == null) {
+            if (field.isRequired() && StringUtils.isEmpty(signUpRequestFields.get(field.getId()))) {
                     throw new DataValidationException(field.getLabel() + " is required");
             }
         }
+    }
+
+    private void validateAppSecret(SignUpRequest signUpRequest) throws ThingsboardException {
+        checkNotNull(signUpRequest.getPlatform(), MOBILE_PLATFORM_IS_REQUIRED);
+        MobileApp mobileApp = mobileAppService.findMobileAppByPkgNameAndPlatformType(signUpRequest.getPkgName(), signUpRequest.getPlatform());
+        if (StringUtils.isEmpty(signUpRequest.getAppSecret()) || !signUpRequest.getAppSecret().equals(mobileApp.getAppSecret())) {
+            throw new DataValidationException(INVALID_APP_SECRET);
+        }
+    }
+
+    private MobileAppBundle findMobileAppBundle(String pkgName, PlatformType platform) throws ThingsboardException {
+        checkNotNull(platform, MOBILE_PLATFORM_IS_REQUIRED);
+        MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
+        checkNotNull(mobileAppBundle, MOBILE_APP_BUNDLE_WAS_NOT_FOUND);
+        checkNotNull(mobileAppBundle.getSelfRegistrationParams(), SELF_REGISTRATION_SETTINGS_WAS_NOT_FOUND);
+        return mobileAppBundle;
+    }
+
+    private WhiteLabeling findSelfRegistrationWL(String domain) throws ThingsboardException {
+        WhiteLabeling whiteLabeling = whiteLabelingService.findWhiteLabelingByDomainAndType(domain, SELF_REGISTRATION);
+        checkNotNull(whiteLabeling, WL_SETTINGS_WAS_NOT_FOUND);
+        checkNotNull(whiteLabeling.getSettings(), SELF_REGISTRATION_SETTINGS_WAS_NOT_FOUND);
+        return whiteLabeling;
     }
 
 }

@@ -183,23 +183,21 @@ INSERT INTO white_labeling(tenant_id, customer_id, type, settings, domain_name)
         INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary where key = 'selfRegistrationParams'))
 ON CONFLICT DO NOTHING;
 
-INSERT INTO white_labeling(tenant_id, customer_id, type, settings, domain_name)
-    (SELECT a.entity_id, '13814000-1dd2-11b2-8080-808080808080', 'TERMS_OF_USE', a.str_v, a.str_v::jsonb ->> 'domainName' FROM tenant t
+INSERT INTO white_labeling(tenant_id, customer_id, type, settings)
+    (SELECT a.entity_id, '13814000-1dd2-11b2-8080-808080808080', 'TERMS_OF_USE', a.str_v FROM tenant t
         INNER JOIN admin_settings s ON s.key LIKE 'selfRegistrationDomainNamePrefix%' AND s.json_value::jsonb ->> 'entityId' = t.id::text
         INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary where key = 'termsOfUse'))
 ON CONFLICT DO NOTHING;
 
-INSERT INTO white_labeling(tenant_id, customer_id, type, settings, domain_name)
-    (SELECT a.entity_id, '13814000-1dd2-11b2-8080-808080808080', 'PRIVACY_POLICY', a.str_v, a.str_v::jsonb ->> 'domainName' FROM tenant t
+INSERT INTO white_labeling(tenant_id, customer_id, type, settings)
+    (SELECT a.entity_id, '13814000-1dd2-11b2-8080-808080808080', 'PRIVACY_POLICY', a.str_v FROM tenant t
         INNER JOIN admin_settings s ON s.key LIKE 'selfRegistrationDomainNamePrefix%' AND s.json_value::jsonb ->> 'entityId' = t.id::text
         INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary where key = 'privacyPolicy'))
 ON CONFLICT DO NOTHING;
 
--- DELETE FROM attribute_kv WHERE attribute_key = (select key_id from key_dictionary where key = 'selfRegistrationParams') OR
---         attribute_key = (select key_id from key_dictionary where key = 'termsOfUse') OR
---         attribute_key = (select key_id from key_dictionary where key = 'privacyPolicy');
+DELETE FROM attribute_kv WHERE attribute_key IN (SELECT key_id FROM key_dictionary WHERE key IN ('selfRegistrationParams', 'termsOfUse', 'privacyPolicy'));
 
--- migrate mobile self-registration attributes
+-- migrate self-registration settings to mobile_app_bundle
 DO
 $$
     DECLARE
@@ -246,10 +244,7 @@ $$
                                    (SELECT settings FROM white_labeling WHERE type = 'TERMS_OF_USE' AND tenant_id = wlRecord.tenant_id),
                                    (SELECT settings FROM white_labeling WHERE type = 'PRIVACY_POLICY' AND tenant_id = wlRecord.tenant_id));
                        ELSE
-                           UPDATE mobile_app_bundle SET ios_app_id = iosAppId, self_registration_config = wlRecord.settings,
-                                                        terms_of_use = (SELECT settings FROM white_labeling WHERE type = 'TERMS_OF_USE' AND tenant_id = wlRecord.tenant_id),
-                                                        privacy_policy = (SELECT settings FROM white_labeling WHERE type = 'PRIVACY_POLICY' AND tenant_id = wlRecord.tenant_id)
-                                                    WHERE id = generatedBundleId;
+                           UPDATE mobile_app_bundle SET ios_app_id = iosAppId WHERE id = generatedBundleId;
                        END IF;
                    ELSE IF iosApp.tenant_id != '13814000-1dd2-11b2-8080-808080808080' THEN
                        UPDATE mobile_app_bundle SET self_registration_config = wlRecord.settings,

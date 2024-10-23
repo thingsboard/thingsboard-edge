@@ -340,15 +340,9 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public void deleteDomainWhiteLabelingByEntityId(TenantId tenantId, CustomerId customerId) {
-        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, customerId, LOGIN);
-        WhiteLabeling whiteLabeling = whiteLabelingDao.findById(tenantId, key);
-        if (whiteLabeling != null) {
-            whiteLabelingDao.removeById(tenantId, key);
-            publishEvictEvent(new WhiteLabelingEvictEvent(forKey(key)));
-            if (!StringUtils.isEmpty(whiteLabeling.getDomain())){
-                publishEvictEvent(new WhiteLabelingEvictEvent(forTypeAndDomain( LOGIN, whiteLabeling.getDomain())));
-            }
+    public void deleteTenantWhiteLabeling(TenantId tenantId) {
+        for (WhiteLabelingType type : WhiteLabelingType.values()) {
+            deleteWhiteLabeling(tenantId, null, type);
         }
     }
 
@@ -670,6 +664,19 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     public JsonNode getTenantTermsOfUse(TenantId tenantId) {
         WhiteLabeling whiteLabeling = findByEntityId(tenantId, null, WhiteLabelingType.TERMS_OF_USE);
         return whiteLabeling != null ? whiteLabeling.getSettings() : null;
+    }
+
+    @Override
+    public void deleteWhiteLabeling(TenantId tenantId, CustomerId customerId, WhiteLabelingType type) {
+        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, customerId, type);
+        WhiteLabeling whiteLabeling = whiteLabelingDao.findById(tenantId, key);
+        if (whiteLabeling != null) {
+            whiteLabelingDao.removeById(tenantId, key);
+            publishEvictEvent(new WhiteLabelingEvictEvent(forKey(key)));
+            if (!StringUtils.isEmpty(whiteLabeling.getDomain())){
+                publishEvictEvent(new WhiteLabelingEvictEvent(forTypeAndDomain(type, whiteLabeling.getDomain())));
+            }
+        }
     }
 
     @TransactionalEventListener(classes = WhiteLabelingEvictEvent.class)

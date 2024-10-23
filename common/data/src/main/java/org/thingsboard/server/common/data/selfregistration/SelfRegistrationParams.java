@@ -33,7 +33,8 @@ package org.thingsboard.server.common.data.selfregistration;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import org.thingsboard.server.common.data.menu.DefaultMenuItem;
+import org.thingsboard.server.common.data.id.CustomMenuId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 
 import java.io.Serializable;
@@ -67,5 +68,13 @@ public interface SelfRegistrationParams extends Serializable {
     Boolean getShowPrivacyPolicy();
 
     Boolean getShowTermsOfUse();
+
+    DefaultDashboardParams getDefaultDashboard();
+
+    HomeDashboardParams getHomeDashboard();
+
+    EntityGroupId getCustomerGroupId();
+
+    CustomMenuId getCustomMenuId();
 
 }
