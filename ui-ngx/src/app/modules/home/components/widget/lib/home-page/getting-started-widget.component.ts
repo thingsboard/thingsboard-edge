@@ -47,6 +47,7 @@ import { MatStepper } from '@angular/material/stepper';
 import { first } from 'rxjs/operators';
 import { Authority } from '@shared/models/authority.enum';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { docPlatformPrefix } from '@shared/models/constants';
 
 @Component({
   selector: 'tb-getting-started-widget',
@@ -70,6 +71,7 @@ export class GettingStartedWidgetComponent extends PageComponent implements OnIn
   };
   allCompleted = false;
   helpBaseUrl = this.wl.getHelpLinkBaseUrl();
+  docsLink = this.wl.getHelpLinkBaseUrl() + `/docs${docPlatformPrefix}/`;
 
   baseUrl = baseUrl();
 

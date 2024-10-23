@@ -46,7 +46,7 @@ import {
   EditLinksDialogData
 } from '@home/components/widget/lib/home-page/edit-links-dialog.component';
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
-import { MediaBreakpoints } from '@shared/models/constants';
+import { docPlatformPrefix, MediaBreakpoints } from '@shared/models/constants';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { deepClone } from '@core/utils';
 
@@ -148,7 +148,7 @@ export class DocLinksWidgetComponent extends PageComponent implements OnInit, On
   }
 
   ngOnInit() {
-    this.docsLink = this.wl.getHelpLinkBaseUrl() + '/docs/pe/';
+    this.docsLink = this.wl.getHelpLinkBaseUrl() + `/docs${docPlatformPrefix}/`;
     this.settings = this.ctx.settings;
     this.columns = this.settings.columns || 3;
     const isMdLg = this.breakpointObserver.isMatched(MediaBreakpoints['md-lg']);

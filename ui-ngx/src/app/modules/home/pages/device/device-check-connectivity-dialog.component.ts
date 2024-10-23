@@ -59,6 +59,7 @@ import { ActionPreferencesPutUserSettings } from '@core/auth/auth.actions';
 import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { getOS } from '@core/utils';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
+import { docPlatformPrefix } from '@shared/models/constants';
 
 export interface DeviceCheckConnectivityDialogData {
   deviceId: EntityId;
@@ -93,7 +94,7 @@ export class DeviceCheckConnectivityDialogComponent extends
 
   notShowAgain = false;
 
-  helpBaseUrl = this.wl.getHelpLinkBaseUrl();
+  docsLink = this.wl.getHelpLinkBaseUrl() + `/docs${docPlatformPrefix}/`
 
   httpTabIndex = 0;
   mqttTabIndex = 0;
