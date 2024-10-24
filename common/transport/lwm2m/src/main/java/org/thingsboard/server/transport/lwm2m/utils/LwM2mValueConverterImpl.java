@@ -40,6 +40,7 @@ import org.eclipse.leshan.core.util.Hex;
 import org.thingsboard.server.common.data.StringUtils;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Base64;
@@ -180,7 +181,19 @@ public class LwM2mValueConverterImpl implements LwM2mValueConverter {
                 }
                 break;
             case OPAQUE:
-                if (currentType == Type.STRING) {
+                if (currentType == Type.INTEGER) {
+                    if (value instanceof Integer) {
+                        return ByteBuffer.allocate(4).putInt((Integer) value).array();
+                    } else {
+                        return ByteBuffer.allocate(8).putLong((Long) value).array();
+                    }
+                } else if (currentType == Type.FLOAT) {
+                    if (value instanceof Float) {
+                        return ByteBuffer.allocate(4).putFloat((Float) value).array();
+                    } else {
+                        return ByteBuffer.allocate(8).putDouble((Double) value).array();
+                    }
+                } else if (currentType == Type.STRING) {
                     /** let's assume we received an hexadecimal string */
                     log.debug("Trying to convert hexadecimal/base64 string [{}] to byte array", value);
                     try {
@@ -193,6 +206,8 @@ public class LwM2mValueConverterImpl implements LwM2mValueConverter {
                                     value, resourcePath);
                         }
                     }
+                } else if (currentType == Type.BOOLEAN) {
+                    return  new byte[] {(byte)((boolean)value ? 1 : 0)};
                 }
                 break;
             case OBJLNK:
