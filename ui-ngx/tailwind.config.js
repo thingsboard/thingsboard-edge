@@ -185,7 +185,8 @@ module.exports = {
     'md:!hidden',
     'gap-6',
     'gap-7',
-    'gap-10'
+    'gap-10',
+    'gt-md:justify-center'
   ],
   corePlugins: {
     preflight: false
