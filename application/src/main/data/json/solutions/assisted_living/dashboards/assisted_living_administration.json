@@ -3775,7 +3775,6 @@
               "limit": 25000
             }
           },
-          },
           "showTitle": false,
           "backgroundColor": "#fff",
           "color": "rgba(0, 0, 0, 0.87)",
