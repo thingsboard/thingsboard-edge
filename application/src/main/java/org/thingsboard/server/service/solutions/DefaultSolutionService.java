@@ -208,7 +208,7 @@ public class DefaultSolutionService implements SolutionService {
 
     private static final Map<SolutionTemplateLevel, Set<String>> allowedSolutionTemplateLevelsMap = new HashMap<>();
 
-    @Value("${ui.solution_templates.docs_base_url}")
+    @Value("${ui.solution_templates.docs_base_url:https://staging.tbqa.cloud/docs/pe}")
     private String docsBaseUrl;
 
     static {
