@@ -29,40 +29,50 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Route, RouterModule } from '@angular/router';
+import { inject, NgModule } from '@angular/core';
+import { ActivatedRouteSnapshot, ResolveFn, RouterModule, RouterStateSnapshot, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
-import { NgModule } from '@angular/core';
-import { devicesRoute } from '@home/pages/device/device-routing.module';
-import { assetsRoute } from '@home/pages/asset/asset-routing.module';
-import { entityViewsRoute } from '@home/pages/entity-view/entity-view-routing.module';
-import { gatewaysRoutes } from '@home/pages/gateways/gateways-routing.module';
+import { Dashboard } from '@shared/models/dashboard.models';
+import { ResourcesService } from '@core/services/resources.service';
+import { Observable } from 'rxjs';
+import { MenuId } from '@core/services/menu.models';
+import { DashboardViewComponent } from '@home/components/dashboard-view/dashboard-view.component';
 
-export const entitiesRoute = (root = false): Route => ({
-    path: 'entities',
+const gatewaysDashboardJson = '/api/resource/dashboard/system/gateways_dashboard.json';
+
+export const gatewaysDashboardResolver: ResolveFn<Dashboard> = (
+  route: ActivatedRouteSnapshot,
+  state: RouterStateSnapshot,
+  resourcesService = inject(ResourcesService)
+): Observable<Dashboard> => resourcesService.loadJsonResource(gatewaysDashboardJson);
+
+export const gatewaysRoutes: Routes = [
+  {
+    path: 'gateways',
+    component: DashboardViewComponent,
     data: {
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
+      auth: [Authority.TENANT_ADMIN],
+      title: 'gateway.gateways',
       breadcrumb: {
-        skip: true
+        menuId: MenuId.gateways
       }
     },
-    children: [
-      {
-        path: '',
-        children: [],
-        data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          redirectTo: 'devices'
-        }
-      },
-      devicesRoute(root),
-      assetsRoute(root),
-      entityViewsRoute(root),
-      ...gatewaysRoutes
-    ]
-  });
+    resolve: {
+      dashboard: gatewaysDashboardResolver
+    }
+  }
+];
+
+const routes: Routes = [
+  {
+    path: 'gateways',
+    pathMatch: 'full',
+    redirectTo: '/entities/gateways'
+  },
+];
 
 @NgModule({
-  imports: [RouterModule.forChild([entitiesRoute(true)])],
+  imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })
-export class EntitiesRoutingModule { }
+export class GatewaysRoutingModule { }
