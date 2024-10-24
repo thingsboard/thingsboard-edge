@@ -39,6 +39,7 @@ import jakarta.annotation.PreDestroy;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
@@ -206,6 +207,9 @@ public class DefaultSolutionService implements SolutionService {
     public static final String SOLUTIONS_DIR = "solutions";
 
     private static final Map<SolutionTemplateLevel, Set<String>> allowedSolutionTemplateLevelsMap = new HashMap<>();
+
+    @Value("${ui.solution_templates.docs_base_url}")
+    private String docsBaseUrl;
 
     static {
         allowedSolutionTemplateLevelsMap.put(SolutionTemplateLevel.MAKER, Set.of("Maker", "Prototype", "Startup", "Business"));
@@ -557,6 +561,7 @@ public class DefaultSolutionService implements SolutionService {
 
     private String prepareInstructions(SolutionInstallContext ctx, HttpServletRequest request) {
         String template = readFile(resolve(ctx.getSolutionId(), "instructions.md"));
+        template = template.replace("${DOCS_BASE_URL}", docsBaseUrl);
         String baseUrl = systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request);
         template = template.replace("${BASE_URL}", baseUrl);
         TenantSolutionTemplateInstructions solutionInstructions = ctx.getSolutionInstructions();
