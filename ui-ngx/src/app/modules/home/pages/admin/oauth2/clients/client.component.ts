@@ -48,18 +48,10 @@ import { AppState } from '@core/core.state';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
 import { TranslateService } from '@ngx-translate/core';
 import { Store } from '@ngrx/store';
-import {
-  AbstractControl,
-  UntypedFormArray,
-  UntypedFormBuilder,
-  UntypedFormGroup,
-  ValidationErrors,
-  Validators
-} from '@angular/forms';
+import { AbstractControl, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { isDefinedAndNotNull } from '@core/utils';
 import { OAuth2Service } from '@core/http/oauth2.service';
 import { Subscription } from 'rxjs';
-import { MatChipInputEvent } from '@angular/material/chips';
 import { COMMA, ENTER } from '@angular/cdk/keycodes';
 import { PageLink } from '@shared/models/page/page-link';
 import { coerceBoolean } from '@app/shared/decorators/coercion';
@@ -98,16 +90,6 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
   private URL_REGEXP = /^[A-Za-z][A-Za-z\d.+-]*:\/*(?:\w+(?::\w+)?@)?[^\s/]+(?::\d+)?(?:\/[\w#!:.,?+=&%@\-/]*)?$/;
 
   private subscriptions: Array<Subscription> = [];
-
-  public static validateScope(control: AbstractControl): ValidationErrors | null {
-    const scope: string[] = control.value;
-    if (!scope || !scope.length) {
-      return {
-        required: true
-      };
-    }
-    return null;
-  }
 
   readonly separatorKeysCodes: number[] = [ENTER, COMMA];
 
@@ -161,7 +143,7 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
       loginButtonLabel: [entity?.loginButtonLabel ? entity.loginButtonLabel : null, Validators.required],
       loginButtonIcon: [entity?.loginButtonIcon ? entity.loginButtonIcon : null],
       userNameAttributeName: [entity?.userNameAttributeName ? entity.userNameAttributeName : 'email', Validators.required],
-      scope: this.fb.array(entity?.scope ? entity.scope : [], ClientComponent.validateScope),
+      scope: [entity?.scope ? entity.scope : [], Validators.required],
       mapperConfig: this.fb.group({
         allowUserCreation: [isDefinedAndNotNull(entity?.mapperConfig?.allowUserCreation) ?
           entity.mapperConfig.allowUserCreation : true],
@@ -181,6 +163,7 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
       clientId: entity.clientId,
       clientSecret: entity.clientSecret,
       accessTokenUri: entity.accessTokenUri,
+      scope: entity.scope,
       authorizationUri: entity.authorizationUri,
       jwkSetUri: entity.jwkSetUri,
       userInfoUri: entity.userInfoUri,
@@ -196,19 +179,6 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
     }, {emitEvent: false});
 
     this.changeMapperConfigType(this.entityForm, this.entityValue.mapperConfig.type, this.entityValue.mapperConfig);
-
-    const scopeControls = this.entityForm.get('scope') as UntypedFormArray;
-    if (entity.scope.length === scopeControls.length) {
-      scopeControls.patchValue(entity.scope, {emitEvent: false});
-    } else {
-      const newScopeControls: Array<AbstractControl> = [];
-      if (entity.scope) {
-        for (const scope of entity.scope) {
-          newScopeControls.push(this.fb.control(scope, [Validators.required]));
-        }
-      }
-      this.entityForm.setControl('scope', this.fb.array(newScopeControls));
-    }
   }
 
   getProviderName(): string {
@@ -217,35 +187,6 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
 
   isCustomProvider(): boolean {
     return this.getProviderName() === 'Custom';
-  }
-
-  trackByParams(index: number): number {
-    return index;
-  }
-
-  trackByItem(i, item) {
-    return item;
-  }
-
-  addChipValue(event: MatChipInputEvent, control: AbstractControl, fieldName: string): void {
-    const input = event.chipInput.inputElement;
-    const value = event.value;
-    const controller = control.get(fieldName) as UntypedFormArray;
-    if ((value.trim() !== '')) {
-      controller.push(this.fb.control(value.trim()));
-      controller.markAsDirty();
-    }
-
-    if (input) {
-      input.value = '';
-    }
-  }
-
-  removeChipValue(i: number, control: AbstractControl, fieldName: string): void {
-    const controller = control.get(fieldName) as UntypedFormArray;
-    controller.removeAt(i);
-    controller.markAsTouched();
-    controller.markAsDirty();
   }
 
   private initTemplates(templates: OAuth2ClientRegistrationTemplate[]): void {
@@ -279,8 +220,8 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
     }));
 
     this.subscriptions.push(this.entityForm.get('additionalInfo.providerName').valueChanges.subscribe((provider) => {
-      (this.entityForm.get('scope') as UntypedFormArray).clear();
-      (this.entityForm.get('mapperConfig.basic.userGroupsNamePattern') as UntypedFormArray).clear();
+      this.entityForm.get('scope').setValue([]);
+      this.entityForm.get('mapperConfig.basic.userGroupsNamePattern').setValue([]);
       this.setProviderDefaultValue(provider, this.entityForm);
     }));
   }
@@ -345,7 +286,7 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
         Validators.maxLength(255)],
       alwaysFullScreen: [isDefinedAndNotNull(mapperConfigBasic?.alwaysFullScreen) ? mapperConfigBasic.alwaysFullScreen : false],
       parentCustomerNamePattern: [mapperConfigBasic?.parentCustomerNamePattern ? mapperConfigBasic.parentCustomerNamePattern : null],
-      userGroupsNamePattern: this.fb.array(mapperConfigBasic?.userGroupsNamePattern ? mapperConfigBasic.userGroupsNamePattern : [])
+      userGroupsNamePattern: [mapperConfigBasic?.userGroupsNamePattern ? mapperConfigBasic.userGroupsNamePattern : []]
     });
 
     if (!this.createNewDialog && !(this.isEdit || this.isAdd)) {
@@ -373,14 +314,6 @@ export class ClientComponent extends EntityComponent<OAuth2Client, PageLink, OAu
       const template = this.templates.get(provider);
       template.clientId = '';
       template.clientSecret = '';
-      template.scope.forEach(() => {
-        (clientRegistration.get('scope') as UntypedFormArray).push(this.fb.control(''));
-      });
-      if (template.mapperConfig && template.mapperConfig.basic && isDefinedAndNotNull(template.mapperConfig.basic.userGroupsNamePattern)) {
-        template.mapperConfig.basic.userGroupsNamePattern.forEach(() => {
-          (clientRegistration.get('mapperConfig.basic.userGroupsNamePattern') as UntypedFormArray).push(this.fb.control(''));
-        });
-      }
       clientRegistration.patchValue(template);
     }
   }
