@@ -29,40 +29,24 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Route, RouterModule } from '@angular/router';
-import { Authority } from '@shared/models/authority.enum';
-import { NgModule } from '@angular/core';
-import { devicesRoute } from '@home/pages/device/device-routing.module';
-import { assetsRoute } from '@home/pages/asset/asset-routing.module';
-import { entityViewsRoute } from '@home/pages/entity-view/entity-view-routing.module';
-import { gatewaysRoutes } from '@home/pages/gateways/gateways-routing.module';
+import { Component } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { PageComponent } from '@shared/components/page.component';
+import { Dashboard } from '@shared/models/dashboard.models';
+import { ActivatedRoute } from '@angular/router';
 
-export const entitiesRoute = (root = false): Route => ({
-    path: 'entities',
-    data: {
-      auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-      breadcrumb: {
-        skip: true
-      }
-    },
-    children: [
-      {
-        path: '',
-        children: [],
-        data: {
-          auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
-          redirectTo: 'devices'
-        }
-      },
-      devicesRoute(root),
-      assetsRoute(root),
-      entityViewsRoute(root),
-      ...gatewaysRoutes
-    ]
-  });
-
-@NgModule({
-  imports: [RouterModule.forChild([entitiesRoute(true)])],
-  exports: [RouterModule]
+@Component({
+  selector: 'tb-dashboard-view',
+  templateUrl: './dashboard-view.component.html',
+  styleUrls: ['./dashboard-view.component.scss']
 })
-export class EntitiesRoutingModule { }
+export class DashboardViewComponent extends PageComponent {
+
+  dashboard: Dashboard = this.route.snapshot.data.dashboard;
+
+  constructor(protected store: Store<AppState>,
+              private route: ActivatedRoute) {
+    super(store);
+  }
+}
