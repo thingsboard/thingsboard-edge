@@ -177,28 +177,12 @@
               </mat-slide-toggle>
             </div>
           </section>
-          <div class="tb-form-row tb-standard-fields no-border no-padding column-xs">
-            <mat-form-field class="flex">
-              <mat-label translate>admin.oauth2.scope</mat-label>
-              <mat-chip-grid #scopeList required [disabled]="!this.createNewDialog && !(this.isEdit || this.isAdd)">
-                <mat-chip-row *ngFor="let scope of entityForm.get('scope').value; let k = index; trackBy: trackByParams"
-                              removable (removed)="removeChipValue(k, entityForm, 'scope')">
-                  {{scope}}
-                  <mat-icon matChipRemove>cancel</mat-icon>
-                </mat-chip-row>
-                <input [matChipInputFor]="scopeList"
-                       [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-                       matChipInputAddOnBlur
-                       (matChipInputTokenEnd)="addChipValue($event, entityForm, 'scope')">
-              </mat-chip-grid>
-              <mat-error *ngIf="entityForm.get('scope').hasError('required')">
-                {{ 'admin.oauth2.scope-required' | translate }}
-              </mat-error>
-            </mat-form-field>
-          </div>
-          <tb-error style="display: block; margin-top: -24px;"
-                    [error]="entityForm.get('scope').hasError('required') ? ('admin.oauth2.scope-required' | translate) : ''">
-          </tb-error>
+          <tb-string-items-list
+            formControlName="scope"
+            label="{{ 'admin.oauth2.scope' | translate }}"
+            requiredText="{{ 'admin.oauth2.scope-required' | translate }}"
+            required>
+          </tb-string-items-list>
         </section>
         <section class="tb-form-panel no-border no-padding no-gap" *ngIf="!generalSettingsMode">
           <div class="tb-form-row tb-standard-fields no-border no-padding">
@@ -308,22 +292,10 @@
                   <input matInput formControlName="parentCustomerNamePattern">
                 </mat-form-field>
               </div>
-              <div class="tb-form-row tb-standard-fields no-border no-padding">
-                <mat-form-field class="flex">
-                  <mat-label translate>admin.oauth2.user-groups-name-pattern</mat-label>
-                  <mat-chip-grid #userGroupsNamePatternList [disabled]="!this.createNewDialog && !(this.isEdit || this.isAdd)">
-                    <mat-chip-row *ngFor="let userGroupNamePattern of entityForm.get('mapperConfig.basic.userGroupsNamePattern').value; let k = index; trackBy: trackByParams"
-                                  removable (removed)="removeChipValue(k, entityForm, 'mapperConfig.basic.userGroupsNamePattern')">
-                      {{userGroupNamePattern}}
-                      <mat-icon matChipRemove>cancel</mat-icon>
-                    </mat-chip-row>
-                    <input [matChipInputFor]="userGroupsNamePatternList"
-                           [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
-                           matChipInputAddOnBlur
-                           (matChipInputTokenEnd)="addChipValue($event, entityForm, 'mapperConfig.basic.userGroupsNamePattern')">
-                  </mat-chip-grid>
-                </mat-form-field>
-              </div>
+              <tb-string-items-list
+                formControlName="userGroupsNamePattern"
+                label="{{ 'admin.oauth2.user-groups-name-pattern' | translate }}">
+              </tb-string-items-list>
             </section>
             <section class="tb-form-panel no-border no-padding no-gap" formGroupName="custom"
                      *ngIf="entityForm.get('mapperConfig.type').value === mapperType.CUSTOM && entityForm.get('mapperConfig.custom')">
