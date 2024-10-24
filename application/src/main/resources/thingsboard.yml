@@ -223,7 +223,7 @@ ui:
   # Solution templates parameters
   solution_templates:
     # Base URL for solution templates docs
-    docs_base_url: "${UI_SOLUTION_TEMPLATES_DOCS_BASE_URL:https://staging.tbqa.cloud/docs/pe}"
+    docs_base_url: "${UI_SOLUTION_TEMPLATES_DOCS_BASE_URL:https://thingsboard.io/docs/pe}"
 
 # Database telemetry parameters
 database:
