@@ -29,24 +29,18 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component } from '@angular/core';
-import { Store } from '@ngrx/store';
-import { AppState } from '@core/core.state';
-import { PageComponent } from '@shared/components/page.component';
-import { Dashboard } from '@shared/models/dashboard.models';
-import { ActivatedRoute } from '@angular/router';
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { SharedModule } from '@app/shared/shared.module';
+import { HomeComponentsModule } from '@modules/home/components/home-components.module';
+import { GatewaysRoutingModule } from '@home/pages/gateways/gateways-routing.module';
 
-@Component({
-  selector: 'tb-api-usage',
-  templateUrl: './api-usage.component.html',
-  styleUrls: ['./api-usage.component.scss']
+@NgModule({
+  imports: [
+    CommonModule,
+    SharedModule,
+    HomeComponentsModule,
+    GatewaysRoutingModule
+  ]
 })
-export class ApiUsageComponent extends PageComponent {
-
-  apiUsageDashboard: Dashboard = this.route.snapshot.data.apiUsageDashboard;
-
-  constructor(protected store: Store<AppState>,
-              private route: ActivatedRoute) {
-    super(store);
-  }
-}
+export class GatewaysModule { }
