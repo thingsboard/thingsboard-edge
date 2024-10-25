@@ -301,6 +301,7 @@ public class SignUpController extends BaseController {
                 throw new DataValidationException("User with email '" + existingUser.getEmail() + "' "
                         + " is already active!");
             } else {
+                credentials = userService.refreshUserActivationToken(tenantId, credentials);
                 sendEmailVerification(tenantId, request, credentials, email, null, pkgName);
             }
         } else {

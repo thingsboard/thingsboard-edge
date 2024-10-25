@@ -91,6 +91,8 @@ public interface UserService extends EntityDaoService {
 
     UserCredentials generateUserActivationToken(UserCredentials userCredentials);
 
+    UserCredentials refreshUserActivationToken(TenantId tenantId, UserCredentials userCredentials);
+
     UserCredentials replaceUserCredentials(TenantId tenantId, UserCredentials userCredentials);
 
     void deleteUser(TenantId tenantId, UserId userId);
