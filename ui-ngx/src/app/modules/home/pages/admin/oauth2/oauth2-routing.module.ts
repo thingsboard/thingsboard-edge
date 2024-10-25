@@ -59,7 +59,7 @@ export const oAuth2Routes: Routes = [
     path: 'oauth2',
     component: RouterTabsComponent,
     data: {
-      auth: [Authority.SYS_ADMIN],
+      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
       breadcrumb: {
         label: 'admin.oauth2.oauth2',
         icon: 'mdi:shield-account'
@@ -70,8 +70,11 @@ export const oAuth2Routes: Routes = [
         path: '',
         children: [],
         data: {
-          auth: [Authority.SYS_ADMIN],
-          redirectTo: '/security-settings/oauth2/domains'
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+          redirectTo: {
+            SYS_ADMIN: '/security-settings/oauth2/domains',
+            TENANT_ADMIN: '/security-settings/oauth2/clients'
+          }
         }
       },
       {
@@ -101,7 +104,7 @@ export const oAuth2Routes: Routes = [
             path: '',
             component: EntitiesTableComponent,
             data: {
-              auth: [Authority.SYS_ADMIN],
+              auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
               title: 'admin.oauth2.clients'
             },
             resolve: {
@@ -119,7 +122,7 @@ export const oAuth2Routes: Routes = [
                     labelFunction: entityDetailsPageBreadcrumbLabelFunction,
                     icon: 'public'
                   } as BreadCrumbConfig<EntityDetailsPageComponent>,
-                  auth: [Authority.SYS_ADMIN],
+                  auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
                   title: 'admin.oauth2.clients',
                   hideTabs: true,
                   backNavigationCommands: ['../..']

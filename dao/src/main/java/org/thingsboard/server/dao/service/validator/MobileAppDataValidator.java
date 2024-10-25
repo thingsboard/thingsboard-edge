@@ -33,7 +33,8 @@ package org.thingsboard.server.dao.service.validator;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.MobileApp;
+import org.thingsboard.server.common.data.mobile.app.MobileApp;
+import org.thingsboard.server.common.data.mobile.app.MobileAppStatus;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.exception.DataValidationException;
@@ -56,6 +57,9 @@ public class MobileAppDataValidator extends DataValidator<MobileApp> {
             }
         } else {
             throw new DataValidationException("Wrong application platform type");
+        }
+        if (mobileApp.getStatus() == MobileAppStatus.PUBLISHED && mobileApp.getStoreInfo() == null) {
+            throw new DataValidationException("Store info is required for published apps");
         }
     }
 }

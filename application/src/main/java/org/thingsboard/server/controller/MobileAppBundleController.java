@@ -49,9 +49,9 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.MobileAppBundleId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
-import org.thingsboard.server.common.data.mobile.MobileAppBundle;
-import org.thingsboard.server.common.data.mobile.MobileAppBundleInfo;
 import org.thingsboard.server.common.data.mobile.MobileAppBundlePolicyInfo;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundleInfo;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
@@ -67,7 +67,7 @@ import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 
 @RestController
@@ -84,8 +84,8 @@ public class MobileAppBundleController extends BaseController {
                     "mobile settings like oauth2 clients, self-registration and layout configuration." +
                     "When creating mobile app bundle, platform generates Mobile App Bundle Id as " + UUID_WIKI_LINK +
                     "The newly created Mobile App Bundle Id will be present in the response. " +
-                    "Referencing non-existing Mobile App Bundle Id will cause 'Not Found' error."  + SYSTEM_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN')")
+                    "Referencing non-existing Mobile App Bundle Id will cause 'Not Found' error."  + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @PostMapping(value = "/mobile/bundle")
     public MobileAppBundlePolicyInfo saveMobileAppBundle(
             @Parameter(description = "A JSON value representing the Mobile Application Bundle.", required = true)
@@ -98,8 +98,8 @@ public class MobileAppBundleController extends BaseController {
     }
 
     @ApiOperation(value = "Update oauth2 clients (updateOauth2Clients)",
-            notes = "Update oauth2 clients of the specified mobile app bundle. ")
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN')")
+            notes = "Update oauth2 clients of the specified mobile app bundle." + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @PutMapping(value = "/mobile/bundle/{id}/oauth2Clients")
     public void updateOauth2Clients(@PathVariable UUID id,
                                     @RequestBody UUID[] clientIds) throws ThingsboardException {
@@ -109,8 +109,8 @@ public class MobileAppBundleController extends BaseController {
         tbMobileAppBundleService.updateOauth2Clients(mobileAppBundle, oAuth2ClientIds, getCurrentUser());
     }
 
-    @ApiOperation(value = "Get mobile app bundle infos (getTenantMobileAppBundleInfos)", notes = SYSTEM_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN')")
+    @ApiOperation(value = "Get mobile app bundle infos (getTenantMobileAppBundleInfos)", notes = SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @GetMapping(value = "/mobile/bundle/infos")
     public PageData<MobileAppBundleInfo> getTenantMobileAppBundleInfos(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
                                                                        @RequestParam int pageSize,
@@ -122,13 +122,12 @@ public class MobileAppBundleController extends BaseController {
                                                                        @RequestParam(required = false) String sortProperty,
                                                                        @Parameter(description = SORT_ORDER_DESCRIPTION)
                                                                        @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        accessControlService.checkPermission(getCurrentUser(), Resource.MOBILE_APP_BUNDLE, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return mobileAppBundleService.findMobileAppBundleInfosByTenantId(getTenantId(), pageLink);
     }
 
-    @ApiOperation(value = "Get mobile app bundle info by id (getMobileAppBundleInfoById)", notes = SYSTEM_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN')")
+    @ApiOperation(value = "Get mobile app bundle info by id (getMobileAppBundleInfoById)", notes = SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @GetMapping(value = "/mobile/bundle/info/{id}")
     public MobileAppBundlePolicyInfo getMobileAppBundleInfoById(@PathVariable UUID id) throws ThingsboardException {
         MobileAppBundleId mobileAppBundleId = new MobileAppBundleId(id);
@@ -136,8 +135,8 @@ public class MobileAppBundleController extends BaseController {
     }
 
     @ApiOperation(value = "Delete Mobile App Bundle by ID (deleteMobileAppBundle)",
-            notes = "Deletes Mobile App Bundle by ID. Referencing non-existing mobile app bundle Id will cause an error." + SYSTEM_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+            notes = "Deletes Mobile App Bundle by ID. Referencing non-existing mobile app bundle Id will cause an error." + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @DeleteMapping(value = "/mobile/bundle/{id}")
     public void deleteMobileAppBundle(@PathVariable UUID id) throws Exception {
         MobileAppBundleId mobileAppBundleId = new MobileAppBundleId(id);

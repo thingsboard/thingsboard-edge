@@ -34,10 +34,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { Authority } from '@shared/models/authority.enum';
 import { MenuId } from '@core/services/menu.models';
-import { MobileAppTableConfigResolver } from '@home/pages/mobile/applications/mobile-app-table-config.resolver';
-import { MobileAppSettingsComponent } from '@home/pages/admin/mobile-app-settings.component';
-import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
 import { applicationsRoutes } from '@home/pages/mobile/applications/applications-routing.module';
+import { bundlesRoutes } from '@home/pages/mobile/bundes/bundles-routing.module';
+import { qrCodeWidgetRoutes } from '@home/pages/mobile/qr-code-widget/mobile-qr-code-widget-settings-routing.module';
 
 const routes: Routes = [
   {
@@ -59,34 +58,13 @@ const routes: Routes = [
         }
       },
       ...applicationsRoutes,
-      {
-        path: 'mobile-app',
-        component: MobileAppSettingsComponent,
-        canDeactivate: [ConfirmOnExitGuard],
-        data: {
-          auth: [Authority.SYS_ADMIN],
-          title: 'admin.mobile-app.mobile-app',
-          breadcrumb: {
-            menuId: MenuId.mobile_app_settings
-          }
-        }
-      }
+      ...bundlesRoutes,
+      ...qrCodeWidgetRoutes
     ]
   }
 ];
 
-routes.push(
-  {
-    path: 'security-settings/oauth2/mobile-applications',
-    pathMatch: 'full',
-    redirectTo: '/mobile-center/applications'
-  }
-);
-
 @NgModule({
-  providers: [
-    MobileAppTableConfigResolver
-  ],
   imports: [RouterModule.forChild(routes)],
   exports: [RouterModule]
 })

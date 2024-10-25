@@ -115,7 +115,8 @@ export enum MenuId {
   notification_rules = 'notification_rules',
   mobile_center = 'mobile_center',
   mobile_apps = 'mobile_apps',
-  mobile_app_settings = 'mobile_app_settings',
+  mobile_bundles = 'mobile_bundles',
+  mobile_qr_code_widget = 'mobile_qr_code_widget',
   settings = 'settings',
   general = 'general',
   mail_server = 'mail_server',
@@ -379,14 +380,24 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
     }
   ],
   [
-    MenuId.mobile_app_settings,
+    MenuId.mobile_bundles,
     {
-      id: MenuId.mobile_app_settings,
-      name: 'admin.mobile-app.mobile-app',
-      fullName: 'admin.mobile-app.mobile-app',
+      id: MenuId.mobile_bundles,
+      name: 'mobile.bundles',
       type: 'link',
-      path: '/mobile-center/mobile-app',
-      icon: 'smartphone'
+      path: '/mobile-center/bundles',
+      icon: 'mdi:package'
+    }
+  ],
+  [
+    MenuId.mobile_qr_code_widget,
+    {
+      id: MenuId.mobile_qr_code_widget,
+      name: 'mobile.qr-code-widget',
+      fullName: 'mobile.qr-code-widget',
+      type: 'link',
+      path: '/mobile-center/qr-code-widget',
+      icon: 'qr_code'
     }
   ],
   [
@@ -1446,7 +1457,8 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
         id: MenuId.mobile_center,
         pages: [
           {id: MenuId.mobile_apps},
-          {id: MenuId.mobile_app_settings}
+          {id: MenuId.mobile_bundles},
+          {id: MenuId.mobile_qr_code_widget}
         ]
       },
       {
@@ -1608,6 +1620,14 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           {id: MenuId.notification_rules}
         ]
       },
+      {
+        id: MenuId.mobile_center,
+        pages: [
+          {id: MenuId.mobile_apps},
+          {id: MenuId.mobile_bundles},
+          {id: MenuId.mobile_qr_code_widget}
+        ]
+      },
       {id: MenuId.api_usage},
       {
         id: MenuId.white_labeling,
@@ -1626,8 +1646,7 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           {id: MenuId.mail_server},
           {id: MenuId.notification_settings},
           {id: MenuId.repository_settings},
-          {id: MenuId.auto_commit_settings},
-          {id: MenuId.mobile_app_settings}
+          {id: MenuId.auto_commit_settings}
         ]
       },
       {
@@ -1636,7 +1655,13 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           {id: MenuId.two_fa},
           {id: MenuId.roles},
           {id: MenuId.self_registration},
-          {id: MenuId.audit_log}
+          {id: MenuId.audit_log},
+          {
+            id: MenuId.oauth2,
+            pages: [
+              {id: MenuId.clients}
+            ]
+          }
         ]
       }
     ]
@@ -1763,7 +1788,7 @@ const defaultHomeSectionMap = new Map<Authority, HomeSectionReference[]>([
         name: 'admin.system-settings',
         places: [MenuId.general, MenuId.mail_server,
           MenuId.notification_settings, MenuId.security_settings, MenuId.oauth2, MenuId.domains, MenuId.mobile_apps,
-          MenuId.clients, MenuId.two_fa, MenuId.resources_library, MenuId.queues, MenuId.mobile_app_settings]
+          MenuId.clients, MenuId.two_fa, MenuId.resources_library, MenuId.queues]
       },
       {
         name: 'white-labeling.white-labeling',

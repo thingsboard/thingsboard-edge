@@ -128,6 +128,8 @@ import { UserId } from '@shared/models/id/user-id';
 import { AlarmService } from '@core/http/alarm.service';
 import { ResourceService } from '@core/http/resource.service';
 import { OAuth2Service } from '@core/http/oauth2.service';
+import { MobileAppService } from '@core/http/mobile-app.service';
+import { PlatformType } from '@shared/models/oauth2.models';
 
 @Injectable({
   providedIn: 'root'
@@ -165,7 +167,8 @@ export class EntityService {
     private notificationService: NotificationService,
     private alarmService: AlarmService,
     private resourceService: ResourceService,
-    private oauth2Service: OAuth2Service
+    private oauth2Service: OAuth2Service,
+    private mobileAppService: MobileAppService,
   ) { }
 
   private getEntityObservable(entityType: EntityType, entityId: string,
@@ -233,6 +236,10 @@ export class EntityService {
         break;
       case EntityType.QUEUE_STATS:
         observable = this.queueService.getQueueStatisticsById(entityId, config);
+        break;
+      case EntityType.MOBILE_APP:
+        observable = this.mobileAppService.getMobileAppInfoById(entityId, config);
+        break;
     }
     return observable;
   }
@@ -639,6 +646,10 @@ export class EntityService {
       case EntityType.OAUTH2_CLIENT:
         pageLink.sortOrder.property = 'title';
         entitiesObservable = this.oauth2Service.findTenantOAuth2ClientInfos(pageLink, config);
+        break;
+      case EntityType.MOBILE_APP:
+        pageLink.sortOrder.property = 'pkgName';
+        entitiesObservable = this.mobileAppService.getTenantMobileAppInfos(pageLink, subType as PlatformType, config);
         break;
     }
     return entitiesObservable;

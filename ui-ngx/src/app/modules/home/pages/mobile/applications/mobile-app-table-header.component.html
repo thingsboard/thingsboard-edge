@@ -30,14 +30,12 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxFlex="100" fxLayout="row" fxLayoutAlign="space-between center" fxLayoutAlign.xs="start center">
-  <section fxHide fxShow.gt-xs class="tb-entity-title-container">
+<div class="flex flex-full items-center justify-between">
+  <section class="flex items-center xs:!hidden">
     <div tbTruncateWithTooltip translate>mobile.applications</div>
-<!--    <div tb-help="oauth2Settings"></div>-->
+    <div tb-help="mobileApplication"></div>
   </section>
   <button mat-stroked-button color="primary" (click)="createMobile($event)">
-    <div fxLayout="row" fxLayoutAlign="start center">
-      <mat-icon>add</mat-icon>{{ 'mobile.add-application' | translate }}
-    </div>
+    <mat-icon>add</mat-icon>{{ 'mobile.add-application' | translate }}
   </button>
 </div>

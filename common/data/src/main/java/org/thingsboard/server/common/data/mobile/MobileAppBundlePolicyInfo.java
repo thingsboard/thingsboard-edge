@@ -35,6 +35,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.thingsboard.server.common.data.id.MobileAppBundleId;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
 
 @EqualsAndHashCode(callSuper = true)
 @Data

@@ -120,6 +120,9 @@ export class EntityListComponent implements ControlValueAccessor, OnInit, AfterV
   @Input()
   requiredText = this.translate.instant('entity.entity-list-empty');
 
+  @Input()
+  appearance: MatFormFieldAppearance = 'fill';
+
   private requiredValue: boolean;
   get required(): boolean {
     return this.requiredValue;

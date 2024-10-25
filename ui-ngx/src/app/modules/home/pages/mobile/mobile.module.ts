@@ -34,14 +34,20 @@ import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { HomeComponentsModule } from '@home/components/home-components.module';
 import { MobileRoutingModule } from '@home/pages/mobile/mobile-routing.module';
-import { ApplicationModule } from '@home/pages/mobile/applications/applications.module';
+import { MobileApplicationModule } from '@home/pages/mobile/applications/applications.module';
+import { MobileBundlesModule } from '@home/pages/mobile/bundes/bundles.module';
+import {
+  MobileQrCodeWidgetSettingsModule
+} from '@home/pages/mobile/qr-code-widget/mobile-qr-code-widget-settings.module';
 
 @NgModule({
   imports: [
     CommonModule,
     SharedModule,
     HomeComponentsModule,
-    ApplicationModule,
+    MobileApplicationModule,
+    MobileBundlesModule,
+    MobileQrCodeWidgetSettingsModule,
     MobileRoutingModule,
   ]
 })

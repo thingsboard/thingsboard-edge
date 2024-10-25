@@ -36,6 +36,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.Views;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -36,7 +36,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.StringUtils;
-import org.thingsboard.server.common.data.mobile.MobileApp;
+import org.thingsboard.server.common.data.mobile.app.MobileApp;
+import org.thingsboard.server.common.data.mobile.app.MobileAppStatus;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -116,6 +117,7 @@ public class MobileAppControllerTest extends AbstractControllerTest {
         mobileApp.setPkgName(mobileAppName);
         mobileApp.setAppSecret(StringUtils.randomAlphanumeric(24));
         mobileApp.setPlatformType(platformType);
+        mobileApp.setStatus(MobileAppStatus.DRAFT);
         return mobileApp;
     }
 

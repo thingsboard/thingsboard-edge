@@ -34,13 +34,14 @@ import { MobileAppId } from '@shared/models/id/mobile-app-id';
 import { OAuth2ClientInfo, PlatformType } from '@shared/models/oauth2.models';
 import { MobileAppBundleId } from '@shared/models/id/mobile-app-bundle-id';
 import { HasTenantId } from '@shared/models/entity.models';
+import { deepClone, isNotEmptyStr } from '@core/utils';
 
 export interface QrCodeSettings extends HasTenantId {
-  useDefaultApp: boolean;
   useSystemSettings: boolean;
+  useDefaultApp: boolean;
   mobileAppBundleId: MobileAppBundleId
-  androidConfig: AndroidConfig; //TODO: need remove
-  iosConfig: IosConfig; //TODO: need remove
+  androidConfig: any; //TODO: need remove
+  iosConfig: any; //TODO: need remove
   qrCodeConfig: QRCodeConfig;
   defaultGooglePlayLink: string;
   defaultAppStoreLink: string;
@@ -49,30 +50,12 @@ export interface QrCodeSettings extends HasTenantId {
   }
 }
 
-export interface AndroidConfig {
-  enabled: boolean;
-  appPackage: string;
-  sha256CertFingerprints: string;
-  storeLink: string;
-}
-
-export interface IosConfig {
-  enabled: boolean;
-  appId: string;
-  storeLink: string;
-}
-
 export interface QRCodeConfig {
   showOnHomePage: boolean;
   badgeEnabled: boolean;
   badgePosition: BadgePosition;
   qrCodeLabelEnabled: boolean;
   qrCodeLabel: string;
-}
-
-export interface MobileOSBadgeURL {
-  iOS: string;
-  android: string;
 }
 
 export enum BadgePosition {
@@ -84,8 +67,6 @@ export const badgePositionTranslationsMap = new Map<BadgePosition, string>([
   [BadgePosition.RIGHT, 'admin.mobile-app.right'],
   [BadgePosition.LEFT, 'admin.mobile-app.left']
 ]);
-
-export type QrCodeConfig = AndroidConfig & IosConfig;
 
 export enum MobileAppStatus {
   DRAFT = 'DRAFT',
@@ -135,20 +116,43 @@ enum MobileMenuPath {
   DASHBOARD = 'DASHBOARD',
   AUDIT_LOGS = 'AUDIT_LOGS',
   CUSTOMERS = 'CUSTOMERS',
-  CUSTOMER = 'CUSTOMER',
-  NOTIFICATION = 'NOTIFICATION',
-  CUSTOM = 'CUSTOM'
+  NOTIFICATIONS = 'NOTIFICATIONS'
 }
 
-export interface MobileMenuItem {
-  label: string;
-  icon: string;
-  path: MobileMenuPath;
-  id: string;
+export enum MobilePageType {
+  DEFAULT = 'DEFAULT',
+  CUSTOM = 'CUSTOM',
+  DASHBOARD = 'DASHBOARD',
+  WEB_VIEW = 'WEB_VIEW',
+}
+
+export const mobilePageTypeTranslations = new Map<MobilePageType, string>(
+  [
+    [MobilePageType.CUSTOM, 'mobile.pages-types.custom'],
+    [MobilePageType.DASHBOARD, 'mobile.pages-types.dashboard'],
+    [MobilePageType.WEB_VIEW, 'mobile.pages-types.web-view'],
+  ]
+);
+
+export interface MobilePage {
+  label?: string;
+  icon?: string;
+  type: MobilePageType;
+  visible: boolean;
+}
+
+export interface DefaultMobilePage extends MobilePage {
+  id: MobileMenuPath;
+}
+
+export interface CustomMobilePage extends MobilePage {
+  dashboardId?: string;
+  url?: string;
+  path?: string;
 }
 
 export interface MobileLayoutConfig {
-  items: MobileMenuItem[];
+  pages: MobilePage[];
 }
 
 export interface MobileAppBundle extends Omit<BaseData<MobileAppBundleId>, 'label'>, HasTenantId {
@@ -163,5 +167,152 @@ export interface MobileAppBundle extends Omit<BaseData<MobileAppBundleId>, 'labe
 export interface MobileAppBundleInfo extends MobileAppBundle {
   androidPkgName: string;
   iosPkgName: string;
+  androidPkg?: {
+    name: string;
+    id: MobileAppId
+  };
+  iosPkg?: {
+    name: string;
+    id: MobileAppId
+  }
   oauth2ClientInfos?: Array<OAuth2ClientInfo>;
+  qrCodeEnabled: boolean;
 }
+
+const defaultMobileMenu = [
+  MobileMenuPath.HOME,
+  MobileMenuPath.ALARMS,
+  MobileMenuPath.DEVICES,
+  MobileMenuPath.CUSTOMERS,
+  MobileMenuPath.ASSETS,
+  MobileMenuPath.AUDIT_LOGS,
+  MobileMenuPath.NOTIFICATIONS,
+  MobileMenuPath.DEVICE_LIST,
+  MobileMenuPath.DASHBOARDS
+];
+
+export const hideDefaultMenuItems = [
+  MobileMenuPath.DEVICE_LIST,
+  MobileMenuPath.DASHBOARDS
+];
+
+export const getDefaultMobileMenuItem = (): DefaultMobilePage[] => {
+  return deepClone(defaultMobileMenu).map(item => ({
+    visible: !hideDefaultMenuItems.includes(item),
+    type: MobilePageType.DEFAULT,
+    id: item
+  }))
+}
+
+export const isDefaultMobileMenuItem = (item: MobilePage): item is DefaultMobilePage => {
+  const path = (item as DefaultMobilePage).id;
+  return isNotEmptyStr(path) && defaultMobilePageMap.has(path);
+};
+
+
+const mobilePageEqualToDefault = (item: MobilePage, defaultMobilePage: DefaultMobilePage): boolean => {
+  if (isDefaultMobileMenuItem(item) && (hideDefaultMenuItems.includes(item.id) ? !item.visible : item.visible)) {
+    return !(item.id !== defaultMobilePage.id || !!item.label || !!item.icon);
+  } else {
+    return false;
+  }
+};
+
+export const isDefaultMobilePagesConfig = (items: MobilePage[]): boolean => {
+  const defaultMenus = getDefaultMobileMenuItem();
+  if (!items?.length && !defaultMenus?.length) {
+    return true;
+  } else if (items.length !== defaultMenus.length) {
+    return false;
+  } else {
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      const defaultMenuItem = defaultMenus[i];
+      if (!mobilePageEqualToDefault(item, defaultMenuItem)) {
+        return false;
+      }
+    }
+    return true;
+  }
+};
+
+export const mobileMenuDividers = new Map<number, string>([
+  [2, 'mobile.mobile-599'],
+  [4, 'mobile.tablet-959'],
+  [6, 'mobile.max-element-number'],
+]);
+
+export const defaultMobilePageMap = new Map<MobileMenuPath, Omit<DefaultMobilePage, 'type' | 'visible'>>([
+  [
+    MobileMenuPath.HOME,
+    {
+      id: MobileMenuPath.HOME,
+      icon: 'home',
+      label: 'Home'
+    }
+  ],
+  [
+    MobileMenuPath.ALARMS,
+    {
+      id: MobileMenuPath.ALARMS,
+      icon: 'notifications',
+      label: 'Alarms'
+    }
+  ],
+  [
+    MobileMenuPath.DEVICES,
+    {
+      id: MobileMenuPath.DEVICES,
+      icon: 'devices_other',
+      label: 'Devices'
+    }
+  ],
+  [
+    MobileMenuPath.CUSTOMERS,
+    {
+      id: MobileMenuPath.CUSTOMERS,
+      icon: 'supervisor_account',
+      label: 'Customers'
+    }
+  ],
+  [
+    MobileMenuPath.ASSETS,
+    {
+      id: MobileMenuPath.ASSETS,
+      icon: 'domain',
+      label: 'Assets'
+    }
+  ],
+  [
+    MobileMenuPath.DEVICE_LIST,
+    {
+      id: MobileMenuPath.DEVICE_LIST,
+      icon: 'devices',
+      label: 'Device list'
+    }
+  ],
+  [
+    MobileMenuPath.DASHBOARDS,
+    {
+      id: MobileMenuPath.DASHBOARDS,
+      icon: 'dashboard',
+      label: 'Dashboards'
+    }
+  ],
+  [
+    MobileMenuPath.AUDIT_LOGS,
+    {
+      id: MobileMenuPath.AUDIT_LOGS,
+      icon: 'track_changes',
+      label: 'Audit logs'
+    }
+  ],
+  [
+    MobileMenuPath.NOTIFICATIONS,
+    {
+      id: MobileMenuPath.NOTIFICATIONS,
+      icon: 'notifications_active',
+      label: 'Notification'
+    }
+  ]
+])

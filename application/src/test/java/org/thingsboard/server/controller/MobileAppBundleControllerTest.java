@@ -37,10 +37,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.MobileApp;
-import org.thingsboard.server.common.data.mobile.MobileAppBundle;
-import org.thingsboard.server.common.data.mobile.MobileAppBundleInfo;
 import org.thingsboard.server.common.data.mobile.MobileAppBundlePolicyInfo;
+import org.thingsboard.server.common.data.mobile.app.MobileApp;
+import org.thingsboard.server.common.data.mobile.app.MobileAppStatus;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundleInfo;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
@@ -48,6 +49,7 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -115,6 +117,18 @@ public class MobileAppBundleControllerTest extends AbstractControllerTest {
     }
 
     @Test
+    public void testSaveMobileAppBundleWithoutApps() throws Exception {
+        MobileAppBundle mobileAppBundle = new MobileAppBundle();
+        mobileAppBundle.setTitle("Test bundle");
+
+        MobileAppBundle savedAppBundle = doPost("/api/mobile/bundle", mobileAppBundle, MobileAppBundle.class);
+        MobileAppBundleInfo retrievedMobileAppBundleInfo = doGet("/api/mobile/bundle/info/{id}", MobileAppBundleInfo.class, savedAppBundle.getId().getId());
+        assertThat(retrievedMobileAppBundleInfo).isEqualTo(new MobileAppBundleInfo(savedAppBundle, null, null, false,
+                Collections.emptyList()));
+    }
+
+
+    @Test
     public void testUpdateMobileAppBundleOauth2Clients() throws Exception {
         MobileAppBundlePolicyInfo mobileAppBundlePolicyInfo = new MobileAppBundlePolicyInfo();
         mobileAppBundlePolicyInfo.setTitle("Test bundle");
@@ -132,14 +146,14 @@ public class MobileAppBundleControllerTest extends AbstractControllerTest {
         doPut("/api/mobile/bundle/" + savedAppBundle.getId() + "/oauth2Clients", List.of(savedOAuth2Client.getId().getId(), savedOAuth2Client2.getId().getId()));
 
         MobileAppBundleInfo retrievedMobileAppBundleInfo = doGet("/api/mobile/bundle/info/{id}", MobileAppBundleInfo.class, savedAppBundle.getId().getId());
-        assertThat(retrievedMobileAppBundleInfo).isEqualTo(new MobileAppBundleInfo(savedAppBundle, androidApp.getPkgName(), iosApp.getPkgName(),
+        assertThat(retrievedMobileAppBundleInfo).isEqualTo(new MobileAppBundleInfo(savedAppBundle, androidApp.getPkgName(), iosApp.getPkgName(), false,
                 Stream.of(new OAuth2ClientInfo(savedOAuth2Client), new OAuth2ClientInfo(savedOAuth2Client2))
                         .sorted(Comparator.comparing(OAuth2ClientInfo::getTitle)).collect(Collectors.toList())
         ));
 
         doPut("/api/mobile/bundle/" + savedAppBundle.getId() + "/oauth2Clients", List.of(savedOAuth2Client2.getId().getId()));
         MobileAppBundleInfo retrievedMobileAppInfo2 = doGet("/api/mobile/bundle/info/{id}", MobileAppBundleInfo.class, savedAppBundle.getId().getId());
-        assertThat(retrievedMobileAppInfo2).isEqualTo(new MobileAppBundleInfo(savedAppBundle, androidApp.getPkgName(), iosApp.getPkgName(), List.of(new OAuth2ClientInfo(savedOAuth2Client2))));
+        assertThat(retrievedMobileAppInfo2).isEqualTo(new MobileAppBundleInfo(savedAppBundle, androidApp.getPkgName(), iosApp.getPkgName(), false, List.of(new OAuth2ClientInfo(savedOAuth2Client2))));
     }
 
     @Test
@@ -155,12 +169,13 @@ public class MobileAppBundleControllerTest extends AbstractControllerTest {
         MobileAppBundle savedMobileAppBundle = doPost("/api/mobile/bundle?oauth2ClientIds=" + savedOAuth2Client.getId().getId(), mobileAppBundle, MobileAppBundle.class);
 
         MobileAppBundleInfo retrievedMobileAppInfo = doGet("/api/mobile/bundle/info/{id}", MobileAppBundleInfo.class, savedMobileAppBundle.getId().getId());
-        assertThat(retrievedMobileAppInfo).isEqualTo(new MobileAppBundleInfo(savedMobileAppBundle, androidApp.getPkgName(), iosApp.getPkgName(), List.of(new OAuth2ClientInfo(savedOAuth2Client))));
+        assertThat(retrievedMobileAppInfo).isEqualTo(new MobileAppBundleInfo(savedMobileAppBundle, androidApp.getPkgName(), iosApp.getPkgName(), false, List.of(new OAuth2ClientInfo(savedOAuth2Client))));
     }
 
     private MobileApp validMobileApp(TenantId tenantId, String mobileAppName, PlatformType platformType) {
         MobileApp mobileApp = new MobileApp();
         mobileApp.setTenantId(tenantId);
+        mobileApp.setStatus(MobileAppStatus.DRAFT);
         mobileApp.setPkgName(mobileAppName);
         mobileApp.setPlatformType(platformType);
         mobileApp.setAppSecret(StringUtils.randomAlphanumeric(24));

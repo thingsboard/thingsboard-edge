@@ -172,8 +172,8 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
 
   private updateQRCode(link: string) {
     import('qrcode').then((QRCode) => {
-      QRCode.toString(link, (err, string) => {
-        this.qrCodeSVG = string;
+      QRCode.toString(link, (err, svgElement) => {
+        this.qrCodeSVG = svgElement;
         this.cd.markForCheck();
       })
     });

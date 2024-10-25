@@ -33,6 +33,7 @@ export interface UserSettings {
   openedMenuSections?: string[];
   notDisplayConnectivityAfterAddDevice?: boolean;
   notDisplayInstructionsAfterAddEdge?: boolean;
+  notDisplayConfigurationAfterAddMobileApp?: boolean;
   includeBundleWidgetsInExport?: boolean;
 }
 

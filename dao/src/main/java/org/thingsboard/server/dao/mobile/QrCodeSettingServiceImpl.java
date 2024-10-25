@@ -36,16 +36,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.BadgePosition;
-import org.thingsboard.server.common.data.mobile.MobileApp;
-import org.thingsboard.server.common.data.mobile.QrCodeSettings;
-import org.thingsboard.server.common.data.mobile.QRCodeConfig;
+import org.thingsboard.server.common.data.mobile.qrCodeSettings.BadgePosition;
+import org.thingsboard.server.common.data.mobile.app.MobileApp;
+import org.thingsboard.server.common.data.mobile.qrCodeSettings.QrCodeSettings;
+import org.thingsboard.server.common.data.mobile.qrCodeSettings.QRCodeConfig;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.service.DataValidator;
 
 import java.util.Map;
 
+import static org.thingsboard.server.common.data.oauth2.PlatformType.ANDROID;
+import static org.thingsboard.server.common.data.oauth2.PlatformType.IOS;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
 @Service
@@ -138,8 +140,17 @@ public class QrCodeSettingServiceImpl extends AbstractCachedEntityService<Tenant
             qrCodeSettings.setMobileAppBundleId(qrCodeSettings.getMobileAppBundleId());
         }
         if (qrCodeSettings.isUseDefaultApp()) {
-            qrCodeSettings.setDefaultGooglePlayLink(googlePlayLink);
-            qrCodeSettings.setDefaultAppStoreLink(appStoreLink);
+            qrCodeSettings.setGooglePlayLink(googlePlayLink);
+            qrCodeSettings.setAppStoreLink(appStoreLink);
+        } else {
+            MobileApp androidApp = mobileAppService.findByBundleIdAndPlatformType(qrCodeSettings.getTenantId(), qrCodeSettings.getMobileAppBundleId(), ANDROID);
+            MobileApp iosApp = mobileAppService.findByBundleIdAndPlatformType(qrCodeSettings.getTenantId(), qrCodeSettings.getMobileAppBundleId(), IOS);
+            if (androidApp != null && androidApp.getStoreInfo() != null && androidApp.getStoreInfo().isEnabled()) {
+                qrCodeSettings.setGooglePlayLink(androidApp.getStoreInfo().getStoreLink());
+            }
+            if (iosApp != null && iosApp.getStoreInfo() != null && iosApp.getStoreInfo().isEnabled()) {
+                qrCodeSettings.setAppStoreLink(iosApp.getStoreInfo().getStoreLink());
+            }
         }
         return qrCodeSettings;
     }
