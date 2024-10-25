@@ -44,6 +44,7 @@ public enum Table {
     TENANT("tenant", "id"),
     CUSTOMER("customer"),
     ADMIN_SETTINGS("admin_settings"),
+    CUSTOM_MENU("custom_menu"),
     QUEUE("queue"),
     RPC("rpc"),
     RULE_CHAIN("rule_chain"),
@@ -100,16 +101,15 @@ public enum Table {
     LC_EVENT("lc_event", true, "ts", "event"),
     RAW_DATA_EVENT("raw_data_event", true, "ts", "event"),
     STATS_EVENT("stats_event", true, "ts", "event"),
-    OAUTH2_PARAMS("oauth2_params"),
-    OAUTH2_DOMAIN("oauth2_domain", Pair.of(
-            "oauth2_params_id", of(OAUTH2_PARAMS)
-    )),
-    OAUTH2_MOBILE("oauth2_mobile", Pair.of(
-            "oauth2_params_id", of(OAUTH2_PARAMS)
-    )),
-    OAUTH2_REGISTRATION("oauth2_registration", Pair.of(
-            "oauth2_params_id", of(OAUTH2_PARAMS)
-    )),
+    DOMAIN("domain"),
+    MOBILE_APP("mobile_app"),
+    OAUTH2_CLIENT("oauth2_client"),
+    DOMAIN_OAUTH2_CLIENT("domain_oauth2_client", Pair.of(
+            "oauth2_client_id", of(OAUTH2_CLIENT)
+    ), of("domain_id", "oauth2_client_id")),
+    MOBILE_APP_OAUTH2_CLIENT("mobile_app_oauth2_client", Pair.of(
+            "oauth2_client_id", of(OAUTH2_CLIENT)
+    ), of("mobile_app_id", "oauth2_client_id")),
     RULE_NODE_STATE("rule_node_state", Pair.of(
             "entity_id", of(DEVICE)
     )),
