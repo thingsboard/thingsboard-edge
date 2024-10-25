@@ -30,10 +30,10 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="mqttIntegrationConfigForm" fxLayout="column">
+<section [formGroup]="mqttIntegrationConfigForm" class="flex flex-col">
   <fieldset formGroupName="clientConfiguration">
-    <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-      <mat-form-field fxFlex class="mat-block">
+    <div class="flex flex-row xs:flex-col gt-xs:gap-2">
+      <mat-form-field class="mat-block flex-1">
         <mat-label translate>integration.host</mat-label>
         <input matInput required formControlName="host">
         <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.host').hasError('required')">
@@ -43,7 +43,7 @@
           integration.host-private
         </mat-error>
       </mat-form-field>
-      <mat-form-field fxFlex class="mat-block">
+      <mat-form-field class="mat-block flex-1">
         <mat-label translate>integration.port</mat-label>
         <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
         <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.port').hasError('required')">integration.port-required
@@ -65,12 +65,12 @@
   </ng-container>
   <mat-expansion-panel class="configuration-panel" formGroupName="clientConfiguration">
     <mat-expansion-panel-header>
-      <mat-panel-description fxLayoutAlign="end" translate>
+      <mat-panel-description class="flex items-stretch justify-end" translate>
         integration.advanced-settings
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
-      <div class="row" fxLayout="column" fxLayoutGap="8px">
+      <div class="row flex flex-col gap-2">
         <mat-slide-toggle class="checkbox" [aria-label]="'integration.clean-session' | translate"
                           formControlName="cleanSession" style="padding: 16px;">
           {{ 'integration.clean-session' | translate }}
@@ -84,11 +84,11 @@
         <mat-label translate>integration.client-id</mat-label>
         <input matInput formControlName="clientId" autocomplete="new-clientId">
       </mat-form-field>
-      <div class="tb-hint client-id" [ngClass]="{invisible: mqttIntegrationConfigForm.get('clientConfiguration.clientId').errors}" translate>
+      <div class="tb-hint client-id" [class.invisible]="mqttIntegrationConfigForm.get('clientConfiguration.clientId').errors" translate>
         integration.client-id-hint
       </div>
-      <section class="row" fxLayout="row" fxLayout.xs="column" fxLayoutGap.gt-xs="8px">
-        <mat-form-field fxFlex class="mat-block">
+      <section class="row flex flex-row xs:flex-col gt-xs:gap-2">
+        <mat-form-field class="mat-block flex-1">
           <mat-label translate>integration.max-bytes-in-message</mat-label>
           <input matInput type="number" formControlName="maxBytesInMessage">
           <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.maxBytesInMessage').hasError('min')">
@@ -98,7 +98,7 @@
             integration.max-bytes-in-message-range
           </mat-error>
         </mat-form-field>
-        <mat-form-field fxFlex class="mat-block">
+        <mat-form-field class="mat-block flex-1">
           <mat-label translate>integration.connect-timeout</mat-label>
           <input matInput type="number" step="1" min="1" max="200" required formControlName="connectTimeoutSec">
           <mat-error translate *ngIf="mqttIntegrationConfigForm.get('clientConfiguration.connectTimeoutSec').hasError('required')">
@@ -116,7 +116,7 @@
     </ng-template>
   </mat-expansion-panel>
   <ng-template #downlinkTopicPattern>
-    <mat-form-field fxFlex class="mat-block">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.downlink-topic-pattern</mat-label>
       <input matInput required formControlName="downlinkTopicPattern">
       <mat-error translate *ngIf="mqttIntegrationConfigForm.get('downlinkTopicPattern').hasError('required')">

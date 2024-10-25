@@ -983,11 +983,15 @@ export class WidgetComponent extends PageComponent implements OnInit, OnChanges,
           this.widgetContext.hiddenData = subscription.hiddenData;
           this.widgetContext.timeWindow = subscription.timeWindow;
           this.widgetContext.defaultSubscription = subscription;
-          createSubscriptionSubject.next();
-          createSubscriptionSubject.complete();
+          this.ngZone.run(() => {
+            createSubscriptionSubject.next();
+            createSubscriptionSubject.complete();
+          });
         },
         (err) => {
-          createSubscriptionSubject.error(err);
+          this.ngZone.run(() => {
+            createSubscriptionSubject.error(err);
+          });
         }
       );
     } else if (this.widget.type === widgetType.rpc) {
@@ -1040,11 +1044,15 @@ export class WidgetComponent extends PageComponent implements OnInit, OnChanges,
       this.createSubscription(options).subscribe(
         (subscription) => {
           this.widgetContext.defaultSubscription = subscription;
-          createSubscriptionSubject.next();
-          createSubscriptionSubject.complete();
+          this.ngZone.run(() => {
+            createSubscriptionSubject.next();
+            createSubscriptionSubject.complete();
+          });
         },
         (err) => {
-          createSubscriptionSubject.error(err);
+          this.ngZone.run(() => {
+            createSubscriptionSubject.error(err);
+          });
         }
       );
       this.detectChanges();

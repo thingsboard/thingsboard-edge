@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="updateAttributesFormGroup" fxLayout="column" class="tb-form-panel no-border no-padding">
+<section [formGroup]="updateAttributesFormGroup" class="tb-form-panel no-border no-padding flex flex-col">
   <div class="tb-form-panel stroked no-padding-bottom">
     <div class="tb-form-panel-title" translate>scheduler.target</div>
     <tb-originator-select
@@ -41,7 +41,7 @@
   </div>
   <fieldset class="tb-form-panel stroked">
     <div class="tb-form-panel-title" translate>attribute.attributes</div>
-    <div formGroupName="metadata" fxLayout="column">
+    <div formGroupName="metadata" class="flex flex-col">
       <mat-form-field class="mat-block"
                       *ngIf="updateAttributesFormGroup.get('originatorId').value?.entityType === entityType.DEVICE ||
                              updateAttributesFormGroup.get('originatorId').value?.entityType === entityType.ENTITY_GROUP &&

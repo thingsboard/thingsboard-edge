@@ -30,9 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxFlex="100" fxLayout="row" fxLayoutAlign="end center" *ngIf="(resource.NOTIFICATION | hasGenericPermission: operation.WRITE)">
+<div class="flex flex-full flex-row items-center justify-end" *ngIf="(resource.NOTIFICATION | hasGenericPermission: operation.WRITE)">
   <button mat-stroked-button color="primary" (click)="createTemplate($event)">
-    <div fxLayout="row" fxLayoutAlign="start center">
+    <div class="flex flex-row items-center justify-start">
       <mat-icon>add</mat-icon>{{ 'notification.add-template' | translate }}
     </div>
   </button>

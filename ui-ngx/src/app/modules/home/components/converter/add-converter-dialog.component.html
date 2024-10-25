@@ -33,7 +33,7 @@
 <form (ngSubmit)="add()" style="min-width: 400px; width: 700px;">
   <mat-toolbar color="primary">
     <h2 translate>{{ dialogTitle }}</h2>
-    <span fxFlex></span>
+    <span class="flex-1"></span>
     <div [tb-help]="helpLinkId()"></div>
     <button mat-icon-button
             (click)="cancel()"
@@ -51,7 +51,7 @@
       [isEdit]="true">
     </tb-converter>
   </div>
-  <div mat-dialog-actions fxLayoutAlign="end center">
+  <div mat-dialog-actions class="flex items-center justify-end">
     <button mat-button color="primary"
             type="button"
             cdkFocusInitial

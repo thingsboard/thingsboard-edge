@@ -30,13 +30,13 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="scheduleConfigFormGroup" fxLayout="column">
+<section [formGroup]="scheduleConfigFormGroup" class="flex flex-col">
   <tb-timezone-select
     userTimezoneByDefault
     required
     formControlName="timezone">
   </tb-timezone-select>
-  <section fxLayout="column" fxLayout.gt-sm="row" fxLayoutAlign.gt-sm="start start" fxLayoutGap="16px">
+  <section class="flex flex-col gap-4 gt-sm:flex-row gt-sm:items-start gt-sm:justify-start">
     <mat-form-field class="mat-block tb-layout-fill">
       <mat-label translate>scheduler.start-time</mat-label>
       <mat-datetimepicker-toggle [for]="startDatePicker" matPrefix></mat-datetimepicker-toggle>
@@ -51,14 +51,14 @@
                          [expanded]="scheduleConfigFormGroup.get('repeat').value">
       <mat-expansion-panel-header>
         <mat-panel-title>
-          <mat-slide-toggle formControlName="repeat" class="mat-slide" fxFlex (click)="$event.stopPropagation()">
+          <mat-slide-toggle formControlName="repeat" class="mat-slide flex-1" (click)="$event.stopPropagation()">
             {{ 'scheduler.repeat' | translate }}
           </mat-slide-toggle>
         </mat-panel-title>
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
-        <div [fxShow]="scheduleConfigFormGroup.get('repeat').value"
-             fxLayout="column" class="no-gap">
+        <div [class.!hidden]="!scheduleConfigFormGroup.get('repeat').value"
+             class="no-gap flex flex-col">
           <mat-form-field class="mat-block">
             <mat-label translate>scheduler.repeats</mat-label>
             <mat-select matInput formControlName="repeatType" required>
@@ -67,7 +67,7 @@
               </mat-option>
             </mat-select>
           </mat-form-field>
-          <mat-form-field class="mat-block" [fxShow]="scheduleConfigFormGroup.get('repeatType').value === schedulerRepeatType.EVERY_N_DAYS">
+          <mat-form-field class="mat-block" [class.!hidden]="scheduleConfigFormGroup.get('repeatType').value !== schedulerRepeatType.EVERY_N_DAYS">
             <mat-label translate>scheduler.repeat-every-n-days</mat-label>
             <input type="number" min="1" step="1" matInput formControlName="days" required>
             <mat-error *ngIf="scheduleConfigFormGroup.get('days').hasError('required')">
@@ -77,7 +77,7 @@
               {{ 'scheduler.invalid-repeat-days-value' | translate }}
             </mat-error>
           </mat-form-field>
-          <mat-form-field class="mat-block" [fxShow]="scheduleConfigFormGroup.get('repeatType').value === schedulerRepeatType.EVERY_N_WEEKS">
+          <mat-form-field class="mat-block" [class.!hidden]="scheduleConfigFormGroup.get('repeatType').value !== schedulerRepeatType.EVERY_N_WEEKS">
             <mat-label translate>scheduler.repeat-every-n-weeks</mat-label>
             <input type="number" min="1" step="1" matInput formControlName="weeks" required>
             <mat-error *ngIf="scheduleConfigFormGroup.get('weeks').hasError('required')">
@@ -87,18 +87,18 @@
               {{ 'scheduler.invalid-repeat-weeks-value' | translate }}
             </mat-error>
           </mat-form-field>
-          <div [fxShow]="scheduleConfigFormGroup.get('repeatType').value === schedulerRepeatType.TIMER"
+          <div [class.!hidden]="scheduleConfigFormGroup.get('repeatType').value !== schedulerRepeatType.TIMER"
                formGroupName="timerRepeat"
-               fxLayout="column">
+               class="flex flex-col">
             <label translate class="tb-small">scheduler.repeat-every</label>
-            <div fxLayout="column" fxLayout.gt-sm="row" fxLayoutGap="8px">
-              <mat-form-field fxFlex="50" class="mat-block">
+            <div class="flex flex-col gap-2 gt-sm:flex-row">
+              <mat-form-field class="mat-block gt-sm:max-w-50% gt-sm:flex-full">
                 <input type="number" min="0" stype="any" matInput formControlName="repeatInterval" required>
                 <mat-error *ngIf="scheduleConfigFormGroup.get('timerRepeat.repeatInterval').hasError('required')">
                   {{ 'scheduler.time-interval-required' | translate }}
                 </mat-error>
               </mat-form-field>
-              <mat-form-field fxFlex="50" class="mat-block">
+              <mat-form-field class="mat-block gt-sm:max-w-50% gt-sm:flex-full">
                 <mat-select matInput formControlName="timeUnit" required>
                   <mat-option *ngFor="let timeUnit of schedulerTimeUnits" [value]="timeUnit">
                     {{ schedulerTimeUnitTranslations.get(timeUnit) | translate }}
@@ -111,7 +111,7 @@
             </div>
           </div>
           <div class="tb-form-row space-between column-xs"
-               [fxShow]="scheduleConfigFormGroup.get('repeatType').value === schedulerRepeatType.WEEKLY">
+               [class.!hidden]="scheduleConfigFormGroup.get('repeatType').value !== schedulerRepeatType.WEEKLY">
             <div class="no-wrap">{{ 'scheduler.repeat-on' | translate }}</div>
             <div formArrayName="weeklyRepeat">
               <mat-chip-listbox multiple #repeatChipListBox>
@@ -124,7 +124,7 @@
               </mat-chip-listbox>
             </div>
           </div>
-          <section fxLayout="row" fxLayoutAlign="start start">
+          <section class="flex flex-row items-start justify-start">
             <mat-form-field class="mat-block tb-layout-fill">
               <mat-label translate>scheduler.ends-on</mat-label>
               <mat-datetimepicker-toggle [for]="endDatePicker" matPrefix></mat-datetimepicker-toggle>

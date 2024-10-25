@@ -30,15 +30,15 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-card appearance="outlined" fxLayout="column">
+<mat-card appearance="outlined" class="flex flex-col">
   <mat-card-header>
-    <mat-card-title fxLayout="row">
-      <div fxLayout="column" fxLayoutAlign="start start" fxFlex fxLayoutGap="8px">
+    <mat-card-title class="flex flex-row">
+      <div class="flex flex-1 flex-col items-start justify-start gap-2">
         <span>{{solutionTemplate.title}}</span>
         <span class="level">{{solutionTemplate.level}}</span>
       </div>
-      <div fxLayout="column" fxLayoutAlign="start end" fxLayoutGap="8px">
-        <div fxLayout="row" fxLayoutGap="16px">
+      <div class="flex flex-col items-end justify-start gap-2">
+        <div class="flex flex-row gap-4">
           <button (click)="openSolutionTemplateDetails()" [disabled]="isLoading$ | async" mat-button mat-stroked-button color="primary">{{ 'solution-template.details' | translate }}</button>
           <button *ngIf="!solutionTemplate.installed" (click)="installSolutionTemplate()" [disabled]="isLoading$ | async" mat-button mat-raised-button color="primary">{{ 'solution-template.install' | translate }}</button>
           <button *ngIf="solutionTemplate.installed" (click)="deleteSolutionTemplate()" [disabled]="isLoading$ | async" mat-button mat-raised-button color="warn">{{ 'solution-template.delete' | translate }}</button>

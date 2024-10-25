@@ -30,57 +30,57 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-details-buttons" fxLayout.xs="column">
+<div class="tb-details-buttons xs:flex xs:flex-col">
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'open')"
-          [fxShow]="!hideOpen() &&!isEdit">
+          [class.!hidden]="hideOpen() || isEdit">
     {{'entity-group.open-entity-group' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
-          [fxShow]="!hideDelete() && !isEdit">
+          [class.!hidden]="hideDelete() || isEdit">
     {{'entity-group.delete' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'share')"
-          [fxShow]="!isEdit && shareEnabled">
+          [class.!hidden]="isEdit || !shareEnabled">
     {{'entity-group.share' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'makePublic')"
-          [fxShow]="!isEdit && makePublicEnabled">
+          [class.!hidden]="isEdit || !makePublicEnabled">
     {{'entity-group.make-public' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'makePrivate')"
-          [fxShow]="!isEdit && makePrivateEnabled">
+          [class.!hidden]="isEdit || !makePrivateEnabled">
     {{'entity-group.make-private' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'unassign')"
-          [fxShow]="!isEdit && hideUnassign()">
+          [class.!hidden]="isEdit || !hideUnassign()">
     {{ 'edge.unassign-entity-group-from-edge' | translate }}
   </button>
-  <div fxLayout="row" fxLayout.xs="column">
+  <div class="flex flex-row xs:flex-col">
     <button mat-raised-button
             ngxClipboard
             (cbOnSuccess)="onEntityGroupIdCopied($event)"
             [cbContent]="entity?.id?.id"
-            [fxShow]="!isEdit">
+            [class.!hidden]="isEdit">
       <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
       <span translate>entity-group.copyId</span>
     </button>
   </div>
 </div>
-<div class="mat-padding" fxLayout="column">
+<div class="mat-padding flex flex-col">
   <div class="tb-small" style="padding-bottom: 10px; padding-left: 2px;"
-       [fxShow]="!isEdit && isPublic">
+       [class.!hidden]="isEdit || !isPublic">
     {{ 'entity-group.entity-group-public' | translate }}
   </div>
   <form [formGroup]="entityForm">
@@ -113,7 +113,7 @@
           formControlName="softwareId">
         </tb-ota-package-autocomplete>
       </section>
-      <div formGroupName="additionalInfo" fxLayout="column">
+      <div formGroupName="additionalInfo" class="flex flex-col">
         <mat-form-field class="mat-block">
           <mat-label translate>entity-group.description</mat-label>
           <textarea matInput formControlName="description" rows="2"></textarea>

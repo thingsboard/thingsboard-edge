@@ -31,8 +31,8 @@
 
 -->
 <section [formGroup]="opcIntegrationConfigForm">
-  <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-    <mat-form-field fxFlex class="mat-block">
+  <div class="flex flex-row xs:flex-col gt-xs:gap-2">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.host</mat-label>
       <input matInput required formControlName="host">
       <mat-error translate *ngIf="opcIntegrationConfigForm.get('host').hasError('required')">
@@ -42,7 +42,7 @@
         integration.host-private
       </mat-error>
     </mat-form-field>
-    <mat-form-field fxFlex class="mat-block">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.port</mat-label>
       <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
       <mat-error translate *ngIf="opcIntegrationConfigForm.get('port').hasError('required')">
@@ -87,15 +87,15 @@
                        inputId="location">
         </tb-file-input>
       </fieldset>
-      <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-        <mat-form-field fxFlex class="mat-block">
+      <div class="flex flex-row xs:flex-col gt-xs:gap-2">
+        <mat-form-field class="mat-block flex-1">
           <mat-label translate>integration.opc-ua-keystore-alias</mat-label>
           <input matInput required formControlName="alias">
           <mat-error translate *ngIf="opcIntegrationConfigForm.get('keystore.alias').hasError('required')">
             integration.opc-ua-keystore-alias-required
           </mat-error>
         </mat-form-field>
-        <mat-form-field fxFlex class="mat-block">
+        <mat-form-field class="mat-block flex-1">
           <mat-label translate>integration.opc-ua-keystore-password</mat-label>
           <input matInput required formControlName="password"  autocomplete="new-password" type="password">
           <tb-toggle-password matSuffix></tb-toggle-password>
@@ -117,7 +117,7 @@
 
   <fieldset class="fields-group" formGroupName="identity">
     <legend class="group-title" translate>integration.opc-ua-identity</legend>
-    <mat-form-field fxFlex class="mat-block">
+    <mat-form-field class="mat-block flex-1">
       <mat-select required formControlName="type">
         <mat-option [value]="identityType" *ngFor="let identityType of identityTypes">
           {{ IdentityTypeTranslation.get(identityType) | translate}}
@@ -127,9 +127,9 @@
         integration.opc-ua-identity-required
       </mat-error>
     </mat-form-field>
-    <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px"
+    <div class="flex flex-row xs:flex-col gt-xs:gap-2"
          *ngIf="opcIntegrationConfigForm.get('identity.type').value === IdentityType.Username">
-      <mat-form-field fxFlex class="mat-block">
+      <mat-form-field class="mat-block flex-1">
         <mat-label translate>integration.username</mat-label>
         <input matInput required formControlName="username" autocomplete="new-username">
         <mat-error translate *ngIf="opcIntegrationConfigForm.get('identity.username').hasError('required')">
@@ -137,7 +137,7 @@
         </mat-error>
       </mat-form-field>
 
-      <mat-form-field fxFlex class="mat-block">
+      <mat-form-field class="mat-block flex-1">
         <mat-label translate>integration.password</mat-label>
         <input matInput required formControlName="password" autocomplete="new-password" type="password">
         <tb-toggle-password matSuffix></tb-toggle-password>
@@ -155,31 +155,31 @@
 
   <mat-expansion-panel class="configuration-panel">
     <mat-expansion-panel-header>
-      <mat-panel-description fxLayoutAlign="end" translate>
+      <mat-panel-description class="flex items-stretch justify-end" translate>
         integration.advanced-settings
       </mat-panel-description>
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
-      <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-        <mat-form-field fxFlex class="mat-block">
+      <div class="flex flex-row xs:flex-col gt-xs:gap-2">
+        <mat-form-field class="mat-block flex-1">
           <mat-label translate>integration.opc-ua-application-name</mat-label>
           <input matInput formControlName="applicationName">
         </mat-form-field>
-        <mat-form-field fxFlex class="mat-block">
+        <mat-form-field class="mat-block flex-1">
           <mat-label translate>integration.opc-ua-application-uri</mat-label>
           <input matInput formControlName="applicationUri">
         </mat-form-field>
       </div>
 
-      <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-        <mat-form-field fxFlex="50" class="mat-block">
+      <div class="flex flex-row xs:flex-col gt-xs:gap-2">
+        <mat-form-field class="mat-block max-w-50% flex-full">
           <mat-label translate>integration.opc-ua-scan-period-in-seconds</mat-label>
           <input matInput type="number" required formControlName="scanPeriodInSeconds">
           <mat-error translate *ngIf="opcIntegrationConfigForm.get('scanPeriodInSeconds').hasError('required')">
             integration.opc-ua-scan-period-in-seconds-required
           </mat-error>
         </mat-form-field>
-        <mat-form-field fxFlex="50" class="mat-block">
+        <mat-form-field class="mat-block max-w-50% flex-full">
           <mat-label translate>integration.opc-ua-timeout</mat-label>
           <input matInput type="number" required formControlName="timeoutInMillis">
           <mat-error translate *ngIf="opcIntegrationConfigForm.get('timeoutInMillis').hasError('required')">

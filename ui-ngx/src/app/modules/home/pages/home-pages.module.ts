@@ -68,6 +68,7 @@ import { AccountModule } from '@home/pages/account/account.module';
 import { IntegrationsCenterModule } from '@home/pages/integration/integrations-center.module';
 import { CustomTranslationModule } from '@home/pages/custom-translation/custom-translation.module';
 import { ScadaSymbolModule } from '@home/pages/scada-symbol/scada-symbol.module';
+import { GatewaysModule } from '@home/pages/gateways/gateways.module';
 import { MobileModule } from '@home/pages/mobile/mobile.module';
 import { CustomMenuModule } from '@home/pages/custom-menu/custom-menu.module';
 
@@ -97,6 +98,8 @@ import { CustomMenuModule } from '@home/pages/custom-menu/custom-menu.module';
     DashboardModule,
     AuditLogModule,
     ApiUsageModule,
+    GatewaysModule,
+    OtaUpdateModule,
     UserModule,
     AccountModule,
     RoleModule,

@@ -30,10 +30,11 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div #blobEntitiesWidgetContainer class="mat-padding tb-blob-entities tb-absolute-fill" [ngClass]="{'mat-padding': !widgetMode}">
-  <div [fxShow]="showData"
-       fxFlex fxLayout="column" class="tb-blob-entities-content" [ngClass]="{'tb-outlined-border': !widgetMode}">
-    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="!textSearchMode && dataSource.selection.isEmpty()">
+<div #blobEntitiesWidgetContainer class="mat-padding tb-blob-entities tb-absolute-fill" [class.mat-padding]="!widgetMode">
+  <div [class.!hidden]="!showData"
+       [class.tb-outlined-border]="!widgetMode"
+       class="tb-blob-entities-content flex flex-1 flex-col">
+    <mat-toolbar class="mat-mdc-table-toolbar" [class.!hidden]="textSearchMode || !dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <span *ngIf="widgetMode; else blobEntitiesTitle" class="tb-blob-entities-title">{{ctx.widgetTitle}}</span>
         <ng-template #blobEntitiesTitle>
@@ -43,8 +44,8 @@
                        (ngModelChange)="onTimewindowChange()"
                        asButton historyOnly></tb-timewindow>
       </div>
-      <section *ngIf="!widgetMode" fxFlex fxLayout="row">
-        <span fxFlex></span>
+      <section *ngIf="!widgetMode" class="flex flex-1 flex-row">
+        <span class="flex-1"></span>
         <button [disabled]="isLoading$ | async"
                 mat-icon-button
                 (click)="enterFilterMode()"
@@ -61,14 +62,14 @@
         </button>
       </section>
     </mat-toolbar>
-    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="textSearchMode && dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" [class.!hidden]="!textSearchMode || !dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
         <button mat-icon-button
                 matTooltip="{{ 'blob-entity.search' | translate }}"
                 matTooltipPosition="above">
           <mat-icon>search</mat-icon>
         </button>
-        <mat-form-field fxFlex>
+        <mat-form-field class="flex-1">
           <mat-label>&nbsp;</mat-label>
           <input #searchInput matInput
                  [formControl]="textSearch"
@@ -81,12 +82,12 @@
         </button>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-mdc-table-toolbar" color="primary" [fxShow]="!dataSource.selection.isEmpty()">
+    <mat-toolbar class="mat-mdc-table-toolbar" color="primary" [class.!hidden]="dataSource.selection.isEmpty()">
       <div class="mat-toolbar-tools">
                 <span>
                   {{ translate.get('blob-entity.selected-blob-entities', {count: dataSource.selection.selected.length}) | async }}
                 </span>
-        <span fxFlex></span>
+        <span class="flex-1"></span>
         <button mat-icon-button [disabled]="isLoading$ | async"
                 matTooltip="{{ 'action.delete' | translate }}"
                 matTooltipPosition="above"
@@ -95,8 +96,8 @@
         </button>
       </div>
     </mat-toolbar>
-    <div fxFlex fxLayout="column">
-      <div fxFlex class="table-container">
+    <div class="flex flex-1 flex-col">
+      <div class="table-container flex-1">
         <table mat-table [dataSource]="dataSource"
                    matSort [matSortActive]="pageLink.sortOrder.property" [matSortDirection]="pageLink.sortDirection()" matSortDisableClear>
           <ng-container matColumnDef="select" sticky>
@@ -141,7 +142,7 @@
             <mat-header-cell *matHeaderCellDef style="min-width: 100px; max-width: 100px; width: 100px">
             </mat-header-cell>
             <mat-cell *matCellDef="let blobEntity">
-              <div fxFlex fxLayout="row" fxLayoutAlign="end">
+              <div class="flex flex-1 flex-row items-stretch justify-end">
                 <button mat-icon-button [disabled]="isLoading$ | async"
                         matTooltip="{{ 'blob-entity.download-blob-entity' | translate }}"
                         matTooltipPosition="above"
@@ -158,17 +159,15 @@
               </div>
             </mat-cell>
           </ng-container>
-          <mat-header-row [ngClass]="{'mat-row-select': true}" *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
-          <mat-row [ngClass]="{'mat-row-select': true,
-                               'mat-selected': dataSource.selection.isSelected(blobEntity)}"
+          <mat-header-row class="mat-row-select" *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
+          <mat-row class="mat-row-select"
+                   [class.mat-selected]="dataSource.selection.isSelected(blobEntity)"
                    *matRowDef="let blobEntity; columns: displayedColumns;" (click)="dataSource.selection.toggle(blobEntity)"></mat-row>
         </table>
-        <span [fxShow]="(dataSource.isEmpty() | async) && !dataSource.dataLoading"
-              fxLayoutAlign="center center"
-              class="no-data-found">{{ noDataDisplayMessageText }}</span>
-        <span [fxShow]="dataSource.dataLoading"
-              fxLayoutAlign="center center"
-              class="no-data-found">{{ 'common.loading' | translate }}</span>
+        <span [class.!hidden]="(dataSource.isEmpty() | async) === false || dataSource.dataLoading"
+              class="no-data-found flex items-center justify-center">{{ noDataDisplayMessageText }}</span>
+        <span [class.!hidden]="!dataSource.dataLoading"
+              class="no-data-found flex items-center justify-center">{{ 'common.loading' | translate }}</span>
       </div>
       <mat-divider *ngIf="displayPagination"></mat-divider>
       <mat-paginator *ngIf="displayPagination"
@@ -180,7 +179,6 @@
                      showFirstLastButtons></mat-paginator>
     </div>
   </div>
-  <span [fxShow]="!showData" fxLayoutAlign="center center"
-        style="display: flex;"
-        class="tb-absolute-fill" translate>entity.no-data</span>
+  <span [class.!hidden]="showData"
+        class="tb-absolute-fill flex items-center justify-center" translate>entity.no-data</span>
 </div>

@@ -30,16 +30,16 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-card-content" fxLayout="column" fxLayoutGap="8px">
+<div class="tb-card-content flex flex-col gap-2">
   <ng-container *ngIf="hasSolutionTemplatesAccess; else noDataAvailable">
     <div class="tb-card-header">
       <a class="tb-title-link" routerLink="/solutionTemplates">{{ 'widgets.solution-templates.title' | translate }}</a>
-      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px">
+      <div class="flex flex-row items-center justify-start gap-2">
         <button mat-icon-button class="tb-mat-24" [disabled]="selectedIndex === 0" (click)="selectedIndex = selectedIndex - 1"><mat-icon>keyboard_arrow_left</mat-icon></button>
         <button mat-icon-button class="tb-mat-24" [disabled]="selectedIndex >= solutionTemplates?.length - items" (click)="selectedIndex = selectedIndex + 1"><mat-icon>keyboard_arrow_right</mat-icon></button>
       </div>
     </div>
-    <div fxFlex class="tb-solution-templates">
+    <div class="tb-solution-templates flex-1">
       <ngx-hm-carousel
         #carousel
         align="left"

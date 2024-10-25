@@ -294,7 +294,7 @@ public class SignUpController extends BaseController {
         return SignUpResult.SUCCESS;
     }
 
-    private void sendEmailVerification(TenantId tenantId, HttpServletRequest request, UserCredentials userCredentials, String targetEmail, String baseUrl, String pkgName) throws ThingsboardException, IOException {
+    private void sendEmailVerification(TenantId tenantId, HttpServletRequest request, UserCredentials userCredentials, String targetEmail, String baseUrl, String pkgName) throws ThingsboardException {
         if (baseUrl == null) {
             baseUrl = MiscUtils.constructBaseUrl(request);
         }
@@ -302,7 +302,11 @@ public class SignUpController extends BaseController {
         if (!StringUtils.isEmpty(pkgName)) {
             activationLink = String.format("%s&pkgName=%s", activationLink, pkgName);
         }
-        mailService.sendActivationEmail(tenantId, activationLink, userCredentials.getActivationTokenTtl(), targetEmail);
+        try {
+            mailService.sendActivationEmail(tenantId, activationLink, userCredentials.getActivationTokenTtl(), targetEmail);
+        } catch (Exception e) {
+            throw new ThingsboardException("Temporarily unable to send activation email", ThingsboardErrorCode.GENERAL);
+        }
     }
 
     private void sendUserActivityNotification(TenantId tenantId, String userFullName, String userEmail, boolean activated, String infoMail) {
@@ -314,8 +318,7 @@ public class SignUpController extends BaseController {
             }
         } catch (ThingsboardException e) {
             String action = activated ? "activation" : "registration";
-            log.error("Failed to send notification email about user {}", action);
-            log.error("Cause:", e);
+            log.error("Failed to send notification email about user {}", action, e);
         }
     }
 
@@ -470,7 +473,11 @@ public class SignUpController extends BaseController {
         }
         String email = user.getEmail();
 
-        mailService.sendAccountActivatedEmail(tenantId, loginUrl, email);
+        try {
+            mailService.sendAccountActivatedEmail(tenantId, loginUrl, email);
+        } catch (Exception e) {
+            log.warn("Unable to send account activated email for {}: {}", email, e.getMessage());
+        }
 
         sendUserActivityNotification(tenantId, user.getFirstName() + " " + user.getLastName(), email, true, selfRegistrationParams.getNotificationEmail());
 

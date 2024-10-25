@@ -30,8 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section class="tb-widget-settings" [formGroup]="blobEntitiesWidgetSettingsForm" fxLayout="column">
-  <mat-form-field fxFlex class="mat-block">
+<section class="tb-widget-settings flex flex-col" [formGroup]="blobEntitiesWidgetSettingsForm">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>widgets.table.blob-entities-table-title</mat-label>
     <input matInput formControlName="title">
   </mat-form-field>
@@ -44,24 +44,24 @@
   <mat-slide-toggle formControlName="displayCustomer" class="slide-block">
     {{ 'widgets.table.display-customer' | translate }}
   </mat-slide-toggle>
-  <section fxLayout="column" fxLayout.gt-xs="row" fxLayoutGap="8px" fxLayoutAlign.gt-xs="start center">
-    <mat-slide-toggle fxFlex formControlName="displayPagination">
+  <section class="flex flex-col gap-2 gt-xs:flex-row gt-xs:items-center gt-xs:justify-start">
+    <mat-slide-toggle class="flex-1" formControlName="displayPagination">
       {{ 'widgets.table.display-pagination' | translate }}
     </mat-slide-toggle>
-    <mat-form-field fxFlex class="mat-block">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>widgets.table.default-page-size</mat-label>
       <input matInput type="number" min="1" step="1" formControlName="defaultPageSize">
     </mat-form-field>
   </section>
-  <mat-form-field fxFlex class="mat-block">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>widgets.table.default-sort-order</mat-label>
     <input matInput formControlName="defaultSortOrder">
   </mat-form-field>
-  <mat-form-field fxFlex class="mat-block">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>widgets.table.no-data-display-message</mat-label>
     <input matInput formControlName="noDataDisplayMessage">
   </mat-form-field>
-  <mat-form-field fxFlex class="mat-block">
+  <mat-form-field class="mat-block flex-1">
     <mat-label translate>widgets.table.force-default-blob-entity-type</mat-label>
     <input matInput formControlName="forceDefaultType">
   </mat-form-field>

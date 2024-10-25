@@ -31,9 +31,9 @@
 
 -->
 <form #paletteForm="ngForm" (ngSubmit)="savePalette()" style="width: 600px;">
-  <mat-toolbar fxLayout="row" color="primary">
+  <mat-toolbar class="flex flex-row" color="primary">
     <h2 translate>white-labeling.edit-palette</h2>
-    <span fxFlex></span>
+    <span class="flex-1"></span>
     <button mat-icon-button
             (click)="cancel()"
             type="button">
@@ -43,25 +43,25 @@
   <mat-progress-bar color="warn" mode="indeterminate" *ngIf="isLoading$ | async">
   </mat-progress-bar>
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
-  <div mat-dialog-content fxLayout="column">
-    <div fxLayout="row" *ngFor="let hue of hues"
+  <div mat-dialog-content class="flex flex-col">
+    <div class="flex flex-row" *ngFor="let hue of hues"
          style="height: 48px; cursor: pointer; font-weight: 500; outline: none;"
          (click)="editColor(hue)">
-      <div fxFlex fxLayout="row" [ngStyle]="hueStyle(hue)" style="padding: 10px;">
-        <div fxLayout="row" fxLayoutAlign="start center" style="width: 100px;">
+      <div class="flex flex-1 flex-row" [style]="hueStyle(hue)" style="padding: 10px;">
+        <div class="flex flex-row items-center justify-start" style="width: 100px;">
           <span>{{hue}}</span>
         </div>
-        <div fxFlex fxLayout="column" fxLayoutAlign="center center">
+        <div class="flex flex-1 flex-col items-center justify-center">
           <span>{{hueName(hue)}}</span>
         </div>
-        <div fxLayout="row" fxLayoutAlign="end center" style="width: 100px;">
+        <div class="flex flex-row items-center justify-end" style="width: 100px;">
           <span>{{colors[hue]}}</span>
         </div>
       </div>
     </div>
   </div>
-  <div mat-dialog-actions fxLayout="row">
-    <span fxFlex></span>
+  <div mat-dialog-actions class="flex flex-row">
+    <span class="flex-1"></span>
     <button mat-button color="primary"
             type="button"
             [disabled]="(isLoading$ | async)"
