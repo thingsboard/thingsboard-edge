@@ -38,7 +38,6 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Builder
 public class StoreInfo {
 
-    private boolean enabled;
     @NoXss
     private String appId;
     @NoXss
