@@ -89,10 +89,10 @@
     input.mdc-text-field__input {
       cursor: default;
       &::placeholder {
-        color: $tb-primary-color;
+        color: var(--tb-primary-500);
       }
       &:-ms-input-placeholder {
-        color: $tb-primary-color;
+        color: var(--tb-primary-500);
       }
     }
   }

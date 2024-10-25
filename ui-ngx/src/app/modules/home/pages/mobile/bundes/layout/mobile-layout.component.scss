@@ -28,8 +28,6 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import './../scss/constants';
-
 :host{
   .mobile-layout-container {
     width: 100%;
@@ -157,7 +155,7 @@
           inset: 0;
           opacity: 0.32;
           border-radius: 6px;
-          border: 1px solid $tb-primary-color;
+          border: 1px solid var(--tb-primary-500);
           pointer-events: none;
         }
       }

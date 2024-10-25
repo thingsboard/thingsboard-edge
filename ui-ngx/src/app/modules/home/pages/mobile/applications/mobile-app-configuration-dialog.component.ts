@@ -53,7 +53,7 @@ export class MobileAppConfigurationDialogComponent extends DialogComponent<Mobil
 
   showDontShowAgain: boolean;
 
-  gitRepositoryLink = 'git clone -b master https://github.com/thingsboard/flutter_thingsboard_app.git';
+  gitRepositoryLink = 'git clone -b master https://github.com/thingsboard/flutter_thingsboard_pe_app.git';
   pathToConstants = 'lib/constants/app_constants.dart';
   flutterRunCommand = 'flutter run';
 

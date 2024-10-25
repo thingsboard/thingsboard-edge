@@ -1397,7 +1397,7 @@ const menuFilters = new Map<MenuId, MenuFilter>([
             userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)
   ],
   [
-    MenuId.mobile_app_settings, (authState, userPermissionsService) =>
+    MenuId.mobile_qr_code_widget, (authState, userPermissionsService) =>
             authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.MOBILE_APP_SETTINGS)
   ],
