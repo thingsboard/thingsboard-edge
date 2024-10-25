@@ -56,7 +56,7 @@ Unlock the key benefits of **ThingsBoard Edge**:
    
    <img src="/img/batch-update.png" alt="Batch Update" width="500" height="300">
  
-ThingsBoard Edge inherits features from ThingsBoard Community Edition, delivering the same seamless experience for connecting, managing, and processing data from your devices, ensuring consistency and ease of use across your IoT applications.  
+**ThingsBoard Edge** inherits features from ThingsBoard Community Edition, delivering the same seamless experience for connecting, managing, and processing data from your devices, ensuring consistency and ease of use across your IoT applications.  
 
 It supports next **ThingsBoard Community Edition** features:
  * [**Attributes**](https://thingsboard.io/docs/user-guide/attributes/): Easily assign and manage custom attributes for your entities.
