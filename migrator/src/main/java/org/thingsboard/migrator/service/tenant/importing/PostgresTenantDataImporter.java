@@ -187,6 +187,8 @@ public class PostgresTenantDataImporter extends MigrationService {
                 row.put("role_id", role.get("id"));
             }
         }
+        row.remove("table_name");
+        row.remove("version");
 
         Map<String, String> existingColumns = columns.computeIfAbsent(table, t -> {
             return jdbcTemplate.queryForList("SELECT column_name, udt_name FROM information_schema.columns " +
@@ -194,9 +196,6 @@ public class PostgresTenantDataImporter extends MigrationService {
                     .collect(Collectors.toMap(vals -> vals.get("column_name").toString(), vals -> vals.get("udt_name").toString()));
         });
         row.keySet().removeIf(column -> {
-            if (column.equals("table_name")) {
-                return true;
-            }
             boolean unknownColumn = !existingColumns.containsKey(column);
             if (unknownColumn) {
                 log.warn("Skipping unknown column {} for table {}", column, table.getName());
