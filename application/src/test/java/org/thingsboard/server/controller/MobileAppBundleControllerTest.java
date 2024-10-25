@@ -37,7 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.MobileAppBundlePolicyInfo;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundlePolicyInfo;
 import org.thingsboard.server.common.data.mobile.app.MobileApp;
 import org.thingsboard.server.common.data.mobile.app.MobileAppStatus;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
@@ -126,7 +126,6 @@ public class MobileAppBundleControllerTest extends AbstractControllerTest {
         assertThat(retrievedMobileAppBundleInfo).isEqualTo(new MobileAppBundleInfo(savedAppBundle, null, null, false,
                 Collections.emptyList()));
     }
-
 
     @Test
     public void testUpdateMobileAppBundleOauth2Clients() throws Exception {
