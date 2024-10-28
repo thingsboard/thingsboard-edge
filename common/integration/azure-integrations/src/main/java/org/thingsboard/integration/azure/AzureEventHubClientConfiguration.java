@@ -43,6 +43,7 @@ public class AzureEventHubClientConfiguration {
     private String consumerGroup;
 
     private int connectTimeoutSec;
+    private boolean readEarliestMessages;
 
     public String getConsumerGroup() {
         return (consumerGroup == null || consumerGroup.isEmpty())

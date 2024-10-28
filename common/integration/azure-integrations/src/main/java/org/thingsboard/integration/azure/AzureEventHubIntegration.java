@@ -228,7 +228,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
 
         checkConnection(this.receiver);
 
-        this.receiver.receive(false).subscribe(
+        this.receiver.receive(configuration.isReadEarliestMessages()).subscribe(
                 event -> process(new AzureEventHubIntegrationMsg(event.getData())),
                 error -> log.error("It was trouble when receiving: " + error.getMessage()));
 

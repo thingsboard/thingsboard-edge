@@ -3783,6 +3783,7 @@
         "event-hub-name": "Event Hub Name",
         "event-hub-name-required": "Event Hub Name is required.",
         "event-iot-hub-name-required": "Iot Hub Name is required for downlink",
+        "read-earliest-messages": "Read earliest messages",
         "sas-key-name": "SAS Key Name",
         "sas-key-name-required": "SAS Key Name is required.",
         "sas-key": "SAS Key",

@@ -85,7 +85,8 @@ export class AzureEventHubIntegrationFormComponent extends IntegrationForm imple
       connectTimeoutSec: [10, [Validators.required, Validators.min(1), Validators.max(200)]],
       connectionString: ['', [Validators.required]],
       consumerGroup: [''],
-      iotHubName: ['']
+      iotHubName: [''],
+      readEarliestMessages: [false]
     });
     this.azureEventHubIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
