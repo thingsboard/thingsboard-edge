@@ -73,7 +73,9 @@
           integration.event-iot-hub-name-required
         </mat-error>
       </mat-form-field>
-      <mat-slide-toggle class="mat-block" formControlName="readEarliestMessages">
+      <mat-slide-toggle class="mat-block"
+                        style="margin-bottom: 16px;"
+                        formControlName="readEarliestMessages">
         {{ 'integration.read-earliest-messages' | translate }}
       </mat-slide-toggle>
       <ng-container [ngTemplateOutlet]="genericAdditionalInfoTemplate">
