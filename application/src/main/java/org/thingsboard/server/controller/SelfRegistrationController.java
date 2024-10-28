@@ -205,8 +205,7 @@ public class SelfRegistrationController extends BaseController {
         } else {
             sf = whiteLabelingService.getSelfRegistrationParamsByDomain(request.getServerName());
         }
-        checkNotNull(sf);
-        return new SignUpSelfRegistrationParams(sf.getTitle(), sf.getCaptcha(), sf.getSignUpFields(),
+        return sf == null ? null : new SignUpSelfRegistrationParams(sf.getTitle(), sf.getCaptcha(), sf.getSignUpFields(),
                 sf.getShowPrivacyPolicy(), sf.getShowTermsOfUse());
     }
 
