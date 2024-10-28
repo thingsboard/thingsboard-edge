@@ -53,6 +53,8 @@ public abstract class AbstractSelfRegistrationParams implements SelfRegistration
     @Schema(description = "List of sign-up form fields")
     @NotNull
     protected List<SignUpField> signUpFields;
+    @Schema(description = "Indicates if registration is allowed via oauth2")
+    protected Boolean oauth2Enabled;
     @Schema(description = "Show or hide 'Privacy Policy'")
     protected Boolean showPrivacyPolicy;
     @Schema(description = "Show or hide 'Terms of Use'")
