@@ -34,6 +34,7 @@ public enum SignUpFieldId {
 
     EMAIL,
     PASSWORD,
+    REPEAT_PASSWORD,
     FIRST_NAME,
     LAST_NAME,
     PHONE,

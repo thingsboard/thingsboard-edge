@@ -155,9 +155,9 @@ $$
                         UPDATE qr_code_settings SET mobile_app_bundle_id = generatedBundleId,
                                                     android_enabled = (qrCodeRecord.android_config::jsonb ->> 'enabled')::boolean WHERE id = qrCodeRecord.id;
                     ELSE
-                        UPDATE mobile_app SET store_info = qrCodeRecord.android_config::jsonb - 'appPackage' - 'enabled' WHERE id = androidAppId;
                         UPDATE qr_code_settings SET mobile_app_bundle_id = (SELECT id FROM mobile_app_bundle WHERE mobile_app_bundle.android_app_id = androidAppId),
                                                     android_enabled = (qrCodeRecord.android_config::jsonb ->> 'enabled')::boolean WHERE id = qrCodeRecord.id;
+                        UPDATE mobile_app SET store_info = qrCodeRecord.android_config::jsonb - 'appPackage' - 'enabled' WHERE id = androidAppId;
                     END IF;
                 END IF;
 
@@ -169,7 +169,7 @@ $$
                         iosAppId := uuid_generate_v4();
                         INSERT INTO mobile_app(id, created_time, tenant_id, pkg_name, platform_type, status, store_info)
                         VALUES (iosAppId, (extract(epoch from now()) * 1000), qrCodeRecord.tenant_id,
-                                iosPkgName, 'IOS', 'DRAFT', qrCodeRecord.ios_config);
+                                iosPkgName, 'IOS', 'DRAFT', qrCodeRecord.ios_config::jsonb - 'enabled');
                         IF generatedBundleId IS NULL THEN
                             generatedBundleId := uuid_generate_v4();
                             INSERT INTO mobile_app_bundle(id, created_time, tenant_id, title, ios_app_id)
@@ -213,14 +213,14 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO white_labeling(tenant_id, customer_id, type, settings)
     (SELECT a.entity_id, '13814000-1dd2-11b2-8080-808080808080', 'TERMS_OF_USE', a.str_v FROM tenant t
-                                                                                                  INNER JOIN admin_settings s ON s.key LIKE 'selfRegistrationDomainNamePrefix%' AND s.json_value::jsonb ->> 'entityId' = t.id::text
-                                                                                                  INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary where key = 'termsOfUse'))
+        INNER JOIN admin_settings s ON s.key LIKE 'selfRegistrationDomainNamePrefix%' AND s.json_value::jsonb ->> 'entityId' = t.id::text
+        INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary where key = 'termsOfUse'))
 ON CONFLICT DO NOTHING;
 
 INSERT INTO white_labeling(tenant_id, customer_id, type, settings)
     (SELECT a.entity_id, '13814000-1dd2-11b2-8080-808080808080', 'PRIVACY_POLICY', a.str_v FROM tenant t
-                                                                                                    INNER JOIN admin_settings s ON s.key LIKE 'selfRegistrationDomainNamePrefix%' AND s.json_value::jsonb ->> 'entityId' = t.id::text
-                                                                                                    INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary where key = 'privacyPolicy'))
+        INNER JOIN admin_settings s ON s.key LIKE 'selfRegistrationDomainNamePrefix%' AND s.json_value::jsonb ->> 'entityId' = t.id::text
+        INNER JOIN attribute_kv a ON t.id = a.entity_id AND a.attribute_type = 2 AND a.attribute_key = (select key_id from key_dictionary where key = 'privacyPolicy'))
 ON CONFLICT DO NOTHING;
 
 DELETE FROM attribute_kv WHERE attribute_key IN (SELECT key_id FROM key_dictionary WHERE key IN ('selfRegistrationParams', 'termsOfUse', 'privacyPolicy'));

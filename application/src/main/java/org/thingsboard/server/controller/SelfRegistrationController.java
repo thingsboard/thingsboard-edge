@@ -31,35 +31,25 @@
 package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.servlet.http.HttpServletRequest;
-import org.checkerframework.checker.nullness.qual.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.AttributeScope;
-import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundlePolicyInfo;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundlePolicyInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -67,14 +57,10 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpSelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.WebSelfRegistrationParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.config.annotations.ApiOperation;
-import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.settings.AdminSettingsService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
-
-import java.util.Arrays;
-import java.util.List;
 
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
@@ -87,17 +73,10 @@ public class SelfRegistrationController extends BaseController {
 
     private static final String PRIVACY_POLICY = "privacyPolicy";
     private static final String TERMS_OF_USE = "termsOfUse";
-    private static final String DOMAIN_NAME = "domainName";
     private static final String SELF_REGISTRATION_DESC = "Self Registration allows users to signup for using the platform and automatically create a Customer account for them. " +
             "You may configure default dashboard and user roles that will be assigned for this Customer. " +
             "This allows you to build out-of-the-box solutions for customers. " +
             "Ability to white-label the login and main pages helps to brand the platform.";
-
-    @Autowired
-    private AdminSettingsService adminSettingsService;
-
-    @Autowired
-    private AttributesService attributesService;
 
     @ApiOperation(value = "Create Or Update Self Registration parameters (saveSelfRegistrationParams)",
             notes = "Creates or Updates the Self Registration parameters. When creating, platform generates Admin Settings Id as " + UUID_WIKI_LINK +
@@ -107,9 +86,8 @@ public class SelfRegistrationController extends BaseController {
                     "\n\n" + SELF_REGISTRATION_DESC +
                     TENANT_AUTHORITY_PARAGRAPH + ControllerConstants.WL_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/selfRegistration/selfRegistrationParams", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.OK)
-    public WebSelfRegistrationParams saveSelfRegistrationParams(
+    @PostMapping(value = "/selfRegistration/selfRegistrationParams")
+    public WebSelfRegistrationParams saveWebSelfRegistrationParams(
             @Parameter(description = "A JSON value representing the Self Registration Parameters.", required = true)
             @RequestBody WebSelfRegistrationParams selfRegistrationParams) throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
@@ -134,9 +112,8 @@ public class SelfRegistrationController extends BaseController {
             notes = "Fetch the Self Registration parameters object for the tenant of the current user. "
                     + TENANT_AUTHORITY_PARAGRAPH + WL_READ_CHECK)
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/selfRegistration/selfRegistrationParams", method = RequestMethod.GET, produces = "application/json")
-    @ResponseBody
-    public SelfRegistrationParams getSelfRegistrationParams() throws ThingsboardException {
+    @GetMapping(value = "/selfRegistration/selfRegistrationParams")
+    public SelfRegistrationParams getWebSelfRegistrationParams() throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
         checkSelfRegistrationPermissions(Operation.READ);
         WebSelfRegistrationParams selfRegistrationParams = null;
@@ -155,58 +132,32 @@ public class SelfRegistrationController extends BaseController {
     }
 
     @PreAuthorize("hasAnyAuthority('TENANT_ADMIN')")
-    @RequestMapping(value = "/selfRegistration/selfRegistrationParams/{domainName}", method = RequestMethod.DELETE)
-    @ResponseStatus(value = HttpStatus.OK)
-    public DeferredResult<ResponseEntity> deleteSelfRegistrationParams(@PathVariable(DOMAIN_NAME) String domainName) throws ThingsboardException {
-        checkParameter(DOMAIN_NAME, domainName);
-        DeferredResult<ResponseEntity> responseWriter = new DeferredResult<>();
-        SecurityUser securityUser = getCurrentUser();
-        Authority authority = securityUser.getAuthority();
-        accessControlService.checkPermission(securityUser, Resource.TENANT, Operation.WRITE_ATTRIBUTES);
-        if (Authority.TENANT_ADMIN.equals(authority)) {
-            ListenableFuture<List<String>> future = attributesService.removeAll(
-                    securityUser.getTenantId(),
-                    securityUser.getTenantId(),
-                    AttributeScope.SERVER_SCOPE,
-                    Arrays.asList("selfRegistrationParams", "termsOfUse", "privacyPolicy"));
-            Futures.addCallback(future, new FutureCallback<>() {
-                @Override
-                public void onSuccess(@Nullable List<String> keys) {
-                    adminSettingsService.deleteAdminSettingsByKey(
-                            securityUser.getTenantId(),
-                            DataConstants.SELF_REGISTRATION_DOMAIN_NAME_PREFIX + domainName);
-                    responseWriter.setResult(new ResponseEntity<>(HttpStatus.OK));
-                }
-
-                @Override
-                public void onFailure(Throwable throwable) {
-                    responseWriter.setErrorResult(throwable);
-                }
-            }, MoreExecutors.directExecutor());
-        }
-        return responseWriter;
+    @DeleteMapping(value = "/selfRegistration/selfRegistrationParams")
+    public void deleteWebSelfRegistrationParams() throws ThingsboardException {
+        SecurityUser currentUser = getCurrentUser();
+        checkSelfRegistrationPermissions(Operation.WRITE);
+        whiteLabelingService.deleteWhiteLabeling(currentUser.getTenantId(), currentUser.getCustomerId(), WhiteLabelingType.SELF_REGISTRATION);
     }
 
     @ApiOperation(value = "Get Self Registration form parameters without authentication (getSignUpSelfRegistrationParams)",
             notes = "Fetch the Self Registration parameters based on the domain name from the request. Available for non-authorized users. " +
                     "Contains the information to customize the sign-up form.")
-    @RequestMapping(value = "/noauth/selfRegistration/signUpSelfRegistrationParams", method = RequestMethod.GET, produces = "application/json")
-    @ResponseBody
+    @GetMapping(value = "/noauth/selfRegistration/signUpSelfRegistrationParams")
     public SignUpSelfRegistrationParams getSignUpSelfRegistrationParams(
             @RequestParam(required = false) String pkgName,
             @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}))
             @RequestParam(required = false) PlatformType platform,
             HttpServletRequest request) throws ThingsboardException {
-        SelfRegistrationParams sf;
+        SelfRegistrationParams selfRegistrationParams;
         if (!StringUtils.isEmpty(pkgName)) {
             checkNotNull(platform, "Platform type is required if package name is specified");
-            MobileAppBundle bundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
-            sf = bundle != null ? bundle.getSelfRegistrationParams() : null;
+            MobileAppBundle appBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
+            selfRegistrationParams = appBundle != null ? appBundle.getSelfRegistrationParams() : null;
         } else {
-            sf = whiteLabelingService.getSelfRegistrationParamsByDomain(request.getServerName());
+            selfRegistrationParams = whiteLabelingService.getSelfRegistrationParamsByDomain(request.getServerName());
         }
-        return sf == null ? null : new SignUpSelfRegistrationParams(sf.getTitle(), sf.getCaptcha(), sf.getSignUpFields(),
-                sf.getShowPrivacyPolicy(), sf.getShowTermsOfUse());
+        return selfRegistrationParams != null ? new SignUpSelfRegistrationParams(selfRegistrationParams.getTitle(), selfRegistrationParams.getCaptcha(), selfRegistrationParams.getSignUpFields(),
+                selfRegistrationParams.getShowPrivacyPolicy(), selfRegistrationParams.getShowTermsOfUse()) : null;
     }
 
     @ApiOperation(value = "Get Privacy Policy for Self Registration form (getPrivacyPolicy)",

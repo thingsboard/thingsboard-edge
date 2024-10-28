@@ -37,6 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundleFullInfo;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundlePolicyInfo;
 import org.thingsboard.server.common.data.mobile.app.MobileApp;
 import org.thingsboard.server.common.data.mobile.app.MobileAppStatus;
@@ -134,7 +135,7 @@ public class MobileAppBundleControllerTest extends AbstractControllerTest {
         mobileAppBundlePolicyInfo.setAndroidAppId(androidApp.getId());
         mobileAppBundlePolicyInfo.setIosAppId(iosApp.getId());
 
-        MobileAppBundle savedAppBundle = doPost("/api/mobile/bundle", mobileAppBundlePolicyInfo, MobileAppBundlePolicyInfo.class);
+        MobileAppBundlePolicyInfo savedAppBundle = doPost("/api/mobile/bundle", mobileAppBundlePolicyInfo, MobileAppBundlePolicyInfo.class);
 
         OAuth2Client oAuth2Client = createOauth2Client(TenantId.SYS_TENANT_ID, "test google client");
         OAuth2Client savedOAuth2Client = doPost("/api/oauth2/client", oAuth2Client, OAuth2Client.class);
@@ -144,15 +145,14 @@ public class MobileAppBundleControllerTest extends AbstractControllerTest {
 
         doPut("/api/mobile/bundle/" + savedAppBundle.getId() + "/oauth2Clients", List.of(savedOAuth2Client.getId().getId(), savedOAuth2Client2.getId().getId()));
 
-        MobileAppBundleInfo retrievedMobileAppBundleInfo = doGet("/api/mobile/bundle/info/{id}", MobileAppBundleInfo.class, savedAppBundle.getId().getId());
-        assertThat(retrievedMobileAppBundleInfo).isEqualTo(new MobileAppBundleInfo(savedAppBundle, androidApp.getPkgName(), iosApp.getPkgName(), false,
-                Stream.of(new OAuth2ClientInfo(savedOAuth2Client), new OAuth2ClientInfo(savedOAuth2Client2))
+        MobileAppBundleFullInfo retrievedMobileAppBundleInfo = doGet("/api/mobile/bundle/info/{id}", MobileAppBundleFullInfo.class, savedAppBundle.getId().getId());
+        assertThat(retrievedMobileAppBundleInfo).isEqualTo(new MobileAppBundleFullInfo(savedAppBundle, Stream.of(new OAuth2ClientInfo(savedOAuth2Client), new OAuth2ClientInfo(savedOAuth2Client2))
                         .sorted(Comparator.comparing(OAuth2ClientInfo::getTitle)).collect(Collectors.toList())
         ));
 
         doPut("/api/mobile/bundle/" + savedAppBundle.getId() + "/oauth2Clients", List.of(savedOAuth2Client2.getId().getId()));
-        MobileAppBundleInfo retrievedMobileAppInfo2 = doGet("/api/mobile/bundle/info/{id}", MobileAppBundleInfo.class, savedAppBundle.getId().getId());
-        assertThat(retrievedMobileAppInfo2).isEqualTo(new MobileAppBundleInfo(savedAppBundle, androidApp.getPkgName(), iosApp.getPkgName(), false, List.of(new OAuth2ClientInfo(savedOAuth2Client2))));
+        MobileAppBundleFullInfo retrievedMobileAppInfo2 = doGet("/api/mobile/bundle/info/{id}", MobileAppBundleFullInfo.class, savedAppBundle.getId().getId());
+        assertThat(retrievedMobileAppInfo2).isEqualTo(new MobileAppBundleFullInfo(savedAppBundle, List.of(new OAuth2ClientInfo(savedOAuth2Client2))));
     }
 
     @Test
@@ -160,15 +160,15 @@ public class MobileAppBundleControllerTest extends AbstractControllerTest {
         OAuth2Client oAuth2Client = createOauth2Client(TenantId.SYS_TENANT_ID, "test google client");
         OAuth2Client savedOAuth2Client = doPost("/api/oauth2/client", oAuth2Client, OAuth2Client.class);
 
-        MobileAppBundle mobileAppBundle = new MobileAppBundle();
+        MobileAppBundlePolicyInfo mobileAppBundle = new MobileAppBundlePolicyInfo();
         mobileAppBundle.setTitle("Test bundle");
         mobileAppBundle.setAndroidAppId(androidApp.getId());
         mobileAppBundle.setIosAppId(iosApp.getId());
 
-        MobileAppBundle savedMobileAppBundle = doPost("/api/mobile/bundle?oauth2ClientIds=" + savedOAuth2Client.getId().getId(), mobileAppBundle, MobileAppBundle.class);
+        MobileAppBundlePolicyInfo savedMobileAppBundle = doPost("/api/mobile/bundle?oauth2ClientIds=" + savedOAuth2Client.getId().getId(), mobileAppBundle, MobileAppBundlePolicyInfo.class);
 
-        MobileAppBundleInfo retrievedMobileAppInfo = doGet("/api/mobile/bundle/info/{id}", MobileAppBundleInfo.class, savedMobileAppBundle.getId().getId());
-        assertThat(retrievedMobileAppInfo).isEqualTo(new MobileAppBundleInfo(savedMobileAppBundle, androidApp.getPkgName(), iosApp.getPkgName(), false, List.of(new OAuth2ClientInfo(savedOAuth2Client))));
+        MobileAppBundleFullInfo retrievedMobileAppInfo = doGet("/api/mobile/bundle/info/{id}", MobileAppBundleFullInfo.class, savedMobileAppBundle.getId().getId());
+        assertThat(retrievedMobileAppInfo).isEqualTo(new MobileAppBundleFullInfo(savedMobileAppBundle, List.of(new OAuth2ClientInfo(savedOAuth2Client))));
     }
 
     private MobileApp validMobileApp(TenantId tenantId, String mobileAppName, PlatformType platformType) {
