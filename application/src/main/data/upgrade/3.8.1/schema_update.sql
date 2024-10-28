@@ -52,6 +52,9 @@ CREATE TABLE IF NOT EXISTS mobile_app_bundle (
     android_app_id uuid UNIQUE,
     ios_app_id uuid UNIQUE,
     layout_config varchar(16384),
+    self_registration_config varchar(16384),
+    terms_of_use varchar(10000000),
+    privacy_policy varchar(10000000),
     oauth2_enabled boolean,
     CONSTRAINT fk_android_app_id FOREIGN KEY (android_app_id) REFERENCES mobile_app(id),
     CONSTRAINT fk_ios_app_id FOREIGN KEY (ios_app_id) REFERENCES mobile_app(id)
