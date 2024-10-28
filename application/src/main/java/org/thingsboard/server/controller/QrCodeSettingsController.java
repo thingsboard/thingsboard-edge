@@ -115,7 +115,6 @@ public class QrCodeSettingsController extends BaseController {
     private final SystemSecurityService systemSecurityService;
     private final MobileAppSecretService mobileAppSecretService;
     private final QrCodeSettingService qrCodeSettingService;
-    private final MobileAppService mobileAppService;
     private final WhiteLabelingService whiteLabelingService;
 
     @ApiOperation(value = "Get associated android applications (getAssetLinks)")
@@ -125,7 +124,7 @@ public class QrCodeSettingsController extends BaseController {
         WhiteLabeling loginWL = whiteLabelingService.findWhiteLabelingByDomainAndType(domainName, LOGIN);
         MobileApp mobileApp = qrCodeSettingService.findAppFromQrCodeSettings(loginWL != null ? loginWL.getTenantId() : TenantId.SYS_TENANT_ID, ANDROID);
         StoreInfo storeInfo = mobileApp != null ? mobileApp.getStoreInfo() : null;
-        if (storeInfo != null && storeInfo.isEnabled() && storeInfo.getSha256CertFingerprints() != null) {
+        if (storeInfo != null && storeInfo.getSha256CertFingerprints() != null) {
             return ResponseEntity.ok(JacksonUtil.toJsonNode(String.format(ASSET_LINKS_PATTERN, mobileApp.getPkgName(), storeInfo.getSha256CertFingerprints())));
         } else {
             return ResponseEntity.notFound().build();
@@ -139,7 +138,7 @@ public class QrCodeSettingsController extends BaseController {
         WhiteLabeling loginWL = whiteLabelingService.findWhiteLabelingByDomainAndType(domainName, LOGIN);
         MobileApp mobileApp = qrCodeSettingService.findAppFromQrCodeSettings(loginWL != null ? loginWL.getTenantId() : TenantId.SYS_TENANT_ID, IOS);
         StoreInfo storeInfo = mobileApp != null ? mobileApp.getStoreInfo() : null;
-        if (storeInfo != null && storeInfo.isEnabled() && storeInfo.getAppId() != null) {
+        if (storeInfo != null && storeInfo.getAppId() != null) {
             return ResponseEntity.ok(JacksonUtil.toJsonNode(String.format(APPLE_APP_SITE_ASSOCIATION_PATTERN, storeInfo.getAppId())));
         } else {
             return ResponseEntity.notFound().build();
@@ -218,36 +217,24 @@ public class QrCodeSettingsController extends BaseController {
 
     @GetMapping(value = "/api/noauth/qr")
     public ResponseEntity<?> getApplicationRedirect(@RequestHeader(value = "User-Agent") String userAgent, HttpServletRequest request) {
-        String domainName = request.getServerName();
-        WhiteLabeling loginWL = whiteLabelingService.findWhiteLabelingByDomainAndType(domainName, LOGIN);
+        WhiteLabeling loginWL = whiteLabelingService.findWhiteLabelingByDomainAndType(request.getServerName(), LOGIN);
         QrCodeSettings qrCodeSettings;
         if (loginWL != null) {
             qrCodeSettings = qrCodeSettingService.getMergedQrCodeSettings(loginWL.getTenantId());
         } else {
             qrCodeSettings = qrCodeSettingService.findQrCodeSettings(TenantId.SYS_TENANT_ID);
         }
-        boolean useDefaultApp = qrCodeSettings.isUseDefaultApp();
         if (userAgent.contains("Android")) {
-            String googlePlayLink = useDefaultApp ? qrCodeSettings.getGooglePlayLink() : getStoreLink(qrCodeSettings.getMobileAppBundleId(), ANDROID);
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header("Location", googlePlayLink)
+                    .header("Location", qrCodeSettings.getGooglePlayLink())
                     .build();
-        } else if (userAgent.contains("iPhone") || userAgent.contains("iPad")) {
-            String appStoreLink = useDefaultApp ? qrCodeSettings.getAppStoreLink() : getStoreLink(qrCodeSettings.getMobileAppBundleId(), IOS);
+        } else if (userAgent.contains("iPhone") || userAgent.contains("iPad") && qrCodeSettings.isIosEnabled()) {
             return ResponseEntity.status(HttpStatus.FOUND)
-                    .header("Location", appStoreLink)
+                    .header("Location", qrCodeSettings.getAppStoreLink())
                     .build();
         } else {
             return response(HttpStatus.NOT_FOUND);
         }
-    }
-
-    private String getStoreLink(MobileAppBundleId mobileAppBundleId, PlatformType platformType) {
-        if (mobileAppBundleId == null) {
-            return null;
-        }
-        MobileApp mobileApp = mobileAppService.findByBundleIdAndPlatformType(TenantId.SYS_TENANT_ID, mobileAppBundleId, platformType);
-        return (mobileApp != null && mobileApp.getStoreInfo() != null) ? mobileApp.getStoreInfo().getStoreLink() : null;
     }
 
 }

@@ -71,7 +71,7 @@ public class MobileAppServiceImpl extends AbstractEntityService implements Mobil
             return savedMobileApp;
         } catch (Exception e) {
             checkConstraintViolation(e,
-                    Map.of("mobile_app_unq_key", "Mobile app with such package already exists!"));
+                    Map.of("mobile_app_pkg_name_platform_unq_key", "Mobile app with such package name and platform already exists!"));
             throw e;
         }
     }
