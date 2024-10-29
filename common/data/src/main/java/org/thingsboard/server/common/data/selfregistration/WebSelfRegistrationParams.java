@@ -39,10 +39,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class WebSelfRegistrationParams extends AbstractSelfRegistrationParams {
 
-    @Schema(description = "Privacy policy text. Supports HTML.")
-    protected String privacyPolicy;
-    @Schema(description = "Terms of User text. Supports HTML.")
-    protected String termsOfUse;
     @Schema(description = "Domain name for self registration URL. Typically this matches the domain name from the Login White Labeling page.")
     @NotNull
     private String domainName;

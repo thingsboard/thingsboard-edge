@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.selfregistration.MobileSelfRegistrationParams;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
@@ -82,13 +83,13 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
     private DataValidator<MobileAppBundle> mobileAppBundleDataValidator;
 
     @Override
-    public MobileAppBundlePolicyInfo saveMobileAppBundle(TenantId tenantId, MobileAppBundlePolicyInfo mobileAppBundlePolicyInfo) {
-        log.trace("Executing saveMobileAppBundle [{}]", mobileAppBundlePolicyInfo);
-        mobileAppBundleDataValidator.validate(mobileAppBundlePolicyInfo, b -> tenantId);
+    public MobileAppBundle saveMobileAppBundle(TenantId tenantId, MobileAppBundle mobileAppBundle) {
+        log.trace("Executing saveMobileAppBundle [{}]", mobileAppBundle);
+        mobileAppBundleDataValidator.validate(mobileAppBundle, b -> tenantId);
         try {
-            MobileAppBundlePolicyInfo savedMobileApp = mobileAppBundlePolicyInfoDao.save(tenantId, mobileAppBundlePolicyInfo);
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(savedMobileApp).build());
-            return savedMobileApp;
+            MobileAppBundlePolicyInfo savedMobileAppBundlePolicyInfo = mobileAppBundlePolicyInfoDao.save(tenantId, toMobileAppBundlePolicyInfo(mobileAppBundle));
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(savedMobileAppBundlePolicyInfo).build());
+            return toMobileAppBundle(savedMobileAppBundlePolicyInfo);
         } catch (Exception e) {
             checkConstraintViolation(e,
                     Map.of("android_app_id_unq_key", "Android mobile app already exists in another bundle!",
@@ -125,8 +126,8 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
     }
 
     @Override
-    public MobileAppBundlePolicyInfo findMobileAppBundlePolicyInfoById(TenantId tenantId, MobileAppBundleId mobileAppIdBundle) {
-        log.trace("Executing findMobileAppBundleInfoById [{}] [{}]", tenantId, mobileAppIdBundle);
+    public MobileAppBundleFullInfo findMobileAppBundleFullInfoById(TenantId tenantId, MobileAppBundleId mobileAppIdBundle) {
+        log.trace("Executing findMobileAppBundleFullInfoById [{}] [{}]", tenantId, mobileAppIdBundle);
         MobileAppBundlePolicyInfo mobileAppBundleInfo = mobileAppBundlePolicyInfoDao.findById(tenantId, mobileAppIdBundle.getId());
         if (mobileAppBundleInfo == null) {
             return null;
@@ -135,7 +136,7 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
                 .map(OAuth2ClientInfo::new)
                 .sorted(Comparator.comparing(OAuth2ClientInfo::getTitle))
                 .collect(Collectors.toList());
-        return new MobileAppBundleFullInfo(mobileAppBundleInfo, clients);
+        return new MobileAppBundleFullInfo(toMobileAppBundle(mobileAppBundleInfo), clients);
     }
 
     @Override
@@ -224,5 +225,28 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
                 .sorted(Comparator.comparing(OAuth2ClientInfo::getTitle))
                 .collect(Collectors.toList());
         mobileAppBundleInfo.setOauth2ClientInfos(clients);
+    }
+
+    private MobileAppBundle toMobileAppBundle(MobileAppBundlePolicyInfo mobileAppBundleInfo) {
+        MobileSelfRegistrationParams selfRegistrationParams = mobileAppBundleInfo.getSelfRegistrationParams();
+        if (selfRegistrationParams != null) {
+            selfRegistrationParams.setTermsOfUse(mobileAppBundleInfo.getTermsOfUse());
+            selfRegistrationParams.setPrivacyPolicy(mobileAppBundleInfo.getPrivacyPolicy());
+            mobileAppBundleInfo.setTermsOfUse(null);
+            mobileAppBundleInfo.setPrivacyPolicy(null);
+        }
+        return mobileAppBundleInfo;
+    }
+
+    private MobileAppBundlePolicyInfo toMobileAppBundlePolicyInfo(MobileAppBundle mobileAppBundle) {
+        MobileAppBundlePolicyInfo mobileAppBundlePolicyInfo = new MobileAppBundlePolicyInfo(mobileAppBundle);
+        MobileSelfRegistrationParams selfRegistrationParams = mobileAppBundlePolicyInfo.getSelfRegistrationParams();
+        if (selfRegistrationParams != null) {
+            mobileAppBundlePolicyInfo.setPrivacyPolicy(selfRegistrationParams.getPrivacyPolicy());
+            mobileAppBundlePolicyInfo.setTermsOfUse(selfRegistrationParams.getTermsOfUse());
+            selfRegistrationParams.setPrivacyPolicy(null);
+            selfRegistrationParams.setTermsOfUse(null);
+        }
+        return mobileAppBundlePolicyInfo;
     }
 }

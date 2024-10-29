@@ -39,7 +39,7 @@ import java.util.List;
 
 public interface TbMobileAppBundleService {
 
-    MobileAppBundlePolicyInfo save(MobileAppBundlePolicyInfo mobileAppBundlePolicyInfo, List<OAuth2ClientId> oauth2Clients, User user) throws Exception;
+    MobileAppBundle save(MobileAppBundle mobileAppBundle, List<OAuth2ClientId> oauth2Clients, User user) throws Exception;
 
     void updateOauth2Clients(MobileAppBundle mobileAppBundle, List<OAuth2ClientId> oAuth2ClientIds, User user);
 

@@ -42,17 +42,17 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @ToString
-public class MobileAppBundleFullInfo extends MobileAppBundlePolicyInfo {
+public class MobileAppBundleFullInfo extends MobileAppBundle {
 
     @Schema(description = "List of available oauth2 clients")
     private List<OAuth2ClientInfo> oauth2ClientInfos;
 
-    public MobileAppBundleFullInfo(MobileAppBundlePolicyInfo mobileApp) {
+    public MobileAppBundleFullInfo(MobileAppBundle mobileApp) {
         super(mobileApp);
     }
 
-    public MobileAppBundleFullInfo(MobileAppBundlePolicyInfo mobileAppBundlePolicyInfo, List<OAuth2ClientInfo> oauth2ClientInfos) {
-        super(mobileAppBundlePolicyInfo);
+    public MobileAppBundleFullInfo(MobileAppBundle mobileAppBundle, List<OAuth2ClientInfo> oauth2ClientInfos) {
+        super(mobileAppBundle);
         this.oauth2ClientInfos = oauth2ClientInfos;
     }
 

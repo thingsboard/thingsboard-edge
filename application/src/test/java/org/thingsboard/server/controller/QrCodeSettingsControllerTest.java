@@ -39,6 +39,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.mobile.app.MobileApp;
+import org.thingsboard.server.common.data.mobile.app.MobileAppStatus;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundleInfo;
 import org.thingsboard.server.common.data.mobile.qrCodeSettings.QRCodeConfig;
@@ -262,6 +263,7 @@ public class QrCodeSettingsControllerTest extends AbstractControllerTest {
     private MobileApp validMobileApp(String mobileAppName, PlatformType platformType) {
         MobileApp mobileApp = new MobileApp();
         mobileApp.setTenantId(tenantId);
+        mobileApp.setStatus(MobileAppStatus.DRAFT);
         mobileApp.setPkgName(mobileAppName);
         mobileApp.setPlatformType(platformType);
         mobileApp.setAppSecret(StringUtils.randomAlphanumeric(24));

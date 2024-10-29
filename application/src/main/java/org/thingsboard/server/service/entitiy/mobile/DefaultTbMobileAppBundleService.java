@@ -53,11 +53,11 @@ public class DefaultTbMobileAppBundleService extends AbstractTbEntityService imp
     private final MobileAppBundleService mobileAppBundleService;
 
     @Override
-    public MobileAppBundlePolicyInfo save(MobileAppBundlePolicyInfo mobileAppBundle, List<OAuth2ClientId> oauth2Clients, User user) throws Exception {
+    public MobileAppBundle save(MobileAppBundle mobileAppBundle, List<OAuth2ClientId> oauth2Clients, User user) throws Exception {
         ActionType actionType = mobileAppBundle.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = mobileAppBundle.getTenantId();
         try {
-            MobileAppBundlePolicyInfo savedMobileAppBundle = checkNotNull(mobileAppBundleService.saveMobileAppBundle(tenantId, mobileAppBundle));
+            MobileAppBundle savedMobileAppBundle = checkNotNull(mobileAppBundleService.saveMobileAppBundle(tenantId, mobileAppBundle));
             if (CollectionUtils.isNotEmpty(oauth2Clients)) {
                 mobileAppBundleService.updateOauth2Clients(tenantId, savedMobileAppBundle.getId(), oauth2Clients);
             }

@@ -75,6 +75,10 @@ public abstract class AbstractSelfRegistrationParams implements SelfRegistration
     protected HomeDashboardParams homeDashboard;
     @Schema(description = "Custom menu id")
     protected CustomMenuId customMenuId;
+    @Schema(description = "Privacy policy text. Supports HTML.")
+    protected String privacyPolicy;
+    @Schema(description = "Terms of User text. Supports HTML.")
+    protected String termsOfUse;
 
     @Override
     public SignUpSelfRegistrationParams toSignUpSelfRegistrationParams() {

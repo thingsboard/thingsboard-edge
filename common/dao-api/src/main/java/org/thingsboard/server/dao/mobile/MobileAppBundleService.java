@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.id.MobileAppBundleId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundleFullInfo;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundlePolicyInfo;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundleInfo;
@@ -46,13 +47,13 @@ import java.util.List;
 
 public interface MobileAppBundleService extends EntityDaoService {
 
-    MobileAppBundlePolicyInfo saveMobileAppBundle(TenantId tenantId, MobileAppBundlePolicyInfo mobileAppBundlePolicyInfo);
+    MobileAppBundle saveMobileAppBundle(TenantId tenantId, MobileAppBundle mobileAppBundle);
 
     MobileAppBundle findMobileAppBundleById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
 
     PageData<MobileAppBundleInfo> findMobileAppBundleInfosByTenantId(TenantId tenantId, PageLink pageLink);
 
-    MobileAppBundlePolicyInfo findMobileAppBundlePolicyInfoById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
+    MobileAppBundleFullInfo findMobileAppBundleFullInfoById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
 
     void updateOauth2Clients(TenantId tenantId, MobileAppBundleId mobileAppBundleId, List<OAuth2ClientId> oAuth2ClientIds);
 
