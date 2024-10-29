@@ -76,4 +76,15 @@ public abstract class AbstractSelfRegistrationParams implements SelfRegistration
     @Schema(description = "Custom menu id")
     protected CustomMenuId customMenuId;
 
+    @Override
+    public SignUpSelfRegistrationParams toSignUpSelfRegistrationParams() {
+        return new SignUpSelfRegistrationParams(
+                getTitle(),
+                getCaptcha(),
+                getSignUpFields(),
+                getShowPrivacyPolicy(),
+                getShowTermsOfUse()
+        );
+    }
+
 }

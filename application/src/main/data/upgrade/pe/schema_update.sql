@@ -250,3 +250,7 @@ ALTER TABLE tb_user ADD COLUMN IF NOT EXISTS custom_menu_id UUID;
 ALTER TABLE customer ADD COLUMN IF NOT EXISTS custom_menu_id UUID;
 
 CREATE INDEX IF NOT EXISTS idx_custom_menu ON custom_menu(tenant_id, customer_id);
+
+ALTER TABLE mobile_app_bundle ADD COLUMN IF NOT EXISTS self_registration_config varchar(16384),
+    ADD COLUMN IF NOT EXISTS terms_of_use varchar(10000000),
+    ADD COLUMN IF NOT EXISTS privacy_policy varchar(10000000);

@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.mobile;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.id.MobileAppBundleId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -62,4 +63,8 @@ public interface MobileAppBundleService extends EntityDaoService {
     void deleteMobileAppBundlesByTenantId(TenantId tenantId);
 
     MobileAppBundlePolicyInfo findMobileAppBundlePolicyInfoByPkgNameAndPlatform(TenantId sysTenantId, String pkgName, PlatformType platform);
+
+    JsonNode findMobilePrivacyPolicy(TenantId tenantId, String pkgName, PlatformType platformType);
+
+    JsonNode findMobileTermsOfUse(TenantId tenantId, String pkgName, PlatformType platformType);
 }

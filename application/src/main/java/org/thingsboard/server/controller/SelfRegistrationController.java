@@ -40,16 +40,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
-import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundlePolicyInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -147,31 +143,26 @@ public class SelfRegistrationController extends BaseController {
             @RequestParam(required = false) String pkgName,
             @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}))
             @RequestParam(required = false) PlatformType platform,
-            HttpServletRequest request) throws ThingsboardException {
+            HttpServletRequest request) {
         SelfRegistrationParams selfRegistrationParams;
         if (!StringUtils.isEmpty(pkgName)) {
-            checkNotNull(platform, "Platform type is required if package name is specified");
             MobileAppBundle appBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
             selfRegistrationParams = appBundle != null ? appBundle.getSelfRegistrationParams() : null;
         } else {
             selfRegistrationParams = whiteLabelingService.getSelfRegistrationParamsByDomain(request.getServerName());
         }
-        return selfRegistrationParams != null ? new SignUpSelfRegistrationParams(selfRegistrationParams.getTitle(), selfRegistrationParams.getCaptcha(), selfRegistrationParams.getSignUpFields(),
-                selfRegistrationParams.getShowPrivacyPolicy(), selfRegistrationParams.getShowTermsOfUse()) : null;
+        return selfRegistrationParams != null ? selfRegistrationParams.toSignUpSelfRegistrationParams() : null;
     }
 
     @ApiOperation(value = "Get Privacy Policy for Self Registration form (getPrivacyPolicy)",
             notes = "Fetch the Privacy Policy based on the domain name from the request. Available for non-authorized users. ")
-    @RequestMapping(value = "/noauth/selfRegistration/privacyPolicy", method = RequestMethod.GET)
-    @ResponseBody
+    @GetMapping(value = "/noauth/selfRegistration/privacyPolicy")
     public String getPrivacyPolicy(@RequestParam(required = false) String pkgName,
                                    @RequestParam(required = false) PlatformType platform,
-                                   HttpServletRequest request) throws ThingsboardException {
+                                   HttpServletRequest request) {
         JsonNode privacyPolicyNode;
         if (!StringUtils.isEmpty(pkgName)) {
-            checkNotNull(platform, "Platform type is required if package name is specified");
-            MobileAppBundlePolicyInfo policyInfo = mobileAppBundleService.findMobileAppBundlePolicyInfoByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
-            privacyPolicyNode = JacksonUtil.toJsonNode(policyInfo != null ? policyInfo.getPrivacyPolicy() : null);
+            privacyPolicyNode = mobileAppBundleService.findMobilePrivacyPolicy(TenantId.SYS_TENANT_ID, pkgName, platform);
         } else {
             privacyPolicyNode = whiteLabelingService.getPrivacyPolicyByDomainName(request.getServerName());
         }
@@ -183,21 +174,18 @@ public class SelfRegistrationController extends BaseController {
 
     @ApiOperation(value = "Get Terms of Use for Self Registration form (getTermsOfUse)",
             notes = "Fetch the Terms of Use based on the domain name from the request. Available for non-authorized users. ")
-    @RequestMapping(value = "/noauth/selfRegistration/termsOfUse", method = RequestMethod.GET)
-    @ResponseBody
+    @GetMapping(value = "/noauth/selfRegistration/termsOfUse")
     public String getTermsOfUse(@RequestParam(required = false) String pkgName,
                                 @RequestParam(required = false) PlatformType platform,
-                                HttpServletRequest request) throws ThingsboardException {
-        JsonNode termsOfUseNode;
+                                HttpServletRequest request) {
+        JsonNode termsOfUse;
         if (!StringUtils.isEmpty(pkgName)) {
-            checkNotNull(platform, "Platform type is required if package name is specified");
-            MobileAppBundlePolicyInfo termsOfUseInfo = mobileAppBundleService.findMobileAppBundlePolicyInfoByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
-            termsOfUseNode = JacksonUtil.toJsonNode(termsOfUseInfo != null ? termsOfUseInfo.getTermsOfUse() : null);
+            termsOfUse = mobileAppBundleService.findMobileTermsOfUse(TenantId.SYS_TENANT_ID, pkgName, platform);
         } else {
-            termsOfUseNode = whiteLabelingService.getTermsOfUseByDomainName(request.getServerName());
+            termsOfUse = whiteLabelingService.getTermsOfUseByDomainName(request.getServerName());
         }
-        if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
-            return termsOfUseNode.get(TERMS_OF_USE).toString();
+        if (termsOfUse != null && termsOfUse.has(TERMS_OF_USE)) {
+            return termsOfUse.get(TERMS_OF_USE).toString();
         }
         return "";
     }

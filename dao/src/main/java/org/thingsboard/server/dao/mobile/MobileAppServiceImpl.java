@@ -52,9 +52,13 @@ import org.thingsboard.server.dao.service.DataValidator;
 import java.util.Map;
 import java.util.Optional;
 
+import static org.thingsboard.server.dao.service.Validator.checkNotNull;
+
 @Slf4j
 @Service
 public class MobileAppServiceImpl extends AbstractEntityService implements MobileAppService {
+
+    private static final String PLATFORM_TYPE_IS_REQUIRED = "Platform type is required if package name is specified";
 
     @Autowired
     private MobileAppDao mobileAppDao;
@@ -119,9 +123,10 @@ public class MobileAppServiceImpl extends AbstractEntityService implements Mobil
     }
 
     @Override
-    public MobileApp findMobileAppByPkgNameAndPlatformType(String pkgName, PlatformType platform) {
-        log.trace("Executing findMobileAppByPkgNameAndPlatformType, pkgName [{}], platform [{}]", pkgName, platform);
-        return mobileAppDao.findByPkgNameAndPlatformType(TenantId.SYS_TENANT_ID, pkgName, platform);
+    public MobileApp findMobileAppByPkgNameAndPlatformType(String pkgName, PlatformType platformType) {
+        log.trace("Executing findMobileAppByPkgNameAndPlatformType, pkgName [{}], platform [{}]", pkgName, platformType);
+        checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);
+        return mobileAppDao.findByPkgNameAndPlatformType(TenantId.SYS_TENANT_ID, pkgName, platformType);
     }
 
     @Override

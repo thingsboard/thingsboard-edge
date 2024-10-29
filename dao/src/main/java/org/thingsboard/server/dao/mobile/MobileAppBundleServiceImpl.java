@@ -30,10 +30,12 @@
  */
 package org.thingsboard.server.dao.mobile;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -62,9 +64,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.dao.service.Validator.checkNotNull;
+
 @Slf4j
 @Service
 public class MobileAppBundleServiceImpl extends AbstractEntityService implements MobileAppBundleService {
+
+    private static final String PLATFORM_TYPE_IS_REQUIRED = "Platform type is required if package name is specified";
 
     @Autowired
     private OAuth2ClientDao oauth2ClientDao;
@@ -156,9 +162,10 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
     }
 
     @Override
-    public MobileAppBundle findMobileAppBundleByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platform) {
-        log.trace("Executing findMobileAppBundleByPkgNameAndPlatform, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platform);
-        return mobileAppBundleDao.findByPkgNameAndPlatform(tenantId, pkgName, platform);
+    public MobileAppBundle findMobileAppBundleByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platformType) {
+        log.trace("Executing findMobileAppBundleByPkgNameAndPlatform, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platformType);
+        checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);
+        return mobileAppBundleDao.findByPkgNameAndPlatform(tenantId, pkgName, platformType);
     }
 
     @Override
@@ -179,9 +186,26 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
     }
 
     @Override
-    public MobileAppBundlePolicyInfo findMobileAppBundlePolicyInfoByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platform) {
-        log.trace("Executing findMobileAppBundlePolicyInfoByPkgNameAndPlatform, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platform);
-        return  mobileAppBundlePolicyInfoDao.findPolicyInfoByPkgNameAndPlatform(tenantId, pkgName, platform);
+    public MobileAppBundlePolicyInfo findMobileAppBundlePolicyInfoByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platformType) {
+        log.trace("Executing findMobileAppBundlePolicyInfoByPkgNameAndPlatform, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platformType);
+        checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);
+        return mobileAppBundlePolicyInfoDao.findPolicyInfoByPkgNameAndPlatform(tenantId, pkgName, platformType);
+    }
+
+    @Override
+    public JsonNode findMobilePrivacyPolicy(TenantId tenantId, String pkgName, PlatformType platformType) {
+        log.trace("Executing findMobilePrivacyPolicy, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platformType);
+        checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);
+        MobileAppBundlePolicyInfo bundlePolicyInfo = findMobileAppBundlePolicyInfoByPkgNameAndPlatform(tenantId, pkgName, platformType);
+        return JacksonUtil.toJsonNode(bundlePolicyInfo != null ? bundlePolicyInfo.getPrivacyPolicy() : null);
+    }
+
+    @Override
+    public JsonNode findMobileTermsOfUse(TenantId tenantId, String pkgName, PlatformType platformType) {
+        log.trace("Executing findMobileTermsOfUse, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platformType);
+        checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);
+        MobileAppBundlePolicyInfo bundlePolicyInfo = findMobileAppBundlePolicyInfoByPkgNameAndPlatform(tenantId, pkgName, platformType);
+        return JacksonUtil.toJsonNode(bundlePolicyInfo != null ? bundlePolicyInfo.getTermsOfUse() : null);
     }
 
     @Override

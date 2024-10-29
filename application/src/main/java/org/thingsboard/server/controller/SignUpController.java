@@ -45,12 +45,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -72,7 +72,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.model.JwtPair;
 import org.thingsboard.server.common.data.selfregistration.MobileRedirectParams;
-import org.thingsboard.server.common.data.selfregistration.MobileSelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpField;
 import org.thingsboard.server.common.data.selfregistration.SignUpFieldId;
@@ -119,8 +118,6 @@ import static org.thingsboard.server.common.data.wl.WhiteLabelingType.SELF_REGIS
 @Slf4j
 public class SignUpController extends BaseController {
 
-    private static final String MOBILE_PLATFORM_IS_REQUIRED = "Mobile platform type is required for mobile signup";
-
     private static final String SELF_REGISTRATION_SETTINGS_WAS_NOT_FOUND = "Self registration settings was not found";
 
     private static final String WL_SETTINGS_WAS_NOT_FOUND = "White labeling settings was not found";
@@ -155,34 +152,25 @@ public class SignUpController extends BaseController {
         restTemplate = new RestTemplate();
     }
 
-    @RequestMapping(value = "/noauth/signup/recaptchaPublicKey", method = RequestMethod.GET)
-    @ResponseStatus(value = HttpStatus.OK)
-    @ResponseBody
-    public String getRecaptchaPublicKey() {
-        return "\"\"";
-    }
-
     @ApiOperation(value = "User Sign Up (signUp)",
             notes = "Process user sign up request. Creates the Customer and corresponding User based on self Registration parameters for the domain. " +
                     "See [Self Registration Controller](/swagger-ui.html#/self-registration-controller) for more details.  " +
                     "The result is either 'SUCCESS' or 'INACTIVE_USER_EXISTS'. " +
                     "If Success, the user will receive an email with instruction to activate the account. " +
                     "The content of the email is customizable via the mail templates.")
-    @RequestMapping(value = "/noauth/signup", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.OK)
-    @ResponseBody
+    @PostMapping(value = "/noauth/signup")
     public SignUpResult signUp(
             @Parameter(description = "A JSON value representing the signup request.", required = true)
-            @RequestBody SignUpRequest signUpRequest, HttpServletRequest request) throws ThingsboardException, IOException {
+            @RequestBody SignUpRequest signUpRequest, HttpServletRequest request) throws ThingsboardException {
         SelfRegistrationParams selfRegistrationParams;
         TenantId tenantId;
         if (!StringUtils.isEmpty(signUpRequest.getPkgName())) {
             validateAppSecret(signUpRequest);
-            MobileAppBundle mobileAppBundle = findMobileAppBundle(signUpRequest.getPkgName(), signUpRequest.getPlatform());
+            MobileAppBundle mobileAppBundle = checkMobileSRSettings(signUpRequest.getPkgName(), signUpRequest.getPlatform());
             selfRegistrationParams = mobileAppBundle.getSelfRegistrationParams();
             tenantId = mobileAppBundle.getTenantId();
         } else {
-            WhiteLabeling whiteLabeling = findSelfRegistrationWL(request.getServerName());
+            WhiteLabeling whiteLabeling = checkWebSRSettings(request.getServerName());
             selfRegistrationParams = JacksonUtil.treeToValue(whiteLabeling.getSettings(), WebSelfRegistrationParams.class);
             tenantId = whiteLabeling.getTenantId();
         }
@@ -281,7 +269,9 @@ public class SignUpController extends BaseController {
             customerService.deleteCustomer(tenantId, savedCustomer.getId());
             throw e;
         }
-        sendUserActivityNotification(tenantId, signUpRequest.getFields().get(FIRST_NAME) + " " + signUpRequest.getFields().get(LAST_NAME),
+        String userFullName = Optional.ofNullable(signUpRequest.getFields().get(FIRST_NAME)).orElse("") + " " +
+                Optional.ofNullable(signUpRequest.getFields().get(LAST_NAME)).orElse("");
+        sendUserActivityNotification(tenantId, userFullName,
                 signUpRequest.getFields().get(EMAIL), false, selfRegistrationParams.getNotificationEmail());
 
         logEntityActionService.logEntityAction(tenantId, savedCustomer.getId(), savedCustomer, savedCustomer.getId(),
@@ -324,8 +314,7 @@ public class SignUpController extends BaseController {
 
     @ApiOperation(value = "Resend Activation Email (resendEmailActivation)",
             notes = "Request to resend the activation email for the user. Checks that user was not activated yet.")
-    @RequestMapping(value = "/noauth/resendEmailActivation", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.OK)
+    @PostMapping(value = "/noauth/resendEmailActivation")
     public void resendEmailActivation(
             @Parameter(description = "Email of the user.", required = true, example = "john.doe@company.com")
             @RequestParam(value = "email") String email,
@@ -336,10 +325,10 @@ public class SignUpController extends BaseController {
             HttpServletRequest request) throws ThingsboardException, IOException {
         TenantId tenantId;
         if (!StringUtils.isEmpty(pkgName)) {
-            MobileAppBundle mobileAppBundle = findMobileAppBundle(pkgName, platform);
+            MobileAppBundle mobileAppBundle = checkMobileSRSettings(pkgName, platform);
             tenantId = mobileAppBundle.getTenantId();
         } else {
-            WhiteLabeling whiteLabeling = findSelfRegistrationWL(request.getServerName());
+            WhiteLabeling whiteLabeling = checkWebSRSettings(request.getServerName());
             tenantId = whiteLabeling.getTenantId();
         }
 
@@ -362,7 +351,7 @@ public class SignUpController extends BaseController {
             notes = "Activate the user using code(link) from the activation email. " +
                     "Validates the code an redirects according to the signup flow. " +
                     "Checks that user was not activated yet.")
-    @RequestMapping(value = "/noauth/activateEmail", params = {"emailCode"}, method = RequestMethod.GET)
+    @GetMapping(value = "/noauth/activateEmail", params = {"emailCode"})
     public ResponseEntity<String> activateEmail(
             @Parameter(description = "Activation token.", required = true)
             @RequestParam(value = "emailCode") String emailCode,
@@ -378,7 +367,7 @@ public class SignUpController extends BaseController {
             String emailVerifiedURI = null;
             try {
                 if (!StringUtils.isEmpty(pkgName)) {
-                    MobileAppBundle mobileAppBundle = findMobileAppBundle(pkgName, platform);
+                    MobileAppBundle mobileAppBundle = checkMobileSRSettings(pkgName, platform);
                     MobileRedirectParams redirect = mobileAppBundle.getSelfRegistrationParams().getRedirect();
                     emailVerifiedURI = redirect.getScheme() + "://" + redirect.getHost() + "/signup/emailVerified";
                 } else {
@@ -399,18 +388,17 @@ public class SignUpController extends BaseController {
 
     @ApiOperation(value = "Mobile Login redirect (mobileLogin)",
             notes = "This method generates redirect to the special link that is handled by mobile application. Useful for email verification flow on mobile app.")
-    @RequestMapping(value = "/noauth/login", params = {"pkgName, platform"}, method = RequestMethod.GET)
+    @GetMapping(value = "/noauth/login", params = {"pkgName, platform"})
     public ResponseEntity<String> mobileLogin(
             @Parameter(description = "Mobile app package name. Used to identify the application and build the redirect link.", required = true)
             @RequestParam(value = "pkgName") String pkgName,
             @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}), required = true)
-            @RequestParam PlatformType platform,
-            HttpServletRequest request) throws ThingsboardException {
+            @RequestParam PlatformType platform) throws ThingsboardException {
         HttpHeaders headers = new HttpHeaders();
         HttpStatus responseStatus;
-        MobileAppBundle mobileAppBundle = findMobileAppBundle(pkgName, platform);
-        MobileSelfRegistrationParams selfRegistrationParams = mobileAppBundle.getSelfRegistrationParams();
-        String redirectURI = selfRegistrationParams.getRedirect().getScheme() + "://" + selfRegistrationParams.getRedirect().getHost() + "/login";
+        MobileAppBundle mobileAppBundle = checkMobileSRSettings(pkgName, platform);
+        MobileRedirectParams redirect = mobileAppBundle.getSelfRegistrationParams().getRedirect();
+        String redirectURI = redirect.getScheme() + "://" + redirect.getHost() + "/login";
         try {
             URI location = new URI(redirectURI);
             headers.setLocation(location);
@@ -426,9 +414,7 @@ public class SignUpController extends BaseController {
             notes = "Activate the user using code(link) from the activation email and return the JWT Token. " +
                     "Sends the notification and email about user activation. " +
                     "Checks that user was not activated yet.")
-    @RequestMapping(value = "/noauth/activateByEmailCode", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.OK)
-    @ResponseBody
+    @PostMapping(value = "/noauth/activateByEmailCode")
     public JwtPair activateUserByEmailCode(
             @Parameter(description = "Activation token.", required = true)
             @RequestParam(value = "emailCode") String emailCode,
@@ -440,11 +426,11 @@ public class SignUpController extends BaseController {
         SelfRegistrationParams selfRegistrationParams;
         TenantId tenantId;
         if (!StringUtils.isEmpty(pkgName)) {
-            MobileAppBundle mobileAppBundle = findMobileAppBundle(pkgName, platform);
+            MobileAppBundle mobileAppBundle = checkMobileSRSettings(pkgName, platform);
             selfRegistrationParams = mobileAppBundle.getSelfRegistrationParams();
             tenantId = mobileAppBundle.getTenantId();
         } else {
-            WhiteLabeling whiteLabeling = findSelfRegistrationWL(request.getServerName());
+            WhiteLabeling whiteLabeling = checkWebSRSettings(request.getServerName());
             selfRegistrationParams = JacksonUtil.treeToValue(whiteLabeling.getSettings(), WebSelfRegistrationParams.class);
             tenantId = whiteLabeling.getTenantId();
         }
@@ -505,7 +491,7 @@ public class SignUpController extends BaseController {
     @ApiOperation(value = "Check privacy policy (privacyPolicyAccepted)",
             notes = "Checks that current user accepted the privacy policy.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/signup/privacyPolicyAccepted", method = RequestMethod.GET)
+    @GetMapping(value = "/signup/privacyPolicyAccepted")
     public @ResponseBody
     Boolean privacyPolicyAccepted() throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
@@ -516,9 +502,7 @@ public class SignUpController extends BaseController {
     @ApiOperation(value = "Accept privacy policy (acceptPrivacyPolicy)",
             notes = "Accept privacy policy by the current user.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/signup/acceptPrivacyPolicy", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.OK)
-    @ResponseBody
+    @PostMapping(value = "/signup/acceptPrivacyPolicy")
     public JsonNode acceptPrivacyPolicy() throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
         User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
@@ -554,7 +538,7 @@ public class SignUpController extends BaseController {
     @ApiOperation(value = "Check Terms Of User (termsOfUseAccepted)",
             notes = "Checks that current user accepted the privacy policy.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/signup/termsOfUseAccepted", method = RequestMethod.GET)
+    @GetMapping(value = "/signup/termsOfUseAccepted")
     public @ResponseBody
     Boolean termsOfUseAccepted() throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
@@ -565,9 +549,7 @@ public class SignUpController extends BaseController {
     @ApiOperation(value = "Accept Terms of Use (acceptTermsOfUse)",
             notes = "Accept Terms of Use by the current user.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/signup/acceptTermsOfUse", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.OK)
-    @ResponseBody
+    @PostMapping(value = "/signup/acceptTermsOfUse")
     public JsonNode acceptTermsOfUse() throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
         User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
@@ -614,23 +596,21 @@ public class SignUpController extends BaseController {
         }
     }
 
-    private void validateAppSecret(SignUpRequest signUpRequest) throws ThingsboardException {
-        checkNotNull(signUpRequest.getPlatform(), MOBILE_PLATFORM_IS_REQUIRED);
+    private void validateAppSecret(SignUpRequest signUpRequest) {
         MobileApp mobileApp = mobileAppService.findMobileAppByPkgNameAndPlatformType(signUpRequest.getPkgName(), signUpRequest.getPlatform());
         if (StringUtils.isEmpty(signUpRequest.getAppSecret()) || !signUpRequest.getAppSecret().equals(mobileApp.getAppSecret())) {
             throw new DataValidationException(INVALID_APP_SECRET);
         }
     }
 
-    private MobileAppBundle findMobileAppBundle(String pkgName, PlatformType platform) throws ThingsboardException {
-        checkNotNull(platform, MOBILE_PLATFORM_IS_REQUIRED);
+    private MobileAppBundle checkMobileSRSettings(String pkgName, PlatformType platform) throws ThingsboardException {
         MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
         checkNotNull(mobileAppBundle, MOBILE_APP_BUNDLE_WAS_NOT_FOUND);
         checkNotNull(mobileAppBundle.getSelfRegistrationParams(), SELF_REGISTRATION_SETTINGS_WAS_NOT_FOUND);
         return mobileAppBundle;
     }
 
-    private WhiteLabeling findSelfRegistrationWL(String domain) throws ThingsboardException {
+    private WhiteLabeling checkWebSRSettings(String domain) throws ThingsboardException {
         WhiteLabeling whiteLabeling = whiteLabelingService.findWhiteLabelingByDomainAndType(domain, SELF_REGISTRATION);
         checkNotNull(whiteLabeling, WL_SETTINGS_WAS_NOT_FOUND);
         checkNotNull(whiteLabeling.getSettings(), SELF_REGISTRATION_SETTINGS_WAS_NOT_FOUND);

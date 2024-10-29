@@ -77,4 +77,6 @@ public interface SelfRegistrationParams extends Serializable {
 
     CustomMenuId getCustomMenuId();
 
+    SignUpSelfRegistrationParams toSignUpSelfRegistrationParams();
+
 }
