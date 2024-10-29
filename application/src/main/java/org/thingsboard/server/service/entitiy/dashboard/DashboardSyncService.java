@@ -33,6 +33,7 @@ package org.thingsboard.server.service.entitiy.dashboard;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -54,6 +55,7 @@ import java.util.stream.Stream;
 @TbCoreComponent
 @RequiredArgsConstructor
 @Slf4j
+@ConditionalOnProperty(value = "transport.gateway.dashboard.sync.enabled", havingValue = "true")
 public class DashboardSyncService {
 
     private final GitSyncService gitSyncService;
@@ -61,8 +63,6 @@ public class DashboardSyncService {
     private final WidgetsBundleService widgetsBundleService;
     private final PartitionService partitionService;
 
-    @Value("${transport.gateway.dashboard.sync.enabled:true}")
-    private boolean enabled;
     @Value("${transport.gateway.dashboard.sync.repository_url:}")
     private String repoUrl;
     @Value("${transport.gateway.dashboard.sync.branch:main}")
@@ -75,9 +75,6 @@ public class DashboardSyncService {
 
     @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
     public void init() throws Exception {
-        if (!enabled) {
-            return;
-        }
         gitSyncService.registerSync(REPO_KEY, repoUrl, branch, TimeUnit.HOURS.toMillis(fetchFrequencyHours), this::update);
     }
 
