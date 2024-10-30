@@ -44,6 +44,8 @@ import java.util.List;
 @EqualsAndHashCode
 public abstract class AbstractSelfRegistrationParams implements SelfRegistrationParams {
 
+    @Schema(description = "Indicates if self-registration is allowed via sign-up form")
+    protected Boolean enabled;
     @Schema(description = "The text message to appear on login form")
     @NotNull
     protected String title;
@@ -53,8 +55,6 @@ public abstract class AbstractSelfRegistrationParams implements SelfRegistration
     @Schema(description = "List of sign-up form fields")
     @NotNull
     protected List<SignUpField> signUpFields;
-    @Schema(description = "Indicates if registration is allowed via oauth2")
-    protected Boolean oauth2Enabled;
     @Schema(description = "Show or hide 'Privacy Policy'")
     protected Boolean showPrivacyPolicy;
     @Schema(description = "Show or hide 'Terms of Use'")

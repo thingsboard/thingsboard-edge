@@ -142,11 +142,15 @@ public class SelfRegistrationController extends BaseController {
     public SignUpSelfRegistrationParams getSignUpSelfRegistrationParams(
             @RequestParam(required = false) String pkgName,
             @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}))
-            @RequestParam(required = false) PlatformType platform,
+            @RequestParam(required = false) PlatformType platformType,
             HttpServletRequest request) {
         SelfRegistrationParams selfRegistrationParams;
         if (!StringUtils.isEmpty(pkgName)) {
-            MobileAppBundle appBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform);
+            // for backward compatibility with mobile apps of version 1.3.0 and less
+            if (platformType == null) {
+                return null;
+            }
+            MobileAppBundle appBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platformType);
             selfRegistrationParams = appBundle != null ? appBundle.getSelfRegistrationParams() : null;
         } else {
             selfRegistrationParams = whiteLabelingService.getSelfRegistrationParamsByDomain(request.getServerName());

@@ -119,6 +119,7 @@ import static org.thingsboard.server.common.data.wl.WhiteLabelingType.SELF_REGIS
 public class SignUpController extends BaseController {
 
     private static final String SELF_REGISTRATION_SETTINGS_WAS_NOT_FOUND = "Self registration settings was not found";
+    private static final String SELF_REGISTRATION_SETTINGS_IS_NOT_ALLOWED = "Self registration is not allowed";
 
     private static final String WL_SETTINGS_WAS_NOT_FOUND = "White labeling settings was not found";
 
@@ -174,6 +175,9 @@ public class SignUpController extends BaseController {
             selfRegistrationParams = JacksonUtil.treeToValue(whiteLabeling.getSettings(), WebSelfRegistrationParams.class);
             tenantId = whiteLabeling.getTenantId();
         }
+
+        //validate self-registration is allowed
+        validateSelfRegistrationAllowed(selfRegistrationParams);
 
         //validate required fields
         validateRequiredFields(signUpRequest, selfRegistrationParams);
@@ -615,6 +619,12 @@ public class SignUpController extends BaseController {
         checkNotNull(whiteLabeling, WL_SETTINGS_WAS_NOT_FOUND);
         checkNotNull(whiteLabeling.getSettings(), SELF_REGISTRATION_SETTINGS_WAS_NOT_FOUND);
         return whiteLabeling;
+    }
+
+    private void validateSelfRegistrationAllowed(SelfRegistrationParams selfRegistrationParams) {
+        if (selfRegistrationParams.getEnabled() != null && !selfRegistrationParams.getEnabled()) {
+            throw new DataValidationException(SELF_REGISTRATION_SETTINGS_IS_NOT_ALLOWED);
+        }
     }
 
 }

@@ -53,6 +53,8 @@ public interface SelfRegistrationParams extends Serializable {
 
     SelfRegistrationType getType();
 
+    Boolean getEnabled();
+
     String getTitle();
 
     CaptchaParams getCaptcha();

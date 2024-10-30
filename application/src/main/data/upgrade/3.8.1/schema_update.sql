@@ -293,6 +293,7 @@ $$
         -- in case of running the upgrade script a second time
         IF (SELECT settings::jsonb -> 'captcha' FROM white_labeling WHERE white_labeling.type = 'SELF_REGISTRATION' LIMIT 1) IS NULL THEN
             UPDATE white_labeling SET settings = json_build_object(
+                    'enabled', true,
                     'type', 'WEB',
                     'title', settings::jsonb ->> 'signUpTextMessage',
                     'signUpFields', jsonb_build_array(json_build_object('id', 'EMAIL', 'label', 'Email', 'required', true),
@@ -325,6 +326,7 @@ $$
         -- in case of running the upgrade script a second time
         IF (SELECT self_registration_config::jsonb -> 'captcha' FROM mobile_app_bundle WHERE self_registration_config IS NOT NULL LIMIT 1) IS NULL THEN
             UPDATE mobile_app_bundle SET self_registration_config = json_build_object(
+                    'enabled', true,
                     'type', 'MOBILE',
                     'title', self_registration_config::jsonb ->> 'signUpTextMessage',
                     'signUpFields', jsonb_build_array(json_build_object('id', 'EMAIL', 'label', 'Email', 'required', true),
