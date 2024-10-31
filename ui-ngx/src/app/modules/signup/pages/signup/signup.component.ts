@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, HostBinding, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, ViewChild } from '@angular/core';
 import { AuthService } from '@core/auth/auth.service';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
@@ -45,10 +45,7 @@ import { ReCaptcha2Component, ReCaptchaV3Service } from 'ngx-captcha';
 import { SelfRegistrationService } from '@core/http/self-register.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { MatDialog } from '@angular/material/dialog';
-import {
-  SignupDialogData,
-  SignupDialogComponent
-} from '@modules/signup/pages/signup/signup-dialog.component';
+import { SignupDialogComponent, SignupDialogData } from '@modules/signup/pages/signup/signup-dialog.component';
 import { from } from 'rxjs';
 
 @Component({
@@ -56,7 +53,7 @@ import { from } from 'rxjs';
   templateUrl: './signup.component.html',
   styleUrls: ['./signup.component.scss']
 })
-export class SignupComponent extends PageComponent implements OnInit {
+export class SignupComponent extends PageComponent {
 
   @ViewChild('recaptcha') recaptchaComponent: ReCaptcha2Component;
 
@@ -83,17 +80,14 @@ export class SignupComponent extends PageComponent implements OnInit {
     super(store);
   }
 
-  ngOnInit() {
-  }
-
   signUp(): void {
     if (this.signup.valid) {
       if (this.validateSignUpRequest()) {
-        if (this.signupParams?.captchaVersion === 'v2') {
+        if (this.signupParams?.captcha?.version === 'v2') {
           this.executeSignup(this.signup.value);
         } else {
-          from(this.reCaptchaV3Service.executeAsPromise(this.signupParams?.captchaSiteKey,
-            this.signupParams?.captchaAction, {useGlobalDomain: true})).subscribe(
+          from(this.reCaptchaV3Service.executeAsPromise(this.signupParams?.captcha?.siteKey,
+            this.signupParams?.captcha?.logActionName, {useGlobalDomain: true})).subscribe(
             {
               next: (token) => {
                 const signupRequest: SignupRequest = this.signup.value;
@@ -163,7 +157,7 @@ export class SignupComponent extends PageComponent implements OnInit {
         type: 'error' }));
       return false;
     }
-    if (this.signupParams?.captchaVersion === 'v2' &&
+    if (this.signupParams?.captcha?.version === 'v2' &&
       (!this.signup.get('recaptchaResponse').value || this.signup.get('recaptchaResponse').value.length < 1)) {
       this.store.dispatch(new ActionNotificationShow({ message: this.translate.instant('signup.no-captcha-message'),
         type: 'error' }));

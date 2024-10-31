@@ -1085,6 +1085,7 @@
     "common": {
         "username": "Username",
         "password": "Password",
+        "repeat-password": "Repeat password",
         "enter-username": "Enter username",
         "enter-password": "Enter password",
         "enter-search": "Enter search",
@@ -4584,6 +4585,23 @@
             "run-app-text": "Run the app as described in your IDE.\nIf using the terminal, run the app with the following command:",
             "more-information": "Detailed information may be found in our Getting Started documentation.",
             "getting-started": "Getting Started"
+        },
+        "self-registration": {
+            "add-field": "Add field",
+            "advanced-settings": "Advanced settings",
+            "captcha-properties": "Captcha properties",
+            "customer-group": "Customer group",
+            "customer-title-prefix": "Customer title prefix",
+            "field-type": "Field type",
+            "label": "Label",
+            "no-customer-groups-matching": "No customer groups matching '{{entityGroup}}' were found.",
+            "page-title": "Page title",
+            "page-title-required": "Page title is required.",
+            "redirect-settings": "Redirect settings",
+            "registration-form-field": "Registration form fields",
+            "remove-registration-field": "Remove registration field",
+            "required": "Required",
+            "self-registration": "Self-registration"
         }
     },
     "notification": {
@@ -7060,10 +7078,10 @@
     "self-registration": {
         "self-registration": "Self registration",
         "self-registration-url": "Self registration URL",
-        "captcha-version": "reCAPTCHA version",
-        "captcha-action": "reCAPTCHA log action name",
-        "captcha-site-key": "reCAPTCHA site key",
-        "captcha-secret-key": "reCAPTCHA secret key",
+        "captcha-version": "Captcha version",
+        "captcha-action": "Captcha log action name",
+        "captcha-site-key": "Captcha site key",
+        "captcha-secret-key": "Captcha secret key",
         "notification-email": "Notification email",
         "notification-email-invalid": "Invalid email format.",
         "notification-email-required": "Notification email is required.",

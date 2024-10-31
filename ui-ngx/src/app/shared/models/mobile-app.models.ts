@@ -35,6 +35,7 @@ import { OAuth2ClientInfo, PlatformType } from '@shared/models/oauth2.models';
 import { MobileAppBundleId } from '@shared/models/id/mobile-app-bundle-id';
 import { HasTenantId } from '@shared/models/entity.models';
 import { deepClone, isNotEmptyStr } from '@core/utils';
+import { MobileSelfRegistrationParams } from '@shared/models/self-register.models';
 
 export interface QrCodeSettings extends HasTenantId {
   useSystemSettings: boolean;
@@ -161,6 +162,7 @@ export interface MobileAppBundle extends Omit<BaseData<MobileAppBundleId>, 'labe
   androidAppId?: MobileAppId;
   iosAppId?: MobileAppId;
   layoutConfig?: MobileLayoutConfig;
+  selfRegistrationParams?: MobileSelfRegistrationParams;
   oauth2Enabled: boolean;
 }
 

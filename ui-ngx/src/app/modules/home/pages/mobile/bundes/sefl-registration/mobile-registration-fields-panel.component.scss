@@ -28,71 +28,45 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../../../../../scss/constants";
+@import '../../../../../../../scss/constants';
 
-:host {
-  width: 850px;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100vh;
-  display: grid;
-  grid-template-rows: min-content 4px minmax(auto, 1fr) min-content;
-  --mdc-outlined-text-field-outline-color: rgba(0,0,0,0.12);
+.tb-registration-fields-panel {
+  @media #{$mat-xs} {
+    padding-left: 0;
+  }
+  .tb-form-table-header-cell {
+    &.tb-required-header {
+      width: 80px;
+      min-width: 80px;
+      @media #{$mat-xs} {
+        width: 32px;
+        min-width: 32px;
+        visibility: hidden;
+      }
+    }
 
-  .mat-mdc-slide-toggle {
-    margin-bottom: 16px;
+    &.tb-label-header, &.tb-field-type-header {
+      flex: 1 1 50%;
+      min-width: 100px;
+    }
+
+    &.tb-actions-header {
+      width: 32px;
+      min-width: 32px;
+      @media #{$mat-sm} {
+        width: 40px;
+        min-width: 40px;
+      }
+      @media #{$mat-gt-sm} {
+        width: 80px;
+        min-width: 80px;
+      }
+    }
   }
 
-  form.layout-form {
-    display: block;
-    height: 100%;
-    max-height: 100%;
-  }
-
-  ::ng-deep {
-
-    .mat-mdc-dialog-content {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      padding: 0 !important;
-      color: rgba(0, 0, 0, 0.87);
-
-      .mat-stepper-horizontal {
-        display: flex;
-        height: 100%;
-        overflow: hidden;
-
-        .mat-horizontal-stepper-wrapper {
-          flex: 1 1 100%;
-          max-width: 100%;
-        }
-
-        .mat-horizontal-content-container {
-          height: 700px;
-          max-height: 100%;
-          width: 100%;;
-          overflow-y: auto;
-          scrollbar-gutter: stable;
-          @media #{$mat-gt-sm} {
-            min-width: 500px;
-          }
-          .mat-horizontal-stepper-content:not(.mat-horizontal-stepper-content-inactive):nth-child(3) {
-            height: 100%;
-            max-height: 100%;
-            overflow: hidden;
-          }
-        }
-      }
-      .mat-stepper-vertical {
-        .mat-step:nth-child(4) {
-          .mat-vertical-stepper-content:not(.mat-vertical-stepper-content-inactive) {
-            .mat-vertical-content {
-              padding-left: 0;
-            }
-          }
-        }
-      }
+  .tb-form-table-body {
+    tb-mobile-registration-fields-row {
+      overflow: hidden;
     }
   }
 }

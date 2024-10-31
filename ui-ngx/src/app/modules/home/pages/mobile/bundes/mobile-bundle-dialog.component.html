@@ -64,7 +64,7 @@
           allowCreateNew
           useFullEntityId
           appearance="outline"
-          labelText="{{ 'mobile.android-application' | translate }}"
+          labelText="mobile.android-application"
           [entityType]="entityType.MOBILE_APP"
           [entitySubtype]="platformType.ANDROID"
           (createNew)="createApplication('androidAppId', platformType.ANDROID)"
@@ -74,7 +74,7 @@
           allowCreateNew
           useFullEntityId
           appearance="outline"
-          labelText="{{ 'mobile.ios-application' | translate }}"
+          labelText="mobile.ios-application"
           [entityType]="entityType.MOBILE_APP"
           [entitySubtype]="platformType.IOS"
           (createNew)="createApplication('iosAppId', platformType.IOS)"
@@ -88,7 +88,7 @@
     </mat-step>
     <mat-step [stepControl]="oauthForms">
       <ng-template matStepLabel>{{ 'admin.oauth2.oauth2' | translate }}</ng-template>
-      <form [formGroup]="oauthForms" style="margin-top: 8px;">
+      <form [formGroup]="oauthForms" class="mt-2">
         <mat-slide-toggle formControlName="oauth2Enabled">
           {{ 'mobile.enable-oauth' | translate }}
         </mat-slide-toggle>
@@ -110,6 +110,13 @@
       <form [formGroup]="layoutForms" class="layout-form">
         <tb-mobile-layout formControlName="layoutConfig">
         </tb-mobile-layout>
+      </form>
+    </mat-step>
+    <mat-step [stepControl]="selfRegistrationForm" *ngIf="!isSysAdmin">
+      <ng-template matStepLabel>{{ 'mobile.self-registration.self-registration' | translate }}</ng-template>
+      <form [formGroup]="selfRegistrationForm" class="layout-form mt-2">
+        <tb-mobile-self-registration formControlName="selfRegistrationParams">
+        </tb-mobile-self-registration>
       </form>
     </mat-step>
   </mat-horizontal-stepper>

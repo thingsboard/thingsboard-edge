@@ -28,70 +28,42 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import "../../../../../../scss/constants";
+@import "../scss/constants";
+.tb-user-groups-panel-row.tb-form-row {
+  tb-entity-autocomplete {
+    .mat-mdc-form-field {
+      width: auto;
 
-:host {
-  width: 850px;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100vh;
-  display: grid;
-  grid-template-rows: min-content 4px minmax(auto, 1fr) min-content;
-  --mdc-outlined-text-field-outline-color: rgba(0,0,0,0.12);
-
-  .mat-mdc-slide-toggle {
-    margin-bottom: 16px;
+      .mat-mdc-form-field-subscript-wrapper {
+        display: none;
+      }
+    }
   }
 
-  form.layout-form {
-    display: block;
-    height: 100%;
-    max-height: 100%;
-  }
-
-  ::ng-deep {
-
-    .mat-mdc-dialog-content {
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      padding: 0 !important;
-      color: rgba(0, 0, 0, 0.87);
-
-      .mat-stepper-horizontal {
-        display: flex;
-        height: 100%;
-        overflow: hidden;
-
-        .mat-horizontal-stepper-wrapper {
-          flex: 1 1 100%;
-          max-width: 100%;
+  tb-entity-group-select {
+    .tb-entity-group-select {
+      gap: 16px;
+      @media #{$mat-lt-md} {
+        gap: 8px;
+      }
+      @media #{$mat-xs} {
+        flex-wrap: wrap;
+        tb-entity-type-select {
+          flex: 1 1 auto;
         }
-
-        .mat-horizontal-content-container {
-          height: 700px;
-          max-height: 100%;
-          width: 100%;;
-          overflow-y: auto;
-          scrollbar-gutter: stable;
-          @media #{$mat-gt-sm} {
-            min-width: 500px;
-          }
-          .mat-horizontal-stepper-content:not(.mat-horizontal-stepper-content-inactive):nth-child(3) {
-            height: 100%;
-            max-height: 100%;
-            overflow: hidden;
-          }
+        tb-entity-group-autocomplete {
+          flex: 1 1 auto;
         }
       }
-      .mat-stepper-vertical {
-        .mat-step:nth-child(4) {
-          .mat-vertical-stepper-content:not(.mat-vertical-stepper-content-inactive) {
-            .mat-vertical-content {
-              padding-left: 0;
-            }
-          }
-        }
+    }
+    .mat-mdc-form-field {
+      .mat-mdc-form-field-subscript-wrapper {
+        display: none;
+      }
+    }
+    tb-entity-group-autocomplete {
+      .mat-mdc-form-field {
+        width: auto;
       }
     }
   }

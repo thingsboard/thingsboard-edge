@@ -42,6 +42,17 @@ import { AddMobilePageDialogComponent } from '@home/pages/mobile/bundes/layout/a
 import { CustomMobilePageComponent } from '@home/pages/mobile/bundes/layout/custom-mobile-page.component';
 import { CustomMobilePagePanelComponent } from '@home/pages/mobile/bundes/layout/custom-mobile-page-panel.component';
 import { DefaultMobilePagePanelComponent } from '@home/pages/mobile/bundes/layout/default-mobile-page-panel.component';
+import {
+  MobileSelfRegistrationComponent
+} from '@home/pages/mobile/bundes/sefl-registration/mobile-self-registration.component';
+import {
+  MobileRegistrationFieldsPanelComponent
+} from '@home/pages/mobile/bundes/sefl-registration/mobile-registration-fields-panel.component';
+import { WidgetSettingsCommonModule } from '@home/components/widget/lib/settings/common/widget-settings-common.module';
+import {
+  MobileRegistrationFieldsRowComponent
+} from '@home/pages/mobile/bundes/sefl-registration/mobile-registration-fields-row.component';
+import { EditorPanelComponent } from '@home/pages/mobile/bundes/sefl-registration/editor-panel.component';
 
 @NgModule({
   declarations: [
@@ -53,12 +64,17 @@ import { DefaultMobilePagePanelComponent } from '@home/pages/mobile/bundes/layou
     CustomMobilePageComponent,
     CustomMobilePagePanelComponent,
     DefaultMobilePagePanelComponent,
+    MobileSelfRegistrationComponent,
+    MobileRegistrationFieldsPanelComponent,
+    MobileRegistrationFieldsRowComponent,
+    EditorPanelComponent
   ],
   imports: [
     CommonModule,
     SharedModule,
     HomeComponentsModule,
     MobileBundleRoutingModule,
+    WidgetSettingsCommonModule,
   ]
 })
 export class MobileBundlesModule { }

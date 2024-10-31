@@ -53,6 +53,8 @@ import { ClientDialogComponent } from '@home/pages/admin/oauth2/clients/client-d
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { MobileAppService } from '@core/http/mobile-app.service';
 import { deepClone, deepTrim } from '@core/utils';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Authority } from '@shared/models/authority.enum';
 
 export interface MobileBundleDialogData {
   bundle?: MobileAppBundleInfo;
@@ -94,6 +96,12 @@ export class MobileBundleDialogComponent extends DialogComponent<MobileBundleDia
     layoutConfig: [null]
   });
 
+  selfRegistrationForm = this.fb.group({
+    selfRegistrationParams: [null]
+  });
+
+  readonly isSysAdmin = getCurrentAuthUser(this.store).authority === Authority.SYS_ADMIN;
+
   constructor(protected store: Store<AppState>,
               protected router: Router,
               protected dialogRef: MatDialogRef<MobileBundleDialogComponent, MobileAppBundle>,
@@ -127,6 +135,7 @@ export class MobileBundleDialogComponent extends DialogComponent<MobileBundleDia
       this.oauthForms.get('oauth2ClientIds')
         .setValue(deepClone(this.data.bundle.oauth2ClientInfos.map(item => item.id.id)), {emitEvent: false});
       this.layoutForms.patchValue(this.data.bundle, {emitEvent: false});
+      this.selfRegistrationForm.patchValue(this.data.bundle, {emitEvent: false})
     }
   }
 
@@ -236,6 +245,9 @@ export class MobileBundleDialogComponent extends DialogComponent<MobileBundleDia
     const formValue = deepTrim(this.bundlesForms.value) as MobileAppBundle;
     formValue.layoutConfig = deepTrim(this.layoutForms.value.layoutConfig);
     formValue.oauth2Enabled = this.oauthForms.value.oauth2Enabled;
+    if (!this.isSysAdmin) {
+      formValue.selfRegistrationParams = this.selfRegistrationForm.value.selfRegistrationParams;
+    }
     return formValue;
   }
 }

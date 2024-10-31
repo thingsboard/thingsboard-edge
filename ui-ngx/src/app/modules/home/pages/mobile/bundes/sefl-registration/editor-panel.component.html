@@ -30,33 +30,22 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="selectEntityGroupFormGroup" class="mat-block" [appearance]="appearance">
-  <mat-label>{{ placeholderText | translate }}</mat-label>
-  <input matInput type="text"
-         #entityGroupInput
-         formControlName="entityGroup"
-         (focusin)="onFocus()"
-         [required]="required"
-         [matAutocomplete]="entityGroupAutocomplete">
-  <button *ngIf="selectEntityGroupFormGroup.get('entityGroup').value && !disabled"
-          type="button"
-          matSuffix mat-icon-button aria-label="Clear"
-          (click)="clear()">
-    <mat-icon class="material-icons">close</mat-icon>
-  </button>
-  <mat-autocomplete class="tb-autocomplete"
-                    #entityGroupAutocomplete="matAutocomplete"
-                    [displayWith]="displayEntityGroupFn">
-    <mat-option *ngFor="let entityGroup of filteredEntityGroups | async" [value]="entityGroup">
-      <span [innerHTML]="entityGroup.name | highlight:searchText"></span>
-    </mat-option>
-    <mat-option *ngIf="!(filteredEntityGroups | async)?.length" [value]="null">
-      <span>
-          {{ translate.get(notFoundText, {entityGroup: searchText}) | async }}
-      </span>
-    </mat-option>
-  </mat-autocomplete>
-  <mat-error *ngIf="selectEntityGroupFormGroup.get('entityGroup').hasError('required')">
-    {{ requiredText | translate }}
-  </mat-error>
-</mat-form-field>
+<div class="tb-editor-panel">
+  <div class="tb-editor-title">{{ title | translate }}</div>
+  <editor class="tb-editor" [init]="tinyMceOptions" [formControl]="editorControl"></editor>
+  <div class="tb-editor-buttons">
+    <button mat-button
+            color="primary"
+            type="button"
+            (click)="cancel()">
+      {{ 'action.cancel' | translate }}
+    </button>
+    <button mat-raised-button
+            color="primary"
+            type="button"
+            (click)="apply()"
+            [disabled]="editorControl.invalid || !editorControl.dirty">
+      {{ 'action.apply' | translate }}
+    </button>
+  </div>
+</div>

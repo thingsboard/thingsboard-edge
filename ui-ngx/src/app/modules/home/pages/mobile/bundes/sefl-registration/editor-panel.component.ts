@@ -29,44 +29,66 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { BaseData } from '@shared/models/base-data';
-import { RoleId } from '@shared/models/id/role-id';
-import { TenantId } from '@shared/models/id/tenant-id';
-import { GroupPermissionId } from '@shared/models/id/group-permission-id';
-import { EntityGroupId } from '@shared/models/id/entity-group-id';
-import { EntityType } from '@shared/models/entity-type.models';
-import { Role } from '@shared/models/role.models';
-import { EntityId } from '@shared/models/id/entity-id';
+import { Component, EventEmitter, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
+import { FormBuilder, FormControl } from '@angular/forms';
+import { TbPopoverComponent } from '@shared/components/popover.component';
 
-export interface GroupPermission extends BaseData<GroupPermissionId> {
-  tenantId?: TenantId;
-  userGroupId?: EntityGroupId;
-  roleId: RoleId;
-  entityGroupId?: EntityGroupId;
-  entityGroupType?: EntityType;
-  isPublic?: boolean;
-}
+@Component({
+  selector: 'tb-release-notes-panel',
+  templateUrl: './editor-panel.component.html',
+  styleUrls: ['./editor-panel.component.scss'],
+  encapsulation: ViewEncapsulation.None
+})
+export class EditorPanelComponent implements OnInit {
 
-export interface GroupPermissionInfo extends GroupPermission {
-  role: Role;
-  entityGroupName: string;
-  entityGroupOwnerId: EntityId;
-  entityGroupOwnerName: string;
-  userGroupName: string;
-  userGroupOwnerId: EntityId;
-  userGroupOwnerName: string;
-  readOnly: boolean;
-}
+  @Input()
+  disabled: boolean;
 
-export interface GroupPermissionFullInfo extends GroupPermissionInfo {
-  roleName?: string;
-  roleTypeName?: string;
-  entityGroupTypeName?: string;
-  entityGroupOwnerFullName?: string;
-  userGroupOwnerFullName?: string;
-  sourceGroupPermission?: GroupPermission;
-}
+  @Input()
+  content: string;
 
-export function isGroupPermissionsEqual(gp1: GroupPermission, gp2: GroupPermission): boolean {
-  return gp1?.roleId?.id === gp2?.roleId?.id && gp1.entityGroupId?.id === gp2.entityGroupId?.id;
+  @Input()
+  title: string;
+
+  @Input()
+  popover: TbPopoverComponent<EditorPanelComponent>;
+
+  @Output()
+  editorContentApplied = new EventEmitter<string>();
+
+  editorControl: FormControl<string>;
+
+  tinyMceOptions: Record<string, any> = {
+    base_url: '/assets/tinymce',
+    suffix: '.min',
+    plugins: ['lists'],
+    menubar: 'edit insert view format',
+    toolbar: ['fontfamily fontsize | bold italic underline strikethrough forecolor backcolor',
+      'alignleft aligncenter alignright alignjustify | bullist'],
+    toolbar_mode: 'sliding',
+    height: 400,
+    autofocus: false,
+    branding: false,
+    promotion: false
+  };
+
+  constructor(private fb: FormBuilder) {
+  }
+
+  ngOnInit(): void {
+    this.editorControl = this.fb.control(this.content);
+    if (this.disabled) {
+      this.editorControl.disable({emitEvent: false});
+    }
+  }
+
+  cancel() {
+    this.popover?.hide();
+  }
+
+  apply() {
+    if (this.editorControl.valid) {
+      this.editorContentApplied.emit(this.editorControl.value);
+    }
+  }
 }
