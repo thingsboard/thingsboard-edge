@@ -408,7 +408,7 @@ public class DefaultNotifications {
             .type(NotificationType.GENERAL)
             .subject("WARNING: ${queueType} deprecation")
             .text("Starting with ThingsBoard 4.0, ${queueType} will no longer be supported as a message queue for microservices. " +
-                    "Please migrate to Apache Kafka. This change will not impact any rule nodes.")
+                    "Please migrate to Apache Kafka. This change will not impact any integrations or rule nodes.")
             .icon("warning").color(RED_COLOR)
             .build();
 
