@@ -190,12 +190,7 @@ public class QrCodeSettingsController extends BaseController {
             platformDomain = defaultAppDomain;
         }
         QrCodeSettings qrCodeSettings = qrCodeSettingService.getMergedQrCodeSettings(currentUser.getTenantId());
-        String appDomain;
-        if (!qrCodeSettings.isUseDefaultApp()) {
-            appDomain = platformDomain;
-        } else {
-            appDomain = defaultAppDomain;
-        }
+        String appDomain = qrCodeSettings.isUseDefaultApp() ? defaultAppDomain : platformDomain;
         String deepLink = String.format(DEEP_LINK_PATTERN, appDomain, secret, mobileSecretKeyTtl);
         if (!appDomain.equals(platformDomain)) {
             deepLink = deepLink + "&host=" + baseUrl;
