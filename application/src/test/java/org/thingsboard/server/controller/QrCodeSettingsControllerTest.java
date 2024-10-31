@@ -159,14 +159,14 @@ public class QrCodeSettingsControllerTest extends AbstractControllerTest {
 
         doPost("/api/mobile/qr/settings", qrCodeSettings)
                 .andExpect(status().isBadRequest())
+                .andExpect(statusReason(containsString("Validation error: qrCodeConfig must not be null")));
+
+        qrCodeSettings.setQrCodeConfig(QRCodeConfig.builder().showOnHomePage(false).build());
+        doPost("/api/mobile/qr/settings", qrCodeSettings)
+                .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString("Mobile app bundle is required to use custom application!")));
 
         qrCodeSettings.setMobileAppBundleId(mobileAppBundle.getId());
-        doPost("/api/mobile/qr/settings", qrCodeSettings)
-                .andExpect(status().isBadRequest())
-                .andExpect(statusReason(containsString("Qr code configuration is required!")));
-
-        qrCodeSettings.setQrCodeConfig(QRCodeConfig.builder().showOnHomePage(false).build());
         doPost("/api/mobile/qr/settings", qrCodeSettings)
                 .andExpect(status().isOk());
     }
