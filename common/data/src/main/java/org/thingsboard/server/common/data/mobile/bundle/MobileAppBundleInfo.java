@@ -67,6 +67,11 @@ public class MobileAppBundleInfo extends MobileAppBundle {
         this.oauth2ClientInfos = oauth2ClientInfos;
     }
 
+    public MobileAppBundleInfo(MobileAppBundle mobileApp, List<OAuth2ClientInfo> oauth2ClientInfos) {
+        super(mobileApp);
+        this.oauth2ClientInfos = oauth2ClientInfos;
+    }
+
     public MobileAppBundleInfo() {
         super();
     }

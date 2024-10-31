@@ -49,8 +49,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.MobileAppBundleId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
-import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundleFullInfo;
-import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundlePolicyInfo;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundleInfo;
 import org.thingsboard.server.common.data.page.PageData;
@@ -90,7 +88,7 @@ public class MobileAppBundleController extends BaseController {
     @PostMapping(value = "/mobile/bundle")
     public MobileAppBundle saveMobileAppBundle(
             @Parameter(description = "A JSON value representing the Mobile Application Bundle.", required = true)
-            @RequestBody @Valid MobileAppBundlePolicyInfo mobileAppBundle,
+            @RequestBody @Valid MobileAppBundle mobileAppBundle,
             @Parameter(description = "A list of oauth2 client ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
             @RequestParam(name = "oauth2ClientIds", required = false) UUID[] ids) throws Exception {
         mobileAppBundle.setTenantId(getTenantId());
@@ -130,9 +128,9 @@ public class MobileAppBundleController extends BaseController {
     @ApiOperation(value = "Get mobile app bundle info by id (getMobileAppBundleInfoById)", notes = SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
     @GetMapping(value = "/mobile/bundle/info/{id}")
-    public MobileAppBundleFullInfo getMobileAppBundleInfoById(@PathVariable UUID id) throws ThingsboardException {
+    public MobileAppBundleInfo getMobileAppBundleInfoById(@PathVariable UUID id) throws ThingsboardException {
         MobileAppBundleId mobileAppBundleId = new MobileAppBundleId(id);
-        return checkEntityId(mobileAppBundleId, mobileAppBundleService::findMobileAppBundleFullInfoById, Operation.READ);
+        return checkEntityId(mobileAppBundleId, mobileAppBundleService::findMobileAppBundleInfoById, Operation.READ);
     }
 
     @ApiOperation(value = "Delete Mobile App Bundle by ID (deleteMobileAppBundle)",

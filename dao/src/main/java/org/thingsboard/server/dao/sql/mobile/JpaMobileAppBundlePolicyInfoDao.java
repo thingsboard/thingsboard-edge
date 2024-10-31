@@ -35,7 +35,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundlePolicyInfo;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.mobile.MobileAppBundlePolicyInfoDao;
@@ -48,7 +48,7 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @SqlDao
-public class JpaMobileAppBundlePolicyInfoDao extends JpaAbstractDao<MobileAppBundlePolicyInfoEntity, MobileAppBundlePolicyInfo> implements MobileAppBundlePolicyInfoDao {
+public class JpaMobileAppBundlePolicyInfoDao extends JpaAbstractDao<MobileAppBundlePolicyInfoEntity, MobileAppBundle> implements MobileAppBundlePolicyInfoDao {
 
     private final MobileAppBundlePolicyInfoRepository mobileAppBundlePolicyInfoRepository;
 
@@ -63,7 +63,7 @@ public class JpaMobileAppBundlePolicyInfoDao extends JpaAbstractDao<MobileAppBun
     }
 
     @Override
-    public MobileAppBundlePolicyInfo findPolicyInfoByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platform) {
+    public MobileAppBundle findPolicyInfoByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platform) {
         return DaoUtil.getData(mobileAppBundlePolicyInfoRepository.findByPkgNameAndPlatformType(pkgName, platform));
     }
 

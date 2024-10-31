@@ -34,8 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.id.MobileAppBundleId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundleFullInfo;
-import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundlePolicyInfo;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundleInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
@@ -53,7 +51,7 @@ public interface MobileAppBundleService extends EntityDaoService {
 
     PageData<MobileAppBundleInfo> findMobileAppBundleInfosByTenantId(TenantId tenantId, PageLink pageLink);
 
-    MobileAppBundleFullInfo findMobileAppBundleFullInfoById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
+    MobileAppBundleInfo findMobileAppBundleInfoById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
 
     void updateOauth2Clients(TenantId tenantId, MobileAppBundleId mobileAppBundleId, List<OAuth2ClientId> oAuth2ClientIds);
 
@@ -63,7 +61,7 @@ public interface MobileAppBundleService extends EntityDaoService {
 
     void deleteMobileAppBundlesByTenantId(TenantId tenantId);
 
-    MobileAppBundlePolicyInfo findMobileAppBundlePolicyInfoByPkgNameAndPlatform(TenantId sysTenantId, String pkgName, PlatformType platform);
+    MobileAppBundle findMobileAppBundlePolicyInfoByPkgNameAndPlatform(TenantId sysTenantId, String pkgName, PlatformType platform);
 
     JsonNode findMobilePrivacyPolicy(TenantId tenantId, String pkgName, PlatformType platformType);
 

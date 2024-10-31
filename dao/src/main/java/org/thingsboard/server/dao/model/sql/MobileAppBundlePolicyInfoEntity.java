@@ -35,7 +35,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundlePolicyInfo;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
+import org.thingsboard.server.common.data.selfregistration.MobileSelfRegistrationParams;
 import org.thingsboard.server.dao.model.ModelConstants;
 
 import static org.thingsboard.server.dao.model.ModelConstants.MOBILE_APP_BUNDLE_TABLE_NAME;
@@ -44,7 +45,7 @@ import static org.thingsboard.server.dao.model.ModelConstants.MOBILE_APP_BUNDLE_
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = MOBILE_APP_BUNDLE_TABLE_NAME)
-public final class MobileAppBundlePolicyInfoEntity extends AbstractMobileAppBundleEntity<MobileAppBundlePolicyInfo> {
+public final class MobileAppBundlePolicyInfoEntity extends AbstractMobileAppBundleEntity<MobileAppBundle> {
 
     @Column(name = ModelConstants.MOBILE_APP_BUNDLE_TERMS_OF_USE_PROPERTY)
     private String termsOfUse;
@@ -56,14 +57,23 @@ public final class MobileAppBundlePolicyInfoEntity extends AbstractMobileAppBund
         super();
     }
 
-    public MobileAppBundlePolicyInfoEntity(MobileAppBundlePolicyInfo mobileAppBundlePolicyInfo) {
-        super(mobileAppBundlePolicyInfo);
-        this.termsOfUse = mobileAppBundlePolicyInfo.getTermsOfUse();
-        this.privacyPolicy = mobileAppBundlePolicyInfo.getPrivacyPolicy();
+    public MobileAppBundlePolicyInfoEntity(MobileAppBundle mobileAppBundle) {
+        super(mobileAppBundle);
+        MobileSelfRegistrationParams selfRegistrationParams = mobileAppBundle.getSelfRegistrationParams();
+        if (selfRegistrationParams != null) {
+            this.termsOfUse = selfRegistrationParams.getTermsOfUse();
+            this.privacyPolicy = selfRegistrationParams.getPrivacyPolicy();
+        }
     }
 
     @Override
-    public MobileAppBundlePolicyInfo toData() {
-        return new MobileAppBundlePolicyInfo(super.toMobileAppBundle(), termsOfUse, privacyPolicy);
+    public MobileAppBundle toData() {
+        MobileAppBundle mobileAppBundle = super.toMobileAppBundle();
+        MobileSelfRegistrationParams selfRegistrationParams = mobileAppBundle.getSelfRegistrationParams();
+        if (selfRegistrationParams != null) {
+            selfRegistrationParams.setPrivacyPolicy(privacyPolicy);
+            selfRegistrationParams.setTermsOfUse(termsOfUse);
+        }
+        return mobileAppBundle;
     }
 }

@@ -31,12 +31,12 @@
 package org.thingsboard.server.dao.mobile;
 
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundlePolicyInfo;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.dao.Dao;
 
-public interface MobileAppBundlePolicyInfoDao extends Dao<MobileAppBundlePolicyInfo> {
+public interface MobileAppBundlePolicyInfoDao extends Dao<MobileAppBundle> {
 
-    MobileAppBundlePolicyInfo findPolicyInfoByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platform);
+    MobileAppBundle findPolicyInfoByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platform);
 
 }
