@@ -102,7 +102,7 @@ public class TenantAdminPermissions extends AbstractPermissions {
         put(Resource.QUEUE, queuePermissionChecker);
         put(Resource.VERSION_CONTROL, genericPermissionChecker);
         put(Resource.NOTIFICATION, tenantStandaloneEntityPermissionChecker);
-        put(Resource.QR_CODE_SETTINGS, PermissionChecker.allowAllPermissionChecker);
+        put(Resource.MOBILE_APP_SETTINGS, PermissionChecker.allowAllPermissionChecker);
         put(Resource.CUSTOM_MENU, customMenuPermissionChecker);
         put(Resource.OAUTH2_CLIENT, tenantStandaloneEntityPermissionChecker);
         put(Resource.OAUTH2_CONFIGURATION_TEMPLATE, new PermissionChecker.GenericPermissionChecker(Operation.READ));

@@ -39,6 +39,7 @@ import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundleInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.selfregistration.MobileSelfRegistrationParams;
 import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
@@ -55,15 +56,15 @@ public interface MobileAppBundleService extends EntityDaoService {
 
     void updateOauth2Clients(TenantId tenantId, MobileAppBundleId mobileAppBundleId, List<OAuth2ClientId> oAuth2ClientIds);
 
-    MobileAppBundle findMobileAppBundleByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platform);
+    MobileAppBundle findMobileAppBundleByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platform, boolean fetchPolicyInfo);
 
     void deleteMobileAppBundleById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
 
     void deleteMobileAppBundlesByTenantId(TenantId tenantId);
 
-    MobileAppBundle findMobileAppBundlePolicyInfoByPkgNameAndPlatform(TenantId sysTenantId, String pkgName, PlatformType platform);
+    MobileSelfRegistrationParams getMobileSelfRegistrationParams(TenantId tenantId, String pkgName, PlatformType platformType);
 
-    JsonNode findMobilePrivacyPolicy(TenantId tenantId, String pkgName, PlatformType platformType);
+    JsonNode getMobilePrivacyPolicy(TenantId tenantId, String pkgName, PlatformType platformType);
 
-    JsonNode findMobileTermsOfUse(TenantId tenantId, String pkgName, PlatformType platformType);
+    JsonNode getMobileTermsOfUse(TenantId tenantId, String pkgName, PlatformType platformType);
 }

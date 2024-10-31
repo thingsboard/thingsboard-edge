@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.selfregistration.MobileSelfRegistrationParams;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
@@ -160,10 +161,14 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
     }
 
     @Override
-    public MobileAppBundle findMobileAppBundleByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platformType) {
+    public MobileAppBundle findMobileAppBundleByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platformType, boolean fetchPolicyInfo) {
         log.trace("Executing findMobileAppBundleByPkgNameAndPlatform, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platformType);
         checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);
-        return mobileAppBundleDao.findByPkgNameAndPlatform(tenantId, pkgName, platformType);
+        if (fetchPolicyInfo) {
+            return mobileAppBundlePolicyInfoDao.findPolicyInfoByPkgNameAndPlatform(tenantId, pkgName, platformType);
+        } else {
+            return mobileAppBundleDao.findByPkgNameAndPlatform(tenantId, pkgName, platformType);
+        }
     }
 
     @Override
@@ -184,17 +189,17 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
     }
 
     @Override
-    public MobileAppBundle findMobileAppBundlePolicyInfoByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platformType) {
-        log.trace("Executing findMobileAppBundlePolicyInfoByPkgNameAndPlatform, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platformType);
-        checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);
-        return mobileAppBundlePolicyInfoDao.findPolicyInfoByPkgNameAndPlatform(tenantId, pkgName, platformType);
+    public MobileSelfRegistrationParams getMobileSelfRegistrationParams(TenantId tenantId, String pkgName, PlatformType platformType) {
+        log.trace("Executing findMobileSelfRegistrationSettings, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platformType);
+        MobileAppBundle appBundle = findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platformType, false);
+        return appBundle != null ? appBundle.getSelfRegistrationParams() : null;
     }
 
     @Override
-    public JsonNode findMobilePrivacyPolicy(TenantId tenantId, String pkgName, PlatformType platformType) {
+    public JsonNode getMobilePrivacyPolicy(TenantId tenantId, String pkgName, PlatformType platformType) {
         log.trace("Executing findMobilePrivacyPolicy, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platformType);
         checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);
-        MobileAppBundle appBundle = findMobileAppBundlePolicyInfoByPkgNameAndPlatform(tenantId, pkgName, platformType);
+        MobileAppBundle appBundle = findMobileAppBundleByPkgNameAndPlatform(tenantId, pkgName, platformType, true);
         if (appBundle != null && appBundle.getSelfRegistrationParams() != null) {
             return JacksonUtil.toJsonNode(appBundle.getSelfRegistrationParams().getTermsOfUse());
         }
@@ -202,10 +207,10 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
     }
 
     @Override
-    public JsonNode findMobileTermsOfUse(TenantId tenantId, String pkgName, PlatformType platformType) {
+    public JsonNode getMobileTermsOfUse(TenantId tenantId, String pkgName, PlatformType platformType) {
         log.trace("Executing findMobileTermsOfUse, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platformType);
         checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);
-        MobileAppBundle appBundle = findMobileAppBundlePolicyInfoByPkgNameAndPlatform(tenantId, pkgName, platformType);
+        MobileAppBundle appBundle = findMobileAppBundleByPkgNameAndPlatform(tenantId, pkgName, platformType, true);
         if (appBundle != null && appBundle.getSelfRegistrationParams() != null) {
             return JacksonUtil.toJsonNode(appBundle.getSelfRegistrationParams().getTermsOfUse());
         }

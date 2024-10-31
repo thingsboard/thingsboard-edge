@@ -86,7 +86,7 @@ public enum Resource {
     VERSION_CONTROL,
     NOTIFICATION(EntityType.NOTIFICATION_TARGET, EntityType.NOTIFICATION_TEMPLATE,
             EntityType.NOTIFICATION_REQUEST, EntityType.NOTIFICATION_RULE),
-    QR_CODE_SETTINGS,
+    MOBILE_APP_SETTINGS,
     CUSTOM_MENU;
 
     private static final Map<EntityType, Resource> groupResourceByGroupType = new HashMap<>();
@@ -162,7 +162,7 @@ public enum Resource {
         operationsByResource.put(Resource.QUEUE_STATS, Set.of(Operation.ALL, Operation.READ));
         operationsByResource.put(Resource.VERSION_CONTROL, Set.of(Operation.ALL, Operation.READ, Operation.WRITE, Operation.DELETE));
         operationsByResource.put(Resource.NOTIFICATION, Operation.crudOperations);
-        operationsByResource.put(Resource.QR_CODE_SETTINGS, Set.of(Operation.ALL, Operation.READ, Operation.WRITE));
+        operationsByResource.put(Resource.MOBILE_APP_SETTINGS, Set.of(Operation.ALL, Operation.READ, Operation.WRITE));
 
         resourcesByAuthority.put(Authority.SYS_ADMIN, Set.of(
                 Resource.ALL,
@@ -185,7 +185,7 @@ public enum Resource {
                 Resource.QUEUE,
                 Resource.QUEUE_STATS,
                 Resource.NOTIFICATION,
-                Resource.QR_CODE_SETTINGS
+                Resource.MOBILE_APP_SETTINGS
         ));
 
         resourcesByAuthority.put(Authority.TENANT_ADMIN, Set.of(
@@ -227,7 +227,7 @@ public enum Resource {
                 Resource.QUEUE_STATS,
                 Resource.VERSION_CONTROL,
                 Resource.NOTIFICATION,
-                Resource.QR_CODE_SETTINGS
+                Resource.MOBILE_APP_SETTINGS
         ));
 
         resourcesByAuthority.put(Authority.CUSTOMER_USER, Set.of(
@@ -258,7 +258,7 @@ public enum Resource {
                 Resource.AUDIT_LOG,
                 Resource.DEVICE_PROFILE,
                 Resource.ASSET_PROFILE,
-                Resource.QR_CODE_SETTINGS
+                Resource.MOBILE_APP_SETTINGS
         ));
 
     }

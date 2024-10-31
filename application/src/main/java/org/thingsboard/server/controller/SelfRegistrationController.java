@@ -45,7 +45,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
@@ -150,10 +149,9 @@ public class SelfRegistrationController extends BaseController {
             if (platformType == null) {
                 return null;
             }
-            MobileAppBundle appBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platformType);
-            selfRegistrationParams = appBundle != null ? appBundle.getSelfRegistrationParams() : null;
+            selfRegistrationParams = mobileAppBundleService.getMobileSelfRegistrationParams(TenantId.SYS_TENANT_ID, pkgName, platformType);
         } else {
-            selfRegistrationParams = whiteLabelingService.getSelfRegistrationParamsByDomain(request.getServerName());
+            selfRegistrationParams = whiteLabelingService.getWebSelfRegistrationParams(request.getServerName());
         }
         return selfRegistrationParams != null ? selfRegistrationParams.toSignUpSelfRegistrationParams() : null;
     }
@@ -166,9 +164,9 @@ public class SelfRegistrationController extends BaseController {
                                    HttpServletRequest request) {
         JsonNode privacyPolicyNode;
         if (!StringUtils.isEmpty(pkgName)) {
-            privacyPolicyNode = mobileAppBundleService.findMobilePrivacyPolicy(TenantId.SYS_TENANT_ID, pkgName, platform);
+            privacyPolicyNode = mobileAppBundleService.getMobilePrivacyPolicy(TenantId.SYS_TENANT_ID, pkgName, platform);
         } else {
-            privacyPolicyNode = whiteLabelingService.getPrivacyPolicyByDomainName(request.getServerName());
+            privacyPolicyNode = whiteLabelingService.getWebPrivacyPolicy(request.getServerName());
         }
         if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
             return privacyPolicyNode.get(PRIVACY_POLICY).toString();
@@ -184,9 +182,9 @@ public class SelfRegistrationController extends BaseController {
                                 HttpServletRequest request) {
         JsonNode termsOfUse;
         if (!StringUtils.isEmpty(pkgName)) {
-            termsOfUse = mobileAppBundleService.findMobileTermsOfUse(TenantId.SYS_TENANT_ID, pkgName, platform);
+            termsOfUse = mobileAppBundleService.getMobileTermsOfUse(TenantId.SYS_TENANT_ID, pkgName, platform);
         } else {
-            termsOfUse = whiteLabelingService.getTermsOfUseByDomainName(request.getServerName());
+            termsOfUse = whiteLabelingService.getWebTermsOfUse(request.getServerName());
         }
         if (termsOfUse != null && termsOfUse.has(TERMS_OF_USE)) {
             return termsOfUse.get(TERMS_OF_USE).toString();

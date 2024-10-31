@@ -637,13 +637,13 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public WebSelfRegistrationParams getSelfRegistrationParamsByDomain(String domainName) {
+    public WebSelfRegistrationParams getWebSelfRegistrationParams(String domainName) {
         WhiteLabeling whiteLabeling = findWhiteLabelingByDomainAndType(domainName, SELF_REGISTRATION);
         return whiteLabeling != null ? JacksonUtil.treeToValue(whiteLabeling.getSettings(), WebSelfRegistrationParams.class) : null;
     }
 
     @Override
-    public JsonNode getPrivacyPolicyByDomainName(String domainName) {
+    public JsonNode getWebPrivacyPolicy(String domainName) {
         WhiteLabeling whiteLabeling = findWhiteLabelingByDomainAndType(domainName, WhiteLabelingType.PRIVACY_POLICY);
         return whiteLabeling != null ? whiteLabeling.getSettings() : null;
     }
@@ -655,7 +655,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public JsonNode getTermsOfUseByDomainName(String domainName) {
+    public JsonNode getWebTermsOfUse(String domainName) {
         WhiteLabeling whiteLabeling = findWhiteLabelingByDomainAndType(domainName, WhiteLabelingType.TERMS_OF_USE);
         return whiteLabeling != null ? whiteLabeling.getSettings() : null;
     }

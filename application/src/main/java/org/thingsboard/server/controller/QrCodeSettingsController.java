@@ -47,18 +47,15 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
-import org.thingsboard.server.common.data.id.MobileAppBundleId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.mobile.app.MobileApp;
 import org.thingsboard.server.common.data.mobile.qrCodeSettings.QrCodeSettings;
 import org.thingsboard.server.common.data.mobile.app.StoreInfo;
-import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.model.JwtPair;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.config.annotations.ApiOperation;
-import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.mobile.QrCodeSettingService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -152,7 +149,7 @@ public class QrCodeSettingsController extends BaseController {
     public QrCodeSettings saveQrCodeSettings(@Parameter(description = "A JSON value representing the mobile apps configuration")
                                              @RequestBody QrCodeSettings qrCodeSettings) throws ThingsboardException {
         SecurityUser currentUser = getCurrentUser();
-        accessControlService.checkPermission(currentUser, Resource.QR_CODE_SETTINGS, Operation.WRITE);
+        accessControlService.checkPermission(currentUser, Resource.MOBILE_APP_SETTINGS, Operation.WRITE);
         qrCodeSettings.setTenantId(getTenantId());
         return qrCodeSettingService.saveQrCodeSettings(currentUser.getTenantId(), qrCodeSettings);
     }
@@ -163,7 +160,7 @@ public class QrCodeSettingsController extends BaseController {
     @GetMapping(value = "/api/mobile/qr/settings")
     public QrCodeSettings getQrCodeSettings() throws ThingsboardException {
         SecurityUser currentUser = getCurrentUser();
-        accessControlService.checkPermission(currentUser, Resource.QR_CODE_SETTINGS, Operation.READ);
+        accessControlService.checkPermission(currentUser, Resource.MOBILE_APP_SETTINGS, Operation.READ);
         return qrCodeSettingService.findQrCodeSettings(currentUser.getTenantId());
     }
 
@@ -173,7 +170,7 @@ public class QrCodeSettingsController extends BaseController {
     @GetMapping(value = "/api/mobile/qr/merged")
     public QrCodeSettings getMergedMobileAppSettings() throws ThingsboardException {
         SecurityUser currentUser = getCurrentUser();
-        accessControlService.checkPermission(getCurrentUser(), Resource.QR_CODE_SETTINGS, Operation.READ);
+        accessControlService.checkPermission(getCurrentUser(), Resource.MOBILE_APP_SETTINGS, Operation.READ);
         return qrCodeSettingService.getMergedQrCodeSettings(currentUser.getTenantId());
     }
 

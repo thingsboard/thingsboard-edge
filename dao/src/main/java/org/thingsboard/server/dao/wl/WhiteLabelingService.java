@@ -105,13 +105,13 @@ public interface WhiteLabelingService {
 
     WebSelfRegistrationParams getTenantSelfRegistrationParams(TenantId tenantId);
 
-    WebSelfRegistrationParams getSelfRegistrationParamsByDomain(String domainName);
+    WebSelfRegistrationParams getWebSelfRegistrationParams(String domainName);
 
-    JsonNode getPrivacyPolicyByDomainName(String domainName);
+    JsonNode getWebPrivacyPolicy(String domainName);
 
     JsonNode getTenantPrivacyPolicy(TenantId tenantId);
 
-    JsonNode getTermsOfUseByDomainName(String domainName);
+    JsonNode getWebTermsOfUse(String domainName);
 
     JsonNode getTenantTermsOfUse(TenantId tenantId);
 
