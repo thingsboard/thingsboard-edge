@@ -30,36 +30,20 @@
 ///
 
 import { NgModule } from '@angular/core';
-import { MobileAppComponent } from '@home/pages/mobile/applications/mobile-app.component';
-import { MobileAppTableHeaderComponent } from '@home/pages/mobile/applications/mobile-app-table-header.component';
+import { EditorPanelComponent } from '@home/pages/mobile/common/editor-panel.component';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
-import { HomeComponentsModule } from '@home/components/home-components.module';
-import { ApplicationsRoutingModule } from '@home/pages/mobile/applications/applications-routing.module';
-import { MobileAppDialogComponent } from '@home/pages/mobile/applications/mobile-app-dialog.component';
-import { RemoveAppDialogComponent } from '@home/pages/mobile/applications/remove-app-dialog.component';
-import {
-  MobileAppConfigurationDialogComponent
-} from '@home/pages/mobile/applications/mobile-app-configuration-dialog.component';
-import { CommMobileModule } from '@home/pages/mobile/common/comm-mobile.module';
 
 @NgModule({
   declarations: [
-    MobileAppComponent,
-    MobileAppTableHeaderComponent,
-    MobileAppDialogComponent,
-    RemoveAppDialogComponent,
-    MobileAppConfigurationDialogComponent,
+    EditorPanelComponent
   ],
   imports: [
     CommonModule,
-    SharedModule,
-    HomeComponentsModule,
-    CommMobileModule,
-    ApplicationsRoutingModule,
+    SharedModule
   ],
   exports: [
-    MobileAppDialogComponent,
+    EditorPanelComponent
   ]
 })
-export class MobileApplicationModule { }
+export class CommMobileModule {}

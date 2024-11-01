@@ -34,7 +34,7 @@ import { BaseData, GroupEntityInfo } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { baseDetailsPageByEntityType, EntityType, groupUrlPrefixByEntityType } from '@app/shared/public-api';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
-import { isObject } from '@core/utils';
+import { isEqual, isObject } from '@core/utils';
 
 @Component({
   selector: 'tb-entity-chips',
@@ -73,16 +73,19 @@ export class EntityChipsComponent implements OnChanges {
         entitiesList = [entitiesList];
       }
       if (this.key === 'groups' && groupUrlPrefixByEntityType.has(entityType)) {
-        this.subEntities = entitiesList;
         this.entityDetailsPrefixUrl = groupUrlPrefixByEntityType.get(entityType);
         if (this.entity.ownerId && !this.userPermissionsService.isDirectOwner(this.entity.ownerId)) {
           this.entityDetailsPrefixUrl = `/customers/all/${this.entity.ownerId.id}${this.entityDetailsPrefixUrl}`;
         }
       } else if (Array.isArray(entitiesList)) {
-        this.subEntities = entitiesList;
         if (this.subEntities.length) {
           this.entityDetailsPrefixUrl = baseDetailsPageByEntityType.get(this.subEntities[0].id.entityType as EntityType);
         }
+      } else {
+        entitiesList = [];
+      }
+      if (!isEqual(entitiesList, this.subEntities)) {
+        this.subEntities = entitiesList;
       }
     }
   }

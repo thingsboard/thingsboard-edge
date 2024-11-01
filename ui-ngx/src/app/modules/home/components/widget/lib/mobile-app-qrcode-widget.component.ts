@@ -106,11 +106,8 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
       this.mobileAppService.getMergedMobileAppSettings().subscribe((settings => {
         this.mobileAppSettings = settings;
 
-        const useDefaultApp = this.mobileAppSettings.useDefaultApp;
-        this.appStoreLink = useDefaultApp ? this.mobileAppSettings.defaultAppStoreLink :
-          this.mobileAppSettings.iosConfig.storeLink;
-        this.googlePlayLink = useDefaultApp ? this.mobileAppSettings.defaultGooglePlayLink :
-          this.mobileAppSettings.androidConfig.storeLink;
+        this.appStoreLink = this.mobileAppSettings.appStoreLink;
+        this.googlePlayLink = this.mobileAppSettings.googlePlayLink;
 
         if (isDefinedAndNotNull(this.ctx.settings.useSystemSettings) && !this.ctx.settings.useSystemSettings) {
           this.mobileAppSettings = mergeDeep(this.mobileAppSettings, this.ctx.settings);
@@ -148,10 +145,8 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
     clearTimeout(this.deepLinkTTLTimeoutID);
   }
 
-  navigateByDeepLink($event) {
-    if ($event) {
-      $event.stopPropagation();
-    }
+  navigateByDeepLink($event: Event) {
+    $event?.stopPropagation();
     if (this.ctx.isMobile) {
       window.open(this.deepLink, '_blank');
     }
@@ -172,7 +167,7 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
 
   private updateQRCode(link: string) {
     import('qrcode').then((QRCode) => {
-      QRCode.toString(link, (err, svgElement) => {
+      QRCode.toString(link, (_err, svgElement) => {
         this.qrCodeSVG = svgElement;
         this.cd.markForCheck();
       })

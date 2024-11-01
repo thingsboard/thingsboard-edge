@@ -240,6 +240,9 @@ export class EntityService {
       case EntityType.MOBILE_APP:
         observable = this.mobileAppService.getMobileAppInfoById(entityId, config);
         break;
+      case EntityType.MOBILE_APP_BUNDLE:
+        observable = this.mobileAppService.getMobileAppBundleInfoById(entityId, config);
+        break;
     }
     return observable;
   }
@@ -650,6 +653,10 @@ export class EntityService {
       case EntityType.MOBILE_APP:
         pageLink.sortOrder.property = 'pkgName';
         entitiesObservable = this.mobileAppService.getTenantMobileAppInfos(pageLink, subType as PlatformType, config);
+        break;
+      case EntityType.MOBILE_APP_BUNDLE:
+        pageLink.sortOrder.property = 'title';
+        entitiesObservable = this.mobileAppService.getTenantMobileAppBundleInfos(pageLink, config);
         break;
     }
     return entitiesObservable;
