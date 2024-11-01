@@ -48,6 +48,7 @@
           </mat-form-field>
         </div>
         <span class="flex-1"></span>
+        <!-- Edge-ony: !readonly -->
         <button mat-icon-button
                 *ngIf="attributeScope !== attributeScopeTypes.CLIENT_SCOPE && !readonly"
                 [disabled]="isLoading$ | async"
@@ -100,7 +101,8 @@
                 'attribute.selected-telemetry' : 'attribute.selected-attributes') | translate:{count: dataSource.selection.selected.length} }}
         </span>
         <span class="flex-1"></span>
-        <button [class.!hidden]="attributeScope === attributeScopeTypes.CLIENT_SCOPE || readonly"
+        <!-- Edge-only:  merge comment -->
+        <button [class.!hidden]="attributeScope === attributeScopeTypes.CLIENT_SCOPE && !readonly"
                 class="button-widget-action"
                 mat-icon-button [disabled]="isLoading$ | async"
                 matTooltip="{{ 'action.delete' | translate }}"
@@ -214,7 +216,8 @@
                 >
                 </tb-copy-button>
               </div>
-              <span [class.!hidden]="isClientSideTelemetryTypeMap.get(attributeScope) || readonly">
+              <!-- Edge-only:  merge comment -->
+              <span [class.!hidden]="isClientSideTelemetryTypeMap.get(attributeScope) && !readonly">
                 <mat-icon>edit</mat-icon>
               </span>
               <button mat-icon-button *ngIf="attributeScope === latestTelemetryTypes.LATEST_TELEMETRY && !readonly"

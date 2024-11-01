@@ -36,18 +36,18 @@ on:
       - master
   pull_request:
     paths:
-      - 'application/src/main/resources/thingsboard.yml'
+      - 'application/src/main/resources/tb-edge.yml'
       - 'transport/http/src/main/resources/tb-http-transport.yml'
-      - 'transport/http/src/main/resources/tb-mqtt-transport.yml'
-      - 'transport/http/src/main/resources/tb-coap-transport.yml'
-      - 'transport/http/src/main/resources/tb-lwm2m-transport.yml'
-      - 'transport/http/src/main/resources/tb-snmp-transport.yml'
+      - 'transport/mqtt/src/main/resources/tb-mqtt-transport.yml'
+      - 'transport/coap/src/main/resources/tb-coap-transport.yml'
+      - 'transport/lwm2m/src/main/resources/tb-lwm2m-transport.yml'
+      - 'transport/snmp/src/main/resources/tb-snmp-transport.yml'
       - 'msa/vc-executor/src/main/resources/tb-vc-executor.yml'
       - 'integration/executor/src/main/resources/tb-integration-executor.yml'
 
 jobs:
   build:
-    name: Check thingsboard.yml file
+    name: Check tb-edge.yml file
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout code

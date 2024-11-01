@@ -28,36 +28,53 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.rule.engine.api;
+package org.thingsboard.server.service.update;
 
-import com.google.common.util.concurrent.FutureCallback;
-import org.thingsboard.server.common.data.id.NotificationId;
-import org.thingsboard.server.common.data.id.NotificationRequestId;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
-import org.thingsboard.server.common.data.notification.NotificationRequest;
-import org.thingsboard.server.common.data.notification.NotificationRequestStats;
 import org.thingsboard.server.common.data.notification.info.GeneralNotificationInfo;
-import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
-import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
+import org.thingsboard.server.common.data.notification.targets.platform.SystemAdministratorsFilter;
+import org.thingsboard.server.dao.notification.DefaultNotifications;
+import org.thingsboard.server.queue.util.AfterStartUp;
 
-import java.util.Set;
+import java.util.Map;
 
-public interface NotificationCenter {
+@Service
+@Slf4j
+@RequiredArgsConstructor
+public class DeprecationService {
 
-    NotificationRequest processNotificationRequest(TenantId tenantId, NotificationRequest notificationRequest, FutureCallback<NotificationRequestStats> callback);
+    private final NotificationCenter notificationCenter;
 
-    void sendGeneralWebNotification(TenantId tenantId, UsersFilter recipients, NotificationTemplate template, GeneralNotificationInfo info);
+    @Value("${queue.type}")
+    private String queueType;
 
-    void deleteNotificationRequest(TenantId tenantId, NotificationRequestId notificationRequestId);
+    @AfterStartUp(order = Integer.MAX_VALUE)
+    public void checkDeprecation() {
+        checkQueueTypeDeprecation();
+    }
 
-    void markNotificationAsRead(TenantId tenantId, UserId recipientId, NotificationId notificationId);
+    private void checkQueueTypeDeprecation() {
+        String queueTypeName;
+        switch (queueType) {
+            case "aws-sqs" -> queueTypeName = "AWS SQS";
+            case "pubsub" -> queueTypeName = "PubSub";
+            case "service-bus" -> queueTypeName = "Azure Service Bus";
+            case "rabbitmq" -> queueTypeName = "RabbitMQ";
+            default -> {
+                return;
+            }
+        }
 
-    void markAllNotificationsAsRead(TenantId tenantId, NotificationDeliveryMethod deliveryMethod, UserId recipientId);
-
-    void deleteNotification(TenantId tenantId, UserId recipientId, NotificationId notificationId);
-
-    Set<NotificationDeliveryMethod> getAvailableDeliveryMethods(TenantId tenantId);
+        log.warn("WARNING: {} queue type is deprecated and will be removed in ThingsBoard 4.0. Please migrate to Apache Kafka", queueTypeName);
+        notificationCenter.sendGeneralWebNotification(TenantId.SYS_TENANT_ID, new SystemAdministratorsFilter(),
+                DefaultNotifications.queueTypeDeprecation.toTemplate(), new GeneralNotificationInfo(Map.of(
+                        "queueType", queueTypeName
+                )));
+    }
 
 }
