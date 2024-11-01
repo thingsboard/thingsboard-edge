@@ -99,6 +99,7 @@ public class PostgresToKafkaCloudEventMigrateService implements CloudEventMigrat
 
         while (true) {
             PageData<CloudEvent> cloudEventsTS = getCloudEventFromDB(tsKvCloudEventDao);
+
             if (!cloudEventsTS.getData().isEmpty()) {
                 cloudEventsTS.getData().forEach(this::sendCloudEventTS);
             } else {
@@ -111,26 +112,28 @@ public class PostgresToKafkaCloudEventMigrateService implements CloudEventMigrat
     @NotNull
     private PageData<CloudEvent> getCloudEventFromDB(TsKvCloudEventDao tsKvCloudEventDao) {
         try {
-            int maxReadRecordsCount = cloudEventStorageSettings.getMaxReadRecordsCount();
             Long queueSeqIdStart = getSeqId(QUEUE_SEQ_ID_OFFSET_ATTR_KEY).get();
-            long queueStartTs = getSeqId(QUEUE_START_TS_ATTR_KEY).get();
-            long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
-            TimePageLink pageLink =
-                    new TimePageLink(maxReadRecordsCount, 0, null, null, queueStartTs, queueEndTs);
+            TimePageLink pageLink = prepareTimePageLink();
 
             PageData<CloudEvent> cloudEvents = tsKvCloudEventDao.findCloudEvents(tenant.getTenantId().getId(), queueSeqIdStart, null, pageLink);
 
             if (cloudEvents.getData().isEmpty()) {
                 // check if new cycle started (seq_id starts from '1')
-                cloudEvents = getCloudEventFromBeginning(tsKvCloudEventDao, pageLink, queueEndTs, cloudEvents, queueSeqIdStart);
+                cloudEvents = getCloudEventFromBeginning(tsKvCloudEventDao, pageLink, pageLink.getEndTime(), cloudEvents, queueSeqIdStart);
             }
 
             return cloudEvents;
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        } catch (ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private TimePageLink prepareTimePageLink() throws InterruptedException, ExecutionException {
+        int maxReadRecordsCount = cloudEventStorageSettings.getMaxReadRecordsCount();
+        long queueStartTs = getSeqId(QUEUE_START_TS_ATTR_KEY).get();
+        long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
+
+        return new TimePageLink(maxReadRecordsCount, 0, null, null, queueStartTs, queueEndTs);
     }
 
     @NotNull
@@ -156,22 +159,29 @@ public class PostgresToKafkaCloudEventMigrateService implements CloudEventMigrat
         PageData<CloudEvent> cloudEventsTemp = tsKvCloudEventDao.findCloudEvents(tenant.getTenantId().getId(), 0L, seqIdEnd, pageLink);
 
         if (cloudEventsTemp.getData().stream().noneMatch(ce -> ce.getSeqId() == 1)) {
-            long queueStartTs2;
+            cloudEvents = findFromQueueEndToToday(tsKvCloudEventDao, queueEndTs, cloudEvents, queueSeqIdStart);
+        }
 
-            while (queueEndTs < System.currentTimeMillis()) {
-                log.trace(QUEUE_END_TS_LESS_THAN_CURRENT_TIME_MESSAGE + " [{}] [{}]", queueEndTs, System.currentTimeMillis());
-                queueStartTs2 = queueEndTs;
-                queueEndTs = queueEndTs + TimeUnit.DAYS.toMillis(1);
-                TimePageLink pageLink2 = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
-                        0, null, null, queueStartTs2, queueEndTs);
+        return cloudEvents;
+    }
 
-                cloudEvents = tsKvCloudEventDao.findCloudEvents(tenant.getTenantId().getId(), queueSeqIdStart, null, pageLink2);
+    private PageData<CloudEvent> findFromQueueEndToToday(TsKvCloudEventDao tsKvCloudEventDao, long queueEndTs, PageData<CloudEvent> cloudEvents, Long queueSeqIdStart) {
+        long queueStartTs;
 
-                if (!cloudEvents.getData().isEmpty()) {
-                    break;
-                }
+        while (queueEndTs < System.currentTimeMillis()) {
+            log.trace(QUEUE_END_TS_LESS_THAN_CURRENT_TIME_MESSAGE + " [{}] [{}]", queueEndTs, System.currentTimeMillis());
+            queueStartTs = queueEndTs;
+            queueEndTs = queueEndTs + TimeUnit.DAYS.toMillis(1);
+            TimePageLink pageLink2 = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
+                    0, null, null, queueStartTs, queueEndTs);
+
+            cloudEvents = tsKvCloudEventDao.findCloudEvents(tenant.getTenantId().getId(), queueSeqIdStart, null, pageLink2);
+
+            if (!cloudEvents.getData().isEmpty()) {
+                break;
             }
         }
+
         return cloudEvents;
     }
 
