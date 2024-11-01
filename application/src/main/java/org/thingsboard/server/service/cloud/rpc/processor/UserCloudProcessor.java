@@ -112,7 +112,7 @@ public class UserCloudProcessor extends BaseEdgeProcessor {
         userCredentials.setActivateToken(StringUtils.randomAlphanumeric(UserServiceImpl.DEFAULT_TOKEN_LENGTH));
         userCredentials.setUserId(userId);
         userCredentials.setAdditionalInfo(JacksonUtil.newObjectNode());
-        // TODO: @voba - save or update user password history?
+        // TODO: Edge-only:  save or update user password history?
         return userService.saveUserCredentials(tenantId, userCredentials, false);
     }
 

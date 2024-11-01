@@ -717,7 +717,7 @@ export class WidgetEditorComponent extends PageComponent implements OnInit, OnDe
   }
 
   saveAsDisabled(): boolean {
-    // @voba - edge read-only
+    // Edge-only:  edge read-only
     return true;
 //  return !this.iframeWidgetEditModeInited
 //    || this.saveWidgetPending

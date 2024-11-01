@@ -226,7 +226,6 @@ public class CloudManagerService {
         });
     }
 
-
     private void updateQueueStartTsSeqIdOffset(String attrStartTsKey, String attrSeqIdKey, Long startTs, Long seqIdOffset) {
         log.trace("updateQueueStartTsSeqIdOffset [{}][{}]", startTs, seqIdOffset);
         List<AttributeKvEntry> attributes = Arrays.asList(

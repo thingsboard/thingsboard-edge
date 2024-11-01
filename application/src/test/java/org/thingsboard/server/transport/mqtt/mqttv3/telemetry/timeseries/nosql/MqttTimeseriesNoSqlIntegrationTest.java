@@ -18,7 +18,7 @@ package org.thingsboard.server.transport.mqtt.mqttv3.telemetry.timeseries.nosql;
 import org.thingsboard.server.dao.service.DaoNoSqlTest;
 import org.thingsboard.server.transport.mqtt.mqttv3.telemetry.timeseries.AbstractMqttTimeseriesIntegrationTest;
 
-// @voba - merge comment
+// Edge-only:  merge comment
 // NoSQL is not supported on edge
 // @DaoNoSqlTest
 public class MqttTimeseriesNoSqlIntegrationTest extends AbstractMqttTimeseriesIntegrationTest {
