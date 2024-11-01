@@ -144,7 +144,7 @@ public class EntityGroupControllerTest extends AbstractControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // @voba - merge comment
+    // Edge-only:  merge comment
     // edge assign functionality only in CE/PE
     // @Test
     public void testFindEdgeEntityGroupsByTenantIdAndNameAndType() throws Exception {

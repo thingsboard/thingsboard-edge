@@ -30,37 +30,37 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-details-buttons" fxLayout.xs="column">
+<div class="tb-details-buttons xs:flex xs:flex-col">
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'open')"
-          [fxShow]="!isEdit && !isDetailsPage">
+          [class.!hidden]="isEdit || isDetailsPage">
     {{'common.open-details-page' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'export')"
-          [fxShow]="!isEdit">
+          [class.!hidden]="isEdit">
     {{ 'converter.export' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
-          [fxShow]="!hideDelete() && !isEdit">
+          [class.!hidden]="hideDelete() || isEdit">
     {{'converter.delete' | translate }}
   </button>
-  <div fxLayout="row" fxLayout.xs="column">
+  <div class="flex flex-row xs:flex-col">
     <button mat-raised-button
             ngxClipboard
             (cbOnSuccess)="onConverterIdCopied($event)"
             [cbContent]="entity?.id?.id"
-            [fxShow]="!isEdit">
+            [class.!hidden]="isEdit">
       <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
       <span translate>converter.copyId</span>
     </button>
   </div>
 </div>
-<div class="mat-padding" fxLayout="column">
+<div class="mat-padding flex flex-col">
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <mat-form-field class="mat-block">
@@ -84,10 +84,10 @@
           {{ 'converter.type-required' | translate }}
         </mat-error>
       </mat-form-field>
-      <mat-slide-toggle fxFlex formControlName="debugMode" style="margin-bottom: 16px;">
+      <mat-slide-toggle class="flex-1" formControlName="debugMode" style="margin-bottom: 16px;">
         {{ 'converter.debug-mode' | translate }}
       </mat-slide-toggle>
-      <div formGroupName="configuration" fxLayout="column">
+      <div formGroupName="configuration" class="flex flex-col">
         <tb-script-lang formControlName="scriptLang" *ngIf="tbelEnabled"></tb-script-lang>
         <section *ngIf="entityForm.get('type').value === converterType.UPLINK">
           <tb-js-func
@@ -161,8 +161,8 @@
             </button>
           </tb-js-func>
         </section>
-        <div fxLayout="row" style="padding-bottom: 16px;">
-          <button [fxShow]="isEdit"
+        <div class="flex flex-row" style="padding-bottom: 16px;">
+          <button [class.!hidden]="!isEdit"
                   [disabled]="isLoading$ | async"
                   type="button" mat-button mat-raised-button color="primary"
                   (click)="openConverterTestDialog()">
@@ -177,7 +177,7 @@
                               formControlName="updateOnlyKeys">
         </tb-string-items-list>
       </div>
-      <div formGroupName="additionalInfo" fxLayout="column">
+      <div formGroupName="additionalInfo" class="flex flex-col">
         <mat-form-field class="mat-block">
           <mat-label translate>converter.description</mat-label>
           <textarea matInput formControlName="description" rows="2"></textarea>

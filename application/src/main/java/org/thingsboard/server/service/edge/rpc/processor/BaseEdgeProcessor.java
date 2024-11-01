@@ -660,7 +660,7 @@ public abstract class BaseEdgeProcessor {
                     if (edgeId != null) {
                         return saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, body);
                     } else {
-                        // TODO: @voba - provide logic for customer
+                        // TODO: Edge-only:  provide logic for customer
                         return Futures.transform(Futures.allAsList(processActionForAllEdgesByTenantId(
                                 tenantId, type, actionType, entityId, body, originatorEdgeId, null)), voids -> null, dbCallbackExecutorService);
                     }

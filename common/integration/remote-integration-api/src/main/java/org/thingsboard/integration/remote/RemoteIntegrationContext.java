@@ -38,6 +38,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.thingsboard.common.util.EventUtil;
 import org.thingsboard.integration.api.IntegrationCallback;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.IntegrationRateLimitService;
@@ -48,8 +49,10 @@ import org.thingsboard.integration.storage.EventStorage;
 import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
+import org.thingsboard.server.common.data.event.LifecycleEvent;
 import org.thingsboard.server.common.data.event.RawDataEvent;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
@@ -125,6 +128,27 @@ public class RemoteIntegrationContext implements IntegrationContext {
     @Override
     public void saveEvent(IntegrationDebugEvent event, IntegrationCallback<Void> callback) {
         doSaveEvent(TbEventSource.INTEGRATION, event, null, callback);
+    }
+
+    @Override
+    public void saveLifecycleEvent(ComponentLifecycleEvent event, Exception e) {
+        var lcEvent = LifecycleEvent.builder()
+                .tenantId(configuration.getTenantId())
+                .entityId(configuration.getId().getId())
+                .serviceId(getServiceId())
+                .lcEventType(event.name());
+        if (e != null) {
+            lcEvent.success(false).error(EventUtil.toString(e));
+        } else {
+            lcEvent.success(true);
+        }
+
+        eventStorage.write(UplinkMsg.newBuilder()
+                .addEventsData(TbEventProto.newBuilder()
+                        .setSource(TbEventSource.INTEGRATION)
+                        .setEvent(ByteString.copyFrom(JavaSerDesUtil.encode(lcEvent.build())))
+                        .build())
+                .build(), null);
     }
 
     @Override

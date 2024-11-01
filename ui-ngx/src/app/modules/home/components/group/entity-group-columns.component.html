@@ -32,20 +32,20 @@
 -->
 <div class="tb-entity-group-columns mat-padding">
   <div class="tb-outlined-border">
-    <div fxFlex fxLayout="row" fxLayoutAlign="start center" class="tb-header" style="padding-left: 16px; padding-right: 16px;">
+    <div class="tb-header flex flex-1 flex-row items-center justify-start" style="padding-left: 16px; padding-right: 16px;">
       <span *ngIf="!disabled" style="min-width: 48px;">&nbsp;</span>
       <span style="padding-left: 10px; min-width: 30px;">&nbsp;</span>
-      <div fxFlex fxLayout="row" fxLayoutAlign="start center" style="padding: 0 0 0 10px; margin: 5px;">
-        <span translate fxFlex.lt-xl style="padding-left: 5px;" class="tb-column-type">entity-group.column-type.column-type</span>
-        <span translate fxFlex.lt-xl style="padding-left: 10px;" class="tb-column-value">entity-group.column-value</span>
-        <span translate fxFlex fxHide.lt-xl style="padding-left: 10px;">entity-group.column-title</span>
-        <span translate fxFlex.lt-xl fxHide.lt-lg style="padding-left: 10px;" class="tb-column-sort-order">entity-group.default-sort-order</span>
-        <span translate fxHide.xs style="padding-left: 10px; min-width: 48px; max-width: 48px;">entity-group.hide-in-mobile-view</span>
+      <div class="flex flex-1 flex-row items-center justify-start" style="padding: 0 0 0 10px; margin: 5px;">
+        <span translate style="padding-left: 5px;" class="tb-column-type lt-xl:flex-1">entity-group.column-type.column-type</span>
+        <span translate style="padding-left: 10px;" class="tb-column-value lt-xl:flex-1">entity-group.column-value</span>
+        <span translate style="padding-left: 10px;" class="flex-1 lt-xl:!hidden">entity-group.column-title</span>
+        <span translate style="padding-left: 10px;" class="tb-column-sort-order lt-lg:!hidden lt-xl:flex-1">entity-group.default-sort-order</span>
+        <span translate style="padding-left: 10px; min-width: 48px; max-width: 48px;" class="xs:!hidden">entity-group.hide-in-mobile-view</span>
         <span style="padding-left: 5px; min-width: 96px;">&nbsp;</span>
       </div>
     </div>
     <mat-divider></mat-divider>
-    <div class="tb-columns" [ngClass]="{'tb-readonly': disabled}"
+    <div class="tb-columns" [class.tb-readonly]="disabled"
          style="max-height: 500px; overflow: auto; padding-bottom: 15px;" [formGroup]="columnsFormGroup">
       <mat-list class="tb-drop-list" cdkDropList cdkDropListOrientation="vertical"
                 (cdkDropListDropped)="onDrop($event)"
@@ -53,7 +53,7 @@
         <mat-list-item *ngFor="let columnControl of columnsFormArray.controls; trackBy: trackByColumnControl; let $index = index"
                        cdkDrag class="tb-entity-group-column tb-draggable"
                        [cdkDragDisabled]="disabled">
-          <div fxFlex fxLayout="row" fxLayoutAlign="start center">
+          <div class="flex flex-1 flex-row items-center justify-start">
             <button *ngIf="!disabled" mat-icon-button color="primary"
                     cdkDragHandle
                     class="tb-drag-handle handle"
@@ -62,10 +62,10 @@
                     matTooltipPosition="above">
               <mat-icon>drag_handle</mat-icon>
             </button>
-            <div fxFlex fxLAyout="row" fxLayoutAlign="start center">
+            <div class="flex flex-1 flex-row items-center justify-start">
               <span style="padding-left: 10px; min-width: 30px;">{{$index + 1}}.</span>
               <tb-entity-group-column
-                fxFlex
+                class="flex-1"
                 [entityType]="entityType"
                 [formControl]="columnControl"
                 (defaultSortOrderChanged)="defaultSortOrderChanged($index, $event)"
@@ -78,7 +78,7 @@
       </mat-list>
     </div>
   </div>
-  <div *ngIf="!disabled" fxFlex fxLayout="row" fxLayoutAlign="start center"
+  <div *ngIf="!disabled" class="flex flex-1 flex-row items-center justify-start"
     style="padding-top: 16px;">
     <button mat-raised-button color="primary"
             (click)="addColumn()"

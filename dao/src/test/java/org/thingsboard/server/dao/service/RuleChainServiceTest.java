@@ -498,7 +498,7 @@ public class RuleChainServiceTest extends AbstractServiceTest {
         return ruleChainMetaData;
     }
 
-    // @voba - merge comment
+    // Edge-only:  merge comment
     @Test
     @Ignore
     public void testFindEdgeRuleChainsByTenantIdAndName() {

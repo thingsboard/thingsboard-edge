@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 
 import {
   CellActionDescriptor,
@@ -68,7 +68,7 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { AuthState } from '@core/auth/auth.models';
 
 @Injectable()
-export class CustomersTableConfigResolver implements Resolve<EntityTableConfig<CustomerInfo>> {
+export class CustomersTableConfigResolver  {
 
   constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<CustomerInfo>,
               private userPermissionsService: UserPermissionsService,

@@ -86,7 +86,7 @@
                       [auditLogMode]="auditLogModes.CUSTOMER"
                       [customerId]="entity.id"></tb-audit-log-table>
 </mat-tab>
-<!-- @voba - merge comment
+<!-- Edge-only:  merge comment
 <mat-tab *ngIf="entity && hasVersionControl()"
          label="{{ 'version-control.version-control' | translate }}" #versionControlTab="matTab">
   <tb-version-control detailsMode="true" singleEntityMode="true"

@@ -42,19 +42,17 @@
         </button>
         <div class="title-section">
           <span tbTruncateWithTooltip class="tb-custom-menu-config-title">{{  customMenu.name }} </span>
-          <mat-slide-toggle fxHide.xs class="tb-custom-menu-show-hidden-items" [formControl]="showHiddenItems">{{ 'custom-menu.show-hidden-items' | translate }}</mat-slide-toggle>
+          <mat-slide-toggle class="tb-custom-menu-show-hidden-items xs:!hidden" [formControl]="showHiddenItems">{{ 'custom-menu.show-hidden-items' | translate }}</mat-slide-toggle>
         </div>
-        <span fxFlex></span>
-        <button *ngIf="!readonly" class="tb-custom-menu-button"
-                fxHide.lt-lg
+        <span class="flex-1"></span>
+        <button *ngIf="!readonly" class="tb-custom-menu-button lt-lg:!hidden"
                 mat-stroked-button
                 color="primary"
                 (click)="hideAll()">
           <tb-icon matButtonIcon>visibility_off</tb-icon>
           <div tbTruncateWithTooltip>{{'custom-menu.hide-all-menu-items' | translate}}</div>
         </button>
-        <button *ngIf="!readonly" class="tb-custom-menu-button"
-                fxHide.lt-lg
+        <button *ngIf="!readonly" class="tb-custom-menu-button lt-lg:!hidden"
                 mat-stroked-button
                 color="primary"
                 (click)="resetToDefault()">
@@ -62,20 +60,18 @@
           <div tbTruncateWithTooltip>{{'custom-menu.reset-to-default-menu' | translate}}</div>
         </button>
         <button *ngIf="!readonly"
-                fxHide.gt-md
                 type="button"
                 mat-stroked-button
-                class="tb-box-button"
+                class="tb-box-button gt-md:!hidden"
                 matTooltip="{{ 'custom-menu.hide-all-menu-items' | translate }}"
                 matTooltipPosition="above"
                 (click)="hideAll()">
           <tb-icon color="primary" matButtonIcon>visibility_off</tb-icon>
         </button>
         <button *ngIf="!readonly"
-                fxHide.gt-md
                 type="button"
                 mat-stroked-button
-                class="tb-box-button"
+                class="tb-box-button gt-md:!hidden"
                 matTooltip="{{ 'custom-menu.reset-to-default-menu' | translate }}"
                 matTooltipPosition="above"
                 (click)="resetToDefault()">
@@ -83,7 +79,7 @@
         </button>
         <div tb-help="customMenu"></div>
       </div>
-      <mat-slide-toggle fxHide.gt-xs style="padding-left: 16px;"
+      <mat-slide-toggle class="gt-xs:!hidden" style="padding-left: 16px;"
                         [formControl]="showHiddenItems">{{ 'custom-menu.show-hidden-items' | translate }}</mat-slide-toggle>
     </mat-card-title>
   </mat-card-header>

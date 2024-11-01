@@ -30,7 +30,7 @@
 ///
 
 import { Injectable, NgModule } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve, Route, RouterModule, Routes } from '@angular/router';
+import { ActivatedRouteSnapshot, Route, RouterModule, Routes } from '@angular/router';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
 import { Authority } from '@shared/models/authority.enum';
 import { RuleChainsTableConfigResolver } from '@home/pages/rulechain/rulechains-table-config.resolver';
@@ -70,7 +70,7 @@ import { EdgeService } from '@core/http/edge.service';
 import { MenuId } from '@core/services/menu.models';
 
 @Injectable()
-export class EdgeTitleResolver implements Resolve<string> {
+export class EdgeTitleResolver  {
 
   constructor(private edgeService: EdgeService) {
   }

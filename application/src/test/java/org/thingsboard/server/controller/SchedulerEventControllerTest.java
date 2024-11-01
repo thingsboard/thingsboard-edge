@@ -124,7 +124,7 @@ public class SchedulerEventControllerTest extends AbstractControllerTest {
                 .andExpect(status().isNotFound());
     }
 
-    // @voba - merge comment
+    // Edge-only:  merge comment
     // edge assign functionality only in CE/PE
     // @Test
     public void testFindEdgeSchedulerEventInfosByTenantIdAndName() throws Exception {

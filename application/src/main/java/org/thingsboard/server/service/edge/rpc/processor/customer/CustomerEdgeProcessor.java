@@ -106,7 +106,7 @@ public class CustomerEdgeProcessor extends BaseEdgeProcessor {
                         saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, null);
                     }
                 }
-            // case DELETED: TODO: @voba - is it required?
+            // case DELETED: TODO: Edge-only:  is it required?
             // case CHANGE_OWNER: TODO: @voba
             // return pushNotificationToAllRelatedEdges(tenantId, entityId, type, actionType, null);
             default:

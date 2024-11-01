@@ -33,20 +33,20 @@
 <div style="min-width: min(480px, 100vw);">
   <mat-toolbar color="primary">
     <h2 translate>white-labeling.advanced-css</h2>
-    <span fxFlex></span>
+    <span class="flex-1"></span>
     <button mat-icon-button
             (click)="cancel()"
             type="button">
       <mat-icon class="material-icons">close</mat-icon>
     </button>
   </mat-toolbar>
-  <div mat-dialog-content fxLayout="column">
+  <div mat-dialog-content class="flex flex-col">
     <div style="background: #fff;"
          tb-fullscreen
-         [fullscreen]="fullscreen" (fullscreenChanged)="onFullscreen()" fxLayout="column">
-      <div fxLayout="row" fxLayoutAlign="start center" style="height: 40px;" class="tb-css-content-toolbar">
+         [fullscreen]="fullscreen" (fullscreenChanged)="onFullscreen()" class="flex flex-col">
+      <div style="height: 40px;" class="tb-css-content-toolbar flex flex-row items-center justify-start">
         <label class="tb-title no-padding" translate>white-labeling.advanced-css</label>
-        <span fxFlex></span>
+        <span class="flex-1"></span>
         <button type="button"
                 mat-button *ngIf="!readonly" class="tidy" (click)="beautifyCss()">
           {{'js-func.tidy' | translate }}
@@ -59,12 +59,12 @@
         </button>
       </div>
       <div id="tb-css-panel" tb-toast toastTarget="cssContentEditor"
-           class="tb-css-content-panel" fxLayout="column">
+           class="tb-css-content-panel flex flex-col">
         <div #cssEditor id="tb-css-input"></div>
       </div>
     </div>
   </div>
-  <div mat-dialog-actions fxLayoutAlign="end center">
+  <div mat-dialog-actions class="flex items-center justify-end">
     <button mat-button color="primary"
             type="button"
             [disabled]="(isLoading$ | async)"

@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="sendRpcRequestFormGroup" fxLayout="column" class="tb-send-rpc-request tb-form-panel no-border no-padding">
+<section [formGroup]="sendRpcRequestFormGroup" class="tb-send-rpc-request tb-form-panel no-border no-padding flex flex-col">
   <div class="tb-form-panel stroked no-padding-bottom">
     <div class="tb-form-panel-title" translate>scheduler.target</div>
     <tb-originator-select
@@ -44,8 +44,8 @@
   </div>
   <fieldset class="tb-form-panel stroked">
     <div class="tb-form-panel-title" translate>scheduler.rpc-settings</div>
-    <fieldset class="tb-form-panel no-border no-padding" fxLayout="column" formGroupName="msgBody">
-      <div class="tb-form-row column-xs" fxLayoutAlign="space-between center">
+    <fieldset class="tb-form-panel no-border no-padding flex flex-col" formGroupName="msgBody">
+      <div class="tb-form-row column-xs flex items-center justify-between">
         <div class="fixed-title-width tb-required" translate>scheduler.rpc-method</div>
         <div class="max-width-content">
           <mat-form-field appearance="outline" subscriptSizing="dynamic">
@@ -70,8 +70,8 @@
         [fillHeight]="true">
       </tb-json-object-edit>
     </fieldset>
-    <fieldset class="tb-form-panel no-border no-padding" fxLayout="column" formGroupName="metadata">
-      <div class="tb-form-row column-xs" fxLayoutAlign="space-between center">
+    <fieldset class="tb-form-panel no-border no-padding flex flex-col" formGroupName="metadata">
+      <div class="tb-form-row column-xs flex items-center justify-between">
         <div translate>scheduler.rpc-request-timeout</div>
         <div class="max-width-content">
           <mat-form-field appearance="outline" class="number" subscriptSizing="dynamic">
@@ -88,12 +88,12 @@
           </mat-form-field>
         </div>
       </div>
-      <div class="tb-form-row column-xs" fxLayoutAlign="space-between center">
+      <div class="tb-form-row column-xs flex items-center justify-between">
         <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="oneway">
           {{ 'scheduler.rpc-request-oneway-command' | translate }}
         </mat-slide-toggle>
       </div>
-      <div class="tb-form-row column-xs" fxLayoutAlign="space-between center">
+      <div class="tb-form-row column-xs flex items-center justify-between">
         <mat-slide-toggle class="mat-slide fixed-title-width" formControlName="persistent">
           {{ 'scheduler.rpc-request-persistent' | translate }}
         </mat-slide-toggle>

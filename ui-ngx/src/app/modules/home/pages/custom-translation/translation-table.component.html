@@ -31,14 +31,14 @@
 
 -->
 <div class="mat-padding tb-entity-table tb-absolute-fill">
-  <div fxLayout="column" class="tb-entity-table-content tb-outlined-border">
-    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="!textSearchMode">
+  <div class="tb-entity-table-content tb-outlined-border flex flex-col">
+    <mat-toolbar class="mat-mdc-table-toolbar" [class.!hidden]="textSearchMode">
       <div class="mat-toolbar-tools">
-        <div fxLayout="row" fxLayoutAlign="start center" fxLayout.xs="column" fxLayoutAlign.xs="center start" class="title-container">
+        <div class="title-container flex flex-row items-center justify-start xs:flex-col xs:items-start xs:justify-center">
           <span class="tb-entity-table-title" translate>custom-translation.custom-translation</span>
           <div tb-help="customTranslation"></div>
         </div>
-        <span fxFlex></span>
+        <span class="flex-1"></span>
         <button mat-icon-button [disabled]="isLoading$ | async" (click)="updateData(true)"
                 matTooltip="{{ 'action.refresh' | translate }}"
                 matTooltipPosition="above">
@@ -49,23 +49,23 @@
                 matTooltipPosition="above">
           <mat-icon>search</mat-icon>
         </button>
-        <button fxHide.lt-md mat-stroked-button color="primary" (click)="addNewLanguage($event)" [disabled]="isLoading$ | async">
+        <button class="lt-md:!hidden" mat-stroked-button color="primary" (click)="addNewLanguage($event)" [disabled]="isLoading$ | async">
           <mat-icon>add</mat-icon>
           {{ 'custom-translation.add-new-language' | translate }}
         </button>
-        <button class="mat-elevation-z0" fxHide.gt-sm mat-mini-fab color="primary" (click)="addNewLanguage($event)" [disabled]="isLoading$ | async">
+        <button class="mat-elevation-z0 gt-sm:!hidden" mat-mini-fab color="primary" (click)="addNewLanguage($event)" [disabled]="isLoading$ | async">
           <mat-icon>add</mat-icon>
         </button>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="textSearchMode">
+    <mat-toolbar class="mat-mdc-table-toolbar" [class.!hidden]="!textSearchMode">
       <div class="mat-toolbar-tools">
         <button mat-icon-button
                 matTooltip="{{ 'custom-translation.search' | translate }}"
                 matTooltipPosition="above">
           <mat-icon>search</mat-icon>
         </button>
-        <mat-form-field fxFlex>
+        <mat-form-field class="flex-1">
           <mat-label>&nbsp;</mat-label>
           <input #searchInput matInput
                  [formControl]="textSearch"
@@ -78,7 +78,7 @@
         </button>
       </div>
     </mat-toolbar>
-    <div fxFlex class="table-container">
+    <div class="table-container flex-1">
       <table mat-table [dataSource]="dataSource" [trackBy]="trackByLocale"
              matSort [matSortActive]="pageLink.sortOrder?.property" [matSortDirection]="pageLink.sortDirection()" matSortDisableClear>
         <ng-container matColumnDef="flag">
@@ -150,9 +150,8 @@
         <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
         <mat-row *matRowDef="let translate; columns: displayedColumns;" (click)="editLanguage($event, translate)"></mat-row>
       </table>
-      <span [fxShow]="dataSource.dataLoading"
-            fxLayoutAlign="center center"
-            class="no-data-found">{{ 'common.loading' | translate }}</span>
+      <span [class.!hidden]="!dataSource.dataLoading"
+            class="no-data-found flex items-center justify-center">{{ 'common.loading' | translate }}</span>
     </div>
   </div>
 </div>

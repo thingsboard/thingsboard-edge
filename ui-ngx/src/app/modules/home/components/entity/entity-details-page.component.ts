@@ -33,7 +33,6 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ComponentFactoryResolver,
   HostBinding,
   Injector,
   OnDestroy,
@@ -91,12 +90,11 @@ export class EntityDetailsPageComponent extends EntityDetailsPanelComponent impl
               private router: Router,
               protected injector: Injector,
               protected cd: ChangeDetectorRef,
-              protected componentFactoryResolver: ComponentFactoryResolver,
               private broadcast: BroadcastService,
               private translate: TranslateService,
               private dialogService: DialogService,
               protected store: Store<AppState>) {
-    super(store, injector, cd, componentFactoryResolver);
+    super(store, injector, cd);
     if (isDefinedAndNotNull(this.route.snapshot.data.entityGroup) && isUndefinedOrNull(this.route.snapshot.data.entitiesTableConfig)) {
       this.entityGroup = this.route.snapshot.data.entityGroup;
       this.entitiesTableConfig = this.entityGroup.entityGroupConfig;

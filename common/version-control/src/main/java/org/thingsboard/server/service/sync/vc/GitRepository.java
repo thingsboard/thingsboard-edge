@@ -83,6 +83,7 @@ import org.thingsboard.server.common.data.page.SortOrder;
 import org.thingsboard.server.common.data.sync.vc.BranchInfo;
 import org.thingsboard.server.common.data.sync.vc.RepositoryAuthMethod;
 import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
+import org.thingsboard.server.common.data.util.CollectionsUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -153,6 +154,25 @@ public class GitRepository {
         return new GitRepository(git, settings, authHandler, directory.getAbsolutePath());
     }
 
+    public static GitRepository openOrClone(Path directory, RepositorySettings settings, boolean fetch) throws IOException, GitAPIException {
+        GitRepository repository;
+        if (GitRepository.exists(directory.toString())) {
+            repository = GitRepository.open(directory.toFile(), settings);
+            if (fetch) {
+                repository.fetch();
+            }
+        } else {
+            FileUtils.deleteDirectory(directory.toFile());
+            Files.createDirectories(directory);
+            if (settings.isLocalOnly()) {
+                repository = GitRepository.create(settings, directory.toFile());
+            } else {
+                repository = GitRepository.clone(settings, directory.toFile());
+            }
+        }
+        return repository;
+    }
+
     public static void test(RepositorySettings settings, File directory) throws Exception {
         if (settings.isLocalOnly()) {
             return;
@@ -180,9 +200,9 @@ public class GitRepository {
         }
     }
 
-    public void fetch() throws GitAPIException {
+    public boolean fetch() throws GitAPIException {
         if (settings.isLocalOnly()) {
-            return;
+            return false;
         }
         log.debug("Executing fetch [{}]", settings.getRepositoryUri());
         FetchResult result = execute(git.fetch()
@@ -191,6 +211,7 @@ public class GitRepository {
         if (head != null) {
             this.headId = head.getObjectId();
         }
+        return CollectionsUtil.isNotEmpty(result.getTrackingRefUpdates());
     }
 
     public void deleteLocalBranchIfExists(String branch) throws GitAPIException {
@@ -273,7 +294,7 @@ public class GitRepository {
             treeWalk.setRecursive(!fixedDepth);
             while (treeWalk.next()) {
                 if (!fixedDepth || treeWalk.getDepth() == depth) {
-                    files.add(new RepoFile(treeWalk.getPathString(), treeWalk.getNameString(), treeWalk.isSubtree()));
+                    files.add(new RepoFile(treeWalk.getPathString(), treeWalk.getNameString(), treeWalk.isSubtree() ? FileType.DIRECTORY : FileType.FILE));
                 }
                 if (fixedDepth && treeWalk.getDepth() < depth) {
                     treeWalk.enterSubtree();
@@ -619,6 +640,10 @@ public class GitRepository {
         private String diffStringValue;
     }
 
-    public record RepoFile(String path, String name, boolean isDirectory) {}
+    public record RepoFile(String path, String name, FileType type) {}
+
+    public enum FileType {
+        FILE, DIRECTORY
+    }
 
 }

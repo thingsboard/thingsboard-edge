@@ -31,9 +31,9 @@
 
 -->
 <form [formGroup]="roleFormGroup" style="width: 800px;">
-  <mat-toolbar fxLayout="row" color="primary">
+  <mat-toolbar class="flex flex-row" color="primary">
     <h2 translate>role.view</h2>
-    <span fxFlex></span>
+    <span class="flex-1"></span>
     <div [tb-help]="'roles'"></div>
     <button mat-icon-button
             (click)="close()"
@@ -58,7 +58,7 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <div formGroupName="additionalInfo" fxLayout="column">
+      <div formGroupName="additionalInfo" class="flex flex-col">
         <mat-form-field class="mat-block">
           <mat-label translate>role.description</mat-label>
           <textarea matInput formControlName="description" rows="2"></textarea>
@@ -70,12 +70,12 @@
             <div class="tb-panel-title" translate>role.permissions</div>
           </mat-panel-title>
         </mat-expansion-panel-header>
-        <section [fxShow]="roleFormGroup.get('type').value === roleType.GENERIC">
+        <section [class.!hidden]="roleFormGroup.get('type').value !== roleType.GENERIC">
           <tb-permission-list
             formControlName="genericPermissions">
           </tb-permission-list>
         </section>
-        <section [fxShow]="roleFormGroup.get('type').value === roleType.GROUP" fxLayout="column">
+        <section [class.!hidden]="roleFormGroup.get('type').value !== roleType.GROUP" class="flex flex-col">
           <label class="tb-title tb-required" translate>permission.operation.operations</label>
           <tb-operation-type-list
             formControlName="groupPermissions"
@@ -86,8 +86,8 @@
       </mat-expansion-panel>
     </fieldset>
   </div>
-  <div mat-dialog-actions fxLayout="row">
-    <span fxFlex></span>
+  <div mat-dialog-actions class="flex flex-row">
+    <span class="flex-1"></span>
     <button mat-button color="primary"
             type="button"
             [disabled]="(isLoading$ | async)"

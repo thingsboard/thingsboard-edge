@@ -47,4 +47,5 @@ public interface TbWidgetsBundleService {
 
     void updateWidgetsBundleWidgetFqns(WidgetsBundleId widgetsBundleId, List<String> widgetFqns, User user) throws Exception;
 
+
 }

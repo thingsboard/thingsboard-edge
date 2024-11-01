@@ -1,4 +1,4 @@
-# ThingsBoard 
+# ThingsBoard
 
 The **ThingsBoard Edge** is a ThingsBoard's software product for edge computing.
 It allows bringing data analysis and management to the edge, where the data created. At the same time ThingsBoard Edge seamlessly synchronizing with the ThingsBoard cloud (ThingsBoard Cloud, ThingsBoard Demo, ThingsBoard PE or ThingsBoard CE) according to your business needs.

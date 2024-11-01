@@ -30,7 +30,7 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { Resolve, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   checkBoxCell,
   DateEntityTableColumn, defaultEntityTablePermissions,
@@ -63,7 +63,7 @@ import { ImportExportService } from '@shared/import-export/import-export.service
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 
 @Injectable()
-export class DeviceProfilesTableConfigResolver implements Resolve<EntityTableConfig<DeviceProfile>> {
+export class DeviceProfilesTableConfigResolver  {
 
   private readonly config: EntityTableConfig<DeviceProfile> = new EntityTableConfig<DeviceProfile>();
 

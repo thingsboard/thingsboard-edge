@@ -76,7 +76,7 @@ public class EdgeProcessor extends BaseEdgeProcessor {
     public DownlinkMsg convertEdgeEventToDownlink(EdgeEvent edgeEvent) {
         EdgeId edgeId = new EdgeId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
-        // TODO: @voba - check this
+        // TODO: Edge-only:  check this
         if (EdgeEventActionType.CHANGE_OWNER.equals(edgeEvent.getAction())) {
             Edge edge = edgeService.findEdgeById(edgeEvent.getTenantId(), edgeId);
             if (edge != null) {

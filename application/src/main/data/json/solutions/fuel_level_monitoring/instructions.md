@@ -132,7 +132,7 @@ The profile by default is configured to raise alarms if:
 
 
 #### Alarms
-Alarms are generated using four <a href="https://thingsboard.io/docs/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
+Alarms are generated using four <a href="${DOCS_BASE_URL}/user-guide/device-profiles/#alarm-rules" target="_blank">Alarm rules</a> in the
 "Tank Sensor" <a href="/profiles/deviceProfiles" target="_blank">device profile</a>.
 User may configure the alarm rules via the <a href="${MAIN_DASHBOARD_URL}" target="_blank">"Fuel Level Monitoring"</a> dashboard using "Alarm rules" form.
 
@@ -165,8 +165,8 @@ curl -v -X POST -d "{\"fuelHeight\":  100}" ${BASE_URL}/api/v1/${001273ACCESS_TO
 
 <br>
 
-The example above uses <a href="https://thingsboard.io/docs/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a>.
-See <a href="https://thingsboard.io/docs/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
+The example above uses <a href="${DOCS_BASE_URL}/reference/http-api/#telemetry-upload-api" target="_blank">HTTP API</a>.
+See <a href="${DOCS_BASE_URL}/getting-started-guides/connectivity/" target="_blank">connecting devices</a> for other connectivity options.
 
 
 ### Solution entities

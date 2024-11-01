@@ -36,13 +36,13 @@ import { DEFAULT_ZOOM_LEVEL, WidgetUnitedMapSettings } from '../map-models';
 import { WidgetContext } from '@home/models/widget-component.models';
 
 export class TencentMap extends LeafletMap {
-  constructor(ctx: WidgetContext, $container, options: WidgetUnitedMapSettings) {
+  constructor(ctx: WidgetContext, $container: HTMLElement, options: WidgetUnitedMapSettings) {
     super(ctx, $container, options);
     let mapUuid: string;
     if (this.ctx.reportService.reportView) {
       mapUuid = this.ctx.reportService.onWaitForMap();
     }
-    const txUrl = 'http://rt{s}.map.gtimg.com/realtimerender?z={z}&x={x}&y={y}&type=vector&style=0';
+    const txUrl = 'https://rt{s}.map.gtimg.com/realtimerender?z={z}&x={x}&y={y}&type=vector&style=0';
     const map = L.map($container, {
       doubleClickZoom: !this.options.disableDoubleClickZooming,
       zoomControl: !this.options.disableZoomControl,
@@ -51,7 +51,7 @@ export class TencentMap extends LeafletMap {
     const txLayer = L.tileLayer(txUrl, {
       subdomains: '0123',
       tms: true,
-      attribution: '&copy;2021 Tencent - GS(2020)2236号- Data&copy; NavInfo'
+      attribution: '&copy;2024 Tencent - GS(2023)1171号'
     }).addTo(map);
     txLayer.addTo(map);
     if (this.ctx.reportService.reportView) {

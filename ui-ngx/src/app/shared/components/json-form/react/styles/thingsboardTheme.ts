@@ -29,9 +29,9 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { indigo, deepOrange } from '@material-ui/core/colors';
-import { ThemeOptions } from '@material-ui/core/styles';
-import { PaletteOptions, SimplePaletteColorOptions } from '@material-ui/core/styles/createPalette';
+import { indigo, deepOrange } from '@mui/material/colors';
+import { ThemeOptions } from '@mui/material/styles';
+import { PaletteOptions, SimplePaletteColorOptions } from '@mui/material/styles/createPalette';
 import { mergeDeep } from '@core/utils';
 import { ColorPalette } from '@shared/models/material.models';
 
@@ -52,7 +52,7 @@ const thingsboardPalette: PaletteOptions = {
   background: {
     default: '#eee'
   },
-  type: 'light'
+  mode: 'light'
 };
 
 export default function createThingsboardTheme(primaryPalette: ColorPalette, accentPalette: ColorPalette): ThemeOptions {

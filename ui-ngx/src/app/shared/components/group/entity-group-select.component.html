@@ -30,11 +30,11 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxLayout="row" class="tb-entity-group-select" [formGroup]="entityGroupSelectFormGroup"
-     [fxShow]="ownerId || originator !== 'ownerGroup'">
+<div class="tb-entity-group-select flex flex-row" [formGroup]="entityGroupSelectFormGroup"
+     [class.!hidden]="!ownerId && originator === 'ownerGroup'">
   <tb-entity-type-select
     style="min-width: 100px; padding-right: 8px;"
-    fxFlex
+    class="flex-1"
     *ngIf="displayGroupTypeSelect"
     [showLabel]="true"
     [required]="required"
@@ -42,9 +42,9 @@
     formControlName="groupType">
   </tb-entity-type-select>
   <tb-entity-group-autocomplete
-    fxFlex
-    [fxShow]="!!entityGroupSelectFormGroup.get('groupType').value ||
-              !!entityGroupSelectFormGroup.get('groupId').value || !displayGroupTypeSelect"
+    class="flex-1"
+    [class.!hidden]="!entityGroupSelectFormGroup.get('groupType').value &&
+                     !entityGroupSelectFormGroup.get('groupId').value && displayGroupTypeSelect"
     [required]="required"
     [groupType]="getCurrentGroupType()"
     [ownerId]="ownerId"

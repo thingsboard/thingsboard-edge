@@ -41,8 +41,8 @@
       integration.url-private
     </mat-error>
   </mat-form-field>
-  <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="start center">
-    <mat-form-field class="mat-block" fxFlex>
+  <div class="flex flex-row items-center justify-start gap-2">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.http-endpoint</mat-label>
       <input matInput formControlName="httpEndpoint">
     </mat-form-field>
@@ -59,7 +59,7 @@
 
                        [expanded]="loriotIntegrationConfigForm.get('createLoriotOutput').value || loriotIntegrationConfigForm.get('sendDownlink').value">
     <mat-expansion-panel-header collapsedHeight="72px" expandedHeight="72px">
-      <mat-panel-title fxLayout="column" fxLayoutAlign="start start" fxLayoutGap="8px">
+      <mat-panel-title class="flex flex-col items-start justify-start gap-2">
         <mat-slide-toggle formControlName="createLoriotOutput" (click)="$event.stopPropagation()">
           {{ 'integration.create-loriot-output' | translate }}
         </mat-slide-toggle>
@@ -70,15 +70,15 @@
     </mat-expansion-panel-header>
     <ng-template matExpansionPanelContent>
       <section class="expansion-panel-setting-content">
-        <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-          <mat-form-field fxFlex class="mat-block">
+        <div class="flex flex-row xs:flex-col gt-xs:gap-2">
+          <mat-form-field class="mat-block flex-1">
             <mat-label translate>integration.server</mat-label>
             <input required matInput formControlName="server">
             <mat-error translate *ngIf="loriotIntegrationConfigForm.get('server').hasError('required')">
               integration.server-required
             </mat-error>
           </mat-form-field>
-          <mat-form-field fxFlex class="mat-block">
+          <mat-form-field class="mat-block flex-1">
             <mat-label translate>integration.domain</mat-label>
             <input matInput formControlName="domain">
           </mat-form-field>
@@ -90,8 +90,8 @@
             integration.app-id-required
           </mat-error>
         </mat-form-field>
-        <div *ngIf="loriotIntegrationConfigForm.get('sendDownlink').value" fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-          <mat-form-field fxFlex class="mat-block">
+        <div *ngIf="loriotIntegrationConfigForm.get('sendDownlink').value" class="flex flex-row xs:flex-col gt-xs:gap-2">
+          <mat-form-field class="mat-block flex-1">
             <mat-label translate>integration.downlink-url</mat-label>
             <input required matInput formControlName="loriotDownlinkUrl">
             <mat-error translate *ngIf="loriotIntegrationConfigForm.get('loriotDownlinkUrl').hasError('required')">
@@ -101,7 +101,7 @@
               integration.url-private
             </mat-error>
           </mat-form-field>
-          <mat-form-field fxFlex class="mat-block">
+          <mat-form-field class="mat-block flex-1">
             <mat-label translate>integration.app-token</mat-label>
             <input required matInput formControlName="token" type="password" autocomplete="new-password" >
             <tb-toggle-password matSuffix></tb-toggle-password>
@@ -123,7 +123,7 @@
 
   <mat-expansion-panel class="expansion-panel-setting"
                        [expanded]="loriotIntegrationConfigForm.get('enableSecurity').value">
-    <mat-expansion-panel-header fxLayout="row">
+    <mat-expansion-panel-header class="flex flex-row">
       <mat-panel-title>
         <mat-slide-toggle [aria-label]="'integration.enable-security' | translate"
                           formControlName="enableSecurity"
@@ -148,7 +148,7 @@
 
   <mat-expansion-panel class="configuration-panel">
     <mat-expansion-panel-header>
-      <mat-panel-description fxLayoutAlign="end" translate>
+      <mat-panel-description class="flex items-stretch justify-end" translate>
         integration.advanced-settings
       </mat-panel-description>
     </mat-expansion-panel-header>

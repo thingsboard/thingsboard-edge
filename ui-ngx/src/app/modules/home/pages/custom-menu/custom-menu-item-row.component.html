@@ -48,7 +48,7 @@
           <div tbTruncateWithTooltip> {{ itemName }} </div>
         </div>
       </div>
-      <div fxHide.xs class="tb-custom-menu-item-input-block">
+      <div class="tb-custom-menu-item-input-block xs:!hidden">
         <mat-form-field class="flex tb-suffix-absolute" appearance="outline" subscriptSizing="dynamic">
           <input matInput [required]="isCustomMenuItem" formControlName="name" placeholder="{{ itemNamePlaceholder }}">
           <mat-icon matSuffix

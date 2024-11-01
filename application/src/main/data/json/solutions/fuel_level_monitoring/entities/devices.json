@@ -187,7 +187,7 @@
     "label": "Tank 1288",
     "type": "Tank",
     "group": "Tanks",
-    "emulator": "Horizontal Capsule Tank Emulator temperature alarm",
+    "emulator": "Horizontal Capsule Tank Emulator",
     "attributes": {
       "latitude": 34.033674,
       "longitude": -118.262370,
@@ -261,7 +261,7 @@
     "label": "Tank 1113",
     "type": "Tank",
     "group": "Tanks",
-    "emulator": "Horizontal Oval Tank Emulator battery alarm",
+    "emulator": "Horizontal Oval Tank Emulator",
     "attributes": {
       "latitude": 34.033724,
       "longitude": -118.261862,
@@ -299,7 +299,7 @@
     "label": "Tank 1133",
     "type": "Tank",
     "group": "Tanks",
-    "emulator": "Rectangle Tank Emulator fuel level alarm",
+    "emulator": "Rectangle Tank Emulator",
     "attributes": {
       "latitude": 34.034031,
       "longitude": -118.262053,

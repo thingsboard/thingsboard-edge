@@ -34,8 +34,10 @@ const path = require('path');
 
 const typeDir = path.join('.', 'target', 'types');
 const srcDir = path.join('.', 'target', 'types', 'src');
+const stylesCss = path.join(srcDir, 'styles.css');
 const moduleMapPath = path.join('src', 'app', 'modules', 'common', 'modules-map.ts');
 const ngcPath = path.join('.', 'node_modules', '.bin', 'ngc');
+const tailwindcss = path.join('.', 'node_modules', '.bin', 'tailwindcss');
 const tsconfigPath = path.join('src', 'tsconfig.app.json');
 
 console.log(`Remove directory: ${typeDir}`);
@@ -46,12 +48,28 @@ try {
 }
 
 const cliCommand = `${ngcPath} --p ${tsconfigPath} --declaration --outDir ${srcDir}`;
-console.log(cliCommand);
-try {
-  child_process.execSync(cliCommand);
-} catch (err) {
-  console.error("Build types", err);
-  process.exit(1);
+executeCliCommand(cliCommand, 'Build types');
+
+fromDir(srcDir, /(\.js|\.js\.map)$/, function (filename) {
+  try {
+    fs.rmSync(filename);
+  } catch (err) {
+    console.error(`Remove file error ${filename}: ${err}`);
+  }
+});
+fs.cpSync(moduleMapPath, `${typeDir}/${moduleMapPath}`);
+
+const generateStyleCssCommand = `${tailwindcss} -o ${stylesCss} --minify`;
+executeCliCommand(generateStyleCssCommand, 'Generate styles.css');
+
+function executeCliCommand(cliCommand, description) {
+  console.log(cliCommand);
+  try {
+    child_process.execSync(cliCommand);
+  } catch (err) {
+    console.error(description, err);
+    process.exit(1);
+  }
 }
 
 function fromDir(startPath, filter, callback) {
@@ -71,13 +89,3 @@ function fromDir(startPath, filter, callback) {
     }
   }
 }
-
-
-fromDir(srcDir, /(\.js|\.js\.map)$/, function (filename) {
-  try {
-    fs.rmSync(filename);
-  } catch (err) {
-    console.error(`Remove file error ${filename}: ${err}`);
-  }
-});
-fs.cpSync(moduleMapPath, `${typeDir}/${moduleMapPath}`);

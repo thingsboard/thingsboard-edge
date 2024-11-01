@@ -100,7 +100,7 @@ public class WhiteLabelingController extends BaseController {
     @RequestMapping(value = "/noauth/whiteLabel/loginWhiteLabelParams", method = RequestMethod.GET, produces = "application/json")
     @ResponseBody
     public LoginWhiteLabelingParams getLoginWhiteLabelParams(HttpServletRequest request) throws Exception {
-        // TODO: @voba - on edge domain name hardcoded - using login white labeling of the edge owner and not by domain
+        // TODO: Edge-only:  on edge domain name hardcoded - using login white labeling of the edge owner and not by domain
         return whiteLabelingService.getMergedLoginWhiteLabelingParams(WhiteLabelingService.EDGE_LOGIN_WHITE_LABEL_DOMAIN_NAME);
         //return whiteLabelingService.getMergedLoginWhiteLabelingParams(request.getServerName());
     }

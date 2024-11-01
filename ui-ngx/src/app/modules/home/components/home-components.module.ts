@@ -233,6 +233,7 @@ import {
   SelectDashboardBreakpointComponent
 } from '@home/components/dashboard-page/layout/select-dashboard-breakpoint.component';
 import { EntityChipsComponent } from '@home/components/entity/entity-chips.component';
+import { DashboardViewComponent } from '@home/components/dashboard-view/dashboard-view.component';
 import { ConverterLibraryComponent } from '@home/components/converter/converter-library.component';
 
 @NgModule({
@@ -407,6 +408,7 @@ import { ConverterLibraryComponent } from '@home/components/converter/converter-
       ConverterTestDialogComponent,
       SendNotificationButtonComponent,
       EntityChipsComponent,
+      DashboardViewComponent,
       ConverterLibraryComponent
     ],
   imports: [
@@ -573,7 +575,8 @@ import { ConverterLibraryComponent } from '@home/components/converter/converter-
     RateLimitsTextComponent,
     IntegrationWizardDialogComponent,
     SendNotificationButtonComponent,
-    EntityChipsComponent
+    EntityChipsComponent,
+    DashboardViewComponent
   ],
   providers: [
     WidgetComponentService,

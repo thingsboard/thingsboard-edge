@@ -30,53 +30,53 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-details-buttons" fxLayout.xs="column">
+<div class="tb-details-buttons xs:flex xs:flex-col">
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'open')"
-          [fxShow]="!isEdit && !isDetailsPage">
+          [class.!hidden]="isEdit || isDetailsPage">
     {{'common.open-details-page' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageUsers')"
           *ngIf="resource.USER | hasGenericPermission: operation.READ"
-          [fxShow]="!hideManageUsers() && !isEdit && !isPublic">
+          [class.!hidden]="hideManageUsers() || isEdit || isPublic">
     {{'customer.manage-users' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageCustomers')"
           *ngIf="resource.CUSTOMER | hasGenericPermission: operation.READ"
-          [fxShow]="!hideManageCustomers() && !isEdit && !isPublic">
+          [class.!hidden]="hideManageCustomers() || isEdit || isPublic">
     {{'customer.manage-customers' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageAssets')"
           *ngIf="resource.ASSET | hasGenericPermission: operation.READ"
-          [fxShow]="!hideManageAssets() && !isEdit">
+          [class.!hidden]="hideManageAssets() || isEdit">
     {{'customer.manage-assets' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageDevices')"
           *ngIf="resource.DEVICE | hasGenericPermission: operation.READ"
-          [fxShow]="!hideManageDevices() && !isEdit">
+          [class.!hidden]="hideManageDevices() || isEdit">
     {{'customer.manage-devices' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageEntityViews')"
           *ngIf="resource.ENTITY_VIEW | hasGenericPermission: operation.READ"
-          [fxShow]="!hideManageEntityViews() && !isEdit">
+          [class.!hidden]="hideManageEntityViews() || isEdit">
     {{'customer.manage-entity-views' | translate }}
   </button>
-  <!-- @voba - merge comment
+  <!-- Edge-only:  merge comment
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageEdges')"
-          [fxShow]="!hideManageEdges() && !isEdit"
+          [class.!hidden]="hideManageEdges() || isEdit"
           *ngIf="edgesSupportEnabled && (resource.EDGE | hasGenericPermission: operation.READ)">
     {{'customer.manage-edges' | translate }}
   </button>-->
@@ -84,37 +84,37 @@
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageDashboards')"
           *ngIf="resource.DASHBOARD | hasGenericPermission: operation.READ"
-          [fxShow]="!hideManageDashboards() && !isEdit">
+          [class.!hidden]="hideManageDashboards() || isEdit">
     {{'customer.manage-dashboards' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'manageOwnerAndGroups')"
           *ngIf="canManageOwnerAndGroups()"
-          [fxShow]="!isEdit">
+          [class.!hidden]="isEdit">
     {{'entity-group.manage-owner-and-groups' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
           *ngIf="entityGroup | hasGroupEntityOrGenericPermission: resource.CUSTOMER: operation.DELETE"
-          [fxShow]="!hideDelete() && !isEdit && !isPublic">
+          [class.!hidden]="hideDelete() || isEdit || isPublic">
     {{'customer.delete' | translate }}
   </button>
-  <div fxLayout="row" fxLayout.xs="column">
+  <div class="flex flex-row xs:flex-col">
     <button mat-raised-button
             ngxClipboard
             (cbOnSuccess)="onCustomerIdCopied($event)"
             [cbContent]="entity?.id?.id"
-            [fxShow]="!isEdit">
+            [class.!hidden]="isEdit">
       <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
       <span translate>customer.copyId</span>
     </button>
   </div>
 </div>
-<div class="mat-padding" fxLayout="column">
+<div class="mat-padding flex flex-col">
   <form [formGroup]="entityForm">
-    <fieldset [fxShow]="!isPublic" [disabled]="(isLoading$ | async) || !isEdit">
+    <fieldset [class.!hidden]="isPublic" [disabled]="(isLoading$ | async) || !isEdit">
       <mat-form-field class="mat-block">
         <mat-label translate>customer.title</mat-label>
         <input matInput formControlName="title" required/>
@@ -125,26 +125,26 @@
           {{ 'customer.title-max-length' | translate }}
         </mat-error>
       </mat-form-field>
-      <div formGroupName="additionalInfo" fxLayout="column">
+      <div formGroupName="additionalInfo" class="flex flex-col">
         <mat-form-field class="mat-block">
           <mat-label translate>customer.description</mat-label>
           <textarea matInput formControlName="description" rows="2"></textarea>
         </mat-form-field>
-        <mat-checkbox [fxShow]="allowCustomerWhiteLabeling"
-                      fxFlex formControlName="allowWhiteLabeling" style="padding-bottom: 16px;">
+        <mat-checkbox [class.!hidden]="!allowCustomerWhiteLabeling"
+                      class="flex-1" formControlName="allowWhiteLabeling" style="padding-bottom: 16px;">
           {{ 'customer.allow-white-labeling' | translate }}
         </mat-checkbox>
-        <section [fxShow]="allowCustomerWhiteLabeling"
-                 class="tb-default-dashboard" fxFlex fxLayout="column"
+        <section [class.!hidden]="!allowCustomerWhiteLabeling"
+                 class="tb-default-dashboard flex flex-1 flex-col"
                  *ngIf="entity?.id && whiteLabelingAllowed && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)">
-          <section fxFlex fxLayout="column" fxLayout.gt-sm="row">
+          <section class="flex flex-1 flex-col gt-sm:flex-row">
             <tb-dashboard-autocomplete
-              fxFlex
+              class="flex-1"
               label="{{ 'dashboard.home-dashboard' | translate }}"
               formControlName="homeDashboardId"
               [selectFirstDashboard]="false"
             ></tb-dashboard-autocomplete>
-            <mat-checkbox fxFlex formControlName="homeDashboardHideToolbar">
+            <mat-checkbox class="flex-1" formControlName="homeDashboardHideToolbar">
               {{ 'dashboard.home-dashboard-hide-toolbar' | translate }}
             </mat-checkbox>
           </section>
@@ -152,7 +152,7 @@
       </div>
       <tb-custom-menu-autocomplete *ngIf="allowCustomerWhiteLabeling &&
                                           whiteLabelingAllowed && (resource.WHITE_LABELING | hasGenericPermission: operation.WRITE)"
-                                   fxFlex
+                                   class="flex-1"
                                    formControlName="customMenuId"
                                    [scope]="CMScope.CUSTOMER"
                                    [assigneeType]="CMAssigneeType.CUSTOMERS">

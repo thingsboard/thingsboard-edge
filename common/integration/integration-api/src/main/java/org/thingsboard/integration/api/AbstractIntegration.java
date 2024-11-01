@@ -68,6 +68,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by ashvayka on 25.12.17.
@@ -305,6 +306,8 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     protected ListenableFuture<List<UplinkData>> convertToUplinkDataListAsync(IntegrationContext context, byte[] data, UplinkMetaData md) {
         try {
+            Optional<IntegrationRateLimitService> rateLimitService = context.getRateLimitService();
+            rateLimitService.ifPresent(s -> s.checkLimit(configuration.getTenantId(), () -> new String(data)));
             return this.uplinkConverter.convertUplink(context.getUplinkConverterContext(), data, md, context.getCallBackExecutorService());
         } catch (Throwable t) {
             if (log.isDebugEnabled()) {
@@ -316,9 +319,15 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
 
     //Please, prefer async method convertToUplinkDataListAsync
     protected List<UplinkData> convertToUplinkDataList(IntegrationContext context, byte[] data, UplinkMetaData md) throws Exception {
-        Optional<IntegrationRateLimitService> rateLimitService = context.getRateLimitService();
-        rateLimitService.ifPresent(s -> s.checkLimit(configuration.getTenantId(), () -> JacksonUtil.toString(JacksonUtil.fromBytes(data))));
-        return convertToUplinkDataListAsync(context, data, md).get();
+        try {
+            return convertToUplinkDataListAsync(context, data, md).get();
+        } catch (ExecutionException e) {
+            if (e.getCause() instanceof TbRateLimitsException rateLimitsException) {
+                throw rateLimitsException;
+            } else {
+                throw e;
+            }
+        }
     }
 
     protected void reportDownlinkOk(IntegrationContext context, DownlinkData data) {

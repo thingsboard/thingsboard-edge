@@ -30,8 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div [formGroup]="datapointsLimitFormGroup" class="limit-slider-container" fxLayout="row" fxLayoutAlign="start center">
-  <mat-slider fxFlex
+<div [formGroup]="datapointsLimitFormGroup" class="limit-slider-container flex flex-row items-center justify-start">
+  <mat-slider class="flex-1"
               min="{{minDatapointsLimit()}}"
               max="{{maxDatapointsLimit()}}">
     <input matSliderThumb formControlName="limit" [value]="datapointsLimitFormGroup.get('limit').value"/>
