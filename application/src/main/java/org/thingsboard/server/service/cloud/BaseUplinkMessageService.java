@@ -49,27 +49,28 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.thingsboard.server.service.cloud.MessageConstants.CANT_PROCESS_UPLINK_RESPONSE_MESSAGE;
-import static org.thingsboard.server.service.cloud.MessageConstants.MSG_HAS_BEEN_PROCESSED_SUCCESSFULLY;
-import static org.thingsboard.server.service.cloud.MessageConstants.MSG_PROCESSING_FAILED;
-import static org.thingsboard.server.service.cloud.MessageConstants.RATE_LIMIT_REACHED;
-import static org.thingsboard.server.service.cloud.MessageConstants.EVENTS_ARE_GOING_TO_BE_CONVERTED;
-import static org.thingsboard.server.service.cloud.MessageConstants.UPLINK_MSGS_ARE_GOING_TO_BE_SEND;
-import static org.thingsboard.server.service.cloud.MessageConstants.INTERRUPTED_EXCEPTION;
-import static org.thingsboard.server.service.cloud.MessageConstants.INTERRUPTED_WHILE_WAITING_FOR_LATCH;
-import static org.thingsboard.server.service.cloud.MessageConstants.UPLINK_MSG_SIZE_ERROR_MESSAGE;
-import static org.thingsboard.server.service.cloud.MessageConstants.FAILED_TO_DELIVER_THE_BATCH;
-import static org.thingsboard.server.service.cloud.MessageConstants.CONVERTING_CLOUD_EVENT;
-import static org.thingsboard.server.service.cloud.MessageConstants.ERROR_DURING_SLEEP;
-import static org.thingsboard.server.service.cloud.MessageConstants.NEXT_MESSAGES_ARE_GOING_TO_BE_DISCARDED;
-import static org.thingsboard.server.service.cloud.MessageConstants.EXCEPTION_DURING_CONVERTING_EVENTS;
-import static org.thingsboard.server.service.cloud.MessageConstants.UNSUPPORTED_ACTION_TYPE;
-import static org.thingsboard.server.service.cloud.MessageConstants.EXECUTING_CONVERT_ENTITY_EVENT;
-import static org.thingsboard.server.service.cloud.MessageConstants.UNSUPPORTED_CLOUD_EVENT_TYPE;
-
-
 @Slf4j
 public abstract class BaseUplinkMessageService {
+    private static final String CANT_PROCESS_UPLINK_RESPONSE_MESSAGE = "Can't process uplink response message";
+    private static final String MSG_HAS_BEEN_PROCESSED_SUCCESSFULLY = "Msg has been processed successfully!";
+    private static final String MSG_PROCESSING_FAILED = "Msg processing failed!";
+    private static final String EVENTS_ARE_GOING_TO_BE_CONVERTED = "event(s) are going to be converted.";
+    private static final String INTERRUPTED_WHILE_WAITING_FOR_LATCH = "Interrupted while waiting for latch. ";
+    private static final String UPLINK_MSGS_ARE_GOING_TO_BE_SEND = "uplink msg(s) are going to be send.";
+    private static final String INTERRUPTED_EXCEPTION = "sendUplinkMsgPack throw InterruptedException";
+    private static final String UPLINK_MSG_SIZE_ERROR_MESSAGE =
+            "Uplink msg size [{}] exceeds server max inbound message size [{}]. Skipping this message. " +
+                    "Please increase value of EDGES_RPC_MAX_INBOUND_MESSAGE_SIZE env variable on the server and restart it. Message {}";
+    private static final String FAILED_TO_DELIVER_THE_BATCH = "Failed to deliver the batch:";
+    private static final String ERROR_DURING_SLEEP = "Error during sleep between batches or on rate limit violation";
+    private static final String NEXT_MESSAGES_ARE_GOING_TO_BE_DISCARDED = "Next messages are going to be discarded";
+    private static final String CONVERTING_CLOUD_EVENT = "Converting cloud event";
+    private static final String EXCEPTION_DURING_CONVERTING_EVENTS = "Exception during converting events from queue, skipping event";
+    private static final String UNSUPPORTED_ACTION_TYPE = "Unsupported action type";
+    private static final String EXECUTING_CONVERT_ENTITY_EVENT = "Executing convertEntityEventToUplink";
+    private static final String UNSUPPORTED_CLOUD_EVENT_TYPE = "Unsupported cloud event type";
+    private static final String RATE_LIMIT_REACHED = "Rate limit reached";
+
     private static final ReentrantLock uplinkMsgPackLock = new ReentrantLock();
     private static final int MAX_SEND_UPLINK_ATTEMPTS = 10;
 
@@ -153,7 +154,7 @@ public abstract class BaseUplinkMessageService {
         }
     }
 
-    protected void tryToSendCloudEvents(PageData<CloudEvent> cloudEvents) {
+    protected void sendCloudEvents(PageData<CloudEvent> cloudEvents) {
         log.trace("[{}] " + EVENTS_ARE_GOING_TO_BE_CONVERTED, cloudEvents.getData().size());
         List<UplinkMsg> uplinkMsgPack = convertToUplinkMsgPack(cloudEvents.getData());
 
@@ -185,7 +186,7 @@ public abstract class BaseUplinkMessageService {
     private boolean uplinkMsgPackSent(LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue, int attempt) {
         log.trace("[{}] " + UPLINK_MSGS_ARE_GOING_TO_BE_SEND, pendingMsgMap.values().size());
 
-        boolean success = tryToSendUplinkMsgPack(orderedPendingMsgQueue) && pendingMsgMap.isEmpty();
+        boolean success = sendUplinkMsgPack(orderedPendingMsgQueue) && pendingMsgMap.isEmpty();
 
         if (!success) {
             sleepThread(attempt);
@@ -196,29 +197,25 @@ public abstract class BaseUplinkMessageService {
         return checkAttempt(attempt) && success;
     }
 
-    private boolean tryToSendUplinkMsgPack(LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue) {
+    private boolean sendUplinkMsgPack(LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue) {
         try {
-            return sendUplinkMsgPack(orderedPendingMsgQueue);
+            boolean success;
+
+            sendingInProgress = true;
+            latch = new CountDownLatch(pendingMsgMap.values().size());
+            orderedPendingMsgQueue.forEach(this::sendUplinkMsg);
+
+            success = latch.await(uplinkPackTimeoutSec, TimeUnit.SECONDS);
+            sendingInProgress = false;
+
+            return success;
         } catch (InterruptedException e) {
             log.error(INTERRUPTED_EXCEPTION, e);
             throw new RuntimeException(INTERRUPTED_WHILE_WAITING_FOR_LATCH + e);
         }
     }
 
-    private boolean sendUplinkMsgPack(LinkedBlockingQueue<UplinkMsg> orderedPendingMsgQueue) throws InterruptedException {
-        boolean success;
-
-        sendingInProgress = true;
-        latch = new CountDownLatch(pendingMsgMap.values().size());
-        orderedPendingMsgQueue.forEach(this::tryToSendUplinkMsg);
-
-        success = latch.await(uplinkPackTimeoutSec, TimeUnit.SECONDS);
-        sendingInProgress = false;
-
-        return success;
-    }
-
-    private void tryToSendUplinkMsg(UplinkMsg uplinkMsg) {
+    private void sendUplinkMsg(UplinkMsg uplinkMsg) {
         if (isCorrectMessageSize(uplinkMsg)) {
             edgeRpcClient.sendUplinkMsg(uplinkMsg);
         } else {
@@ -258,41 +255,35 @@ public abstract class BaseUplinkMessageService {
 
     private List<UplinkMsg> convertToUplinkMsgPack(List<CloudEvent> cloudEvents) {
         return cloudEvents.stream()
-                .map(this::tryToConvert)
+                .map(this::convertEventToUplink)
                 .filter(Objects::nonNull)
                 .toList();
     }
 
     @Nullable
-    private UplinkMsg tryToConvert(CloudEvent cloudEvent) {
+    private UplinkMsg convertEventToUplink(CloudEvent cloudEvent) {
         log.trace(CONVERTING_CLOUD_EVENT + " [{}]", cloudEvent);
         try {
-            return convertEventToUplink(cloudEvent);
+            return switch (cloudEvent.getAction()) {
+                case UPDATED, ADDED, DELETED, ALARM_ACK, ALARM_CLEAR, ALARM_DELETE, CREDENTIALS_UPDATED,
+                     RELATION_ADD_OR_UPDATE, RELATION_DELETED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER,
+                     ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT -> convertEntityEventToUplink(cloudEvent);
+                case ATTRIBUTES_UPDATED, POST_ATTRIBUTES, ATTRIBUTES_DELETED, TIMESERIES_UPDATED ->
+                        telemetryProcessor.convertTelemetryEventToUplink(cloudEvent.getTenantId(), cloudEvent);
+                case ATTRIBUTES_REQUEST -> telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
+                case RELATION_REQUEST -> relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
+                case RPC_CALL -> deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
+                case WIDGET_BUNDLE_TYPES_REQUEST -> widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
+                case ENTITY_VIEW_REQUEST -> entityViewProcessor.convertEntityViewRequestEventToUplink(cloudEvent);
+                default -> {
+                    log.warn(UNSUPPORTED_ACTION_TYPE + " [{}]", cloudEvent);
+                    yield null;
+                }
+            };
         } catch (Exception e) {
             log.error(EXCEPTION_DURING_CONVERTING_EVENTS + " [{}]", cloudEvent, e);
             return null;
         }
-    }
-
-    @Nullable
-    private UplinkMsg convertEventToUplink(CloudEvent cloudEvent) {
-        return switch (cloudEvent.getAction()) {
-            case UPDATED, ADDED, DELETED, ALARM_ACK, ALARM_CLEAR, ALARM_DELETE, CREDENTIALS_UPDATED,
-                 RELATION_ADD_OR_UPDATE, RELATION_DELETED, ASSIGNED_TO_CUSTOMER, UNASSIGNED_FROM_CUSTOMER,
-                 ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT -> convertEntityEventToUplink(cloudEvent);
-            case ATTRIBUTES_UPDATED, POST_ATTRIBUTES, ATTRIBUTES_DELETED, TIMESERIES_UPDATED ->
-                    telemetryProcessor.convertTelemetryEventToUplink(cloudEvent.getTenantId(), cloudEvent);
-            case ATTRIBUTES_REQUEST -> telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
-            case RELATION_REQUEST -> relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
-            case RPC_CALL -> deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
-            case WIDGET_BUNDLE_TYPES_REQUEST ->
-                    widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);
-            case ENTITY_VIEW_REQUEST -> entityViewProcessor.convertEntityViewRequestEventToUplink(cloudEvent);
-            default -> {
-                log.warn(UNSUPPORTED_ACTION_TYPE + " [{}]", cloudEvent);
-                yield null;
-            }
-        };
     }
 
     @Nullable
@@ -301,8 +292,7 @@ public abstract class BaseUplinkMessageService {
         EdgeVersion edgeVersion = EdgeVersion.V_LATEST;
 
         return switch (cloudEvent.getType()) {
-            case DEVICE ->
-                    deviceProcessor.convertDeviceEventToUplink(cloudEvent.getTenantId(), cloudEvent, edgeVersion);
+            case DEVICE -> deviceProcessor.convertDeviceEventToUplink(cloudEvent.getTenantId(), cloudEvent, edgeVersion);
             case DEVICE_PROFILE -> deviceProfileProcessor.convertDeviceProfileEventToUplink(cloudEvent, edgeVersion);
             case ALARM -> alarmProcessor.convertAlarmEventToUplink(cloudEvent, edgeVersion);
             case ALARM_COMMENT -> alarmProcessor.convertAlarmCommentEventToUplink(cloudEvent, edgeVersion);
@@ -324,4 +314,5 @@ public abstract class BaseUplinkMessageService {
     }
 
     protected abstract boolean newMessagesAvailableInGeneralQueue(TenantId tenantId);
+
 }

@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit;
 @TbCoreComponent
 @Slf4j
 @Service
-@ConditionalOnExpression("${sql.ttl.cloud_events.enabled:true} && ${sql.ttl.cloud_events.cloud_events_ttl:0} > 0")
+@ConditionalOnExpression("${sql.ttl.cloud_events.enabled:true} && ${sql.ttl.cloud_events.cloud_events_ttl:0} > 0 && '${queue.type:null}' != 'kafka'")
 public class CloudEventsCleanUpService extends AbstractCleanUpService {
 
     public static final String RANDOM_DELAY_INTERVAL_MS_EXPRESSION =

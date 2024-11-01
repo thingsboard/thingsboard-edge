@@ -16,11 +16,11 @@
 package org.thingsboard.server.service.cloud;
 
 public class QueueConstants {
+    public static final String QUEUE_START_SEQ_ID_ATTR_KEY = "queueStartSeqId";
+    public static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
+
     static final String QUEUE_SEQ_ID_OFFSET_ATTR_KEY = "queueSeqIdOffset";
     static final String QUEUE_TS_KV_START_TS_ATTR_KEY = "queueTsKvStartTs";
     static final String QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY = "queueTsKvSeqIdOffset";
 
-
-    public static final String QUEUE_START_SEQ_ID_ATTR_KEY = "queueStartSeqId";
-    public static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
 }

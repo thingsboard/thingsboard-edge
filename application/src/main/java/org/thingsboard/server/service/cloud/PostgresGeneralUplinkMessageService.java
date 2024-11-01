@@ -30,7 +30,7 @@ import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_START_TS
 @Slf4j
 @Service
 @ConditionalOnExpression("'${queue.type:null}'!='kafka'")
-public class DefaultGeneralUplinkMessageService extends PostgresUplinkMessageService implements GeneralUplinkMessageService {
+public class PostgresGeneralUplinkMessageService extends PostgresUplinkMessageService implements GeneralUplinkMessageService {
 
     @Override
     protected String getTableName() {
@@ -61,4 +61,5 @@ public class DefaultGeneralUplinkMessageService extends PostgresUplinkMessageSer
     protected boolean newMessagesAvailableInGeneralQueue(TenantId tenantId) {
         return false;
     }
+
 }

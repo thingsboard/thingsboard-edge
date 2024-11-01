@@ -18,7 +18,6 @@ package org.thingsboard.server.dao.cloud;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.AttributeScope;
@@ -33,58 +32,42 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-
-import static org.thingsboard.server.dao.cloud.MessageConstants.FETCHING_EDGE_SETTINGS_ERROR_MESSAGE;
-import static org.thingsboard.server.dao.cloud.MessageConstants.FOUND_CURRENT_EDGE_SETTINGS_MESSAGE;
-import static org.thingsboard.server.dao.cloud.MessageConstants.NOT_FOUND_EDGE_SETTINGS_MESSAGE;
-import static org.thingsboard.server.dao.cloud.MessageConstants.SAVE_EDGE_SETTINGS_ERROR_MESSAGE;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class DefaultEdgeSettingsService implements EdgeSettingsService {
+    private static final String FETCHING_EDGE_SETTINGS_ERROR_MESSAGE = "Fetching edge settings failed";
+    private static final String FOUND_CURRENT_EDGE_SETTINGS_MESSAGE = "Found current edge settings ";
+    private static final String NOT_FOUND_EDGE_SETTINGS_MESSAGE = "Edge settings not found";
     public final AttributesService attributesService;
 
     @Override
     public EdgeSettings findEdgeSettings(TenantId tenantId) {
         try {
-            return tryFindEdgeSettings(tenantId);
+            Optional<AttributeKvEntry> attr =
+                    attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, DataConstants.EDGE_SETTINGS_ATTR_KEY).get();
+
+            if (attr.isPresent()) {
+                log.trace(FOUND_CURRENT_EDGE_SETTINGS_MESSAGE + "{}", attr.get().getValueAsString());
+                return JacksonUtil.fromString(attr.get().getValueAsString(), EdgeSettings.class);
+            } else {
+                log.trace(NOT_FOUND_EDGE_SETTINGS_MESSAGE);
+                return null;
+            }
         } catch (Exception e) {
             log.error(FETCHING_EDGE_SETTINGS_ERROR_MESSAGE, e);
             throw new RuntimeException(FETCHING_EDGE_SETTINGS_ERROR_MESSAGE, e);
         }
     }
 
-    @Nullable
-    private EdgeSettings tryFindEdgeSettings(TenantId tenantId) throws InterruptedException, ExecutionException {
-        Optional<AttributeKvEntry> attr =
-                attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, DataConstants.EDGE_SETTINGS_ATTR_KEY).get();
-
-        if (attr.isPresent()) {
-            log.trace(FOUND_CURRENT_EDGE_SETTINGS_MESSAGE, attr.get().getValueAsString());
-            return JacksonUtil.fromString(attr.get().getValueAsString(), EdgeSettings.class);
-        } else {
-            log.trace(NOT_FOUND_EDGE_SETTINGS_MESSAGE);
-            return null;
-        }
-    }
-
     @Override
     public ListenableFuture<List<Long>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings) {
-        try {
-            return trySave(tenantId, edgeSettings);
-        } catch (Exception e) {
-            log.error(SAVE_EDGE_SETTINGS_ERROR_MESSAGE, e);
-            throw new RuntimeException(SAVE_EDGE_SETTINGS_ERROR_MESSAGE, e);
-        }
-    }
-
-    private ListenableFuture<List<Long>> trySave(TenantId tenantId, EdgeSettings edgeSettings) {
         StringDataEntry dataEntry = new StringDataEntry(DataConstants.EDGE_SETTINGS_ATTR_KEY, JacksonUtil.toString(edgeSettings));
         BaseAttributeKvEntry edgeSettingAttr = new BaseAttributeKvEntry(dataEntry, System.currentTimeMillis());
         List<AttributeKvEntry> attributes = Collections.singletonList(edgeSettingAttr);
 
         return attributesService.save(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attributes);
     }
+
 }

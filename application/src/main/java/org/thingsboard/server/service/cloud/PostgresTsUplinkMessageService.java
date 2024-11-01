@@ -25,15 +25,15 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_SEQ_ID_OFFSET_ATTR_KEY;
 import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY;
 import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_TS_KV_START_TS_ATTR_KEY;
-import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_SEQ_ID_OFFSET_ATTR_KEY;
 
 
 @Slf4j
 @Service
 @ConditionalOnExpression("'${queue.type:null}'!='kafka'")
-public class DefaultTsUplinkMessageService extends PostgresUplinkMessageService implements TsUplinkMessageService {
+public class PostgresTsUplinkMessageService extends PostgresUplinkMessageService implements TsUplinkMessageService {
 
     @Autowired
     private GeneralUplinkMessageService generalUplinkMessageService;
@@ -73,4 +73,5 @@ public class DefaultTsUplinkMessageService extends PostgresUplinkMessageService 
             return false;
         }
     }
+
 }

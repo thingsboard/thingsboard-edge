@@ -71,6 +71,7 @@ public class ContainerTestSuite {
                         super.stop();
                         tryDeleteDir(targetDir);
                     }
+
                 }
 
                 testContainer = new DockerComposeContainerImpl<>(

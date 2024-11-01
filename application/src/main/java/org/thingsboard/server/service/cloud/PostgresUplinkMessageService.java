@@ -40,17 +40,15 @@ import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
-import static org.thingsboard.server.service.cloud.MessageConstants.FAILED_TO_UPDATE_QUEUE_OFFSET_ERROR_MESSAGE;
-import static org.thingsboard.server.service.cloud.MessageConstants.QUEUE_OFFSET_WAS_UPDATED_MESSAGE;
-import static org.thingsboard.server.service.cloud.MessageConstants.FAILED_TO_FIND_CLOUD_EVENTS;
-import static org.thingsboard.server.service.cloud.MessageConstants.STARTED_NEW_CYCLE_MESSAGE;
-import static org.thingsboard.server.service.cloud.MessageConstants.QUEUE_END_TS_LESS_THAN_CURRENT_TIME_MESSAGE;
-import static org.thingsboard.server.service.cloud.MessageConstants.TABLE_STARTED_NEW_CYCLE_MESSAGE;
-import static org.thingsboard.server.service.cloud.MessageConstants.UPDATE_QUEUE_START_TS_SEQ_ID_OFFSET_MESSAGE;
-
-
 @Slf4j
 public abstract class PostgresUplinkMessageService extends BaseUplinkMessageService {
+    private static final String FAILED_TO_FIND_CLOUD_EVENTS = "Failed to find cloudEvents";
+    private static final String QUEUE_END_TS_LESS_THAN_CURRENT_TIME_MESSAGE = "newCloudEventsAvailable: queueEndTs < System.currentTimeMillis()";
+    private static final String TABLE_STARTED_NEW_CYCLE_MESSAGE = "seqId column of {} table started new cycle";
+    private static final String QUEUE_OFFSET_WAS_UPDATED_MESSAGE = "Queue offset was updated";
+    private static final String STARTED_NEW_CYCLE_MESSAGE = "newCloudEventsAvailable: new cycle started (seq_id starts from '1')!";
+    private static final String FAILED_TO_UPDATE_QUEUE_OFFSET_ERROR_MESSAGE = "Failed to update queue offset";
+    private static final String UPDATE_QUEUE_START_TS_SEQ_ID_OFFSET_MESSAGE = "updateQueueStartTsSeqIdOffset";
 
     @Autowired
     private CloudEventStorageSettings cloudEventStorageSettings;
@@ -76,37 +74,34 @@ public abstract class PostgresUplinkMessageService extends BaseUplinkMessageServ
     @Nullable
     public TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart) {
         try {
-            return tryFindNewTimePageLink(tenantId, queueSeqIdStart);
+            TimePageLink pageLink = prepareTimePageLink(tenantId);
+            PageData<CloudEvent> cloudEvents = findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
+
+            if (cloudEvents.getData().isEmpty()) {
+                return getLastTimePageLink(tenantId, queueSeqIdStart, pageLink);
+            } else {
+                return pageLink;
+            }
         } catch (Exception e) {
             log.warn(FAILED_TO_FIND_CLOUD_EVENTS, e);
             return null;
         }
     }
 
-    @Nullable
-    private TimePageLink tryFindNewTimePageLink(TenantId tenantId, Long queueSeqIdStart) throws InterruptedException, ExecutionException {
+    private TimePageLink prepareTimePageLink(TenantId tenantId) throws InterruptedException, ExecutionException {
         int maxReadRecordsCount = cloudEventStorageSettings.getMaxReadRecordsCount();
         long queueStartTs = getQueueStartTs(tenantId).get();
         long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
-        TimePageLink pageLink =
-                new TimePageLink(maxReadRecordsCount, 0, null, null, queueStartTs, queueEndTs);
 
-        PageData<CloudEvent> cloudEvents = findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
-
-        if (cloudEvents.getData().isEmpty()) {
-            return tryFindFromBeginning(tenantId, queueSeqIdStart, pageLink, queueEndTs);
-        } else {
-            return pageLink;
-        }
+        return new TimePageLink(maxReadRecordsCount, 0, null, null, queueStartTs, queueEndTs);
     }
 
     @Nullable
-    private TimePageLink tryFindFromBeginning(TenantId tenantId, Long queueSeqIdStart, TimePageLink pageLink, long queueEndTs) {
-        // check if new cycle started (seq_id starts from '1')
+    private TimePageLink getLastTimePageLink(TenantId tenantId, Long queueSeqIdStart, TimePageLink pageLink) {
         PageData<CloudEvent> cloudEvents = findCloudEventsFromBeginning(tenantId, pageLink);
 
         if (cloudEvents.getData().stream().noneMatch(ce -> ce.getSeqId() == 1)) {
-            return findFromQueueEndToToday(tenantId, queueSeqIdStart, queueEndTs);
+            return findFromQueueEndToToday(tenantId, queueSeqIdStart, pageLink.getEndTime());
         } else {
             log.info(STARTED_NEW_CYCLE_MESSAGE);
             return pageLink;
@@ -147,7 +142,7 @@ public abstract class PostgresUplinkMessageService extends BaseUplinkMessageServ
         do {
             cloudEvents = prepareCloudEvents(tenantId, queueSeqIdStart, pageLink);
 
-            tryToSendCloudEvents(cloudEvents);
+            sendCloudEvents(cloudEvents);
 
             pageLink = prepareNextPageLink(tenantId, cloudEvents, pageLink);
         } while (isProcessContinue(tenantId, cloudEvents));
@@ -158,7 +153,7 @@ public abstract class PostgresUplinkMessageService extends BaseUplinkMessageServ
 
         if (cloudEvents.getData().isEmpty()) {
             log.info(TABLE_STARTED_NEW_CYCLE_MESSAGE, getTableName());
-            cloudEvents = findCloudEventsFromBeginning(tenantId, pageLink);
+            return findCloudEventsFromBeginning(tenantId, pageLink);
         }
 
         return cloudEvents;
@@ -218,4 +213,5 @@ public abstract class PostgresUplinkMessageService extends BaseUplinkMessageServ
     protected abstract ListenableFuture<Long> getQueueStartTs(TenantId tenantId);
 
     protected abstract void updateQueueStartTsSeqIdOffset(TenantId tenantId, Long newStartTs, Long newSeqId);
+
 }

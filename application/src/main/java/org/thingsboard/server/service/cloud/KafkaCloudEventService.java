@@ -46,13 +46,14 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.thingsboard.server.gen.transport.TransportProtos.CloudEventMsgProto;
+import static org.thingsboard.server.gen.transport.TransportProtos.EdgeEventMsgProto;
 import static org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventMsg;
 
 @Service
 @Slf4j
 @ConditionalOnExpression("'${queue.type:null}'=='kafka'")
 public class KafkaCloudEventService implements CloudEventService {
+    private static final String METHOD_CANNOT_BE_USED_FOR_THIS_SERVICE = "Method cannot be used for this service";
     private final DataValidator<CloudEvent> cloudEventValidator;
     private final TbQueueCloudEventSettings cloudEventSettings;
     private final TbQueueCloudEventTSSettings cloudEventTSSettings;
@@ -124,7 +125,7 @@ public class KafkaCloudEventService implements CloudEventService {
         TbQueueProducer<TbProtoQueueMsg<ToCloudEventMsg>> producer = chooseProducer(isTS);
         TopicPartitionInfo tpi = new TopicPartitionInfo(producer.getDefaultTopic(), cloudEvent.getTenantId(), 1, true);
 
-        CloudEventMsgProto cloudEventMsgProto = ProtoUtils.toProto(cloudEvent);
+        EdgeEventMsgProto cloudEventMsgProto = ProtoUtils.toProto(cloudEvent);
         ToCloudEventMsg toCloudEventMsg = ToCloudEventMsg.newBuilder().setCloudEventMsg(cloudEventMsgProto).build();
 
         UUID entityId = cloudEvent.getEntityId() == null ? UUID.fromString(cloudEvent.getEntityBody().get("from").get("id").asText()) : cloudEvent.getEntityId();
@@ -171,6 +172,12 @@ public class KafkaCloudEventService implements CloudEventService {
     }
 
     @Override
+    public void unsubscribeConsumers() {
+        tbCloudEventProvider.getCloudEventMsgConsumer().unsubscribe();
+        tbCloudEventProvider.getCloudEventTSMsgConsumer().unsubscribe();
+    }
+
+    @Override
     public void commit(boolean isTS) {
         chooseConsumer(isTS).commit();
     }
@@ -181,9 +188,7 @@ public class KafkaCloudEventService implements CloudEventService {
 
     @Override
     public void cleanupEvents(long ttl) {
-        tbCloudEventProvider.getCloudEventMsgProducer().stop();
-        tbCloudEventProvider.getCloudEventTSMsgProducer().stop();
-        tbCloudEventProvider.getCloudEventMsgConsumer().unsubscribe();
-        tbCloudEventProvider.getCloudEventTSMsgConsumer().unsubscribe();
+        throw new UnsupportedOperationException(METHOD_CANNOT_BE_USED_FOR_THIS_SERVICE);
     }
+
 }

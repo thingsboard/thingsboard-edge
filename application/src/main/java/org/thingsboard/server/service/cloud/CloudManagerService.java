@@ -72,8 +72,8 @@ import java.util.concurrent.TimeUnit;
 
 import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_SEQ_ID_OFFSET_ATTR_KEY;
 import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_START_TS_ATTR_KEY;
-import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_TS_KV_START_TS_ATTR_KEY;
 import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY;
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_TS_KV_START_TS_ATTR_KEY;
 
 @Service
 @Slf4j
@@ -87,6 +87,9 @@ public class CloudManagerService {
 
     @Value("${cloud.reconnect_timeout}")
     private long reconnectTimeoutMs;
+
+    @Value("${queue.type}")
+    protected String queueType;
 
     @Autowired
     private EdgeService edgeService;
@@ -399,6 +402,10 @@ public class CloudManagerService {
     private void scheduleReconnect(Exception e) {
         initialized = false;
 
+        if (queueType.equals("kafka")) {
+            cloudEventService.unsubscribeConsumers();
+        }
+
         updateConnectivityStatus(false);
 
         if (scheduledFuture == null) {
@@ -448,6 +455,7 @@ public class CloudManagerService {
         public void onFailure(Throwable t) {
             log.warn("Failed to update attribute [{}] with value [{}]", key, value, t);
         }
+
     }
 
 }

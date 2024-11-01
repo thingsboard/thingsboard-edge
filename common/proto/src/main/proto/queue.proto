@@ -1143,7 +1143,7 @@ message EdgeNotificationMsgProto {
   int64 originatorEdgeIdLSB = 14;
 }
 
-message CloudEventMsgProto {
+message EdgeEventMsgProto {
   int64 tenantIdMSB = 1;
   int64 tenantIdLSB = 2;
   string entityType = 3;
@@ -1551,7 +1551,7 @@ message ToEdgeMsg {
 }
 
 message ToCloudEventMsg{
-  CloudEventMsgProto cloudEventMsg = 1;
+  EdgeEventMsgProto cloudEventMsg = 1;
 }
 
 message ToEdgeNotificationMsg {

@@ -40,9 +40,10 @@ public abstract class KafkaUplinkMessageService extends BaseUplinkMessageService
 
         do {
             cloudEvents = cloudEvents == null ? newCloudEvents : findCloudEvents(tenantId);
-            tryToSendCloudEvents(cloudEvents);
+            sendCloudEvents(cloudEvents);
         } while (isProcessContinue(tenantId, cloudEvents));
     }
 
     protected abstract PageData<CloudEvent> findCloudEvents(TenantId tenantId);
+
 }

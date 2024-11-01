@@ -45,40 +45,40 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     private final Map<String, String> env;
 
     public ThingsBoardDbInstaller() {
-            try {
-                List<File> composeFiles = Arrays.asList(new File("./../../docker-edge/docker-compose.yml"),
-                        new File("./../../docker-edge/docker-compose.postgres.yml"),
-                        new File("./../../docker-edge/docker-compose.volumes.yml"));
+        try {
+            List<File> composeFiles = Arrays.asList(new File("./../../docker-edge/docker-compose.yml"),
+                    new File("./../../docker-edge/docker-compose.postgres.yml"),
+                    new File("./../../docker-edge/docker-compose.volumes.yml"));
 
-                String identifier = Base58.randomString(6).toLowerCase();
-                String project = identifier + Base58.randomString(6).toLowerCase();
+            String identifier = Base58.randomString(6).toLowerCase();
+            String project = identifier + Base58.randomString(6).toLowerCase();
 
-                postgresDataVolume = project + "_" + POSTGRES_DATA_VOLUME;
-                tbLogVolume = project + "_" + TB_LOG_VOLUME;
-                tbEdgeLogVolume = project + "_" + TB_EDGE_LOG_VOLUME;
-                tbEdgeDataVolume = project + "_" + TB_EDGE_DATA_VOLUME;
+            postgresDataVolume = project + "_" + POSTGRES_DATA_VOLUME;
+            tbLogVolume = project + "_" + TB_LOG_VOLUME;
+            tbEdgeLogVolume = project + "_" + TB_EDGE_LOG_VOLUME;
+            tbEdgeDataVolume = project + "_" + TB_EDGE_DATA_VOLUME;
 
-                dockerCompose = new DockerComposeExecutor(composeFiles, project);
+            dockerCompose = new DockerComposeExecutor(composeFiles, project);
 
-                Dotenv dotenv = Dotenv.configure().directory("./../../docker-edge").filename(".env").load();
+            Dotenv dotenv = Dotenv.configure().directory("./../../docker-edge").filename(".env").load();
 
-                env = new HashMap<>();
-                for (DotenvEntry entry : dotenv.entries()) {
-                    env.put(entry.getKey(), entry.getValue());
-                }
-                env.put("POSTGRES_DATA_VOLUME", postgresDataVolume);
-                env.put("TB_LOG_VOLUME", tbLogVolume);
-                for (int edgeEnv = 1; edgeEnv <= 2; edgeEnv++) {
-                    env.put("SPRING_DATASOURCE_URL_" + edgeEnv, "jdbc:postgresql://postgres:5432/tb_edge_" + edgeEnv);
-                    env.put("TB_EDGE_LOG_VOLUME_" + edgeEnv, tbEdgeLogVolume + "-" + edgeEnv);
-                    env.put("TB_EDGE_DATA_VOLUME_" + edgeEnv, tbEdgeDataVolume + "-" + edgeEnv);
-                }
-
-                dockerCompose.withEnv(env);
-            } catch (Exception e) {
-                log.error("Failed to create ThingsBoardDbInstaller", e);
-                throw e;
+            env = new HashMap<>();
+            for (DotenvEntry entry : dotenv.entries()) {
+                env.put(entry.getKey(), entry.getValue());
             }
+            env.put("POSTGRES_DATA_VOLUME", postgresDataVolume);
+            env.put("TB_LOG_VOLUME", tbLogVolume);
+            for (int edgeEnv = 1; edgeEnv <= 2; edgeEnv++) {
+                env.put("SPRING_DATASOURCE_URL_" + edgeEnv, "jdbc:postgresql://postgres:5432/tb_edge_" + edgeEnv);
+                env.put("TB_EDGE_LOG_VOLUME_" + edgeEnv, tbEdgeLogVolume + "-" + edgeEnv);
+                env.put("TB_EDGE_DATA_VOLUME_" + edgeEnv, tbEdgeDataVolume + "-" + edgeEnv);
+            }
+
+            dockerCompose.withEnv(env);
+        } catch (Exception e) {
+            log.error("Failed to create ThingsBoardDbInstaller", e);
+            throw e;
+        }
     }
 
     public Map<String, String> getEnv() {
