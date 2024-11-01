@@ -471,15 +471,15 @@ export const serviceCompletions: TbEditorCompletions = {
         ],
         return: observableReturnType(assetHref)
       },
-    },
-    bulkImportAssets: {
-      description: 'Bulk import assets with provided entities data',
-      meta: 'function',
-      args: [
-        { name: 'entitiesData', type: bulkImportRequestHref, description: 'Data for bulk importing assets' },
-        requestConfigArg
-      ],
-      return: observableReturnType(bulkImportResultHref)
+      bulkImportAssets: {
+        description: 'Bulk import assets with provided entities data',
+        meta: 'function',
+        args: [
+          { name: 'entitiesData', type: bulkImportRequestHref, description: 'Data for bulk importing assets' },
+          requestConfigArg
+        ],
+        return: observableReturnType(bulkImportResultHref)
+      },
     },
   },
   entityViewService: {
