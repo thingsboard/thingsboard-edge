@@ -387,27 +387,6 @@ export const serviceCompletions: TbEditorCompletions = {
         ],
         return: observableReturnType(assetInfoHref)
       },
-      getTenantAssets: {
-        description: 'Get assets for the tenant, filtered by type if provided',
-        meta: 'function',
-        args: [
-          pageLinkArg,
-          { name: 'type', type: 'string', description: 'Optional asset type filter' },
-          requestConfigArg
-        ],
-        return: observablePageDataReturnType(assetHref)
-      },
-      getCustomerAssets: {
-        description: 'Get assets for a specific customer, filtered by type if provided',
-        meta: 'function',
-        args: [
-          { name: 'customerId', type: 'string', description: 'Customer ID' },
-          pageLinkArg,
-          { name: 'type', type: 'string', description: 'Optional asset type filter' },
-          requestConfigArg
-        ],
-        return: observablePageDataReturnType(assetHref)
-      },
       getUserAssets: {
         description: 'Get assets associated with the user, filtered by type if provided',
         meta: 'function',
