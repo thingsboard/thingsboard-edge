@@ -77,6 +77,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -228,12 +229,10 @@ public class InstallScripts {
         }
     }
 
-    List<Path> findRuleChainsFromPath(Path ruleChainsPath) throws IOException {
-        List<Path> paths = new ArrayList<>();
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(ruleChainsPath, path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
-            dirStream.forEach(paths::add);
+    List<Path> findRuleChainsFromPath(Path ruleChainsPath) {
+        try (Stream<Path> files = listDir(ruleChainsPath).filter(path -> path.toString().endsWith(InstallScripts.JSON_EXT))) {
+            return files.toList();
         }
-        return paths;
     }
 
     public RuleChain createDefaultRuleChain(TenantId tenantId, String ruleChainName) {
@@ -250,11 +249,11 @@ public class InstallScripts {
         loadAdditionalTenantRuleChains(tenantId, edgeChainsDir);
     }
 
-    public void loadSystemWidgets() throws Exception {
+    public void loadSystemWidgets() {
         log.info("Loading system widgets");
         Map<Path, JsonNode> widgetsBundlesMap = new HashMap<>();
         Path widgetBundlesDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, WIDGET_BUNDLES_DIR);
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(widgetBundlesDir, path -> path.toString().endsWith(JSON_EXT))) {
+        try (Stream<Path> dirStream = listDir(widgetBundlesDir).filter(path -> path.toString().endsWith(JSON_EXT))) {
             dirStream.forEach(
                     path -> {
                         JsonNode widgetsBundleDescriptorJson;
@@ -286,12 +285,14 @@ public class InstallScripts {
         }
         Path widgetTypesDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, WIDGET_TYPES_DIR);
         if (Files.exists(widgetTypesDir)) {
-            try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(widgetTypesDir, path -> path.toString().endsWith(JSON_EXT))) {
+            try (Stream<Path> dirStream = listDir(widgetTypesDir).filter(path -> path.toString().endsWith(JSON_EXT))) {
                 dirStream.forEach(
                         path -> {
                             try {
-                                JsonNode widgetTypeJson = JacksonUtil.toJsonNode(path.toFile());
-                                WidgetTypeDetails widgetTypeDetails = JacksonUtil.treeToValue(widgetTypeJson, WidgetTypeDetails.class);
+                                String widgetTypeJson = Files.readString(path);
+                                widgetTypeJson = resourceService.checkSystemResourcesUsage(widgetTypeJson, ResourceType.JS_MODULE);
+
+                                WidgetTypeDetails widgetTypeDetails = JacksonUtil.fromString(widgetTypeJson, WidgetTypeDetails.class);
                                 widgetTypeService.saveWidgetType(widgetTypeDetails);
                             } catch (Exception e) {
                                 log.error("Unable to load widget type from json: [{}]", path.toString());
@@ -339,12 +340,12 @@ public class InstallScripts {
         }
     }
 
-    private void loadSystemScadaSymbols() throws Exception {
+    private void loadSystemScadaSymbols() {
         log.info("Loading system SCADA symbols");
         Path scadaSymbolsDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, SCADA_SYMBOLS_DIR);
         if (Files.exists(scadaSymbolsDir)) {
             WidgetTypeDetails scadaSymbolWidgetTemplate = widgetTypeService.findWidgetTypeDetailsByTenantIdAndFqn(TenantId.SYS_TENANT_ID, "scada_symbol");
-            try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(scadaSymbolsDir, path -> path.toString().endsWith(SVG_EXT))) {
+            try (Stream<Path> dirStream = listDir(scadaSymbolsDir).filter(path -> path.toString().endsWith(SVG_EXT))) {
                 dirStream.forEach(
                         path -> {
                             try {
@@ -444,22 +445,13 @@ public class InstallScripts {
         imagesUpdater.updateAssetProfilesImages();
     }
 
-    @SneakyThrows
     public void loadSystemImages() {
         log.info("Loading system images...");
-        Stream<Path> dashboardsFiles = Stream.concat(Stream.concat(
-                        Files.list(Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, DASHBOARDS_DIR)),
-                        Files.list(Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DASHBOARDS_DIR))),
-                Files.list(Paths.get(getDataDir(), JSON_DIR, SOLUTIONS_DIR))
+        Stream<Path> dashboardsFiles = Stream.concat(Stream.concat(listDir(Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, DASHBOARDS_DIR)),
+                        listDir(Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DASHBOARDS_DIR))),
+                listDir(Paths.get(getDataDir(), JSON_DIR, SOLUTIONS_DIR))
                         .filter(file -> file.toFile().isDirectory())
-                        .flatMap(solutionDir -> {
-                            try {
-                                return Files.list(solutionDir.resolve(DASHBOARDS_DIR));
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        })
-        );
+                        .flatMap(solutionDir -> listDir(solutionDir.resolve(DASHBOARDS_DIR))));
         try (dashboardsFiles) {
             dashboardsFiles.forEach(file -> {
                 try {
@@ -482,26 +474,23 @@ public class InstallScripts {
         loadDashboardsFromDir(tenantId, customerId, dashboardsDir);
     }
 
-    @SneakyThrows
     private void loadDashboardsFromDir(TenantId tenantId, CustomerId customerId, Path dashboardsDir) {
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(dashboardsDir, path -> path.toString().endsWith(JSON_EXT))) {
-            dirStream.forEach(
-                    path -> {
-                        try {
-                            JsonNode dashboardJson = JacksonUtil.toJsonNode(path.toFile());
-                            Dashboard dashboard = JacksonUtil.treeToValue(dashboardJson, Dashboard.class);
-                            dashboard.setTenantId(tenantId);
-                            Dashboard savedDashboard = dashboardService.saveDashboard(dashboard);
-                            if (customerId != null && !customerId.isNullUid()) {
-                                EntityGroup dashboardGroup = entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DASHBOARD);
-                                entityGroupService.addEntityToEntityGroup(tenantId, dashboardGroup.getId(), savedDashboard.getId());
-                            }
-                        } catch (Exception e) {
-                            log.error("Unable to load dashboard from json: [{}]", path.toString());
-                            throw new RuntimeException("Unable to load dashboard from json", e);
-                        }
+        try (Stream<Path> dashboards = listDir(dashboardsDir).filter(path -> path.toString().endsWith(JSON_EXT))) {
+            dashboards.forEach(path -> {
+                try {
+                    JsonNode dashboardJson = JacksonUtil.toJsonNode(path.toFile());
+                    Dashboard dashboard = JacksonUtil.treeToValue(dashboardJson, Dashboard.class);
+                    dashboard.setTenantId(tenantId);
+                    Dashboard savedDashboard = dashboardService.saveDashboard(dashboard);
+                    if (customerId != null && !customerId.isNullUid()) {
+                        EntityGroup dashboardGroup = entityGroupService.findOrCreateReadOnlyEntityGroupForCustomer(tenantId, customerId, EntityType.DASHBOARD);
+                        entityGroupService.addEntityToEntityGroup(tenantId, dashboardGroup.getId(), savedDashboard.getId());
                     }
-            );
+                } catch (Exception e) {
+                    log.error("Unable to load dashboard from json: [{}]", path.toString());
+                    throw new RuntimeException("Unable to load dashboard from json", e);
+                }
+            });
         }
     }
 
@@ -590,9 +579,9 @@ public class InstallScripts {
         return ruleChainIdMap;
     }
 
-    public void createOAuth2Templates() throws Exception {
+    public void createOAuth2Templates() {
         Path oauth2ConfigTemplatesDir = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, OAUTH2_CONFIG_TEMPLATES_DIR);
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(oauth2ConfigTemplatesDir, path -> path.toString().endsWith(JSON_EXT))) {
+        try (Stream<Path> dirStream = listDir(oauth2ConfigTemplatesDir).filter(path -> path.toString().endsWith(JSON_EXT))) {
             dirStream.forEach(
                     path -> {
                         try {
@@ -615,7 +604,7 @@ public class InstallScripts {
 
     public void loadSystemLwm2mResources() {
         Path resourceLwm2mPath = Paths.get(getDataDir(), MODELS_LWM2M_DIR);
-        try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(resourceLwm2mPath, path -> path.toString().endsWith(InstallScripts.XML_EXT))) {
+        try (Stream<Path> dirStream = listDir(resourceLwm2mPath).filter(path -> path.toString().endsWith(InstallScripts.XML_EXT))) {
             dirStream.forEach(
                     path -> {
                         try {
@@ -665,9 +654,11 @@ public class InstallScripts {
         }
     }
 
-    private Stream<Path> listDir(Path resourcesDir) {
+    private Stream<Path> listDir(Path dir) {
         try {
-            return Files.list(resourcesDir);
+            return Files.list(dir);
+        } catch (NoSuchFileException e) {
+            return Stream.empty();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
