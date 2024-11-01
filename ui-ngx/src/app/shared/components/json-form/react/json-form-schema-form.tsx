@@ -66,6 +66,7 @@ import { MouseEvent, ReactNode } from 'react';
 class ThingsboardSchemaForm extends React.Component<JsonFormProps, any> {
 
   private hasConditions: boolean;
+  private conditionFunction: Function;
   private readonly mapper: {[type: string]: any};
 
   constructor(props: JsonFormProps) {
@@ -146,8 +147,10 @@ class ThingsboardSchemaForm extends React.Component<JsonFormProps, any> {
     }
     if (form.condition) {
       this.hasConditions = true;
-      // tslint:disable-next-line:no-eval
-      if (eval(form.condition) === false) {
+      if (!this.conditionFunction) {
+        this.conditionFunction = new Function('form', 'model', 'index', `return ${form.condition};`);
+      }
+      if (this.conditionFunction(form, model, index) === false) {
         return null;
       }
     }
