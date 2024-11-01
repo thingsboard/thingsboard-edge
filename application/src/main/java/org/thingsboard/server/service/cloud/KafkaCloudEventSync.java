@@ -13,34 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.thingsboard.server.service.install.migrate;
+package org.thingsboard.server.service.cloud;
 
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.AttributeScope;
-import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
+import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.AttributeKvEntry;
 import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.TimePageLink;
 import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cloud.CloudEventDao;
-import org.thingsboard.server.dao.cloud.CloudEventService;
 import org.thingsboard.server.dao.cloud.TsKvCloudEventDao;
-import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.TbQueueProducer;
 import org.thingsboard.server.queue.common.TbProtoQueueMsg;
 import org.thingsboard.server.queue.provider.TbCloudEventProvider;
-import org.thingsboard.server.service.cloud.rpc.CloudEventStorageSettings;
 import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 
 import java.util.Optional;
@@ -53,36 +50,39 @@ import static org.thingsboard.server.service.cloud.PostgresUplinkMessageService.
 import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_SEQ_ID_OFFSET_ATTR_KEY;
 import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_START_TS_ATTR_KEY;
 
-@Service
-@Profile("install")
 @Slf4j
-public class PostgresToKafkaCloudEventMigrateService implements CloudEventMigrateService {
+@Service
+@ConditionalOnExpression("'${queue.type:null}'=='kafka'")
+public class KafkaCloudEventSync implements CloudEventSync {
     private final TbCloudEventProvider tbCloudEventProvider;
     private final CloudEventDao cloudEventDao;
     private final TsKvCloudEventDao tsKvCloudEventDao;
     private final AttributesService attributesService;
     private final DbCallbackExecutorService dbCallbackExecutorService;
-    private final CloudEventStorageSettings cloudEventStorageSettings;
-    private final Tenant tenant;
+    @Setter
+    private TenantId tenantId;
 
-    public PostgresToKafkaCloudEventMigrateService(TbCloudEventProvider tbCloudEventProvider, CloudEventDao cloudEventDao,
-                                                   TsKvCloudEventDao tsKvCloudEventDao, AttributesService attributesService,
-                                                   TenantService tenantService, DbCallbackExecutorService dbCallbackExecutorService, CloudEventService cloudEventService, CloudEventStorageSettings cloudEventStorageSettings) {
+    public KafkaCloudEventSync(TbCloudEventProvider tbCloudEventProvider, CloudEventDao cloudEventDao,
+                               TsKvCloudEventDao tsKvCloudEventDao, AttributesService attributesService,
+                               DbCallbackExecutorService dbCallbackExecutorService) {
         this.tbCloudEventProvider = tbCloudEventProvider;
         this.cloudEventDao = cloudEventDao;
         this.tsKvCloudEventDao = tsKvCloudEventDao;
         this.attributesService = attributesService;
         this.dbCallbackExecutorService = dbCallbackExecutorService;
-        tenant = new PageDataIterable<>(tenantService::findTenants, 10).next();
-        this.cloudEventStorageSettings = cloudEventStorageSettings;
     }
 
     @Override
-    public void migrateCloudEvent() {
-        log.info("Migrate cloud event to kafka started");
+    public void init(TenantId tenantId) {
+        this.tenantId = tenantId;
+    }
+
+    @Override
+    public void cloudEventSync() {
+        log.info("Sync cloud event to kafka started");
 
         while (true) {
-            PageData<CloudEvent> cloudEvents = getCloudEventFromDB(cloudEventDao);
+            PageData<CloudEvent> cloudEvents = getCloudEventFromDB(false);
             if (!cloudEvents.getData().isEmpty()) {
                 cloudEvents.getData().forEach(this::sendCloudEvent);
             } else {
@@ -90,15 +90,15 @@ public class PostgresToKafkaCloudEventMigrateService implements CloudEventMigrat
             }
         }
 
-        log.info("Migrate cloud event to kafka finished");
+        log.info("Sync cloud event to kafka finished");
     }
 
     @Override
-    public void migrateCloudEventTS() {
-        log.info("Migrate cloud event ts to kafka started");
+    public void cloudEventTsSync() {
+        log.info("Sync cloud event ts to kafka started");
 
         while (true) {
-            PageData<CloudEvent> cloudEventsTS = getCloudEventFromDB(tsKvCloudEventDao);
+            PageData<CloudEvent> cloudEventsTS = getCloudEventFromDB(true);
 
             if (!cloudEventsTS.getData().isEmpty()) {
                 cloudEventsTS.getData().forEach(this::sendCloudEventTS);
@@ -106,16 +106,17 @@ public class PostgresToKafkaCloudEventMigrateService implements CloudEventMigrat
                 break;
             }
         }
-        log.info("Migrate cloud event ts to kafka finished");
+        log.info("Sync cloud event ts to kafka finished");
     }
 
     @NotNull
-    private PageData<CloudEvent> getCloudEventFromDB(TsKvCloudEventDao tsKvCloudEventDao) {
+    private PageData<CloudEvent> getCloudEventFromDB(boolean isTs) {
         try {
             Long queueSeqIdStart = getSeqId(QUEUE_SEQ_ID_OFFSET_ATTR_KEY).get();
             TimePageLink pageLink = prepareTimePageLink();
+            TsKvCloudEventDao dao = isTs ? tsKvCloudEventDao : cloudEventDao;
 
-            PageData<CloudEvent> cloudEvents = tsKvCloudEventDao.findCloudEvents(tenant.getTenantId().getId(), queueSeqIdStart, null, pageLink);
+            PageData<CloudEvent> cloudEvents = dao.findCloudEvents(tenantId.getId(), queueSeqIdStart, null, pageLink);
 
             if (cloudEvents.getData().isEmpty()) {
                 // check if new cycle started (seq_id starts from '1')
@@ -129,7 +130,7 @@ public class PostgresToKafkaCloudEventMigrateService implements CloudEventMigrat
     }
 
     private TimePageLink prepareTimePageLink() throws InterruptedException, ExecutionException {
-        int maxReadRecordsCount = cloudEventStorageSettings.getMaxReadRecordsCount();
+        int maxReadRecordsCount = 50;
         long queueStartTs = getSeqId(QUEUE_START_TS_ATTR_KEY).get();
         long queueEndTs = queueStartTs > 0 ? queueStartTs + TimeUnit.DAYS.toMillis(1) : System.currentTimeMillis();
 
@@ -139,7 +140,7 @@ public class PostgresToKafkaCloudEventMigrateService implements CloudEventMigrat
     @NotNull
     private ListenableFuture<Long> getSeqId(String attribute) {
         ListenableFuture<Optional<AttributeKvEntry>> future =
-                attributesService.find(tenant.getTenantId(), tenant.getTenantId(), AttributeScope.SERVER_SCOPE, attribute);
+                attributesService.find(tenantId, tenantId, AttributeScope.SERVER_SCOPE, attribute);
 
         return Futures.transform(
                 future,
@@ -153,10 +154,10 @@ public class PostgresToKafkaCloudEventMigrateService implements CloudEventMigrat
     }
 
     private PageData<CloudEvent> getCloudEventFromBeginning(TsKvCloudEventDao tsKvCloudEventDao, TimePageLink pageLink, long queueEndTs, PageData<CloudEvent> cloudEvents, Long queueSeqIdStart) {
-        long seqIdEnd = Integer.toUnsignedLong(cloudEventStorageSettings.getMaxReadRecordsCount());
+        long seqIdEnd = Integer.toUnsignedLong(50);
         seqIdEnd = Math.max(seqIdEnd, 50L);
 
-        PageData<CloudEvent> cloudEventsTemp = tsKvCloudEventDao.findCloudEvents(tenant.getTenantId().getId(), 0L, seqIdEnd, pageLink);
+        PageData<CloudEvent> cloudEventsTemp = tsKvCloudEventDao.findCloudEvents(tenantId.getId(), 0L, seqIdEnd, pageLink);
 
         if (cloudEventsTemp.getData().stream().noneMatch(ce -> ce.getSeqId() == 1)) {
             cloudEvents = findFromQueueEndToToday(tsKvCloudEventDao, queueEndTs, cloudEvents, queueSeqIdStart);
@@ -172,10 +173,10 @@ public class PostgresToKafkaCloudEventMigrateService implements CloudEventMigrat
             log.trace(QUEUE_END_TS_LESS_THAN_CURRENT_TIME_MESSAGE + " [{}] [{}]", queueEndTs, System.currentTimeMillis());
             queueStartTs = queueEndTs;
             queueEndTs = queueEndTs + TimeUnit.DAYS.toMillis(1);
-            TimePageLink pageLink2 = new TimePageLink(cloudEventStorageSettings.getMaxReadRecordsCount(),
+            TimePageLink pageLink2 = new TimePageLink(50,
                     0, null, null, queueStartTs, queueEndTs);
 
-            cloudEvents = tsKvCloudEventDao.findCloudEvents(tenant.getTenantId().getId(), queueSeqIdStart, null, pageLink2);
+            cloudEvents = tsKvCloudEventDao.findCloudEvents(tenantId.getId(), queueSeqIdStart, null, pageLink2);
 
             if (!cloudEvents.getData().isEmpty()) {
                 break;

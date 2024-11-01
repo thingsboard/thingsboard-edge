@@ -30,7 +30,6 @@ import org.thingsboard.server.service.install.NoSqlKeyspaceService;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.service.install.TsDatabaseSchemaService;
 import org.thingsboard.server.service.install.TsLatestDatabaseSchemaService;
-import org.thingsboard.server.service.install.migrate.CloudEventMigrateService;
 import org.thingsboard.server.service.install.migrate.TsLatestMigrateService;
 import org.thingsboard.server.service.install.update.CacheCleanupService;
 import org.thingsboard.server.service.install.update.DataUpdateService;
@@ -89,9 +88,6 @@ public class ThingsboardInstallService {
 
     @Autowired(required = false)
     private TsLatestMigrateService latestMigrateService;
-
-    @Autowired(required = false)
-    private CloudEventMigrateService postgresToKafkaMigrateService;
 
     @Autowired
     private InstallScripts installScripts;
@@ -171,11 +167,6 @@ public class ThingsboardInstallService {
                     if (installScripts.isUpdateImages()) {
                         installScripts.updateImages();
                     }
-                }
-
-                if (queueType.equals("kafka")) {
-                    postgresToKafkaMigrateService.migrateCloudEvent();
-                    postgresToKafkaMigrateService.migrateCloudEventTS();
                 }
 
                 log.info("Upgrade finished successfully!");

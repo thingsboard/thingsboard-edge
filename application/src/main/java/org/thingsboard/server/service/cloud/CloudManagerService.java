@@ -137,6 +137,11 @@ public class CloudManagerService {
     @Autowired
     private ConfigurableApplicationContext context;
 
+    @Autowired(required = false)
+    private CloudEventSync cloudEventSync;
+
+    private boolean isCloudEventSync = false;
+
     private EdgeSettings currentEdgeSettings;
 
     private Long queueStartTs;
@@ -299,6 +304,13 @@ public class CloudManagerService {
         updateConnectivityStatus(true);
 
         initialized = true;
+
+        if (queueType.equals("kafka") && !isCloudEventSync) {
+            cloudEventSync.init(tenantId);
+            cloudEventSync.cloudEventSync();
+            cloudEventSync.cloudEventTsSync();
+            isCloudEventSync = true;
+        }
     }
 
     private boolean setOrUpdateCustomerId(EdgeConfiguration edgeConfiguration) {
