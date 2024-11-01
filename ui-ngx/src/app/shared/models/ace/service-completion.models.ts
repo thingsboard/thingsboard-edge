@@ -360,6 +360,18 @@ export const serviceCompletions: TbEditorCompletions = {
     meta: 'service',
     type: '<a href="https://github.com/thingsboard/thingsboard/blob/13e6b10b7ab830e64d31b99614a9d95a1a25928a/ui-ngx/src/app/core/http/asset.service.ts#L29" target="_blank">AssetService</a>',
     children: {
+      getCustomerAssetInfos: {
+        description: 'Get customer asset information with optional customer inclusion',
+        meta: 'function',
+        args: [
+          { name: 'includeCustomers', type: 'boolean', description: 'Whether to include customers in the result' },
+          { name: 'customerId', type: 'string', description: 'Customer ID' },
+          pageLinkArg,
+          { name: 'assetProfileId', type: 'string', description: 'Optional asset profile ID' },
+          requestConfigArg
+        ],
+        return: observablePageDataReturnType(assetInfoHref)
+      },
       getAsset: {
         description: 'Get asset by id',
         meta: 'function',
@@ -428,18 +440,6 @@ export const serviceCompletions: TbEditorCompletions = {
         meta: 'function',
         args: [
           { name: 'includeCustomers', type: 'boolean', description: 'Whether to include customers in the result' },
-          pageLinkArg,
-          { name: 'assetProfileId', type: 'string', description: 'Optional asset profile ID' },
-          requestConfigArg
-        ],
-        return: observablePageDataReturnType(assetInfoHref)
-      },
-      getCustomerAssetInfos: {
-        description: 'Get customer asset information with optional customer inclusion',
-        meta: 'function',
-        args: [
-          { name: 'includeCustomers', type: 'boolean', description: 'Whether to include customers in the result' },
-          { name: 'customerId', type: 'string', description: 'Customer ID' },
           pageLinkArg,
           { name: 'assetProfileId', type: 'string', description: 'Optional asset profile ID' },
           requestConfigArg
