@@ -49,7 +49,7 @@ export class MobileApplicationService {
   }
 
   public getMergedMobileAppSettings(config?: RequestConfig): Observable<QrCodeSettings> {
-    return this.http.get<QrCodeSettings>(`/api/mobile/app/settings/merged`, defaultHttpOptionsFromConfig(config));
+    return this.http.get<QrCodeSettings>(`/api/mobile/qr/merged`, defaultHttpOptionsFromConfig(config));
   }
 
   public saveMobileAppSettings(mobileAppSettings: QrCodeSettings, config?: RequestConfig): Observable<QrCodeSettings> {

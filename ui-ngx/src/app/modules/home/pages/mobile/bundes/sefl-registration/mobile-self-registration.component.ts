@@ -43,7 +43,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { deepClone, isDefinedAndNotNull } from '@core/utils';
 import { MatButton } from '@angular/material/button';
 import { TbPopoverService } from '@shared/components/popover.service';
-import { EditorPanelComponent } from '@home/pages/mobile/bundes/sefl-registration/editor-panel.component';
+import { EditorPanelComponent } from '@home/pages/mobile/common/editor-panel.component';
 import { EntityType } from '@shared/models/entity-type.models';
 import { CMAssigneeType, CMScope } from '@app/shared/models/custom-menu.models';
 import { GroupPermission } from '@shared/models/group-permission.models';
@@ -131,7 +131,7 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
 
     this.selfRegistrationForm.valueChanges.pipe(
       takeUntilDestroyed()
-    ).subscribe((value) => this.updateModel());
+    ).subscribe(() => this.updateModel());
   }
 
   registerOnChange(fn: any) {

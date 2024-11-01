@@ -52,7 +52,7 @@ import { WidgetSettingsCommonModule } from '@home/components/widget/lib/settings
 import {
   MobileRegistrationFieldsRowComponent
 } from '@home/pages/mobile/bundes/sefl-registration/mobile-registration-fields-row.component';
-import { EditorPanelComponent } from '@home/pages/mobile/bundes/sefl-registration/editor-panel.component';
+import { CommonMobileModule } from '@home/pages/mobile/common/common-mobile.module';
 
 @NgModule({
   declarations: [
@@ -67,7 +67,6 @@ import { EditorPanelComponent } from '@home/pages/mobile/bundes/sefl-registratio
     MobileSelfRegistrationComponent,
     MobileRegistrationFieldsPanelComponent,
     MobileRegistrationFieldsRowComponent,
-    EditorPanelComponent
   ],
   imports: [
     CommonModule,
@@ -75,6 +74,7 @@ import { EditorPanelComponent } from '@home/pages/mobile/bundes/sefl-registratio
     HomeComponentsModule,
     MobileBundleRoutingModule,
     WidgetSettingsCommonModule,
+    CommonMobileModule,
   ]
 })
 export class MobileBundlesModule { }

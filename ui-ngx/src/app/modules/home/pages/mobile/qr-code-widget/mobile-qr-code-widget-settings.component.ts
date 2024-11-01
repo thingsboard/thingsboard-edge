@@ -42,6 +42,8 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Component({
   selector: 'tb-mobile-qr-code-widget',
@@ -71,86 +73,94 @@ export class MobileQrCodeWidgetSettingsComponent extends PageComponent implement
   private authUser = getCurrentAuthUser(this.store);
   private mobileAppSettings: QrCodeSettings;
 
+  readonly = this.isTenantAdmin() && !this.userPermissionsService.hasGenericPermission(Resource.MOBILE_APP_SETTINGS, Operation.WRITE);
+
   constructor(protected store: Store<AppState>,
               private mobileAppService: MobileApplicationService,
-              private fb: FormBuilder) {
+              private fb: FormBuilder,
+              private userPermissionsService: UserPermissionsService) {
     super(store);
     this.mobileAppService.getMobileAppSettings()
       .subscribe(settings => this.processMobileAppSettings(settings));
-    if (this.isTenantAdmin()) {
-      this.mobileAppSettingsForm.get('useSystemSettings').valueChanges.pipe(
+
+    if (this.readonly) {
+      this.mobileAppSettingsForm.disable()
+    } else {
+      if (this.isTenantAdmin()) {
+        this.mobileAppSettingsForm.get('useSystemSettings').valueChanges.pipe(
+          takeUntilDestroyed()
+        ).subscribe(value => {
+          if (value) {
+            this.mobileAppSettingsForm.get('mobileAppBundleId').disable({emitEvent: false});
+            this.mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabel').disable({emitEvent: false});
+          } else {
+            const formValue = this.mobileAppSettingsForm.value;
+            if (!formValue.useDefaultApp) {
+              this.mobileAppSettingsForm.get('mobileAppBundleId').enable({emitEvent: false});
+            }
+            if (formValue.qrCodeConfig.qrCodeLabelEnabled && formValue.qrCodeConfig.showOnHomePage) {
+              this.mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabel').enable({emitEvent: false});
+            }
+          }
+        });
+      }
+      this.mobileAppSettingsForm.get('useDefaultApp').valueChanges.pipe(
         takeUntilDestroyed()
       ).subscribe(value => {
         if (value) {
           this.mobileAppSettingsForm.get('mobileAppBundleId').disable({emitEvent: false});
-          this.mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabel').disable({emitEvent: false});
         } else {
-          const formValue = this.mobileAppSettingsForm.value;
-          if (!formValue.useDefaultApp) {
-            this.mobileAppSettingsForm.get('mobileAppBundleId').enable({emitEvent: false});
+          this.mobileAppSettingsForm.get('mobileAppBundleId').enable({emitEvent: false});
+        }
+      });
+      this.mobileAppSettingsForm.get('androidEnabled').valueChanges.pipe(
+        takeUntilDestroyed()
+      ).subscribe(() => {
+        this.mobileAppSettingsForm.get('qrCodeConfig.badgeEnabled').updateValueAndValidity({onlySelf: true});
+      });
+      this.mobileAppSettingsForm.get('iosEnabled').valueChanges.pipe(
+        takeUntilDestroyed()
+      ).subscribe(() => {
+        this.mobileAppSettingsForm.get('qrCodeConfig.badgeEnabled').updateValueAndValidity({onlySelf: true});
+      });
+      this.mobileAppSettingsForm.get('qrCodeConfig.showOnHomePage').valueChanges.pipe(
+        takeUntilDestroyed()
+      ).subscribe(value => {
+        if (value) {
+          this.mobileAppSettingsForm.get('qrCodeConfig').enable({emitEvent: false});
+        } else {
+          this.mobileAppSettingsForm.get('qrCodeConfig').disable({emitEvent: false});
+          this.mobileAppSettingsForm.get('qrCodeConfig.showOnHomePage').enable({emitEvent: false});
+        }
+        this.mobileAppSettingsForm.get('qrCodeConfig.badgeEnabled').updateValueAndValidity({onlySelf: true});
+        this.mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabelEnabled').updateValueAndValidity({onlySelf: true});
+      });
+      this.mobileAppSettingsForm.get('qrCodeConfig.badgeEnabled').valueChanges.pipe(
+        takeUntilDestroyed()
+      ).subscribe(value => {
+        if (value) {
+          const formValue = this.mobileAppSettingsForm.getRawValue();
+          if (formValue.androidEnabled || formValue.iosEnabled) {
+            this.mobileAppSettingsForm.get('qrCodeConfig.badgeEnabled').enable({emitEvent: false});
+            this.mobileAppSettingsForm.get('qrCodeConfig.badgePosition').enable({emitEvent: false});
+          } else {
+            this.mobileAppSettingsForm.get('qrCodeConfig.badgeEnabled').disable({emitEvent: false});
+            this.mobileAppSettingsForm.get('qrCodeConfig.badgePosition').disable({emitEvent: false});
           }
-          if (formValue.qrCodeConfig.qrCodeLabelEnabled && formValue.qrCodeConfig.showOnHomePage) {
-            this.mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabel').enable({emitEvent: false});
-          }
+        } else {
+          this.mobileAppSettingsForm.get('qrCodeConfig.badgePosition').disable({emitEvent: false});
+        }
+      });
+      this.mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabelEnabled').valueChanges.pipe(
+        takeUntilDestroyed()
+      ).subscribe(value => {
+        if (value && this.mobileAppSettingsForm.get('qrCodeConfig.showOnHomePage').value) {
+          this.mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabel').enable({emitEvent: false});
+        } else {
+          this.mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabel').disable({emitEvent: false});
         }
       });
     }
-    this.mobileAppSettingsForm.get('useDefaultApp').valueChanges.pipe(
-      takeUntilDestroyed()
-    ).subscribe(value => {
-      if (value) {
-        this.mobileAppSettingsForm.get('mobileAppBundleId').disable({emitEvent: false});
-      } else {
-        this.mobileAppSettingsForm.get('mobileAppBundleId').enable({emitEvent: false});
-      }
-    });
-    this.mobileAppSettingsForm.get('androidEnabled').valueChanges.pipe(
-      takeUntilDestroyed()
-    ).subscribe(() => {
-      this.mobileAppSettingsForm.get('qrCodeConfig.badgeEnabled').updateValueAndValidity({onlySelf: true});
-    });
-    this.mobileAppSettingsForm.get('iosEnabled').valueChanges.pipe(
-      takeUntilDestroyed()
-    ).subscribe(() => {
-      this.mobileAppSettingsForm.get('qrCodeConfig.badgeEnabled').updateValueAndValidity({onlySelf: true});
-    });
-    this.mobileAppSettingsForm.get('qrCodeConfig.showOnHomePage').valueChanges.pipe(
-      takeUntilDestroyed()
-    ).subscribe(value => {
-      if (value) {
-        this.mobileAppSettingsForm.get('qrCodeConfig').enable({emitEvent: false});
-      } else {
-        this.mobileAppSettingsForm.get('qrCodeConfig').disable({emitEvent: false});
-        this.mobileAppSettingsForm.get('qrCodeConfig.showOnHomePage').enable({emitEvent: false});
-      }
-      this.mobileAppSettingsForm.get('qrCodeConfig.badgeEnabled').updateValueAndValidity({onlySelf: true});
-      this.mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabelEnabled').updateValueAndValidity({onlySelf: true});
-    });
-    this.mobileAppSettingsForm.get('qrCodeConfig.badgeEnabled').valueChanges.pipe(
-      takeUntilDestroyed()
-    ).subscribe(value => {
-      if (value) {
-        const formValue = this.mobileAppSettingsForm.getRawValue();
-        if (formValue.androidEnabled  || formValue.iosEnabled) {
-          this.mobileAppSettingsForm.get('qrCodeConfig.badgeEnabled').enable({emitEvent: false});
-          this.mobileAppSettingsForm.get('qrCodeConfig.badgePosition').enable({emitEvent: false});
-        } else {
-          this.mobileAppSettingsForm.get('qrCodeConfig.badgeEnabled').disable({emitEvent: false});
-          this.mobileAppSettingsForm.get('qrCodeConfig.badgePosition').disable({emitEvent: false});
-        }
-      } else {
-        this.mobileAppSettingsForm.get('qrCodeConfig.badgePosition').disable({emitEvent: false});
-      }
-    });
-    this.mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabelEnabled').valueChanges.pipe(
-      takeUntilDestroyed()
-    ).subscribe(value => {
-      if (value && this.mobileAppSettingsForm.get('qrCodeConfig.showOnHomePage').value) {
-        this.mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabel').enable({emitEvent: false});
-      } else {
-        this.mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabel').disable({emitEvent: false});
-      }
-    });
   }
 
   public isTenantAdmin(): boolean {

@@ -31,7 +31,6 @@
 
 import { Injectable } from '@angular/core';
 import {
-  CellActionDescriptor,
   checkBoxCell,
   DateEntityTableColumn,
   EntityChipsEntityTableColumn,
@@ -53,7 +52,10 @@ import {
   MobileBundleDialogComponent,
   MobileBundleDialogData
 } from '@home/pages/mobile/bundes/mobile-bundle-dialog.component';
-import { NotificationTemplate } from '@shared/models/notification.models';
+import { getCurrentAuthUser } from '@core/auth/auth.selectors';
+import { Store } from '@ngrx/store';
+import { AppState } from '@core/core.state';
+import { Authority } from '@shared/models/authority.enum';
 
 @Injectable()
 export class MobileBundleTableConfigResolver {
@@ -65,6 +67,7 @@ export class MobileBundleTableConfigResolver {
     private mobileAppService: MobileAppService,
     private translate : TranslateService,
     private dialog: MatDialog,
+    private store: Store<AppState>,
   ) {
     this.config.selectionEnabled = false;
     this.config.entityType = EntityType.MOBILE_APP_BUNDLE;
@@ -77,16 +80,6 @@ export class MobileBundleTableConfigResolver {
     this.config.onEntityAction = action => this.onBundleAction(action);
     this.config.addDialogStyle = {width: '850px', maxHeight: '100vh'};
     this.config.defaultSortOrder = {property: 'createdTime', direction: Direction.DESC};
-
-    this.config.columns.push(
-      new DateEntityTableColumn<MobileAppBundleInfo>('createdTime', 'common.created-time', this.datePipe, '170px'),
-      new EntityTableColumn<MobileAppBundleInfo>('title', 'mobile.title', '25%'),
-      new EntityChipsEntityTableColumn<MobileAppBundleInfo>('oauth2ClientInfos', 'mobile.oauth-clients', '35%'),
-      new EntityChipsEntityTableColumn<MobileAppBundleInfo>('androidPkg', 'mobile.android-app', '20%'),
-      new EntityChipsEntityTableColumn<MobileAppBundleInfo>('iosPkg', 'mobile.ios-app', '20%'),
-      new EntityTableColumn<MobileAppBundleInfo>('oauth2Enabled', 'mobile.enable-oauth', '140px',
-        entity => checkBoxCell(entity.oauth2Enabled))
-    )
 
     this.config.deleteEnabled = bundle => !(bundle.iosAppId || bundle.androidAppId);
     this.config.deleteEntityTitle = (bundle) => this.translate.instant('mobile.delete-applications-bundle-title', {bundleName: bundle.name});
@@ -123,6 +116,25 @@ export class MobileBundleTableConfigResolver {
   }
 
   resolve(_route: ActivatedRouteSnapshot): EntityTableConfig<MobileAppBundleInfo> {
+    const authUser = getCurrentAuthUser(this.store);
+
+    this.config.columns = [
+      new DateEntityTableColumn<MobileAppBundleInfo>('createdTime', 'common.created-time', this.datePipe, '170px'),
+      new EntityTableColumn<MobileAppBundleInfo>('title', 'mobile.title', '25%'),
+      new EntityChipsEntityTableColumn<MobileAppBundleInfo>('oauth2ClientInfos', 'mobile.oauth-clients', '35%'),
+      new EntityChipsEntityTableColumn<MobileAppBundleInfo>('androidPkg', 'mobile.android-app', '20%'),
+      new EntityChipsEntityTableColumn<MobileAppBundleInfo>('iosPkg', 'mobile.ios-app', '20%'),
+      new EntityTableColumn<MobileAppBundleInfo>('oauth2Enabled', 'mobile.enable-oauth', '140px',
+        entity => checkBoxCell(entity.oauth2Enabled))
+    ];
+
+    if (authUser.authority !== Authority.SYS_ADMIN) {
+      this.config.columns.push(
+        new EntityTableColumn<MobileAppBundleInfo>('selfRegistrationParams.enabled', 'mobile.enable-self-registration', '140px',
+          entity => checkBoxCell(entity.selfRegistrationParams?.enabled)),
+      )
+    }
+
     return this.config;
   }
 
