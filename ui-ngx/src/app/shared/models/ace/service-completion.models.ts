@@ -387,6 +387,32 @@ export const serviceCompletions: TbEditorCompletions = {
         ],
         return: observableReturnType(assetInfoHref)
       },
+      saveAsset: {
+        description: 'Save asset',
+        meta: 'function',
+        args: [
+          {name: 'asset', type: assetHref, description: 'Asset object to save'},
+          requestConfigArg
+        ],
+        return: observableReturnType(assetHref)
+      },
+      deleteAsset: {
+        description: 'Delete asset by id',
+        meta: 'function',
+        args: [
+          {name: 'assetId', type: 'string', description: 'Id of the asset'},
+          requestConfigArg
+        ],
+        return: observableVoid()
+      },
+      getAssetTypes: {
+        description: 'Get all available assets types',
+        meta: 'function',
+        args: [
+          requestConfigArg
+        ],
+        return: observableArrayReturnType('<a href="https://github.com/thingsboard/thingsboard/blob/13e6b10b7ab830e64d31b99614a9d95a1a25928a/ui-ngx/src/app/shared/models/entity-type.models.ts#L295" target="_blank">EntitySubtype</a>')
+      },
       getUserAssets: {
         description: 'Get assets associated with the user, filtered by type if provided',
         meta: 'function',
@@ -420,41 +446,6 @@ export const serviceCompletions: TbEditorCompletions = {
         ],
         return: observablePageDataReturnType(assetInfoHref)
       },
-      bulkImportAssets: {
-        description: 'Bulk import assets with provided entities data',
-        meta: 'function',
-        args: [
-          { name: 'entitiesData', type: bulkImportRequestHref, description: 'Data for bulk importing assets' },
-          requestConfigArg
-        ],
-        return: observableReturnType(bulkImportResultHref)
-      },
-      saveAsset: {
-        description: 'Save asset',
-        meta: 'function',
-        args: [
-          {name: 'asset', type: assetHref, description: 'Asset object to save'},
-          requestConfigArg
-        ],
-        return: observableReturnType(assetHref)
-      },
-      deleteAsset: {
-        description: 'Delete asset by id',
-        meta: 'function',
-        args: [
-          {name: 'assetId', type: 'string', description: 'Id of the asset'},
-          requestConfigArg
-        ],
-        return: observableVoid()
-      },
-      getAssetTypes: {
-        description: 'Get all available assets types',
-        meta: 'function',
-        args: [
-          requestConfigArg
-        ],
-        return: observableArrayReturnType('<a href="https://github.com/thingsboard/thingsboard/blob/13e6b10b7ab830e64d31b99614a9d95a1a25928a/ui-ngx/src/app/shared/models/entity-type.models.ts#L295" target="_blank">EntitySubtype</a>')
-      },
       findByQuery: {
         description: 'Find assets by search query',
         meta: 'function',
@@ -480,6 +471,15 @@ export const serviceCompletions: TbEditorCompletions = {
         ],
         return: observableReturnType(assetHref)
       },
+    },
+    bulkImportAssets: {
+      description: 'Bulk import assets with provided entities data',
+      meta: 'function',
+      args: [
+        { name: 'entitiesData', type: bulkImportRequestHref, description: 'Data for bulk importing assets' },
+        requestConfigArg
+      ],
+      return: observableReturnType(bulkImportResultHref)
     },
   },
   entityViewService: {
