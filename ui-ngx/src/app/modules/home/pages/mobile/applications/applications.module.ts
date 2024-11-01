@@ -41,7 +41,7 @@ import { RemoveAppDialogComponent } from '@home/pages/mobile/applications/remove
 import {
   MobileAppConfigurationDialogComponent
 } from '@home/pages/mobile/applications/mobile-app-configuration-dialog.component';
-import { CommMobileModule } from '@home/pages/mobile/common/comm-mobile.module';
+import { CommonMobileModule } from '@home/pages/mobile/common/common-mobile.module';
 
 @NgModule({
   declarations: [
@@ -55,7 +55,7 @@ import { CommMobileModule } from '@home/pages/mobile/common/comm-mobile.module';
     CommonModule,
     SharedModule,
     HomeComponentsModule,
-    CommMobileModule,
+    CommonMobileModule,
     ApplicationsRoutingModule,
   ],
   exports: [
