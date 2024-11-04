@@ -121,8 +121,8 @@ $$;
 
 ALTER TABLE IF EXISTS mobile_app_settings RENAME TO qr_code_settings;
 ALTER TABLE qr_code_settings ADD COLUMN IF NOT EXISTS mobile_app_bundle_id uuid,
-    ADD COLUMN IF NOT EXISTS android_enabled boolean,
-    ADD COLUMN IF NOT EXISTS ios_enabled boolean;
+    ADD COLUMN IF NOT EXISTS android_enabled boolean DEFAULT true,
+    ADD COLUMN IF NOT EXISTS ios_enabled boolean DEFAULT true;
 
 -- migrate mobile apps from qr code settings to mobile_app, create mobile app bundle for the pair of apps
 DO
