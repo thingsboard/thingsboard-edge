@@ -1,9 +1,10 @@
 var data = decodeToJson(payload);
 
-var deviceName = data.end_device_ids.device_id;
-var deviceType = data.end_device_ids.application_ids.application_id;
-var groupName = 'IAQ devices';
-// var customerName = 'Customer A';
+var deviceName = "Device name " + data.end_device_ids.device_id; // Replace the text "Device name " with the actual name of your device
+var deviceType = "Device type"; // Replace the text "Device type" with the actual type of your device
+var groupName = null; // If groupName is not null - created device will be added to the entity group with such name.
+var customerName = null; // If customerName is not null - created devices will be assigned to customer with such name.
+
 // use assetName and assetType instead of deviceName and deviceType
 // to automatically create assets instead of devices.
 // var assetName = 'Asset A';
@@ -14,50 +15,29 @@ var groupName = 'IAQ devices';
 // expected output:
 //  {
 //    "attributes": {"attributeKey": "attributeValue"},
-//    "telemetry": {"telemetryKey": "telemetryValue"}
+//    "telemetry": [{"ts": 1...1, "values": {"telemetryKey":"telemetryValue"}, {"ts": 1...2, "values":              {"telemetryKey":"telemetryValue"}}]
 //  }
-//
-// In the example - bytes will be saved as HEX string and also parsed as light level, battery level and PIR sensor value.
-//
 
 function decodeFrmPayload(input) {
-    var output = { attributes:{}, telemetry: {}};
+    var output = {
+        attributes: {}, telemetry: {}
+    };
+
     // --- Decoding code --- //
+    var decoded = {};
 
-    output.telemetry.HEX_bytes = bytesToHex(input);
-
-    // If the length of the input byte array is odd - we cannot parse it using the example below
-    if (input.length > 2) {
-        var i = 0;
-        while (i < input.length - 2) {
-            var channel_id = input[i];
-            i++;
-            var channel_type = input[i];
-            i++;
-            // BATTERY
-            if (channel_id === 0x01 && channel_type === 0x75) {
-                output.telemetry.battery = input[i];
-                i++;
-            }
-            // PIR
-            else if (channel_id === 0x03 && channel_type === 0x00) {
-                output.telemetry.pir = input[i] === 0 ? "normal" : "trigger";
-                i++;
-            }
-            // DAYLIGHT
-            else if (channel_id === 0x04 && channel_type === 0x00) {
-                output.telemetry.daylight = input[i] === 0 ? "dark" : "light";
-                i++;
-            }
-        }
-    }
+    output.telemetry = [{
+        ts: timestamp,
+        values: decoded
+    }];
 
     // --- Decoding code --- //
     return output;
 }
 
+
 // --- attributes and telemetry objects ---
-var telemetry = {};
+var telemetry = [];
 var attributes = {};
 // --- attributes and telemetry objects ---
 
@@ -67,85 +47,175 @@ var dateString = data.uplink_message.received_at;
 if ((data.simulated != null && data.simulated) || dateString == null) {
     dateString = data.received_at;
 }
-var timestamp = new Date(dateString).getTime();
-var timestamp = -1;
-if (dateString != null) {
-  timestamp = new Date(dateString).getTime();
-  if (timestamp == -1) {
-      var secondsSeparatorIndex = dateString.lastIndexOf('.') + 1;
-      var millisecondsEndIndex = dateString.lastIndexOf('+');
-      if (millisecondsEndIndex == -1) {
-          millisecondsEndIndex = dateString.lastIndexOf('Z');
-      }
-      if (millisecondsEndIndex == -1) {
-          millisecondsEndIndex = dateString.lastIndexOf('-');
-      }
-      if (millisecondsEndIndex == -1) {
-          if (dateString.length >= secondsSeparatorIndex + 3) {
-              dateString = dateString.substring(0, secondsSeparatorIndex + 3);
-          }
-      } else {
-          dateString = dateString.substring(0, secondsSeparatorIndex + 3) +
-              dateString.substring(millisecondsEndIndex, dateString.length);
-      }
-      timestamp = new Date(dateString).getTime();
-  }
-}
-// If we cannot parse timestamp - we will use the current timestamp
-if (timestamp == -1) {
-    timestamp = Date.now();
-}
+timestamp = parseDateToTimestamp(dateString);
 // --- Timestamp parsing
-
-// You can add some keys manually to attributes or telemetry
-attributes.devEui = data.end_device_ids.dev_eui;
-attributes.fPort = data.uplink_message.f_port;
-// We want to save correlation ids as single object, so we are excluding them from attributes parse and add manually
-attributes.correlation_ids = data.correlation_ids;
-
-// You can exclude some keys from the result
-var excludeFromTelemetryList = ["uplink_token", "gateway_id", "settings", "f_port", "time", "timestamp", "received_at", "network_ids"];
-var excludeFromAttributesList = ["uplink_token", "gateway_id", "f_port", "time", "timestamp", "received_at", "session_key_id", "dev_eui"];
 
 // Message parsing
 // To avoid paths in the decoded objects we passing false value to function as "pathInKey" argument.
 // Warning: pathInKey can cause already found fields to be overwritten with the last value found, e.g. receive_at from uplink_message will be written receive_at in the root.
-var telemetryData = toFlatMap(data.uplink_message, excludeFromTelemetryList, false);
-var attributesData = {};
-attributesData.putAll(toFlatMap(data.uplink_message.settings, excludeFromAttributesList, false));
-attributesData.putAll(toFlatMap(data.uplink_message.network_ids, excludeFromAttributesList, false));
-attributesData.putAll(toFlatMap(data.end_device_ids, excludeFromAttributesList, false));
 
 // Passing incoming bytes to decodeFrmPayload function, to get custom decoding
 var customDecoding = {};
 if (data.uplink_message.get("frm_payload") != null) {
-  customDecoding = decodeFrmPayload(base64ToBytes(data.uplink_message.frm_payload));
+    customDecoding = decodeFrmPayload(base64ToBytes(data.uplink_message.frm_payload));
 }
 
 // Collecting data to result
 if (customDecoding.?telemetry.size() > 0) {
-    telemetry.putAll(customDecoding.telemetry);
+    if (customDecoding.telemetry instanceof java.util.ArrayList) {
+        foreach(telemetryObj: customDecoding.telemetry) {
+            if (telemetryObj.ts != null && telemetryObj.values != null) {
+                telemetry.add(telemetryObj);
+            }
+        }
+    } else {
+        telemetry.putAll(customDecoding.telemetry);
+    }
 }
 
 if (customDecoding.?attributes.size() > 0) {
     attributes.putAll(customDecoding.attributes);
 }
 
-telemetry.putAll(telemetryData);
-attributes.putAll(attributesData);
+// You can add some keys manually to attributes or telemetry
+var applicationId = data.end_device_ids.?application_ids.?application_id;
+var devAddr = data.end_device_ids.?dev_addr;
+var spreadingFactor = data.uplink_message.?settings.?data_rate.?lora.?spreading_factor;
+var codeRate = data.uplink_message.?settings.?data_rate.?lora.?coding_rate;
+var tenantId = data.uplink_message.?network_ids.?tenant_id;
+attributes.eui = data.end_device_ids.dev_eui;
+attributes.fPort = data.uplink_message.f_port;
+attributes.applicationId = applicationId;
+attributes.devAddr = devAddr;
+attributes.spreadingFactor = spreadingFactor;
+attributes.codeRate = codeRate;
+attributes.tenantId = tenantId;
+attributes.device_id = data.end_device_ids.?device_id;
+attributes.join_eui = data.end_device_ids.?join_eui;
+attributes.net_id = data.uplink_message.?network_ids.?net_id;
+attributes.cluster_id = data.uplink_message.?network_ids.?cluster_id;
+attributes.cluster_adress = data.uplink_message.?network_ids.?cluster_address;
+attributes.bandwidth = data.uplink_message.?settings.?data_rate.?lora.?bandwidth;
+attributes.frequency = data.uplink_message.?settings.?frequency;
+
+
+var gatewayInfo = getGatewayInfo();
+var addDataToTelemetry = {};
+addDataToTelemetry.snr = gatewayInfo.snr;
+addDataToTelemetry.rssi = gatewayInfo.rssi;
+addDataToTelemetry.channel = gatewayInfo.channel_index;
+addDataToTelemetry.consumed_airtime = data.uplink_message.?consumed_airtime;
+addDataToTelemetry.fCnt = data.uplink_message.?f_cnt;
+
+var isIncludeGatewayInfo = metadata["includeGatewayInfo"];
+if(isIncludeGatewayInfo == true) {
+   telemetry = processTelemetryData(telemetry, addDataToTelemetry);
+}
 
 var result = {
     deviceName: deviceName,
     deviceType: deviceType,
 //  assetName: assetName,
 //  assetType: assetType,
-//  customerName: customerName,
-    groupName: groupName,
     attributes: attributes,
-    telemetry: {
-        ts: timestamp,
-        values: telemetry
-    }
+    telemetry: telemetry
 };
 
+addAdditionalInfoForDeviceMsg(result, customerName, groupName);
+
 return result;
+
+
+function addAdditionalInfoForDeviceMsg(deviceInfo, customerName, groupName) {
+    if (customerName != null) {
+        deviceInfo.customerName = customerName;
+    }
+    if (groupName != null) {
+        deviceInfo.groupName = groupName;
+    }
+}
+
+function parseDateToTimestamp(dateString) {
+    var timestamp = new Date(dateString).getTime();
+    var timestamp = -1;
+    if (dateString != null) {
+        timestamp = new Date(dateString).getTime();
+        if (timestamp == -1) {
+            var secondsSeparatorIndex = dateString.lastIndexOf('.') + 1;
+            var millisecondsEndIndex = dateString.lastIndexOf('+');
+            if (millisecondsEndIndex == -1) {
+                millisecondsEndIndex = dateString.lastIndexOf('Z');
+            }
+            if (millisecondsEndIndex == -1) {
+                millisecondsEndIndex = dateString.lastIndexOf('-');
+            }
+            if (millisecondsEndIndex == -1) {
+                if (dateString.length >= secondsSeparatorIndex + 3) {
+                    dateString = dateString.substring(0, secondsSeparatorIndex + 3);
+                }
+            } else {
+                dateString = dateString.substring(0, secondsSeparatorIndex + 3) +
+                    dateString.substring(millisecondsEndIndex, dateString.length);
+            }
+            timestamp = new Date(dateString).getTime();
+        }
+    }
+        // If we cannot parse timestamp - we will use the current timestamp
+    if (timestamp == -1) {
+        timestamp = Date.now();
+    }
+
+    return timestamp;
+}
+
+function getGatewayInfo() {
+    var gatewayList = data.uplink_message.?rx_metadata;
+    var maxRssi = Integer. MIN_VALUE;
+    var gatewayInfo = {};
+
+    foreach (gateway : gatewayList) {
+        if(gateway.rssi > maxRssi) {
+            maxRssi = gateway.rssi;
+            gatewayInfo = gateway;
+        }
+    }
+
+    return gatewayInfo;
+}
+
+function processTelemetryData(telemetry, addDataToTelemetry) {
+    if (telemetry.size > 1) {
+        telemetry = addDataToMultipleTelemetries(telemetry, addDataToTelemetry);
+    }
+    else if (telemetry.size == 1) {
+        telemetry = addDataToSingleTelemetry(telemetry, addDataToTelemetry);
+    }
+    else {
+        telemetry.add(addDataToTelemetry);
+    }
+
+    return telemetry;
+}
+
+function addDataToMultipleTelemetries(telemetry, addDataToTelemetry) {
+    foreach(element : addDataToTelemetry.entrySet()) {
+        if(!telemetry[0]["values"].keys.contains(element.key)) {
+            telemetry[0]["values"][element.key] = element.value;
+        }
+        if (!telemetry[1]["values"].keys.contains(element.key)) {
+            telemetry[1]["values"][element.key] = element.value;
+        }
+    }
+
+    return telemetry;
+}
+
+function addDataToSingleTelemetry(telemetry, addDataToTelemetry) {
+    foreach(element : addDataToTelemetry.entrySet()) {
+            if(!telemetry[0]["values"].keys.contains(element.key)) {
+                telemetry[0]["values"][element.key] = element.value;
+            }
+    }
+
+    return telemetry;
+}
