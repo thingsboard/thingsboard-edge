@@ -59,6 +59,9 @@ public class QrCodeSettingsEntity extends BaseSqlEntity<QrCodeSettings> {
     @Column(name = ModelConstants.TENANT_ID_COLUMN, columnDefinition = "uuid")
     protected UUID tenantId;
 
+    @Column(name = ModelConstants.QR_CODE_SETTINGS_USE_SYSTEM_SETTINGS_PROPERTY)
+    private boolean useSystemSettings;
+
     @Column(name = ModelConstants.QR_CODE_SETTINGS_USE_DEFAULT_APP_PROPERTY)
     private boolean useDefaultApp;
 
@@ -79,6 +82,7 @@ public class QrCodeSettingsEntity extends BaseSqlEntity<QrCodeSettings> {
         this.setId(qrCodeSettings.getUuidId());
         this.setCreatedTime(qrCodeSettings.getCreatedTime());
         this.tenantId = qrCodeSettings.getTenantId().getId();
+        this.useSystemSettings = qrCodeSettings.isUseSystemSettings();
         this.useDefaultApp = qrCodeSettings.isUseDefaultApp();
         this.androidEnabled = qrCodeSettings.isAndroidEnabled();
         this.iosEnabled = qrCodeSettings.isIosEnabled();
@@ -93,6 +97,7 @@ public class QrCodeSettingsEntity extends BaseSqlEntity<QrCodeSettings> {
         QrCodeSettings qrCodeSettings = new QrCodeSettings(new QrCodeSettingsId(getUuid()));
         qrCodeSettings.setCreatedTime(createdTime);
         qrCodeSettings.setTenantId(TenantId.fromUUID(tenantId));
+        qrCodeSettings.setUseSystemSettings(useSystemSettings);
         qrCodeSettings.setUseDefaultApp(useDefaultApp);
         qrCodeSettings.setAndroidEnabled(androidEnabled);
         qrCodeSettings.setIosEnabled(iosEnabled);
