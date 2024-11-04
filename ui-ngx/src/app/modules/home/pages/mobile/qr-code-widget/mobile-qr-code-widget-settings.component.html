@@ -113,7 +113,7 @@
                         matTooltipClass="tb-error-tooltip"
                         [matTooltip]="(mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabel').hasError('required') ?
                          'admin.mobile-app.label-required' : 'admin.mobile-app.label-max-length') | translate"
-                        *ngIf="mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabel').touched &&
+                        *ngIf="!mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabel').untouched &&
                          mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabel').hasError('required') ||
                          mobileAppSettingsForm.get('qrCodeConfig.qrCodeLabel').hasError('maxlength')"
                         class="tb-error">
