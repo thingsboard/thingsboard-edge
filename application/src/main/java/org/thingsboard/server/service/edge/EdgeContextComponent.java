@@ -38,11 +38,15 @@ import org.thingsboard.server.actors.service.ActorService;
 import org.thingsboard.server.cache.limits.RateLimitService;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.msg.notification.NotificationRuleProcessor;
+import org.thingsboard.server.dao.alarm.AlarmCommentService;
+import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.asset.AssetProfileService;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
+import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
 import org.thingsboard.server.dao.domain.DomainService;
@@ -55,9 +59,11 @@ import org.thingsboard.server.dao.menu.CustomMenuService;
 import org.thingsboard.server.dao.notification.NotificationRuleService;
 import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
+import org.thingsboard.server.dao.oauth2.OAuth2ClientService;
 import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
 import org.thingsboard.server.dao.ota.OtaPackageService;
 import org.thingsboard.server.dao.queue.QueueService;
+import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.role.RoleService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -69,11 +75,15 @@ import org.thingsboard.server.dao.translation.CustomTranslationService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
-import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.CustomersHierarchyEdgeService;
 import org.thingsboard.server.service.edge.rpc.EdgeEventStorageSettings;
 import org.thingsboard.server.service.edge.rpc.EdgeRpcService;
+import org.thingsboard.server.service.edge.rpc.constructor.asset.AssetMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.converter.ConverterMsgConstructorFactory;
+import org.thingsboard.server.service.edge.rpc.constructor.device.DeviceMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.constructor.edge.EdgeMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.group.GroupMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.processor.alarm.AlarmEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.alarm.AlarmEdgeProcessorFactory;
 import org.thingsboard.server.service.edge.rpc.processor.asset.AssetEdgeProcessor;
@@ -116,86 +126,68 @@ import org.thingsboard.server.service.edge.rpc.processor.widget.WidgetBundleEdge
 import org.thingsboard.server.service.edge.rpc.processor.widget.WidgetTypeEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.processor.wl.WhiteLabelingEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.sync.EdgeRequestsService;
-import org.thingsboard.server.service.executors.DbCallbackExecutorService;
 import org.thingsboard.server.service.executors.GrpcCallbackExecutorService;
 
+@Lazy
+@Data
 @Component
 @TbCoreComponent
-@Data
-@Lazy
 public class EdgeContextComponent {
 
+    // services
     @Autowired
-    private TbClusterService clusterService;
-
-    @Autowired
-    private EdgeService edgeService;
-
-    @Autowired(required = false)
-    private EdgeRpcService edgeRpcService;
-
-    @Autowired
-    private EdgeEventService edgeEventService;
+    private ActorService actorService;
 
     @Autowired
     private AdminSettingsService adminSettingsService;
 
     @Autowired
-    private DeviceService deviceService;
+    private AlarmCommentService alarmCommentService;
 
     @Autowired
-    private AssetService assetService;
-
-    @Autowired
-    private EntityViewService entityViewService;
-
-    @Autowired
-    private DeviceProfileService deviceProfileService;
+    private AlarmService alarmService;
 
     @Autowired
     private AssetProfileService assetProfileService;
 
     @Autowired
+    private AssetService assetService;
+
+    @Autowired
     private AttributesService attributesService;
-
-    @Autowired
-    private DashboardService dashboardService;
-
-    @Autowired
-    private RuleChainService ruleChainService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private ActorService actorService;
 
     @Autowired
     private CustomerService customerService;
 
     @Autowired
-    private WidgetTypeService widgetTypeService;
+    private DashboardService dashboardService;
 
     @Autowired
-    private WidgetsBundleService widgetsBundleService;
+    private DeviceCredentialsService deviceCredentialsService;
+
+    @Autowired
+    private DeviceProfileService deviceProfileService;
+
+    @Autowired
+    private DeviceService deviceService;
+
+    @Autowired
+    private DomainService domainService;
+
+    @Autowired
+    private EdgeEventService edgeEventService;
 
     @Autowired
     private EdgeRequestsService edgeRequestsService;
 
-    @Autowired
-    private OtaPackageService otaPackageService;
+    @Autowired(required = false)
+    private EdgeRpcService edgeRpcService;
 
     @Autowired
-    private TenantService tenantService;
+    private EdgeService edgeService;
 
     @Autowired
-    private TenantProfileService tenantProfileService;
-
-    @Autowired
-    private QueueService queueService;
-
-    @Autowired
-    private ResourceService resourceService;
+    private EntityViewService entityViewService;
 
     @Autowired
     private NotificationRuleService notificationRuleService;
@@ -207,61 +199,112 @@ public class EdgeContextComponent {
     private NotificationTemplateService notificationTemplateService;
 
     @Autowired
-    private DomainService domainService;
+    private OAuth2ClientService oAuth2ClientService;
+
+    @Autowired
+    private OtaPackageService otaPackageService;
+
+    @Autowired
+    private QueueService queueService;
 
     @Autowired
     private RateLimitService rateLimitService;
 
     @Autowired
-    private NotificationRuleProcessor notificationRuleProcessor;
+    private RelationService relationService;
+
+    @Autowired
+    private ResourceService resourceService;
+
+    @Autowired
+    private RuleChainService ruleChainService;
+
+    @Autowired
+    private TbClusterService clusterService;
+
+    @Autowired
+    private TenantProfileService tenantProfileService;
+
+    @Autowired
+    private TenantService tenantService;
+
+    @Autowired
+    private UserService userService;
+
+    @Autowired
+    private WidgetTypeService widgetTypeService;
+
+    @Autowired
+    private WidgetsBundleService widgetsBundleService;
+
+    // PE services
+    @Autowired
+    protected CustomersHierarchyEdgeService customersHierarchyEdgeService;
+
+    @Autowired
+    private CustomMenuService customMenuService;
+
+    @Autowired
+    private CustomTranslationService customTranslationService;
+
+    @Autowired
+    private ConverterService converterService;
+
+    @Autowired
+    private DeviceGroupOtaPackageService deviceGroupOtaPackageService;
+
+    @Autowired
+    private EntityGroupService entityGroupService;
+
+    @Autowired
+    private IntegrationService integrationService;
+
+    @Autowired
+    private RoleService roleService;
+
+    @Autowired
+    private SchedulerEventService schedulerEventService;
+
+
+    // processors
+    @Autowired
+    private AdminSettingsEdgeProcessor adminSettingsProcessor;
 
     @Autowired
     private AlarmEdgeProcessor alarmProcessor;
 
     @Autowired
-    private DeviceProfileEdgeProcessor deviceProfileProcessor;
+    private AssetEdgeProcessor assetProcessor;
 
     @Autowired
     private AssetProfileEdgeProcessor assetProfileProcessor;
 
     @Autowired
-    private EdgeProcessor edgeProcessor;
-
-    @Autowired
-    private DeviceEdgeProcessor deviceProcessor;
-
-    @Autowired
-    private AssetEdgeProcessor assetProcessor;
-
-    @Autowired
-    private EntityViewEdgeProcessor entityViewProcessor;
-
-    @Autowired
-    private UserEdgeProcessor userProcessor;
-
-    @Autowired
-    private RelationEdgeProcessor relationProcessor;
-
-    @Autowired
-    private TelemetryEdgeProcessor telemetryProcessor;
+    private CustomerEdgeProcessor customerProcessor;
 
     @Autowired
     private DashboardEdgeProcessor dashboardProcessor;
 
     @Autowired
-    private RuleChainEdgeProcessor ruleChainProcessor;
+    private DeviceEdgeProcessor deviceProcessor;
 
     @Autowired
-    private CustomerEdgeProcessor customerProcessor;
+    private DeviceProfileEdgeProcessor deviceProfileProcessor;
 
     @Autowired
-    private WidgetBundleEdgeProcessor widgetBundleProcessor;
+    private EdgeProcessor edgeProcessor;
 
     @Autowired
-    private WidgetTypeEdgeProcessor widgetTypeProcessor;
+    private EntityViewEdgeProcessor entityViewProcessor;
 
     @Autowired
-    private AdminSettingsEdgeProcessor adminSettingsProcessor;
+    private NotificationEdgeProcessor notificationEdgeProcessor;
+
+    @Autowired
+    private NotificationRuleProcessor notificationRuleProcessor;
+
+    @Autowired
+    private OAuth2EdgeProcessor oAuth2EdgeProcessor;
 
     @Autowired
     private OtaPackageEdgeProcessor otaPackageProcessor;
@@ -270,28 +313,73 @@ public class EdgeContextComponent {
     private QueueEdgeProcessor queueProcessor;
 
     @Autowired
+    private RelationEdgeProcessor relationProcessor;
+
+    @Autowired
+    private ResourceEdgeProcessor resourceProcessor;
+
+    @Autowired
+    private RuleChainEdgeProcessor ruleChainProcessor;
+
+    @Autowired
+    private TelemetryEdgeProcessor telemetryProcessor;
+
+    @Autowired
     private TenantEdgeProcessor tenantProcessor;
 
     @Autowired
     private TenantProfileEdgeProcessor tenantProfileProcessor;
 
     @Autowired
-    private ResourceEdgeProcessor resourceProcessor;
+    private UserEdgeProcessor userProcessor;
 
     @Autowired
-    private NotificationEdgeProcessor notificationEdgeProcessor;
+    private WidgetBundleEdgeProcessor widgetBundleProcessor;
 
     @Autowired
-    private OAuth2EdgeProcessor oAuth2EdgeProcessor;
+    private WidgetTypeEdgeProcessor widgetTypeProcessor;
 
+    // PE processors
+    @Autowired
+    private ConverterEdgeProcessor converterProcessor;
+
+    @Autowired
+    private CustomMenuEdgeProcessor customMenuProcessor;
+
+    @Autowired
+    private CustomTranslationEdgeProcessor customTranslationProcessor;
+
+    @Autowired
+    private EntityGroupEdgeProcessor entityGroupProcessor;
+
+    @Autowired
+    private GroupPermissionsEdgeProcessor groupPermissionsProcessor;
+
+    @Autowired
+    private IntegrationEdgeProcessor integrationProcessor;
+
+    @Autowired
+    private RoleEdgeProcessor roleProcessor;
+
+    @Autowired
+    private SchedulerEventEdgeProcessor schedulerEventProcessor;
+
+    @Autowired
+    private WhiteLabelingEdgeProcessor whiteLabelingProcessor;
+
+    // msg constructors
     @Autowired
     private EdgeMsgConstructor edgeMsgConstructor;
 
+    // factories
     @Autowired
     private AlarmEdgeProcessorFactory alarmEdgeProcessorFactory;
 
     @Autowired
     private AssetEdgeProcessorFactory assetEdgeProcessorFactory;
+
+    @Autowired
+    private AssetMsgConstructorFactory assetMsgConstructorFactory;
 
     @Autowired
     private AssetProfileEdgeProcessorFactory assetProfileEdgeProcessorFactory;
@@ -301,6 +389,9 @@ public class EdgeContextComponent {
 
     @Autowired
     private DeviceEdgeProcessorFactory deviceEdgeProcessorFactory;
+
+    @Autowired
+    private DeviceMsgConstructorFactory deviceMsgConstructorFactory;
 
     @Autowired
     private DeviceProfileEdgeProcessorFactory deviceProfileEdgeProcessorFactory;
@@ -314,66 +405,19 @@ public class EdgeContextComponent {
     @Autowired
     private ResourceEdgeProcessorFactory resourceEdgeProcessorFactory;
 
+    // PE factories
+    @Autowired
+    protected GroupMsgConstructorFactory groupMsgConstructorFactory;
+
+    @Autowired
+    protected ConverterMsgConstructorFactory converterMsgConstructorFactory;
+
+    // config
     @Autowired
     private EdgeEventStorageSettings edgeEventStorageSettings;
 
-    @Autowired
-    private DbCallbackExecutorService dbCallbackExecutor;
-
+    // callback
     @Autowired
     private GrpcCallbackExecutorService grpcCallbackExecutorService;
-
-    // PE context
-
-    @Autowired
-    protected RoleService roleService;
-
-    @Autowired
-    protected SchedulerEventService schedulerEventService;
-
-    @Autowired
-    protected WhiteLabelingService whiteLabelingService;
-
-    @Autowired
-    protected CustomTranslationService customTranslationService;
-
-    @Autowired
-    protected CustomMenuService customMenuService;
-
-    @Autowired
-    protected EntityGroupService entityGroupService;
-
-    @Autowired
-    protected IntegrationService integrationService;
-
-    @Autowired
-    protected DeviceGroupOtaPackageService deviceGroupOtaPackageService;
-
-    @Autowired
-    private EntityGroupEdgeProcessor entityGroupProcessor;
-
-    @Autowired
-    private CustomTranslationEdgeProcessor customTranslationProcessor;
-
-    @Autowired
-    private CustomMenuEdgeProcessor customMenuProcessor;
-
-    @Autowired
-    private WhiteLabelingEdgeProcessor whiteLabelingProcessor;
-
-    @Autowired
-    private RoleEdgeProcessor roleProcessor;
-
-    @Autowired
-    private GroupPermissionsEdgeProcessor groupPermissionsProcessor;
-
-    @Autowired
-    private SchedulerEventEdgeProcessor schedulerEventProcessor;
-
-    @Autowired
-    private ConverterEdgeProcessor converterProcessor;
-
-    @Autowired
-    private IntegrationEdgeProcessor integrationProcessor;
 
 }

@@ -32,7 +32,10 @@ package org.thingsboard.server.queue.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
+import org.apache.kafka.clients.admin.ListOffsetsResult;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.clients.admin.OffsetSpec;
+import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.errors.TopicExistsException;
@@ -185,7 +188,26 @@ public class TbKafkaAdmin implements TbQueueAdmin {
             log.info("[{}] altered new consumer groupId {}", tp, newGroupId);
             break;
         }
+    }
 
+    public boolean isTopicEmpty(String topic) {
+        try {
+            TopicDescription topicDescription = settings.getAdminClient().describeTopics(Collections.singletonList(topic)).topicNameValues().get(topic).get();
+            TopicPartition topicPartition = new TopicPartition(topic, topicDescription.partitions().get(0).partition());
+
+            Map<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> beginningOffsets =
+                    settings.getAdminClient().listOffsets(Collections.singletonMap(topicPartition, OffsetSpec.earliest())).all().get();
+            Map<TopicPartition, ListOffsetsResult.ListOffsetsResultInfo> endOffsets =
+                    settings.getAdminClient().listOffsets(Collections.singletonMap(topicPartition, OffsetSpec.latest())).all().get();
+
+            long beginningOffset = beginningOffsets.get(topicPartition).offset();
+            long endOffset = endOffsets.get(topicPartition).offset();
+
+            return beginningOffset == endOffset;
+        } catch (InterruptedException | ExecutionException e) {
+            log.error("Failed to check if topic [{}] is empty.", topic, e);
+            return false;
+        }
     }
 
 }

@@ -28,19 +28,15 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.edge;
+package org.thingsboard.server.service.edge.rpc;
 
-import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import jakarta.annotation.PostConstruct;
-import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.cache.limits.RateLimitService;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
@@ -49,37 +45,32 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.limit.LimitedApi;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
 import org.thingsboard.server.common.msg.tools.TbRateLimitsException;
-import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.common.util.ProtoUtils;
+import org.thingsboard.server.dao.edge.EdgeEventDao;
+import org.thingsboard.server.dao.edge.EdgeEventService;
 import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeEventNotificationMsg;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.TopicService;
+import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.UUID;
 
-@Service
 @Slf4j
+@Service
 @RequiredArgsConstructor
-public class BaseEdgeEventService implements EdgeEventService {
+@ConditionalOnExpression("'${queue.type:null}'=='kafka'")
+public class KafkaEdgeEventService implements EdgeEventService {
 
-    private final EdgeEventDao edgeEventDao;
     private final RateLimitService rateLimitService;
     private final DataValidator<EdgeEvent> edgeEventValidator;
-
-    private final ApplicationEventPublisher eventPublisher;
-
-    private ExecutorService edgeEventExecutor;
-
-    @PostConstruct
-    public void initExecutor() {
-        edgeEventExecutor = Executors.newSingleThreadExecutor(ThingsBoardThreadFactory.forName("edge-event-service"));
-    }
-
-    @PreDestroy
-    public void shutdownExecutor() {
-        if (edgeEventExecutor != null) {
-            edgeEventExecutor.shutdown();
-        }
-    }
+    @Lazy
+    private final TbQueueProducerProvider producerProvider;
+    @Lazy
+    private final TopicService topicService;
+    private final EdgeEventDao edgeEventDao;
 
     @Override
     public ListenableFuture<Void> saveAsync(EdgeEvent edgeEvent) {
@@ -91,29 +82,23 @@ public class BaseEdgeEventService implements EdgeEventService {
         }
         edgeEventValidator.validate(edgeEvent, EdgeEvent::getTenantId);
 
-        ListenableFuture<Void> saveFuture = edgeEventDao.saveAsync(edgeEvent);
+        TopicPartitionInfo tpi = topicService.getEdgeEventNotificationsTopic(edgeEvent.getTenantId(), edgeEvent.getEdgeId());
+        ToEdgeEventNotificationMsg msg = ToEdgeEventNotificationMsg.newBuilder().setEdgeEventMsg(ProtoUtils.toProto(edgeEvent)).build();
+        producerProvider.getTbEdgeEventsMsgProducer().send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), msg), null);
 
-        Futures.addCallback(saveFuture, new FutureCallback<>() {
-            @Override
-            public void onSuccess(Void result) {
-                eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(edgeEvent.getTenantId())
-                        .entity(edgeEvent).entityId(edgeEvent.getEdgeId()).build());
-            }
-
-            @Override
-            public void onFailure(@NotNull Throwable throwable) {}
-        }, edgeEventExecutor);
-
-        return saveFuture;
+        return Futures.immediateFuture(null);
     }
 
     @Override
     public PageData<EdgeEvent> findEdgeEvents(TenantId tenantId, EdgeId edgeId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
+        // To support fetching edge events on connect from postgres if there are any:
         return edgeEventDao.findEdgeEvents(tenantId.getId(), edgeId, seqIdStart, seqIdEnd, pageLink);
     }
 
     @Override
     public void cleanupEvents(long ttl) {
+        // To delete deprecated events by ttl
         edgeEventDao.cleanupEvents(ttl);
     }
+
 }

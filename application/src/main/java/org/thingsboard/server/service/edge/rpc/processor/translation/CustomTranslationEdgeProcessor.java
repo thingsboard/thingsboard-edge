@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.processor.translation;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -53,6 +54,7 @@ import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.translation.CustomTranslationMsgConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
@@ -64,6 +66,9 @@ import java.util.UUID;
 @Component
 @TbCoreComponent
 public class CustomTranslationEdgeProcessor extends BaseEdgeProcessor {
+
+    @Autowired
+    protected CustomTranslationMsgConstructor customTranslationMsgConstructor;
 
     public DownlinkMsg convertCustomTranslationEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         DownlinkMsg result = null;
@@ -100,7 +105,7 @@ public class CustomTranslationEdgeProcessor extends BaseEdgeProcessor {
                     PageLink pageLink = new PageLink(1000);
                     PageData<TenantId> tenantsIds;
                     do {
-                        tenantsIds = tenantService.findTenantsIds(pageLink);
+                        tenantsIds = edgeCtx.getTenantService().findTenantsIds(pageLink);
                         for (TenantId tenantId1 : tenantsIds.getData()) {
                             futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, entityId,
                                     JacksonUtil.toJsonNode(edgeNotificationMsg.getBody()), sourceEdgeId, null));
@@ -114,7 +119,7 @@ public class CustomTranslationEdgeProcessor extends BaseEdgeProcessor {
                 return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
             }
             case CUSTOMER -> {
-                List<EdgeId> edgesByCustomerId = customersHierarchyEdgeService.findAllEdgesInHierarchyByCustomerId(tenantId, new CustomerId(entityId.getId()));
+                List<EdgeId> edgesByCustomerId = edgeCtx.getCustomersHierarchyEdgeService().findAllEdgesInHierarchyByCustomerId(tenantId, new CustomerId(entityId.getId()));
                 if (edgesByCustomerId != null) {
                     for (EdgeId edgeId : edgesByCustomerId) {
                         saveEdgeEvent(tenantId, edgeId, type, actionType, entityId, JacksonUtil.toJsonNode(edgeNotificationMsg.getBody()));
