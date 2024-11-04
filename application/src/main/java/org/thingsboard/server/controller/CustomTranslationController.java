@@ -160,6 +160,7 @@ public class CustomTranslationController extends BaseController {
                                                     @RequestBody JsonNode newCustomTranslation) throws ThingsboardException {
         checkWhiteLabelingPermissions(Operation.WRITE);
         DataValidator.validateLocaleCode(localeCode);
+        DataValidator.validateCustomTranslation(newCustomTranslation);
         SecurityUser currentUser = getCurrentUser();
         tbTranslationService.patchCustomTranslation(currentUser.getTenantId(), currentUser.getCustomerId(),
                 localeCode, newCustomTranslation);

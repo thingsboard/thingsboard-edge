@@ -70,6 +70,7 @@ export class GettingStartedWidgetComponent extends PageComponent implements OnIn
   };
   allCompleted = false;
   helpBaseUrl = this.wl.getHelpLinkBaseUrl();
+  docsLink = this.wl.getDocsUrl();
 
   baseUrl = baseUrl();
 

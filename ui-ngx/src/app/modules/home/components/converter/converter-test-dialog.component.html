@@ -32,16 +32,16 @@
 -->
 <form class="tb-converter-test-dialog"
       [formGroup]="converterTestFormGroup" (ngSubmit)="save()">
-  <mat-toolbar fxLayout="row" color="primary">
+  <mat-toolbar class="flex flex-row" color="primary">
     <h2>{{ (isDecoder ? 'converter.test-decoder-fuction' : 'converter.test-encoder-fuction') | translate }} ({{ (scriptLang === scriptLanguage.JS ? 'rulenode.script-lang-java-script' : 'rulenode.script-lang-tbel') | translate }})</h2>
-    <span fxFlex></span>
+    <span class="flex-1"></span>
     <button mat-icon-button
             (click)="cancel()"
             type="button">
       <mat-icon class="material-icons">close</mat-icon>
     </button>
   </mat-toolbar>
-  <div mat-dialog-content fxFlex style="position: relative;">
+  <div mat-dialog-content class="flex-1" style="position: relative;">
     <div class="tb-absolute-fill">
       <div #topPanel class="tb-split tb-split-vertical">
         <div #topLeftPanel class="tb-split tb-content">
@@ -49,8 +49,8 @@
             <div class="tb-editor-area-title-panel">
               <label>{{ (isDecoder ? 'converter.payload' : 'converter.message') | translate }}</label>
             </div>
-            <div formGroupName="payload" fxLayout="column" style="height: 100%;">
-              <div fxLayout="row">
+            <div formGroupName="payload" class="flex h-full flex-col">
+              <div class="flex flex-row">
                 <mat-form-field *ngIf="isDecoder" class="mat-block" style="margin-bottom: 0px; min-width: 200px;">
                   <mat-label translate>converter.payload-content-type</mat-label>
                   <mat-select matInput formControlName="contentType">
@@ -69,7 +69,7 @@
               </div>
               <tb-json-content
                 #payloadContent
-                fxFlex
+                class="flex-1"
                 formControlName="stringContent"
                 label="{{(isDecoder ? 'converter.payload-content' : 'converter.message') | translate}}"
                 [contentType]="converterTestFormGroup.get('payload').get('contentType').value"
@@ -80,18 +80,18 @@
           </div>
         </div>
         <div #topRightPanel class="tb-split tb-content">
-          <div class="tb-resize-container" fxLayout="row">
+          <div class="tb-resize-container flex flex-row">
             <div class="tb-editor-area-title-panel">
               <label translate>converter.metadata</label>
             </div>
-            <div fxFlex tb-toast toastTarget="metadataPanel">
+            <div class="flex-1" tb-toast toastTarget="metadataPanel">
               <tb-key-val-map
                 subscriptSizing="dynamic"
                 formControlName="metadata"
                 titleText="converter.metadata">
               </tb-key-val-map>
             </div>
-            <div fxFlex *ngIf="!isDecoder" tb-toast toastTarget="integrationMetadataPanel">
+            <div class="flex-1" *ngIf="!isDecoder" tb-toast toastTarget="integrationMetadataPanel">
               <tb-key-val-map
                 subscriptSizing="dynamic"
                 formControlName="integrationMetadata"
@@ -104,7 +104,7 @@
       <div #bottomPanel class="tb-split tb-split-vertical">
         <div #bottomLeftPanel class="tb-split tb-content">
           <div class="tb-resize-container">
-            <div class="tb-editor-area-title-panel tb-js-function" [ngClass]="{'tb-js-function-help': wl.isEnableHelpLinks()}">
+            <div class="tb-editor-area-title-panel tb-js-function" [class.tb-js-function-help]="wl.isEnableHelpLinks()">
               <label>{{ (isDecoder ? 'converter.decoder' : 'converter.encoder') | translate }}</label>
             </div>
             <tb-js-func
@@ -131,7 +131,7 @@
               <label translate>converter.output</label>
             </div>
             <tb-json-content
-              fxFlex
+              class="flex-1"
               formControlName="output"
               label="{{ 'converter.output' | translate }}"
               [contentType]="contentType.JSON"
@@ -144,14 +144,14 @@
       </div>
     </div>
   </div>
-  <div mat-dialog-actions fxLayout="row">
+  <div mat-dialog-actions class="flex flex-row">
     <button mat-button mat-raised-button color="primary"
             type="button"
             (click)="test()"
             [disabled]="(isLoading$ | async) || converterTestFormGroup.invalid">
       {{ 'converter.test' | translate }}
     </button>
-    <span fxFlex></span>
+    <span class="flex-1"></span>
     <button mat-button color="primary"
             type="button"
             cdkFocusInitial

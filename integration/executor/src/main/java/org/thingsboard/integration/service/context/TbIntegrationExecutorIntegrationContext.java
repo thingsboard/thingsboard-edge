@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.util.ProtoUtils;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
@@ -64,6 +65,7 @@ import org.thingsboard.server.gen.integration.EntityViewDataProto;
 import org.thingsboard.server.gen.integration.IntegrationInfoProto;
 import org.thingsboard.server.gen.integration.TbEventSource;
 import org.thingsboard.server.gen.integration.TbIntegrationEventProto;
+import org.thingsboard.server.service.integration.EventStorageService;
 
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -79,6 +81,7 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     private final Integration configuration;
     private final IntegrationInfoProto integrationInfoProto;
     private final LogSettingsComponent logSettingsComponent;
+    private final EventStorageService eventStorageService;
 
     @Getter
     @Value("${integrations.init.connection_timeout_sec:10}")
@@ -86,7 +89,7 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
 
     public TbIntegrationExecutorIntegrationContext(String serviceId, IntegrationApiService apiService, IntegrationStatisticsService statisticsService,
                                                    TbIntegrationExecutorContextComponent contextComponent, LogSettingsComponent logSettingsComponent,
-                                                   Integration configuration) {
+                                                   Integration configuration, EventStorageService eventStorageService) {
         this.serviceId = serviceId;
         this.apiService = apiService;
         this.statisticsService = statisticsService;
@@ -94,6 +97,7 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
         this.configuration = configuration;
         this.logSettingsComponent = logSettingsComponent;
         this.integrationInfoProto = ProtoUtils.toProto((AbstractIntegration) configuration);
+        this.eventStorageService = eventStorageService;
     }
 
     @Override
@@ -137,6 +141,11 @@ public class TbIntegrationExecutorIntegrationContext implements IntegrationConte
     @Override
     public void saveEvent(IntegrationDebugEvent event, IntegrationCallback<Void> callback) {
         doSaveEvent(TbEventSource.INTEGRATION, configuration.getId(), event, null, callback);
+    }
+
+    @Override
+    public void saveLifecycleEvent(ComponentLifecycleEvent lcEvent, Exception e) {
+        eventStorageService.persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), lcEvent, e);
     }
 
     @Override

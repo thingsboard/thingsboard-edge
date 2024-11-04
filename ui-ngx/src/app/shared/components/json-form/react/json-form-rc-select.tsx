@@ -47,7 +47,7 @@ interface ThingsboardRcSelectState extends JsonFormFieldState {
 
 class ThingsboardRcSelect extends React.Component<JsonFormFieldProps, ThingsboardRcSelectState> {
 
-    constructor(props) {
+    constructor(props: JsonFormFieldProps) {
         super(props);
         this.onSelect = this.onSelect.bind(this);
         this.onDeselect = this.onDeselect.bind(this);
@@ -111,7 +111,7 @@ class ThingsboardRcSelect extends React.Component<JsonFormFieldProps, Thingsboar
         return index;
     }
 
-    onSelect(value: KeyLabelItem, option) {
+    onSelect(value: KeyLabelItem) {
         if (this.props.form.schema.type === 'array') {
             const v = this.state.currentValue as KeyLabelItem[];
             v.push(this.keyToCurrentValue(value.key, false) as KeyLabelItem);
@@ -125,7 +125,7 @@ class ThingsboardRcSelect extends React.Component<JsonFormFieldProps, Thingsboar
         }
     }
 
-    onDeselect(value: KeyLabelItem, option) {
+    onDeselect(value: KeyLabelItem) {
         if (this.props.form.schema.type === 'array') {
             const v = this.state.currentValue as KeyLabelItem[];
             const index = this.keyIndex(v, value.key);
@@ -149,10 +149,10 @@ class ThingsboardRcSelect extends React.Component<JsonFormFieldProps, Thingsboar
 
     render() {
 
-        let options: JSX.Element[] = [];
+        let options: React.JSX.Element[] = [];
         if (this.state.items && this.state.items.length > 0) {
-            options = this.state.items.map((item, idx) => (
-              <Option key={idx} value={item.value}>{item.label}</Option>
+            options = this.state.items.map((item) => (
+              <Option key={item.value} value={item.value}>{item.label}</Option>
             ));
         }
 

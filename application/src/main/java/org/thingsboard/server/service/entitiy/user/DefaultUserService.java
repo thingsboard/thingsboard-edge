@@ -105,7 +105,7 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
                     mailService.sendActivationEmail(tenantId, activationLink.value(), activationLink.ttlMs(), savedUser.getEmail());
                 } catch (ThingsboardException e) {
                     userService.deleteUser(tenantId, savedUser);
-                    throw e;
+                    throw new ThingsboardException("Couldn't send user activation email", ThingsboardErrorCode.GENERAL);
                 }
             }
             logEntityActionService.logEntityAction(tenantId, savedUser.getId(), savedUser, customerId, actionType, user);

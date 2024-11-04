@@ -159,7 +159,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
 
     @Override
     public void destroy() {
-        if (mqttClient != null) {
+        if (mqttClient != null && mqttClient.isConnected()) {
             mqttClient.disconnect();
         }
     }

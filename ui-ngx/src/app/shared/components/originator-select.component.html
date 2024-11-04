@@ -30,18 +30,18 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="originatorFormGroup" fxLayoutGap="16px" class="tb-originator-select" fxLayout="column" [ngClass]="{'optional': !required}">
+<section [formGroup]="originatorFormGroup" class="tb-originator-select flex flex-col gap-4" [class.optional]="!required">
   <tb-toggle-select appearance="fill" [options]="headerOptions" formControlName="originator">
   </tb-toggle-select>
   <tb-entity-select
-    [fxShow]="originatorFormGroup.get('originator').value === 'entity'"
+    [class.!hidden]="originatorFormGroup.get('originator').value !== 'entity'"
     [allowedEntityTypes]="allowedEntityTypes"
     [required]="required && originatorFormGroup.get('originator').value === 'entity'"
     formControlName="entityOriginatorId">
   </tb-entity-select>
-  <section fxLayout="row" fxLayoutGap="8px" *ngIf="originatorFormGroup.get('originator').value !== 'entity'">
+  <section class="flex flex-row gap-2" *ngIf="originatorFormGroup.get('originator').value !== 'entity'">
     <tb-owner-autocomplete
-      fxFlex
+      class="flex-1"
       formControlName="groupOwnerId"
       [excludeOwnerIds]="[currentUser.tenantId]"
       *ngIf="originatorFormGroup.get('originator').value === 'ownerGroup'"
@@ -51,7 +51,7 @@
       requiredText="group-permission.target-user-group-owner-required">
     </tb-owner-autocomplete>
     <tb-entity-group-select
-      fxFlex
+      class="flex-1"
       *ngIf="originatorFormGroup.get('groupOwnerId').value ||
              originatorFormGroup.get('originator').value === 'groupTenant'"
       [ownerId]="originatorFormGroup.get('groupOwnerId').value"

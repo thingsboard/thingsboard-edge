@@ -48,8 +48,8 @@
     <mat-autocomplete class="tb-autocomplete tb-model-autocomplete"
                       [displayWith]="displayVendorFn"
                       #vendorsAutocomplete="matAutocomplete">
-      <div fxLayout="row wrap">
-        <mat-option *ngFor="let vendor of (filteredVendors$ | async); trackBy: trackByName" [value]="vendor" fxFlex="100">
+      <div class="flex flex-row flex-wrap">
+        <mat-option *ngFor="let vendor of (filteredVendors$ | async); trackBy: trackByName" [value]="vendor" class="flex-full">
           <div class="tb-flex align-center">
             <img [src]="vendor.logo" aria-label="logo" class="Vendor logo"/>
             {{ vendor.name }}
@@ -83,12 +83,12 @@
     <mat-autocomplete class="tb-autocomplete tb-model-autocomplete"
                       [displayWith]="displayModelFn"
                       #modelsAutocomplete="matAutocomplete">
-      <div fxLayout="row wrap">
-        <mat-option *ngFor="let model of (filteredModels$ | async); trackBy: trackByName" [value]="model" fxFlex="100">
-          <div fxLayout="row" class="library-model tb-flex align-center space-between">
+      <div class="flex flex-row flex-wrap">
+        <mat-option *ngFor="let model of (filteredModels$ | async); trackBy: trackByName" [value]="model" class="flex-full">
+          <div class="library-model tb-flex align-center space-between flex flex-row">
             <div class="tb-flex align-center">
               <img class="device-img" [src]="model.photo" alt="Model photo"/>
-              <div fxFlex>
+              <div class="flex-1">
                 <div class="device-label">{{ model.info.label }}</div>
                 <div class="device-description">{{ model.info.description }}</div>
               </div>
@@ -108,7 +108,7 @@
       </mat-error>
   </mat-form-field>
 </div>
-<tb-converter [fxShow]="libraryFormGroup.get('vendor').value?.name && libraryFormGroup.get('model').value?.name"
+<tb-converter [class.!hidden]="!libraryFormGroup.get('vendor').value?.name || !libraryFormGroup.get('model').value?.name"
               #dataConverter
               [integrationType]="integrationType"
               [libraryInfo]="{ vendorName: libraryFormGroup.get('vendor').value?.name, modelName: libraryFormGroup.get('model').value?.name }"

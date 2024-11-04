@@ -34,7 +34,7 @@ import { JsonFormFieldProps, JsonFormFieldState } from '@shared/components/json-
 
 class ThingsboardMarkdown extends React.Component<JsonFormFieldProps, JsonFormFieldState> {
 
-  constructor(props) {
+  constructor(props: JsonFormFieldProps) {
     super(props);
   }
 

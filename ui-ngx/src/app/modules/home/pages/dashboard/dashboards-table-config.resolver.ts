@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
@@ -77,7 +77,7 @@ import {
 import { MatDialog } from '@angular/material/dialog';
 
 @Injectable()
-export class DashboardsTableConfigResolver implements Resolve<EntityTableConfig<DashboardInfo>> {
+export class DashboardsTableConfigResolver  {
 
   constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<DashboardInfo>,
               private store: Store<AppState>,

@@ -32,11 +32,11 @@
 import { inject, NgModule } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn, RouterModule, RouterStateSnapshot, Routes } from '@angular/router';
 import { Authority } from '@shared/models/authority.enum';
-import { ApiUsageComponent } from '@home/pages/api-usage/api-usage.component';
 import { Dashboard } from '@shared/models/dashboard.models';
 import { ResourcesService } from '@core/services/resources.service';
 import { Observable } from 'rxjs';
 import { MenuId } from '@core/services/menu.models';
+import { DashboardViewComponent } from '@home/components/dashboard-view/dashboard-view.component';
 
 const apiUsageDashboardJson = '/assets/dashboard/api_usage.json';
 
@@ -49,7 +49,7 @@ export const apiUsageDashboardResolver: ResolveFn<Dashboard> = (
 const routes: Routes = [
   {
     path: 'usage',
-    component: ApiUsageComponent,
+    component: DashboardViewComponent,
     data: {
       auth: [Authority.TENANT_ADMIN],
       title: 'api-usage.api-usage',
@@ -58,7 +58,7 @@ const routes: Routes = [
       }
     },
     resolve: {
-      apiUsageDashboard: apiUsageDashboardResolver
+      dashboard: apiUsageDashboardResolver
     }
   }
 ];

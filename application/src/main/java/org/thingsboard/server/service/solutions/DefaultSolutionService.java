@@ -39,6 +39,7 @@ import jakarta.annotation.PreDestroy;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
@@ -109,6 +110,7 @@ import org.thingsboard.server.dao.device.DeviceConnectivityService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
 import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.device.DockerComposeParams;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.role.RoleService;
@@ -183,7 +185,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -206,6 +207,9 @@ public class DefaultSolutionService implements SolutionService {
     public static final String SOLUTIONS_DIR = "solutions";
 
     private static final Map<SolutionTemplateLevel, Set<String>> allowedSolutionTemplateLevelsMap = new HashMap<>();
+
+    @Value("${ui.solution_templates.docs_base_url:https://thingsboard.io/docs/pe}")
+    private String docsBaseUrl;
 
     static {
         allowedSolutionTemplateLevelsMap.put(SolutionTemplateLevel.MAKER, Set.of("Maker", "Prototype", "Startup", "Business"));
@@ -557,6 +561,7 @@ public class DefaultSolutionService implements SolutionService {
 
     private String prepareInstructions(SolutionInstallContext ctx, HttpServletRequest request) {
         String template = readFile(resolve(ctx.getSolutionId(), "instructions.md"));
+        template = template.replace("${DOCS_BASE_URL}", docsBaseUrl);
         String baseUrl = systemSecurityService.getBaseUrl(ctx.getTenantId(), null, request);
         template = template.replace("${BASE_URL}", baseUrl);
         TenantSolutionTemplateInstructions solutionInstructions = ctx.getSolutionInstructions();
@@ -574,6 +579,20 @@ public class DefaultSolutionService implements SolutionService {
                 template = template.replace("${" + dashboardLinkInfo.getName() + "DASHBOARD_PUBLIC_URL}",
                         getDashboardLink(solutionInstructions, dashboardLinkInfo.getEntityGroupId(), dashboardLinkInfo.getDashboardId(), true));
             }
+        }
+
+        if (template.contains("${GATEWAYS_DASHBOARD_URL}")) {
+            TenantId tenantId = ctx.getTenantId();
+            String dashboardLink;
+            try {
+                DashboardInfo thingsBoardIoTGateways = dashboardService.findFirstDashboardInfoByTenantIdAndName(tenantId, "ThingsBoard IoT Gateways");
+                EntityGroup dashboardGroup = entityGroupService.findEntityGroupByTypeAndName(tenantId, tenantId, EntityType.DASHBOARD, EntityGroup.GROUP_ALL_NAME)
+                        .orElseThrow(() -> new RuntimeException("Could not find entity group by name 'All'."));
+                dashboardLink = getDashboardLink(solutionInstructions, dashboardGroup.getId(), thingsBoardIoTGateways.getId(), false);
+            } catch (Exception e) {
+                dashboardLink = "/dashboards";
+            }
+            template = template.replace("${GATEWAYS_DASHBOARD_URL}", dashboardLink);
         }
 
         StringBuilder devList = new StringBuilder();
@@ -659,13 +678,11 @@ public class DefaultSolutionService implements SolutionService {
     private String prepareDockerComposeFile(TenantId tenantId, String baseUrl, DeviceId deviceId) {
         Device device = new Device(deviceId);
         device.setTenantId(tenantId);
-        try (InputStream inputStream = deviceConnectivityService.createGatewayDockerComposeFile(baseUrl, device, false).getInputStream();
+        DockerComposeParams params = new DockerComposeParams(false, false, true, false, false);
+        try (InputStream inputStream = deviceConnectivityService.createGatewayDockerComposeFile(baseUrl, device, params).getInputStream();
              BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
         ) {
-            return reader.lines().collect(Collectors.joining("\n"))
-                    .replaceAll("(image:\\s+([\\w\\-/]+))", "$1:latest")
-                    .replaceAll("(accessToken=\\S+)([\\s\\S]*)", "$1");
-
+            return reader.lines().collect(Collectors.joining("\n")).replaceAll("(image:\\s+([\\w\\-/]+))", "$1:latest");
         } catch (Exception e) {
             throw new RuntimeException("Failed to read or process the docker-compose.yml file.", e);
         }

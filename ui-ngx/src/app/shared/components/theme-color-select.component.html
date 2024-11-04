@@ -30,18 +30,18 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxLayout="column" style="height: 100%;">
-  <div class="tb-hue-container" fxLayout="column">
-    <div class="tb-hue-row" fxLayout="row" *ngFor="let hue of hues"
+<div class="flex h-full flex-col">
+  <div class="tb-hue-container flex flex-col">
+    <div class="tb-hue-row flex flex-row" *ngFor="let hue of hues"
          (click)="selectColor(hue)">
-      <div fxFlex fxLayout="row" [ngStyle]="hueStyle(hue)" style="padding: 10px;">
-        <div fxLayout="row" fxLayoutAlign="start center" style="width: 100px;">
+      <div class="flex flex-1 flex-row" [style]="hueStyle(hue)" style="padding: 10px;">
+        <div class="flex flex-row items-center justify-start" style="width: 100px;">
           <span>{{hue}}</span>
         </div>
-        <div fxFlex fxLayout="column" fxLayoutAlign="center center">
+        <div class="flex flex-1 flex-col items-center justify-center">
           <span>{{colors[hue]}}</span>
         </div>
-        <div fxLayout="row" fxLayoutAlign="end center" style="width: 100px;">
+        <div class="flex flex-row items-center justify-end" style="width: 100px;">
           <mat-icon *ngIf="hue === selectedHue">check</mat-icon>
         </div>
       </div>
@@ -49,7 +49,7 @@
   </div>
   <div class="tb-selected-hue">
     <div class="tb-color-preview">
-      <div class="tb-color-result" [ngStyle]="selectedColorStyle()"></div>
+      <div class="tb-color-result" [style]="selectedColorStyle()"></div>
     </div>
     <span *ngIf="selectedHue">{{selectedHue}} ({{colors[selectedHue]}})</span>
     <span *ngIf="!selectedHue" translate>color.no-color-selected</span>

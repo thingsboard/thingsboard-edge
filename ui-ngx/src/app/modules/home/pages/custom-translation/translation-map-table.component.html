@@ -31,13 +31,13 @@
 
 -->
 <div class="tb-entity-table tb-absolute-fill tb-form-panel no-padding no-border" [class.mat-padding]="fullscreen">
-  <div fxLayout="column" class="tb-entity-table-content tb-outlined-border">
-    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="!textSearchMode">
+  <div class="tb-entity-table-content tb-outlined-border flex flex-col">
+    <mat-toolbar class="mat-mdc-table-toolbar" [class.!hidden]="textSearchMode">
       <div class="mat-toolbar-tools">
-        <div fxLayout="row" fxLayoutAlign="start center" fxLayout.xs="column" fxLayoutAlign.xs="center start" class="title-container">
+        <div class="title-container flex flex-row items-center justify-start xs:flex-col xs:items-start xs:justify-center">
           <span class="tb-entity-table-title" translate>custom-translation.translation-map</span>
         </div>
-        <span fxFlex></span>
+        <span class="flex-1"></span>
         <button mat-icon-button [disabled]="isLoading$ | async"
                 *ngIf="!readonly"
                 (click)="toggleAddNewTranslated($event)"
@@ -61,7 +61,7 @@
         </button>
       </div>
     </mat-toolbar>
-    <mat-toolbar class="mat-mdc-table-toolbar" [fxShow]="textSearchMode">
+    <mat-toolbar class="mat-mdc-table-toolbar" [class.!hidden]="!textSearchMode">
       <div class="mat-toolbar-tools">
         <button mat-icon-button
                 class="tb-mat-40"
@@ -69,7 +69,7 @@
                 matTooltipPosition="above">
           <mat-icon>search</mat-icon>
         </button>
-        <mat-form-field fxFlex>
+        <mat-form-field class="flex-1">
           <mat-label>&nbsp;</mat-label>
           <input #searchInput matInput
                  [formControl]="textSearch"
@@ -84,7 +84,7 @@
         </button>
       </div>
     </mat-toolbar>
-    <div fxFlex class="table-container">
+    <div class="table-container flex-1">
       <table #table mat-table [dataSource]="dataSource" [trackBy]="trackByLocale"
              matSort [matSortActive]="pageLink.sortOrder?.property" [matSortDirection]="pageLink.sortDirection()" matSortDisableClear>
         <ng-container matColumnDef="k">
@@ -239,9 +239,9 @@
           </ng-container>
         </ng-container>
         <mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></mat-header-row>
-        <mat-header-row *matHeaderRowDef="['newKey', 'original', 'translated', 'deleteKey']; sticky: true" [fxHide]="!newTranslated" class="added"></mat-header-row>
+        <mat-header-row *matHeaderRowDef="['newKey', 'original', 'translated', 'deleteKey']; sticky: true" [class.!hidden]="!newTranslated" class="added"></mat-header-row>
         <mat-row
-          [fxShow]="!dataSource.dataLoading"
+          [class.!hidden]="dataSource.dataLoading"
           *matRowDef="let translate; columns: displayedColumns;"
           (click)="toggleEditMode($event, translate)"
           [class]="{
@@ -251,9 +251,8 @@
              }">
         </mat-row>
       </table>
-      <span [fxShow]="dataSource.dataLoading"
-            fxLayoutAlign="center center"
-            class="no-data-found">{{ 'common.loading' | translate }}</span>
+      <span [class.!hidden]="!dataSource.dataLoading"
+            class="no-data-found flex items-center justify-center">{{ 'common.loading' | translate }}</span>
     </div>
     <mat-divider></mat-divider>
     <mat-paginator [length]="dataSource.total() | async"

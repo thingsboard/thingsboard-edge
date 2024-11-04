@@ -291,8 +291,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
 
     @Override
     public byte[] getImageData(TenantId tenantId, TbResourceId imageId) {
-        log.trace("Executing getImageData [{}] [{}]", tenantId, imageId);
-        return resourceDao.getResourceData(tenantId, imageId);
+        return getResourceData(tenantId, imageId);
     }
 
     @Override
@@ -525,7 +524,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
             mdResourceName = new String(Base64.getDecoder().decode(matcher.group(2)), StandardCharsets.UTF_8);
             if (StringUtils.isNotBlank(matcher.group(3))) {
                 mdResourceSubType = new String(Base64.getDecoder().decode(matcher.group(3)), StandardCharsets.UTF_8);
-            };
+            }
             mdMediaType = matcher.group(4);
         } else if (data.startsWith(DataConstants.TB_IMAGE_PREFIX + "data:image/") || (!strict && data.startsWith("data:image/"))) {
             mdMediaType = StringUtils.substringBetween(data, "data:", ";base64");
@@ -776,4 +775,5 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         private final boolean updated;
         private final String value;
     }
+
 }

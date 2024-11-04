@@ -29,15 +29,14 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 import * as React from 'react';
-import * as ReactDOM from 'react-dom';
 import ThingsboardBaseComponent from './json-form-base-component';
 import reactCSS from 'reactcss';
 import tinycolor from 'tinycolor2';
-import TextField from '@material-ui/core/TextField';
+import TextField from '@mui/material/TextField';
 import { JsonFormFieldProps, JsonFormFieldState } from '@shared/components/json-form/react/json-form.models';
-import IconButton from '@material-ui/core/IconButton';
-import Clear from '@material-ui/icons/Clear';
-import Tooltip from '@material-ui/core/Tooltip';
+import IconButton from '@mui/material/IconButton';
+import Clear from '@mui/icons-material/Clear';
+import Tooltip from '@mui/material/Tooltip';
 
 interface ThingsboardColorState extends JsonFormFieldState {
   color: tinycolor.ColorFormats.RGBA | null;
@@ -46,7 +45,9 @@ interface ThingsboardColorState extends JsonFormFieldState {
 
 class ThingsboardColor extends React.Component<JsonFormFieldProps, ThingsboardColorState> {
 
-    constructor(props) {
+    containerRef = React.createRef<HTMLDivElement>();
+
+    constructor(props: JsonFormFieldProps) {
         super(props);
         this.onBlur = this.onBlur.bind(this);
         this.onFocus = this.onFocus.bind(this);
@@ -70,17 +71,17 @@ class ThingsboardColor extends React.Component<JsonFormFieldProps, ThingsboardCo
     }
 
     componentDidMount() {
-        const node = ReactDOM.findDOMNode(this);
+        const node = this.containerRef.current;
         const colContainer = $(node).children('#color-container');
-        colContainer.click((event) => {
+        colContainer.click(() => {
             if (!this.props.form.readonly) {
-              this.onSwatchClick(event);
+              this.onSwatchClick();
             }
         });
     }
 
     componentWillUnmount() {
-        const node = ReactDOM.findDOMNode(this);
+        const node = this.containerRef.current;
         const colContainer = $(node).children('#color-container');
         colContainer.off( 'click' );
     }
@@ -106,7 +107,7 @@ class ThingsboardColor extends React.Component<JsonFormFieldProps, ThingsboardCo
         });
     }
 
-    onSwatchClick(event) {
+    onSwatchClick() {
         this.props.onColorClick(this.props.form.key, this.state.color,
           (color) => {
             this.onValueChanged(color);
@@ -114,7 +115,7 @@ class ThingsboardColor extends React.Component<JsonFormFieldProps, ThingsboardCo
         );
     }
 
-    onClear(event) {
+    onClear(event: React.MouseEvent) {
         if (event) {
             event.stopPropagation();
         }
@@ -174,12 +175,13 @@ class ThingsboardColor extends React.Component<JsonFormFieldProps, ThingsboardCo
         }
 
         return (
-            <div style={ styles.container }>
+            <div ref={this.containerRef} style={ styles.container }>
                  <div id='color-container' style={ styles.colorContainer }>
                     <div className='tb-color-preview' style={ styles.swatch }>
                         <div className='tb-color-result' style={ styles.color }/>
                     </div>
                    <TextField
+                     variant={'standard'}
                      className={fieldClass}
                      label={this.props.form.title}
                      error={!this.props.valid}

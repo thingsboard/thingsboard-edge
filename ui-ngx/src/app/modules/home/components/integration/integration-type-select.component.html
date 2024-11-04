@@ -49,11 +49,11 @@
   <mat-autocomplete class="tb-autocomplete tb-integration-type-autocomplete"
                     [displayWith]="displayIntegrationTypeFn"
                     #integrationTypesAutocomplete="matAutocomplete">
-    <div fxLayout="row wrap">
-      <mat-option *ngFor="let integrationInfo of filteredIntegrationTypes | async" [value]="integrationInfo" fxFlex="50" fxFlex.xs="100">
-        <div fxLayout="row" class="integration-type-button">
+    <div class="flex flex-row flex-wrap">
+      <mat-option *ngFor="let integrationInfo of filteredIntegrationTypes | async" [value]="integrationInfo" class="max-w-50% flex-full xs:max-w-full">
+        <div class="integration-type-button flex flex-row">
           <img class="icon" [src]="integrationInfo.icon" alt="icon">
-          <div fxFlex>
+          <div class="flex-1">
             <div class="name">{{ integrationInfo.name }}</div>
             <div class="description">{{ integrationInfo.description }}</div>
           </div>

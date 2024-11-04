@@ -34,7 +34,7 @@
   <img [src]="solutionTemplate.videoPreviewImageUrl">
 </div>
 <div class="tb-frame-video">
-  <video autoplay="" loop="" preload="auto" muted="" playsinline="">
+  <video autoplay="" loop="" preload="auto" [muted]="true" playsinline="">
     <source [src]="solutionTemplate.previewMp4Url" type="video/mp4">
     <source [src]="solutionTemplate.previewWebmUrl" type="video/webm">
   </video>

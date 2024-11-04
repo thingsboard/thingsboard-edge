@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [fxShow]="schedulerEventType" [formGroup]="schedulerEventConfigFormGroup" class="tb-scheduler-event" fxLayout="column">
+<section [class.!hidden]="!schedulerEventType" [formGroup]="schedulerEventConfigFormGroup" class="tb-scheduler-event flex flex-col">
   <div *ngIf="showOriginator">
     <small translate>scheduler.originator</small>
     <tb-originator-select

@@ -33,14 +33,14 @@
 <fieldset class="fields-group">
   <legend class="group-title" translate>integration.topic-filters</legend>
   <div class="container">
-    <div fxFlex fxLayout="row" fxLayoutGap="8px"
+    <div class="flex flex-1 flex-row items-center justify-start gap-2"
          *ngFor="let topicFilter of mqttFiltersFromArray.controls; let i = index"
-         [formGroup]="topicFilter" fxLayoutAlign="start center">
-      <mat-form-field fxFlex floatLabel="always" hideRequiredMarker class="mat-block">
+         [formGroup]="topicFilter">
+      <mat-form-field floatLabel="always" hideRequiredMarker class="mat-block flex-1">
         <mat-label>{{ i !== 0 ? "" : "integration.topic" | translate }}</mat-label>
         <input matInput required name="topicFilterTopic" formControlName="filter">
       </mat-form-field>
-      <mat-form-field fxFlex floatLabel="always" hideRequiredMarker class="mat-block">
+      <mat-form-field floatLabel="always" hideRequiredMarker class="mat-block flex-1">
         <mat-label>{{ i !== 0 ? "" : "integration.mqtt-qos" | translate }}</mat-label>
         <mat-select required formControlName="qos">
           <mat-option *ngFor="let mqttQoS of mqttQosTypes" [value]="mqttQoS">
@@ -48,9 +48,9 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <button mat-icon-button color="primary" [fxShow]="!mqttFiltersFromArray.disabled"
+      <button mat-icon-button color="primary" [class.!hidden]="mqttFiltersFromArray.disabled"
               type="button"
-              [ngClass]="{'invisibility': mqttFiltersFromArray.length === 1}"
+              [class.invisibility]="mqttFiltersFromArray.length === 1"
               (click)="mqttFiltersFromArray.removeAt(i)"
               [matTooltip]="'integration.remove-topic-filter' | translate" matTooltipPosition="above">
         <mat-icon class="material-icons">close</mat-icon>
@@ -62,7 +62,7 @@
     <div class="tb-hint" innerHTML="{{ 'device-profile.single-level-wildcards-hint' | translate }}"></div>
     <div class="tb-hint" innerHTML="{{ 'device-profile.multi-level-wildcards-hint' | translate }}"></div>
   </section>
-  <span *ngIf="!mqttFiltersFromArray.length" fxLayoutAlign="center center" class="no-data-found" translate>integration.add-topic-filter-prompt</span>
+  <span *ngIf="!mqttFiltersFromArray.length" class="no-data-found flex items-center justify-center" translate>integration.add-topic-filter-prompt</span>
   <button mat-stroked-button color="primary" *ngIf="!mqttFiltersFromArray.disabled"
           type="button"
           class="add-button"

@@ -30,12 +30,12 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section fxLayout="column" class="tb-attribute-kv-table" [formGroup]="kvListFormGroup">
+<section class="tb-attribute-kv-table flex flex-col" [formGroup]="kvListFormGroup">
   <label translate class="tb-title no-padding">{{ titleText }}</label>
-  <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="8px"
+  <div class="flex flex-row items-center justify-start gap-2"
        formArrayName="keyVals"
        *ngFor="let keyValControl of keyValsFormArray().controls; let $index = index">
-    <mat-form-field appearance="outline" subscriptSizing="dynamic" fxFlex="40" class="tb-inline-field flex tb-suffix-absolute">
+    <mat-form-field appearance="outline" subscriptSizing="dynamic" class="tb-inline-field flex tb-suffix-absolute max-w-40% flex-full">
       <input placeholder="{{'key-val.key' | translate}}" [formControl]="keyValControl.get('key')" matInput/>
       <mat-icon matSuffix
                 matTooltipPosition="above"
@@ -46,13 +46,13 @@
         warning
       </mat-icon>
     </mat-form-field>
-    <tb-value-input fxFlex="60"
+    <tb-value-input class="max-w-60% flex-full"
                     stringNotRequired
                     requiredText="attribute.value-required"
                     [formControl]="keyValControl.get('value')">
     </tb-value-input>
     <button mat-icon-button color="primary"
-            [fxShow]="!disabled"
+            [class.!hidden]="disabled"
             type="button"
             (click)="removeKeyVal($index)"
             [disabled]="isLoading$ | async"
@@ -61,12 +61,13 @@
       <mat-icon>close</mat-icon>
     </button>
   </div>
-  <span [fxShow]="!keyValsFormArray().length"
-        fxLayoutAlign="center center" [ngClass]="{'disabled': disabled, 'required': required}"
-        class="no-data-found" translate>{{required ? requiredPrompt : 'key-val.no-data'}}</span>
+  <span [class.!hidden]="keyValsFormArray().length"
+        [class.disabled]="disabled"
+        [class.required]="required"
+        class="no-data-found flex items-center justify-center" translate>{{required ? requiredPrompt : 'key-val.no-data'}}</span>
   <div style="margin-top: 8px;">
     <button mat-button mat-raised-button color="primary"
-            [fxShow]="!disabled"
+            [class.!hidden]="disabled"
             [disabled]="isLoading$ | async"
             (click)="addKeyVal()"
             type="button"

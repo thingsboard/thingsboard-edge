@@ -1,7 +1,7 @@
 {
   "name": "thingsboard-web-report",
   "private": true,
-  "version": "3.8.0PE",
+  "version": "3.9.0PE",
   "description": "ThingsBoard Web Reporting Microservice",
   "main": "server.ts",
   "bin": "server.js",
@@ -18,8 +18,8 @@
     "express": "~4.19.2",
     "js-yaml": "^4.1.0",
     "patch-package": "^8.0.0",
-    "playwright-chromium": "~1.44.1",
-    "playwright-core": "~1.44.1",
+    "playwright-chromium": "~1.48.0",
+    "playwright-core": "~1.48.0",
     "postinstall-postinstall": "^2.1.0",
     "winston": "~3.13.0",
     "winston-daily-rotate-file": "~5.0.0"
