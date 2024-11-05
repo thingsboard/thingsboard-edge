@@ -79,7 +79,6 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportRequest;
 import org.thingsboard.server.common.data.sync.ie.importing.csv.BulkImportResult;
 import org.thingsboard.server.common.msg.edge.FromEdgeSyncResponse;
-import org.thingsboard.server.common.msg.edge.ToEdgeSyncRequest;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.queue.util.TbCoreComponent;
@@ -93,7 +92,6 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -734,7 +732,7 @@ public class EdgeController extends BaseController {
         try {
             SecurityUser user = getCurrentUser();
             TenantId tenantId = user.getTenantId();
-            return checkNotNull(cloudEventService.findEdgeSettings(tenantId));
+            return checkNotNull(edgeSettingsService.findEdgeSettings(tenantId));
         } catch (Exception e) {
             throw handleException(e);
         }
@@ -750,6 +748,10 @@ public class EdgeController extends BaseController {
             @RequestParam(required = false) String sortOrder,
             @RequestParam(required = false) Long startTime,
             @RequestParam(required = false) Long endTime) throws ThingsboardException {
+        if (queueType.equals("kafka")) {
+            throw new UnsupportedOperationException("getCloudEvents not supported for queue type - kafka");
+        }
+
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);
@@ -769,6 +771,9 @@ public class EdgeController extends BaseController {
             @RequestParam(required = false) String sortOrder,
             @RequestParam(required = false) Long startTime,
             @RequestParam(required = false) Long endTime) throws ThingsboardException {
+        if (queueType.equals("kafka")) {
+            throw new UnsupportedOperationException("getTimeseriesCloudEvents not supported for queue type - kafka");
+        }
         try {
             TenantId tenantId = getCurrentUser().getTenantId();
             TimePageLink pageLink = createTimePageLink(pageSize, page, textSearch, sortProperty, sortOrder, startTime, endTime);

@@ -83,8 +83,11 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             }
             env.put("POSTGRES_DATA_VOLUME", postgresDataVolume);
             env.put("TB_LOG_VOLUME", tbLogVolume);
-            env.put("TB_EDGE_LOG_VOLUME", tbEdgeLogVolume);
-            env.put("TB_EDGE_DATA_VOLUME", tbEdgeDataVolume);
+            for (int edgeEnv = 1; edgeEnv <= 2; edgeEnv++) {
+                env.put("SPRING_DATASOURCE_URL_" + edgeEnv, "jdbc:postgresql://postgres:5432/tb_edge_" + edgeEnv);
+                env.put("TB_EDGE_LOG_VOLUME_" + edgeEnv, tbEdgeLogVolume + "-" + edgeEnv);
+                env.put("TB_EDGE_DATA_VOLUME_" + edgeEnv, tbEdgeDataVolume + "-" + edgeEnv);
+            }
 
             dockerCompose.withEnv(env);
         } catch (Exception e) {
@@ -106,12 +109,13 @@ public class ThingsBoardDbInstaller extends ExternalResource {
 
             dockerCompose.withCommand("volume create " + tbLogVolume);
             dockerCompose.invokeDocker();
+            for (int edgeEnv = 1; edgeEnv <= 2; edgeEnv++) {
+                dockerCompose.withCommand("volume create " + tbEdgeLogVolume + "-" + edgeEnv);
+                dockerCompose.invokeDocker();
 
-            dockerCompose.withCommand("volume create " + tbEdgeLogVolume);
-            dockerCompose.invokeDocker();
-
-            dockerCompose.withCommand("volume create " + tbEdgeDataVolume);
-            dockerCompose.invokeDocker();
+                dockerCompose.withCommand("volume create " + tbEdgeDataVolume + "-" + edgeEnv);
+                dockerCompose.invokeDocker();
+            }
 
             dockerCompose.withCommand("up -d postgres");
             dockerCompose.invokeCompose();
@@ -119,15 +123,16 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             dockerCompose.withCommand("run --no-deps --rm -e INSTALL_TB=true -e LOAD_DEMO=true tb-monolith");
             dockerCompose.invokeCompose();
 
-            dockerCompose.withCommand("run --no-deps --rm -e INSTALL_TB_EDGE=true -e LOAD_DEMO=true tb-edge");
-            dockerCompose.invokeCompose();
-
+            for (int edgeEnv = 1; edgeEnv <= 2; edgeEnv++) {
+                dockerCompose.withCommand("run --no-deps --rm -e INSTALL_TB_EDGE=true -e LOAD_DEMO=true tb-edge" + "-" + edgeEnv);
+                dockerCompose.invokeCompose();
+            }
             dockerCompose.withCommand("exec -T postgres psql -U postgres -d thingsboard -f /custom-sql/thingsboard.sql");
             dockerCompose.invokeCompose();
-
-            dockerCompose.withCommand("exec -T postgres psql -U postgres -d tb_edge -f /custom-sql/tb_edge.sql");
-            dockerCompose.invokeCompose();
-
+            for (int edgeEnv = 1; edgeEnv <= 2; edgeEnv++) {
+                dockerCompose.withCommand("exec -T postgres psql -U postgres -d tb_edge" + "_" + edgeEnv + " -f /custom-sql/tb_edge_" + edgeEnv + ".sql");
+                dockerCompose.invokeCompose();
+            }
         } finally {
             try {
                 dockerCompose.withCommand("down -v");
@@ -141,11 +146,13 @@ public class ThingsBoardDbInstaller extends ExternalResource {
     @Override
     protected void after() {
         try {
-            copyLogs(tbLogVolume, "./target/tb-logs/");
-            copyLogs(tbEdgeLogVolume, "./target/tb-edge-logs/");
+            for (int edgeEnv = 1; edgeEnv <= 2; edgeEnv++) {
+                copyLogs(tbLogVolume, "./target/tb-logs/");
+                copyLogs(tbEdgeLogVolume + "-" + edgeEnv, "./target/tb-edge-logs/");
 
-            dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume + " " + tbEdgeLogVolume);
-            dockerCompose.invokeDocker();
+                dockerCompose.withCommand("volume rm -f " + postgresDataVolume + " " + tbLogVolume + " " + tbEdgeLogVolume + "-" + edgeEnv);
+                dockerCompose.invokeDocker();
+            }
         } catch (Exception e) {
             log.error("Failed [after]", e);
             throw e;
@@ -162,7 +169,7 @@ public class ThingsBoardDbInstaller extends ExternalResource {
             dockerCompose.withCommand("run -d --rm --name " + logsContainerName + " -v " + volumeName + ":/root alpine tail -f /dev/null");
             dockerCompose.invokeDocker();
 
-            dockerCompose.withCommand("cp " + logsContainerName + ":/root/. "+tbLogsDir.getAbsolutePath());
+            dockerCompose.withCommand("cp " + logsContainerName + ":/root/. " + tbLogsDir.getAbsolutePath());
             dockerCompose.invokeDocker();
 
             dockerCompose.withCommand("rm -f " + logsContainerName);

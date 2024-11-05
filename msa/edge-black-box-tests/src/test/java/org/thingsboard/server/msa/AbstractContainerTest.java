@@ -131,9 +131,9 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public abstract class AbstractContainerTest {
+    public static final List<String> CLOUD_ROUTING_KEYS = Arrays.asList("280629c7-f853-ee3d-01c0-fffbb6f2ef38", "e29dadb1-c487-3b9e-1b5a-02193191c90e");
+    public static final List<String> CLOUD_ROUTING_SECRETS = Arrays.asList("g9ta4soeylw6smqkky8g", "dmb17p71vz9svfl7tgnz");
 
-    public static final String CLOUD_ROUTING_KEY = "280629c7-f853-ee3d-01c0-fffbb6f2ef38";
-    public static final String CLOUD_ROUTING_SECRET = "g9ta4soeylw6smqkky8g";
     public static final String TB_MONOLITH_SERVICE_NAME = "tb-monolith";
     public static final String TB_EDGE_SERVICE_NAME = "tb-edge";
 
@@ -152,36 +152,61 @@ public abstract class AbstractContainerTest {
 
     @BeforeClass
     public static void before() throws Exception {
-        if (cloudRestClient == null) {
-            String tbHost = ContainerTestSuite.testContainer.getServiceHost(TB_MONOLITH_SERVICE_NAME, 8080);
-            Integer tbPort = ContainerTestSuite.testContainer.getServicePort(TB_MONOLITH_SERVICE_NAME, 8080);
-            tbUrl = "http://" + tbHost + ":" + tbPort;
-            cloudRestClient = new RestClient(tbUrl);
-            cloudRestClient.login("tenant@thingsboard.org", "tenant");
+        if (ContainerTestSuite.testContainer != null && !ContainerTestSuite.started) {
+            ContainerTestSuite.started = true;
 
-            String edgeHost = ContainerTestSuite.testContainer.getServiceHost(TB_EDGE_SERVICE_NAME, 8082);
-            Integer edgePort = ContainerTestSuite.testContainer.getServicePort(TB_EDGE_SERVICE_NAME, 8082);
-            edgeUrl = "http://" + edgeHost + ":" + edgePort;
-            edgeRestClient = new RestClient(edgeUrl);
+            createCloudRestClient(
+                    ContainerTestSuite.testContainer.getServiceHost(TB_MONOLITH_SERVICE_NAME, 8080),
+                    ContainerTestSuite.testContainer.getServicePort(TB_MONOLITH_SERVICE_NAME, 8080)
+            );
 
-            RuleChainId ruleChainId = updateRootRuleChain();
-            RuleChainId edgeRuleChainId = updateEdgeRootRuleChain();
+            edge = createEdge("test", CLOUD_ROUTING_KEYS.get(0), CLOUD_ROUTING_SECRETS.get(0));
 
-            edge = createEdge("test", CLOUD_ROUTING_KEY, CLOUD_ROUTING_SECRET);
+            prepareEdge(
+                    ContainerTestSuite.testContainer.getServiceHost(TB_EDGE_SERVICE_NAME + "-" + 1, 8082),
+                    ContainerTestSuite.testContainer.getServicePort(TB_EDGE_SERVICE_NAME + "-" + 1, 8082)
+            );
+        } else if (KafkaContainerTestSuite.testContainer != null && !KafkaContainerTestSuite.started) {
+            KafkaContainerTestSuite.started = true;
+            createCloudRestClient(
+                    KafkaContainerTestSuite.testContainer.getServiceHost(TB_MONOLITH_SERVICE_NAME, 8080),
+                    KafkaContainerTestSuite.testContainer.getServicePort(TB_MONOLITH_SERVICE_NAME, 8080)
+            );
 
-            loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
+            edge = createEdge("test", CLOUD_ROUTING_KEYS.get(1), CLOUD_ROUTING_SECRETS.get(1));
 
-            getEdgeVersion();
-
-            Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
-            Assert.assertTrue(tenant.isPresent());
-            Assert.assertEquals(edge.getTenantId(), tenant.get().getId());
-
-            createCustomDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME, ruleChainId, edgeRuleChainId);
-
-            // This is a starting point to start other tests
-            verifyWidgetBundles();
+            prepareEdge(
+                    KafkaContainerTestSuite.testContainer.getServiceHost(TB_EDGE_SERVICE_NAME + "-" + 2, 8083),
+                    KafkaContainerTestSuite.testContainer.getServicePort(TB_EDGE_SERVICE_NAME + "-" + 2, 8083)
+            );
         }
+    }
+
+    private static void createCloudRestClient(String tbHost, Integer tbPort) {
+        tbUrl = "http://" + tbHost + ":" + tbPort;
+        cloudRestClient = new RestClient(tbUrl);
+        cloudRestClient.login("tenant@thingsboard.org", "tenant");
+    }
+
+    private static void prepareEdge(String edgeHost, Integer edgePort) throws IOException {
+        RuleChainId ruleChainId = updateRootRuleChain();
+        RuleChainId edgeRuleChainId = updateEdgeRootRuleChain();
+
+        edgeUrl = "http://" + edgeHost + ":" + edgePort;
+        edgeRestClient = new RestClient(edgeUrl);
+
+        loginIntoEdgeWithRetries("tenant@thingsboard.org", "tenant");
+
+        getEdgeVersion();
+
+        Optional<Tenant> tenant = edgeRestClient.getTenantById(edge.getTenantId());
+        Assert.assertTrue(tenant.isPresent());
+        Assert.assertEquals(edge.getTenantId(), tenant.get().getId());
+
+        createCustomDeviceProfile(CUSTOM_DEVICE_PROFILE_NAME, ruleChainId, edgeRuleChainId);
+
+        // This is a starting point to start other tests
+        verifyWidgetBundles();
     }
 
     private static void getEdgeVersion() {
@@ -325,10 +350,6 @@ public abstract class AbstractContainerTest {
 
     protected static DeviceProfile createDeviceProfileOnEdge(String name) {
         return doCreateDeviceProfile(name, null, null, new DefaultDeviceProfileTransportConfiguration(), edgeRestClient);
-    }
-
-    protected static DeviceProfile createDeviceProfileOnEdge(String name, RuleChainId defaultRuleChain, RuleChainId defaultEdgeRuleChainId) {
-        return doCreateDeviceProfile(name, defaultRuleChain, defaultEdgeRuleChainId, new DefaultDeviceProfileTransportConfiguration(), edgeRestClient);
     }
 
     private static DeviceProfile doCreateDeviceProfile(String name, RuleChainId defaultRuleChain, RuleChainId defaultEdgeRuleChainId,

@@ -61,6 +61,7 @@ import org.thingsboard.server.common.data.kv.BaseAttributeKvEntry;
 import org.thingsboard.server.common.data.kv.LongDataEntry;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
+import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
@@ -87,15 +88,14 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_SEQ_ID_OFFSET_ATTR_KEY;
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_START_TS_ATTR_KEY;
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY;
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_TS_KV_START_TS_ATTR_KEY;
+
 @Service
 @Slf4j
 public class CloudManagerService {
-
-    private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
-    private static final String QUEUE_SEQ_ID_OFFSET_ATTR_KEY = "queueSeqIdOffset";
-    private static final String QUEUE_TS_KV_START_TS_ATTR_KEY = "queueTsKvStartTs";
-    private static final String QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY = "queueTsKvSeqIdOffset";
-
 
     @Value("${cloud.routingKey}")
     private String routingKey;
@@ -105,6 +105,9 @@ public class CloudManagerService {
 
     @Value("${cloud.reconnect_timeout}")
     private long reconnectTimeoutMs;
+
+    @Value("${queue.type}")
+    protected String queueType;
 
     @Autowired
     private EdgeService edgeService;
@@ -145,15 +148,19 @@ public class CloudManagerService {
     @Autowired
     private CustomerCloudProcessor customerProcessor;
 
-
-
     @Autowired
     private CloudEventService cloudEventService;
 
     @Autowired
+    private EdgeSettingsService edgeSettingsService;
+
+    @Autowired
     private ConfigurableApplicationContext context;
 
+    @Autowired(required = false)
+    private CloudEventSync cloudEventSync;
 
+    private boolean isCloudEventSync = false;
 
     private EdgeSettings currentEdgeSettings;
 
@@ -288,7 +295,7 @@ public class CloudManagerService {
     private void initAndUpdateEdgeSettings(EdgeConfiguration edgeConfiguration) throws Exception {
         this.tenantId = new TenantId(new UUID(edgeConfiguration.getTenantIdMSB(), edgeConfiguration.getTenantIdLSB()));
 
-        this.currentEdgeSettings = cloudEventService.findEdgeSettings(this.tenantId);
+        this.currentEdgeSettings = edgeSettingsService.findEdgeSettings(this.tenantId);
         EdgeSettings newEdgeSettings = constructEdgeSettings(edgeConfiguration);
         if (this.currentEdgeSettings == null || !this.currentEdgeSettings.getEdgeId().equals(newEdgeSettings.getEdgeId())) {
             tenantProcessor.cleanUp();
@@ -310,7 +317,7 @@ public class CloudManagerService {
         edgeRpcClient.sendSyncRequestMsg(this.currentEdgeSettings.isFullSyncRequired());
         this.syncInProgress = true;
 
-        cloudEventService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
+        edgeSettingsService.saveEdgeSettings(tenantId, this.currentEdgeSettings);
 
         saveOrUpdateEdge(tenantId, edgeConfiguration);
 
@@ -321,6 +328,13 @@ public class CloudManagerService {
         updateConnectivityStatus(true);
 
         initialized = true;
+
+        if (queueType.equals("kafka") && !isCloudEventSync) {
+            cloudEventSync.init(tenantId);
+            cloudEventSync.cloudEventSync();
+            cloudEventSync.cloudEventTsSync();
+            isCloudEventSync = true;
+        }
     }
 
     private boolean setOrUpdateCustomerId(EdgeConfiguration edgeConfiguration) {
@@ -424,6 +438,10 @@ public class CloudManagerService {
     private void scheduleReconnect(Exception e) {
         initialized = false;
 
+        if (queueType.equals("kafka")) {
+            cloudEventService.unsubscribeConsumers();
+        }
+
         updateConnectivityStatus(false);
 
         if (scheduledFuture == null) {
@@ -473,6 +491,7 @@ public class CloudManagerService {
         public void onFailure(Throwable t) {
             log.warn("Failed to update attribute [{}] with value [{}]", key, value, t);
         }
+
     }
 
 }

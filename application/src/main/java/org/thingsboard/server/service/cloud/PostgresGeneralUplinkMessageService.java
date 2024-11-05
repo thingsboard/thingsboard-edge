@@ -32,22 +32,20 @@ package org.thingsboard.server.service.cloud;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_SEQ_ID_OFFSET_ATTR_KEY;
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_START_TS_ATTR_KEY;
+
 @Slf4j
 @Service
-public class DefaultGeneralUplinkMessageService extends BaseUplinkMessageService implements GeneralUplinkMessageService {
-
-    private static final String QUEUE_START_TS_ATTR_KEY = "queueStartTs";
-
-    @Override
-    protected PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
-        return cloudEventService.findCloudEvents(tenantId, seqIdStart, seqIdEnd, pageLink);
-    }
+@ConditionalOnExpression("'${queue.type:null}'!='kafka'")
+public class PostgresGeneralUplinkMessageService extends PostgresUplinkMessageService implements GeneralUplinkMessageService {
 
     @Override
     protected String getTableName() {
@@ -55,13 +53,13 @@ public class DefaultGeneralUplinkMessageService extends BaseUplinkMessageService
     }
 
     @Override
-    protected boolean newMessagesAvailableInGeneralQueue(TenantId tenantId) {
-        return false;
+    protected ListenableFuture<Long> getQueueSeqIdStart(TenantId tenantId) {
+        return getLongAttrByKey(tenantId, QUEUE_SEQ_ID_OFFSET_ATTR_KEY);
     }
 
     @Override
-    protected void updateQueueStartTsSeqIdOffset(TenantId tenantId, Long newStartTs, Long newSeqId) {
-        updateQueueStartTsSeqIdOffset(tenantId, QUEUE_START_TS_ATTR_KEY, QUEUE_SEQ_ID_OFFSET_ATTR_KEY, newStartTs, newSeqId);
+    protected PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
+        return cloudEventService.findCloudEvents(tenantId, seqIdStart, seqIdEnd, pageLink);
     }
 
     @Override
@@ -70,8 +68,13 @@ public class DefaultGeneralUplinkMessageService extends BaseUplinkMessageService
     }
 
     @Override
-    protected ListenableFuture<Long> getQueueSeqIdStart(TenantId tenantId) {
-        return getLongAttrByKey(tenantId, QUEUE_SEQ_ID_OFFSET_ATTR_KEY);
+    protected void updateQueueStartTsSeqIdOffset(TenantId tenantId, Long newStartTs, Long newSeqId) {
+        updateQueueStartTsSeqIdOffset(tenantId, QUEUE_START_TS_ATTR_KEY, QUEUE_SEQ_ID_OFFSET_ATTR_KEY, newStartTs, newSeqId);
+    }
+
+    @Override
+    protected boolean newMessagesAvailableInGeneralQueue(TenantId tenantId) {
+        return false;
     }
 
 }

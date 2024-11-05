@@ -42,14 +42,9 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
-import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 public interface CloudEventService {
-
-    ListenableFuture<Void> saveAsync(CloudEvent cloudEvent);
-
-    ListenableFuture<Void> saveTsKvAsync(CloudEvent cloudEvent);
 
     void saveCloudEvent(TenantId tenantId,
                         CloudEventType cloudEventType,
@@ -67,13 +62,17 @@ public interface CloudEventService {
                                                EntityGroupId entityGroupId,
                                                Long queueStartTs);
 
+    ListenableFuture<Void> saveAsync(CloudEvent cloudEvent);
+
+    ListenableFuture<Void> saveTsKvAsync(CloudEvent cloudEvent);
+
     PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
 
     PageData<CloudEvent> findTsKvCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
 
-    EdgeSettings findEdgeSettings(TenantId tenantId);
+    void unsubscribeConsumers();
 
-    ListenableFuture<List<Long>> saveEdgeSettings(TenantId tenantId, EdgeSettings edgeSettings);
+    void commit(boolean isTS);
 
     void cleanupEvents(long ttl);
 

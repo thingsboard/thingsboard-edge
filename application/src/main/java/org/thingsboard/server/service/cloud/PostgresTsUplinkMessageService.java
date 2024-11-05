@@ -33,21 +33,35 @@ package org.thingsboard.server.service.cloud;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.TimePageLink;
 
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_SEQ_ID_OFFSET_ATTR_KEY;
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY;
+import static org.thingsboard.server.service.cloud.QueueConstants.QUEUE_TS_KV_START_TS_ATTR_KEY;
+
+
 @Slf4j
 @Service
-public class DefaultTsUplinkMessageService extends BaseUplinkMessageService implements TsUplinkMessageService {
-
-    private static final String QUEUE_TS_KV_START_TS_ATTR_KEY = "queueTsKvStartTs";
-    private static final String QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY = "queueTsKvSeqIdOffset";
+@ConditionalOnExpression("'${queue.type:null}'!='kafka'")
+public class PostgresTsUplinkMessageService extends PostgresUplinkMessageService implements TsUplinkMessageService {
 
     @Autowired
     private GeneralUplinkMessageService generalUplinkMessageService;
+
+    @Override
+    protected String getTableName() {
+        return "ts_kv_cloud_event";
+    }
+
+    @Override
+    protected ListenableFuture<Long> getQueueStartTs(TenantId tenantId) {
+        return getLongAttrByKey(tenantId, QUEUE_TS_KV_START_TS_ATTR_KEY);
+    }
 
     @Override
     protected PageData<CloudEvent> findCloudEvents(TenantId tenantId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink) {
@@ -55,8 +69,13 @@ public class DefaultTsUplinkMessageService extends BaseUplinkMessageService impl
     }
 
     @Override
-    protected String getTableName() {
-        return "ts_kv_cloud_event";
+    protected ListenableFuture<Long> getQueueSeqIdStart(TenantId tenantId) {
+        return getLongAttrByKey(tenantId, QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY);
+    }
+
+    @Override
+    protected void updateQueueStartTsSeqIdOffset(TenantId tenantId, Long newStartTs, Long newSeqId) {
+        updateQueueStartTsSeqIdOffset(tenantId, QUEUE_TS_KV_START_TS_ATTR_KEY, QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY, newStartTs, newSeqId);
     }
 
     @Override
@@ -68,21 +87,6 @@ public class DefaultTsUplinkMessageService extends BaseUplinkMessageService impl
         } catch (Exception e) {
             return false;
         }
-    }
-
-    @Override
-    protected void updateQueueStartTsSeqIdOffset(TenantId tenantId, Long newStartTs, Long newSeqId) {
-        updateQueueStartTsSeqIdOffset(tenantId, QUEUE_TS_KV_START_TS_ATTR_KEY, QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY, newStartTs, newSeqId);
-    }
-
-    @Override
-    protected ListenableFuture<Long> getQueueStartTs(TenantId tenantId) {
-        return getLongAttrByKey(tenantId, QUEUE_TS_KV_START_TS_ATTR_KEY);
-    }
-
-    @Override
-    protected ListenableFuture<Long> getQueueSeqIdStart(TenantId tenantId) {
-        return getLongAttrByKey(tenantId, QUEUE_TS_KV_SEQ_ID_OFFSET_ATTR_KEY);
     }
 
 }
