@@ -1620,9 +1620,9 @@ queue:
         - key: max.poll.interval.ms
           # Example of specific consumer properties value per topic for VC
           value: "${TB_QUEUE_KAFKA_VC_MAX_POLL_INTERVAL_MS:600000}"
-    #      tb_rule_engine.sq:
-    #        - key: max.poll.records
-    #          value: "${TB_QUEUE_KAFKA_SQ_MAX_POLL_RECORDS:1024}"
+      #      tb_rule_engine.sq:
+      #        - key: max.poll.records
+      #          value: "${TB_QUEUE_KAFKA_SQ_MAX_POLL_RECORDS:1024}"
       tb_housekeeper:
         # Consumer properties for Housekeeper tasks topic
         - key: max.poll.records

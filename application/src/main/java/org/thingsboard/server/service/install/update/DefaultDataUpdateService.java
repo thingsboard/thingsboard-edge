@@ -72,8 +72,8 @@ import org.thingsboard.server.common.data.relation.EntityRelation;
 import org.thingsboard.server.common.data.relation.RelationTypeGroup;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
-import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.asset.AssetService;
+import org.thingsboard.server.dao.cloud.EdgeSettingsService;
 import org.thingsboard.server.dao.customer.CustomerDao;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -607,6 +607,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, tenantAdmins.getId(), entity.getId());
         }
+
     }
 
     private class CustomerUsersTenantGroupAllRemover extends PaginatedUpdater<TenantId, User> {
@@ -646,6 +647,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 entityGroupService.removeEntityFromEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
             }
         }
+
     }
 
     private class CustomerUsersGroupAllUpdater extends GroupAllPaginatedUpdater<CustomerId, User> {
@@ -674,6 +676,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, customerUsers.getId(), entity.getId());
         }
+
     }
 
     private class CustomersGroupAllUpdater extends GroupAllPaginatedUpdater<TenantId, Customer> {
@@ -726,6 +729,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             }
         }
+
     }
 
 
@@ -797,6 +801,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             }
         }
+
     }
 
     private PaginatedUpdater<String, Tenant> tenantIntegrationUpdater = new PaginatedUpdater<String, Tenant>() {
@@ -932,4 +937,5 @@ public class DefaultDataUpdateService implements DataUpdateService {
                     }
                 }
             };
+
 }

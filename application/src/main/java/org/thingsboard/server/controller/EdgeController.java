@@ -671,7 +671,7 @@ public class EdgeController extends BaseController {
             notes = "Activates edge license on license portal.")
     @PostMapping(value = "/license/activateInstance", params = {"licenseSecret", "releaseDate"})
     public ResponseEntity<JsonNode> activateInstance(@RequestParam String licenseSecret,
-                                                                                    @RequestParam String releaseDate) throws ThingsboardException {
+                                                     @RequestParam String releaseDate) throws ThingsboardException {
         log.debug("Activating instance [{}], [{}]", licenseSecret, releaseDate);
         try {
             return edgeLicenseService.activateInstance(licenseSecret, releaseDate);

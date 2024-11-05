@@ -1257,6 +1257,8 @@ message EdgeEventMsgProto {
   optional int64 entityIdMSB = 5;
   optional int64 entityIdLSB = 6;
   optional string entityBody = 7;
+  optional int64 entityGroupIdMSB = 8;
+  optional int64 entityGroupIdLSB = 9;
 }
 
 message EdgeHighPriorityMsgProto {

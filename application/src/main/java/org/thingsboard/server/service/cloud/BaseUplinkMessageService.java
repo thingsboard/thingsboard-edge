@@ -146,9 +146,6 @@ public abstract class BaseUplinkMessageService {
     private EntityGroupCloudProcessor entityGroupProcessor;
 
     @Autowired
-    private AttributesService attributesService;
-
-    @Autowired
     private EdgeRpcClient edgeRpcClient;
 
     public void onUplinkResponse(UplinkResponseMsg msg) {
@@ -293,11 +290,12 @@ public abstract class BaseUplinkMessageService {
             return switch (cloudEvent.getAction()) {
                 case UPDATED, ADDED, DELETED, ALARM_ACK, ALARM_CLEAR, ALARM_DELETE, CREDENTIALS_UPDATED,
                      RELATION_ADD_OR_UPDATE, RELATION_DELETED, ADDED_TO_ENTITY_GROUP, REMOVED_FROM_ENTITY_GROUP,
-                     ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT ->
-                        convertEntityEventToUplink(cloudEvent);
+                     ADDED_COMMENT, UPDATED_COMMENT, DELETED_COMMENT -> convertEntityEventToUplink(cloudEvent);
                 case ATTRIBUTES_UPDATED, POST_ATTRIBUTES, ATTRIBUTES_DELETED, TIMESERIES_UPDATED ->
                         telemetryProcessor.convertTelemetryEventToUplink(cloudEvent.getTenantId(), cloudEvent);
                 case ATTRIBUTES_REQUEST -> telemetryProcessor.convertAttributesRequestEventToUplink(cloudEvent);
+                case GROUP_ENTITIES_REQUEST -> entityGroupProcessor.processGroupEntitiesRequestMsgToCloud(cloudEvent);
+                case GROUP_PERMISSIONS_REQUEST -> groupPermissionProcessor.processEntityGroupPermissionsRequestMsgToCloud(cloudEvent);
                 case RELATION_REQUEST -> relationProcessor.convertRelationRequestEventToUplink(cloudEvent);
                 case RPC_CALL -> deviceProcessor.convertRpcCallEventToUplink(cloudEvent);
                 case WIDGET_BUNDLE_TYPES_REQUEST -> widgetBundleProcessor.convertWidgetBundleTypesRequestEventToUplink(cloudEvent);

@@ -36,7 +36,7 @@ services:
     restart: always
     image: "postgres:15"
     ports:
-    - "5432"
+      - "5432"
     environment:
       POSTGRES_MULTIPLE_DATABASES: '"thingsboard","tb_edge_1","tb_edge_2"'
       POSTGRES_PASSWORD: postgres

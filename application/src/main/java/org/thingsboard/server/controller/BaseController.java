@@ -176,8 +176,8 @@ import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.audit.AuditLogService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.cloud.CloudEventService;
-import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.cloud.EdgeSettingsService;
+import org.thingsboard.server.dao.converter.ConverterService;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceCredentialsService;
@@ -224,16 +224,13 @@ import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.edge.EdgeLicenseService;
 import org.thingsboard.server.service.entitiy.TbLogEntityActionService;
 import org.thingsboard.server.service.entitiy.user.TbUserSettingsService;
+import org.thingsboard.server.service.ota.OtaPackageStateService;
 import org.thingsboard.server.service.profile.TbDeviceProfileCache;
-import org.thingsboard.server.service.query.EntityQueryService;
-import org.thingsboard.server.service.scheduler.SchedulerService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.permission.AccessControlService;
 import org.thingsboard.server.service.security.permission.OwnersCacheService;
 import org.thingsboard.server.service.security.permission.UserPermissionsService;
 import org.thingsboard.server.service.state.DeviceStateService;
-import org.thingsboard.server.service.security.permission.Operation;
-import org.thingsboard.server.service.security.permission.Resource;
 import org.thingsboard.server.service.sync.ie.exporting.ExportableEntitiesService;
 import org.thingsboard.server.service.telemetry.AlarmSubscriptionService;
 import org.thingsboard.server.service.telemetry.TelemetrySubscriptionService;
@@ -372,9 +369,6 @@ public abstract class BaseController {
     protected DeviceStateService deviceStateService;
 
     @Autowired
-    protected SchedulerService schedulerService;
-
-    @Autowired
     protected EntityViewService entityViewService;
 
     @Autowired
@@ -391,9 +385,6 @@ public abstract class BaseController {
 
     @Autowired
     protected UserPermissionsService userPermissionsService;
-
-    @Autowired
-    protected ClaimDevicesService claimDevicesService;
 
     @Autowired
     protected CloudEventService cloudEventService;
@@ -424,9 +415,6 @@ public abstract class BaseController {
 
     @Autowired
     protected TbQueueProducerProvider producerProvider;
-
-    @Autowired
-    protected EntityQueryService entityQueryService;
 
     @Autowired
     protected EntityService entityService;

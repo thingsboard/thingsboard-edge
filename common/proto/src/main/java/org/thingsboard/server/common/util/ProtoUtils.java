@@ -49,10 +49,10 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
-import org.thingsboard.server.common.data.converter.Converter;
-import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.cloud.CloudEvent;
 import org.thingsboard.server.common.data.cloud.CloudEventType;
+import org.thingsboard.server.common.data.converter.Converter;
+import org.thingsboard.server.common.data.converter.ConverterType;
 import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.Lwm2mDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.PowerMode;
@@ -225,6 +225,11 @@ public class ProtoUtils {
             builder.setEntityBody(JacksonUtil.toString(cloudEvent.getEntityBody()));
         }
 
+        if (cloudEvent.getEntityGroupId() != null) {
+            builder.setEntityGroupIdMSB(cloudEvent.getEntityGroupId().getMostSignificantBits());
+            builder.setEntityGroupIdLSB(cloudEvent.getEntityGroupId().getLeastSignificantBits());
+        }
+
         return builder.build();
     }
 
@@ -241,6 +246,10 @@ public class ProtoUtils {
 
         if (proto.hasEntityBody()) {
             cloudEvent.setEntityBody(JacksonUtil.toJsonNode(proto.getEntityBody()));
+        }
+
+        if (proto.hasEntityGroupIdMSB() && proto.hasEntityGroupIdLSB()) {
+            cloudEvent.setEntityGroupId(new UUID(proto.getEntityGroupIdMSB(), proto.getEntityGroupIdLSB()));
         }
 
         return cloudEvent;
