@@ -59,7 +59,7 @@ export class AssetService {
                                              config?: RequestConfig): Observable<PageData<AssetInfo>> {
     return this.http.get<PageData<AssetInfo>>(`/api/tenant/assetInfos${pageLink.toQuery()}&assetProfileId=${assetProfileId}`,
       defaultHttpOptionsFromConfig(config));
-  }*/
+  } */
 
   public getTenantAssets(pageLink: PageLink, type: string = '', config?: RequestConfig): Observable<PageData<Asset>> {
     return this.http.get<PageData<Asset>>(`/api/tenant/assets${pageLink.toQuery()}&type=${type}`,
