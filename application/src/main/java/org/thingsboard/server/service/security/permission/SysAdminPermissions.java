@@ -60,7 +60,7 @@ public class SysAdminPermissions extends AbstractPermissions {
         put(Resource.OAUTH2_CLIENT, systemEntityPermissionChecker);
         put(Resource.MOBILE_APP, systemEntityPermissionChecker);
         put(Resource.MOBILE_APP_BUNDLE, systemEntityPermissionChecker);
-        put(Resource.DOMAIN, PermissionChecker.allowAllPermissionChecker);
+        put(Resource.DOMAIN, systemEntityPermissionChecker);
         put(Resource.OAUTH2_CONFIGURATION_TEMPLATE, PermissionChecker.allowAllPermissionChecker);
         put(Resource.TENANT_PROFILE, PermissionChecker.allowAllPermissionChecker);
         put(Resource.TB_RESOURCE, systemEntityPermissionChecker);

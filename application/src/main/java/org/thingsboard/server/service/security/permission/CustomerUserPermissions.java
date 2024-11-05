@@ -109,6 +109,8 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.OTA_PACKAGE, otaPackagePermissionChecker);
         put(Resource.MOBILE_APP_SETTINGS, qrCodeSettingsPermissionChecker);
         put(Resource.CUSTOM_MENU, customMenuPermissionChecker);
+        put(Resource.OAUTH2_CLIENT, customerStandaloneEntityPermissionChecker);
+        put(Resource.DOMAIN, customerStandaloneEntityPermissionChecker);
     }
 
     private final PermissionChecker<AlarmId, Alarm> customerAlarmPermissionChecker = new PermissionChecker<>() {

@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.domain.DomainInfo;
 import org.thingsboard.server.common.data.domain.DomainOauth2Client;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DomainId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
@@ -49,6 +50,7 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.oauth2.OAuth2ClientDao;
 
 import java.util.Comparator;
@@ -57,6 +59,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static org.thingsboard.server.dao.service.DataValidator.isValidDomain;
 
 @Slf4j
 @Service
@@ -73,12 +77,15 @@ public class DomainServiceImpl extends AbstractEntityService implements DomainSe
     public Domain saveDomain(TenantId tenantId, Domain domain) {
         log.trace("Executing saveDomain [{}]", domain);
         try {
+            if (!isValidDomain(domain.getName())) {
+                throw new IncorrectParameterException("Domain name " + domain.getName() + " is invalid");
+            }
             Domain savedDomain = domainDao.save(tenantId, domain);
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedDomain.getId()).entity(savedDomain).build());
             return savedDomain;
         } catch (Exception e) {
             checkConstraintViolation(e,
-                    Map.of("domain_unq_key", "Domain with such name and scheme already exists!"));
+                    Map.of("domain_name_key", "Domain with such name and scheme already exists!"));
             throw e;
         }
     }
@@ -118,9 +125,9 @@ public class DomainServiceImpl extends AbstractEntityService implements DomainSe
     }
 
     @Override
-    public PageData<DomainInfo> findDomainInfosByTenantId(TenantId tenantId, PageLink pageLink) {
-        log.trace("Executing findDomainInfosByTenantId [{}]", tenantId);
-        PageData<Domain> domains = domainDao.findByTenantId(tenantId, pageLink);
+    public PageData<DomainInfo> findDomainInfosByOwner(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+        log.trace("Executing findDomainInfosByOwner [{}]", tenantId);
+        PageData<Domain> domains = domainDao.findByTenantIdAndCustomerId(tenantId, customerId, pageLink);
         return domains.mapData(this::getDomainInfo);
     }
 

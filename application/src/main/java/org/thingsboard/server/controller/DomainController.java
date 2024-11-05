@@ -53,10 +53,10 @@ import org.thingsboard.server.common.data.id.DomainId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.entitiy.domain.TbDomainService;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.List;
 import java.util.UUID;
@@ -87,21 +87,23 @@ public class DomainController extends BaseController {
                     "Specify existing Domain Id to update the domain. " +
                     "Referencing non-existing Domain Id will cause 'Not Found' error." +
                     "\n\nDomain name is unique for entire platform setup.\n\n" + SYSTEM_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping(value = "/domain")
     public Domain saveDomain(
             @Parameter(description = "A JSON value representing the Domain.", required = true)
             @RequestBody @Valid Domain domain,
             @Parameter(description = "A list of oauth2 client registration ids, separated by comma ','", array = @ArraySchema(schema = @Schema(type = "string")))
             @RequestParam(name = "oauth2ClientIds", required = false) UUID[] ids) throws Exception {
-        domain.setTenantId(getTenantId());
+        SecurityUser currentUser = getCurrentUser();
+        domain.setTenantId(currentUser.getTenantId());
+        domain.setCustomerId(currentUser.getCustomerId());
         checkEntity(domain.getId(), domain, DOMAIN);
         return tbDomainService.save(domain, getOAuth2ClientIds(ids), getCurrentUser());
     }
 
     @ApiOperation(value = "Update oauth2 clients (updateOauth2Clients)",
             notes = "Update oauth2 clients for the specified domain. ")
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PutMapping(value = "/domain/{id}/oauth2Clients")
     public void updateOauth2Clients(@PathVariable UUID id,
                                     @RequestBody UUID[] clientIds) throws ThingsboardException {
@@ -111,26 +113,26 @@ public class DomainController extends BaseController {
         tbDomainService.updateOauth2Clients(domain, oAuth2ClientIds, getCurrentUser());
     }
 
-    @ApiOperation(value = "Get Domain infos (getTenantDomainInfos)", notes = SYSTEM_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN')")
+    @ApiOperation(value = "Get Domain infos (getDomainInfos)", notes = SYSTEM_AUTHORITY_PARAGRAPH)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/domain/infos")
-    public PageData<DomainInfo> getTenantDomainInfos(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
-                                                     @RequestParam int pageSize,
-                                                     @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
-                                                     @RequestParam int page,
-                                                     @Parameter(description = "Case-insensitive 'substring' filter based on domain's name")
-                                                     @RequestParam(required = false) String textSearch,
-                                                     @Parameter(description = SORT_PROPERTY_DESCRIPTION)
-                                                     @RequestParam(required = false) String sortProperty,
-                                                     @Parameter(description = SORT_ORDER_DESCRIPTION)
-                                                     @RequestParam(required = false) String sortOrder) throws ThingsboardException {
-        accessControlService.checkPermission(getCurrentUser(), DOMAIN, Operation.READ);
+    public PageData<DomainInfo> getDomainInfos(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
+                                               @RequestParam int pageSize,
+                                               @Parameter(description = PAGE_NUMBER_DESCRIPTION, required = true)
+                                               @RequestParam int page,
+                                               @Parameter(description = "Case-insensitive 'substring' filter based on domain's name")
+                                               @RequestParam(required = false) String textSearch,
+                                               @Parameter(description = SORT_PROPERTY_DESCRIPTION)
+                                               @RequestParam(required = false) String sortProperty,
+                                               @Parameter(description = SORT_ORDER_DESCRIPTION)
+                                               @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        SecurityUser currentUser = getCurrentUser();
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-        return domainService.findDomainInfosByTenantId(getTenantId(), pageLink);
+        return domainService.findDomainInfosByOwner(currentUser.getTenantId(), currentUser.getCustomerId(), pageLink);
     }
 
     @ApiOperation(value = "Get Domain info by Id (getDomainInfoById)", notes = SYSTEM_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/domain/info/{id}")
     public DomainInfo getDomainInfoById(@PathVariable UUID id) throws ThingsboardException {
         DomainId domainId = new DomainId(id);
@@ -139,7 +141,7 @@ public class DomainController extends BaseController {
 
     @ApiOperation(value = "Delete Domain by ID (deleteDomain)",
             notes = "Deletes Domain by ID. Referencing non-existing domain Id will cause an error." + SYSTEM_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAuthority('SYS_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @DeleteMapping(value = "/domain/{id}")
     public void deleteDomain(@PathVariable UUID id) throws Exception {
         DomainId domainId = new DomainId(id);

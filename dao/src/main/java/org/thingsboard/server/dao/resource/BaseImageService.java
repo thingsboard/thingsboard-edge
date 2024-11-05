@@ -58,6 +58,7 @@ import org.thingsboard.server.common.data.TbImageDeleteResult;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.TbResourceInfoFilter;
+import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.TbResourceId;
@@ -71,6 +72,7 @@ import org.thingsboard.server.dao.ImageContainerDao;
 import org.thingsboard.server.dao.asset.AssetProfileDao;
 import org.thingsboard.server.dao.dashboard.DashboardInfoDao;
 import org.thingsboard.server.dao.device.DeviceProfileDao;
+import org.thingsboard.server.dao.domain.DomainDao;
 import org.thingsboard.server.dao.service.Validator;
 import org.thingsboard.server.dao.service.validator.ResourceDataValidator;
 import org.thingsboard.server.dao.util.ImageUtils;
@@ -139,11 +141,12 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     private final WidgetTypeDao widgetTypeDao;
     private final DashboardInfoDao dashboardInfoDao;
     private final WhiteLabelingDao whiteLabelingDao;
+    private final DomainDao domainDao;
     private final Map<EntityType, ImageContainerDao<?>> imageContainerDaoMap = new HashMap<>();
 
     public BaseImageService(TbResourceDao resourceDao, TbResourceInfoDao resourceInfoDao, ResourceDataValidator resourceValidator,
                             AssetProfileDao assetProfileDao, DeviceProfileDao deviceProfileDao, WidgetsBundleDao widgetsBundleDao,
-                            WidgetTypeDao widgetTypeDao, DashboardInfoDao dashboardInfoDao, WhiteLabelingDao whiteLabelingDao) {
+                            WidgetTypeDao widgetTypeDao, DashboardInfoDao dashboardInfoDao, WhiteLabelingDao whiteLabelingDao, DomainDao domainDao) {
         super(resourceDao, resourceInfoDao, resourceValidator);
         this.assetProfileDao = assetProfileDao;
         this.deviceProfileDao = deviceProfileDao;
@@ -151,6 +154,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         this.widgetTypeDao = widgetTypeDao;
         this.dashboardInfoDao = dashboardInfoDao;
         this.whiteLabelingDao = whiteLabelingDao;
+        this.domainDao = domainDao;
     }
 
     @PostConstruct
@@ -398,7 +402,10 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         if (WhiteLabelingType.LOGIN.equals(whiteLabeling.getType())) {
             String prefix = "Login white labeling";
             if (!whiteLabeling.getTenantId().isSysTenantId()) {
-                prefix = "\"" + whiteLabeling.getDomain() + "\" " + prefix.toLowerCase();
+                if (whiteLabeling.getDomainId() != null) {
+                    Domain domain = domainDao.findById(whiteLabeling.getTenantId(), whiteLabeling.getDomainId().getId());
+                    prefix = "\"" + domain.getName() + "\" " + prefix.toLowerCase();
+                }
             }
             base64ToImageUrlUsingMapping(whiteLabeling.getTenantId(), whiteLabeling.getCustomerId(),
                     WHITE_LABELING_BASE64_MAPPING, Collections.singletonMap("prefix", prefix), whiteLabeling.getSettings());

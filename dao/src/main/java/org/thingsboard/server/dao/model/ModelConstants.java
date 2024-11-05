@@ -69,6 +69,7 @@ public class ModelConstants {
 
     public static final String ENTITY_TYPE_COLUMN = ENTITY_TYPE_PROPERTY;
     public static final String TENANT_ID_COLUMN = "tenant_id";
+    public static final String CUSTOMER_ID_COLUMN = "customer_id";
     public static final String ENTITY_ID_COLUMN = "entity_id";
     public static final String ATTRIBUTE_TYPE_COLUMN = "attribute_type";
     public static final String ATTRIBUTE_KEY_COLUMN = "attribute_key";
@@ -124,7 +125,7 @@ public class ModelConstants {
     public static final String WHITE_LABELING_TABLE_NAME = "white_labeling";
     public static final String WHITE_LABELING_SETTINGS_TYPE = "type";
     public static final String WHITE_LABELING_SETTINGS = "settings";
-    public static final String WHITE_LABELING_DOMAIN = "domain_name";
+    public static final String WHITE_LABELING_DOMAIN_ID = "domain_id";
 
     /**
      * Custom menu settings constants.

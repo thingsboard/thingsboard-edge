@@ -190,7 +190,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
     private void updateAndVerifyLoginWhiteLabelingUpdate(String updatedDomainName) throws Exception {
         LoginWhiteLabelingParams loginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
         edgeImitator.expectMessageAmount(1);
-        loginWhiteLabelingParams.setDomainName(updatedDomainName);
+        //loginWhiteLabelingParams.setDomainName(updatedDomainName);
         loginWhiteLabelingParams.setBaseUrl("https://" + updatedDomainName);
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams, LoginWhiteLabelingParams.class);
         Assert.assertTrue(edgeImitator.waitForMessages());
@@ -200,7 +200,7 @@ public class WhiteLabelingEdgeTest extends AbstractEdgeTest {
         WhiteLabeling whiteLabeling = JacksonUtil.fromString(login.getEntity(), WhiteLabeling.class, true);
         Assert.assertNotNull(whiteLabeling);
         LoginWhiteLabelingParams result = JacksonUtil.treeToValue(whiteLabeling.getSettings(), LoginWhiteLabelingParams.class);
-        Assert.assertEquals(updatedDomainName.toLowerCase(), result.getDomainName());
+        //Assert.assertEquals(updatedDomainName.toLowerCase(), result.getDomainName());
     }
 
     @Test

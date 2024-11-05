@@ -45,6 +45,7 @@ import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMScope;
@@ -132,6 +133,9 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         entityGroup.setType(EntityType.CUSTOMER);
         customerGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
 
+        Domain domain = constructDomain("localhost");
+        Domain savedDomain = doPost("/api/domain", domain, Domain.class);
+
         WebSelfRegistrationParams selfRegistrationParams = new WebSelfRegistrationParams();
         selfRegistrationParams.setTitle("Please sign up");
         CaptchaParams captcha = new CaptchaParams();
@@ -140,7 +144,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         selfRegistrationParams.setCaptcha(captcha);
         selfRegistrationParams.setShowTermsOfUse(true);
         selfRegistrationParams.setShowPrivacyPolicy(true);
-        selfRegistrationParams.setDomainName("localhost");
+        selfRegistrationParams.setDomainId(savedDomain.getId());
         selfRegistrationParams.setCustomerTitlePrefix(CUSTOMER_TITLE_PREFIX);
         selfRegistrationParams.setCustomerGroupId(customerGroup.getId());
         selfRegistrationParams.setCustomMenuId(customMenu.getId());
@@ -274,5 +278,13 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         userService.deleteUser(tenantId, user);
         var found = userService.findUserByEmail(tenantId, TEST_EMAIL);
         Assert.assertNull("Expected that created user is deleted but one found!", found);
+    }
+
+    private Domain constructDomain(String domainName) {
+        Domain domain = new Domain();
+        domain.setName(domainName);
+        domain.setOauth2Enabled(true);
+        domain.setPropagateToEdge(true);
+        return domain;
     }
 }

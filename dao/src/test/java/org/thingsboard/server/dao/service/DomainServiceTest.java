@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.domain.DomainInfo;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
@@ -109,7 +110,7 @@ public class DomainServiceTest extends AbstractServiceTest {
             Domain savedOauth2Client = domainService.saveDomain(SYSTEM_TENANT_ID, oAuth2Client);
             domains.add(savedOauth2Client);
         }
-        PageData<DomainInfo> retrieved = domainService.findDomainInfosByTenantId(TenantId.SYS_TENANT_ID, new PageLink(10, 0));
+        PageData<DomainInfo> retrieved = domainService.findDomainInfosByOwner(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), new PageLink(10, 0));
         List<DomainInfo> domainInfos = domains.stream().map(domain -> new DomainInfo(domain, Collections.emptyList())).toList();
         assertThat(retrieved.getData()).containsOnlyOnceElementsOf(domainInfos);
     }

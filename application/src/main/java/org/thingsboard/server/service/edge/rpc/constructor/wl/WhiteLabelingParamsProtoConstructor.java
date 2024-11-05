@@ -82,8 +82,8 @@ public class WhiteLabelingParamsProtoConstructor {
             builder.setPageBackgroundColor(loginWhiteLabelingParams.getPageBackgroundColor());
         }
         builder.setDarkForeground(loginWhiteLabelingParams.isDarkForeground());
-        if (loginWhiteLabelingParams.getDomainName() != null) {
-            builder.setDomainName(loginWhiteLabelingParams.getDomainName());
+        if (loginWhiteLabelingParams.getDomainId() != null) {
+           // builder.setDomainName(loginWhiteLabelingParams.getDomainName());
         }
         if (loginWhiteLabelingParams.getShowNameBottom() != null) {
             builder.setShowNameBottom(loginWhiteLabelingParams.getShowNameBottom());
