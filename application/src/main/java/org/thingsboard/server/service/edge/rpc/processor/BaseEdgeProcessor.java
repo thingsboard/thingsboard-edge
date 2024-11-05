@@ -163,7 +163,7 @@ public abstract class BaseEdgeProcessor {
             case TIMESERIES_UPDATED, ALARM_ACK, ALARM_CLEAR, ALARM_ASSIGNED, ALARM_UNASSIGNED, ADDED_COMMENT,
                  UPDATED_COMMENT -> true;
             default -> switch (type) {
-                case ALARM, ALARM_COMMENT, RULE_CHAIN, RULE_CHAIN_METADATA, USER, CUSTOMER, TENANT, TENANT_PROFILE, WIDGETS_BUNDLE, WIDGET_TYPE,
+                case ALARM, ALARM_COMMENT, RULE_CHAIN, RULE_CHAIN_METADATA, CUSTOMER, TENANT, TENANT_PROFILE, WIDGETS_BUNDLE, WIDGET_TYPE,
                      ADMIN_SETTINGS, OTA_PACKAGE, QUEUE, RELATION, NOTIFICATION_TEMPLATE, NOTIFICATION_TARGET, NOTIFICATION_RULE,
                      ROLE, INTEGRATION, CONVERTER, WHITE_LABELING, LOGIN_WHITE_LABELING, CUSTOM_TRANSLATION, CUSTOM_MENU, MAIL_TEMPLATES -> true;
                 default -> false;
@@ -177,7 +177,7 @@ public abstract class BaseEdgeProcessor {
                         "action [{}], entityId [{}], body [{}], entityGroupId [{}]",
                 tenantId, edgeId, type, action, entityId, body, entityGroupId);
 
-        EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, type, action, entityId, body);
+        EdgeEvent edgeEvent = EdgeUtils.constructEdgeEvent(tenantId, edgeId, type, action, entityId, body, entityGroupId);
         return edgeCtx.getEdgeEventService().saveAsync(edgeEvent);
     }
 
