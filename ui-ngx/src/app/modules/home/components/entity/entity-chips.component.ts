@@ -78,8 +78,8 @@ export class EntityChipsComponent implements OnChanges {
           this.entityDetailsPrefixUrl = `/customers/all/${this.entity.ownerId.id}${this.entityDetailsPrefixUrl}`;
         }
       } else if (Array.isArray(entitiesList)) {
-        if (this.subEntities.length) {
-          this.entityDetailsPrefixUrl = baseDetailsPageByEntityType.get(this.subEntities[0].id.entityType as EntityType);
+        if (entitiesList.length) {
+          this.entityDetailsPrefixUrl = baseDetailsPageByEntityType.get(entitiesList[0].id.entityType as EntityType);
         }
       } else {
         entitiesList = [];
