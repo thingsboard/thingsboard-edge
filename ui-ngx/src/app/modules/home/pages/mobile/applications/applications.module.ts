@@ -38,9 +38,6 @@ import { HomeComponentsModule } from '@home/components/home-components.module';
 import { ApplicationsRoutingModule } from '@home/pages/mobile/applications/applications-routing.module';
 import { MobileAppDialogComponent } from '@home/pages/mobile/applications/mobile-app-dialog.component';
 import { RemoveAppDialogComponent } from '@home/pages/mobile/applications/remove-app-dialog.component';
-import {
-  MobileAppConfigurationDialogComponent
-} from '@home/pages/mobile/applications/mobile-app-configuration-dialog.component';
 import { CommonMobileModule } from '@home/pages/mobile/common/common-mobile.module';
 
 @NgModule({
@@ -49,7 +46,6 @@ import { CommonMobileModule } from '@home/pages/mobile/common/common-mobile.modu
     MobileAppTableHeaderComponent,
     MobileAppDialogComponent,
     RemoveAppDialogComponent,
-    MobileAppConfigurationDialogComponent,
   ],
   imports: [
     CommonModule,

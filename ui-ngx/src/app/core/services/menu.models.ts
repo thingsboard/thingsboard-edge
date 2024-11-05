@@ -1456,8 +1456,8 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
       {
         id: MenuId.mobile_center,
         pages: [
-          {id: MenuId.mobile_apps},
           {id: MenuId.mobile_bundles},
+          {id: MenuId.mobile_apps},
           {id: MenuId.mobile_qr_code_widget}
         ]
       },
@@ -1623,8 +1623,8 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
       {
         id: MenuId.mobile_center,
         pages: [
-          {id: MenuId.mobile_apps},
           {id: MenuId.mobile_bundles},
+          {id: MenuId.mobile_apps},
           {id: MenuId.mobile_qr_code_widget}
         ]
       },
