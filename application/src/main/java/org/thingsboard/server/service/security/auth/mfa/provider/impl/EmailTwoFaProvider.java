@@ -72,7 +72,11 @@ public class EmailTwoFaProvider extends OtpBasedTwoFaProvider<EmailTwoFaProvider
 
     @Override
     protected void sendVerificationCode(SecurityUser user, String verificationCode, EmailTwoFaProviderConfig providerConfig, EmailTwoFaAccountConfig accountConfig) throws ThingsboardException {
-        mailService.sendTwoFaVerificationEmail(user.getTenantId(), accountConfig.getEmail(), verificationCode, providerConfig.getVerificationCodeLifetime());
+        try {
+            mailService.sendTwoFaVerificationEmail(user.getTenantId(), accountConfig.getEmail(), verificationCode, providerConfig.getVerificationCodeLifetime());
+        } catch (Exception e) {
+            throw new ThingsboardException("Couldn't send 2FA verification email", ThingsboardErrorCode.GENERAL);
+        }
     }
 
     @Override

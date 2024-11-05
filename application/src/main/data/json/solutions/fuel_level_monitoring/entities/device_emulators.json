@@ -13,9 +13,9 @@
           "precision": 1,
           "minStartValue": 99,
           "maxStartValue": 99,
-          "minLowValue": 5,
-          "maxLowValue": 10,
-          "minHighValue": 20,
+          "minLowValue": 21,
+          "maxLowValue": 21,
+          "minHighValue": 21,
           "maxHighValue": 100,
           "minIncrement": 100.0,
           "maxIncrement": 100.0,
@@ -36,7 +36,7 @@
           "minLowValue": 1,
           "maxLowValue": 5,
           "minHighValue": 55,
-          "maxHighValue": 85,
+          "maxHighValue": 79,
           "minIncrement": 0.5,
           "maxIncrement": 1,
           "minDecrement": 0.5,
@@ -59,8 +59,8 @@
           "precision": 1,
           "minStartValue": 8400,
           "maxStartValue": 8500,
-          "minLowValue": 0,
-          "maxLowValue": 50,
+          "minLowValue": 2500,
+          "maxLowValue": 3000,
           "minHighValue": 8200,
           "maxHighValue": 8500,
           "minIncrement": 8400,
@@ -83,16 +83,16 @@
         "valueStrategy": {
           "type": "natural",
           "precision": 1,
-          "minStartValue": 160,
-          "maxStartValue": 300,
-          "minLowValue": 160,
-          "maxLowValue": 300,
-          "minHighValue": 2500,
-          "maxHighValue": 2600,
+          "minStartValue": 250,
+          "maxStartValue": 260,
+          "minLowValue": 250,
+          "maxLowValue": 260,
+          "minHighValue": 1000,
+          "maxHighValue": 1000,
           "minIncrement": 20,
-          "maxIncrement": 50,
-          "minDecrement": 2100,
-          "maxDecrement": 2300,
+          "maxIncrement": 70,
+          "minDecrement": 20,
+          "maxDecrement": 50,
           "holidayMultiplier": 1.0,
           "workHoursMultiplier": 1.0,
           "nightHoursMultiplier": 1.0
@@ -111,8 +111,8 @@
           "precision": 1,
           "minStartValue": 90,
           "maxStartValue": 96,
-          "minLowValue": 0,
-          "maxLowValue": 3,
+          "minLowValue": 21,
+          "maxLowValue": 23,
           "minHighValue": 90,
           "maxHighValue": 96,
           "minIncrement": 88,
@@ -139,12 +139,12 @@
           "maxStartValue": 25,
           "minLowValue": 21,
           "maxLowValue": 25,
-          "minHighValue": 500,
-          "maxHighValue": 518,
+          "minHighValue": 350,
+          "maxHighValue": 368,
           "minIncrement": 2,
           "maxIncrement": 4,
-          "minDecrement": 480,
-          "maxDecrement": 490,
+          "minDecrement": 350,
+          "maxDecrement": 368,
           "holidayMultiplier": 1.0,
           "workHoursMultiplier": 1.0,
           "nightHoursMultiplier": 1.0
@@ -163,8 +163,8 @@
           "precision": 1,
           "minStartValue": 540,
           "maxStartValue": 548,
-          "minLowValue": 0,
-          "maxLowValue": 3,
+          "minLowValue": 150,
+          "maxLowValue": 153,
           "minHighValue": 540,
           "maxHighValue": 548,
           "minIncrement": 530,
@@ -183,6 +183,13 @@
     "extendz": "Tank Emulator",
     "telemetryProfiles": [
       {
+        "key": "temperature",
+        "valueStrategy": {
+          "type": "constant",
+          "value": 82.4
+        }
+      },
+      {
         "key": "fuelHeight",
         "valueStrategy": {
           "type": "natural",
@@ -191,8 +198,8 @@
           "maxStartValue": 5,
           "minLowValue": 4,
           "maxLowValue": 5,
-          "minHighValue": 96,
-          "maxHighValue": 101,
+          "minHighValue": 50,
+          "maxHighValue": 51,
           "minIncrement": 1,
           "maxIncrement": 2,
           "minDecrement": 94,
@@ -215,8 +222,8 @@
           "precision": 1,
           "minStartValue": 215,
           "maxStartValue": 220,
-          "minLowValue": 0,
-          "maxLowValue": 2,
+          "minLowValue": 120,
+          "maxLowValue": 130,
           "minHighValue": 215,
           "maxHighValue": 220,
           "minIncrement": 195,
@@ -235,14 +242,21 @@
     "extendz": "Tank Emulator",
     "telemetryProfiles": [
       {
+        "key": "battery",
+        "valueStrategy": {
+          "type": "constant",
+          "value": 11
+        }
+      },
+      {
         "key": "fuelHeight",
         "valueStrategy": {
           "type": "natural",
           "precision": 1,
-          "minStartValue": 110,
-          "maxStartValue": 120,
-          "minLowValue": 110,
-          "maxLowValue": 120,
+          "minStartValue": 1100,
+          "maxStartValue": 1200,
+          "minLowValue": 1100,
+          "maxLowValue": 1200,
           "minHighValue": 10400,
           "maxHighValue": 10550,
           "minIncrement": 40,
@@ -263,60 +277,8 @@
       {
         "key": "fuelHeight",
         "valueStrategy": {
-          "type": "natural",
-          "precision": 1,
-          "minStartValue": 5000,
-          "maxStartValue": 5090,
-          "minLowValue": 110,
-          "maxLowValue": 120,
-          "minHighValue": 5000,
-          "maxHighValue": 5090,
-          "minIncrement": 4900,
-          "maxIncrement": 4950,
-          "minDecrement": 20,
-          "maxDecrement": 50,
-          "holidayMultiplier": 1.0,
-          "workHoursMultiplier": 1.0,
-          "nightHoursMultiplier": 1.0
-        }
-      }
-    ]
-  },
-  {
-    "name": "Rectangle Tank Emulator fuel level alarm",
-    "extendz": "Rectangle Tank Emulator",
-    "telemetryProfiles": [
-      {
-        "key": "fuelHeight",
-        "valueStrategy": {
           "type": "constant",
-          "value": 150
-        }
-      }
-    ]
-  },
-  {
-    "name": "Horizontal Oval Tank Emulator battery alarm",
-    "extendz": "Horizontal Oval Tank Emulator",
-    "telemetryProfiles": [
-      {
-        "key": "battery",
-        "valueStrategy": {
-          "type": "constant",
-          "value": 5
-        }
-      }
-    ]
-  },
-  {
-    "name": "Horizontal Capsule Tank Emulator temperature alarm",
-    "extendz": "Horizontal Capsule Tank Emulator",
-    "telemetryProfiles": [
-      {
-        "key": "temperature",
-        "valueStrategy": {
-          "type": "constant",
-          "value": 82
+          "value": 450
         }
       }
     ]

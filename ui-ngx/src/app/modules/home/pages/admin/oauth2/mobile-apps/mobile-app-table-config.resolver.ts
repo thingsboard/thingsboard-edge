@@ -30,7 +30,7 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { ActivatedRouteSnapshot } from '@angular/router';
 import {
   CellActionDescriptorType,
   DateEntityTableColumn,
@@ -51,7 +51,7 @@ import { MobileAppTableHeaderComponent } from '@home/pages/admin/oauth2/mobile-a
 import { map, Observable, of, mergeMap } from 'rxjs';
 
 @Injectable()
-export class MobileAppTableConfigResolver implements Resolve<EntityTableConfig<MobileAppInfo>> {
+export class MobileAppTableConfigResolver  {
 
   private readonly config: EntityTableConfig<MobileAppInfo> = new EntityTableConfig<MobileAppInfo>();
 

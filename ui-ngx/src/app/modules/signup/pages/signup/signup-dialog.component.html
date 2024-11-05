@@ -31,9 +31,9 @@
 
 -->
 <div class="tb-dark">
-  <mat-toolbar fxLayout="row" color="primary">
+  <mat-toolbar class="flex flex-row" color="primary">
     <h2>{{ title | translate }}</h2>
-    <span fxFlex></span>
+    <span class="flex-1"></span>
     <button mat-icon-button
             (click)="cancel()"
             type="button">
@@ -48,8 +48,8 @@
       [innerHTML]="dialogText">
     </div>
   </div>
-  <div mat-dialog-actions fxLayout="row">
-    <span fxFlex></span>
+  <div mat-dialog-actions class="flex flex-row">
+    <span class="flex-1"></span>
     <button mat-button
             type="button"
             [disabled]="(isLoading$ | async)"

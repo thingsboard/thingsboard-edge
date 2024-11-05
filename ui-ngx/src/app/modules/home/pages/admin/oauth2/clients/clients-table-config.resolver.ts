@@ -30,7 +30,7 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { Resolve } from '@angular/router';
+
 import {
   DateEntityTableColumn,
   EntityTableColumn,
@@ -52,7 +52,7 @@ import { Direction } from '@shared/models/page/sort-order';
 import { PageLink } from '@shared/models/page/page-link';
 
 @Injectable()
-export class ClientsTableConfigResolver implements Resolve<EntityTableConfig<OAuth2Client, PageLink, OAuth2ClientInfo>> {
+export class ClientsTableConfigResolver  {
 
   private readonly config: EntityTableConfig<OAuth2Client, PageLink, OAuth2ClientInfo> =
     new EntityTableConfig<OAuth2Client, PageLink, OAuth2ClientInfo>();

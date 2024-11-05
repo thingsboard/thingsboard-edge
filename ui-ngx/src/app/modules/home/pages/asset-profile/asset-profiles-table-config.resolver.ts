@@ -30,7 +30,7 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { Resolve, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   checkBoxCell,
   DateEntityTableColumn, defaultEntityTablePermissions,
@@ -54,7 +54,7 @@ import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
-export class AssetProfilesTableConfigResolver implements Resolve<EntityTableConfig<AssetProfile>> {
+export class AssetProfilesTableConfigResolver  {
 
   private readonly config: EntityTableConfig<AssetProfile> = new EntityTableConfig<AssetProfile>();
 

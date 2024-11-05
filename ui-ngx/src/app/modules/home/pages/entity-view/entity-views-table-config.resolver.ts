@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
   CellActionDescriptor,
   DateEntityTableColumn,
@@ -70,7 +70,7 @@ import { AuthUser } from '@shared/models/user.model';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 
 @Injectable()
-export class EntityViewsTableConfigResolver implements Resolve<EntityTableConfig<EntityViewInfo>> {
+export class EntityViewsTableConfigResolver  {
 
   constructor(private allEntitiesTableConfigService: AllEntitiesTableConfigService<EntityViewInfo>,
               private store: Store<AppState>,

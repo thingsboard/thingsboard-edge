@@ -53,7 +53,7 @@ import {
   SchedulerTimeUnit,
   schedulerTimeUnitTranslationMap
 } from '@shared/models/scheduler-event.models';
-import * as _moment from 'moment';
+import _moment from 'moment';
 import * as momentTz from 'moment-timezone';
 import { isDefined } from '@core/utils';
 import { ErrorStateMatcher } from '@angular/material/core';

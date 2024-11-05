@@ -42,7 +42,7 @@
           "padding": "16px",
           "settings": {
             "useMarkdownTextFunction": false,
-            "markdownTextPattern": "<div class=\"tb-card-content\">\n    <div class=\"tb-card-title\">\n        <div class=\"tb-home-widget-title\">{{ 'widgets.transport-messages.title' | translate }}\n            <mat-icon\n                matTooltip=\"{{ 'widgets.transport-messages.info' | translate }}\"\n                matTooltipPosition=\"above\"\n                class=\"tb-home-widget-info-icon\">info</mat-icon>\n        </div>\n    </div>\n    <tb-dashboard-state fxFlex stateId=\"transport_messages\" [ctx]=\"ctx\"></tb-dashboard-state>\n</div>",
+            "markdownTextPattern": "<div class=\"tb-card-content\">\n    <div class=\"tb-card-title\">\n        <div class=\"tb-home-widget-title\">{{ 'widgets.transport-messages.title' | translate }}\n            <mat-icon\n                matTooltip=\"{{ 'widgets.transport-messages.info' | translate }}\"\n                matTooltipPosition=\"above\"\n                class=\"tb-home-widget-info-icon\">info</mat-icon>\n        </div>\n    </div>\n    <tb-dashboard-state class=\"flex-1\" stateId=\"transport_messages\" [ctx]=\"ctx\"></tb-dashboard-state>\n</div>",
             "applyDefaultMarkdownStyle": false,
             "markdownCss": ".tb-card-content {\n    width: 100%;\n    height: 100%;\n    display: flex;\n    flex-direction: column;\n    justify-content: space-between;\n}\n"
           },

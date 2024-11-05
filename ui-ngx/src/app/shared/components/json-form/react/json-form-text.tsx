@@ -30,7 +30,7 @@
  */
 import * as React from 'react';
 import ThingsboardBaseComponent from './json-form-base-component';
-import TextField from '@material-ui/core/TextField';
+import TextField from '@mui/material/TextField';
 import { JsonFormFieldProps, JsonFormFieldState } from '@shared/components/json-form/react/json-form.models';
 
 interface ThingsboardTextState extends JsonFormFieldState {
@@ -39,7 +39,7 @@ interface ThingsboardTextState extends JsonFormFieldState {
 
 class ThingsboardText extends React.Component<JsonFormFieldProps, ThingsboardTextState> {
 
-  constructor(props) {
+  constructor(props: JsonFormFieldProps) {
     super(props);
     this.onBlur = this.onBlur.bind(this);
     this.onFocus = this.onFocus.bind(this);
@@ -82,6 +82,7 @@ class ThingsboardText extends React.Component<JsonFormFieldProps, ThingsboardTex
     return (
       <div>
         <TextField
+          variant={'standard'}
           className={fieldClass}
           type={this.props.form.type}
           label={this.props.form.title}
@@ -94,7 +95,7 @@ class ThingsboardText extends React.Component<JsonFormFieldProps, ThingsboardTex
           defaultValue={this.props.value}
           disabled={this.props.form.readonly}
           rows={rows}
-          rowsMax={rowsMax}
+          maxRows={rowsMax}
           onFocus={this.onFocus}
           onBlur={this.onBlur}
           style={this.props.form.style || {width: '100%', minHeight: minHeight + 'px'}}/>

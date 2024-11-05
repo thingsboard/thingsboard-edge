@@ -103,7 +103,7 @@ import { ActionPreferencesPutUserSettings } from '@core/auth/auth.actions';
 import { ExportableEntity } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { Borders, Column, Workbook } from 'exceljs';
-import * as moment_ from 'moment';
+import moment_ from 'moment';
 import { Customer } from '@shared/models/customer.model';
 
 export type editMissingAliasesFunction = (widgets: Array<Widget>, isSingleWidget: boolean,

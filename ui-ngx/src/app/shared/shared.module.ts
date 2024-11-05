@@ -73,13 +73,12 @@ import { MatListModule } from '@angular/material/list';
 import { DatetimeAdapter, MatDatetimepickerModule, MatNativeDatetimeModule } from '@mat-datetimepicker/core';
 import { NgxDaterangepickerMd } from 'ngx-daterangepicker-material';
 import { GridsterModule } from 'angular-gridster2';
-import { FlexLayoutModule } from '@angular/flex-layout';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { ShareModule as ShareButtonsModule } from 'ngx-sharebuttons';
+import { ShareButtonDirective } from 'ngx-sharebuttons';
 import { HotkeyModule } from 'angular2-hotkeys';
 import { ColorPickerModule } from '@iplab/ngx-color-picker';
-import { NgxHmCarouselModule } from 'ngx-hm-carousel';
+import { NgxHmCarouselComponent, NgxHmCarouselDynamicDirective, NgxHmCarouselItemDirective } from 'ngx-hm-carousel';
 import { EditorModule, TINYMCE_SCRIPT_SRC } from '@tinymce/tinymce-angular';
 import { UserMenuComponent } from '@shared/components/user-menu.component';
 import { TruncateWithTooltipDirective } from '@shared/directives/truncate-with-tooltip.directive';
@@ -98,7 +97,7 @@ import { DatetimePeriodComponent } from '@shared/components/time/datetime-period
 import { EnumToArrayPipe } from '@shared/pipe/enum-to-array.pipe';
 import { ClipboardModule } from 'ngx-clipboard';
 import { ValueInputComponent } from '@shared/components/value-input.component';
-import { MarkdownModule, MarkedOptions } from 'ngx-markdown';
+import { MarkdownModule, MARKED_OPTIONS } from 'ngx-markdown';
 import { MarkdownEditorComponent } from '@shared/components/markdown-editor.component';
 import { FullscreenDirective } from '@shared/components/fullscreen.directive';
 import { HighlightPipe } from '@shared/pipe/highlight.pipe';
@@ -211,17 +210,6 @@ import { NotificationComponent } from '@shared/components/notification/notificat
 import { TemplateAutocompleteComponent } from '@shared/components/notification/template-autocomplete.component';
 import { SlackConversationAutocompleteComponent } from '@shared/components/slack-conversation-autocomplete.component';
 import { DateAgoPipe } from '@shared/pipe/date-ago.pipe';
-import {
-  GtMdLgLayoutAlignDirective,
-  GtMdLgLayoutDirective,
-  GtMdLgLayoutGapDirective,
-  GtMdLgShowHideDirective,
-  MdLgLayoutAlignDirective,
-  MdLgLayoutDirective,
-  MdLgLayoutGapDirective,
-  MdLgShowHideDirective,
-  TbBreakPointsProvider
-} from '@shared/layout/layout.directives';
 import { ColorPickerComponent } from '@shared/components/color-picker/color-picker.component';
 import { ThemeColorSelectComponent } from '@shared/components/theme-color-select.component';
 import { ResourceAutocompleteComponent } from '@shared/components/resource/resource-autocomplete.component';
@@ -324,7 +312,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
         disableTooltipInteractivity: true
       }
     },
-    TbBreakPointsProvider,
     CountryData
   ],
   declarations: [
@@ -458,14 +445,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     NotificationComponent,
     TemplateAutocompleteComponent,
     SlackConversationAutocompleteComponent,
-    MdLgLayoutDirective,
-    MdLgLayoutAlignDirective,
-    MdLgLayoutGapDirective,
-    MdLgShowHideDirective,
-    GtMdLgLayoutDirective,
-    GtMdLgLayoutAlignDirective,
-    GtMdLgLayoutGapDirective,
-    GtMdLgShowHideDirective,
     ThemeColorSelectComponent,
     ColorPickerComponent,
     ColorPickerPanelComponent,
@@ -540,15 +519,16 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     DragDropModule,
     GridsterModule,
     ClipboardModule,
-    FlexLayoutModule.withConfig({addFlexToParent: false}),
     FormsModule,
     ReactiveFormsModule,
     OverlayModule,
-    ShareButtonsModule,
+    ShareButtonDirective,
     HotkeyModule,
     ColorPickerModule,
-    NgxHmCarouselModule,
     FullCalendarModule,
+    NgxHmCarouselComponent,
+    NgxHmCarouselDynamicDirective,
+    NgxHmCarouselItemDirective,
     DndModule,
     NgxFlowModule,
     NgxFlowchartModule,
@@ -556,7 +536,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     MarkdownModule.forRoot({
       sanitize: SecurityContext.NONE,
       markedOptions: {
-        provide: MarkedOptions,
+        provide: MARKED_OPTIONS,
         useFactory: MarkedOptionsFactory,
         deps: [MarkedOptionsService]
       }
@@ -667,14 +647,14 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     DragDropModule,
     GridsterModule,
     ClipboardModule,
-    FlexLayoutModule,
     FormsModule,
     ReactiveFormsModule,
     OverlayModule,
-    ShareButtonsModule,
     HotkeyModule,
     ColorPickerModule,
-    NgxHmCarouselModule,
+    NgxHmCarouselComponent,
+    NgxHmCarouselDynamicDirective,
+    NgxHmCarouselItemDirective,
     EditorModule,
     FullCalendarModule,
     DndModule,
@@ -742,14 +722,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     NotificationComponent,
     TemplateAutocompleteComponent,
     SlackConversationAutocompleteComponent,
-    MdLgLayoutDirective,
-    MdLgLayoutAlignDirective,
-    MdLgLayoutGapDirective,
-    MdLgShowHideDirective,
-    GtMdLgLayoutDirective,
-    GtMdLgLayoutAlignDirective,
-    GtMdLgLayoutGapDirective,
-    GtMdLgShowHideDirective,
     ThemeColorSelectComponent,
     ColorPickerComponent,
     ColorPickerPanelComponent,

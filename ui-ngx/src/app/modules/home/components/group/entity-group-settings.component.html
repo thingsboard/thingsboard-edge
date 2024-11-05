@@ -30,25 +30,25 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<form [formGroup]="settingsFormGroup" class="mat-content mat-padding" fxLayout="column">
-  <fieldset fxLayout="column">
+<form [formGroup]="settingsFormGroup" class="mat-content mat-padding flex flex-col">
+  <fieldset class="flex flex-col">
     <mat-form-field class="mat-block">
       <mat-label translate>entity-group.group-table-title</mat-label>
       <input matInput formControlName="groupTableTitle">
     </mat-form-field>
-    <mat-checkbox fxFlex formControlName="enableSearch">
+    <mat-checkbox class="flex-1" formControlName="enableSearch">
       {{ 'entity-group.enable-search' | translate }}
     </mat-checkbox>
-    <mat-checkbox fxFlex formControlName="enableAdd">
+    <mat-checkbox class="flex-1" formControlName="enableAdd">
       {{ 'entity-group.enable-add' | translate }}
     </mat-checkbox>
-    <mat-checkbox fxFlex formControlName="enableDelete">
+    <mat-checkbox class="flex-1" formControlName="enableDelete">
       {{ 'entity-group.enable-delete' | translate }}
     </mat-checkbox>
-    <mat-checkbox fxFlex formControlName="enableSelection">
+    <mat-checkbox class="flex-1" formControlName="enableSelection">
       {{ 'entity-group.enable-selection' | translate }}
     </mat-checkbox>
-    <mat-checkbox fxFlex formControlName="enableGroupTransfer">
+    <mat-checkbox class="flex-1" formControlName="enableGroupTransfer">
       {{ 'entity-group.enable-group-transfer' | translate }}
     </mat-checkbox>
     <mat-form-field class="mat-block">
@@ -59,61 +59,61 @@
         </mat-option>
       </mat-select>
     </mat-form-field>
-    <mat-checkbox fxFlex formControlName="displayPagination">
+    <mat-checkbox class="flex-1" formControlName="displayPagination">
       {{ 'entity-group.display-pagination' | translate }}
     </mat-checkbox>
-    <mat-form-field [fxShow]="settingsFormGroup.get('displayPagination').value" class="mat-block">
+    <mat-form-field [class.!hidden]="!settingsFormGroup.get('displayPagination').value" class="mat-block">
       <mat-label translate>entity-group.default-page-size</mat-label>
       <input matInput type="number" min="5" step="1" formControlName="defaultPageSize">
     </mat-form-field>
     <mat-checkbox *ngIf="entityType === entityTypes.DEVICE"
-                  fxFlex formControlName="enableCredentialsManagement">
+                  class="flex-1" formControlName="enableCredentialsManagement">
       {{ 'entity-group.enable-credentials-management' | translate }}
     </mat-checkbox>
     <mat-checkbox *ngIf="entityType === entityTypes.USER"
-                  fxFlex formControlName="enableLoginAsUser">
+                  class="flex-1" formControlName="enableLoginAsUser">
       {{ 'entity-group.enable-login-as-user' | translate }}
     </mat-checkbox>
-    <section *ngIf="entityType === entityTypes.CUSTOMER" fxLayout="column">
-      <mat-checkbox fxFlex formControlName="enableUsersManagement">
+    <section *ngIf="entityType === entityTypes.CUSTOMER" class="flex flex-col">
+      <mat-checkbox class="flex-1" formControlName="enableUsersManagement">
         {{ 'entity-group.enable-users-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableCustomersManagement">
+      <mat-checkbox class="flex-1" formControlName="enableCustomersManagement">
         {{ 'entity-group.enable-customers-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableAssetsManagement">
+      <mat-checkbox class="flex-1" formControlName="enableAssetsManagement">
         {{ 'entity-group.enable-assets-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableDevicesManagement">
+      <mat-checkbox class="flex-1" formControlName="enableDevicesManagement">
         {{ 'entity-group.enable-devices-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableEntityViewsManagement">
+      <mat-checkbox class="flex-1" formControlName="enableEntityViewsManagement">
         {{ 'entity-group.enable-entity-views-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableEdgesManagement">
+      <mat-checkbox class="flex-1" formControlName="enableEdgesManagement">
         {{ 'entity-group.enable-edges-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableDashboardsManagement">
+      <mat-checkbox class="flex-1" formControlName="enableDashboardsManagement">
         {{ 'entity-group.enable-dashboards-management' | translate }}
       </mat-checkbox>
     </section>
-    <section *ngIf="entityType === entityTypes.EDGE" fxLayout="column">
-      <mat-checkbox fxFlex formControlName="enableUsersManagement">
+    <section *ngIf="entityType === entityTypes.EDGE" class="flex flex-col">
+      <mat-checkbox class="flex-1" formControlName="enableUsersManagement">
         {{ 'entity-group.enable-users-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableAssetsManagement">
+      <mat-checkbox class="flex-1" formControlName="enableAssetsManagement">
         {{ 'entity-group.enable-assets-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableDevicesManagement">
+      <mat-checkbox class="flex-1" formControlName="enableDevicesManagement">
         {{ 'entity-group.enable-devices-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableEntityViewsManagement">
+      <mat-checkbox class="flex-1" formControlName="enableEntityViewsManagement">
         {{ 'entity-group.enable-entity-views-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableDashboardsManagement">
+      <mat-checkbox class="flex-1" formControlName="enableDashboardsManagement">
         {{ 'entity-group.enable-dashboards-management' | translate }}
       </mat-checkbox>
-      <mat-checkbox fxFlex formControlName="enableSchedulerEventsManagement">
+      <mat-checkbox class="flex-1" formControlName="enableSchedulerEventsManagement">
         {{ 'entity-group.enable-scheduler-events-management' | translate }}
       </mat-checkbox>
     </section>

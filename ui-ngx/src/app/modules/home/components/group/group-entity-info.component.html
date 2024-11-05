@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div fxFlex fxLayout="column">
+<div class="flex flex-1 flex-col">
   <mat-form-field *ngIf="displayOwner">
     <mat-label>{{ ownerLabel | translate }}</mat-label>
     <input matInput disabled [ngModel]="groupEntity?.ownerName">
@@ -44,6 +44,6 @@
         </a>
       </mat-chip-row>
     </mat-chip-grid>
-    <input fxHide [matChipInputFor]="chipGrid"/>
+    <input class="!hidden" [matChipInputFor]="chipGrid"/>
   </mat-form-field>
 </div>

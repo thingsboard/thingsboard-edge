@@ -32,7 +32,7 @@
 -->
 <mat-toolbar color="primary">
   <h2 translate>custom-translation.add-new-language</h2>
-  <span fxFlex></span>
+  <span class="flex-1"></span>
   <div [tb-help]="'customTranslation'"></div>
   <button mat-icon-button
           mat-dialog-close
@@ -47,10 +47,9 @@
     <div class="tb-form-panel stroked tb-slide-toggle">
       <mat-expansion-panel class="tb-settings" hideToggle disabled
                            [expanded]="languageForm.get('upload').value">
-        <mat-expansion-panel-header fxLayout="row wrap">
+        <mat-expansion-panel-header class="flex flex-row flex-wrap">
           <mat-panel-title>
-            <mat-slide-toggle class="mat-slide" formControlName="upload" (click)="$event.stopPropagation()"
-                              fxLayoutAlign="center">
+            <mat-slide-toggle class="mat-slide flex items-stretch justify-center" formControlName="upload" (click)="$event.stopPropagation()">
               {{ 'custom-translation.upload-translation-file' | translate }}
             </mat-slide-toggle>
           </mat-panel-title>

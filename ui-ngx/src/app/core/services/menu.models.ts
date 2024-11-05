@@ -136,6 +136,7 @@ export enum MenuId {
   devices = 'devices',
   assets = 'assets',
   entity_views = 'entity_views',
+  gateways = 'gateways',
   profiles = 'profiles',
   device_profiles = 'device_profiles',
   asset_profiles = 'asset_profiles',
@@ -591,6 +592,16 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       type: 'link',
       path: '/entities/entityViews',
       icon: 'view_quilt'
+    }
+  ],
+  [
+    MenuId.gateways,
+    {
+      id: MenuId.gateways,
+      name: 'gateway.gateways',
+      type: 'link',
+      path: '/entities/gateways',
+      icon: 'lan'
     }
   ],
   [
@@ -1497,7 +1508,8 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
               {id: MenuId.entity_view_groups},
               {id: MenuId.entity_view_shared}
             ]
-          }
+          },
+          {id: MenuId.gateways}
         ]
       },
       {

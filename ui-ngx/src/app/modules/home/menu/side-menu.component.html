@@ -30,7 +30,7 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<ul fxFlex fxLayout="column" fxLayoutAlign="start stretch" class="tb-side-menu">
+<ul class="tb-side-menu flex flex-col items-stretch justify-start">
   <li *ngFor="let section of menuSections$ | async; trackBy: trackByMenuSection" [ngSwitch]="section.type === 'link'">
     <tb-menu-link *ngSwitchCase="true" [section]="section"></tb-menu-link>
     <tb-menu-toggle *ngSwitchCase="false" [section]="section"></tb-menu-toggle>

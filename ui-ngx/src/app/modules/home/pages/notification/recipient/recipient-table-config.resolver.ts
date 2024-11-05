@@ -47,14 +47,14 @@ import {
 import { MatDialog } from '@angular/material/dialog';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { RecipientTableHeaderComponent } from '@home/pages/notification/recipient/recipient-table-header.component';
-import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { ActivatedRouteSnapshot } from '@angular/router';
 import { Injectable } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
-export class RecipientTableConfigResolver implements Resolve<EntityTableConfig<NotificationTarget>> {
+export class RecipientTableConfigResolver  {
 
   private readonly config: EntityTableConfig<NotificationTarget> = new EntityTableConfig<NotificationTarget>();
 

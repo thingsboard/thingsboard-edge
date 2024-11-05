@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRouteSnapshot, Resolve, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import {
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -50,7 +50,7 @@ import { RuleChainsTableConfig } from '@home/pages/rulechain/rulechains-table-co
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 
 @Injectable()
-export class RuleChainsTableConfigResolver implements Resolve<EntityTableConfig<RuleChain>> {
+export class RuleChainsTableConfigResolver  {
 
   constructor(private ruleChainService: RuleChainService,
               private dialogService: DialogService,

@@ -34,7 +34,6 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ComponentFactoryResolver,
   ElementRef,
   EventEmitter,
   Input, NgZone,
@@ -158,7 +157,6 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
               private domSanitizer: DomSanitizer,
               private cd: ChangeDetectorRef,
               private router: Router,
-              private componentFactoryResolver: ComponentFactoryResolver,
               private elementRef: ElementRef,
               private fb: FormBuilder,
               private zone: NgZone,
@@ -217,10 +215,9 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     this.entitiesTableConfig = entitiesTableConfig;
     this.pageMode = this.entitiesTableConfig.pageMode;
     if (this.entitiesTableConfig.headerComponent) {
-      const componentFactory = this.componentFactoryResolver.resolveComponentFactory(this.entitiesTableConfig.headerComponent);
       const viewContainerRef = this.entityTableHeaderAnchor.viewContainerRef;
       viewContainerRef.clear();
-      const componentRef = viewContainerRef.createComponent(componentFactory);
+      const componentRef = viewContainerRef.createComponent(this.entitiesTableConfig.headerComponent);
       const headerComponent = componentRef.instance;
       headerComponent.entitiesTableConfig = this.entitiesTableConfig;
     }

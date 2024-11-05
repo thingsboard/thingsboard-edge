@@ -235,7 +235,7 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         //send test mail
         MvcResult mvcResult = doPost("/api/admin/settings/testMail", adminSettings).andExpect(status().is5xxServerError())
                 .andReturn();
-        assertThat(mvcResult.getResponse().getContentAsString()).contains("Unable to send mail: Instantiating freemarker.template.utility.Execute is not allowed in the template for security reasons");
+        assertThat(mvcResult.getResponse().getContentAsString()).contains("Failed to process mail template: Instantiating freemarker.template.utility.Execute is not allowed in the template for security reasons");
 
         //update templates
         badTemplate = JacksonUtil.toJsonNode("{\"subject\":\"Test message from ThingsBoard tenant\",\"body\":\"<#assign uri=object?api.class.getResource(\\\"/\\\").toURI()>\"}");
@@ -245,7 +245,7 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         //send test mail
         mvcResult = doPost("/api/admin/settings/testMail", adminSettings).andExpect(status().is5xxServerError())
                 .andReturn();
-        assertThat(mvcResult.getResponse().getContentAsString()).contains("Unable to send mail: Can't use ?api, because the \\\"api_builtin_enabled\\\" configuration setting is false.");
+        assertThat(mvcResult.getResponse().getContentAsString()).contains("Failed to process mail template: Can't use ?api, because the \\\"api_builtin_enabled\\\" configuration setting is false.");
     }
 
     @Test

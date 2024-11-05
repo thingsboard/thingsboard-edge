@@ -31,9 +31,9 @@
 
 -->
 <form [formGroup]="groupPermissionFormGroup" (ngSubmit)="save()" style="min-width: 600px;">
-  <mat-toolbar fxLayout="row" color="primary">
+  <mat-toolbar class="flex flex-row" color="primary">
     <h2 translate>{{ (isAdd ? 'group-permission.add-group-permission' : 'group-permission.edit-group-permission' ) }}</h2>
-    <span fxFlex></span>
+    <span class="flex-1"></span>
     <button mat-icon-button
             (click)="cancel()"
             type="button">
@@ -45,10 +45,10 @@
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
   <div mat-dialog-content>
     <fieldset [disabled]="isLoading$ | async">
-      <section fxLayout="column">
+      <section class="flex flex-col">
         <label translate class="tb-title no-padding">role.role</label>
-        <section fxLayout="row" formGroupName="role" fxLayoutGap="8px">
-          <mat-form-field [fxShow]="isUserGroup" class="mat-block" style="width: 200px;">
+        <section class="flex flex-row gap-2" formGroupName="role">
+          <mat-form-field [class.!hidden]="!isUserGroup" class="mat-block" style="width: 200px;">
             <mat-label translate>role.role-type</mat-label>
             <mat-select matInput required formControlName="type">
               <mat-option *ngFor="let type of roleTypes" [value]="type">
@@ -60,8 +60,8 @@
             </mat-error>
           </mat-form-field>
           <tb-entity-autocomplete
-            fxFlex
-            [fxShow]="groupPermissionFormGroup.get('role.type').value"
+            class="flex-1"
+            [class.!hidden]="!groupPermissionFormGroup.get('role.type').value"
             required
             [entitySubtype]="groupPermissionFormGroup.get('role.type').value"
             [entityType]="entityType.ROLE"
@@ -70,11 +70,11 @@
           </tb-entity-autocomplete>
         </section>
       </section>
-      <section fxLayout="column" *ngIf="isUserGroup && groupPermissionFormGroup.get('role.type').value === roleType.GROUP">
+      <section class="flex flex-col" *ngIf="isUserGroup && groupPermissionFormGroup.get('role.type').value === roleType.GROUP">
         <label translate class="tb-title no-padding">group-permission.entity-group</label>
-        <section fxLayout="row" fxLayoutGap="8px">
+        <section class="flex flex-row gap-2">
           <tb-owner-autocomplete
-              [fxShow]="data.groupPermissionsMode === 'group'"
+              [class.!hidden]="data.groupPermissionsMode !== 'group'"
               formControlName="entityGroupOwnerId"
               required
               placeholderText="group-permission.group-owner"
@@ -82,8 +82,8 @@
               requiredText="group-permission.target-owner-required">
           </tb-owner-autocomplete>
           <tb-entity-group-select
-            fxFlex
-            [fxShow]="groupPermissionFormGroup.get('entityGroupOwnerId').value"
+            class="flex-1"
+            [class.!hidden]="!groupPermissionFormGroup.get('entityGroupOwnerId').value"
             [ownerId]="groupPermissionFormGroup.get('entityGroupOwnerId').value"
             formControlName="entityGroupId"
             [excludeGroupTypes]="[entityType.USER]"
@@ -94,9 +94,9 @@
           </tb-entity-group-select>
         </section>
       </section>
-      <section fxLayout="column" *ngIf="!isUserGroup">
+      <section class="flex flex-col" *ngIf="!isUserGroup">
         <label translate class="tb-title no-padding">group-permission.user-group</label>
-        <section fxLayout="row" fxLayoutGap="8px">
+        <section class="flex flex-row gap-2">
           <tb-owner-autocomplete
             formControlName="userGroupOwnerId"
             required
@@ -105,8 +105,8 @@
             requiredText="group-permission.target-user-group-owner-required">
           </tb-owner-autocomplete>
           <tb-entity-group-select
-            fxFlex
-            [fxShow]="groupPermissionFormGroup.get('userGroupOwnerId').value"
+            class="flex-1"
+            [class.!hidden]="!groupPermissionFormGroup.get('userGroupOwnerId').value"
             [ownerId]="groupPermissionFormGroup.get('userGroupOwnerId').value"
             formControlName="userGroupId"
             [allowedGroupTypes]="[entityType.USER]"
@@ -119,8 +119,8 @@
       </section>
     </fieldset>
   </div>
-  <div mat-dialog-actions fxLayout="row">
-    <span fxFlex></span>
+  <div mat-dialog-actions class="flex flex-row">
+    <span class="flex-1"></span>
     <button mat-button color="primary"
             type="button"
             [disabled]="(isLoading$ | async)"

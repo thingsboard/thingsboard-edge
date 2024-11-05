@@ -148,7 +148,7 @@ export class DocLinksWidgetComponent extends PageComponent implements OnInit, On
   }
 
   ngOnInit() {
-    this.docsLink = this.wl.getHelpLinkBaseUrl() + '/docs/pe/';
+    this.docsLink = this.wl.getDocsUrl();
     this.settings = this.ctx.settings;
     this.columns = this.settings.columns || 3;
     const isMdLg = this.breakpointObserver.isMatched(MediaBreakpoints['md-lg']);

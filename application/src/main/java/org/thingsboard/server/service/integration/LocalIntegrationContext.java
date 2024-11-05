@@ -49,6 +49,7 @@ import org.thingsboard.server.common.data.event.Event;
 import org.thingsboard.server.common.data.event.IntegrationDebugEvent;
 import org.thingsboard.server.common.data.event.RawDataEvent;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.plugin.ComponentLifecycleEvent;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.gen.integration.AssetUplinkDataProto;
 import org.thingsboard.server.gen.integration.DeviceUplinkDataProto;
@@ -107,6 +108,11 @@ public class LocalIntegrationContext implements IntegrationContext {
     @Override
     public void saveEvent(IntegrationDebugEvent event, IntegrationCallback<Void> callback) {
         doSaveEvent(event, callback);
+    }
+
+    @Override
+    public void saveLifecycleEvent(ComponentLifecycleEvent lcEvent, Exception e) {
+        ctx.getEventStorageService().persistLifecycleEvent(configuration.getTenantId(), configuration.getId(), lcEvent, e);
     }
 
     @Override

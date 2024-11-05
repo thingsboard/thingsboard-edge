@@ -292,7 +292,15 @@ public class AdminController extends BaseController {
                 }
             }
             String email = getCurrentUser().getEmail();
-            mailService.sendTestMail(getTenantId(), adminSettings.getJsonValue(), email);
+            try {
+                mailService.sendTestMail(getTenantId(), adminSettings.getJsonValue(), email);
+            } catch (ThingsboardException e) {
+                String error = e.getMessage();
+                if (e.getCause() != null) {
+                    error += ": " + e.getCause().getMessage(); // showing actual underlying error for testing purposes
+                }
+                throw new ThingsboardException(error, e.getErrorCode());
+            }
         }
     }
 
