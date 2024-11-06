@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.grouppermission;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.RoleId;
@@ -74,7 +75,7 @@ public interface GroupPermissionService extends EntityDaoService {
 
     ListenableFuture<GroupPermission> findGroupPermissionByIdAsync(TenantId tenantId, GroupPermissionId groupPermissionId);
 
-    void deleteGroupPermission(TenantId tenantId, GroupPermissionId groupPermissionId);
+    EntityGroup deleteGroupPermission(TenantId tenantId, GroupPermissionId groupPermissionId);
 
     void deleteGroupPermissionsByTenantId(TenantId tenantId);
 
