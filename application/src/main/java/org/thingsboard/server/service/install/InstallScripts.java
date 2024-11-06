@@ -71,7 +71,7 @@ import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.exception.DataValidationException;
-import org.thingsboard.server.service.install.update.ImagesUpdater;
+import org.thingsboard.server.service.install.update.ResourcesUpdater;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -159,7 +159,7 @@ public class InstallScripts {
     private ResourceService resourceService;
 
     @Autowired
-    private ImagesUpdater imagesUpdater;
+    private ResourcesUpdater resourcesUpdater;
     @Getter @Setter
     private boolean updateImages = false;
 
@@ -289,10 +289,8 @@ public class InstallScripts {
                 dirStream.forEach(
                         path -> {
                             try {
-                                String widgetTypeJson = Files.readString(path);
-                                widgetTypeJson = resourceService.checkSystemResourcesUsage(widgetTypeJson, ResourceType.JS_MODULE);
-
-                                WidgetTypeDetails widgetTypeDetails = JacksonUtil.fromString(widgetTypeJson, WidgetTypeDetails.class);
+                                JsonNode widgetTypeJson = JacksonUtil.toJsonNode(path.toFile());
+                                WidgetTypeDetails widgetTypeDetails = JacksonUtil.treeToValue(widgetTypeJson, WidgetTypeDetails.class);
                                 widgetTypeService.saveWidgetType(widgetTypeDetails);
                             } catch (Exception e) {
                                 log.error("Unable to load widget type from json: [{}]", path.toString());
@@ -437,16 +435,16 @@ public class InstallScripts {
     }
 
     public void updateImages() {
-        imagesUpdater.updateWidgetsBundlesImages();
-        imagesUpdater.updateWidgetTypesImages();
-        imagesUpdater.updateWhiteLabelingImages();
-        imagesUpdater.updateDashboardsImages();
-        imagesUpdater.updateDeviceProfilesImages();
-        imagesUpdater.updateAssetProfilesImages();
+        resourcesUpdater.updateWidgetsBundlesImages();
+        resourcesUpdater.updateWidgetTypesImages();
+        resourcesUpdater.updateWhiteLabelingImages();
+        resourcesUpdater.updateDashboardsImages();
+        resourcesUpdater.updateDeviceProfilesImages();
+        resourcesUpdater.updateAssetProfilesImages();
     }
 
-    public void loadSystemImages() {
-        log.info("Loading system images...");
+    public void loadSystemImagesAndResources() {
+        log.info("Loading system images and resources...");
         Stream<Path> dashboardsFiles = Stream.concat(Stream.concat(listDir(Paths.get(getDataDir(), JSON_DIR, DEMO_DIR, DASHBOARDS_DIR)),
                         listDir(Paths.get(getDataDir(), JSON_DIR, TENANT_DIR, DASHBOARDS_DIR))),
                 listDir(Paths.get(getDataDir(), JSON_DIR, SOLUTIONS_DIR))
@@ -456,12 +454,15 @@ public class InstallScripts {
             dashboardsFiles.forEach(file -> {
                 try {
                     Dashboard dashboard = JacksonUtil.OBJECT_MAPPER.readValue(file.toFile(), Dashboard.class);
-                    imagesUpdater.createSystemImages(dashboard);
+                    resourcesUpdater.createSystemImagesAndResources(dashboard);
                 } catch (Exception e) {
                     log.error("Failed to create system images for default dashboard {}", file.getFileName(), e);
                 }
             });
         }
+
+        Path resourcesDir = Path.of(getDataDir(), RESOURCES_DIR);
+        loadSystemResources(resourcesDir.resolve("dashboards"), ResourceType.DASHBOARD);
     }
 
     public void loadDashboards(TenantId tenantId, CustomerId customerId) {
@@ -627,10 +628,13 @@ public class InstallScripts {
         }
     }
 
-    public void loadSystemResources() {
-        Path resourcesDir = Path.of(getDataDir(), RESOURCES_DIR);
-        loadSystemResources(resourcesDir.resolve("js_modules"), ResourceType.JS_MODULE);
-        loadSystemResources(resourcesDir.resolve("dashboards"), ResourceType.DASHBOARD);
+    public void updateResourcesUsage() {
+        resourcesUpdater.updateDashboardsResources();
+        resourcesUpdater.updateWidgetsResources();
+
+        /* TODO TMP remove */
+//        loadSystemResources(Path.of("/home/viacheslav/Desktop/thingsboard-ce/application/src/main/data/resources/js_modules"), ResourceType.JS_MODULE);
+//        resourcesUpdater.updateFiles();
     }
 
     private void loadSystemResources(Path dir, ResourceType resourceType) {

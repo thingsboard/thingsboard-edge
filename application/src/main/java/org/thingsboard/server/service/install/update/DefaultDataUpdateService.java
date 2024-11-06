@@ -590,6 +590,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, tenantAdmins.getId(), entity.getId());
         }
+
     }
 
     private class CustomerUsersTenantGroupAllRemover extends PaginatedUpdater<TenantId, User> {
@@ -629,6 +630,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 entityGroupService.removeEntityFromEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
             }
         }
+
     }
 
     private class CustomerUsersGroupAllUpdater extends GroupAllPaginatedUpdater<CustomerId, User> {
@@ -657,6 +659,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, customerUsers.getId(), entity.getId());
         }
+
     }
 
     private class CustomersGroupAllUpdater extends GroupAllPaginatedUpdater<TenantId, Customer> {
@@ -709,6 +712,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             }
         }
+
     }
 
 
@@ -780,6 +784,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             }
         }
+
     }
 
     private PaginatedUpdater<String, Tenant> tenantIntegrationUpdater = new PaginatedUpdater<String, Tenant>() {

@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -82,6 +83,10 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
     @Setter
     private Long version;
 
+    @Getter
+    @Setter
+    private List<ResourceExportData> resources;
+
     public Dashboard() {
         super();
     }
@@ -106,6 +111,7 @@ public class Dashboard extends BaseData<DashboardId> implements GroupEntity<Dash
         this.configuration = dashboard.getConfiguration();
         this.externalId = dashboard.getExternalId();
         this.version = dashboard.getVersion();
+        this.resources = dashboard.getResources() != null ? new ArrayList<>(dashboard.getResources()) : null;
     }
 
     @Schema(description = "JSON object with the dashboard Id. " +

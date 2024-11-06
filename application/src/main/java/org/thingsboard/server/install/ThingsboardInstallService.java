@@ -160,6 +160,7 @@ public class ThingsboardInstallService {
                         case "3.8.1":
                             log.info("Upgrading ThingsBoard from version 3.8.1 to 3.9.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.8.1");
+                            installScripts.updateResourcesUsage();
                             break;
                         case "CE":
                             log.info("Upgrading ThingsBoard from version CE to PE ...");
@@ -176,10 +177,9 @@ public class ThingsboardInstallService {
                     dataUpdateService.updateData("ce");
                     log.info("Updating system data...");
                     dataUpdateService.upgradeRuleNodes();
-                    installScripts.loadSystemResources();
                     systemDataLoaderService.loadSystemWidgets();
                     installScripts.loadSystemLwm2mResources();
-                    installScripts.loadSystemImages();
+                    installScripts.loadSystemImagesAndResources();
                     if (installScripts.isUpdateImages()) {
                         installScripts.updateImages();
                     }
@@ -219,7 +219,6 @@ public class ThingsboardInstallService {
                 systemDataLoaderService.createDefaultTenantProfiles();
                 systemDataLoaderService.createAdminSettings();
                 systemDataLoaderService.createRandomJwtSettings();
-                installScripts.loadSystemResources();
                 systemDataLoaderService.loadSystemWidgets();
                 systemDataLoaderService.createOAuth2Templates();
                 systemDataLoaderService.createQueues();
@@ -229,7 +228,7 @@ public class ThingsboardInstallService {
 //                systemDataLoaderService.loadSystemPlugins();
 //                systemDataLoaderService.loadSystemRules();
                 installScripts.loadSystemLwm2mResources();
-                installScripts.loadSystemImages();
+                installScripts.loadSystemImagesAndResources();
 
                 if (loadDemo) {
                     log.info("Loading demo data...");

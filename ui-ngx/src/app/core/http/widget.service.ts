@@ -170,7 +170,7 @@ export class WidgetService {
 
   public exportBundleWidgetTypesDetails(widgetsBundleId: string,
                                      config?: RequestConfig): Observable<Array<WidgetTypeDetails>> {
-    return this.http.get<Array<WidgetTypeDetails>>(`/api/widgetTypesDetails?widgetsBundleId=${widgetsBundleId}&inlineImages=true`,
+    return this.http.get<Array<WidgetTypeDetails>>(`/api/widgetTypesDetails?widgetsBundleId=${widgetsBundleId}&includeResources=true`,
       defaultHttpOptionsFromConfig(config));
   }
 
@@ -238,7 +238,7 @@ export class WidgetService {
 
   public exportWidgetType(widgetTypeId: string,
                           config?: RequestConfig): Observable<WidgetTypeDetails> {
-    return this.http.get<WidgetTypeDetails>(`/api/widgetType/${widgetTypeId}?inlineImages=true`,
+    return this.http.get<WidgetTypeDetails>(`/api/widgetType/${widgetTypeId}?includeResources=true`,
       defaultHttpOptionsFromConfig(config));
   }
 

@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -68,6 +69,7 @@ import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.resource.ImageService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -106,6 +108,9 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
 
     @Autowired
     private ImageService imageService;
+
+    @Autowired
+    private ResourceService resourceService;
 
     @Autowired
     private DataValidator<Dashboard> dashboardValidator;
@@ -188,7 +193,12 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
             dashboardValidator.validate(dashboard, Dashboard::getTenantId);
         }
         try {
-            imageService.replaceBase64WithImageUrl(dashboard);
+            if (CollectionUtils.isNotEmpty(dashboard.getResources())) {
+                resourceService.importResources(dashboard.getTenantId(), dashboard.getResources());
+            }
+            imageService.updateImagesUsage(dashboard);
+            resourceService.updateResourcesUsage(dashboard);
+
             var saved = dashboardDao.save(dashboard.getTenantId(), dashboard);
             if (dashboard.getId() == null) {
                 entityGroupService.addEntityToEntityGroupAll(saved.getTenantId(), saved.getOwnerId(), saved.getId());
@@ -398,6 +408,11 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
     @Override
     public boolean existsById(TenantId tenantId, DashboardId dashboardId) {
         return dashboardDao.existsById(tenantId, dashboardId.getId());
+    }
+
+    @Override
+    public PageData<DashboardId> findAllDashboardsIds(PageLink pageLink) {
+        return dashboardDao.findAllIds(pageLink);
     }
 
     private final PaginatedRemover<TenantId, DashboardId> tenantDashboardsRemover = new PaginatedRemover<>() {
