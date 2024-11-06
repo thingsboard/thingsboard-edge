@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-declare module '!raw-loader!*' {
-  const contents: string;
-  export = contents;
+declare module '*.raw' {
+  const content: string;
+  export default content;
 }
