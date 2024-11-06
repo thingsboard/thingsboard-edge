@@ -1,6 +1,6 @@
 var data = decodeToJson(payload);
 
-var deviceName = "Device name " + data.end_device_ids.device_id; // Replace the text "Device name " with the actual name of your device
+var deviceName = "Device name " + data.end_device_ids.dev_eui; // Replace the text "Device name " with the actual name of your device
 var deviceType = "Device type"; // Replace the text "Device type" with the actual type of your device
 var groupName = null; // If groupName is not null - created device will be added to the entity group with such name.
 var customerName = null; // If customerName is not null - created devices will be assigned to customer with such name.
@@ -12,10 +12,11 @@ var customerName = null; // If customerName is not null - created devices will b
 
 // If you want to parse incoming data somehow, you can add your code to this function.
 // input: bytes
+// Note ts represents a timestamp in milliseconds since the Unix epoch (January 1, 1970)
 // expected output:
 //  {
 //    "attributes": {"attributeKey": "attributeValue"},
-//    "telemetry": [{"ts": 1...1, "values": {"telemetryKey":"telemetryValue"}, {"ts": 1...2, "values":              {"telemetryKey":"telemetryValue"}}]
+//    "telemetry": [{"ts": 1730898982391, "values": {"telemetryKey":"telemetryValue"}, {"ts": 1730518182391, "values": {"telemetryKey":"telemetryValue"}}]
 //  }
 
 function decodeFrmPayload(input) {
@@ -47,7 +48,8 @@ var dateString = data.uplink_message.received_at;
 if ((data.simulated != null && data.simulated) || dateString == null) {
     dateString = data.received_at;
 }
-timestamp = parseDateToTimestamp(dateString);
+var date = new Date(dateString);
+var timestamp = date.getTime();
 // --- Timestamp parsing
 
 // Message parsing
@@ -62,14 +64,10 @@ if (data.uplink_message.get("frm_payload") != null) {
 
 // Collecting data to result
 if (customDecoding.?telemetry.size() > 0) {
-    if (customDecoding.telemetry instanceof java.util.ArrayList) {
-        foreach(telemetryObj: customDecoding.telemetry) {
-            if (telemetryObj.ts != null && telemetryObj.values != null) {
-                telemetry.add(telemetryObj);
-            }
+    foreach(telemetryObj: customDecoding.telemetry) {
+        if (telemetryObj.ts != null && telemetryObj.values != null) {
+            telemetry.add(telemetryObj);
         }
-    } else {
-        telemetry.putAll(customDecoding.telemetry);
     }
 }
 
@@ -78,38 +76,36 @@ if (customDecoding.?attributes.size() > 0) {
 }
 
 // You can add some keys manually to attributes or telemetry
-var applicationId = data.end_device_ids.?application_ids.?application_id;
-var devAddr = data.end_device_ids.?dev_addr;
-var spreadingFactor = data.uplink_message.?settings.?data_rate.?lora.?spreading_factor;
-var codeRate = data.uplink_message.?settings.?data_rate.?lora.?coding_rate;
-var tenantId = data.uplink_message.?network_ids.?tenant_id;
 attributes.eui = data.end_device_ids.dev_eui;
 attributes.fPort = data.uplink_message.f_port;
-attributes.applicationId = applicationId;
-attributes.devAddr = devAddr;
-attributes.spreadingFactor = spreadingFactor;
-attributes.codeRate = codeRate;
-attributes.tenantId = tenantId;
-attributes.device_id = data.end_device_ids.?device_id;
-attributes.join_eui = data.end_device_ids.?join_eui;
-attributes.net_id = data.uplink_message.?network_ids.?net_id;
-attributes.cluster_id = data.uplink_message.?network_ids.?cluster_id;
-attributes.cluster_adress = data.uplink_message.?network_ids.?cluster_address;
-attributes.bandwidth = data.uplink_message.?settings.?data_rate.?lora.?bandwidth;
-attributes.frequency = data.uplink_message.?settings.?frequency;
+attributes.devAddr = data.end_device_ids.?dev_addr;
 
+// Uncomment to add more attributes;
+//attributes.applicationId = data.end_device_ids.?application_ids.?application_id;
+//attributes.spreadingFactor = data.uplink_message.?settings.?data_rate.?lora.?spreading_factor;
+//attributes.codeRate = data.uplink_message.?settings.?data_rate.?lora.?coding_rate;
+//attributes.tenantId = data.uplink_message.?network_ids.?tenant_id;
+//attributes.device_id = data.end_device_ids.?device_id;
+//attributes.join_eui = data.end_device_ids.?join_eui;
+//attributes.net_id = data.uplink_message.?network_ids.?net_id;
+//attributes.cluster_id = data.uplink_message.?network_ids.?cluster_id;
+//attributes.cluster_address = data.uplink_message.?network_ids.?cluster_address;
+//attributes.bandwidth = data.uplink_message.?settings.?data_rate.?lora.?bandwidth;
+//attributes.frequency = data.uplink_message.?settings.?frequency;
 
-var gatewayInfo = getGatewayInfo();
-var addDataToTelemetry = {};
-addDataToTelemetry.snr = gatewayInfo.snr;
-addDataToTelemetry.rssi = gatewayInfo.rssi;
-addDataToTelemetry.channel = gatewayInfo.channel_index;
-addDataToTelemetry.consumed_airtime = data.uplink_message.?consumed_airtime;
-addDataToTelemetry.fCnt = data.uplink_message.?f_cnt;
+if(Boolean.parseBoolean(metadata["includeGatewayInfo"])) {
+    var gatewayInfo = getGatewayInfo();
+    var addDataToTelemetry = {};
 
-var isIncludeGatewayInfo = metadata["includeGatewayInfo"];
-if(isIncludeGatewayInfo == true) {
-   telemetry = processTelemetryData(telemetry, addDataToTelemetry);
+    // You can add some keys manually to telemetry
+    addDataToTelemetry.snr = gatewayInfo.snr;
+    addDataToTelemetry.rssi = gatewayInfo.rssi;
+    addDataToTelemetry.channel = gatewayInfo.channel_index;
+    addDataToTelemetry.consumed_airtime = data.uplink_message.?consumed_airtime;
+    addDataToTelemetry.fCnt = data.uplink_message.?f_cnt;
+    // You can add some keys manually to telemetry
+
+    telemetry = processTelemetryData(telemetry, addDataToTelemetry);
 }
 
 var result = {
@@ -133,39 +129,6 @@ function addAdditionalInfoForDeviceMsg(deviceInfo, customerName, groupName) {
     if (groupName != null) {
         deviceInfo.groupName = groupName;
     }
-}
-
-function parseDateToTimestamp(dateString) {
-    var timestamp = new Date(dateString).getTime();
-    var timestamp = -1;
-    if (dateString != null) {
-        timestamp = new Date(dateString).getTime();
-        if (timestamp == -1) {
-            var secondsSeparatorIndex = dateString.lastIndexOf('.') + 1;
-            var millisecondsEndIndex = dateString.lastIndexOf('+');
-            if (millisecondsEndIndex == -1) {
-                millisecondsEndIndex = dateString.lastIndexOf('Z');
-            }
-            if (millisecondsEndIndex == -1) {
-                millisecondsEndIndex = dateString.lastIndexOf('-');
-            }
-            if (millisecondsEndIndex == -1) {
-                if (dateString.length >= secondsSeparatorIndex + 3) {
-                    dateString = dateString.substring(0, secondsSeparatorIndex + 3);
-                }
-            } else {
-                dateString = dateString.substring(0, secondsSeparatorIndex + 3) +
-                    dateString.substring(millisecondsEndIndex, dateString.length);
-            }
-            timestamp = new Date(dateString).getTime();
-        }
-    }
-        // If we cannot parse timestamp - we will use the current timestamp
-    if (timestamp == -1) {
-        timestamp = Date.now();
-    }
-
-    return timestamp;
 }
 
 function getGatewayInfo() {

@@ -11,10 +11,11 @@ var customerName = null; // If customerName is not null - created devices will b
 
 // If you want to parse incoming data somehow, you can add your code to this function.
 // input: bytes
+// Note ts represents a timestamp in milliseconds since the Unix epoch (January 1, 1970)
 // expected output:
 //  {
 //    "attributes": {"attributeKey": "attributeValue"},
-//    "telemetry": {"telemetryKey": "telemetryValue"}
+//    "telemetry": [{"ts": 1730898982391, "values": {"telemetryKey":"telemetryValue"}, {"ts": 1730518182391, "values": {"telemetryKey":"telemetryValue"}}]
 //  }
 
 function decodePayload(input) {
@@ -52,14 +53,10 @@ var customDecoding = decodePayload(hexToBytes(data.data));
 
 // Collecting data to result
 if (customDecoding.?telemetry.size() > 0) {
-    if (customDecoding.telemetry instanceof java.util.ArrayList) {
-        foreach(telemetryObj: customDecoding.telemetry) {
-            if (telemetryObj.ts != null && telemetryObj.values != null) {
-                telemetry.add(telemetryObj);
-            }
+    foreach(telemetryObj: customDecoding.telemetry) {
+        if (telemetryObj.ts != null && telemetryObj.values != null) {
+            telemetry.add(telemetryObj);
         }
-    } else {
-        telemetry.putAll(customDecoding.telemetry);
     }
 }
 
@@ -70,19 +67,23 @@ if (customDecoding.?attributes.size() > 0) {
 // You can add some keys manually to attributes or telemetry
 attributes.eui = data.EUI;
 attributes.fPort = data.port;
-attributes.frequency = data.freq;
 
-var addDataToTelemetry = {};
-addDataToTelemetry.rssi = data.rssi;
-addDataToTelemetry.seqno = data.seqno;
-addDataToTelemetry.snr = data.snr;
-addDataToTelemetry.ack = data.ack;
-addDataToTelemetry.toa = data.toa;
-addDataToTelemetry.fCnt = data.fcnt;
+// Uncomment to add more attributes;
+// attributes.frequency = data.freq;
 
-var isIncludeGatewayInfo = metadata["includeGatewayInfo"];
-if(isIncludeGatewayInfo == true) {
-   telemetry = processTelemetryData(telemetry, addDataToTelemetry);
+if(Boolean.parseBoolean(metadata["includeGatewayInfo"])) {
+    var addDataToTelemetry = {};
+
+    // You can add some keys manually to telemetry
+    addDataToTelemetry.rssi = data.rssi;
+    addDataToTelemetry.seqno = data.seqno;
+    addDataToTelemetry.snr = data.snr;
+    addDataToTelemetry.ack = data.ack;
+    addDataToTelemetry.toa = data.toa;
+    addDataToTelemetry.fCnt = data.fcnt;
+    // You can add some keys manually to telemetry
+
+    telemetry = processTelemetryData(telemetry, addDataToTelemetry);
 }
 
 var deviceInfo = {
@@ -98,20 +99,25 @@ addAdditionalInfoForDeviceMsg(deviceInfo, customerName, groupName);
 
 uplinkDataList.add(deviceInfo);
 
-var includeGatewayInfo = ["ts", "gweui", "rssi"];
-
-var gatewayDeviceNamePrefix = "Gateway ";
+var gatewayDeviceNamePrefix = "Gateway "; // Replace the text "Gateway " with the actual name of your gateway
 var gatewayDeviceType = "Lora gateway";
 var gatewayGroupName = null; // If gatewayGroupName is not null - created device will be added to the entity group with such name.
 
 if (data.cmd == "gw") {
     foreach( gatewayInfo : data.gws ) {
+        var addGatewayInfo = {};
+
+        // You can add some keys manually telemetry
+        addGatewayInfo.rssi = gatewayInfo.rssi;
+        addGatewayInfo.snr = gatewayInfo.snr;
+        // You can add some keys manually telemetry
+
         var gatewayInfoMsg = {
             deviceName: gatewayDeviceNamePrefix + gatewayInfo.gweui,
             deviceType: gatewayDeviceType,
             telemetry: [{
-                "ts": parseDateToTimestamp(gatewayInfo.ts),
-                "values": getDataList(gatewayInfo, includeGatewayInfo)
+                "ts": gatewayInfo.ts,
+                "values": addGatewayInfo
             }],
             attributes: {
                 eui: gatewayInfo.gweui
@@ -131,40 +137,6 @@ function addAdditionalInfoForDeviceMsg(deviceInfo, customerName, groupName) {
     if (groupName != null) {
         deviceInfo.groupName = groupName;
     }
-}
-
-function parseDateToTimestamp(dateString) {
-    var timestamp = -1;
-    if (dateString != null) {
-
-        timestamp = new Date(dateString).getTime();
-        if (timestamp == -1) {
-            var secondsSeparatorIndex = dateString.lastIndexOf('.') + 1;
-            var millisecondsEndIndex = dateString.lastIndexOf('+');
-            if (millisecondsEndIndex == -1) {
-                millisecondsEndIndex = dateString.lastIndexOf('Z');
-            }
-            if (millisecondsEndIndex == -1) {
-                millisecondsEndIndex = dateString.lastIndexOf('-');
-            }
-            if (millisecondsEndIndex == -1) {
-                if (dateString.length >= secondsSeparatorIndex + 3) {
-                    dateString = dateString.substring(0, secondsSeparatorIndex + 3);
-                }
-            } else {
-                dateString = dateString.substring(0, secondsSeparatorIndex + 3) +
-                dateString.substring(millisecondsEndIndex, dateString.length);
-            }
-
-            timestamp = new Date(dateString).getTime();
-        }
-    }
-    // If we cannot parse timestamp - we will use the current timestamp
-    if (timestamp == -1) {
-        timestamp = Date.now();
-    }
-
-    return timestamp;
 }
 
 function processTelemetryData(telemetry, addDataToTelemetry) {
