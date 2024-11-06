@@ -31,14 +31,14 @@
 
 ALTER TABLE user_credentials ADD COLUMN IF NOT EXISTS last_login_ts BIGINT;
 UPDATE user_credentials c SET last_login_ts = (SELECT (additional_info::json ->> 'lastLoginTs')::bigint FROM tb_user u WHERE u.id = c.user_id)
-WHERE last_login_ts IS NULL;
+  WHERE last_login_ts IS NULL;
 
 ALTER TABLE user_credentials ADD COLUMN IF NOT EXISTS failed_login_attempts INT;
 UPDATE user_credentials c SET failed_login_attempts = (SELECT (additional_info::json ->> 'failedLoginAttempts')::int FROM tb_user u WHERE u.id = c.user_id)
-WHERE failed_login_attempts IS NULL;
+  WHERE failed_login_attempts IS NULL;
 
 UPDATE tb_user SET additional_info = (additional_info::jsonb - 'lastLoginTs' - 'failedLoginAttempts' - 'userCredentialsEnabled')::text
-WHERE additional_info IS NOT NULL AND additional_info != 'null';
+  WHERE additional_info IS NOT NULL AND additional_info != 'null';
 
 
 -- CREATE MOBILE APP BUNDLES FROM EXISTING APPS
@@ -77,6 +77,10 @@ $$
             ALTER TABLE mobile_app_oauth2_client RENAME TO mobile_app_bundle_oauth2_client;
             ALTER TABLE mobile_app_bundle_oauth2_client DROP CONSTRAINT IF EXISTS fk_domain;
             ALTER TABLE mobile_app_bundle_oauth2_client RENAME COLUMN mobile_app_id TO mobile_app_bundle_id;
+            IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'fk_mobile_app_bundle_oauth2_client_bundle_id') THEN
+                ALTER TABLE mobile_app_bundle_oauth2_client ADD CONSTRAINT fk_mobile_app_bundle_oauth2_client_bundle_id
+                    FOREIGN KEY (mobile_app_bundle_id) REFERENCES mobile_app_bundle(id) ON DELETE CASCADE;
+            END IF;
         END IF;
     END;
 $$;

@@ -48,23 +48,22 @@ public interface MobileAppBundleService extends EntityDaoService {
 
     MobileAppBundle saveMobileAppBundle(TenantId tenantId, MobileAppBundle mobileAppBundle);
 
+    void updateOauth2Clients(TenantId tenantId, MobileAppBundleId mobileAppBundleId, List<OAuth2ClientId> oAuth2ClientIds);
+
     MobileAppBundle findMobileAppBundleById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
 
     PageData<MobileAppBundleInfo> findMobileAppBundleInfosByTenantId(TenantId tenantId, PageLink pageLink);
 
     MobileAppBundleInfo findMobileAppBundleInfoById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
 
-    void updateOauth2Clients(TenantId tenantId, MobileAppBundleId mobileAppBundleId, List<OAuth2ClientId> oAuth2ClientIds);
-
     MobileAppBundle findMobileAppBundleByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platform, boolean fetchPolicyInfo);
-
-    void deleteMobileAppBundleById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
-
-    void deleteMobileAppBundlesByTenantId(TenantId tenantId);
 
     MobileSelfRegistrationParams getMobileSelfRegistrationParams(TenantId tenantId, String pkgName, PlatformType platformType);
 
     JsonNode getMobilePrivacyPolicy(TenantId tenantId, String pkgName, PlatformType platformType);
 
     JsonNode getMobileTermsOfUse(TenantId tenantId, String pkgName, PlatformType platformType);
+
+    void deleteMobileAppBundleById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
+
 }

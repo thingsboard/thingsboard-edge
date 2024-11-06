@@ -120,12 +120,6 @@ public class MobileAppServiceImpl extends AbstractEntityService implements Mobil
     }
 
     @Override
-    public void deleteMobileAppsByTenantId(TenantId tenantId) {
-        log.trace("Executing deleteMobileAppsByTenantId, tenantId [{}]", tenantId);
-        mobileAppDao.deleteByTenantId(tenantId);
-    }
-
-    @Override
     public MobileApp findByBundleIdAndPlatformType(TenantId tenantId, MobileAppBundleId mobileAppBundleId, PlatformType platformType) {
         log.trace("Executing findAndroidQrConfig, tenantId [{}], mobileAppBundleId [{}]", tenantId, mobileAppBundleId);
         return mobileAppDao.findByBundleIdAndPlatformType(tenantId, mobileAppBundleId, platformType);
@@ -140,7 +134,8 @@ public class MobileAppServiceImpl extends AbstractEntityService implements Mobil
 
     @Override
     public void deleteByTenantId(TenantId tenantId) {
-        deleteMobileAppsByTenantId(tenantId);
+        log.trace("Executing deleteByTenantId, tenantId [{}]", tenantId);
+        mobileAppDao.deleteByTenantId(tenantId);
     }
 
     @Override

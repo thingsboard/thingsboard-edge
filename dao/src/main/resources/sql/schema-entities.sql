@@ -1070,7 +1070,8 @@ CREATE TABLE IF NOT EXISTS white_labeling (
     type VARCHAR(30),
     settings VARCHAR(10000000),
     domain_name VARCHAR(255) UNIQUE,
-    CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type)
+    CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type),
+    CONSTRAINT white_labeling_domain_name_type_key UNIQUE (domain_name, type)
 );
 
 CREATE TABLE IF NOT EXISTS custom_menu (
