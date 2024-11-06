@@ -47,6 +47,7 @@ import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.id.IdBased;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
+import org.thingsboard.server.common.data.permission.GroupPermissionInfo;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 
@@ -54,6 +55,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -235,4 +237,33 @@ public class EntityGroupControllerTest extends AbstractControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(statusReason(containsString("At least one tenant administrator must remain!")));
     }
+
+    @Test
+    public void testChangeEntityGroupPublicStatus() throws Exception {
+        EntityGroup entityGroup = new EntityGroup();
+        entityGroup.setName("Device group");
+        entityGroup.setType(EntityType.DEVICE);
+        entityGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
+
+        doPost("/api/entityGroup/" + entityGroup.getUuidId() + "/makePublic").andExpect(status().isOk());
+
+        GroupPermissionInfo groupPermission = doGetTyped("/api/entityGroup/" + entityGroup.getUuidId() + "/groupPermissions", new TypeReference<List<GroupPermissionInfo>>() {}).get(0);
+        EntityGroup publicEntityGroup = doGet("/api/entityGroup/" + entityGroup.getUuidId(), EntityGroup.class);
+        assertThat(publicEntityGroup.getAdditionalInfo().get("isPublic").asBoolean()).isTrue();
+        assertThat(publicEntityGroup.getAdditionalInfo().get("publicCustomerId").asText()).isEqualTo(groupPermission.getUserGroupOwnerId().toString());
+
+        assertThat(groupPermission.isPublic()).isTrue();
+        assertThat(groupPermission.getEntityGroupId()).isEqualTo(publicEntityGroup.getId());
+        assertThat(groupPermission.getEntityGroupType()).isEqualTo(publicEntityGroup.getType());
+
+        doPost("/api/entityGroup/" + publicEntityGroup.getUuidId() + "/makePrivate").andExpect(status().isOk());
+
+        EntityGroup privateEntityGroup = doGet("/api/entityGroup/" + entityGroup.getUuidId(), EntityGroup.class);
+        assertThat(privateEntityGroup.getAdditionalInfo().get("isPublic").asBoolean()).isFalse();
+        assertThat(privateEntityGroup.getAdditionalInfo().get("publicCustomerId").asText()).isEmpty();
+
+        List<GroupPermissionInfo> groupPermissions = doGetTyped("/api/entityGroup/" + privateEntityGroup.getUuidId() + "/groupPermissions", new TypeReference<>() {});
+        assertThat(groupPermissions).isEmpty();
+    }
+
 }
