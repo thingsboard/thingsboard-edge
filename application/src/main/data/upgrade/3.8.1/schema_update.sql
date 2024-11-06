@@ -397,8 +397,8 @@ $$
                 SELECT * INTO domainRecord FROM domain WHERE domain.name = wlRecord.domain_name;
                 IF domainRecord IS NULL THEN
                     generatedDomainId := uuid_generate_v4();
-                    INSERT INTO domain(id, created_time, tenant_id, customer_id, name)
-                    VALUES (generatedDomainId, (extract(epoch from now()) * 1000), wlRecord.tenant_id, wlRecord.customer_id, wlRecord.domain_name);
+                    INSERT INTO domain(id, created_time, tenant_id, customer_id, name, oauth2_enabled, edge_enabled)
+                    VALUES (generatedDomainId, (extract(epoch from now()) * 1000), wlRecord.tenant_id, wlRecord.customer_id, wlRecord.domain_name, true, true);
                     UPDATE white_labeling SET domain_id = generatedDomainId WHERE domain_name = wlRecord.domain_name AND type = wlRecord.type;
                 ELSE IF (domainRecord.tenant_id = wlRecord.tenant_id AND domainRecord.customer_id = wlRecord.customer_id) THEN
                         UPDATE white_labeling SET domain_id = domainRecord.id WHERE domain_name = wlRecord.domain_name AND type = wlRecord.type;
