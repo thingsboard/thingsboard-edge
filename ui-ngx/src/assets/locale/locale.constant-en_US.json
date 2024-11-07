@@ -386,7 +386,11 @@
           "update-access-token": "Update access token",
           "access-token-status": "Access token status:",
           "token-status-generated": "generated",
-          "token-status-not-generated": "not generated"
+          "token-status-not-generated": "not generated",
+          "domain": "Domain",
+          "no-domain-matching": "No domain matching '{{entity}}' were found.",
+          "domain-required": "Domain is required",
+          "no-domain-text": "No domain found"
         },
         "smpp-provider": {
             "smpp-version": "SMPP version",
@@ -7159,6 +7163,7 @@
         "dark-foreground": "Dark foreground",
         "domain-name": "Domain name",
         "base-url": "Base URL",
+        "base-url-required": "Base URL is required",
         "prohibit-different-url": "Prohibit to use hostname from the client request headers",
         "prohibit-different-url-hint": "This setting should be enabled for production environments. May cause security issues when disabled",
         "help-link-base-url": "Help links base url",

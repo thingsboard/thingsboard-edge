@@ -179,7 +179,7 @@ public class OAuth2Controller extends BaseController {
             "double quotes. After successful authentication with OAuth2 provider, it makes a redirect to this path so that the platform can do " +
             "further log in processing. This URL may be configured as 'security.oauth2.loginProcessingUrl' property in yml configuration file, or " +
             "as 'SECURITY_OAUTH2_LOGIN_PROCESSING_URL' env variable. By default it is '/login/oauth2/code/'" + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/oauth2/loginProcessingUrl")
     public String getLoginProcessingUrl() {
         return "\"" + oAuth2Configuration.getLoginProcessingUrl() + "\"";
