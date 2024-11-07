@@ -546,8 +546,7 @@ public class SignUpController extends BaseController {
         } else {
             checkParameter("Email", signUpRequestFields.get(EMAIL));
             checkParameter("Password", signUpRequestFields.get(PASSWORD));
-            checkParameter("Recaptcha response", signUpRequest.getRecaptchaResponse());
-        }
+       }
     }
 
     private EntityGroup createCustomerUserGroup(SelfRegistrationParams selfRegistrationParams, Customer savedCustomer) {
