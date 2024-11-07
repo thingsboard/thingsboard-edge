@@ -139,7 +139,7 @@ public class ResourcesUpdater {
     public void createSystemImagesAndResources(Dashboard defaultDashboard) {
         defaultDashboard.setTenantId(TenantId.SYS_TENANT_ID);
         if (CollectionUtils.isNotEmpty(defaultDashboard.getResources())) {
-            resourceService.importResources(defaultDashboard.getTenantId(), defaultDashboard.getResources());
+            resourceService.importResources(defaultDashboard.getTenantId(), null, defaultDashboard.getResources());
         }
         imageService.updateImagesUsage(defaultDashboard);
         log.debug("Created/updated system images and resources for default dashboard '{}'", defaultDashboard.getTitle());
@@ -266,6 +266,7 @@ public class ResourcesUpdater {
         updateImages(assetProfiles, "asset profile", imageService::replaceBase64WithImageUrl, assetProfileDao);
     }
 
+    // TODO: migrate all widgets, check for else
     private <E extends HasImage> void updateImages(Iterable<E> entities, String type,
                                                    BiFunction<E, String, Boolean> updater, Dao<E> dao) {
         int updatedCount = 0;

@@ -237,7 +237,7 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
     }
 
     @Override
-    public void importResources(TenantId tenantId, List<ResourceExportData> resources) {
+    public void importResources(TenantId tenantId, CustomerId customerId, List<ResourceExportData> resources) {
         for (ResourceExportData resourceData : resources) {
             if (resourceData.getNewLink() != null) {
                 continue; // already imported
@@ -245,13 +245,13 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
 
             TbResource resource;
             if (resourceData.getType() == ResourceType.IMAGE) {
-                resource = imageService.toImage(tenantId, , resourceData, true);
+                resource = imageService.toImage(tenantId, customerId, resourceData, true);
                 if (resource.getData() != null) {
                     imageService.saveImage(resource);
                 }
             } else {
                 resource = toResource(tenantId, resourceData);
-                if (resource.getData() != null) {
+                if (resource.getData() != null && (customerId == null || customerId.isNullUid())) {
                     saveResource(resource);
                 }
             }
@@ -569,7 +569,7 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
             Dashboard dashboard = JacksonUtil.fromString(data, Dashboard.class);
             dashboard.setTenantId(TenantId.SYS_TENANT_ID);
             if (CollectionUtils.isNotEmpty(dashboard.getResources())) {
-                importResources(dashboard.getTenantId(), dashboard.getResources());
+                importResources(dashboard.getTenantId(), null, dashboard.getResources());
             }
             imageService.updateImagesUsage(dashboard);
             updateResourcesUsage(dashboard);

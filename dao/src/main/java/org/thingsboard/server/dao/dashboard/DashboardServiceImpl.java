@@ -43,7 +43,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.util.CollectionUtils;
 import org.thingsboard.server.cache.TbTransactionalCache;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.Dashboard;
@@ -194,7 +193,7 @@ public class DashboardServiceImpl extends AbstractEntityService implements Dashb
         }
         try {
             if (CollectionUtils.isNotEmpty(dashboard.getResources())) {
-                resourceService.importResources(dashboard.getTenantId(), dashboard.getResources());
+                resourceService.importResources(dashboard.getTenantId(), dashboard.getCustomerId(), dashboard.getResources());
             }
             imageService.updateImagesUsage(dashboard);
             resourceService.updateResourcesUsage(dashboard);

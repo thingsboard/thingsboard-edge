@@ -539,6 +539,7 @@ public class DashboardControllerTest extends AbstractControllerTest {
 
     @Test
     public void testExportImportDashboardWithResources() throws Exception {
+        loginTenantAdmin();
         TbResourceInfo imageInfo = uploadImage(HttpMethod.POST, "/api/image", "image12", "image/png", ImageControllerTest.PNG_IMAGE);
         TbResource resource = new TbResource();
         resource.setResourceKey("gateway-management-extension.js");
@@ -601,6 +602,15 @@ public class DashboardControllerTest extends AbstractControllerTest {
 
         TbResourceInfo importedResourceInfo = doGet("/api/resource/js_module/tenant/" + newResourceKey + "/info", TbResourceInfo.class);
         assertThat(importedResourceInfo.getEtag()).isEqualTo(resourceInfo.getEtag());
+
+        loginCustomerAdminUser();
+        exportedDashboard.setCustomerId(customerId);
+        importedDashboard = doPost("/api/dashboard", exportedDashboard, Dashboard.class);
+        imageRef = importedDashboard.getConfiguration().get("someImage").asText();
+        assertThat(imageRef).isEqualTo("tb-image;/api/images/tenant/image12_(1)"); // new image is created
+        resourceRef = importedDashboard.getConfiguration().get("widgets").get("xxx").get("config")
+                .get("actions").get("elementClick").get(0).get("customResources").get(0).get("url").asText();
+        assertThat(resourceRef).isEqualTo("tb-resource;/api/resource/js_module/tenant/" + newResourceKey); // left unchanged, using existing tenant resource
     }
 
     private Dashboard createDashboard(String title) {

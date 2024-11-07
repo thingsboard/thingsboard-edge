@@ -115,7 +115,7 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
         widgetTypeValidator.validate(widgetTypeDetails, WidgetType::getTenantId);
         try {
             if (CollectionUtils.isNotEmpty(widgetTypeDetails.getResources())) {
-                resourceService.importResources(widgetTypeDetails.getTenantId(), widgetTypeDetails.getResources());
+                resourceService.importResources(widgetTypeDetails.getTenantId(), null, widgetTypeDetails.getResources());
             }
             imageService.updateImagesUsage(widgetTypeDetails);
             resourceService.updateResourcesUsage(widgetTypeDetails);
