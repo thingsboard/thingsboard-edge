@@ -650,7 +650,7 @@ public abstract class AbstractEdgeGrpcSession<T extends AbstractEdgeGrpcSession<
                     }
                     case ATTRIBUTES_UPDATED, POST_ATTRIBUTES, ATTRIBUTES_DELETED, TIMESERIES_UPDATED ->
                             downlinkMsg = ctx.getTelemetryProcessor().convertTelemetryEventToDownlink(edge, edgeEvent);
-                    default -> log.warn("[{}][{}] Unsupported action type [{}]", this.tenantId, this.sessionId, edgeEvent.getAction());
+                    default -> log.warn("[{}][{}] Unsupported action type [{}]", tenantId, sessionId, edgeEvent.getAction());
                 }
             } catch (Exception e) {
                 log.error("[{}][{}] Exception during converting edge event to downlink msg", this.tenantId, this.sessionId, e);

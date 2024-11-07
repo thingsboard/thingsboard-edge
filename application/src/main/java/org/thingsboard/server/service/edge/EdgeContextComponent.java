@@ -239,7 +239,7 @@ public class EdgeContextComponent {
 
     // PE services
     @Autowired
-    protected CustomersHierarchyEdgeService customersHierarchyEdgeService;
+    private CustomersHierarchyEdgeService customersHierarchyEdgeService;
 
     @Autowired
     private CustomMenuService customMenuService;
