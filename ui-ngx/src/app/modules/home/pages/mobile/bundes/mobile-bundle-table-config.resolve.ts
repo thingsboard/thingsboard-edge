@@ -31,6 +31,7 @@
 
 import { Injectable } from '@angular/core';
 import {
+  CellActionDescriptor,
   checkBoxCell,
   DateEntityTableColumn,
   EntityChipsEntityTableColumn,
@@ -44,7 +45,7 @@ import { Direction } from '@shared/models/page/sort-order';
 import { MobileBundleTableHeaderComponent } from '@home/pages/mobile/bundes/mobile-bundle-table-header.component';
 import { DatePipe } from '@angular/common';
 import { MobileAppService } from '@core/http/mobile-app.service';
-import { map } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityAction } from '@home/models/entity/entity-component.models';
 import { MatDialog } from '@angular/material/dialog';
@@ -52,9 +53,14 @@ import {
   MobileBundleDialogComponent,
   MobileBundleDialogData
 } from '@home/pages/mobile/bundes/mobile-bundle-dialog.component';
-import { getCurrentAuthUser } from '@core/auth/auth.selectors';
-import { Store } from '@ngrx/store';
+import {
+  MobileAppConfigurationDialogComponent,
+  MobileAppConfigurationDialogData
+} from '@home/pages/mobile/bundes/mobile-app-configuration-dialog.component';
+import { select, Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
+import { getCurrentAuthUser, selectUserSettingsProperty } from '@core/auth/auth.selectors';
+import { forkJoin, of } from 'rxjs';
 import { Authority } from '@shared/models/authority.enum';
 
 @Injectable()
@@ -113,6 +119,8 @@ export class MobileBundleTableConfigResolver {
       })
       return true;
     };
+
+    this.config.cellActionDescriptors = this.configureCellActions();
   }
 
   resolve(_route: ActivatedRouteSnapshot): EntityTableConfig<MobileAppBundleInfo> {
@@ -138,6 +146,17 @@ export class MobileBundleTableConfigResolver {
     return this.config;
   }
 
+  private configureCellActions(): Array<CellActionDescriptor<MobileAppBundleInfo>> {
+    return [
+      {
+        name: this.translate.instant('mobile.configuration-app'),
+        icon: 'code',
+        isEnabled: () => true,
+        onAction: ($event, entity) => this.configurationApp($event, entity)
+      }
+    ];
+  }
+
   private editBundle($event: Event, bundle: MobileAppBundleInfo, isAdd = false) {
     if ($event) {
       $event.stopPropagation();
@@ -152,8 +171,18 @@ export class MobileBundleTableConfigResolver {
       }
     }).afterClosed()
       .subscribe((res) => {
-        if (res) {
+        if (res && !isAdd) {
           this.config.updateData();
+        } else {
+          this.store.pipe(select(selectUserSettingsProperty('notDisplayConfigurationAfterAddMobileBundle'))).pipe(
+            take(1)
+          ).subscribe((settings: boolean) => {
+            if (!settings) {
+              this.configurationApp(null, res, true);
+            } else {
+              this.config.updateData();
+            }
+          });
         }
       });
   }
@@ -165,5 +194,31 @@ export class MobileBundleTableConfigResolver {
         return true;
     }
     return false;
+  }
+
+  private configurationApp($event: Event, entity: MobileAppBundleInfo, afterAdd = false) {
+    if ($event) {
+      $event.stopPropagation();
+    }
+    const task = {
+      androidApp: entity.androidAppId ? this.mobileAppService.getMobileAppInfoById(entity.androidAppId.id) : of(null),
+      iosApp: entity.iosAppId ? this.mobileAppService.getMobileAppInfoById(entity.iosAppId.id) : of(null)
+    };
+    forkJoin(task).subscribe(data => {
+      this.dialog.open<MobileAppConfigurationDialogComponent, MobileAppConfigurationDialogData,
+        MobileAppBundleInfo>(MobileAppConfigurationDialogComponent, {
+        disableClose: true,
+        panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+        data: {
+          afterAdd,
+          appSecret: data.androidApp?.appSecret || data.iosApp?.appSecret
+        }
+      }).afterClosed()
+        .subscribe(() => {
+          if (afterAdd) {
+            this.config.updateData();
+          }
+        });
+    })
   }
 }

@@ -43,6 +43,10 @@ import { CustomMobilePageComponent } from '@home/pages/mobile/bundes/layout/cust
 import { CustomMobilePagePanelComponent } from '@home/pages/mobile/bundes/layout/custom-mobile-page-panel.component';
 import { DefaultMobilePagePanelComponent } from '@home/pages/mobile/bundes/layout/default-mobile-page-panel.component';
 import {
+  MobileAppConfigurationDialogComponent
+} from '@home/pages/mobile/bundes/mobile-app-configuration-dialog.component';
+
+import {
   MobileSelfRegistrationComponent
 } from '@home/pages/mobile/bundes/sefl-registration/mobile-self-registration.component';
 import {
@@ -64,6 +68,7 @@ import { CommonMobileModule } from '@home/pages/mobile/common/common-mobile.modu
     CustomMobilePageComponent,
     CustomMobilePagePanelComponent,
     DefaultMobilePagePanelComponent,
+    MobileAppConfigurationDialogComponent,
     MobileSelfRegistrationComponent,
     MobileRegistrationFieldsPanelComponent,
     MobileRegistrationFieldsRowComponent,

@@ -622,7 +622,16 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     @Override
     public WebSelfRegistrationParams getTenantSelfRegistrationParams(TenantId tenantId) {
         WhiteLabeling whiteLabeling = findByEntityId(tenantId, null, SELF_REGISTRATION);
-        return whiteLabeling != null ? JacksonUtil.treeToValue(whiteLabeling.getSettings(), WebSelfRegistrationParams.class) : null;
+        return constructSRParams(whiteLabeling);
+    }
+
+    private WebSelfRegistrationParams constructSRParams(WhiteLabeling whiteLabeling) {
+        if (whiteLabeling == null || whiteLabeling.getSettings() == null) {
+            return null;
+        }
+        WebSelfRegistrationParams selfRegistrationParams =  JacksonUtil.treeToValue(whiteLabeling.getSettings(), WebSelfRegistrationParams.class);
+        selfRegistrationParams.setDomainId(whiteLabeling.getDomainId());
+        return selfRegistrationParams;
     }
 
     @Override
