@@ -372,6 +372,67 @@ export const serviceCompletions: TbEditorCompletions = {
         ],
         return: observablePageDataReturnType(assetInfoHref)
       },
+      getTenantAssetInfosByAssetProfileId: {
+        description: 'Get tenant asset infos by asset profile ID',
+        meta: 'function',
+        args: [
+          pageLinkArg,
+          { name: 'assetProfileId', type: 'string', optional: true, description: 'ID of the asset profile' },
+          requestConfigArg
+        ],
+        return: observablePageDataReturnType(assetInfoHref)
+      },
+      getCustomerAssetInfosByAssetProfileId: {
+        description: 'Get customer asset infos by asset profile ID',
+        meta: 'function',
+        args: [
+          { name: 'customerId', type: 'string', description: 'ID of the customer' },
+          pageLinkArg,
+          { name: 'assetProfileId', type: 'string', optional: true, description: 'ID of the asset profile' },
+          requestConfigArg
+        ],
+        return: observablePageDataReturnType(assetInfoHref)
+      },
+      assignAssetToEdge: {
+        description: 'Assign an asset to an edge',
+        meta: 'function',
+        args: [
+          { name: 'edgeId', type: 'string', description: 'ID of the edge' },
+          { name: 'assetId', type: 'string', description: 'ID of the asset' },
+          requestConfigArg
+        ],
+        return: observableReturnType(assetHref)
+      },
+      unassignAssetFromEdge: {
+        description: 'Unassign an asset from an edge',
+        meta: 'function',
+        args: [
+          { name: 'edgeId', type: 'string', description: 'ID of the edge' },
+          { name: 'assetId', type: 'string', description: 'ID of the asset' },
+          requestConfigArg
+        ],
+        return: observableVoid()
+      },
+      getEdgeAssets: {
+        description: 'Get assets assigned to an edge',
+        meta: 'function',
+        args: [
+          { name: 'edgeId', type: 'string', description: 'ID of the edge' },
+          pageLinkArg,
+          { name: 'type', type: 'string', optional: true, description: 'Asset type' },
+          requestConfigArg
+        ],
+        return: observablePageDataReturnType(assetInfoHref)
+      },
+      bulkImportAssets: {
+        description: 'Bulk import assets with provided entities data',
+        meta: 'function',
+        args: [
+          { name: 'entitiesData', type: bulkImportRequestHref, description: 'Data for bulk importing assets' },
+          requestConfigArg
+        ],
+        return: observableReturnType(bulkImportResultHref)
+      },
       getAsset: {
         description: 'Get asset by id',
         meta: 'function',
@@ -470,15 +531,6 @@ export const serviceCompletions: TbEditorCompletions = {
           requestConfigArg
         ],
         return: observableReturnType(assetHref)
-      },
-      bulkImportAssets: {
-        description: 'Bulk import assets with provided entities data',
-        meta: 'function',
-        args: [
-          { name: 'entitiesData', type: bulkImportRequestHref, description: 'Data for bulk importing assets' },
-          requestConfigArg
-        ],
-        return: observableReturnType(bulkImportResultHref)
       },
     },
   },
