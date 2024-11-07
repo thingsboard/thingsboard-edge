@@ -39,6 +39,32 @@
       integration.connection-string-required</mat-error>
   </mat-form-field>
 
+  <mat-expansion-panel class="expansion-panel-setting"
+                       [expanded]="azureEventHubIntegrationConfigForm.get('readEarliestMessages').value">
+    <mat-expansion-panel-header class="flex flex-row">
+      <mat-panel-title>
+        <mat-slide-toggle class="toggle" [aria-label]="'integration.read-earliest-messages' | translate"
+                          formControlName="readEarliestMessages"
+                          (click)="$event.stopPropagation()">
+          {{ 'integration.read-earliest-messages' | translate }}
+        </mat-slide-toggle>
+      </mat-panel-title>
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+      <mat-form-field class="mat-block">
+        <mat-label translate>integration.storage-connection-string</mat-label>
+        <input required matInput formControlName="storageConnectionString">
+        <mat-error translate *ngIf="azureEventHubIntegrationConfigForm.get('storageConnectionString').hasError('required')">
+          integration.storage-connection-string-required
+        </mat-error>
+      </mat-form-field>
+      <mat-form-field class="mat-block">
+        <mat-label translate>integration.container-name</mat-label>
+        <input matInput formControlName="containerName">
+      </mat-form-field>
+    </ng-template>
+  </mat-expansion-panel>
+
   <ng-container [ngTemplateOutlet]="executeRemotelyTemplate">
   </ng-container>
 
@@ -73,11 +99,6 @@
           integration.event-iot-hub-name-required
         </mat-error>
       </mat-form-field>
-      <mat-slide-toggle class="mat-block"
-                        style="margin-bottom: 16px;"
-                        formControlName="readEarliestMessages">
-        {{ 'integration.read-earliest-messages' | translate }}
-      </mat-slide-toggle>
       <ng-container [ngTemplateOutlet]="genericAdditionalInfoTemplate">
       </ng-container>
     </ng-template>

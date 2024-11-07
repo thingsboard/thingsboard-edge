@@ -48,7 +48,7 @@ import { AzureEventHubIntegration } from '@shared/models/integration.models';
 @Component({
   selector: 'tb-azure-event-hub-integration-form',
   templateUrl: './azure-event-hub-integration-form.component.html',
-  styleUrls: [],
+  styleUrls: ['./azure-event-hub-integration-form.component.scss'],
   providers: [{
     provide: NG_VALUE_ACCESSOR,
     useExisting: forwardRef(() => AzureEventHubIntegrationFormComponent),
@@ -86,6 +86,8 @@ export class AzureEventHubIntegrationFormComponent extends IntegrationForm imple
       connectionString: ['', [Validators.required]],
       consumerGroup: [''],
       iotHubName: [''],
+      storageConnectionString: [{value: '', disabled: true}, Validators.required],
+      containerName: [{value: '', disabled: true}],
       readEarliestMessages: [false]
     });
     this.azureEventHubIntegrationConfigForm.valueChanges.pipe(
@@ -93,11 +95,19 @@ export class AzureEventHubIntegrationFormComponent extends IntegrationForm imple
     ).subscribe(() => {
       this.updateModels(this.azureEventHubIntegrationConfigForm.getRawValue());
     });
+    this.azureEventHubIntegrationConfigForm.get('readEarliestMessages').valueChanges.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
+      this.updateEnableFields();
+    });
   }
 
   writeValue(value: AzureEventHubIntegration) {
     if (isDefinedAndNotNull(value?.clientConfiguration)) {
       this.azureEventHubIntegrationConfigForm.reset(value.clientConfiguration, {emitEvent: false});
+      if (!this.disabled) {
+        this.updateEnableFields();
+      }
     }
   }
 
@@ -113,6 +123,7 @@ export class AzureEventHubIntegrationFormComponent extends IntegrationForm imple
       this.azureEventHubIntegrationConfigForm.disable({emitEvent: false});
     } else {
       this.azureEventHubIntegrationConfigForm.enable({emitEvent: false});
+      this.updateEnableFields();
     }
   }
 
@@ -124,6 +135,17 @@ export class AzureEventHubIntegrationFormComponent extends IntegrationForm imple
     return this.azureEventHubIntegrationConfigForm.valid ? null : {
       azureEventHubIntegrationConfigForm: {valid: false}
     };
+  }
+
+  private updateEnableFields() {
+    const readEarliestMessages = this.azureEventHubIntegrationConfigForm.get('readEarliestMessages').value;
+    if (readEarliestMessages) {
+      this.azureEventHubIntegrationConfigForm.get('storageConnectionString').enable({emitEvent: false});
+      this.azureEventHubIntegrationConfigForm.get('containerName').enable({emitEvent: false});
+    } else {
+      this.azureEventHubIntegrationConfigForm.get('storageConnectionString').disable({emitEvent: false});
+      this.azureEventHubIntegrationConfigForm.get('containerName').disable({emitEvent: false});
+    }
   }
 
   private downlinkConverterChanged() {

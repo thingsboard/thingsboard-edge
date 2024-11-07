@@ -32,8 +32,15 @@ package org.thingsboard.integration.azure;
 
 import com.azure.core.amqp.AmqpRetryOptions;
 import com.azure.core.amqp.implementation.ConnectionStringProperties;
+import com.azure.messaging.eventhubs.CheckpointStore;
 import com.azure.messaging.eventhubs.EventHubClientBuilder;
-import com.azure.messaging.eventhubs.EventHubConsumerAsyncClient;
+import com.azure.messaging.eventhubs.EventProcessorClient;
+import com.azure.messaging.eventhubs.EventProcessorClientBuilder;
+import com.azure.messaging.eventhubs.checkpointstore.blob.BlobCheckpointStore;
+import com.azure.messaging.eventhubs.models.Checkpoint;
+import com.azure.messaging.eventhubs.models.PartitionOwnership;
+import com.azure.storage.blob.BlobContainerAsyncClient;
+import com.azure.storage.blob.BlobContainerClientBuilder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -54,6 +61,8 @@ import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -73,14 +82,15 @@ import java.util.concurrent.TimeoutException;
 public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubIntegrationMsg> {
 
     private ServiceClient serviceClient;
-    private EventHubConsumerAsyncClient receiver;
+    private EventProcessorClient eventProcessorClient;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
         super.init(params);
         AzureEventHubClientConfiguration clientConfiguration = getClientConfiguration(configuration, AzureEventHubClientConfiguration.class);
 
-        initReceiver(clientConfiguration);
+        eventProcessorClient = buildProcessorClient(clientConfiguration);
+        eventProcessorClient.start();
 
         if (downlinkConverter != null) {
             serviceClient = initServiceClient(clientConfiguration);
@@ -92,14 +102,9 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         if (serviceClient != null) {
             serviceClient.closeAsync();
         }
-
-        if (receiver != null) {
-            receiver.close();
+        if (eventProcessorClient != null) {
+            eventProcessorClient.stop();
         }
-    }
-
-    public void process() {
-
     }
 
     @Override
@@ -141,11 +146,24 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
                 integration.getConfiguration().get("clientConfiguration"),
                 AzureEventHubClientConfiguration.class
         );
-        try (var consumerClient = buildConsumerClient(configuration)) {
-            checkConnection(consumerClient);
+
+        EventHubClientBuilder builder = new EventHubClientBuilder()
+                .consumerGroup(configuration.getConsumerGroup())
+                .connectionString(configuration.getConnectionString())
+                .retry(new AmqpRetryOptions().setTryTimeout(Duration.ofSeconds(configuration.getConnectTimeoutSec())));
+        try (var consumerClient = builder.buildAsyncConsumerClient()) {
+            try {
+                consumerClient.getPartitionIds().blockFirst();
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to connect. Check for correct Connection String!", e);
+            }
+            try {
+                buildContainerClient(configuration).exists().block();
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to connect. Check for correct Storage Connection String!", e);
+            }
         }
     }
-
 
     protected void processDownLinkMsg(IntegrationContext context, TbMsg msg) {
         String status = "OK";
@@ -223,23 +241,33 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         return deviceIdToMessage;
     }
 
-    private void initReceiver(AzureEventHubClientConfiguration configuration) {
-        this.receiver = buildConsumerClient(configuration);
-
-        checkConnection(this.receiver);
-
-        this.receiver.receive(configuration.isReadEarliestMessages()).subscribe(
-                event -> process(new AzureEventHubIntegrationMsg(event.getData())),
-                error -> log.error("It was trouble when receiving: " + error.getMessage()));
-
-    }
-
-    private EventHubConsumerAsyncClient buildConsumerClient(AzureEventHubClientConfiguration configuration) {
-        return new EventHubClientBuilder()
+    private EventProcessorClient buildProcessorClient(AzureEventHubClientConfiguration configuration) {
+        return new EventProcessorClientBuilder()
                 .consumerGroup(configuration.getConsumerGroup())
                 .connectionString(configuration.getConnectionString())
-                .retry(new AmqpRetryOptions().setTryTimeout(Duration.ofSeconds(configuration.getConnectTimeoutSec())))
-                .buildAsyncConsumerClient();
+                .retryOptions(new AmqpRetryOptions().setTryTimeout(Duration.ofSeconds(configuration.getConnectTimeoutSec())))
+                .processEvent(eventContext -> {
+                    process(new AzureEventHubIntegrationMsg(eventContext.getEventData()));
+                    eventContext.updateCheckpoint();
+                })
+                .processError(error -> log.error("It was trouble when receiving: " + error.getThrowable().getMessage()))
+                .checkpointStore(buildCheckpointStore(configuration))
+                .buildEventProcessorClient();
+    }
+
+    private CheckpointStore buildCheckpointStore(AzureEventHubClientConfiguration configuration) {
+        if (configuration.isReadEarliestMessages()) {
+            return new BlobCheckpointStore(buildContainerClient(configuration));
+        } else {
+            return new DummyCheckpointStore();
+        }
+    }
+
+    private BlobContainerAsyncClient buildContainerClient(AzureEventHubClientConfiguration configuration) {
+        return new BlobContainerClientBuilder()
+                .connectionString(configuration.getStorageConnectionString())
+                .containerName(configuration.getContainerName())
+                .buildAsyncClient();
     }
 
     private ServiceClient initServiceClient(AzureEventHubClientConfiguration clientConfiguration) throws Exception {
@@ -287,11 +315,26 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         }
     }
 
-    private void checkConnection(EventHubConsumerAsyncClient receiver) {
-        try {
-            receiver.getPartitionIds().blockFirst();
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to connect. Check for correct Connection String or try to set bigger Timeout. ", e);
+    private static class DummyCheckpointStore implements CheckpointStore {
+
+        @Override
+        public Flux<PartitionOwnership> listOwnership(String fullyQualifiedNamespace, String eventHubName, String consumerGroup) {
+            return Flux.empty();
+        }
+
+        @Override
+        public Flux<PartitionOwnership> claimOwnership(List<PartitionOwnership> requestedPartitionOwnerships) {
+            return Flux.empty();
+        }
+
+        @Override
+        public Flux<Checkpoint> listCheckpoints(String fullyQualifiedNamespace, String eventHubName, String consumerGroup) {
+            return Flux.empty();
+        }
+
+        @Override
+        public Mono<Void> updateCheckpoint(Checkpoint checkpoint) {
+            return Mono.empty();
         }
     }
 
