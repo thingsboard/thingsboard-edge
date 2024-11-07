@@ -1,7 +1,7 @@
 var data = decodeToJson(payload);
 
-var deviceName = "Device name " + data.end_device_ids.dev_eui; // Replace the text "Device name " with the actual name of your device
-var deviceType = "Device type"; // Replace the text "Device type" with the actual type of your device
+var deviceName = data.end_device_ids.device_id + " " + data.end_device_ids.dev_eui;
+var deviceType = data.end_device_ids.application_ids.application_id;
 var groupName = null; // If groupName is not null - created device will be added to the entity group with such name.
 var customerName = null; // If customerName is not null - created devices will be assigned to customer with such name.
 
