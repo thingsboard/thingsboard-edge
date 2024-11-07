@@ -191,10 +191,11 @@ CREATE TABLE IF NOT EXISTS raw_data_event (
 CREATE TABLE IF NOT EXISTS white_labeling (
     tenant_id UUID NOT NULL,
     customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
-    type VARCHAR(16),
+    type VARCHAR(30),
     settings VARCHAR(10000000),
     domain_name VARCHAR(255) UNIQUE,
-    CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type)
+    CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type),
+    CONSTRAINT white_labeling_domain_name_type_key UNIQUE (domain_name, type)
 );
 
 CREATE TABLE IF NOT EXISTS custom_translation (

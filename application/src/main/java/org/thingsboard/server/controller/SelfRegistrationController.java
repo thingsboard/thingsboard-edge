@@ -114,13 +114,15 @@ public class SelfRegistrationController extends BaseController {
         WebSelfRegistrationParams selfRegistrationParams = null;
         if (Authority.TENANT_ADMIN.equals(securityUser.getAuthority())) {
             selfRegistrationParams = whiteLabelingService.getTenantSelfRegistrationParams(securityUser.getTenantId());
-            JsonNode privacyPolicyNode = whiteLabelingService.getTenantPrivacyPolicy(securityUser.getTenantId());
-            if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
-                selfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
-            }
-            JsonNode termsOfUseNode = whiteLabelingService.getTenantTermsOfUse(securityUser.getTenantId());
-            if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
-                selfRegistrationParams.setTermsOfUse(termsOfUseNode.get(TERMS_OF_USE).asText());
+            if (selfRegistrationParams != null) {
+                JsonNode privacyPolicyNode = whiteLabelingService.getTenantPrivacyPolicy(securityUser.getTenantId());
+                if (privacyPolicyNode != null && privacyPolicyNode.has(PRIVACY_POLICY)) {
+                    selfRegistrationParams.setPrivacyPolicy(privacyPolicyNode.get(PRIVACY_POLICY).asText());
+                }
+                JsonNode termsOfUseNode = whiteLabelingService.getTenantTermsOfUse(securityUser.getTenantId());
+                if (termsOfUseNode != null && termsOfUseNode.has(TERMS_OF_USE)) {
+                    selfRegistrationParams.setTermsOfUse(termsOfUseNode.get(TERMS_OF_USE).asText());
+                }
             }
         }
         return selfRegistrationParams;
@@ -132,6 +134,8 @@ public class SelfRegistrationController extends BaseController {
         SecurityUser currentUser = getCurrentUser();
         checkSelfRegistrationPermissions(Operation.WRITE);
         whiteLabelingService.deleteWhiteLabeling(currentUser.getTenantId(), currentUser.getCustomerId(), WhiteLabelingType.SELF_REGISTRATION);
+        whiteLabelingService.deleteWhiteLabeling(currentUser.getTenantId(), currentUser.getCustomerId(), WhiteLabelingType.PRIVACY_POLICY);
+        whiteLabelingService.deleteWhiteLabeling(currentUser.getTenantId(), currentUser.getCustomerId(), WhiteLabelingType.TERMS_OF_USE);
     }
 
     @ApiOperation(value = "Get Self Registration form parameters without authentication (getSignUpSelfRegistrationParams)",
