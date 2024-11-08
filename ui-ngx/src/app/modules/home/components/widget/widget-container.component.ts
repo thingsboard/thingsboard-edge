@@ -60,8 +60,8 @@ import { GridsterItemComponent } from 'angular-gridster2';
 import { UtilsService } from '@core/services/utils.service';
 import { from } from 'rxjs';
 import { DashboardUtilsService } from '@core/services/dashboard-utils.service';
-import { TbContextMenuEvent } from '@shared/models/jquery-event.models';
 import ITooltipsterInstance = JQueryTooltipster.ITooltipsterInstance;
+import { TbContextMenuEvent } from '@shared/models/jquery-event.models';
 
 export enum WidgetComponentActionType {
   MOUSE_DOWN,

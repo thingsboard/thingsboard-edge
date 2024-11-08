@@ -47,6 +47,7 @@ import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
 
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -142,7 +143,25 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     @Override
     public String getPayload(IntegrationType integrationType, String converterType, String vendorName, String model) {
         log.trace("Executing getPayload [{}][{}][{}][{}]", integrationType, converterType, vendorName, model);
-        return getFileContent(getConverterDir(integrationType, converterType, vendorName, model) + "/payload.json");
+        List<RepoFile> payloadFiles = listFiles(getConverterDir(integrationType, converterType, vendorName, model), -1, false).stream()
+                .filter(file -> file.name().startsWith("payload"))
+                .sorted(Comparator.comparing(RepoFile::name))
+                .toList();
+        if (payloadFiles.isEmpty()) {
+            return "{}";
+        }
+
+        RepoFile payloadFile = null;
+        for (RepoFile file : payloadFiles) {
+            if (file.name().endsWith("json")) { // preferring json payload
+                payloadFile = file;
+                break;
+            }
+        }
+        if (payloadFile == null) {
+            payloadFile = payloadFiles.get(0);
+        }
+        return getFileContent(payloadFile.path());
     }
 
     @Override

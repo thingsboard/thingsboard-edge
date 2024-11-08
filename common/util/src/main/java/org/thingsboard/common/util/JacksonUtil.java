@@ -317,7 +317,7 @@ public class JacksonUtil {
             return value != null ? OBJECT_MAPPER.readTree(value) : null;
         } catch (IOException e) {
             throw new IllegalArgumentException("The given InputStream value: "
-                                               + value + " cannot be transformed to a JsonNode", e);
+                    + value + " cannot be transformed to a JsonNode", e);
         }
     }
 
@@ -530,6 +530,7 @@ public class JacksonUtil {
         mergeNodes(mainNode, updateNode);
         return mainNode;
     }
+
     public static void mergeNodes(JsonNode mainNode, JsonNode updateNode) {
         Iterator<String> fieldNames = updateNode.fieldNames();
         while (fieldNames.hasNext()) {
@@ -577,6 +578,10 @@ public class JacksonUtil {
             deleteByKeyPath(mainNode, keyPath.substring(0, keyPath.lastIndexOf(".")));
         }
         return mainNode;
+    }
+
+    public static JsonNode getByKeyPath(JsonNode node, String keyPath) {
+        return node.at('/' + keyPath.replace('.', '/'));
     }
 
 }
