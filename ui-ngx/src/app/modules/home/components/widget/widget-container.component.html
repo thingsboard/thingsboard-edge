@@ -69,6 +69,7 @@
         <tb-icon>{{ action.icon }}</tb-icon>
       </button>
       <button mat-icon-button
+              type="button"
               [matMenuTriggerFor]="widgetDataExportMenu"
               [class.!hidden]="isEdit || !widget.enableDataExport"
               matTooltip="{{ 'widget.export-data' | translate }}"
