@@ -335,7 +335,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
     @Override
     public void loadDemoData() throws Exception {
-        /* voba - merge comment
+        /* Edge-only: no ability to load demo data on Edge
         Tenant demoTenant = new Tenant();
         demoTenant.setRegion("Global");
         demoTenant.setTitle("Tenant");

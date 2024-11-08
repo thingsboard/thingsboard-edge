@@ -562,12 +562,6 @@ public class DeviceServiceTest extends AbstractServiceTest {
 
     @Test
     public void testFindDeviceTypesByTenantId() throws Exception {
-
-        // TODO: @voba device profiles are not created on edge at the moment
-        deviceProfileService.findOrCreateDeviceProfile(tenantId, "typeA");
-        deviceProfileService.findOrCreateDeviceProfile(tenantId, "typeB");
-        deviceProfileService.findOrCreateDeviceProfile(tenantId, "typeC");
-
         List<Device> devices = new ArrayList<>();
         try {
             for (int i = 0; i < 3; i++) {
@@ -734,11 +728,6 @@ public class DeviceServiceTest extends AbstractServiceTest {
 
     @Test
     public void testFindDevicesByTenantIdAndType() {
-
-        // TODO: @voba device profiles are not created on edge at the moment
-        deviceProfileService.findOrCreateDeviceProfile(tenantId, "typeA");
-        deviceProfileService.findOrCreateDeviceProfile(tenantId, "typeB");
-
         String title1 = "Device title 1";
         String type1 = "typeA";
         List<Device> devicesType1 = new ArrayList<>();
@@ -947,10 +936,6 @@ public class DeviceServiceTest extends AbstractServiceTest {
 
     @Test
     public void testFindDevicesByTenantIdCustomerIdAndType() {
-
-        // TODO: @voba device profiles are not created on edge at the moment
-        deviceProfileService.findOrCreateDeviceProfile(tenantId, "typeC");
-        deviceProfileService.findOrCreateDeviceProfile(tenantId, "typeD");
 
         Customer customer = new Customer();
         customer.setTitle("Test customer");
