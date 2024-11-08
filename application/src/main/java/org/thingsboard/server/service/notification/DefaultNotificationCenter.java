@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.notification.NotificationRequestConfig
 import org.thingsboard.server.common.data.notification.NotificationRequestStats;
 import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
 import org.thingsboard.server.common.data.notification.NotificationStatus;
+import org.thingsboard.server.common.data.notification.info.GeneralNotificationInfo;
 import org.thingsboard.server.common.data.notification.info.RuleOriginatedNotificationInfo;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
 import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings;
@@ -85,6 +86,7 @@ import org.thingsboard.server.service.executors.NotificationExecutorService;
 import org.thingsboard.server.service.notification.channels.NotificationChannel;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 import org.thingsboard.server.service.telemetry.AbstractSubscriptionService;
+import org.thingsboard.server.service.translation.TbTranslationService;
 import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
 import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;
 
@@ -114,6 +116,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
     private final TopicService topicService;
     private final TbQueueProducerProvider producerProvider;
     private final RateLimitService rateLimitService;
+    private final TbTranslationService translationService;
 
     private Map<NotificationDeliveryMethod, NotificationChannel> channels;
 
@@ -195,6 +198,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
                 .template(notificationTemplate)
                 .settings(settings)
                 .systemSettings(systemSettings)
+                .translationProvider(locale -> translationService.getFullTranslation(tenantId, null, locale))
                 .build();
 
         processNotificationRequestAsync(ctx, targets, callback);
@@ -202,7 +206,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
     }
 
     @Override
-    public void sendGeneralWebNotification(TenantId tenantId, UsersFilter recipients, NotificationTemplate template) {
+    public void sendGeneralWebNotification(TenantId tenantId, UsersFilter recipients, NotificationTemplate template, GeneralNotificationInfo info) {
         NotificationTarget target = new NotificationTarget();
         target.setTenantId(tenantId);
         PlatformUsersNotificationTargetConfig targetConfig = new PlatformUsersNotificationTargetConfig();
@@ -213,6 +217,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
                 .tenantId(tenantId)
                 .template(template)
                 .targets(List.of(EntityId.NULL_UUID)) // this is temporary and will be removed when 'create from scratch' functionality is implemented for recipients
+                .info(info)
                 .status(NotificationRequestStatus.PROCESSING)
                 .build();
         try {

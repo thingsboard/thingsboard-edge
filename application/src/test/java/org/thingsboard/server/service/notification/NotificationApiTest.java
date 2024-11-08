@@ -31,6 +31,8 @@
 package org.thingsboard.server.service.notification;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.SettableFuture;
 import lombok.extern.slf4j.Slf4j;
@@ -71,6 +73,7 @@ import org.thingsboard.server.common.data.notification.NotificationRequestStatus
 import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.info.AlarmCommentNotificationInfo;
 import org.thingsboard.server.common.data.notification.info.EntityActionNotificationInfo;
+import org.thingsboard.server.common.data.notification.info.GeneralNotificationInfo;
 import org.thingsboard.server.common.data.notification.rule.trigger.config.AlarmCommentNotificationRuleTriggerConfig;
 import org.thingsboard.server.common.data.notification.settings.MobileAppNotificationDeliveryMethodConfig;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
@@ -99,6 +102,7 @@ import org.thingsboard.server.common.data.notification.template.WebDeliveryMetho
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.dao.notification.DefaultNotifications;
+import org.thingsboard.server.dao.notification.DefaultNotifications.DefaultNotification;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.service.notification.channels.MicrosoftTeamsNotificationChannel;
 import org.thingsboard.server.service.notification.channels.TeamsAdaptiveCard;
@@ -496,6 +500,56 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
     }
 
     @Test
+    public void testNotificationsLocalization() throws Exception {
+        loginTenantAdmin();
+        JsonNode enTranslation = JacksonUtil.newObjectNode()
+                .set("custom", JacksonUtil.newObjectNode()
+                        .put("hi", "Hi, ${recipientTitle}")
+                        .put("check-docs", "Check out our documentation: https://thingsboard.io"));
+        doPost("/api/translation/custom/en_US", enTranslation);
+
+        JsonNode uaTranslation = JacksonUtil.newObjectNode()
+                .set("custom", JacksonUtil.newObjectNode()
+                        .put("hi", "Добрий день, ${recipientTitle}")
+                        .put("check-docs", "Прогляньте нашу документацію: https://thingsboard.io"));
+        doPost("/api/translation/custom/uk_UA", uaTranslation);
+
+        User englishUser = new User();
+        englishUser.setTenantId(tenantId);
+        englishUser.setAuthority(Authority.TENANT_ADMIN);
+        englishUser.setFirstName("Robert");
+        englishUser.setEmail("english-user@thingsboard.org");
+        englishUser.setAdditionalInfoField("lang", new TextNode("en_US"));
+        englishUser = createUser(englishUser, "password");
+
+        User ukrainianUser = new User();
+        ukrainianUser.setTenantId(tenantId);
+        ukrainianUser.setAuthority(Authority.TENANT_ADMIN);
+        ukrainianUser.setFirstName("Вячеслав");
+        ukrainianUser.setEmail("ukrainian-user@thingsboard.org");
+        ukrainianUser.setAdditionalInfoField("lang", new TextNode("uk_UA"));
+        ukrainianUser = createUser(ukrainianUser, "password");
+
+        NotificationTarget target = createNotificationTarget(englishUser.getId(), ukrainianUser.getId());
+        String subject = "${widgets.getting-started.done-welcome-title:translate}";
+        String body = "${custom.hi:translate}! ${custom.check-docs:translate}";
+        NotificationTemplate template = createNotificationTemplate(NotificationType.GENERAL, subject, body, NotificationDeliveryMethod.WEB);
+
+        NotificationRequest request = submitNotificationRequest(List.of(target.getId()), template.getId(), 0);
+        awaitNotificationRequest(request.getId());
+
+        login(englishUser.getEmail(), "password");
+        Notification englishNotification = getMyNotifications(true, 1).get(0);
+        assertThat(englishNotification.getSubject()).isEqualTo("Welcome on board");
+        assertThat(englishNotification.getText()).isEqualTo("Hi, Robert! Check out our documentation: https://thingsboard.io");
+
+        login(ukrainianUser.getEmail(), "password");
+        Notification ukrainianNotification = getMyNotifications(true, 1).get(0);
+        assertThat(ukrainianNotification.getSubject()).isEqualTo("Welcome on board"); // fallback to english
+        assertThat(ukrainianNotification.getText()).isEqualTo("Добрий день, Вячеслав! Прогляньте нашу документацію: https://thingsboard.io");
+    }
+
+    @Test
     public void testNotificationRequestPreview() throws Exception {
         NotificationTarget tenantAdminTarget = new NotificationTarget();
         tenantAdminTarget.setName("Me");
@@ -762,14 +816,21 @@ public class NotificationApiTest extends AbstractNotificationApiTest {
 
         getAnotherWsClient().registerWaitForUpdate();
 
-        DefaultNotifications.DefaultNotification expectedNotification = DefaultNotifications.maintenanceWork;
+        NotificationTemplate template = DefaultNotification.builder()
+                .name("Test")
+                .subject("Testing ${subjectVariable}")
+                .text("Testing ${bodyVariable}")
+                .build().toTemplate();
         notificationCenter.sendGeneralWebNotification(TenantId.SYS_TENANT_ID, new SystemAdministratorsFilter(),
-                expectedNotification.toTemplate());
+                template, new GeneralNotificationInfo(Map.of(
+                        "subjectVariable", "subject",
+                        "bodyVariable", "body"
+                )));
 
         getAnotherWsClient().waitForUpdate(true);
         Notification notification = getAnotherWsClient().getLastDataUpdate().getUpdate();
-        assertThat(notification.getSubject()).isEqualTo(expectedNotification.getSubject());
-        assertThat(notification.getText()).isEqualTo(expectedNotification.getText());
+        assertThat(notification.getSubject()).isEqualTo("Testing subject");
+        assertThat(notification.getText()).isEqualTo("Testing body");
     }
 
     @Test

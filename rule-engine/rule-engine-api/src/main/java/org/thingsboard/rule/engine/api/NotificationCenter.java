@@ -38,6 +38,7 @@ import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.notification.NotificationRequestStats;
+import org.thingsboard.server.common.data.notification.info.GeneralNotificationInfo;
 import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 
@@ -47,7 +48,7 @@ public interface NotificationCenter {
 
     NotificationRequest processNotificationRequest(TenantId tenantId, NotificationRequest notificationRequest, FutureCallback<NotificationRequestStats> callback);
 
-    void sendGeneralWebNotification(TenantId tenantId, UsersFilter recipients, NotificationTemplate template);
+    void sendGeneralWebNotification(TenantId tenantId, UsersFilter recipients, NotificationTemplate template, GeneralNotificationInfo info);
 
     void deleteNotificationRequest(TenantId tenantId, NotificationRequestId notificationRequestId);
 

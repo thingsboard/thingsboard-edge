@@ -181,15 +181,10 @@ export class AuthGuard  {
               return of(false);
             } else if (data.redirectTo) {
               let redirect;
-              if (isObject(data.redirectTo) && !data.redirectTo.hasOwnProperty('condition')) {
+              if (isObject(data.redirectTo)) {
                 redirect = data.redirectTo[authority];
               } else {
                 redirect = data.redirectTo;
-              }
-              if (isObject(redirect) && redirect.hasOwnProperty('condition')) {
-                const userPermissionsService = this.userPermissionsService; // used in eval
-                // eslint-disable-next-line no-eval
-                redirect = eval(redirect.condition);
               }
               return this.menuService.getRedirectPath(path, redirect).pipe(
                 map((redirectPath) => {

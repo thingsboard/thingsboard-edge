@@ -32,6 +32,7 @@
 import { Observable } from 'rxjs/internal/Observable';
 import { from, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
+import { unwrapModule } from '@core/utils';
 
 let jsBeautifyModule: any;
 let htmlBeautifyModule: any;
@@ -42,6 +43,7 @@ function loadJsBeautify(): Observable<any> {
     return of(jsBeautifyModule);
   } else {
     return from(import('js-beautify/js/lib/beautify.js')).pipe(
+      map((module) => unwrapModule(module)),
       tap((module) => {
         jsBeautifyModule = module;
       })
@@ -54,6 +56,7 @@ function loadHtmlBeautify(): Observable<any> {
     return of(htmlBeautifyModule);
   } else {
     return from(import('js-beautify/js/lib/beautify-html.js')).pipe(
+      map((module) => unwrapModule(module)),
       tap((module) => {
         htmlBeautifyModule = module;
       })
@@ -66,6 +69,7 @@ function loadCssBeautify(): Observable<any> {
     return of(cssBeautifyModule);
   } else {
     return from(import('js-beautify/js/lib/beautify-css.js')).pipe(
+      map((module) => unwrapModule(module)),
       tap((module) => {
         cssBeautifyModule = module;
       })
