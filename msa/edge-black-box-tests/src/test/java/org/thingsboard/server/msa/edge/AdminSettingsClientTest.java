@@ -46,7 +46,7 @@ public class AdminSettingsClientTest extends AbstractContainerTest {
         verifyTenantAdminSettingsByKey("general");
         verifyTenantAdminSettingsByKey("mail");
 
-        // TODO: Edge-only:  verify admin setting in next release. In the current there is no sysadmin on edge to fetch it
+        // TODO: Edge-only: verify admin setting in next release. In the current there is no sysadmin on edge to fetch it
         // login as sysadmin on edge
         // login as sysadmin on cloud
         // verifyAdminSettingsByKey("general");
@@ -60,4 +60,5 @@ public class AdminSettingsClientTest extends AbstractContainerTest {
         Assert.assertTrue("Admin settings is not available on cloud, key = " + key, cloudAdminSettings.isPresent());
         Assert.assertEquals("Admin settings on cloud and edge are different", edgeAdminSettings.get(), cloudAdminSettings.get());
     }
+
 }

@@ -81,7 +81,7 @@ public @interface RuleNode {
 
     boolean ruleChainNode() default false;
 
-    // TODO: voba - merge comment
+    // Edge-only: RuleChainType.EDGE exists only on Cloud side
     //RuleChainType[] ruleChainTypes() default {RuleChainType.CORE, RuleChainType.EDGE};
 
     RuleChainType[] ruleChainTypes() default {RuleChainType.CORE};

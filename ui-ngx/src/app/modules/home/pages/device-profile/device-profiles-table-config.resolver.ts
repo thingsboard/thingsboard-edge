@@ -114,7 +114,7 @@ export class DeviceProfilesTableConfigResolver  {
         isEnabled: () => true,
         onAction: ($event, entity) => this.exportDeviceProfile($event, entity)
       },
-      /* edge-only: not visible on edge
+      /* Edge-only: not visible on edge
       {
         name: this.translate.instant('device-profile.set-default'),
         icon: 'flag',

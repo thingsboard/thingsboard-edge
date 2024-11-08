@@ -257,7 +257,7 @@ public class EventController extends BaseController {
         checkParameter("EntityId", strEntityId);
         checkParameter("EntityType", strEntityType);
         EntityId entityId = EntityIdFactory.getByTypeAndId(strEntityType, strEntityId);
-        // TODO: voba - merge comment
+        // Edge-only: only READ operation
         // checkEntityId(entityId, Operation.WRITE);
         checkEntityId(entityId, Operation.READ);
 
