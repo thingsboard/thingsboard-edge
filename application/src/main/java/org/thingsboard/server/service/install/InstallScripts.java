@@ -633,8 +633,18 @@ public class InstallScripts {
         resourcesUpdater.updateWidgetsResources();
 
         /* TODO TMP remove */
-//        loadSystemResources(Path.of("/home/viacheslav/Desktop/thingsboard-ce/application/src/main/data/resources/js_modules"), ResourceType.JS_MODULE);
-//        resourcesUpdater.updateFiles();
+//        loadSystemResources(Path.of("/home/viacheslav/Desktop/thingsboard-pe/application/src/main/data/resources/js_modules"), ResourceType.JS_MODULE);
+//
+//        String dataDir = "/home/viacheslav/Desktop/thingsboard-pe/application/src/main/data";
+//        Stream<Path> dashboardsFiles = Stream.concat(Stream.concat(listDir(Paths.get(dataDir, JSON_DIR, DEMO_DIR, DASHBOARDS_DIR)),
+//                        listDir(Paths.get(dataDir, JSON_DIR, TENANT_DIR, DASHBOARDS_DIR))),
+//                listDir(Paths.get(dataDir, JSON_DIR, SOLUTIONS_DIR))
+//                        .filter(file -> file.toFile().isDirectory())
+//                        .flatMap(solutionDir -> listDir(solutionDir.resolve(DASHBOARDS_DIR))));
+//        Stream<Path> widgetTypesFiles = listDir(Paths.get(dataDir, JSON_DIR, SYSTEM_DIR, WIDGET_TYPES_DIR));
+//
+//        resourcesUpdater.updateDashboards(dashboardsFiles);
+//        resourcesUpdater.updateWidgets(widgetTypesFiles);
     }
 
     private void loadSystemResources(Path dir, ResourceType resourceType) {

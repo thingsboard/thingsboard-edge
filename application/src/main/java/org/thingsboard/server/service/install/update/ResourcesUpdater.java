@@ -76,6 +76,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -187,13 +188,41 @@ public class ResourcesUpdater {
         log.info("Updated {} widgets", updatedCount);
     }
 
+    public void updateDashboards(Stream<Path> files) {
+        files.forEach(path -> {
+            Dashboard dashboard = JacksonUtil.readValue(path.toFile(), Dashboard.class);
+            dashboard.setTenantId(TenantId.SYS_TENANT_ID);
+
+            imageService.updateImagesUsage(dashboard);
+            resourceService.updateResourcesUsage(dashboard);
+
+            Map<TbResourceId, TbResourceInfo> resources = new HashMap<>();
+            for (TbResourceInfo imageInfo : imageService.getUsedImages(dashboard)) {
+                resources.putIfAbsent(imageInfo.getId(), imageInfo);
+            }
+            for (TbResourceInfo resourceInfo : resourceService.getUsedResources(dashboard)) {
+                resources.putIfAbsent(resourceInfo.getId(), resourceInfo);
+            }
+
+            dashboard.setResources(resourceService.exportResources(TenantId.SYS_TENANT_ID, resources.values()));
+
+            ObjectNode json = (ObjectNode) JacksonUtil.valueToTree(dashboard);
+            json.remove(List.of("id", "createdTime", "tenantId", "externalId", "version", "scada"));
+            JsonNode resourcesNode = json.remove("resources");
+            json.set("resources", resourcesNode);
+            try {
+                Files.writeString(path, json.toPrettyString());
+                //                    log.info("UPDATED {}: {} resources used", path, resources.size());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
     // TODO: remove after updating PE
     @SneakyThrows
-    public void updateFiles() {
-        Path widgetsDirectory = Path.of("/home/viacheslav/Desktop/thingsboard-ce/application/src/main/data/json/system/widget_types");
-        Path dashboardsDirectory = Path.of("/home/viacheslav/Desktop/thingsboard-ce/application/src/main/data/json/demo/dashboards");
-
-        Files.list(widgetsDirectory).forEach(path -> {
+    public void updateWidgets(Stream<Path> dirs) {
+        dirs.forEach(path -> {
             WidgetTypeDetails widgetTypeDetails = JacksonUtil.readValue(path.toFile(), WidgetTypeDetails.class);
             widgetTypeDetails.setTenantId(TenantId.SYS_TENANT_ID);
 
@@ -218,36 +247,7 @@ public class ResourcesUpdater {
             json.set("resources", resourcesNode);
             try {
                 Files.writeString(path, json.toPrettyString());
-//                    log.info("UPDATED {}: {} resources used", path, resources.size());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        Files.list(dashboardsDirectory).forEach(path -> {
-            Dashboard dashboard = JacksonUtil.readValue(path.toFile(), Dashboard.class);
-            dashboard.setTenantId(TenantId.SYS_TENANT_ID);
-
-            imageService.updateImagesUsage(dashboard);
-            resourceService.updateResourcesUsage(dashboard);
-
-            Map<TbResourceId, TbResourceInfo> resources = new HashMap<>();
-            for (TbResourceInfo imageInfo : imageService.getUsedImages(dashboard)) {
-                resources.putIfAbsent(imageInfo.getId(), imageInfo);
-            }
-            for (TbResourceInfo resourceInfo : resourceService.getUsedResources(dashboard)) {
-                resources.putIfAbsent(resourceInfo.getId(), resourceInfo);
-            }
-
-            dashboard.setResources(resourceService.exportResources(TenantId.SYS_TENANT_ID, resources.values()));
-
-            ObjectNode json = (ObjectNode) JacksonUtil.valueToTree(dashboard);
-            json.remove(List.of("id", "createdTime", "tenantId", "externalId", "version", "scada"));
-            JsonNode resourcesNode = json.remove("resources");
-            json.set("resources", resourcesNode);
-            try {
-                Files.writeString(path, json.toPrettyString());
-//                    log.info("UPDATED {}: {} resources used", path, resources.size());
+                //                    log.info("UPDATED {}: {} resources used", path, resources.size());
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
