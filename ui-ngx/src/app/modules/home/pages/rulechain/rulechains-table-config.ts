@@ -145,7 +145,8 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
 
     columns.push(
       new DateEntityTableColumn<RuleChain>('createdTime', 'common.created-time', this.datePipe, '150px'),
-      new EntityTableColumn<RuleChain>('name', 'rulechain.name', '100%', this.entityTitle)
+      new EntityTableColumn<RuleChain>('name', 'rulechain.name', '50%', this.entityTitle),
+      new EntityTableColumn<RuleChain>('description', 'rulechain.description', '50%', entity => entity.additionalInfo?.description ?? '')
     );
     if (ruleChainScope === 'tenant' || ruleChainScope === 'edge') {
       columns.push(
