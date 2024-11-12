@@ -40,12 +40,6 @@ import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
-<<<<<<< HEAD
-import org.thingsboard.server.common.data.widget.BaseWidgetType;
-import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
-=======
-import org.thingsboard.server.dao.exception.DataValidationException;
->>>>>>> ce/improvements/dashboard-export
 import org.thingsboard.server.dao.resource.TbResourceDao;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.tenant.TbTenantProfileCache;

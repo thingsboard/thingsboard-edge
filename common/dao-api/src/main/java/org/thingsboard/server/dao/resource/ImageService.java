@@ -102,10 +102,8 @@ public interface ImageService {
 
     void inlineImagesForEdge(WidgetTypeDetails widgetTypeDetails);
 
-<<<<<<< HEAD
     void inlineImagesForEdge(TenantId tenantId, JsonNode settings);
-=======
+
     TbResourceInfo createOrUpdateSystemImage(String resourceKey, byte[] data);
->>>>>>> ce/improvements/dashboard-export
 
 }
