@@ -57,7 +57,7 @@ public class TemplateUtils {
             String key = matchResult.group(1);
             String functionName = removeStart(matchResult.group(2), ":");
             if (!context.containsKey(key)) {
-                if (functionName == null || !customFunctions.containsKey(functionName)) {
+                if (functionName == null || customFunctions == null || !customFunctions.containsKey(functionName)) {
                     return "\\" + matchResult.group();
                 }
             }
