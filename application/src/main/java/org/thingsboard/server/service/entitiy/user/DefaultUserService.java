@@ -135,7 +135,7 @@ public class DefaultUserService extends AbstractTbEntityService implements TbUse
     public UserActivationLink getActivationLink(TenantId tenantId, CustomerId customerId, Authority authority, UserId userId, HttpServletRequest request) throws ThingsboardException {
         UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, userId);
         if (!userCredentials.isEnabled() && userCredentials.getActivateToken() != null) {
-            userCredentials = userService.refreshUserActivationToken(tenantId, userCredentials);
+            userCredentials = userService.checkUserActivationToken(tenantId, userCredentials);
             String baseUrl = systemSecurityService.getBaseUrl(authority, tenantId, customerId, request);
             String link = baseUrl + "/api/noauth/activate?activateToken=" + userCredentials.getActivateToken();
             return new UserActivationLink(link, userCredentials.getActivationTokenTtl());
