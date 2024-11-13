@@ -64,6 +64,7 @@ import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.Operation;
+import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.selfregistration.MobileSelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpSelfRegistrationParams;
 import org.thingsboard.server.config.annotations.ApiOperation;
@@ -163,6 +164,7 @@ public class MobileAppController extends BaseController {
                                                    @RequestParam(required = false) String sortProperty,
                                                    @Parameter(description = SORT_ORDER_DESCRIPTION)
                                                    @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), MOBILE_APP, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return mobileAppService.findMobileAppsByTenantId(getTenantId(), platformType, pageLink);
     }

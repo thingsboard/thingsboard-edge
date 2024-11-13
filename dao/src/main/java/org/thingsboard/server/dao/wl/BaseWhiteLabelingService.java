@@ -568,7 +568,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(saved.getTenantId(), saved.getCustomerId(), saved.getType());
             publishEvictEvent(new WhiteLabelingEvictEvent(forKey(key)));
             if (!StringUtils.isEmpty(whiteLabeling.getDomain())){
-                publishEvictEvent(new WhiteLabelingEvictEvent(forTypeAndDomain(LOGIN, whiteLabeling.getDomain())));
+                publishEvictEvent(new WhiteLabelingEvictEvent(forTypeAndDomain(whiteLabeling.getType(), whiteLabeling.getDomain())));
             }
             return saved;
         } catch (Exception t) {
