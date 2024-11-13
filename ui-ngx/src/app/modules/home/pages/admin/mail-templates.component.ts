@@ -91,6 +91,7 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
       this.tinyMceOptions.height = 450;
       this.tinyMceOptions.autofocus = false;
       this.tinyMceOptions.branding = false;
+      this.tinyMceOptions.promotion = false;
       this.tinyMceOptions.resize = true;
       this.tinyMceOptions.readonly = 1;
       this.tinyMceOptions.setup = (ed) => {
