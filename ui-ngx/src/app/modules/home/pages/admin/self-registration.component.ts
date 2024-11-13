@@ -69,7 +69,8 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     height: 380,
     autofocus: false,
     branding: false,
-    resize: true
+    resize: true,
+    promotion: false
   };
 
   showMainLoadingBar = false;
