@@ -137,9 +137,9 @@ export class SignupComponent extends PageComponent {
       this.translate.instant('signup.resend')
     ).subscribe((result) => {
       if (result) {
-        this.authService.resendEmailActivation(this.signup.get('email').value).subscribe(
+        this.authService.resendEmailActivation(this.signup.get('fields.EMAIL').value).subscribe(
           () => {
-            this.router.navigateByUrl('/signup/emailVerification?email=' + this.signup.get('email').value).then(() => {});
+            this.router.navigateByUrl('/signup/emailVerification?email=' + this.signup.get('fields.EMAIL').value).then(() => {});
           }
         );
       }

@@ -34,6 +34,7 @@ import {
   CellActionDescriptor,
   checkBoxCell,
   DateEntityTableColumn,
+  defaultEntityTablePermissions,
   EntityChipsEntityTableColumn,
   EntityTableColumn,
   EntityTableConfig
@@ -62,6 +63,7 @@ import { AppState } from '@core/core.state';
 import { getCurrentAuthUser, selectUserSettingsProperty } from '@core/auth/auth.selectors';
 import { forkJoin, of } from 'rxjs';
 import { Authority } from '@shared/models/authority.enum';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class MobileBundleTableConfigResolver {
@@ -74,6 +76,7 @@ export class MobileBundleTableConfigResolver {
     private translate : TranslateService,
     private dialog: MatDialog,
     private store: Store<AppState>,
+    private userPermissionsService: UserPermissionsService,
   ) {
     this.config.selectionEnabled = false;
     this.config.entityType = EntityType.MOBILE_APP_BUNDLE;
@@ -142,7 +145,7 @@ export class MobileBundleTableConfigResolver {
           entity => checkBoxCell(entity.selfRegistrationParams?.enabled)),
       )
     }
-
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 

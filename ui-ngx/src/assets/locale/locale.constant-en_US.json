@@ -5423,7 +5423,11 @@
                 "VERSION_CONTROL": "Version control",
                 "ASSET_PROFILE": "Asset Profile",
                 "NOTIFICATION": "Notification",
-                "MOBILE_APP_SETTINGS": "QR code widget"
+                "MOBILE_APP_SETTINGS": "QR code widget setting",
+                "MOBILE_APP_BUNDLE": "Mobile bundle",
+                "MOBILE_APP": "Mobile app",
+                "DOMAIN": "Domain",
+                "OAUTH2_CLIENT": "OAuth 2.0 client"
             }
         },
         "operation": {

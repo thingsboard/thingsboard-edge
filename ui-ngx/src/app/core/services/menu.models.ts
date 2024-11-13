@@ -1397,6 +1397,16 @@ const menuFilters = new Map<MenuId, MenuFilter>([
             userPermissionsService.hasReadGenericPermission(Resource.VERSION_CONTROL)
   ],
   [
+    MenuId.mobile_bundles, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
+            userPermissionsService.hasReadGenericPermission(Resource.MOBILE_APP_BUNDLE)
+  ],
+  [
+    MenuId.mobile_apps, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
+            userPermissionsService.hasReadGenericPermission(Resource.MOBILE_APP)
+  ],
+  [
     MenuId.mobile_qr_code_widget, (authState, userPermissionsService) =>
             authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.MOBILE_APP_SETTINGS)
@@ -1409,6 +1419,15 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   [
     MenuId.roles, (_authState, userPermissionsService) =>
             userPermissionsService.hasReadGenericPermission(Resource.ROLE)
+  ],
+  [
+    MenuId.clients, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
+            userPermissionsService.hasReadGenericPermission(Resource.OAUTH2_CLIENT)
+  ],
+  [
+    MenuId.domains, (authState, userPermissionsService) =>
+            userPermissionsService.hasReadGenericPermission(Resource.DOMAIN)
   ],
   [
     MenuId.self_registration, (authState, userPermissionsService) =>

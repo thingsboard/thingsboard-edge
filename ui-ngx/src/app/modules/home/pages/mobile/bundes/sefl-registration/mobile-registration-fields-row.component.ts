@@ -48,7 +48,6 @@ import {
 } from '@shared/models/self-register.models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateService } from '@ngx-translate/core';
-import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-mobile-registration-fields-row',
@@ -71,7 +70,10 @@ import { isDefinedAndNotNull } from '@core/utils';
 export class MobileRegistrationFieldsRowComponent implements ControlValueAccessor, Validator {
 
   @Input()
-  allowFieldIds: SignUpFieldId[]
+  allowFieldIds: SignUpFieldId[];
+
+  @Input({transform: booleanAttribute})
+  disabled: boolean;
 
   @Output()
   fieldRemoved = new EventEmitter();
@@ -113,6 +115,7 @@ export class MobileRegistrationFieldsRowComponent implements ControlValueAccesso
   }
 
   setDisabledState(isDisabled: boolean) {
+    this.disabled = isDisabled;
     if (isDisabled) {
       this.fieldForm.disable({emitEvent: false});
     } else {
