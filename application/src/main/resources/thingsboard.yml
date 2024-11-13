@@ -1905,6 +1905,8 @@ queue:
       task-reprocessing-delay-ms: "${TB_HOUSEKEEPER_TASK_REPROCESSING_DELAY_MS:3000}"
       # Maximum amount of task reprocessing attempts. After exceeding, the task will be dropped
       max-reprocessing-attempts: "${TB_HOUSEKEEPER_MAX_REPROCESSING_ATTEMPTS:10}"
+      # Expiration check frequency in seconds for entities that have ttl
+      check-expiration-frequency: "${TB_HOUSEKEEPER_CHECK_EXPIRATION_FREQUENCY:3600}"
       stats:
         # Enable/disable statistics for Housekeeper
         enabled: "${TB_HOUSEKEEPER_STATS_ENABLED:true}"

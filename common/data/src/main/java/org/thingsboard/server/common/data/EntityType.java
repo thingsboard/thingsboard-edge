@@ -40,6 +40,7 @@ import java.util.stream.Collectors;
 /**
  * @author Andrew Shvayka
  */
+@Getter
 public enum EntityType {
     TENANT(1),
     CUSTOMER(2, true),
@@ -91,15 +92,13 @@ public enum EntityType {
     DOMAIN(36),
     MOBILE_APP(37);
 
-    @Getter
     private final int protoNumber; // Corresponds to EntityTypeProto
-    @Getter
     private final String tableName;
-    @Getter
     private final boolean groupEntityType;
-    @Getter
     private final String normalName = StringUtils.capitalize(StringUtils.removeStart(name(), "TB_")
             .toLowerCase().replaceAll("_", " "));
+    private final boolean hasTtl;
+
 
     public static final List<EntityType> GROUP_ENTITY_TYPES = EnumSet.allOf(EntityType.class).stream()
             .filter(EntityType::isGroupEntityType).collect(Collectors.toUnmodifiableList());
@@ -115,6 +114,7 @@ public enum EntityType {
         this.protoNumber = protoNumber;
         this.groupEntityType = groupEntityType;
         this.tableName = name().toLowerCase();
+        this.hasTtl = false;
     }
 
     EntityType(int protoNumber, String tableName) {
@@ -122,9 +122,14 @@ public enum EntityType {
     }
 
     EntityType(int protoNumber, String tableName, boolean groupEntityType) {
+        this(protoNumber, tableName, groupEntityType, false);
+    }
+
+    EntityType(int protoNumber, String tableName, boolean groupEntityType, boolean hasTtl) {
         this.protoNumber = protoNumber;
         this.tableName = tableName;
         this.groupEntityType = groupEntityType;
+        this.hasTtl = hasTtl;
     }
 
 }
