@@ -61,7 +61,7 @@ public class WhiteLabelingCacheKey implements Serializable {
         builder.append("WhiteLabelingCacheKey{");
         if (domainName != null && type != null) {
             builder.append("domainName=").append(domainName);
-            builder.append("type=").append(type);
+            builder.append(",type=").append(type);
         } else {
             if (key.getTenantId() != null) {
                 builder.append("tenantId=").append(key.getTenantId());

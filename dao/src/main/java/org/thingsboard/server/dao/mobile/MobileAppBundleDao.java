@@ -44,6 +44,8 @@ import java.util.List;
 
 public interface MobileAppBundleDao extends Dao<MobileAppBundle> {
 
+    MobileAppBundle findPolicyInfoByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platform);
+
     PageData<MobileAppBundleInfo> findInfosByTenantId(TenantId tenantId, PageLink pageLink);
 
     MobileAppBundleInfo findInfoById(TenantId tenantId, MobileAppBundleId mobileAppBundleId);
