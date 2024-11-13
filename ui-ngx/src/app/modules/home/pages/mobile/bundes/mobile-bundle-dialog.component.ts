@@ -100,6 +100,7 @@ export class MobileBundleDialogComponent extends DialogComponent<MobileBundleDia
     selfRegistrationParams: [null]
   });
 
+  isAdd = false;
   readonly isSysAdmin = getCurrentAuthUser(this.store).authority === Authority.SYS_ADMIN;
 
   constructor(protected store: Store<AppState>,
@@ -113,7 +114,8 @@ export class MobileBundleDialogComponent extends DialogComponent<MobileBundleDia
     super(store, router, dialogRef);
 
     if (this.data.isAdd) {
-      this.dialogTitle = 'mobile.add-bundle'
+      this.dialogTitle = 'mobile.add-bundle';
+      this.isAdd = true;
     }
 
     this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-xs'])
