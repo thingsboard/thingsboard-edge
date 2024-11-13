@@ -217,7 +217,7 @@ public abstract class RedisTbTransactionalCache<K extends Serializable, V extend
     private void evictKeys(String prefix, RedisConnection connection, RedisClusterNode node) {
         Set<byte[]> keysToEvict = getKeysByPrefix(prefix, connection, node);
         if (!keysToEvict.isEmpty()) {
-            connection.keyCommands().del(keysToEvict.toArray(new byte[0][]));
+            connection.keyCommands().del(keysToEvict.toArray(new byte[keysToEvict.size()][]));
         }
     }
 
