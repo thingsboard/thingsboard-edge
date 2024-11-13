@@ -45,37 +45,39 @@
             </mat-progress-bar>
             <span style="height: 4px;" *ngIf="(isLoading$ | async) === false"></span>
             <div tb-toast class="layout-padding flex flex-col">
-              <div class="flex flex-col gap-2 gt-sm:flex-row">
-                <mat-form-field class="mat-block tb-appearance-transparent flex-1">
-                  <mat-label translate>signup.firstname</mat-label>
-                  <input matInput autofocus formControlName="firstName" required/>
+              <div class="flex flex-col" formGroupName="fields">
+                <div class="flex flex-col gap-2 gt-sm:flex-row">
+                  <mat-form-field class="mat-block tb-appearance-transparent flex-1">
+                    <mat-label translate>signup.firstname</mat-label>
+                    <input matInput autofocus formControlName="FIRST_NAME" required/>
+                  </mat-form-field>
+                  <mat-form-field class="mat-block tb-appearance-transparent flex-1">
+                    <mat-label translate>signup.lastname</mat-label>
+                    <input matInput formControlName="LAST_NAME" required/>
+                  </mat-form-field>
+                </div>
+                <mat-form-field class="mat-block tb-appearance-transparent">
+                  <mat-label translate>signup.email</mat-label>
+                  <input matInput type="email" formControlName="EMAIL" email required/>
+                  <mat-icon matPrefix>email</mat-icon>
+                  <mat-error *ngIf="signup.get('fields.EMAIL').invalid">
+                    {{ 'user.invalid-email-format' | translate }}
+                  </mat-error>
                 </mat-form-field>
-                <mat-form-field class="mat-block tb-appearance-transparent flex-1">
-                  <mat-label translate>signup.lastname</mat-label>
-                  <input matInput formControlName="lastName" required/>
+                <mat-form-field class="mat-block tb-appearance-transparent">
+                  <mat-label translate>signup.create-password</mat-label>
+                  <input matInput type="password" formControlName="PASSWORD" required/>
+                  <tb-toggle-password matSuffix></tb-toggle-password>
+                  <mat-icon matPrefix>lock</mat-icon>
+                </mat-form-field>
+                <mat-form-field class="mat-block tb-appearance-transparent">
+                  <mat-label translate>signup.repeat-password</mat-label>
+                  <input matInput type="password" [(ngModel)]="passwordCheck"
+                         [ngModelOptions]="{standalone: true}" required/>
+                  <tb-toggle-password matSuffix></tb-toggle-password>
+                  <mat-icon matPrefix>lock</mat-icon>
                 </mat-form-field>
               </div>
-              <mat-form-field class="mat-block tb-appearance-transparent">
-                <mat-label translate>signup.email</mat-label>
-                <input matInput type="email" formControlName="email" email required/>
-                <mat-icon matPrefix>email</mat-icon>
-                <mat-error *ngIf="signup.get('email').invalid">
-                  {{ 'user.invalid-email-format' | translate }}
-                </mat-error>
-              </mat-form-field>
-              <mat-form-field class="mat-block tb-appearance-transparent">
-                <mat-label translate>signup.create-password</mat-label>
-                <input matInput type="password" formControlName="password" required/>
-                <tb-toggle-password matSuffix></tb-toggle-password>
-                <mat-icon matPrefix>lock</mat-icon>
-              </mat-form-field>
-              <mat-form-field class="mat-block tb-appearance-transparent">
-                <mat-label translate>signup.repeat-password</mat-label>
-                <input matInput type="password" [(ngModel)]="passwordCheck"
-                       [ngModelOptions]="{standalone: true}" required/>
-                <tb-toggle-password matSuffix></tb-toggle-password>
-                <mat-icon matPrefix>lock</mat-icon>
-              </mat-form-field>
               <div class="tb-recaptcha flex flex-col">
                 <ngx-recaptcha2 *ngIf="signupParams?.captcha?.version === 'v2'" #recaptcha formControlName="recaptchaResponse" [useGlobalDomain]="true" [siteKey]="signupParams?.captcha?.siteKey"></ngx-recaptcha2>
               </div>

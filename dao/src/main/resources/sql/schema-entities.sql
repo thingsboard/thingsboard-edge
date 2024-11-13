@@ -1069,7 +1069,7 @@ CREATE TABLE IF NOT EXISTS white_labeling (
     customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
     type VARCHAR(30),
     settings VARCHAR(10000000),
-    domain_name VARCHAR(255) UNIQUE,
+    domain_name VARCHAR(255),
     CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type),
     CONSTRAINT white_labeling_domain_name_type_key UNIQUE (domain_name, type)
 );
