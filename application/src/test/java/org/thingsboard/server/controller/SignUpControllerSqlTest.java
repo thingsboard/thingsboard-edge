@@ -43,14 +43,21 @@ import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.CustomerInfo;
 import org.thingsboard.server.common.data.EntityInfo;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenu;
+import org.thingsboard.server.common.data.mobile.app.MobileApp;
+import org.thingsboard.server.common.data.mobile.app.MobileAppStatus;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.selfregistration.CaptchaParams;
+import org.thingsboard.server.common.data.selfregistration.MobileRedirectParams;
+import org.thingsboard.server.common.data.selfregistration.MobileSelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpField;
 import org.thingsboard.server.common.data.selfregistration.SignUpFieldId;
 import org.thingsboard.server.common.data.selfregistration.WebSelfRegistrationParams;
@@ -61,6 +68,7 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.menu.CustomMenuDao;
 import org.thingsboard.server.dao.service.DaoSqlTest;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
+import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.entitiy.TbLogEntityActionService;
@@ -87,7 +95,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
                     "IcCoNT3zUoqjfDo1m-yL3kwtO4-WqEOoP2oO353-pqjMYMPaYpjjQJXxHL4qJC1xky4ANAI_th6GtsHwnfLw_sWDHlPgb" +
                     "-IEW8wcD-zZW5TBpagv7p0V08ebdqxCkvb-7p4QrgNXQA_psw4SEHIg";
 
-    public static final String TEST_EMAIL = "force_push@junior.com";
+    public static final String CUSTOMER_TEST_EMAIL = "force_push@junior.com";
     public static final String CUSTOMER_TITLE_PREFIX = "Prefix-";
     private static List<UUID> idsToRemove = new ArrayList<>();
 
@@ -105,6 +113,9 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
 
     @Autowired
     protected CustomerService customerService;
+
+    @Autowired
+    protected TenantService tenantService;
 
     @Autowired
     protected EntityGroupService entityGroupService;
@@ -163,18 +174,45 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
 
     @Test
     public void testSelfRegisterUser() throws Exception {
+        createWebSelfRegistrationSettings();
         List<Customer> customers = customerService.findCustomersByTenantId(tenantId, new PageLink(10)).getData();
 
-        SignUpRequest signUpRequest = createSignUpRequest();
+        SignUpRequest signUpRequest = createWebSignUpRequest(CUSTOMER_TEST_EMAIL);
         doSignUp(signUpRequest);
 
         List<Customer> customersAfterSignUp = customerService.findCustomersByTenantId(tenantId, new PageLink(10)).getData();
         assertThat(customersAfterSignUp.size()).isEqualTo(customers.size() + 1);
-        Customer createdCustomer = customersAfterSignUp.stream().filter(customer -> customer.getName().equals(CUSTOMER_TITLE_PREFIX + TEST_EMAIL)).findAny()
+        Customer createdCustomer = customersAfterSignUp.stream().filter(customer -> customer.getName().equals(CUSTOMER_TEST_EMAIL)).findAny()
                 .orElseThrow(() -> new RuntimeException("Customer was not found"));
 
-        assertThat(createdCustomer.getEmail()).isEqualTo(TEST_EMAIL);
-        assertThat(createdCustomer.getName()).isEqualTo(CUSTOMER_TITLE_PREFIX + TEST_EMAIL);
+        assertThat(createdCustomer.getEmail()).isEqualTo(CUSTOMER_TEST_EMAIL);
+        assertThat(createdCustomer.getName()).isEqualTo(CUSTOMER_TEST_EMAIL);
+
+        User user = userService.findUserByEmail(tenantId, CUSTOMER_TEST_EMAIL);
+        assertThat(user).isNotNull();
+        assertThat(user.getEmail()).isEqualTo(CUSTOMER_TEST_EMAIL);
+
+        removeCreatedUser(user);
+    }
+
+    @Test
+    public void testSelfRegisterUserFromMobileApp() throws Exception {
+        String appSecret = StringUtils.randomAlphanumeric(24);
+        String mobilePkgName = "my.test.android.app";
+        createMobileSelfRegistrationSettings(mobilePkgName, appSecret, PlatformType.ANDROID);
+
+        List<Customer> customers = customerService.findCustomersByTenantId(tenantId, new PageLink(10)).getData();
+
+        SignUpRequest signUpRequest = createMobileSignUpRequest(CUSTOMER_TEST_EMAIL, mobilePkgName, appSecret, PlatformType.ANDROID);
+        doSignUp(signUpRequest);
+
+        List<Customer> customersAfterSignUp = customerService.findCustomersByTenantId(tenantId, new PageLink(10)).getData();
+        assertThat(customersAfterSignUp.size()).isEqualTo(customers.size() + 1);
+        Customer createdCustomer = customersAfterSignUp.stream().filter(customer -> customer.getName().equals(CUSTOMER_TITLE_PREFIX + CUSTOMER_TEST_EMAIL)).findAny()
+                .orElseThrow(() -> new RuntimeException("Customer was not found"));
+
+        assertThat(createdCustomer.getEmail()).isEqualTo(CUSTOMER_TEST_EMAIL);
+        assertThat(createdCustomer.getName()).isEqualTo(CUSTOMER_TITLE_PREFIX + CUSTOMER_TEST_EMAIL);
         assertThat(createdCustomer.getAddress()).isEqualTo(signUpRequest.getFields().get(SignUpFieldId.ADDRESS));
         assertThat(createdCustomer.getAddress2()).isEqualTo(signUpRequest.getFields().get(SignUpFieldId.ADDRESS2));
         assertThat(createdCustomer.getCountry()).isEqualTo(signUpRequest.getFields().get(SignUpFieldId.COUNTRY));
@@ -186,26 +224,26 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         CustomerInfo customerInfoById = customerService.findCustomerInfoById(tenantId, createdCustomer.getId());
         assertThat(customerInfoById.getGroups()).containsExactly(new EntityInfo(customerGroup.getId(), customerGroup.getName()));
 
-        User user = userService.findUserByEmail(tenantId, TEST_EMAIL);
+        User user = userService.findUserByEmail(tenantId, CUSTOMER_TEST_EMAIL);
         assertThat(user).isNotNull();
-        assertThat(user.getEmail()).isEqualTo(TEST_EMAIL);
+        assertThat(user.getEmail()).isEqualTo(CUSTOMER_TEST_EMAIL);
 
         removeCreatedUser(user);
     }
 
     @Test
     public void testSelfRegistrationCreateMessageInRuleChain() throws Exception {
-        var signUpRequest = createSignUpRequest();
+        var signUpRequest = createWebSignUpRequest(CUSTOMER_TEST_EMAIL);
         doSignUp(signUpRequest);
 
-        var user = userService.findUserByEmail(tenantId, TEST_EMAIL);
+        var user = userService.findUserByEmail(tenantId, CUSTOMER_TEST_EMAIL);
         var customer = customerService.findCustomerById(tenantId, user.getCustomerId());
         var entityGroup = entityGroupService.findOrCreateUserGroup(
                 tenantId, customer.getId(), "Self Registration Users", "Autogenerated Self Registration group"
         );
 
         Assert.assertNotNull(user);
-        Assert.assertEquals(TEST_EMAIL, user.getEmail());
+        Assert.assertEquals(CUSTOMER_TEST_EMAIL, user.getEmail());
 
         verify(logEntityActionService, times(1)).logEntityAction(
                 eq(tenantId),
@@ -245,9 +283,19 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         removeCreatedUser(user);
     }
 
-    protected SignUpRequest createSignUpRequest() {
+    protected SignUpRequest createWebSignUpRequest(String email) {
         var signUpRequest = new SignUpRequest();
-        signUpRequest.setFields(Map.of(SignUpFieldId.EMAIL, TEST_EMAIL,
+        signUpRequest.setFields(Map.of(SignUpFieldId.EMAIL, email,
+                SignUpFieldId.FIRST_NAME,"John",
+                SignUpFieldId.LAST_NAME,"Gilmore",
+                SignUpFieldId.PASSWORD,"abcdef123"));
+        signUpRequest.setRecaptchaResponse(RECAPTCHA_DUMMY_RESPONSE);
+        return signUpRequest;
+    }
+
+    protected SignUpRequest createMobileSignUpRequest(String email, String pkgName, String appSecret, PlatformType platformType) {
+        var signUpRequest = new SignUpRequest();
+        signUpRequest.setFields(Map.of(SignUpFieldId.EMAIL, email,
                 SignUpFieldId.FIRST_NAME,"John",
                 SignUpFieldId.LAST_NAME,"Gilmore",
                 SignUpFieldId.PASSWORD,"abcdef123",
@@ -258,6 +306,9 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
                 SignUpFieldId.ADDRESS2, "test address2",
                 SignUpFieldId.CITY, "Kyiv"));
         signUpRequest.setRecaptchaResponse(RECAPTCHA_DUMMY_RESPONSE);
+        signUpRequest.setPkgName(pkgName);
+        signUpRequest.setAppSecret(appSecret);
+        signUpRequest.setPlatform(platformType);
         return signUpRequest;
     }
 
@@ -272,7 +323,76 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
 
     private void removeCreatedUser(User user) {
         userService.deleteUser(tenantId, user);
-        var found = userService.findUserByEmail(tenantId, TEST_EMAIL);
+        var found = userService.findUserByEmail(tenantId, user.getEmail());
         Assert.assertNull("Expected that created user is deleted but one found!", found);
+    }
+
+    private void createWebSelfRegistrationSettings() {
+        WebSelfRegistrationParams selfRegistrationParams = new WebSelfRegistrationParams();
+        selfRegistrationParams.setTitle("Please sign up");
+        CaptchaParams captcha = new CaptchaParams();
+        captcha.setSiteKey("6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI");
+        captcha.setSecretKey("6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe");
+        selfRegistrationParams.setCaptcha(captcha);
+        selfRegistrationParams.setShowTermsOfUse(true);
+        selfRegistrationParams.setShowPrivacyPolicy(true);
+        selfRegistrationParams.setDomainName("localhost");
+        selfRegistrationParams.setPermissions(Collections.emptyList());
+
+        doPost("/api/selfRegistration/selfRegistrationParams",
+                selfRegistrationParams, JsonNode.class);
+    }
+
+    private void createMobileSelfRegistrationSettings(String mobilePkgName, String appSecret, PlatformType platformType) {
+        MobileApp mobileApp = validMobileApp(mobilePkgName, appSecret, platformType);
+        mobileApp = doPost("/api/mobile/app", mobileApp, MobileApp.class);
+
+        MobileAppBundle mobileAppBundle = new MobileAppBundle();
+        mobileAppBundle.setTitle("Test bundle");
+        if (platformType.equals(PlatformType.ANDROID)) {
+            mobileAppBundle.setAndroidAppId(mobileApp.getId());
+        } else {
+            mobileAppBundle.setIosAppId(mobileApp.getId());
+        }
+        MobileSelfRegistrationParams selfRegistrationParams = createMobileSelfRegistrationParams();
+        mobileAppBundle.setSelfRegistrationParams(selfRegistrationParams);
+        MobileAppBundle createdMobileAppBundle = doPost("/api/mobile/bundle", mobileAppBundle, MobileAppBundle.class);
+    }
+
+    private MobileSelfRegistrationParams createMobileSelfRegistrationParams() {
+        MobileSelfRegistrationParams selfRegistrationParams = new MobileSelfRegistrationParams();
+        selfRegistrationParams.setTitle("Please sign up");
+        CaptchaParams captcha = new CaptchaParams();
+        captcha.setSecretKey("6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe");
+        captcha.setSiteKey("6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI");
+        captcha.setLogActionName("sign_up");
+        selfRegistrationParams.setCaptcha(captcha);
+        selfRegistrationParams.setShowPrivacyPolicy(true);
+        selfRegistrationParams.setShowTermsOfUse(true);
+        selfRegistrationParams.setEnabled(true);
+        selfRegistrationParams.setNotificationEmail("testEmail@gmail.com");
+        selfRegistrationParams.setTermsOfUse("My terms of use");
+        selfRegistrationParams.setPrivacyPolicy("My privacy policy");
+        selfRegistrationParams.setPermissions(Collections.emptyList());
+        selfRegistrationParams.setCustomerTitlePrefix(CUSTOMER_TITLE_PREFIX);
+        selfRegistrationParams.setCustomerGroupId(customerGroup.getId());
+        selfRegistrationParams.setCustomMenuId(customMenu.getId());
+        selfRegistrationParams.setSignUpFields(List.of(new SignUpField(SignUpFieldId.EMAIL, "email", true),
+                new SignUpField(SignUpFieldId.PASSWORD, "password", true)));
+        MobileRedirectParams redirect = new MobileRedirectParams();
+        redirect.setHost("test");
+        redirect.setScheme("scheme");
+        selfRegistrationParams.setRedirect(redirect);
+        selfRegistrationParams.setSignUpFields(List.of(new SignUpField(SignUpFieldId.EMAIL, "email",true)));
+        return selfRegistrationParams;
+    }
+
+    private MobileApp validMobileApp(String mobileAppName, String secret, PlatformType platformType) {
+        MobileApp mobileApp = new MobileApp();
+        mobileApp.setStatus(MobileAppStatus.DRAFT);
+        mobileApp.setPkgName(mobileAppName);
+        mobileApp.setPlatformType(platformType);
+        mobileApp.setAppSecret(secret);
+        return mobileApp;
     }
 }
