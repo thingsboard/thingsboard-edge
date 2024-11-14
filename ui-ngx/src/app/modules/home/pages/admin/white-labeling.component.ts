@@ -91,8 +91,8 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
   ];
 
   readonly EntityType = EntityType;
-
-  private destroyRef = inject(DestroyRef);
+  readonly operation = Operation;
+  readonly resource = Resource;
 
   constructor(protected store: Store<AppState>,
               private route: ActivatedRoute,
@@ -101,6 +101,7 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
               private uiSettingsService: UiSettingsService,
               private dialog: MatDialog,
               private fb: UntypedFormBuilder,
+              private destroyRef: DestroyRef,
               @Inject(WINDOW) private window: Window) {
     super();
   }

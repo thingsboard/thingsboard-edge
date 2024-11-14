@@ -46,6 +46,7 @@ import { Domain } from '@shared/models/oauth2.models';
 import { MatDialog } from '@angular/material/dialog';
 import { BaseData } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
+import { Operation, Resource } from '@shared/models/security.models';
 
 @Component({
   selector: 'tb-self-registration',
@@ -78,6 +79,8 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   showMainLoadingBar = false;
 
   readonly EntityType = EntityType;
+  readonly operation = Operation;
+  readonly resource = Resource;
 
   constructor(protected store: Store<AppState>,
               private dialog: MatDialog,

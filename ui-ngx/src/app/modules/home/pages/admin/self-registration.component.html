@@ -55,7 +55,7 @@
               useFullEntityId
               required
               formControlName="domainId"
-              allowCreateNew
+              [allowCreateNew]="resource.DOMAIN | hasGenericPermission: operation.CREATE"
               (entityChanged)="domainChange($event)"
               (createNew)="createDomain()"
             >
