@@ -45,7 +45,7 @@
         </div>
         <div class="tb-form-table-body tb-drop-list"
              cdkDropList cdkDropListOrientation="vertical"
-             [cdkDropListDisabled]="!dragEnabled"
+             [cdkDropListDisabled]="!dragEnabled || disabled"
              (cdkDropListDropped)="fieldDrop($event)">
           <div cdkDrag [cdkDragDisabled]="!dragEnabled"
                class="tb-draggable-form-table-row"
@@ -57,6 +57,7 @@
             </tb-mobile-registration-fields-row>
             <div class="tb-form-table-row-cell-buttons">
               <button class="lt-md:!hidden"
+                      [disabled]="disabled"
                       [class.tb-hidden]="!dragEnabled"
                       mat-icon-button
                       type="button"

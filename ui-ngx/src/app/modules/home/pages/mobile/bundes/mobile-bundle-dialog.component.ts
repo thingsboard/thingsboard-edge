@@ -55,6 +55,8 @@ import { MobileAppService } from '@core/http/mobile-app.service';
 import { deepClone, deepTrim } from '@core/utils';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
+import { Operation, Resource } from '@shared/models/security.models';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 export interface MobileBundleDialogData {
   bundle?: MobileAppBundleInfo;
@@ -71,6 +73,8 @@ export class MobileBundleDialogComponent extends DialogComponent<MobileBundleDia
   @ViewChild('addMobileBundle', {static: true}) addMobileBundle: MatStepper;
 
   readonly entityType = EntityType;
+  readonly resource = Resource;
+  readonly operation = Operation;
 
   selectedIndex = 0;
 
@@ -100,7 +104,10 @@ export class MobileBundleDialogComponent extends DialogComponent<MobileBundleDia
     selfRegistrationParams: [null]
   });
 
+  isAdd = false;
   readonly isSysAdmin = getCurrentAuthUser(this.store).authority === Authority.SYS_ADMIN;
+
+  readonly = false;
 
   constructor(protected store: Store<AppState>,
               protected router: Router,
@@ -109,11 +116,16 @@ export class MobileBundleDialogComponent extends DialogComponent<MobileBundleDia
               private breakpointObserver: BreakpointObserver,
               private fb: FormBuilder,
               private dialog: MatDialog,
-              private mobileAppService: MobileAppService) {
+              private mobileAppService: MobileAppService,
+              private userPermissionsService: UserPermissionsService) {
     super(store, router, dialogRef);
 
     if (this.data.isAdd) {
-      this.dialogTitle = 'mobile.add-bundle'
+      this.dialogTitle = 'mobile.add-bundle';
+      this.isAdd = true;
+      this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.MOBILE_APP_BUNDLE, Operation.CREATE);
+    } else {
+      this.readonly = !this.userPermissionsService.hasGenericPermission(Resource.MOBILE_APP_BUNDLE, Operation.WRITE);
     }
 
     this.stepperOrientation = this.breakpointObserver.observe(MediaBreakpoints['gt-xs'])
@@ -135,7 +147,14 @@ export class MobileBundleDialogComponent extends DialogComponent<MobileBundleDia
       this.oauthForms.get('oauth2ClientIds')
         .setValue(deepClone(this.data.bundle.oauth2ClientInfos.map(item => item.id.id)), {emitEvent: false});
       this.layoutForms.patchValue(this.data.bundle, {emitEvent: false});
-      this.selfRegistrationForm.patchValue(this.data.bundle, {emitEvent: false})
+      this.selfRegistrationForm.patchValue(this.data.bundle, {emitEvent: false});
+    }
+
+    if (this.readonly) {
+      this.bundlesForms.disable({emitEvent: false});
+      this.oauthForms.disable({emitEvent: false});
+      this.layoutForms.disable({emitEvent: false});
+      this.selfRegistrationForm.disable({emitEvent: false});
     }
   }
 
@@ -149,7 +168,7 @@ export class MobileBundleDialogComponent extends DialogComponent<MobileBundleDia
 
   nextStep() {
     if (this.selectedIndex >= this.maxStepperIndex) {
-      this.add();
+      this.readonly ? this.cancel() : this.add();
     } else {
       this.addMobileBundle.next();
     }
@@ -157,6 +176,9 @@ export class MobileBundleDialogComponent extends DialogComponent<MobileBundleDia
 
   nextStepLabel(): string {
     if (this.selectedIndex >= this.maxStepperIndex) {
+      if (this.readonly) {
+        return 'action.close';
+      }
       return this.data.isAdd ? 'action.add' : 'action.save';
     }
     return 'action.next';

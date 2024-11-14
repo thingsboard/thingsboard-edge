@@ -244,7 +244,7 @@ CREATE INDEX IF NOT EXISTS idx_raw_data_event_main
 
 CREATE INDEX IF NOT EXISTS idx_group_permission_tenant_id ON group_permission(tenant_id);
 
-ALTER TABLE mobile_app_settings ADD COLUMN IF NOT EXISTS use_system_settings boolean default true;
+ALTER TABLE qr_code_settings ADD COLUMN IF NOT EXISTS use_system_settings boolean default true;
 
 ALTER TABLE tb_user ADD COLUMN IF NOT EXISTS custom_menu_id UUID;
 

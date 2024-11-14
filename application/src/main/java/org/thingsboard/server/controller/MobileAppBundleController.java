@@ -62,6 +62,8 @@ import org.thingsboard.server.service.entitiy.mobile.TbMobileAppBundleService;
 import java.util.List;
 import java.util.UUID;
 
+import static org.thingsboard.server.common.data.permission.Resource.MOBILE_APP;
+import static org.thingsboard.server.common.data.permission.Resource.MOBILE_APP_BUNDLE;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
@@ -121,6 +123,7 @@ public class MobileAppBundleController extends BaseController {
                                                                        @RequestParam(required = false) String sortProperty,
                                                                        @Parameter(description = SORT_ORDER_DESCRIPTION)
                                                                        @RequestParam(required = false) String sortOrder) throws ThingsboardException {
+        accessControlService.checkPermission(getCurrentUser(), MOBILE_APP_BUNDLE, Operation.READ);
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
         return mobileAppBundleService.findMobileAppBundleInfosByTenantId(getTenantId(), pageLink);
     }

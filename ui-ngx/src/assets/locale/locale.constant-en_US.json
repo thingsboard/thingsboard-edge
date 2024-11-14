@@ -4564,7 +4564,9 @@
             "custom": "Custom"
         },
         "url": "URL",
+        "url-pattern": "Invalid URL",
         "path": "Path",
+        "path-pattern": "Path pattern",
         "custom-page": "Custom page",
         "edit-page": "Edit page",
         "edit-custom-page": "Edit custom page",
@@ -5427,7 +5429,11 @@
                 "VERSION_CONTROL": "Version control",
                 "ASSET_PROFILE": "Asset Profile",
                 "NOTIFICATION": "Notification",
-                "MOBILE_APP_SETTINGS": "Mobile application settings"
+                "MOBILE_APP_SETTINGS": "QR code widget setting",
+                "MOBILE_APP_BUNDLE": "Mobile bundle",
+                "MOBILE_APP": "Mobile app",
+                "DOMAIN": "Domain",
+                "OAUTH2_CLIENT": "OAuth 2.0 client"
             }
         },
         "operation": {

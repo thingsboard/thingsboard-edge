@@ -557,7 +557,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             publishEvictEvent(new WhiteLabelingEvictEvent(forKey(key)));
             if (whiteLabeling.getDomainId() != null) {
                 Domain domain = domainService.findDomainById(tenantId, whiteLabeling.getDomainId());
-                publishEvictEvent(new WhiteLabelingEvictEvent(forTypeAndDomain(LOGIN, domain.getName())));
+                publishEvictEvent(new WhiteLabelingEvictEvent(forTypeAndDomain(whiteLabeling.getType(), domain.getName())));
             }
             return saved;
         } catch (Exception t) {

@@ -44,8 +44,8 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.mobile.MobileAppBundleDao;
-import org.thingsboard.server.dao.model.sql.MobileAppBundleEntity;
 import org.thingsboard.server.dao.model.sql.MobileAppBundleOauth2ClientEntity;
+import org.thingsboard.server.dao.model.sql.MobileAppBundlePolicyInfoEntity;
 import org.thingsboard.server.dao.model.sql.MobileAppOauth2ClientCompositeKey;
 import org.thingsboard.server.dao.sql.JpaAbstractDao;
 import org.thingsboard.server.dao.util.SqlDao;
@@ -56,19 +56,25 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 @SqlDao
-public class JpaMobileAppBundleDao extends JpaAbstractDao<MobileAppBundleEntity, MobileAppBundle> implements MobileAppBundleDao {
+public class JpaMobileAppBundleDao extends JpaAbstractDao<MobileAppBundlePolicyInfoEntity, MobileAppBundle> implements MobileAppBundleDao {
 
     private final MobileAppBundleRepository mobileAppBundleRepository;
     private final MobileAppBundleOauth2ClientRepository mobileOauth2ProviderRepository;
+    private final MobileAppBundlePolicyInfoRepository mobileAppBundlePolicyInfoRepository;
 
     @Override
-    protected Class<MobileAppBundleEntity> getEntityClass() {
-        return MobileAppBundleEntity.class;
+    protected Class<MobileAppBundlePolicyInfoEntity> getEntityClass() {
+        return MobileAppBundlePolicyInfoEntity.class;
     }
 
     @Override
-    protected JpaRepository<MobileAppBundleEntity, UUID> getRepository() {
-        return mobileAppBundleRepository;
+    protected JpaRepository<MobileAppBundlePolicyInfoEntity, UUID> getRepository() {
+        return mobileAppBundlePolicyInfoRepository;
+    }
+
+    @Override
+    public MobileAppBundle findPolicyInfoByPkgNameAndPlatform(TenantId tenantId, String pkgName, PlatformType platform) {
+        return DaoUtil.getData(mobileAppBundlePolicyInfoRepository.findByPkgNameAndPlatformType(pkgName, platform));
     }
 
     @Override

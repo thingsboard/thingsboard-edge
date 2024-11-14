@@ -50,6 +50,7 @@
       <button type="button"
               *ngIf="!hideModify"
               mat-icon-button
+              [disabled]="disabled"
               (click)="fieldRemoved.emit()"
               matTooltip="{{ 'mobile.self-registration.remove-registration-field' | translate }}"
               matTooltipPosition="above">

@@ -76,8 +76,6 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
     @Autowired
     private MobileAppBundleDao mobileAppBundleDao;
     @Autowired
-    private MobileAppBundlePolicyInfoDao mobileAppBundlePolicyInfoDao;
-    @Autowired
     private DataValidator<MobileAppBundle> mobileAppBundleDataValidator;
 
     @Override
@@ -85,7 +83,7 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
         log.trace("Executing saveMobileAppBundle [{}]", mobileAppBundle);
         mobileAppBundleDataValidator.validate(mobileAppBundle, b -> tenantId);
         try {
-            MobileAppBundle savedMobileAppBundle = mobileAppBundlePolicyInfoDao.save(tenantId, mobileAppBundle);
+            MobileAppBundle savedMobileAppBundle = mobileAppBundleDao.save(tenantId, mobileAppBundle);
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entity(savedMobileAppBundle).build());
             return savedMobileAppBundle;
         } catch (Exception e) {
@@ -136,7 +134,7 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
     @Override
     public MobileAppBundleInfo findMobileAppBundleInfoById(TenantId tenantId, MobileAppBundleId mobileAppIdBundle) {
         log.trace("Executing findMobileAppBundleFullInfoById [{}] [{}]", tenantId, mobileAppIdBundle);
-        MobileAppBundle mobileAppBundle = mobileAppBundlePolicyInfoDao.findById(tenantId, mobileAppIdBundle.getId());
+        MobileAppBundle mobileAppBundle = mobileAppBundleDao.findById(tenantId, mobileAppIdBundle.getId());
         if (mobileAppBundle == null) {
             return null;
         }
@@ -152,7 +150,7 @@ public class MobileAppBundleServiceImpl extends AbstractEntityService implements
         log.trace("Executing findMobileAppBundleByPkgNameAndPlatform, tenantId [{}], pkgName [{}], platform [{}]", tenantId, pkgName, platformType);
         checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);
         if (fetchPolicyInfo) {
-            return mobileAppBundlePolicyInfoDao.findPolicyInfoByPkgNameAndPlatform(tenantId, pkgName, platformType);
+            return mobileAppBundleDao.findPolicyInfoByPkgNameAndPlatform(tenantId, pkgName, platformType);
         } else {
             return mobileAppBundleDao.findByPkgNameAndPlatform(tenantId, pkgName, platformType);
         }
