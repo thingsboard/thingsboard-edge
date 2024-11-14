@@ -68,7 +68,7 @@ export class MobileAppConfigurationDialogComponent extends DialogComponent<Mobil
 
     this.showDontShowAgain = this.data.afterAdd;
 
-    this.configureApi.push(`static final thingsBoardApiEndpoint = '${window.location.origin}';`);
+    this.configureApi.push(`static const thingsBoardApiEndpoint = '${window.location.origin}';`);
     this.configureApi.push(`static const thingsboardOAuth2AppSecret = '${this.data.appSecret}';`);
   }
 
