@@ -33,10 +33,11 @@ package org.thingsboard.server.common.data.selfregistration;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Schema
 @Data
-@EqualsAndHashCode
+@NoArgsConstructor
 public class CaptchaParams {
 
     @Schema(description = "Captcha site key for 'I'm not a robot' validation")
@@ -48,4 +49,9 @@ public class CaptchaParams {
     @Schema(description = "Secret key to validate the Captcha. Should match the Captcha Site Key.")
     private String secretKey;
 
+    public CaptchaParams(String siteKey, String version, String logActionName) {
+        this.siteKey = siteKey;
+        this.version = version;
+        this.logActionName = logActionName;
+    }
 }
