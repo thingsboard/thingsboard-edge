@@ -71,6 +71,4 @@ public interface EdgeEventDao extends Dao<EdgeEvent> {
      */
     void cleanupEvents(long ttl);
 
-    void migrateEdgeEvents();
-
 }

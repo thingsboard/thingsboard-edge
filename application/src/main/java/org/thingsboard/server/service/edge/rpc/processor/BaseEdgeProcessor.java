@@ -80,6 +80,7 @@ import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.TbMsgDataType;
 import org.thingsboard.server.common.msg.TbMsgMetaData;
 import org.thingsboard.server.dao.edge.EdgeSynchronizationManager;
+import org.thingsboard.server.dao.entity.EntityDaoRegistry;
 import org.thingsboard.server.dao.model.ModelConstants;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
@@ -107,6 +108,9 @@ public abstract class BaseEdgeProcessor {
 
     @Autowired
     protected EdgeContextComponent edgeCtx;
+
+    @Autowired
+    protected EntityDaoRegistry entityDaoRegistry;
 
     @Autowired
     protected EdgeSynchronizationManager edgeSynchronizationManager;
@@ -406,18 +410,7 @@ public abstract class BaseEdgeProcessor {
     }
 
     protected boolean isEntityExists(TenantId tenantId, EntityId entityId) {
-        return switch (entityId.getEntityType()) {
-            case TENANT -> edgeCtx.getTenantService().findTenantById(tenantId) != null;
-            case DEVICE -> edgeCtx.getDeviceService().findDeviceById(tenantId, new DeviceId(entityId.getId())) != null;
-            case ASSET -> edgeCtx.getAssetService().findAssetById(tenantId, new AssetId(entityId.getId())) != null;
-            case ENTITY_VIEW -> edgeCtx.getEntityViewService().findEntityViewById(tenantId, new EntityViewId(entityId.getId())) != null;
-            case CUSTOMER -> edgeCtx.getCustomerService().findCustomerById(tenantId, new CustomerId(entityId.getId())) != null;
-            case USER -> edgeCtx.getUserService().findUserById(tenantId, new UserId(entityId.getId())) != null;
-            case DASHBOARD -> edgeCtx.getDashboardService().findDashboardById(tenantId, new DashboardId(entityId.getId())) != null;
-            case EDGE -> edgeCtx.getEdgeService().findEdgeById(tenantId, new EdgeId(entityId.getId())) != null;
-            case ENTITY_GROUP -> edgeCtx.getEntityGroupService().findEntityGroupById(tenantId, new EntityGroupId(entityId.getId())) != null;
-            default -> false;
-        };
+        return entityDaoRegistry.getDao(entityId.getEntityType()).existsById(tenantId, entityId.getId());
     }
 
     protected void createRelationFromEdge(TenantId tenantId, EdgeId edgeId, EntityId entityId) {

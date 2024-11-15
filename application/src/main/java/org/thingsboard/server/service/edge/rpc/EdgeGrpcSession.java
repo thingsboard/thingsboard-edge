@@ -41,7 +41,9 @@ public interface EdgeGrpcSession {
 
     boolean isConnected();
 
-    ListenableFuture<Boolean> migrateEdgeEvents(boolean isMigrationProcessed) throws Exception;
+    void destroy();
+
+    ListenableFuture<Boolean> migrateEdgeEvents() throws Exception;
 
     ListenableFuture<Boolean> processEdgeEvents() throws Exception;
 
