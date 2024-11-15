@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -89,6 +90,17 @@ public class SystemInfoController extends BaseController {
 
     @Value("${ui.dashboard.max_datapoints_limit}")
     private long maxDatapointsLimit;
+
+    @Value("${debug_mode.max_duration:60}")
+    private int maxDebugModeDurationMinutes;
+
+    @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.enabled:true}")
+    @Getter
+    private boolean ruleChainDebugPerTenantLimitsEnabled;
+
+    @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.configuration:50000:3600}")
+    @Getter
+    private String ruleChainDebugPerTenantLimitsConfiguration;
 
     @Autowired(required = false)
     private BuildProperties buildProperties;
@@ -168,6 +180,10 @@ public class SystemInfoController extends BaseController {
         if (!currentUser.isSystemAdmin()) {
             DefaultTenantProfileConfiguration tenantProfileConfiguration = tenantProfileCache.get(tenantId).getDefaultProfileConfiguration();
             systemParams.setMaxResourceSize(tenantProfileConfiguration.getMaxResourceSize());
+            systemParams.setMaxDebugModeDurationMinutes(tenantProfileConfiguration.getMaxDebugModeDurationMinutes(maxDebugModeDurationMinutes));
+            if (ruleChainDebugPerTenantLimitsEnabled) {
+                systemParams.setRuleChainDebugPerTenantLimitsConfiguration(ruleChainDebugPerTenantLimitsConfiguration);
+            }
         }
         systemParams.setAvailableLocales(translationService.getAvailableLocaleCodes(tenantId, customerId));
         systemParams.setMobileQrEnabled(Optional.ofNullable(mobileAppSettingsService.getMergedMobileAppSettings(tenantId))

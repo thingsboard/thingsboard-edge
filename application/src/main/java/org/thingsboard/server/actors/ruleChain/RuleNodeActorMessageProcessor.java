@@ -35,7 +35,6 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.server.actors.ActorSystemContext;
 import org.thingsboard.server.actors.TbActorCtx;
-import org.thingsboard.server.actors.TbActorRef;
 import org.thingsboard.server.actors.TbRuleNodeUpdateException;
 import org.thingsboard.server.actors.shared.ComponentMsgProcessor;
 import org.thingsboard.server.common.data.ApiUsageRecordKey;
@@ -43,6 +42,7 @@ import org.thingsboard.server.common.data.id.RuleNodeId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.plugin.ComponentLifecycleState;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.server.common.msg.TbMsg;
 import org.thingsboard.server.common.msg.queue.PartitionChangeMsg;
 import org.thingsboard.server.common.msg.queue.RuleNodeException;
@@ -66,13 +66,13 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
     private TbNode tbNode;
     private RuleNodeInfo info;
 
-    RuleNodeActorMessageProcessor(TenantId tenantId, String ruleChainName, RuleNodeId ruleNodeId, ActorSystemContext systemContext
-            , TbActorRef parent, TbActorRef self) {
+    RuleNodeActorMessageProcessor(TenantId tenantId, String ruleChainName,
+                                  RuleNodeId ruleNodeId, ActorSystemContext systemContext, TbActorCtx selfActor) {
         super(systemContext, tenantId, ruleNodeId);
         this.apiUsageClient = systemContext.getApiUsageClient();
         this.ruleChainName = ruleChainName;
         this.ruleNode = systemContext.getRuleChainService().findRuleNodeById(tenantId, entityId);
-        this.defaultCtx = new DefaultTbContext(systemContext, ruleChainName, new RuleNodeCtx(tenantId, parent, self, ruleNode));
+        this.defaultCtx = new DefaultTbContext(systemContext, ruleChainName, new RuleNodeCtx(tenantId, selfActor, ruleNode));
         this.info = new RuleNodeInfo(ruleNodeId, ruleChainName, getName(ruleNode));
     }
 
@@ -93,7 +93,8 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
         if (isMyNodePartition(newRuleNode)) {
             this.info = new RuleNodeInfo(entityId, ruleChainName, getName(newRuleNode));
             boolean restartRequired = state != ComponentLifecycleState.ACTIVE ||
-                    !(ruleNode.getType().equals(newRuleNode.getType()) && ruleNode.getConfiguration().equals(newRuleNode.getConfiguration()));
+                                      !(ruleNode.getType().equals(newRuleNode.getType()) &&
+                                        ruleNode.getConfiguration().equals(newRuleNode.getConfiguration()));
             this.ruleNode = newRuleNode;
             this.defaultCtx.updateSelf(newRuleNode);
             if (restartRequired) {
@@ -140,12 +141,12 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
         checkComponentStateActive(msg.getMsg());
         TbMsg tbMsg = msg.getMsg();
         int ruleNodeCount = tbMsg.getAndIncrementRuleNodeCounter();
-        int maxRuleNodeExecutionsPerMessage = getTenantProfileConfiguration().getMaxRuleNodeExecsPerMessage();
+        var tenantProfileConfiguration = getTenantProfileConfiguration();
+        int maxRuleNodeExecutionsPerMessage = tenantProfileConfiguration.getMaxRuleNodeExecsPerMessage();
         if (maxRuleNodeExecutionsPerMessage == 0 || ruleNodeCount < maxRuleNodeExecutionsPerMessage) {
             apiUsageClient.report(tenantId, tbMsg.getCustomerId(), ApiUsageRecordKey.RE_EXEC_COUNT);
-            if (ruleNode.isDebugMode()) {
-                systemContext.persistDebugInput(tenantId, entityId, msg.getMsg(), "Self");
-            }
+            persistDebugInputIfAllowed(msg.getMsg(), "Self", tenantProfileConfiguration
+                    .getMaxDebugModeDurationMinutes(systemContext.getMaxDebugModeDurationMinutes()));
             try {
                 tbNode.onMsg(defaultCtx, msg.getMsg());
             } catch (Exception e) {
@@ -164,12 +165,12 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
             checkComponentStateActive(msg.getMsg());
             TbMsg tbMsg = msg.getMsg();
             int ruleNodeCount = tbMsg.getAndIncrementRuleNodeCounter();
-            int maxRuleNodeExecutionsPerMessage = getTenantProfileConfiguration().getMaxRuleNodeExecsPerMessage();
+            var tenantProfileConfiguration = getTenantProfileConfiguration();
+            int maxRuleNodeExecutionsPerMessage = tenantProfileConfiguration.getMaxRuleNodeExecsPerMessage();
             if (maxRuleNodeExecutionsPerMessage == 0 || ruleNodeCount < maxRuleNodeExecutionsPerMessage) {
                 apiUsageClient.report(tenantId, tbMsg.getCustomerId(), ApiUsageRecordKey.RE_EXEC_COUNT);
-                if (ruleNode.isDebugMode()) {
-                    systemContext.persistDebugInput(tenantId, entityId, msg.getMsg(), msg.getFromRelationType());
-                }
+                persistDebugInputIfAllowed(msg.getMsg(), msg.getFromRelationType(), tenantProfileConfiguration
+                        .getMaxDebugModeDurationMinutes(systemContext.getMaxDebugModeDurationMinutes()));
                 try {
                     tbNode.onMsg(msg.getCtx(), msg.getMsg());
                 } catch (Exception e) {
@@ -211,8 +212,8 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
 
     private boolean isMyNodePartition(RuleNode ruleNode) {
         boolean result = ruleNode == null || !ruleNode.isSingletonMode()
-                || systemContext.getDiscoveryService().isMonolith()
-                || defaultCtx.isLocalEntity(ruleNode.getId());
+                         || systemContext.getDiscoveryService().isMonolith()
+                         || defaultCtx.isLocalEntity(ruleNode.getId());
         if (!result) {
             log.trace("[{}][{}] Is not my node partition", tenantId, entityId);
         }
@@ -231,4 +232,11 @@ public class RuleNodeActorMessageProcessor extends ComponentMsgProcessor<RuleNod
         systemContext.getClusterService().pushMsgToRuleEngine(tpi, tbMsg.getId(), toQueueMsg, null);
         defaultCtx.ack(source);
     }
+
+    private void persistDebugInputIfAllowed(TbMsg msg, String fromNodeConnectionType, int debugModeDurationMinutes) {
+        if (DebugModeUtil.isDebugAllAvailable(ruleNode)) {
+            systemContext.persistDebugInput(tenantId, entityId, msg, fromNodeConnectionType);
+        }
+    }
+
 }

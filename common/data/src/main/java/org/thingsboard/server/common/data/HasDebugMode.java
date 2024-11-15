@@ -28,33 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.actors.ruleChain;
+package org.thingsboard.server.common.data;
 
-import lombok.Data;
-import org.thingsboard.server.actors.TbActorCtx;
-import org.thingsboard.server.actors.TbActorRef;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.rule.RuleNode;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * Created by ashvayka on 19.03.18.
- */
-@Data
-public final class RuleNodeCtx {
-    private final TenantId tenantId;
-    private final TbActorRef chainActor;
-    private final TbActorRef selfActor;
-    private RuleNode self;
+public interface HasDebugMode {
 
-    RuleNodeCtx(TenantId tenantId, TbActorCtx selfActor, RuleNode self) {
-        this(tenantId, selfActor.getParentRef(), selfActor, self);
-    }
+    boolean isDebugFailures();
 
-    RuleNodeCtx(TenantId tenantId, TbActorRef chainActor, TbActorRef selfActor, RuleNode self) {
-        this.tenantId = tenantId;
-        this.chainActor = chainActor;
-        this.selfActor = selfActor;
-        this.self = self;
-    }
+    void setDebugFailures(boolean debugFailures);
 
+    boolean isDebugAll();
+
+    void setDebugAll(boolean debugAll);
+
+    long getDebugAllUntil();
+
+    void setDebugAllUntil(long debugAllUntil);
 }

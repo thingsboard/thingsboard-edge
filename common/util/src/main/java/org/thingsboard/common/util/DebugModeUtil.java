@@ -28,33 +28,31 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.actors.ruleChain;
+package org.thingsboard.common.util;
 
-import lombok.Data;
-import org.thingsboard.server.actors.TbActorCtx;
-import org.thingsboard.server.actors.TbActorRef;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.common.data.HasDebugMode;
+import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 
-/**
- * Created by ashvayka on 19.03.18.
- */
-@Data
-public final class RuleNodeCtx {
-    private final TenantId tenantId;
-    private final TbActorRef chainActor;
-    private final TbActorRef selfActor;
-    private RuleNode self;
+import java.util.Set;
 
-    RuleNodeCtx(TenantId tenantId, TbActorCtx selfActor, RuleNode self) {
-        this(tenantId, selfActor.getParentRef(), selfActor, self);
+public final class DebugModeUtil {
+    private DebugModeUtil() {
     }
 
-    RuleNodeCtx(TenantId tenantId, TbActorRef chainActor, TbActorRef selfActor, RuleNode self) {
-        this.tenantId = tenantId;
-        this.chainActor = chainActor;
-        this.selfActor = selfActor;
-        this.self = self;
+    public static boolean isDebugAllAvailable(HasDebugMode debugMode) {
+        return debugMode.getDebugAllUntil() > System.currentTimeMillis();
+    }
+
+    public static boolean isDebugAvailable(HasDebugMode debugMode, String nodeConnection) {
+        return isDebugAllAvailable(debugMode) || debugMode.isDebugFailures() && TbNodeConnectionType.FAILURE.equals(nodeConnection);
+    }
+
+    public static boolean isDebugFailuresAvailable(HasDebugMode debugMode, Set<String> nodeConnections) {
+        return isDebugFailuresAvailable(debugMode) && nodeConnections.contains(TbNodeConnectionType.FAILURE);
+    }
+
+    private static boolean isDebugFailuresAvailable(HasDebugMode debugMode) {
+        return debugMode.isDebugFailures() || isDebugAllAvailable(debugMode);
     }
 
 }

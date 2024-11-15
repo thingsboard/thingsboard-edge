@@ -48,6 +48,7 @@ const emptyUserAuthState: AuthPayload = {
   persistDeviceStateToTelemetry: false,
   mobileQrEnabled: false,
   maxResourceSize: 0,
+  maxDebugModeDurationMinutes: 0,
   userSettings: initialUserSettings,
   allowedDashboardIds: [],
   availableLocales: env.supportedLangs

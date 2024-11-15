@@ -31,54 +31,20 @@
 
 import { Pipe, PipeTransform } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import { DAY, HOUR, MINUTE, SECOND } from '@shared/models/time/time.models';
+import { MillisecondsToTimeStringPipe } from './milliseconds-to-time-string.pipe';
 
 @Pipe({
-  name: 'milliSecondsToTimeString'
+  name: 'durationLeft',
+  pure: false,
+  standalone: true,
 })
-export class MillisecondsToTimeStringPipe implements PipeTransform {
+export class DurationLeftPipe implements PipeTransform {
 
-  constructor(private translate: TranslateService) {
+  constructor(private translate: TranslateService, private millisecondsToTimeString: MillisecondsToTimeStringPipe) {
   }
 
-  transform(milliSeconds: number, shortFormat = false, onlyFirstDigit = false): string {
-    const { days, hours, minutes, seconds } = this.extractTimeUnits(milliSeconds);
-    return this.formatTimeString(days, hours, minutes, seconds, shortFormat, onlyFirstDigit);
-  }
-
-  private extractTimeUnits(milliseconds: number): { days: number; hours: number; minutes: number; seconds: number } {
-    const days = Math.floor(milliseconds / DAY);
-    const hours = Math.floor((milliseconds % DAY) / HOUR);
-    const minutes = Math.floor((milliseconds % HOUR) / MINUTE);
-    const seconds = Math.floor((milliseconds % MINUTE) / SECOND);
-    return { days, hours, minutes, seconds };
-  }
-
-  private formatTimeString(
-    days: number,
-    hours: number,
-    minutes: number,
-    seconds: number,
-    shortFormat: boolean,
-    onlyFirstDigit: boolean
-  ): string {
-    const timeUnits = [
-      { value: days, key: 'days', shortKey: 'short.days' },
-      { value: hours, key: 'hours', shortKey: 'short.hours' },
-      { value: minutes, key: 'minutes', shortKey: 'short.minutes' },
-      { value: seconds, key: 'seconds', shortKey: 'short.seconds' }
-    ];
-
-    let timeString = '';
-    for (const { value, key, shortKey } of timeUnits) {
-      if (value > 0) {
-        timeString += this.translate.instant(shortFormat ? `timewindow.${shortKey}` : `timewindow.${key}`, { [key]: value });
-        if (onlyFirstDigit) {
-          return timeString;
-        }
-      }
-    }
-
-    return timeString.length > 0 ? timeString : this.translate.instant('timewindow.short.seconds', { seconds: 0 });
+  transform(untilTimestamp: number, shortFormat = true, onlyFirstDigit = true): string {
+    const time = this.millisecondsToTimeString.transform((untilTimestamp - new Date().getTime()), shortFormat, onlyFirstDigit) ?? 0;
+    return this.translate.instant('common.time-left', { time });
   }
 }
