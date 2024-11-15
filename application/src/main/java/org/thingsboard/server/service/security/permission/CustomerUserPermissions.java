@@ -110,6 +110,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.MOBILE_APP_SETTINGS, qrCodeSettingsPermissionChecker);
         put(Resource.CUSTOM_MENU, customMenuPermissionChecker);
         put(Resource.OAUTH2_CLIENT, customerStandaloneEntityPermissionChecker);
+        put(Resource.OAUTH2_CONFIGURATION_TEMPLATE, new PermissionChecker.GenericPermissionChecker(Operation.READ));
         put(Resource.DOMAIN, customerStandaloneEntityPermissionChecker);
     }
 

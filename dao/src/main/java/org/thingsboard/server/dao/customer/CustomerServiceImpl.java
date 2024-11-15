@@ -62,6 +62,7 @@ import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.device.DeviceService;
+import org.thingsboard.server.dao.domain.DomainService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.entity.EntityService;
@@ -123,6 +124,9 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
     @Lazy
     @Autowired
     private WhiteLabelingService whiteLabelingService;
+
+    @Autowired
+    private DomainService domainService;
 
     @Autowired
     private SchedulerEventService schedulerEventService;
@@ -295,6 +299,7 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
             }
         }
         whiteLabelingService.deleteWhiteLabeling(tenantId, customerId, WhiteLabelingType.LOGIN);
+        domainService.deleteDomainsByTenantIdAndCustomerId(tenantId, customerId);
         dashboardService.deleteDashboardsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         entityViewService.deleteEntityViewsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         assetService.deleteAssetsByTenantIdAndCustomerId(customer.getTenantId(), customerId);

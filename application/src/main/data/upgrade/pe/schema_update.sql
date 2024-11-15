@@ -193,9 +193,10 @@ CREATE TABLE IF NOT EXISTS white_labeling (
     customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
     type VARCHAR(30),
     settings VARCHAR(10000000),
-    domain_name VARCHAR(255) UNIQUE,
+    domain_id UUID,
     CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type),
-    CONSTRAINT white_labeling_domain_name_type_key UNIQUE (domain_name, type)
+    CONSTRAINT white_labeling_domain_id_type_key UNIQUE (type, domain_id),
+    CONSTRAINT fk_white_labeling_domain_id FOREIGN KEY (domain_id) REFERENCES domain(id)
 );
 
 CREATE TABLE IF NOT EXISTS custom_translation (
@@ -255,3 +256,6 @@ CREATE INDEX IF NOT EXISTS idx_custom_menu ON custom_menu(tenant_id, customer_id
 ALTER TABLE mobile_app_bundle ADD COLUMN IF NOT EXISTS self_registration_config varchar(16384),
     ADD COLUMN IF NOT EXISTS terms_of_use varchar(10000000),
     ADD COLUMN IF NOT EXISTS privacy_policy varchar(10000000);
+
+ALTER TABLE domain ADD COLUMN IF NOT EXISTS customer_id uuid not null default '13814000-1dd2-11b2-8080-808080808080';
+ALTER TABLE oauth2_client ADD COLUMN IF NOT EXISTS customer_id uuid not null default '13814000-1dd2-11b2-8080-808080808080';

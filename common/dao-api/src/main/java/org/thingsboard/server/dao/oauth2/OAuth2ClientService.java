@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.dao.oauth2;
 
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
@@ -41,7 +42,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.entity.EntityDaoService;
 
 import java.util.List;
-import java.util.UUID;
 
 public interface OAuth2ClientService extends EntityDaoService {
 
@@ -49,7 +49,7 @@ public interface OAuth2ClientService extends EntityDaoService {
 
     List<OAuth2ClientLoginInfo> findOAuth2ClientLoginInfosByMobilePkgNameAndPlatformType(String pkgName, PlatformType platformType);
 
-    List<OAuth2Client> findOAuth2ClientsByTenantId(TenantId tenantId);
+    List<OAuth2Client> findOAuth2ClientsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
 
     OAuth2Client saveOAuth2Client(TenantId tenantId, OAuth2Client oAuth2Client);
 
@@ -61,7 +61,7 @@ public interface OAuth2ClientService extends EntityDaoService {
 
     void deleteOauth2ClientsByTenantId(TenantId tenantId);
 
-    PageData<OAuth2ClientInfo> findOAuth2ClientInfosByTenantId(TenantId tenantId, PageLink pageLink);
+    PageData<OAuth2ClientInfo> findOAuth2ClientInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
     List<OAuth2ClientInfo> findOAuth2ClientInfosByIds(TenantId tenantId, List<OAuth2ClientId> oAuth2ClientIds);
 

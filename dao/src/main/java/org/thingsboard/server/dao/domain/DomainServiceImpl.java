@@ -52,6 +52,7 @@ import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.oauth2.OAuth2ClientDao;
+import org.thingsboard.server.dao.service.PaginatedRemover;
 
 import java.util.Comparator;
 import java.util.List;
@@ -151,6 +152,12 @@ public class DomainServiceImpl extends AbstractEntityService implements DomainSe
     }
 
     @Override
+    public void deleteDomainsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
+        log.trace("Executing deleteDomainsByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
+        customerDomainsRemover.removeEntities(tenantId, customerId);
+    }
+
+    @Override
     public void deleteByTenantId(TenantId tenantId) {
         deleteDomainsByTenantId(tenantId);
     }
@@ -165,6 +172,19 @@ public class DomainServiceImpl extends AbstractEntityService implements DomainSe
     public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
         deleteDomainById(tenantId, (DomainId) id);
     }
+
+    private final PaginatedRemover<CustomerId, Domain> customerDomainsRemover = new PaginatedRemover<>() {
+
+        @Override
+        protected PageData<Domain> findEntities(TenantId tenantId, CustomerId id, PageLink pageLink) {
+            return domainDao.findByTenantIdAndCustomerId(tenantId, id, pageLink);
+        }
+
+        @Override
+        protected void removeEntity(TenantId tenantId, Domain entity) {
+            deleteEntity(tenantId, new DomainId(entity.getUuidId()), true);
+        }
+    };
 
     private DomainInfo getDomainInfo(Domain domain) {
         if (domain == null) {

@@ -101,7 +101,7 @@ export const oAuth2Routes: Routes = [
             path: '',
             component: EntitiesTableComponent,
             data: {
-              auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+              auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
               title: 'admin.oauth2.clients'
             },
             resolve: {
@@ -119,7 +119,7 @@ export const oAuth2Routes: Routes = [
                     labelFunction: entityDetailsPageBreadcrumbLabelFunction,
                     icon: 'public'
                   } as BreadCrumbConfig<EntityDetailsPageComponent>,
-                  auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+                  auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
                   title: 'admin.oauth2.clients',
                   hideTabs: true,
                   backNavigationCommands: ['../..']

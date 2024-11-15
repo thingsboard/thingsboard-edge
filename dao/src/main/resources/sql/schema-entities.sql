@@ -743,6 +743,7 @@ CREATE TABLE IF NOT EXISTS oauth2_client (
     id uuid NOT NULL CONSTRAINT oauth2_client_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
     tenant_id uuid NOT NULL,
+    customer_id uuid NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
     title varchar(100) NOT NULL,
     additional_info varchar,
     client_id varchar(255),
@@ -780,7 +781,7 @@ CREATE TABLE IF NOT EXISTS domain (
     id uuid NOT NULL CONSTRAINT domain_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
     tenant_id uuid NOT NULL,
-    customer_id uuid NOT NULL,
+    customer_id uuid NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
     name varchar(255) UNIQUE,
     oauth2_enabled boolean,
     edge_enabled boolean

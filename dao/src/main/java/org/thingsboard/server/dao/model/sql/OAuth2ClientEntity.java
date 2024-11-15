@@ -40,6 +40,7 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.oauth2.MapperType;
@@ -66,6 +67,8 @@ public class OAuth2ClientEntity extends BaseSqlEntity<OAuth2Client> {
 
     @Column(name = ModelConstants.TENANT_ID_COLUMN)
     private UUID tenantId;
+    @Column(name = ModelConstants.CUSTOMER_ID_COLUMN)
+    private UUID customerId;
     @Column(name = ModelConstants.OAUTH2_CLIENT_TITLE_PROPERTY)
     private String title;
     @Column(name = ModelConstants.OAUTH2_CLIENT_ID_PROPERTY)
@@ -142,6 +145,9 @@ public class OAuth2ClientEntity extends BaseSqlEntity<OAuth2Client> {
         if (oAuth2Client.getTenantId() != null) {
             this.tenantId = oAuth2Client.getTenantId().getId();
         }
+        if (oAuth2Client.getCustomerId() != null) {
+            this.customerId = oAuth2Client.getCustomerId().getId();
+        }
         this.title = oAuth2Client.getTitle();
         this.clientId = oAuth2Client.getClientId();
         this.clientSecret = oAuth2Client.getClientSecret();
@@ -193,6 +199,7 @@ public class OAuth2ClientEntity extends BaseSqlEntity<OAuth2Client> {
         registration.setId(new OAuth2ClientId(id));
         registration.setCreatedTime(createdTime);
         registration.setTenantId(new TenantId(tenantId));
+        registration.setCustomerId(new CustomerId(customerId));
         registration.setTitle(title);
         registration.setAdditionalInfo(additionalInfo);
         registration.setMapperConfig(
