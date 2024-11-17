@@ -831,7 +831,8 @@ public class VersionControlTest extends AbstractControllerTest {
         assertThat(importedConverter.getName()).isEqualTo(initialConverter.getName());
         assertThat(importedConverter.getConfiguration()).isEqualTo(initialConverter.getConfiguration());
         assertThat(importedConverter.getAdditionalInfo()).isEqualTo(initialConverter.getAdditionalInfo());
-        assertThat(importedConverter.isDebugMode()).isEqualTo(initialConverter.isDebugMode());
+        assertThat(importedConverter.isDebugFailures()).isEqualTo(initialConverter.isDebugFailures());
+        assertThat(importedConverter.getDebugAllUntil()).isEqualTo(initialConverter.getDebugAllUntil());
     }
 
     protected void checkImportedIntegrationData(Integration initialIntegration, Integration importedIntegration) {
@@ -1187,7 +1188,7 @@ public class VersionControlTest extends AbstractControllerTest {
         converter.setConfiguration(JacksonUtil.newObjectNode()
                 .<ObjectNode>set("encoder", new TextNode("b"))
                 .set("decoder", new TextNode("c")));
-        converter.setDebugMode(true);
+        converter.setDebugFailures(true);
         converter.setAdditionalInfo(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
         return doPost("/api/converter", converter, Converter.class);
     }

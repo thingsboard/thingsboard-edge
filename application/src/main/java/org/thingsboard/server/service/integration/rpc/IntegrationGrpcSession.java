@@ -430,10 +430,11 @@ public final class IntegrationGrpcSession implements Closeable {
                 .setName(configuration.getName())
                 .setRoutingKey(configuration.getRoutingKey())
                 .setType(configuration.getType().toString())
-                .setDebugMode(configuration.isDebugMode())
                 .setConfiguration(JacksonUtil.writeValueAsString(configuration.getConfiguration()))
                 .setAdditionalInfo(JacksonUtil.writeValueAsString(configuration.getAdditionalInfo()))
                 .setEnabled(configuration.isEnabled())
+                .setDebugFailures(configuration.isDebugFailures())
+                .setDebugAllUntil(configuration.getDebugAllUntil())
                 .build();
     }
 
@@ -444,9 +445,10 @@ public final class IntegrationGrpcSession implements Closeable {
                 .setConverterIdMSB(converter.getId().getId().getMostSignificantBits())
                 .setConverterIdLSB(converter.getId().getId().getLeastSignificantBits())
                 .setName(converter.getName())
-                .setDebugMode(converter.isDebugMode())
                 .setConfiguration(JacksonUtil.toString(converter.getConfiguration()))
                 .setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()))
+                .setDebugFailures(converter.isDebugFailures())
+                .setDebugAllUntil(converter.getDebugAllUntil())
                 .build();
     }
 

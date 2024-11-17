@@ -38,6 +38,7 @@ import org.eclipse.californium.core.coap.OptionSet;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.eclipse.californium.core.server.resources.Resource;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -117,10 +118,11 @@ public class CoapIntegration extends AbstractIntegration<CoapIntegrationMsg> {
         } else {
             integrationStatistics.incErrorsOccurred();
         }
-        if (configuration.isDebugMode()) {
+        String debugStatus = isOk ? "OK" : "ERROR";
+        if (DebugModeUtil.isDebugAvailable(configuration, debugStatus)) {
             try {
                 persistDebug(context, "Uplink", msg.getContentType(),
-                        ConvertUtil.toDebugMessage(msg.getContentType(), msg.getPayloadBytes()), isOk ? "OK" : "ERROR", exception);
+                        ConvertUtil.toDebugMessage(msg.getContentType(), msg.getPayloadBytes()), debugStatus, exception);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

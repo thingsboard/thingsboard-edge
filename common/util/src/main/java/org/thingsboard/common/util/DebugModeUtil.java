@@ -43,15 +43,16 @@ public final class DebugModeUtil {
         return debugMode.getDebugAllUntil() > System.currentTimeMillis();
     }
 
-    public static boolean isDebugAvailable(HasDebugMode debugMode, String nodeConnection) {
-        return isDebugAllAvailable(debugMode) || debugMode.isDebugFailures() && TbNodeConnectionType.FAILURE.equals(nodeConnection);
+    public static boolean isDebugAvailable(HasDebugMode debugMode, String nodeConnectionOrStatus) {
+        return isDebugAllAvailable(debugMode) || debugMode.isDebugFailures() &&
+                (TbNodeConnectionType.FAILURE.equals(nodeConnectionOrStatus) || "ERROR".equals(nodeConnectionOrStatus) || "FAILURE".equals(nodeConnectionOrStatus));
     }
 
     public static boolean isDebugFailuresAvailable(HasDebugMode debugMode, Set<String> nodeConnections) {
         return isDebugFailuresAvailable(debugMode) && nodeConnections.contains(TbNodeConnectionType.FAILURE);
     }
 
-    private static boolean isDebugFailuresAvailable(HasDebugMode debugMode) {
+    public static boolean isDebugFailuresAvailable(HasDebugMode debugMode) {
         return debugMode.isDebugFailures() || isDebugAllAvailable(debugMode);
     }
 

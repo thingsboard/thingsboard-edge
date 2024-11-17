@@ -42,6 +42,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.Promise;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.integration.api.AbstractIntegration;
@@ -192,7 +193,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     }
 
     private void persistDebug(T msg, String status, Throwable exception) {
-        if (configuration.isDebugMode()) {
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
             try {
                 persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
             } catch (Exception e) {

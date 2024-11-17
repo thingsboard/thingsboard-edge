@@ -35,6 +35,7 @@ import org.apache.pulsar.client.api.BatchReceivePolicy;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -101,7 +102,7 @@ public abstract class AbstractPulsarIntegration<T extends PulsarIntegrationMsg> 
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
         }
-        if (configuration.isDebugMode()) {
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
             try {
                 persistDebug(context, "Uplink", UplinkContentType.BINARY, toDebugMessage(UplinkContentType.BINARY, msg.getMsg()), status, exception);
             } catch (Exception e) {

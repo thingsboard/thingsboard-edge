@@ -102,6 +102,15 @@ public class SystemInfoController extends BaseController {
     @Getter
     private String ruleChainDebugPerTenantLimitsConfiguration;
 
+    @Value("${event.debug.rate_limits.enabled}")
+    private boolean eventRateLimitsEnabled;
+
+    @Value("${event.debug.rate_limits.integration}")
+    private String integrationDebugPerTenantLimitsConfiguration;
+
+    @Value("${event.debug.rate_limits.converter}")
+    private String converterDebugPerTenantLimitsConfiguration;
+
     @Autowired(required = false)
     private BuildProperties buildProperties;
 
@@ -183,6 +192,10 @@ public class SystemInfoController extends BaseController {
             systemParams.setMaxDebugModeDurationMinutes(tenantProfileConfiguration.getMaxDebugModeDurationMinutes(maxDebugModeDurationMinutes));
             if (ruleChainDebugPerTenantLimitsEnabled) {
                 systemParams.setRuleChainDebugPerTenantLimitsConfiguration(ruleChainDebugPerTenantLimitsConfiguration);
+            }
+            if (eventRateLimitsEnabled) {
+                systemParams.setIntegrationDebugPerTenantLimitsConfiguration(integrationDebugPerTenantLimitsConfiguration);
+                systemParams.setConverterDebugPerTenantLimitsConfiguration(converterDebugPerTenantLimitsConfiguration);
             }
         }
         systemParams.setAvailableLocales(translationService.getAvailableLocaleCodes(tenantId, customerId));

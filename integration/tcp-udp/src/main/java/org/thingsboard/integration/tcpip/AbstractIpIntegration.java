@@ -45,6 +45,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
@@ -216,7 +217,7 @@ public abstract class AbstractIpIntegration extends AbstractIntegration<IpIntegr
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
         }
-        if (configuration.isDebugMode()) {
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
             try {
                 persistDebug(context, "Uplink", uplinkContentType, toDebugMessage(uplinkContentType.name(), msg.getPayload()), status, exception);
             } catch (Exception e) {

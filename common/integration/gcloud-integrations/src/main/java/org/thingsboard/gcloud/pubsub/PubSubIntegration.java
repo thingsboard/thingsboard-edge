@@ -37,6 +37,7 @@ import com.google.cloud.pubsub.v1.MessageReceiver;
 import com.google.cloud.pubsub.v1.Subscriber;
 import com.google.pubsub.v1.ProjectSubscriptionName;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -92,14 +93,16 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
                 }
             }
             integrationStatistics.incMessagesProcessed();
-            if (configuration.isDebugMode()) {
+            if (DebugModeUtil.isDebugAllAvailable(configuration)) {
                 persistDebug(context, "Uplink", getDefaultUplinkContentType(),
                         ConvertUtil.toDebugMessage(getDefaultUplinkContentType(), msg.getPayload()), "OK", null);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             integrationStatistics.incErrorsOccurred();
-            persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
+            if (DebugModeUtil.isDebugFailuresAvailable(configuration)) {
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
+            }
         }
     }
 

@@ -42,6 +42,7 @@ import com.microsoft.azure.sdk.iot.service.IotHubServiceClientProtocol;
 import com.microsoft.azure.sdk.iot.service.Message;
 import com.microsoft.azure.sdk.iot.service.ServiceClient;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -117,7 +118,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
         }
-        if (configuration.isDebugMode()) {
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
             try {
                 persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
             } catch (Exception e) {
@@ -264,13 +265,14 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     }
 
     private void logEventHubDownlink(IntegrationContext context, Message message, String deviceId, String contentType) {
-        if (configuration.isDebugMode()) {
+        String status = downlinkConverter != null ? "OK" : "FAILURE";
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
             try {
                 ObjectNode json = JacksonUtil.newObjectNode();
                 json.put("deviceId", deviceId);
                 json.set("payload", getDownlinkPayloadJson(message, contentType));
                 json.set("properties", JacksonUtil.valueToTree(message.getProperties()));
-                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), status, null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

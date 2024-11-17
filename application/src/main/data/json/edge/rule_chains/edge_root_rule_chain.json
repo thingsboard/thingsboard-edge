@@ -5,7 +5,8 @@
     "type": "EDGE",
     "firstRuleNodeId": null,
     "root": true,
-    "debugMode": false,
+    "debugFailures": false,
+    "debugAll": false,
     "configuration": null,
     "externalId": null
   },
@@ -20,7 +21,8 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbOriginatorTypeFilterNode",
         "name": "Is Entity Group",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "originatorTypes": [
             "ENTITY_GROUP"
@@ -36,7 +38,8 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeFilterNode",
         "name": "Post attributes or RPC request",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "messageTypes": [
             "POST_ATTRIBUTES_REQUEST",
@@ -53,7 +56,8 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbDuplicateMsgToGroupNode",
         "name": "Duplicate To Group Entities",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configurationVersion": 1,
         "configuration": {
           "entityGroupId": null,

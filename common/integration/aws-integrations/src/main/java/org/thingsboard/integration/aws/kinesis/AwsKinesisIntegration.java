@@ -44,6 +44,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -327,7 +328,7 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
         }
-        if (configuration.isDebugMode()) {
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
             try {
                 persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
             } catch (Exception e) {
@@ -435,13 +436,14 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
     }
 
     private void logKinesisDownlink(IntegrationContext context, KinesisProducerKey producerKey, DownlinkData data) {
-        if (configuration.isDebugMode()) {
+        String status = downlinkConverter != null ? "OK" : "FAILURE";
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
             try {
                 ObjectNode json = JacksonUtil.newObjectNode();
                 json.put("streamName", producerKey.getStreamName());
                 json.put("partitionKey", producerKey.getPartitionKey());
                 json.set("payload", getDownlinkPayloadJson(data));
-                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), status, null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

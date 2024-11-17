@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.converter.TBDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.TBUplinkDataConverter;
@@ -333,14 +334,15 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     protected void reportDownlinkOk(IntegrationContext context, DownlinkData data) {
         context.onDownlinkMessageProcessed(true);
         integrationStatistics.incMessagesProcessed();
-        if (configuration.isDebugMode()) {
+        String status = downlinkConverter != null ? "OK" : "FAILURE";
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
             try {
                 ObjectNode json = JacksonUtil.newObjectNode();
                 if (data.getMetadata() != null && !data.getMetadata().isEmpty()) {
                     json.set("metadata", JacksonUtil.valueToTree(data.getMetadata()));
                 }
                 json.set("payload", getDownlinkPayloadJson(data));
-                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), status, null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }
@@ -354,7 +356,7 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
             if (log.isDebugEnabled()) {
                 log.debug("[{}][{}] Failed to apply downlink data converter function for data: {} and metadata: {}", configuration.getId(), configuration.getName(), msg.getData(), msg.getMetaData());
             }
-            if (configuration.isDebugMode()) {
+            if (DebugModeUtil.isDebugAvailable(configuration, status)) {
                 try {
                     persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(msg), status, exception);
                 } catch (Exception e) {
@@ -376,9 +378,10 @@ public abstract class AbstractIntegration<T> implements ThingsboardPlatformInteg
     }
 
     protected <T> void logDownlink(IntegrationContext context, String updateType, T msg) {
-        if (configuration.isDebugMode()) {
+        String status = downlinkConverter != null ? "OK" : "FAILURE";
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
             try {
-                persistDebug(context, updateType, "JSON", JacksonUtil.toString(msg), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, updateType, "JSON", JacksonUtil.toString(msg), status, null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

@@ -33,6 +33,8 @@ package org.thingsboard.server.dao.integration;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -60,10 +62,12 @@ import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
+import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -90,6 +94,13 @@ public class BaseIntegrationService extends CachedVersionedEntityService<Integra
     @Autowired
     private EntityCountService entityCountService;
 
+    @Autowired
+    @Lazy
+    private TbTenantProfileCache tbTenantProfileCache;
+
+    @Value("${debug_mode.max_duration:60}")
+    private int maxDebugModeDurationMinutes;
+
     @TransactionalEventListener(classes = IntegrationCacheEvictEvent.class)
     @Override
     public void handleEvictEvent(IntegrationCacheEvictEvent event) {
@@ -104,11 +115,19 @@ public class BaseIntegrationService extends CachedVersionedEntityService<Integra
     public Integration saveIntegration(Integration integration) {
         log.trace("Executing saveIntegration [{}]", integration);
         integrationValidator.validate(integration, Integration::getTenantId);
+        TenantId tenantId = integration.getTenantId();
         try {
-            var result = integrationDao.save(integration.getTenantId(), integration);
+            int debugDuration = tbTenantProfileCache.get(tenantId).getDefaultProfileConfiguration().getMaxDebugModeDurationMinutes(maxDebugModeDurationMinutes);
+            long debugUntil = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(debugDuration);
+            if (integration.isDebugAll()) {
+                integration.setDebugAllUntil(debugUntil);
+            } else if (integration.getDebugAllUntil() > debugUntil) {
+                throw new DataValidationException("Unable to update 'debugAllUntil' property. To reset the debug duration, please modify the 'debugAll' property instead.");
+            }
+            var result = integrationDao.save(tenantId, integration);
             publishEvictEvent(new IntegrationCacheEvictEvent(result.getId(), result));
             if (integration.getId() == null) {
-                entityCountService.publishCountEntityEvictEvent(integration.getTenantId(), EntityType.INTEGRATION);
+                entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.INTEGRATION);
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId()).entity(result)
                     .entityId(result.getId()).created(integration.getId() == null).build());

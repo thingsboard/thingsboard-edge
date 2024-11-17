@@ -41,6 +41,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -109,7 +110,7 @@ public class AzureServiceBusIntegration extends AbstractIntegration<AzureService
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
         }
-        if (configuration.isDebugMode()) {
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
             try {
                 persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
             } catch (Exception e) {
@@ -255,13 +256,14 @@ public class AzureServiceBusIntegration extends AbstractIntegration<AzureService
     }
 
     private void logServiceBusDownlink(IntegrationContext context, ServiceBusMessage message, String deviceId, String contentType) {
-        if (configuration.isDebugMode()) {
+        String status = downlinkConverter != null ? "OK" : "FAILURE";
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
             try {
                 ObjectNode json = JacksonUtil.newObjectNode();
                 json.put("deviceId", deviceId);
                 json.set("payload", getDownlinkPayloadJson(message, contentType));
                 json.set("properties", JacksonUtil.valueToTree(message.getApplicationProperties()));
-                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), status, null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

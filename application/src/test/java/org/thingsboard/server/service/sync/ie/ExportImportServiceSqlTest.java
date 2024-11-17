@@ -641,7 +641,7 @@ public class ExportImportServiceSqlTest extends AbstractControllerTest {
         converter.setConfiguration(JacksonUtil.newObjectNode()
                 .<ObjectNode>set("encoder", new TextNode("b"))
                 .set("decoder", new TextNode("c")));
-        converter.setDebugMode(true);
+        converter.setDebugAll(true);
         converter.setAdditionalInfo(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
         return converterService.saveConverter(converter);
     }

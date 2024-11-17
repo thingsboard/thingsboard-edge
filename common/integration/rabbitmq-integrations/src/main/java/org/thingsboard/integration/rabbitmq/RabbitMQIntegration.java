@@ -40,6 +40,7 @@ import com.rabbitmq.client.RecoveryListener;
 import com.rabbitmq.client.ShutdownSignalException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -109,7 +110,7 @@ public class RabbitMQIntegration extends AbstractIntegration<RabbitMQIntegration
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
         }
-        if (configuration.isDebugMode()) {
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
             try {
                 persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.getMsg()), status, exception);
             } catch (Exception e) {
@@ -210,7 +211,7 @@ public class RabbitMQIntegration extends AbstractIntegration<RabbitMQIntegration
                         return channel.basicGet(queue, true);
                     } catch (IOException | ShutdownSignalException exception) {
                         log.error("[{}][{}] Channel was closed with the error: {}", this.configuration.getTenantId().getId(), this.configuration.getId().getId(), exception.getMessage());
-                        if (configuration.isDebugMode()) {
+                        if (DebugModeUtil.isDebugFailuresAvailable(configuration)) {
                             try {
                                 persistDebug(context, "Uplink", getDefaultUplinkContentType(), "", "ERROR", exception);
                             } catch (Exception e) {

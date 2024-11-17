@@ -40,6 +40,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.util.CollectionUtils;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -145,13 +146,15 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
                 }
             }
             integrationStatistics.incMessagesProcessed();
-            if (configuration.isDebugMode()) {
+            if (DebugModeUtil.isDebugAllAvailable(configuration)) {
                 persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(message.getJson()), "OK", null);
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             integrationStatistics.incErrorsOccurred();
-            persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
+            if (DebugModeUtil.isDebugFailuresAvailable(configuration)) {
+                persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
+            }
         }
     }
 

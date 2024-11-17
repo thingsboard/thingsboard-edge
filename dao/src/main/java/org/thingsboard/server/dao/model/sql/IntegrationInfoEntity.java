@@ -54,7 +54,6 @@ import org.thingsboard.server.dao.model.ModelConstants;
 import java.util.UUID;
 
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS;
-import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DEBUG_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ENABLED_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_IS_REMOTE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_NAME_PROPERTY;
@@ -79,8 +78,11 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
     @Column(name = INTEGRATION_TYPE_PROPERTY)
     private IntegrationType type;
 
-    @Column(name = INTEGRATION_DEBUG_MODE_PROPERTY)
-    private Boolean debugMode;
+    @Column(name = ModelConstants.DEBUG_FAILURES)
+    private boolean debugFailures;
+
+    @Column(name = ModelConstants.DEBUG__ALL_UNTIL)
+    private long debugAllUntil;
 
     @Column(name = INTEGRATION_ENABLED_PROPERTY)
     private Boolean enabled;
@@ -105,14 +107,15 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
     }
 
     public IntegrationInfoEntity(UUID id, Long createdTime, UUID tenantId, String name,
-                                 String type, Boolean debugMode, Boolean enabled, Boolean isRemote,
+                                 String type, boolean debugFailures, long debugAllUntil, Boolean enabled, Boolean isRemote,
                                  Boolean allowCreateDevicesOrAssets, Boolean edgeTemplate, String stats, String status) {
         this.id = id;
         this.createdTime = createdTime;
         this.tenantId = tenantId;
         this.name = name;
         this.type = IntegrationType.valueOf(type);
-        this.debugMode = debugMode;
+        this.debugFailures = debugFailures;
+        this.debugAllUntil = debugAllUntil;
         this.enabled = enabled;
         this.isRemote = isRemote;
         this.allowCreateDevicesOrAssets = allowCreateDevicesOrAssets;
@@ -131,7 +134,8 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         }
         this.name = integration.getName();
         this.type = integration.getType();
-        this.debugMode = integration.isDebugMode();
+        this.debugFailures = integration.isDebugFailures();
+        this.debugAllUntil = integration.getDebugAllUntil();
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
@@ -147,7 +151,8 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         }
         integration.setName(name);
         integration.setType(type);
-        integration.setDebugMode(debugMode);
+        integration.setDebugFailures(debugFailures);
+        integration.setDebugAllUntil(debugAllUntil);
         integration.setEnabled(enabled);
         integration.setRemote(isRemote);
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);

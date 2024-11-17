@@ -53,7 +53,6 @@ import java.util.UUID;
 import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_CONVERTER_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DEBUG_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DOWNLINK_CONVERTER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ENABLED_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_IS_REMOTE_PROPERTY;
@@ -92,8 +91,11 @@ public class IntegrationEntity extends BaseVersionedEntity<Integration> {
     @Column(name = INTEGRATION_TYPE_PROPERTY)
     private IntegrationType type;
 
-    @Column(name = INTEGRATION_DEBUG_MODE_PROPERTY)
-    private boolean debugMode;
+    @Column(name = ModelConstants.DEBUG_FAILURES)
+    private boolean debugFailures;
+
+    @Column(name = ModelConstants.DEBUG__ALL_UNTIL)
+    private long debugAllUntil;
 
     @Column(name = INTEGRATION_ENABLED_PROPERTY)
     private Boolean enabled;
@@ -137,7 +139,8 @@ public class IntegrationEntity extends BaseVersionedEntity<Integration> {
         this.routingKey = integration.getRoutingKey();
         this.secret = integration.getSecret();
         this.type = integration.getType();
-        this.debugMode = integration.isDebugMode();
+        this.debugFailures = integration.isDebugFailures();
+        this.debugAllUntil = integration.getDebugAllUntil();
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
@@ -167,7 +170,8 @@ public class IntegrationEntity extends BaseVersionedEntity<Integration> {
         integration.setRoutingKey(routingKey);
         integration.setSecret(secret);
         integration.setType(type);
-        integration.setDebugMode(debugMode);
+        integration.setDebugFailures(debugFailures);
+        integration.setDebugAllUntil(debugAllUntil);
         integration.setEnabled(enabled);
         integration.setRemote(isRemote);
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);

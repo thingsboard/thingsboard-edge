@@ -34,6 +34,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.server.common.data.EntityType;
@@ -53,10 +55,12 @@ import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.sql.JpaExecutorService;
+import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -84,11 +88,26 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     @Autowired
     private JpaExecutorService executor;
 
+    @Autowired
+    @Lazy
+    private TbTenantProfileCache tbTenantProfileCache;
+
+    @Value("${debug_mode.max_duration:60}")
+    private int maxDebugModeDurationMinutes;
+
     @Override
     public Converter saveConverter(Converter converter) {
         log.trace("Executing saveConverter [{}]", converter);
         converterValidator.validate(converter, Converter::getTenantId);
+        TenantId tenantId = converter.getTenantId();
         try {
+            int debugDuration = tbTenantProfileCache.get(tenantId).getDefaultProfileConfiguration().getMaxDebugModeDurationMinutes(maxDebugModeDurationMinutes);
+            long debugUntil = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(debugDuration);
+            if (converter.isDebugAll()) {
+                converter.setDebugAllUntil(debugUntil);
+            } else if (converter.getDebugAllUntil() > debugUntil) {
+                throw new DataValidationException("Unable to update 'debugAllUntil' property. To reset the debug duration, please modify the 'debugAll' property instead.");
+            }
             Converter savedConverter = converterDao.save(converter.getTenantId(), converter);
             if (converter.getId() == null) {
                 entityCountService.publishCountEntityEvictEvent(converter.getTenantId(), EntityType.CONVERTER);

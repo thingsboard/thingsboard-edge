@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.gson.JsonParseException;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
@@ -82,12 +83,12 @@ public abstract class AbstractDownlinkDataConverter extends AbstractDataConverte
             if (log.isTraceEnabled()) {
                 log.trace("[{}][{}] Downlink conversion took {} ms.", configuration.getId(), configuration.getName(), System.currentTimeMillis() - startTime);
             }
-            if (configuration.isDebugMode()) {
+            if (DebugModeUtil.isDebugAllAvailable(configuration)) {
                 persistDownlinkDebug(context, downLinkMsgs, rawResults, metadata);
             }
             return result;
         } catch (Exception e) {
-            if (configuration.isDebugMode()) {
+            if (DebugModeUtil.isDebugFailuresAvailable(configuration)) {
                 persistDownlinkDebug(context, downLinkMsgs, metadata, e);
             }
             throw e;

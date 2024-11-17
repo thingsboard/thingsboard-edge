@@ -68,6 +68,7 @@ import org.eclipse.milo.opcua.stack.core.types.structured.ReadValueId;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
 import org.eclipse.milo.opcua.stack.core.types.structured.WriteValue;
 import org.eclipse.milo.opcua.stack.core.util.ConversionUtil;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -176,7 +177,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
         }
-        if (configuration.isDebugMode()) {
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
             try {
                 persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
             } catch (Exception e) {
@@ -863,7 +864,8 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     }
 
     private void logOpcUaDownlink(IntegrationContext context, List<WriteValue> writeValues, List<CallMethodRequest> callMethods) {
-        if (configuration.isDebugMode() && (!writeValues.isEmpty() || !callMethods.isEmpty())) {
+        String status = downlinkConverter != null ? "OK" : "FAILURE";
+        if (DebugModeUtil.isDebugAvailable(configuration, status) && (!writeValues.isEmpty() || !callMethods.isEmpty())) {
             try {
                 ObjectNode json = JacksonUtil.newObjectNode();
                 if (!writeValues.isEmpty()) {
@@ -872,7 +874,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
                 if (!callMethods.isEmpty()) {
                     json.set("callMethods", toJsonStringList(callMethods));
                 }
-                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), status, null);
             } catch (Exception e) {
                 log.warn("[{}] Failed to persist debug message", getConfigurationId(), e);
             }

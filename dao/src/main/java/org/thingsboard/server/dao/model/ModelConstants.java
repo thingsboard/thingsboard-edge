@@ -307,7 +307,6 @@ public class ModelConstants {
     public static final String CONVERTER_TENANT_ID_PROPERTY = TENANT_ID_PROPERTY;
     public static final String CONVERTER_NAME_PROPERTY = "name";
     public static final String CONVERTER_TYPE_PROPERTY = "type";
-    public static final String CONVERTER_DEBUG_MODE_PROPERTY = "debug_mode";
     public static final String CONVERTER_CONFIGURATION_PROPERTY = CONFIGURATION_PROPERTY;
     public static final String CONVERTER_ADDITIONAL_INFO_PROPERTY = ADDITIONAL_INFO_PROPERTY;
     public static final String CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY = "is_edge_template";
@@ -323,7 +322,6 @@ public class ModelConstants {
     public static final String INTEGRATION_DOWNLINK_CONVERTER_ID_PROPERTY = "downlink_converter_id";
     public static final String INTEGRATION_ROUTING_KEY_PROPERTY = "routing_key";
     public static final String INTEGRATION_TYPE_PROPERTY = "type";
-    public static final String INTEGRATION_DEBUG_MODE_PROPERTY = "debug_mode";
     public static final String INTEGRATION_ENABLED_PROPERTY = "enabled";
     public static final String INTEGRATION_IS_REMOTE_PROPERTY = "is_remote";
     public static final String INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS = "allow_create_devices_or_assets";

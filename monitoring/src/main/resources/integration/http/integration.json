@@ -1,6 +1,7 @@
 {
   "type": "HTTP",
-  "debugMode": true,
+  "debugFailures": false,
+  "debugAll": true,
   "enabled": true,
   "allowCreateDevicesOrAssets": false,
   "defaultConverterId": null,

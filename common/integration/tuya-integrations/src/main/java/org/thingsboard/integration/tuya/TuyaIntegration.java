@@ -44,6 +44,7 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.HmacSHA256Util;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
@@ -280,7 +281,7 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
             } catch (Exception e) {
                 exception = e;
             }
-            if (exception != null || configuration.isDebugMode()) {
+            if (exception != null) {
                 resultHandler("Downlink", msg.getData(), exception);
             }
         }
@@ -288,8 +289,9 @@ public class TuyaIntegration extends AbstractIntegration<TuyaIntegrationMsg> {
 
     private void resultHandler(String type, String msg, Exception exception) {
         String status = exception == null ? "SUCCESS" : "FAILURE";
-        persistDebug(context, type, UplinkContentType.JSON, msg, status, exception);
-
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
+            persistDebug(context, type, UplinkContentType.JSON, msg, status, exception);
+        }
     }
 
     private MqConsumer createMqConsumer(String accessId, String accessKey) {

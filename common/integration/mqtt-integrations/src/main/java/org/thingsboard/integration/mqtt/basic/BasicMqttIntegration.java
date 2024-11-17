@@ -37,6 +37,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import io.netty.buffer.Unpooled;
 import io.netty.handler.codec.mqtt.MqttQoS;
 import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbStopWatch;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -219,12 +220,13 @@ public class BasicMqttIntegration extends AbstractMqttIntegration<BasicMqttInteg
     }
 
     private void logMqttDownlink(IntegrationContext context, String topic, DownlinkData data) {
-        if (configuration.isDebugMode()) {
+        String status = downlinkConverter != null ? "OK" : "FAILURE";
+        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
             try {
                 ObjectNode json = JacksonUtil.newObjectNode();
                 json.put("topic", topic);
                 json.set("payload", getDownlinkPayloadJson(data));
-                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
+                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), status, null);
             } catch (Exception e) {
                 log.warn("Failed to persist debug message", e);
             }

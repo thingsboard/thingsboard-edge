@@ -1205,7 +1205,8 @@ public class ProtoUtils {
                 .setTenantIdLSB(getLsb(integration.getTenantId()))
                 .setType(integration.getType().name())
                 .setName(integration.getName())
-                .setDebugMode(integration.isDebugMode())
+                .setDebugFailures(integration.isDebugFailures())
+                .setDebugAllUntil(integration.getDebugAllUntil())
                 .setEnabled(integration.isEnabled())
                 .setRemote(integration.isRemote())
                 .setAllowCreateDevicesOrAssets(integration.isAllowCreateDevicesOrAssets())
@@ -1243,7 +1244,8 @@ public class ProtoUtils {
         integration.setTenantId(getEntityId(proto.getTenantIdMSB(), proto.getTenantIdLSB(), TenantId::new));
         integration.setType(IntegrationType.valueOf(proto.getType()));
         integration.setName(proto.getName());
-        integration.setDebugMode(proto.getDebugMode());
+        integration.setDebugFailures(proto.getDebugFailures());
+        integration.setDebugAllUntil(proto.getDebugAllUntil());
         integration.setEnabled(proto.getEnabled());
         integration.setRemote(proto.getRemote());
         integration.setAllowCreateDevicesOrAssets(proto.getAllowCreateDevicesOrAssets());
@@ -1281,7 +1283,8 @@ public class ProtoUtils {
                 .setTenantIdLSB(getLsb(converter.getTenantId()))
                 .setType(converter.getType().name())
                 .setName(converter.getName())
-                .setDebugMode(converter.isDebugMode())
+                .setDebugFailures(converter.isDebugFailures())
+                .setDebugAllUntil(converter.getDebugAllUntil())
                 .setIsEdgeTemplate(converter.isEdgeTemplate())
                 .setConfiguration(JacksonUtil.toString(converter.getConfiguration()));
 
@@ -1305,7 +1308,8 @@ public class ProtoUtils {
         converter.setTenantId(getEntityId(proto.getTenantIdMSB(), proto.getTenantIdLSB(), TenantId::new));
         converter.setType(ConverterType.valueOf(proto.getType()));
         converter.setName(proto.getName());
-        converter.setDebugMode(proto.getDebugMode());
+        converter.setDebugFailures(proto.getDebugFailures());
+        converter.setDebugAllUntil(proto.getDebugAllUntil());
         converter.setEdgeTemplate(proto.getIsEdgeTemplate());
         converter.setConfiguration(JacksonUtil.toJsonNode(proto.getConfiguration()));
 

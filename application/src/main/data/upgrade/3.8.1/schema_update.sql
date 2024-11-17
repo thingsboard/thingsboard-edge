@@ -61,3 +61,47 @@ $$
 $$;
 
 -- UPDATE RULE NODE DEBUG MODE TO DEBUG STRATEGY END
+
+-- UPDATE INTEGRATION DEBUG MODE TO DEBUG STRATEGY START
+
+ALTER TABLE integration
+    ADD COLUMN IF NOT EXISTS debug_failures boolean DEFAULT false;
+ALTER TABLE integration
+    ADD COLUMN IF NOT EXISTS debug_all_until bigint NOT NULL DEFAULT 0;
+DO
+$$
+BEGIN
+        IF EXISTS (SELECT 1
+                   FROM information_schema.columns
+                   WHERE table_name = 'integration' AND column_name = 'debug_mode') THEN
+UPDATE integration
+SET debug_all_until = CASE WHEN debug_mode = true THEN extract(epoch from now() + 3600) * 1000 ELSE 0 END;
+ALTER TABLE integration
+DROP COLUMN debug_mode;
+END IF;
+END
+$$;
+
+-- UPDATE INTEGRATION DEBUG MODE TO DEBUG STRATEGY END
+
+-- UPDATE CONVERTER DEBUG MODE TO DEBUG STRATEGY START
+
+ALTER TABLE converter
+    ADD COLUMN IF NOT EXISTS debug_failures boolean DEFAULT false;
+ALTER TABLE converter
+    ADD COLUMN IF NOT EXISTS debug_all_until bigint NOT NULL DEFAULT 0;
+DO
+$$
+BEGIN
+        IF EXISTS (SELECT 1
+                   FROM information_schema.columns
+                   WHERE table_name = 'converter' AND column_name = 'debug_mode') THEN
+UPDATE converter
+SET debug_all_until = CASE WHEN debug_mode = true THEN extract(epoch from now() + 3600) * 1000 ELSE 0 END;
+ALTER TABLE converter
+DROP COLUMN debug_mode;
+END IF;
+END
+$$;
+
+-- UPDATE CONVERTER DEBUG MODE TO DEBUG STRATEGY END
