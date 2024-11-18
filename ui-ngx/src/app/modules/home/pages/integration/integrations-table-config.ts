@@ -169,8 +169,8 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     defaultEntityTablePermissions(this.userPermissionsService, this);
   }
 
-  private isDebugActive(integration: IntegrationInfo): boolean {
-    return integration.debugAllUntil > new Date().getTime();
+  private isDebugActive({ debugAllUntil }: IntegrationInfo): boolean {
+    return debugAllUntil > new Date().getTime();
   }
 
   private configureEntityTableColumns(): Array<EntityColumn<IntegrationInfo>> {
@@ -280,6 +280,8 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
         : this.translate.instant('debug-config.min', {number: this.maxDebugModeDurationMinutes});
     } else if (entity.debugFailures && !isDebugActive) {
       return this.translate.instant('debug-config.failures');
+    } else {
+      return '';
     }
   }
 
@@ -349,13 +351,12 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     return false;
   }
 
-  onOpenDebugConfig($event: Event, integration: IntegrationInfo): void {
+  onOpenDebugConfig($event: Event, { debugFailures, debugAll, debugAllUntil, id }: IntegrationInfo): void {
     const table = this.getTable();
     if ($event) {
       $event.stopPropagation();
     }
     const { renderer, viewContainerRef } = table;
-    const { debugFailures, debugAll, debugAllUntil } = integration;
     const trigger = $event.target as Element;
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
@@ -373,7 +374,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
         {}, {}, true);
       debugStrategyPopover.tbComponentRef.instance.popover = debugStrategyPopover;
       debugStrategyPopover.tbComponentRef.instance.onConfigApplied.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((config: HasDebugConfig) => {
-        this.onDebugConfigChanged(integration.id.id, config);
+        this.onDebugConfigChanged(id.id, config);
         debugStrategyPopover.hide();
       });
     }
