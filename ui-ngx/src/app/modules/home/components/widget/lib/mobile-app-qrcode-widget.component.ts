@@ -33,7 +33,7 @@ import { ChangeDetectorRef, Component, ElementRef, Input, NgZone, OnDestroy, OnI
 import { PageComponent } from '@shared/components/page.component';
 import { AppState } from '@core/core.state';
 import { Store } from '@ngrx/store';
-import { BadgePosition, MobileAppSettings } from '@shared/models/mobile-app.models';
+import { BadgePosition, QrCodeSettings } from '@shared/models/mobile-app.models';
 import { MobileApplicationService } from '@core/http/mobile-application.service';
 import { WidgetContext } from '@home/models/widget-component.models';
 import { UtilsService } from '@core/services/utils.service';
@@ -54,7 +54,7 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
   private readonly destroy$ = new Subject<void>();
   private widgetResize$: ResizeObserver;
 
-  private mobileAppSettingsValue: MobileAppSettings;
+  private mobileAppSettingsValue: QrCodeSettings;
   private deepLink: string;
   private deepLinkTTL: number;
   private deepLinkTTLTimeoutID: NodeJS.Timeout;
@@ -80,13 +80,13 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
   widgetTitlePanel: TemplateRef<any>;
 
   @Input()
-  set mobileAppSettings(settings: MobileAppSettings) {
+  set mobileAppSettings(settings: QrCodeSettings) {
     if (settings) {
       this.mobileAppSettingsValue = settings;
     }
   };
 
-  get mobileAppSettings(): MobileAppSettings {
+  get mobileAppSettings(): QrCodeSettings {
     return this.mobileAppSettingsValue;
   }
 
@@ -106,11 +106,8 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
       this.mobileAppService.getMergedMobileAppSettings().subscribe((settings => {
         this.mobileAppSettings = settings;
 
-        const useDefaultApp = this.mobileAppSettings.useDefaultApp;
-        this.appStoreLink = useDefaultApp ? this.mobileAppSettings.defaultAppStoreLink :
-          this.mobileAppSettings.iosConfig.storeLink;
-        this.googlePlayLink = useDefaultApp ? this.mobileAppSettings.defaultGooglePlayLink :
-          this.mobileAppSettings.androidConfig.storeLink;
+        this.appStoreLink = this.mobileAppSettings.appStoreLink;
+        this.googlePlayLink = this.mobileAppSettings.googlePlayLink;
 
         if (isDefinedAndNotNull(this.ctx.settings.useSystemSettings) && !this.ctx.settings.useSystemSettings) {
           this.mobileAppSettings = mergeDeep(this.mobileAppSettings, this.ctx.settings);
@@ -148,10 +145,8 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
     clearTimeout(this.deepLinkTTLTimeoutID);
   }
 
-  navigateByDeepLink($event) {
-    if ($event) {
-      $event.stopPropagation();
-    }
+  navigateByDeepLink($event: Event) {
+    $event?.stopPropagation();
     if (this.ctx.isMobile) {
       window.open(this.deepLink, '_blank');
     }
@@ -172,8 +167,8 @@ export class MobileAppQrcodeWidgetComponent extends PageComponent implements OnI
 
   private updateQRCode(link: string) {
     import('qrcode').then((QRCode) => {
-      unwrapModule(QRCode).toString(link, (err, string) => {
-        this.qrCodeSVG = string;
+      unwrapModule(QRCode).toString(link, (_err, svgElement) => {
+        this.qrCodeSVG = svgElement;
         this.cd.markForCheck();
       })
     });

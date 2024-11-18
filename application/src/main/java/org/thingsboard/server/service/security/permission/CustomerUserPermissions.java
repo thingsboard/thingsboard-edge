@@ -107,7 +107,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         put(Resource.ASSET_PROFILE, profilePermissionChecker);
         put(Resource.TB_RESOURCE, customerResourcePermissionChecker);
         put(Resource.OTA_PACKAGE, otaPackagePermissionChecker);
-        put(Resource.MOBILE_APP_SETTINGS, mobileAppPermissionChecker);
+        put(Resource.MOBILE_APP_SETTINGS, qrCodeSettingsPermissionChecker);
         put(Resource.CUSTOM_MENU, customMenuPermissionChecker);
     }
 
@@ -434,7 +434,7 @@ public class CustomerUserPermissions extends AbstractPermissions {
         }
     };
 
-    private static final PermissionChecker mobileAppPermissionChecker = new PermissionChecker.GenericPermissionChecker(Operation.READ) {
+    private static final PermissionChecker qrCodeSettingsPermissionChecker = new PermissionChecker.GenericPermissionChecker(Operation.READ) {
 
         @Override
         public boolean hasPermission(SecurityUser user, Resource resource, Operation operation) {

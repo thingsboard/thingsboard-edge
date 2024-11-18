@@ -35,6 +35,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.Views;
 
 import static org.thingsboard.server.common.data.menu.MenuItemType.HOME;
 

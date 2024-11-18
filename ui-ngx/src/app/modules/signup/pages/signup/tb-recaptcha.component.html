@@ -30,4 +30,4 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<ngx-recaptcha2 *ngIf="signupParams?.activate && signupParams?.captchaVersion === 'v2'" #recaptcha [(ngModel)]="recaptchaResponse" (ngModelChange)="onRecaptchaResponse()" [useGlobalDomain]="true" [siteKey]="signupParams?.captchaSiteKey"></ngx-recaptcha2>
+<ngx-recaptcha2 *ngIf="signupParams?.activate && signupParams?.captcha?.version === 'v2'" #recaptcha [(ngModel)]="recaptchaResponse" (ngModelChange)="onRecaptchaResponse()" [useGlobalDomain]="true" [siteKey]="signupParams?.captcha?.siteKey"></ngx-recaptcha2>

@@ -73,6 +73,7 @@ import java.util.stream.Collectors;
 import static org.thingsboard.common.util.JacksonUtil.extractKeys;
 import static org.thingsboard.common.util.JacksonUtil.merge;
 import static org.thingsboard.common.util.JacksonUtil.newObjectNode;
+import static org.thingsboard.server.common.data.wl.WhiteLabelingType.LOGIN;
 
 @Service
 @Slf4j
@@ -143,7 +144,7 @@ public class DefaultTbTranslationService extends AbstractEtagCacheService<Transl
 
     @Override
     public JsonNode getLoginTranslation(String localeCode, String domainName) {
-        WhiteLabeling whiteLabeling = whiteLabelingService.findByDomainName(domainName);
+        WhiteLabeling whiteLabeling = whiteLabelingService.findWhiteLabelingByDomainAndType(domainName, LOGIN);
         JsonNode fullTranslation;
         if (whiteLabeling != null) {
             TenantId tenantId = whiteLabeling.getTenantId();

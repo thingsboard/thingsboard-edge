@@ -102,6 +102,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateWriteExecutor;
@@ -443,6 +444,10 @@ public class ActorSystemContext {
     @Autowired
     @Getter
     private MobileAppService mobileAppService;
+
+    @Autowired
+    @Getter
+    private MobileAppBundleService mobileAppBundleService;
 
     @Autowired
     @Getter
