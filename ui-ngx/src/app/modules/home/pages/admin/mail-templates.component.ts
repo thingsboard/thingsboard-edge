@@ -80,7 +80,11 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
   ngOnInit() {
     this.tinyMceOptions = {
       base_url: '/assets/tinymce',
-      suffix: '.min'
+      suffix: '.min',
+      branding: false,
+      autofocus: false,
+      height: 450,
+      promotion: false
     };
 
     if (this.readonly) {
@@ -88,10 +92,6 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
       this.tinyMceOptions.menubar = false;
       this.tinyMceOptions.toolbar = false;
       this.tinyMceOptions.statusbar = false;
-      this.tinyMceOptions.height = 450;
-      this.tinyMceOptions.autofocus = false;
-      this.tinyMceOptions.branding = false;
-      this.tinyMceOptions.promotion = false;
       this.tinyMceOptions.resize = true;
       this.tinyMceOptions.readonly = 1;
       this.tinyMceOptions.setup = (ed) => {
@@ -109,9 +109,6 @@ export class MailTemplatesComponent extends PageComponent implements OnInit, Has
       this.tinyMceOptions.toolbar = 'fontselect fontsizeselect | formatselect | bold italic  strikethrough  forecolor backcolor ' +
         '| link | table | image | alignleft aligncenter alignright alignjustify  ' +
         '| numlist bullist outdent indent  | removeformat | code | fullscreen';
-      this.tinyMceOptions.height = 450;
-      this.tinyMceOptions.autofocus = false;
-      this.tinyMceOptions.branding = false;
     }
     this.mailTemplatesSettings = this.route.snapshot.data.mailTemplatesSettings;
     this.mailTemplateTypes = Object.keys(MailTemplate).filter(type => Object.keys(this.mailTemplatesSettings).includes(type));
