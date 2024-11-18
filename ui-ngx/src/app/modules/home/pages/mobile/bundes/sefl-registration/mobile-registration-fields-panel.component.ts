@@ -98,8 +98,8 @@ export class MobileRegistrationFieldsPanelComponent implements ControlValueAcces
     }
   }
 
-  validate(c: AbstractControl): ValidationErrors | null {
-    if (!c.valid) {
+  validate(): ValidationErrors | null {
+    if (this.registrationFields.status !== 'DISABLED' && !this.registrationFields.valid) {
       return {
         invalidRegistrationFields: true
       };
@@ -124,7 +124,7 @@ export class MobileRegistrationFieldsPanelComponent implements ControlValueAcces
   }
 
   addFields() {
-    this.registrationFields.push(this.fb.control({} as any), {emitEvent: false});
+    this.registrationFields.push(this.fb.control({} as any));
   }
 
   trackByFields(_index: number, fieldControl: AbstractControl): any {

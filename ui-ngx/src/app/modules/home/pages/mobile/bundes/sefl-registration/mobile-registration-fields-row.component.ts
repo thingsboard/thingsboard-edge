@@ -31,7 +31,6 @@
 
 import { booleanAttribute, Component, EventEmitter, forwardRef, Input, Output, ViewEncapsulation } from '@angular/core';
 import {
-  AbstractControl,
   ControlValueAccessor,
   FormBuilder,
   NG_VALIDATORS,
@@ -48,6 +47,7 @@ import {
 } from '@shared/models/self-register.models';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateService } from '@ngx-translate/core';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Component({
   selector: 'tb-mobile-registration-fields-row',
@@ -121,11 +121,14 @@ export class MobileRegistrationFieldsRowComponent implements ControlValueAccesso
     } else {
       this.fieldForm.enable({emitEvent: false});
       this.updatedDisabledState();
+      setTimeout(() => {
+        this.fieldForm.updateValueAndValidity();
+      }, 0);
     }
   }
 
-  validate(c: AbstractControl): ValidationErrors | null {
-    if (!c.valid) {
+  validate(): ValidationErrors | null {
+    if (this.fieldForm.status !== 'DISABLED' && !this.fieldForm.valid) {
       return {
         invalidFieldForm: true
       };
