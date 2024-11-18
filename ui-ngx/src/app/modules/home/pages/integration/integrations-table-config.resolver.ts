@@ -29,7 +29,7 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Injectable } from '@angular/core';
+import { DestroyRef, Injectable } from '@angular/core';
 
 import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { EntityTableConfig } from '@home/models/entity/entities-table-config.models';
@@ -52,6 +52,7 @@ import { PageLink } from '@shared/models/page/page-link';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
+import { TbPopoverService } from '@shared/components/popover.service';
 
 @Injectable()
 export class IntegrationsTableConfigResolver  {
@@ -66,6 +67,8 @@ export class IntegrationsTableConfigResolver  {
               private dialogService: DialogService,
               private store: Store<AppState>,
               private durationLeft: DurationLeftPipe,
+              private popoverService: TbPopoverService,
+              private destroyRef: DestroyRef,
               private dialog: MatDialog) {
   }
 
@@ -86,6 +89,8 @@ export class IntegrationsTableConfigResolver  {
       this.dialog,
       this.store,
       this.durationLeft,
+      this.popoverService,
+      this.destroyRef,
       params
     );
   }

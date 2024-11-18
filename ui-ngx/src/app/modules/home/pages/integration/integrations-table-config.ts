@@ -85,7 +85,8 @@ import { AppState } from '@core/core.state';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { IEntitiesTableComponent } from '@home/models/entity/entity-table-component.models';
+import { TbPopoverService } from '@shared/components/popover.service';
+import { DestroyRef } from '@angular/core';
 
 export class IntegrationsTableConfig extends EntityTableConfig<Integration, PageLink, IntegrationInfo> {
 
@@ -103,6 +104,8 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
               private dialog: MatDialog,
               private store: Store<AppState>,
               private durationLeft: DurationLeftPipe,
+              private popoverService: TbPopoverService,
+              private destroyRef: DestroyRef,
               private params: IntegrationParams) {
     super(params);
 
@@ -351,13 +354,13 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     if ($event) {
       $event.stopPropagation();
     }
-    const { popoverService, renderer, viewContainerRef, destroyRef } = table;
+    const { renderer, viewContainerRef } = table;
     const { debugFailures, debugAll, debugAllUntil } = integration;
     const trigger = $event.target as Element;
-    if (popoverService.hasPopover(trigger)) {
-      popoverService.hidePopover(trigger);
+    if (this.popoverService.hasPopover(trigger)) {
+      this.popoverService.hidePopover(trigger);
     } else {
-      const debugStrategyPopover = popoverService.displayPopover(trigger, renderer,
+      const debugStrategyPopover = this.popoverService.displayPopover(trigger, renderer,
         viewContainerRef, DebugConfigPanelComponent, 'bottom', true, null,
         {
           debugLimitsConfiguration: this.integrationDebugPerTenantLimitsConfiguration,
@@ -369,19 +372,19 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
         {},
         {}, {}, true);
       debugStrategyPopover.tbComponentRef.instance.popover = debugStrategyPopover;
-      debugStrategyPopover.tbComponentRef.instance.onConfigApplied.pipe(takeUntilDestroyed(destroyRef)).subscribe((config: HasDebugConfig) => {
-        this.onDebugConfigChanged(integration.id.id, config, table);
+      debugStrategyPopover.tbComponentRef.instance.onConfigApplied.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((config: HasDebugConfig) => {
+        this.onDebugConfigChanged(integration.id.id, config);
         debugStrategyPopover.hide();
       });
     }
   }
 
-  private onDebugConfigChanged(id: string, config: HasDebugConfig, table: IEntitiesTableComponent): void {
+  private onDebugConfigChanged(id: string, config: HasDebugConfig): void {
     this.integrationService.getIntegration(id).pipe(
       switchMap(integration => this.integrationService.saveIntegration({ ...integration, ...config })),
       catchError(() => of(null)),
-      takeUntilDestroyed(table.destroyRef),
-    ).subscribe(() => table.updateData());
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(() => this.updateData());
   }
 
   private configureEntityFunctions(integrationScope: string, edgeId: string): (pageLink) => Observable<PageData<IntegrationInfo>> {
