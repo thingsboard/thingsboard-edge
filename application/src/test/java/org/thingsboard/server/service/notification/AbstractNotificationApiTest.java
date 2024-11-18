@@ -135,25 +135,6 @@ public abstract class AbstractNotificationApiTest extends AbstractControllerTest
         notificationSettingsService.deleteNotificationSettings(TenantId.SYS_TENANT_ID);
     }
 
-    protected NotificationTarget createNotificationTarget(UserId... usersIds) {
-        UserListFilter filter = new UserListFilter();
-        filter.setUsersIds(DaoUtil.toUUIDs(List.of(usersIds)));
-        return createNotificationTarget(filter);
-    }
-
-    protected NotificationTarget createNotificationTarget(UsersFilter usersFilter) {
-        NotificationTarget notificationTarget = new NotificationTarget();
-        notificationTarget.setName(usersFilter.toString());
-        PlatformUsersNotificationTargetConfig targetConfig = new PlatformUsersNotificationTargetConfig();
-        targetConfig.setUsersFilter(usersFilter);
-        notificationTarget.setConfiguration(targetConfig);
-        return saveNotificationTarget(notificationTarget);
-    }
-
-    protected NotificationTarget saveNotificationTarget(NotificationTarget notificationTarget) {
-        return doPost("/api/notification/target", notificationTarget, NotificationTarget.class);
-    }
-
     protected NotificationRequest submitNotificationRequest(NotificationTargetId targetId, String text, NotificationDeliveryMethod... deliveryMethods) {
         return submitNotificationRequest(targetId, text, 0, deliveryMethods);
     }
@@ -193,50 +174,6 @@ public abstract class AbstractNotificationApiTest extends AbstractControllerTest
         return findNotificationRequest(notificationRequestId).getStats();
     }
 
-    protected NotificationTemplate createNotificationTemplate(NotificationType notificationType, String subject,
-                                                              String text, NotificationDeliveryMethod... deliveryMethods) {
-        NotificationTemplate notificationTemplate = new NotificationTemplate();
-        notificationTemplate.setTenantId(tenantId);
-        notificationTemplate.setName("Notification template: " + text);
-        notificationTemplate.setNotificationType(notificationType);
-        NotificationTemplateConfig config = new NotificationTemplateConfig();
-        config.setDeliveryMethodsTemplates(new HashMap<>());
-        for (NotificationDeliveryMethod deliveryMethod : deliveryMethods) {
-            DeliveryMethodNotificationTemplate deliveryMethodNotificationTemplate;
-            switch (deliveryMethod) {
-                case WEB: {
-                    deliveryMethodNotificationTemplate = new WebDeliveryMethodNotificationTemplate();
-                    break;
-                }
-                case EMAIL: {
-                    deliveryMethodNotificationTemplate = new EmailDeliveryMethodNotificationTemplate();
-                    break;
-                }
-                case SMS: {
-                    deliveryMethodNotificationTemplate = new SmsDeliveryMethodNotificationTemplate();
-                    break;
-                }
-                case MOBILE_APP:
-                    deliveryMethodNotificationTemplate = new MobileAppDeliveryMethodNotificationTemplate();
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported delivery method " + deliveryMethod);
-            }
-            deliveryMethodNotificationTemplate.setEnabled(true);
-            deliveryMethodNotificationTemplate.setBody(text);
-            if (deliveryMethodNotificationTemplate instanceof HasSubject) {
-                ((HasSubject) deliveryMethodNotificationTemplate).setSubject(subject);
-            }
-            config.getDeliveryMethodsTemplates().put(deliveryMethod, deliveryMethodNotificationTemplate);
-        }
-        notificationTemplate.setConfiguration(config);
-        return saveNotificationTemplate(notificationTemplate);
-    }
-
-    protected NotificationTemplate saveNotificationTemplate(NotificationTemplate notificationTemplate) {
-        return doPost("/api/notification/template", notificationTemplate, NotificationTemplate.class);
-    }
-
     protected void saveNotificationSettings(NotificationSettings notificationSettings) throws Exception {
         doPost("/api/notification/settings", notificationSettings).andExpect(status().isOk());
     }
@@ -271,15 +208,6 @@ public abstract class AbstractNotificationApiTest extends AbstractControllerTest
 
     protected void deleteNotificationRequest(NotificationRequestId id) throws Exception {
         doDelete("/api/notification/request/" + id);
-    }
-
-    protected List<Notification> getMyNotifications(boolean unreadOnly, int limit) throws Exception {
-        return getMyNotifications(NotificationDeliveryMethod.WEB, unreadOnly, limit);
-    }
-
-    protected List<Notification> getMyNotifications(NotificationDeliveryMethod deliveryMethod, boolean unreadOnly, int limit) throws Exception {
-        return doGetTypedWithPageLink("/api/notifications?unreadOnly={unreadOnly}&deliveryMethod={deliveryMethod}&", new TypeReference<PageData<Notification>>() {},
-                new PageLink(limit, 0), unreadOnly, deliveryMethod).getData();
     }
 
     protected NotificationRule createNotificationRule(NotificationRuleTriggerConfig triggerConfig, String subject, String text, NotificationTargetId... targets) {

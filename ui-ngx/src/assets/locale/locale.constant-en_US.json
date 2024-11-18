@@ -4840,7 +4840,9 @@
             "rate-limits": "Exceeded rate limits",
             "edge-communication-failure": "Edge communication failure",
             "edge-connection": "Edge connection",
-            "task-processing-failure": "Task processing failure"
+            "task-processing-failure": "Task processing failure",
+            "user-activated": "User activated",
+            "user-registered": "User registered"
         },
         "templates": "Templates",
         "notification-templates": "Notifications / Templates",

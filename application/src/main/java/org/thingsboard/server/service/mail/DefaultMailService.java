@@ -224,7 +224,6 @@ public class DefaultMailService implements MailService {
 
     @Override
     public void sendPasswordWasResetEmail(TenantId tenantId, String loginLink, String email) throws ThingsboardException {
-
         JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
         String subject = MailTemplates.subject(mailTemplates, MailTemplates.PASSWORD_WAS_RESET);
 
@@ -235,36 +234,6 @@ public class DefaultMailService implements MailService {
         String message = body(mailTemplates, MailTemplates.PASSWORD_WAS_RESET, model);
 
         sendMail(tenantId, email, subject, message);
-    }
-
-    @Override
-    public void sendUserActivatedEmail(TenantId tenantId, String userFullName, String userEmail, String targetEmail) throws ThingsboardException {
-        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
-        String subject = MailTemplates.subject(mailTemplates, MailTemplates.USER_ACTIVATED);
-
-        Map<String, Object> model = new HashMap<>();
-        model.put("userFullName", userFullName);
-        model.put("userEmail", userEmail);
-        model.put(TARGET_EMAIL, targetEmail);
-
-        String message = body(mailTemplates, MailTemplates.USER_ACTIVATED, model);
-
-        sendMail(tenantId, targetEmail, subject, message);
-    }
-
-    @Override
-    public void sendUserRegisteredEmail(TenantId tenantId, String userFullName, String userEmail, String targetEmail) throws ThingsboardException {
-        JsonNode mailTemplates = whiteLabelingService.getMergedTenantMailTemplates(tenantId);
-        String subject = MailTemplates.subject(mailTemplates, MailTemplates.USER_REGISTERED);
-
-        Map<String, Object> model = new HashMap<>();
-        model.put("userFullName", userFullName);
-        model.put("userEmail", userEmail);
-        model.put(TARGET_EMAIL, targetEmail);
-
-        String message = body(mailTemplates, MailTemplates.USER_REGISTERED, model);
-
-        sendMail(tenantId, targetEmail, subject, message);
     }
 
     private void sendMail(TenantId tenantId, String email,

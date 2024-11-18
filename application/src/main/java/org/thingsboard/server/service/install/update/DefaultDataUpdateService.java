@@ -61,6 +61,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
 import org.thingsboard.server.common.data.integration.AbstractIntegration;
 import org.thingsboard.server.common.data.integration.Integration;
+import org.thingsboard.server.common.data.notification.NotificationType;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -80,6 +82,8 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.notification.NotificationSettingsService;
+import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
 import org.thingsboard.server.dao.settings.AdminSettingsService;
@@ -95,7 +99,9 @@ import org.thingsboard.server.utils.TbNodeUpgradeUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -178,9 +184,14 @@ public class DefaultDataUpdateService implements DataUpdateService {
     @Autowired
     private TenantProfileService tenantProfileService;
 
+    @Autowired
+    private NotificationTemplateService notificationTemplateService;
+
+    @Autowired
+    private NotificationSettingsService notificationSettingsService;
+
     @Override
     public void updateData(String fromVersion) throws Exception {
-
         switch (fromVersion) {
             case "3.5.1":
                 log.info("Updating data from version 3.5.1 to 3.6.0 ...");
@@ -196,6 +207,13 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 updateCustomersWithTheSameTitle();
                 updateMaxRuleNodeExecsPerMessage();
                 updateGatewayRateLimits();
+                break;
+            case "3.8.1":
+                log.info("Updating data from version 3.8.1 to 3.9.0 ...");
+                moveMailTemplatesToNotificationCenter(Map.of(
+                        "userActivated", NotificationType.USER_ACTIVATED,
+                        "userRegistered", NotificationType.USER_REGISTERED
+                ));
                 break;
             case "ce":
                 log.info("Updating data ...");
@@ -590,6 +608,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, tenantAdmins.getId(), entity.getId());
         }
+
     }
 
     private class CustomerUsersTenantGroupAllRemover extends PaginatedUpdater<TenantId, User> {
@@ -629,6 +648,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 entityGroupService.removeEntityFromEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
             }
         }
+
     }
 
     private class CustomerUsersGroupAllUpdater extends GroupAllPaginatedUpdater<CustomerId, User> {
@@ -657,6 +677,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, groupAll.getId(), entity.getId());
             entityGroupService.addEntityToEntityGroup(TenantId.SYS_TENANT_ID, customerUsers.getId(), entity.getId());
         }
+
     }
 
     private class CustomersGroupAllUpdater extends GroupAllPaginatedUpdater<TenantId, Customer> {
@@ -709,6 +730,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             }
         }
+
     }
 
 
@@ -780,6 +802,7 @@ public class DefaultDataUpdateService implements DataUpdateService {
                 }
             }
         }
+
     }
 
     private PaginatedUpdater<String, Tenant> tenantIntegrationUpdater = new PaginatedUpdater<String, Tenant>() {
@@ -851,6 +874,53 @@ public class DefaultDataUpdateService implements DataUpdateService {
             }
         }
         return false;
+    }
+
+    private void moveMailTemplatesToNotificationCenter(Map<String, NotificationType> mailTemplatesNames) {
+        log.info("Migrating mail templates to notification center");
+        if (!hasNotificationTemplates(TenantId.SYS_TENANT_ID, mailTemplatesNames.values())) {
+            JsonNode systemMailTemplates = whiteLabelingService.findMailTemplatesByTenantId(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
+            moveMailTemplatesToNotificationCenter(TenantId.SYS_TENANT_ID, systemMailTemplates, mailTemplatesNames);
+        }
+        Map<NotificationType, NotificationTemplate> systemNotificationTemplates = new EnumMap<>(NotificationType.class);
+        mailTemplatesNames.values().forEach(notificationType -> {
+            systemNotificationTemplates.put(notificationType, notificationTemplateService.findNotificationTemplateByTenantIdAndType(TenantId.SYS_TENANT_ID, notificationType).get());
+        });
+
+        var tenants = new PageDataIterable<>(tenantService::findTenantsIds, 512);
+        for (TenantId tenantId : tenants) {
+            if (hasNotificationTemplates(tenantId, mailTemplatesNames.values())) {
+                continue;
+            }
+
+            JsonNode tenantMailTemplates = whiteLabelingService.findMailTemplatesByTenantId(tenantId, tenantId);
+            if (tenantMailTemplates == null || tenantMailTemplates.isEmpty() ||
+                    Optional.ofNullable(tenantMailTemplates.get("useSystemMailSettings"))
+                            .map(JsonNode::asBoolean).orElse(true)) {
+                systemNotificationTemplates.values().forEach(notificationTemplate -> {
+                    notificationTemplate.setId(null);
+                    notificationTemplate.setTenantId(tenantId);
+                    log.debug("[{}] Creating {} template from system", tenantId, notificationTemplate.getNotificationType());
+                    notificationTemplateService.saveNotificationTemplate(tenantId, notificationTemplate);
+                });
+            } else {
+                moveMailTemplatesToNotificationCenter(tenantId, tenantMailTemplates, mailTemplatesNames);
+            }
+        }
+    }
+
+    // TODO: get rid of all mail templates - move everything to notification center
+    private void moveMailTemplatesToNotificationCenter(TenantId tenantId, JsonNode mailTemplates, Map<String, NotificationType> mailTemplatesNames) {
+        notificationSettingsService.moveMailTemplatesToNotificationCenter(tenantId, mailTemplates, mailTemplatesNames);
+        whiteLabelingService.saveMailTemplates(tenantId, mailTemplates);
+    }
+
+    private boolean hasNotificationTemplates(TenantId tenantId, Collection<NotificationType> types) {
+        int existingTemplates = notificationTemplateService.countNotificationTemplatesByTenantIdAndNotificationTypes(tenantId, types);
+        if (existingTemplates > 0) {
+            log.debug("[{}] Already has {} templates", tenantId, types);
+        }
+        return existingTemplates > 0;
     }
 
     public static boolean getEnv(String name, boolean defaultValue) {
