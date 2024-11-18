@@ -216,27 +216,27 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
     }
 
     @Override
-    public List<TbPair<UUID, UUID>> findIdsByTenantIdAndIdOffsetAndExpired(UUID idOffset, int limit) {
+    public List<TbPair<UUID, UUID>> findIdsByTenantProfileIdAndIdOffsetAndExpired(UUID tenantProfileId, UUID idOffset, int limit, long ttl) {
         EntityType entityType = getEntityType();
-        if (!entityType.isHasTtl()) {
-            throw new IllegalArgumentException(entityType + " entity type does not support ttl!");
-        }
-        long now = System.currentTimeMillis();
+
+        long expirationTime = System.currentTimeMillis() - ttl;
         StringBuilder queryBuilder = new StringBuilder();
-        queryBuilder.append("SELECT tenant_id, id FROM");
+        queryBuilder.append("SELECT e.tenant_id, e.id FROM ");
         queryBuilder.append(entityType.getTableName());
-        queryBuilder.append(" WHERE ");
-        queryBuilder.append(ModelConstants.EXPIRATION_TIME);
-        queryBuilder.append("< ?");
+        queryBuilder.append(" AS e");
+        queryBuilder.append(" JOIN tenant t ON e.tenant_id = t.id");
+        queryBuilder.append(" WHERE e.created_time > 0");
+        queryBuilder.append(" AND e.created_time < ?");
+        queryBuilder.append(" AND t.tenant_profile_id = ?");
 
         Object[] params;
         if (idOffset == null) {
-            params = new Object[]{now, limit};
+            params = new Object[]{expirationTime, tenantProfileId, limit};
         } else {
-            queryBuilder.append(" AND id > ?");
-            params = new Object[]{now, idOffset, limit};
+            queryBuilder.append(" AND e.id > ?");
+            params = new Object[]{expirationTime, tenantProfileId, idOffset, limit};
         }
-        queryBuilder.append(" ORDER BY id LIMIT ?");
+        queryBuilder.append(" ORDER BY e.id LIMIT ?");
 
         return getJdbcTemplate().query(
                 queryBuilder.toString(),

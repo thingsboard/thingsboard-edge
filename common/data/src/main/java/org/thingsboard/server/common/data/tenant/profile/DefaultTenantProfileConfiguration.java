@@ -150,6 +150,7 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
     private int rpcTtlDays;
     private int queueStatsTtlDays;
     private int ruleEngineExceptionsTtlDays;
+    private int blobEntityTtlDays;
 
     private double warnThreshold;
 

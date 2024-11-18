@@ -30,22 +30,25 @@
  */
 package org.thingsboard.server.service.housekeeper.processor;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.housekeeper.EntitiesCleanupHousekeeperTask;
 import org.thingsboard.server.common.data.housekeeper.EntitiesDeletionHousekeeperTask;
 import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.entity.EntityDaoRegistry;
+import org.thingsboard.server.dao.tenant.TenantProfileService;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -53,23 +56,30 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.EntityType.BLOB_ENTITY;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class EntitiesCleanupTaskProcessor extends HousekeeperTaskProcessor<EntitiesCleanupHousekeeperTask> {
 
+    private final EntityType[] typesWithTtl = {BLOB_ENTITY};
+
     private final EntityDaoRegistry entityDaoRegistry;
+    private final TenantProfileService tenantProfileService;
     @Value("${queue.core.housekeeper.check-expiration-frequency:3600}")
     private long frequency;
+    @Value("${sql.ttl.blob_entities.enabled:false}")
+    private boolean blobTtlEnabled;
+    @Value("${sql.ttl.blob_entities.ttl:0}")
+    private long blobTtlSec;
     private ScheduledExecutorService executor;
 
     @PostConstruct
     public void init() {
         executor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("housekeeper-scheduler-" + getTaskType().name()));
-        for (EntityType entityType : EntityType.values()) {
-            if (entityType.isHasTtl()) {
-                schedule(entityType);
-            }
+        for (EntityType entityType : typesWithTtl) {
+            schedule(entityType);
         }
     }
 
@@ -82,10 +92,20 @@ public class EntitiesCleanupTaskProcessor extends HousekeeperTaskProcessor<Entit
     public void process(EntitiesCleanupHousekeeperTask task) throws Exception {
         EntityType entityType = task.getEntityType();
         Dao<?> entityDao = entityDaoRegistry.getDao(entityType);
+        PageDataIterable<TenantProfile> profilesIterator =
+                new PageDataIterable<>(page -> tenantProfileService.findTenantProfiles(TenantId.SYS_TENANT_ID, page), 128);
+        for (TenantProfile tenantProfile : profilesIterator) {
+            long ttl = getTtl(tenantProfile, entityType);
+            if (ttl > 0) {
+                process(tenantProfile.getUuidId(), entityType, entityDao, ttl);
+            }
+        }
+    }
 
+    private void process(UUID tenantProfileId, EntityType entityType, Dao<?> entityDao, long ttl) {
         UUID last = null;
         while (true) {
-            List<TbPair<UUID, UUID>> pairs = entityDao.findIdsByTenantIdAndIdOffsetAndExpired(last, 128);
+            List<TbPair<UUID, UUID>> pairs = entityDao.findIdsByTenantProfileIdAndIdOffsetAndExpired(tenantProfileId, last, 128, ttl);
 
             if (pairs.isEmpty()) {
                 break;
@@ -97,7 +117,7 @@ public class EntitiesCleanupTaskProcessor extends HousekeeperTaskProcessor<Entit
                             pair -> TenantId.fromUUID(pair.getFirst()),
                             Collectors.mapping(TbPair::getSecond, Collectors.toList())))
                     .forEach((tenantId, entities) -> {
-                        housekeeperClient.submitTask(new EntitiesDeletionHousekeeperTask(TenantId.SYS_TENANT_ID, entityType, entities));
+                        housekeeperClient.submitTask(new EntitiesDeletionHousekeeperTask(tenantId, entityType, entities));
                         log.debug("[{}] Submitted task for deleting {} {}s", tenantId, entities.size(), entityType.getNormalName().toLowerCase());
                     });
         }
@@ -113,6 +133,27 @@ public class EntitiesCleanupTaskProcessor extends HousekeeperTaskProcessor<Entit
         if (executor != null) {
             executor.shutdownNow();
         }
+    }
+
+    public long getTtl(TenantProfile tenantProfile, EntityType entityType) {
+        var configuration = tenantProfile.getDefaultProfileConfiguration();
+        long ttlSec = switch (entityType) {
+            case BLOB_ENTITY ->
+                    computeTtl(blobTtlEnabled, blobTtlSec, TimeUnit.DAYS.toSeconds(configuration.getBlobEntityTtlDays()));
+            default -> throw new IllegalArgumentException("Unsupported entity type: " + entityType);
+        };
+        return TimeUnit.SECONDS.toMillis(ttlSec);
+    }
+
+    private long computeTtl(boolean systemTtlEnabled, long systemTtl, long ttl) {
+        if (systemTtlEnabled && systemTtl > 0) {
+            if (ttl == 0) {
+                ttl = systemTtl;
+            } else {
+                ttl = Math.min(systemTtl, ttl);
+            }
+        }
+        return ttl;
     }
 
 }

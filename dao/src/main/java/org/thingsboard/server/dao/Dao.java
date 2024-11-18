@@ -61,7 +61,7 @@ public interface Dao<T> {
 
     List<UUID> findIdsByTenantIdAndIdOffset(TenantId tenantId, UUID idOffset, int limit);
 
-    List<TbPair<UUID, UUID>> findIdsByTenantIdAndIdOffsetAndExpired(UUID idOffset, int limit);
+    List<TbPair<UUID, UUID>> findIdsByTenantProfileIdAndIdOffsetAndExpired(UUID tenantProfileId, UUID idOffset, int limit, long ttl);
 
     default EntityType getEntityType() {
         return null;

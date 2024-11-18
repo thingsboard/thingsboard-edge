@@ -39,3 +39,7 @@ UPDATE user_credentials c SET failed_login_attempts = (SELECT (additional_info::
 
 UPDATE tb_user SET additional_info = (additional_info::jsonb - 'lastLoginTs' - 'failedLoginAttempts' - 'userCredentialsEnabled')::text
   WHERE additional_info IS NOT NULL AND additional_info != 'null';
+
+UPDATE tenant_profile
+SET profile_data = jsonb_set(profile_data, '{configuration,blobEntityTtlDays}', (profile_data -> 'configuration' ->> 'defaultStorageTtlDays')::jsonb, true)
+WHERE profile_data -> 'configuration' -> 'blobEntityTtlDays' IS NULL;
