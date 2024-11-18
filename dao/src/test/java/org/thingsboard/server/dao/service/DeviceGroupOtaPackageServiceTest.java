@@ -160,16 +160,13 @@ public class DeviceGroupOtaPackageServiceTest extends AbstractServiceTest {
 
     @Test
     public void testSaveGroupOtaPackageWithInvalidEntityGroupType() {
-        OtaPackageInfo firmware = createOtaPackage(TITLE, deviceProfileId);
-        Device device = createDevice(tenantId, "Test device", deviceProfileId);
-        EntityGroup deviceGroup = createEntityGroup(tenantId, EntityType.ASSET, "Test devices");
-
-        entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), device.getId());
+        EntityGroup assetGroup = createEntityGroup(tenantId, EntityType.ASSET, "Test assets");
 
         DeviceGroupOtaPackage deviceGroupOtaPackage = new DeviceGroupOtaPackage();
+        OtaPackageInfo firmware = createOtaPackage(TITLE, deviceProfileId);
         deviceGroupOtaPackage.setOtaPackageId(firmware.getId());
         deviceGroupOtaPackage.setOtaPackageType(firmware.getType());
-        deviceGroupOtaPackage.setGroupId(deviceGroup.getId());
+        deviceGroupOtaPackage.setGroupId(assetGroup.getId());
 
         assertThatThrownBy(() -> deviceGroupOtaPackageService.saveDeviceGroupOtaPackage(tenantId, deviceGroupOtaPackage))
                 .isInstanceOf(DataValidationException.class)

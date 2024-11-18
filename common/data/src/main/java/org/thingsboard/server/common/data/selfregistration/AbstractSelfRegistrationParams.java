@@ -82,13 +82,11 @@ public abstract class AbstractSelfRegistrationParams implements SelfRegistration
 
     @Override
     public SignUpSelfRegistrationParams toSignUpSelfRegistrationParams() {
-        return new SignUpSelfRegistrationParams(
-                getTitle(),
-                getCaptcha(),
-                getSignUpFields(),
-                getShowPrivacyPolicy(),
-                getShowTermsOfUse()
-        );
+        return (enabled) ? new SignUpSelfRegistrationParams(
+                title,
+                new CaptchaParams(captcha.siteKey, captcha.version, captcha.logActionName),
+                signUpFields,
+                showPrivacyPolicy,
+                showTermsOfUse) : null;
     }
-
 }

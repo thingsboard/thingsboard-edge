@@ -28,23 +28,36 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  pointer-events: all;
-  width: min-content; //for Safari
+package org.thingsboard.server.service.script;
 
-  .hidden {
-    display: none;
-  }
-}
+import org.springframework.beans.factory.annotation.Autowired;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.script.api.ScriptType;
+import org.thingsboard.script.api.tbel.TbelInvokeService;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.controller.AbstractControllerTest;
 
-:host ::ng-deep {
-  .mat-mdc-select.select-dashboard-breakpoint {
-    .mat-mdc-select-value {
-      max-width: 200px;
-      font-size: 14px;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+
+import static org.thingsboard.server.common.data.msg.TbMsgType.POST_TELEMETRY_REQUEST;
+
+public abstract class AbstractTbelInvokeTest extends AbstractControllerTest {
+
+    @Autowired
+    protected TbelInvokeService invokeService;
+
+    protected UUID evalScript(String script) throws ExecutionException, InterruptedException {
+        return invokeService.eval(TenantId.SYS_TENANT_ID, ScriptType.RULE_NODE_SCRIPT, script, "msg", "metadata", "msgType").get();
     }
-    .mat-mdc-select-arrow {
-      width: 24px;
+
+    protected String invokeScriptResultString(UUID scriptId, String str) throws ExecutionException, InterruptedException {
+        var msg = JacksonUtil.fromString(str, Map.class);
+        return invokeScript(scriptId, str).toString();
     }
-  }
+    protected Object invokeScript(UUID scriptId, String str) throws ExecutionException, InterruptedException {
+        var msg = JacksonUtil.fromString(str, Map.class);
+        return invokeService.invokeScript(TenantId.SYS_TENANT_ID, null, scriptId, msg, "{}", POST_TELEMETRY_REQUEST.name()).get();
+     }
 }

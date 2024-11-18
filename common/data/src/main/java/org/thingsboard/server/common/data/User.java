@@ -47,6 +47,9 @@ import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.validation.Length;
 import org.thingsboard.server.common.data.validation.NoXss;
 
+import java.util.Locale;
+import java.util.Optional;
+
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 @Schema
@@ -260,6 +263,11 @@ public class User extends BaseDataWithAdditionalInfo<UserId> implements GroupEnt
     @JsonIgnore
     public boolean isCustomerUser() {
         return !isSystemAdmin() && !isTenantAdmin();
+    }
+
+    @JsonIgnore
+    public String getLocale() {
+        return getAdditionalInfoField("lang", JsonNode::asText, Locale.US.toString());
     }
 
     @Override
