@@ -304,7 +304,7 @@ $$
                                                       json_build_object('id', 'LAST_NAME', 'label', 'Last name', 'required', false),
                                                       json_build_object('id', 'PASSWORD', 'label', 'Create password', 'required', true),
                                                       json_build_object('id', 'REPEAT_PASSWORD', 'label', 'Repeat your password', 'required', true)),
-                    'domain', settings::jsonb ->> 'domain',
+                    'domainName', settings::jsonb ->> 'domainName',
                     'notificationEmail', settings::jsonb ->> 'notificationEmail',
                     'showPrivacyPolicy', settings::jsonb ->> 'showPrivacyPolicy',
                     'showTermsOfUse', settings::jsonb ->> 'showTermsOfUse',
