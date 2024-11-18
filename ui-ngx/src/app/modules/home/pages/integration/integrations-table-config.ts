@@ -169,7 +169,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     defaultEntityTablePermissions(this.userPermissionsService, this);
   }
 
-  private isDebugActive({ debugAllUntil }: IntegrationInfo): boolean {
+  private isDebugActive(debugAllUntil: number): boolean {
     return debugAllUntil > new Date().getTime();
   }
 
@@ -252,7 +252,7 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
       nameFunction: (entity) => this.getDebugConfigLabel(entity),
       icon: 'mdi:bug',
       isEnabled: () => true,
-      iconFunction: (entity) => this.isDebugActive(entity) || entity.debugFailures ? 'mdi:bug' : 'mdi:bug-outline',
+      iconFunction: (entity) => this.isDebugActive(entity.debugAllUntil) || entity.debugFailures ? 'mdi:bug' : 'mdi:bug-outline',
       onAction: ($event, entity) => this.onOpenDebugConfig($event, entity),
     }];
     if (params.integrationScope === 'edge') {
@@ -268,20 +268,15 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
     return actions;
   }
 
-  private getDebugConfigLabel(entity: IntegrationInfo): string {
-    const isDebugActive = this.isDebugActive(entity);
-    if (!entity.debugFailures && !isDebugActive) {
-      return this.translate.instant('common.disabled');
-    } else if (entity.debugFailures && isDebugActive) {
-      return this.translate.instant('debug-config.all');
-    } else if (!entity.debugFailures && isDebugActive) {
-      return !entity.debugAll
-        ? this.durationLeft.transform(entity.debugAllUntil)
-        : this.translate.instant('debug-config.min', {number: this.maxDebugModeDurationMinutes});
-    } else if (entity.debugFailures && !isDebugActive) {
-      return this.translate.instant('debug-config.failures');
+  private getDebugConfigLabel({ debugAllUntil, debugFailures, debugAll }: IntegrationInfo): string {
+    const isDebugActive = this.isDebugActive(debugAllUntil);
+
+    if (!isDebugActive) {
+      return debugFailures ? this.translate.instant('debug-config.failures') : this.translate.instant('common.disabled');
     } else {
-      return '';
+      return debugFailures
+        ? this.translate.instant('debug-config.all')
+        : this.durationLeft.transform(debugAllUntil);
     }
   }
 
@@ -352,11 +347,10 @@ export class IntegrationsTableConfig extends EntityTableConfig<Integration, Page
   }
 
   onOpenDebugConfig($event: Event, { debugFailures, debugAll, debugAllUntil, id }: IntegrationInfo): void {
-    const table = this.getTable();
+    const { renderer, viewContainerRef } = this.getTable();
     if ($event) {
       $event.stopPropagation();
     }
-    const { renderer, viewContainerRef } = table;
     const trigger = $event.target as Element;
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
