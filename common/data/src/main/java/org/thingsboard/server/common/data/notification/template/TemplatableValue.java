@@ -54,7 +54,7 @@ public class TemplatableValue {
         setter.accept(processed);
     }
 
-    public boolean containsParams(Collection<String> params) {
+    public boolean contains(Collection<String> params) {
         return StringUtils.containsAny(get(), params.toArray(String[]::new));
     }
 

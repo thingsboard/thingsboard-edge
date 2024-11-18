@@ -117,6 +117,10 @@ export const customDialogComponentHref = '<a href="https://github.com/thingsboar
 
 export const resourceInfoHref = '<a href="https://github.com/thingsboard/thingsboard/blob/b033b51712244d08e0f5e0beb8be60c9f8fa4cd2/ui-ngx/src/app/shared/models/resource.models.ts#L51" target="_blank">Resource info</a>';
 
+export const bulkImportResultHref = '<a href="https://github.com/thingsboard/thingsboard/blob/1abaa6f1188e5adc80912e7475ccb6347a822c8d/ui-ngx/src/app/shared/import-export/import-export.models.ts#L135" target="_blank">Bulk import result</a>';
+
+export const bulkImportRequestHref = '<a href="https://github.com/thingsboard/thingsboard/blob/1abaa6f1188e5adc80912e7475ccb6347a822c8d/ui-ngx/src/app/shared/import-export/import-export.models.ts#L125" target="_blank">Bulk import request</a>';
+
 export const pageLinkArg: FunctionArg = {
   name: 'pageLink',
   type: '<a href="https://github.com/thingsboard/thingsboard/blob/13e6b10b7ab830e64d31b99614a9d95a1a25928a/ui-ngx/src/app/shared/models/page/page-link.ts#L68" target="_blank">PageLink</a>',
@@ -356,26 +360,78 @@ export const serviceCompletions: TbEditorCompletions = {
     meta: 'service',
     type: '<a href="https://github.com/thingsboard/thingsboard/blob/13e6b10b7ab830e64d31b99614a9d95a1a25928a/ui-ngx/src/app/core/http/asset.service.ts#L29" target="_blank">AssetService</a>',
     children: {
-      getTenantAssetInfos: {
-        description: 'Get tenant assets',
+      getCustomerAssetInfos: {
+        description: 'Get customer asset information with optional customer inclusion',
         meta: 'function',
         args: [
+          { name: 'includeCustomers', type: 'boolean', description: 'Whether to include customers in the result' },
+          { name: 'customerId', type: 'string', description: 'Customer ID' },
           pageLinkArg,
-          {name: 'type', type: 'string', optional: true, description: 'Asset type'},
+          { name: 'assetProfileId', type: 'string', description: 'Optional asset profile ID' },
           requestConfigArg
         ],
         return: observablePageDataReturnType(assetInfoHref)
       },
-      getCustomerAssetInfos: {
-        description: 'Get customer assets',
+      getTenantAssetInfosByAssetProfileId: {
+        description: 'Get tenant asset infos by asset profile ID',
         meta: 'function',
         args: [
-          {name: 'customerId', type: 'string', description: 'Id of the customer'},
           pageLinkArg,
-          {name: 'type', type: 'string', optional: true, description: 'Asset type'},
+          { name: 'assetProfileId', type: 'string', optional: true, description: 'ID of the asset profile' },
           requestConfigArg
         ],
         return: observablePageDataReturnType(assetInfoHref)
+      },
+      getCustomerAssetInfosByAssetProfileId: {
+        description: 'Get customer asset infos by asset profile ID',
+        meta: 'function',
+        args: [
+          { name: 'customerId', type: 'string', description: 'ID of the customer' },
+          pageLinkArg,
+          { name: 'assetProfileId', type: 'string', optional: true, description: 'ID of the asset profile' },
+          requestConfigArg
+        ],
+        return: observablePageDataReturnType(assetInfoHref)
+      },
+      assignAssetToEdge: {
+        description: 'Assign an asset to an edge',
+        meta: 'function',
+        args: [
+          { name: 'edgeId', type: 'string', description: 'ID of the edge' },
+          { name: 'assetId', type: 'string', description: 'ID of the asset' },
+          requestConfigArg
+        ],
+        return: observableReturnType(assetHref)
+      },
+      unassignAssetFromEdge: {
+        description: 'Unassign an asset from an edge',
+        meta: 'function',
+        args: [
+          { name: 'edgeId', type: 'string', description: 'ID of the edge' },
+          { name: 'assetId', type: 'string', description: 'ID of the asset' },
+          requestConfigArg
+        ],
+        return: observableVoid()
+      },
+      getEdgeAssets: {
+        description: 'Get assets assigned to an edge',
+        meta: 'function',
+        args: [
+          { name: 'edgeId', type: 'string', description: 'ID of the edge' },
+          pageLinkArg,
+          { name: 'type', type: 'string', optional: true, description: 'Asset type' },
+          requestConfigArg
+        ],
+        return: observablePageDataReturnType(assetInfoHref)
+      },
+      bulkImportAssets: {
+        description: 'Bulk import assets with provided entities data',
+        meta: 'function',
+        args: [
+          { name: 'entitiesData', type: bulkImportRequestHref, description: 'Data for bulk importing assets' },
+          requestConfigArg
+        ],
+        return: observableReturnType(bulkImportResultHref)
       },
       getAsset: {
         description: 'Get asset by id',
@@ -430,33 +486,26 @@ export const serviceCompletions: TbEditorCompletions = {
         ],
         return: observableArrayReturnType('<a href="https://github.com/thingsboard/thingsboard/blob/13e6b10b7ab830e64d31b99614a9d95a1a25928a/ui-ngx/src/app/shared/models/entity-type.models.ts#L295" target="_blank">EntitySubtype</a>')
       },
-      makeAssetPublic: {
-        description: 'Make asset public (available from public dashboard)',
+      getUserAssets: {
+        description: 'Get assets associated with the user, filtered by type if provided',
         meta: 'function',
         args: [
-          {name: 'assetId', type: 'string', description: 'Id of the asset'},
+          pageLinkArg,
+          { name: 'type', type: 'string', description: 'Optional asset type filter' },
           requestConfigArg
         ],
-        return: observableReturnType(assetHref)
+        return: observablePageDataReturnType(assetHref)
       },
-      assignAssetToCustomer: {
-        description: 'Assign asset to specific customer',
+      getAllAssetInfos: {
+        description: 'Get all asset information with optional customer inclusion',
         meta: 'function',
         args: [
-          {name: 'customerId', type: 'string', description: 'Id of the customer'},
-          {name: 'assetId', type: 'string', description: 'Id of the asset'},
+          { name: 'includeCustomers', type: 'boolean', description: 'Whether to include customers in the result' },
+          pageLinkArg,
+          { name: 'assetProfileId', type: 'string', description: 'Optional asset profile ID' },
           requestConfigArg
         ],
-        return: observableReturnType(assetHref)
-      },
-      unassignAssetFromCustomer: {
-        description: 'Unassign asset from any customer',
-        meta: 'function',
-        args: [
-          {name: 'assetId', type: 'string', description: 'Id of the asset'},
-          requestConfigArg
-        ],
-        return: observableVoid()
+        return: observablePageDataReturnType(assetInfoHref)
       },
       findByQuery: {
         description: 'Find assets by search query',
