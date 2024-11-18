@@ -72,28 +72,28 @@
                 </button>
               </div>
             </div>
-            <div class="flex flex-row gap-2">
+            <div class="flex flex-row gap-2" formGroupName="captcha">
               <mat-form-field class="mat-block flex-1">
                 <mat-label translate>self-registration.captcha-version</mat-label>
-                <mat-select formControlName="captchaVersion">
+                <mat-select formControlName="version">
                   <mat-option [value]="'v2'">v2 Checkbox</mat-option>
                   <mat-option [value]="'v3'">v3</mat-option>
                 </mat-select>
               </mat-form-field>
-              <span class="flex-1" *ngIf="selfRegistrationFormGroup.get('captchaVersion').value === 'v2'"></span>
-              <mat-form-field *ngIf="selfRegistrationFormGroup.get('captchaVersion').value === 'v3'" class="mat-block flex-1">
+              <span class="flex-1" *ngIf="selfRegistrationFormGroup.get('captcha.version').value !== 'v3'"></span>
+              <mat-form-field *ngIf="selfRegistrationFormGroup.get('captcha.version').value === 'v3'" class="mat-block flex-1">
                 <mat-label translate>self-registration.captcha-action</mat-label>
-                <input matInput formControlName="captchaAction"/>
+                <input matInput formControlName="logActionName"/>
               </mat-form-field>
             </div>
-            <div class="flex flex-col gap-0 gt-sm:flex-row gt-sm:gap-2">
+            <div class="flex flex-col gap-0 gt-sm:flex-row gt-sm:gap-2" formGroupName="captcha">
               <mat-form-field class="mat-block flex-1">
                 <mat-label translate>self-registration.captcha-site-key</mat-label>
-                <input matInput required formControlName="captchaSiteKey"/>
+                <input matInput required formControlName="siteKey"/>
               </mat-form-field>
               <mat-form-field class="mat-block flex-1">
                 <mat-label translate>self-registration.captcha-secret-key</mat-label>
-                <input matInput required formControlName="captchaSecretKey"/>
+                <input matInput required formControlName="secretKey"/>
               </mat-form-field>
             </div>
           </fieldset>
@@ -113,78 +113,25 @@
             </mat-form-field>
             <mat-form-field class="mat-block flex-1" floatLabel="always">
               <mat-label translate>self-registration.text-message-page</mat-label>
-              <textarea matInput #input formControlName="signUpTextMessage"
+              <textarea matInput #input formControlName="title"
                         cdkTextareaAutosize
                         placeholder="Text message for signup page"
                         [maxLength]="200"></textarea>
               <mat-hint align="end">{{input.value?.length || 0}}/200</mat-hint>
             </mat-form-field>
-            <section class="flex flex-col gt-sm:flex-row gt-sm:gap-2">
+            <section class="flex flex-col gt-sm:flex-row gt-sm:gap-2" formGroupName="defaultDashboard">
               <tb-entity-autocomplete
                 class="flex-1 gt-sm:max-w-30% gt-sm:flex-full"
                 [entityType]="entityTypes.DASHBOARD"
                 labelText="user.default-dashboard"
-                formControlName="defaultDashboardId">
+                formControlName="id">
               </tb-entity-autocomplete>
               <div class="flex flex-1 flex-col items-start justify-center">
-                <mat-checkbox formControlName="defaultDashboardFullscreen">
+                <mat-checkbox formControlName="fullscreen">
                   {{ 'user.always-fullscreen' | translate }}
                 </mat-checkbox>
               </div>
             </section>
-          </fieldset>
-          <mat-checkbox formControlName="enableMobileSelfRegistration">
-            {{ 'self-registration.enable-mobile-self-registration' | translate }}
-          </mat-checkbox>
-          <fieldset [class.!hidden]="!selfRegistrationFormGroup.get('enableMobileSelfRegistration').value" class="fields-group">
-            <legend class="group-title" translate>self-registration.mobile-self-registration-title</legend>
-            <div class="flex flex-col" style="margin: 8px;">
-              <div class="flex flex-row gap-2 xs:flex-col" style="padding-bottom: 20px;">
-                <mat-form-field class="mat-block flex-1" floatLabel="always">
-                  <mat-label translate>self-registration.mobile-package</mat-label>
-                  <input matInput formControlName="pkgName" placeholder="{{ 'self-registration.mobile-package-placeholder' | translate }}" required>
-                  <mat-hint translate>self-registration.mobile-package-hint</mat-hint>
-                  <mat-error *ngIf="selfRegistrationFormGroup.get('pkgName').hasError('required')">
-                    {{'self-registration.mobile-package-required' | translate}}
-                  </mat-error>
-                </mat-form-field>
-                <div class="flex flex-1 flex-row">
-                  <mat-form-field class="mat-block flex-1">
-                    <mat-label translate>self-registration.mobile-app-secret</mat-label>
-                    <textarea matInput #inputAppSecret cdkTextareaAutosize formControlName="appSecret" [maxLength]="2048" rows="1" required></textarea>
-                    <mat-hint align="end">{{ inputAppSecret.value?.length || 0 }}/2048</mat-hint>
-                    <tb-copy-button
-                      matSuffix
-                      color="primary"
-                      [copyText]="selfRegistrationFormGroup.get('appSecret').value"
-                      tooltipText="{{ 'self-registration.copy-mobile-app-secret' | translate }}"
-                      tooltipPosition="above"
-                      icon="mdi:clipboard-arrow-left">
-                    </tb-copy-button>
-                    <mat-error *ngIf="selfRegistrationFormGroup.get('appSecret').invalid">
-                      {{ 'self-registration.invalid-mobile-app-secret' | translate }}
-                    </mat-error>
-                  </mat-form-field>
-                </div>
-              </div>
-              <div class="flex flex-row items-center justify-start gap-2">
-                <mat-form-field class="mat-block flex-1" floatLabel="always">
-                  <mat-label translate>self-registration.mobile-app-scheme</mat-label>
-                  <input matInput formControlName="appScheme" placeholder="{{ 'self-registration.mobile-app-scheme-placeholder' | translate }}" required>
-                  <mat-error *ngIf="selfRegistrationFormGroup.get('appScheme').hasError('required')">
-                    {{'self-registration.mobile-app-scheme-required' | translate}}
-                  </mat-error>
-                </mat-form-field>
-                <span>://</span>
-                <mat-form-field class="mat-block flex-1" floatLabel="always">
-                  <mat-label translate>self-registration.mobile-app-host</mat-label>
-                  <input matInput formControlName="appHost" placeholder="{{ 'self-registration.mobile-app-host-placeholder' | translate }}" required>
-                  <mat-error *ngIf="selfRegistrationFormGroup.get('appHost').hasError('required')">
-                    {{'self-registration.mobile-app-host-required' | translate}}
-                  </mat-error>
-                </mat-form-field>
-              </div>
-            </div>
           </fieldset>
           <fieldset class="fields-group">
             <legend class="group-title" translate>self-registration.privacy-policy-text</legend>
@@ -216,7 +163,7 @@
             formControlName="permissions">
           </tb-registration-permissions>
           <div class="flex flex-row items-center justify-end gap-2">
-            <button mat-raised-button color="warn" [disabled]="(isLoading$ | async) || deleteDisabled"
+            <button mat-raised-button color="warn" [disabled]="(isLoading$ | async)"
                     (click)="delete(selfRegistrationForm)">
               {{ 'action.delete' | translate }}
             </button>

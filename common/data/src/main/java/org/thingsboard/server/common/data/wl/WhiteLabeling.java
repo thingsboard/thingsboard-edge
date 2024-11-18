@@ -32,7 +32,10 @@ package org.thingsboard.server.common.data.wl;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
@@ -44,6 +47,9 @@ import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.getJ
 import static org.thingsboard.server.common.data.BaseDataWithAdditionalInfo.setJson;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class WhiteLabeling implements Serializable {
 
     private static final long serialVersionUID = 2628323657987010348L;
