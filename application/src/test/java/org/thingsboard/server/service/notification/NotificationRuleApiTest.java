@@ -172,13 +172,13 @@ public class NotificationRuleApiTest extends AbstractNotificationApiTest {
         triggerConfig.setUpdated(true);
         triggerConfig.setDeleted(true);
         createNotificationRule(triggerConfig, "${actionType}: ${entityType} [${entityId}]",
-                "User: ${userEmail}", createNotificationTarget(tenantAdminUserId).getId());
+                "${entity.type-user:translate}: ${userEmail}. Recipient: ${recipientEmail}", createNotificationTarget(tenantAdminUserId).getId());
 
         Device device = checkNotificationAfter(() -> {
             return createDevice("DEVICE!!!", "default", "12345");
         }, (notification, newDevice) -> {
             assertThat(notification.getSubject()).isEqualTo("added: Device [" + newDevice.getId() + "]");
-            assertThat(notification.getText()).isEqualTo("User: " + TENANT_ADMIN_EMAIL);
+            assertThat(notification.getText()).isEqualTo("User: " + TENANT_ADMIN_EMAIL + ". Recipient: " + TENANT_ADMIN_EMAIL);
         });
 
         checkNotificationAfter(() -> {

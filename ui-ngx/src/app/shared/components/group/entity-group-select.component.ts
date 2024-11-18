@@ -30,7 +30,7 @@
 ///
 
 import { AfterViewInit, Component, EventEmitter, forwardRef, Input, OnInit, Output } from '@angular/core';
-import { ControlValueAccessor, UntypedFormBuilder, UntypedFormGroup, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { TranslateService } from '@ngx-translate/core';
@@ -42,6 +42,7 @@ import { EntityGroupInfo, entityGroupTypes } from '@shared/models/entity-group.m
 import { EntityInfoData } from '@shared/models/entity.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
 import { of } from 'rxjs';
+import { MatFormFieldAppearance } from '@angular/material/form-field';
 
 @Component({
   selector: 'tb-entity-group-select',
@@ -88,6 +89,9 @@ export class EntityGroupSelectComponent implements ControlValueAccessor, OnInit,
 
   @Input()
   originator: string;
+
+  @Input()
+  appearance: MatFormFieldAppearance = 'fill';
 
   private requiredValue: boolean;
   get required(): boolean {

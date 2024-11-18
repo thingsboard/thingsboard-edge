@@ -30,7 +30,8 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="selectEntityFormGroup" class="mat-block" [appearance]="appearance">
+<mat-form-field [formGroup]="selectEntityFormGroup" class="mat-block" [appearance]="appearance" [subscriptSizing]="subscriptSizing"
+                [class]="additionalClasses">
   <mat-label>{{ label | translate }}</mat-label>
   <input matInput type="text"
          #entityInput
@@ -47,6 +48,12 @@
           matSuffix mat-icon-button aria-label="Clear"
           (click)="clear()">
     <mat-icon class="material-icons">close</mat-icon>
+  </button>
+  <button mat-button color="primary" matSuffix
+          type="button"
+          *ngIf="allowCreateNew && !selectEntityFormGroup.get('entity').value && !disabled"
+          (click)="createNewEntity($event)">
+    <span style="white-space: nowrap">{{ 'entity.create-new' | translate }}</span>
   </button>
   <mat-autocomplete class="tb-autocomplete"
                     #entityAutocomplete="matAutocomplete"

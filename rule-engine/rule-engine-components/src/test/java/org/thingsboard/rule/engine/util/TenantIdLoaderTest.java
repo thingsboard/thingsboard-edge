@@ -72,7 +72,8 @@ import org.thingsboard.server.common.data.id.NotificationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.TenantProfileId;
 import org.thingsboard.server.common.data.integration.Integration;
-import org.thingsboard.server.common.data.mobile.MobileApp;
+import org.thingsboard.server.common.data.mobile.app.MobileApp;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
 import org.thingsboard.server.common.data.notification.NotificationRequest;
 import org.thingsboard.server.common.data.notification.rule.NotificationRule;
 import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
@@ -100,6 +101,7 @@ import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.notification.NotificationRequestService;
 import org.thingsboard.server.dao.notification.NotificationRuleService;
@@ -197,6 +199,8 @@ public class TenantIdLoaderTest {
     private DomainService domainService;
     @Mock
     private MobileAppService mobileAppService;
+    @Mock
+    private MobileAppBundleService mobileAppBundleService;
 
     private TenantId tenantId;
     private TenantProfileId tenantProfileId;
@@ -496,6 +500,12 @@ public class TenantIdLoaderTest {
                 mobileApp.setTenantId(tenantId);
                 when(ctx.getMobileAppService()).thenReturn(mobileAppService);
                 doReturn(mobileApp).when(mobileAppService).findMobileAppById(eq(tenantId), any());
+                break;
+            case MOBILE_APP_BUNDLE:
+                MobileAppBundle mobileAppBundle = new MobileAppBundle();
+                mobileAppBundle.setTenantId(tenantId);
+                when(ctx.getMobileAppBundleService()).thenReturn(mobileAppBundleService);
+                doReturn(mobileAppBundle).when(mobileAppBundleService).findMobileAppBundleById(eq(tenantId), any());
                 break;
             default:
                 throw new RuntimeException("Unexpected originator EntityType " + entityType);

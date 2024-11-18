@@ -57,6 +57,7 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.role.Role;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.asset.AssetService;
 import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.dashboard.DashboardService;
@@ -293,7 +294,7 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
                 throw new RuntimeException(e);
             }
         }
-        whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, customerId);
+        whiteLabelingService.deleteWhiteLabeling(tenantId, customerId, WhiteLabelingType.LOGIN);
         dashboardService.deleteDashboardsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         entityViewService.deleteEntityViewsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         assetService.deleteAssetsByTenantIdAndCustomerId(customer.getTenantId(), customerId);

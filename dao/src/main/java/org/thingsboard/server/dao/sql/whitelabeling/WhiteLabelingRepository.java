@@ -46,7 +46,7 @@ import java.util.UUID;
 
 public interface WhiteLabelingRepository extends JpaRepository<WhiteLabelingEntity, WhiteLabelingCompositeKey> {
 
-    WhiteLabelingEntity findByDomain(String domain);
+    WhiteLabelingEntity findByDomainAndType(@Param("domain") String domain, @Param("type") WhiteLabelingType type);
 
     @Query(nativeQuery = true,
             value = "SELECT * FROM white_labeling wl WHERE wl.tenant_id = :tenantId " +

@@ -158,6 +158,8 @@ import { EntityGroupColumnsComponent } from '@home/components/group/entity-group
 import { EntityGroupColumnDialogComponent } from '@home/components/group/entity-group-column-dialog.component';
 import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
 import { RegistrationPermissionsComponent } from '@home/components/role/registration-permissions.component';
+import { UserGroupPanelComponent } from '@home/components/role/user-group-panel.component';
+import { UserGroupsPanelRowComponent } from '@home/components/role/user-groups-panel-row.component';
 import { EntityGroupComponent } from '@home/components/group/entity-group.component';
 import { HomeDialogsModule } from '@home/dialogs/home-dialogs.module';
 import { EntityGroupColumnComponent } from '@home/components/group/entity-group-column.component';
@@ -302,6 +304,8 @@ import { ConverterLibraryComponent } from '@home/components/converter/converter-
       OwnerAndGroupsComponent,
       ManageOwnerAndGroupsDialogComponent,
       RegistrationPermissionsComponent,
+      UserGroupPanelComponent,
+      UserGroupsPanelRowComponent,
       BooleanFilterPredicateComponent,
       StringFilterPredicateComponent,
       NumericFilterPredicateComponent,
@@ -476,6 +480,7 @@ import { ConverterLibraryComponent } from '@home/components/converter/converter-
     OwnerAndGroupsComponent,
     ManageOwnerAndGroupsDialogComponent,
     RegistrationPermissionsComponent,
+    UserGroupPanelComponent,
     BooleanFilterPredicateComponent,
     StringFilterPredicateComponent,
     NumericFilterPredicateComponent,
