@@ -282,9 +282,9 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
             if (update && !etag.equals(resource.getEtag())) {
                 resource.setData(data);
                 resource.setTitle(exportData.getTitle());
-                log.info("[{}] Updating existing resource {}", tenantId, existingResource.getLink());
+                log.debug("[{}] Updating existing resource {}", tenantId, existingResource.getLink());
             } else {
-                log.info("[{}] Using existing resource {}", tenantId, existingResource.getLink());
+                log.debug("[{}] Using existing resource {}", tenantId, existingResource.getLink());
             }
             return resource;
         }
@@ -301,7 +301,7 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
         resource.setResourceType(exportData.getType());
         resource.setResourceKey(exportData.getResourceKey());
         resource.setData(data);
-        log.info("[{}] Creating resource {}", tenantId, resource.getResourceKey());
+        log.debug("[{}] Creating resource {}", tenantId, resource.getResourceKey());
         return resource;
     }
 
@@ -556,7 +556,7 @@ public class BaseResourceService extends AbstractCachedEntityService<ResourceInf
             JsonNode newValue = new TextNode(value);
             if (!newValue.toString().equals(urlNode.toString())) {
                 updated.set(true);
-                log.info("Replaced '{}' with '{}'", urlNode, newValue);
+                log.trace("Replaced '{}' with '{}'", urlNode, newValue);
             }
             return newValue;
         });

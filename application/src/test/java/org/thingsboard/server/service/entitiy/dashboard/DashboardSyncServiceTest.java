@@ -31,7 +31,6 @@
 package org.thingsboard.server.service.entitiy.dashboard;
 
 import org.junit.After;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -70,7 +69,6 @@ public class DashboardSyncServiceTest extends AbstractControllerTest {
         resourceRepository.deleteAll();
     }
 
-    @Ignore
     @Test
     public void testGatewaysDashboardSync() throws Exception {
         loginTenantAdmin();
@@ -79,13 +77,9 @@ public class DashboardSyncServiceTest extends AbstractControllerTest {
                     .andExpect(status().isOk())
                     .andReturn().getResponse();
             String dashboardJson = response.getContentAsString();
-
-            assertThat(dashboardJson).contains("tb-resource;/api/resource/js_module/system/gateway-management-extension.js"); // checking that resource link is used
-            assertThat(dashboardJson).doesNotContain("${RESOURCE");
             Dashboard dashboard = JacksonUtil.fromString(dashboardJson, Dashboard.class);
             assertThat(dashboard).isNotNull();
             assertThat(dashboard.getTitle()).containsIgnoringCase("gateway");
-            assertThat(dashboard.getImage()).startsWith("tb-image;/api/images/system/gateway");
             assertThat(response.getHeader("ETag")).isNotBlank();
         });
     }

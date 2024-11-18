@@ -30,22 +30,15 @@
  */
 package org.thingsboard.server.service.install.update;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Iterators;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.HasImage;
-import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.id.DashboardId;
 import org.thingsboard.server.common.data.id.EntityId;
-import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.WidgetTypeId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -67,16 +60,9 @@ import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleDao;
 import org.thingsboard.server.dao.wl.WhiteLabelingDao;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 @Component
 @RequiredArgsConstructor
@@ -188,72 +174,6 @@ public class ResourcesUpdater {
         log.info("Updated {} widgets", updatedCount);
     }
 
-    public void updateDashboards(Stream<Path> files) {
-        files.forEach(path -> {
-            Dashboard dashboard = JacksonUtil.readValue(path.toFile(), Dashboard.class);
-            dashboard.setTenantId(TenantId.SYS_TENANT_ID);
-
-            imageService.updateImagesUsage(dashboard);
-            resourceService.updateResourcesUsage(dashboard);
-
-            Map<TbResourceId, TbResourceInfo> resources = new HashMap<>();
-            for (TbResourceInfo imageInfo : imageService.getUsedImages(dashboard)) {
-                resources.putIfAbsent(imageInfo.getId(), imageInfo);
-            }
-            for (TbResourceInfo resourceInfo : resourceService.getUsedResources(dashboard)) {
-                resources.putIfAbsent(resourceInfo.getId(), resourceInfo);
-            }
-
-            dashboard.setResources(resourceService.exportResources(TenantId.SYS_TENANT_ID, resources.values()));
-
-            ObjectNode json = (ObjectNode) JacksonUtil.valueToTree(dashboard);
-            json.remove(List.of("id", "createdTime", "tenantId", "externalId", "version", "scada"));
-            JsonNode resourcesNode = json.remove("resources");
-            json.set("resources", resourcesNode);
-            try {
-                Files.writeString(path, json.toPrettyString());
-                //                    log.info("UPDATED {}: {} resources used", path, resources.size());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
-    // TODO: remove after updating PE
-    @SneakyThrows
-    public void updateWidgets(Stream<Path> dirs) {
-        dirs.forEach(path -> {
-            WidgetTypeDetails widgetTypeDetails = JacksonUtil.readValue(path.toFile(), WidgetTypeDetails.class);
-            widgetTypeDetails.setTenantId(TenantId.SYS_TENANT_ID);
-
-            imageService.updateImagesUsage(widgetTypeDetails);
-            resourceService.updateResourcesUsage(widgetTypeDetails);
-
-            Map<TbResourceId, TbResourceInfo> resources = new HashMap<>();
-            for (TbResourceInfo imageInfo : imageService.getUsedImages(widgetTypeDetails)) {
-                resources.putIfAbsent(imageInfo.getId(), imageInfo);
-            }
-            for (TbResourceInfo resourceInfo : resourceService.getUsedResources(widgetTypeDetails)) {
-                resources.putIfAbsent(resourceInfo.getId(), resourceInfo);
-            }
-
-            widgetTypeDetails.setResources(resourceService.exportResources(TenantId.SYS_TENANT_ID, resources.values()));
-
-            ObjectNode json = (ObjectNode) JacksonUtil.valueToTree(widgetTypeDetails);
-            Iterators.removeIf(json.fields(), field -> field.getValue() == null
-                    || field.getValue().isNull());
-            json.remove(List.of("id", "createdTime", "tenantId", "externalId", "version", "scada"));
-            JsonNode resourcesNode = json.remove("resources");
-            json.set("resources", resourcesNode);
-            try {
-                Files.writeString(path, json.toPrettyString());
-                //                    log.info("UPDATED {}: {} resources used", path, resources.size());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
-
     public void updateDeviceProfilesImages() {
         log.info("Updating device profiles images...");
         var deviceProfiles = new PageDataIterable<>(deviceProfileDao::findAllWithImages, 256);
@@ -266,7 +186,6 @@ public class ResourcesUpdater {
         updateImages(assetProfiles, "asset profile", imageService::replaceBase64WithImageUrl, assetProfileDao);
     }
 
-    // TODO: migrate all widgets, check for else
     private <E extends HasImage> void updateImages(Iterable<E> entities, String type,
                                                    BiFunction<E, String, Boolean> updater, Dao<E> dao) {
         int updatedCount = 0;

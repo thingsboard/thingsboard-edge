@@ -304,7 +304,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
                 existingImage = findSystemOrTenantImageByEtag(tenantId, etag);
             }
             if (existingImage != null) {
-                log.info("[{}] Using existing image {}", tenantId, existingImage.getLink());
+                log.debug("[{}] Using existing image {}", tenantId, existingImage.getLink());
                 return new TbResource(existingImage);
             }
         }
@@ -331,7 +331,7 @@ public class BaseImageService extends BaseResourceService implements ImageServic
         descriptor.setMediaType(imageData.getMediaType());
         image.setDescriptorValue(descriptor);
         image.setData(data);
-        log.info("[{}] Creating image {}", tenantId, image.getFileName());
+        log.debug("[{}] Creating image {}", tenantId, image.getFileName());
         return image;
     }
 
@@ -720,7 +720,6 @@ public class BaseImageService extends BaseResourceService implements ImageServic
             ImageCacheKey key = getKeyFromUrl(tenantId, imageUrl);
             if (key != null) {
                 var imageInfo = getImageInfoByTenantIdAndKey(key.getTenantId(), key.getResourceKey());
-                // TODO: maybe export scada too?
                 if (imageInfo == null || (TenantId.SYS_TENANT_ID.equals(imageInfo.getTenantId()) && ResourceSubType.SCADA_SYMBOL.equals(imageInfo.getResourceSubType()))) {
                     return imageUrl;
                 } else {
@@ -779,7 +778,6 @@ public class BaseImageService extends BaseResourceService implements ImageServic
     private static class UpdateResult {
         private final boolean updated;
         private final String value;
-
     }
 
 }
