@@ -5,8 +5,7 @@
     "type": "EDGE",
     "firstRuleNodeId": null,
     "root": true,
-    "debugFailures": false,
-    "debugAll": false,
+    "debugMode": false,
     "configuration": null,
     "externalId": null
   },
