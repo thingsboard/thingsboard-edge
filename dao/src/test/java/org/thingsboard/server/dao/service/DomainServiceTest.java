@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.domain.DomainInfo;
 import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
@@ -70,7 +71,7 @@ public class DomainServiceTest extends AbstractServiceTest {
 
     @Test
     public void testSaveDomain() {
-        Domain domain = constructDomain(TenantId.SYS_TENANT_ID, "test.domain.com", true, true);
+        Domain domain = constructDomain(TenantId.SYS_TENANT_ID, new CustomerId(EntityId.NULL_UUID), "test.domain.com");
         Domain savedDomain = domainService.saveDomain(SYSTEM_TENANT_ID, domain);
 
         Domain retrievedDomain = domainService.findDomainById(savedDomain.getTenantId(), savedDomain.getId());
@@ -106,7 +107,7 @@ public class DomainServiceTest extends AbstractServiceTest {
     public void testGetTenantDomains() {
         List<Domain> domains = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
-            Domain oAuth2Client = constructDomain(TenantId.SYS_TENANT_ID, StringUtils.randomAlphabetic(5), true, false);
+            Domain oAuth2Client = constructDomain(TenantId.SYS_TENANT_ID, new CustomerId(EntityId.NULL_UUID), StringUtils.randomAlphabetic(5).toLowerCase() + ".com");
             Domain savedOauth2Client = domainService.saveDomain(SYSTEM_TENANT_ID, oAuth2Client);
             domains.add(savedOauth2Client);
         }
@@ -121,7 +122,7 @@ public class DomainServiceTest extends AbstractServiceTest {
         OAuth2Client savedOauth2Client = oAuth2ClientService.saveOAuth2Client(SYSTEM_TENANT_ID, oAuth2Client);
         List<OAuth2ClientInfo> oAuth2ClientInfosByIds = oAuth2ClientService.findOAuth2ClientInfosByIds(TenantId.SYS_TENANT_ID, List.of(savedOauth2Client.getId()));
 
-        Domain domain = constructDomain(TenantId.SYS_TENANT_ID, "test.domain.com", true, true);
+        Domain domain = constructDomain(TenantId.SYS_TENANT_ID, new CustomerId(EntityId.NULL_UUID), "test.domain.com");
         Domain savedDomain = domainService.saveDomain(SYSTEM_TENANT_ID, domain);
 
         domainService.updateOauth2Clients(TenantId.SYS_TENANT_ID, savedDomain.getId(), List.of(savedOauth2Client.getId()));
@@ -135,12 +136,13 @@ public class DomainServiceTest extends AbstractServiceTest {
         assertThat(oauth2LoginInfo).containsOnly(new OAuth2ClientLoginInfo(savedOauth2Client.getLoginButtonLabel(), savedOauth2Client.getLoginButtonIcon(), String.format(OAUTH2_AUTHORIZATION_PATH_TEMPLATE, savedOauth2Client.getUuidId().toString())));
     }
 
-    private Domain constructDomain(TenantId tenantId, String domainName, boolean oauth2Enabled, boolean propagateToEdge) {
+    private Domain constructDomain(TenantId tenantId, CustomerId customerId, String domainName) {
         Domain domain = new Domain();
         domain.setTenantId(tenantId);
+        domain.setCustomerId(customerId);
         domain.setName(domainName);
-        domain.setOauth2Enabled(oauth2Enabled);
-        domain.setPropagateToEdge(propagateToEdge);
+        domain.setOauth2Enabled(true);
+        domain.setPropagateToEdge(true);
         return domain;
     }
 

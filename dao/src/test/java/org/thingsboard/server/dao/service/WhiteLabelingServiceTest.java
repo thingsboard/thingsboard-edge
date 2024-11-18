@@ -71,7 +71,7 @@ public class WhiteLabelingServiceTest extends AbstractServiceTest {
         customer.setTitle("My customer");
         customerId = customerService.saveCustomer(customer).getId();
 
-        Domain domain = constructDomain(tenantId, customerId, "my.test.domain");
+        domain = constructDomain(tenantId, customerId, "my.test.domain");
         domain = domainService.saveDomain(tenantId, domain);
     }
 
