@@ -81,8 +81,6 @@ public class ModelConstants {
 
     public static final String GROUPS_COLUMN = "groups";
 
-    public static final String EXPIRATION_TIME = "expiration_time";
-
     /**
      * User constants.
      */
@@ -741,7 +739,7 @@ public class ModelConstants {
     public static final String RPC_TABLE_NAME = "rpc";
     public static final String RPC_TENANT_ID_COLUMN = TENANT_ID_COLUMN;
     public static final String RPC_DEVICE_ID = "device_id";
-    public static final String RPC_EXPIRATION_TIME = EXPIRATION_TIME;
+    public static final String RPC_EXPIRATION_TIME = "expiration_time";
     public static final String RPC_REQUEST = "request";
     public static final String RPC_RESPONSE = "response";
     public static final String RPC_STATUS = "status";
