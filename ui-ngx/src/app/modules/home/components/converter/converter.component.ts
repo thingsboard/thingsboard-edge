@@ -66,6 +66,7 @@ import { map, takeUntil } from 'rxjs/operators';
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { ContentType } from '@shared/models/constants';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
+import { HasDebugConfig } from '@shared/models/entity.models';
 
 @Component({
   selector: 'tb-converter',
@@ -114,6 +115,8 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
   tbelEnabled: boolean;
 
   scriptLanguage = ScriptLanguage;
+
+  readonly converterDebugPerTenantLimitsConfiguration = getCurrentAuthState(this.store).converterDebugPerTenantLimitsConfiguration;
 
   private defaultUpdateOnlyKeysByIntegrationType: DefaultUpdateOnlyKeys = {};
   private destroy$ = new Subject<void>();
@@ -166,7 +169,9 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     const form = this.fb.group({
       name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
       type: [entity?.type ? entity.type : ConverterType.UPLINK, [Validators.required]],
-      debugMode: [isDefinedAndNotNull(entity?.debugMode) ? entity.debugMode : true],
+      debugAll: [entity?.debugAll ?? false],
+      debugFailures: [entity?.debugFailures ?? false],
+      debugAllUntil: [entity?.debugAllUntil ?? 0],
       configuration: this.fb.group({
         scriptLang: [entity?.configuration ? entity.configuration.scriptLang : ScriptLanguage.JS],
         decoder: [entity?.configuration ? entity.configuration.decoder : null],
@@ -180,6 +185,13 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       })
     });
     return form;
+  }
+
+  onDebugConfigChanged(config: HasDebugConfig): void {
+    this.entityForm.get('debugAllUntil').setValue(config.debugAllUntil);
+    this.entityForm.get('debugAll').setValue(config.debugAll);
+    this.entityForm.get('debugFailures').setValue(config.debugFailures);
+    this.entityForm.markAsDirty();
   }
 
   private checkIsNewConverter(entity: Converter, form: FormGroup) {
@@ -273,7 +285,9 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.entityForm.patchValue({
       type: entity.type,
       name: entity?.name ? entity.name : '',
-      debugMode: isDefinedAndNotNull(entity?.debugMode) ? entity.debugMode : true,
+      debugAll: entity?.debugAll ?? false,
+      debugFailures: entity?.debugFailures ?? false,
+      debugAllUntil: entity?.debugAllUntil ?? 0,
       configuration: {
         scriptLang,
         decoder: entity.configuration ? entity.configuration.decoder : null,

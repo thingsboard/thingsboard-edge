@@ -63,15 +63,23 @@
           {{ 'integration.name-max-length' | translate }}
         </mat-error>
       </mat-form-field>
-      <tb-integration-type-select formControlName="type" required class="flex-1">
-      </tb-integration-type-select>
+      <div class="flex row">
+        <tb-integration-type-select formControlName="type" required class="flex-1">
+        </tb-integration-type-select>
+        <tb-debug-config-button
+          class="flex items-center mb-5 ml-2"
+          [debugAll]="entityForm.get('debugAll').value"
+          [debugFailures]="entityForm.get('debugFailures').value"
+          [debugAllUntil]="entityForm.get('debugAllUntil').value"
+          [debugLimitsConfiguration]="integrationDebugPerTenantLimitsConfiguration"
+          (onDebugConfigChanged)="onDebugConfigChanged($event)"
+          [disabled]="entityForm.get('debugAll').disabled"
+        />
+      </div>
     </div>
     <div class="row flex flex-col gap-2">
       <mat-slide-toggle formControlName="enabled">
         {{ 'integration.enabled' | translate }}
-      </mat-slide-toggle>
-      <mat-slide-toggle formControlName="debugMode">
-        {{ 'integration.debug-mode' | translate }}
       </mat-slide-toggle>
       <mat-slide-toggle formControlName="allowCreateDevicesOrAssets">
         {{ 'integration.allow-create-devices-or-assets' | translate }}

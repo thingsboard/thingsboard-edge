@@ -34,6 +34,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
   ElementRef,
   EventEmitter,
   Input, NgZone,
@@ -53,9 +54,9 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, SortDirection } from '@angular/material/sort';
 import { EntitiesDataSource } from '@home/models/datasource/entity-datasource';
-import { catchError, debounceTime, distinctUntilChanged, map, skip, takeUntil } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, map, skip } from 'rxjs/operators';
 import { Direction, SortOrder } from '@shared/models/page/sort-order';
-import { forkJoin, merge, Observable, of, Subject, Subscription } from 'rxjs';
+import { forkJoin, merge, Observable, of, Subscription } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
 import { BaseData, HasId } from '@shared/models/base-data';
 import { ActivatedRoute, QueryParamsHandling, Router } from '@angular/router';
@@ -85,6 +86,8 @@ import { hidePageSizePixelValue } from '@shared/models/constants';
 import { EntitiesTableAction, IEntitiesTableComponent } from '@home/models/entity/entity-table-component.models';
 import { EntityDetailsPanelComponent } from '@home/components/entity/entity-details-panel.component';
 import { FormBuilder } from '@angular/forms';
+import { TbPopoverService } from '@shared/components/popover.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'tb-entities-table',
@@ -147,7 +150,6 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
   private viewInited = false;
 
   private widgetResize$: ResizeObserver;
-  private destroy$ = new Subject<void>();
 
   constructor(protected store: Store<AppState>,
               public route: ActivatedRoute,
@@ -161,7 +163,9 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
               private fb: FormBuilder,
               private zone: NgZone,
               public viewContainerRef: ViewContainerRef,
-              public renderer: Renderer2) {
+              public renderer: Renderer2,
+              public destroyRef: DestroyRef,
+              public popoverService: TbPopoverService) {
     super(store);
   }
 
@@ -170,7 +174,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
       this.init(this.entitiesTableConfig);
     } else {
       this.route.data.pipe(
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       ).subscribe((data) => {
         this.init(data.entitiesTableConfig);
       });
@@ -191,8 +195,6 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     if (this.widgetResize$) {
       this.widgetResize$.disconnect();
     }
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -337,7 +339,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     this.textSearch.valueChanges.pipe(
       debounceTime(150),
       distinctUntilChanged((prev, current) => (this.pageLink.textSearch ?? '') === current.trim()),
-      takeUntil(this.destroy$)
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(value => {
       if (this.pageMode) {
         const queryParams: PageQueryParam = {
@@ -357,7 +359,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     if (this.pageMode) {
       this.route.queryParams.pipe(
         skip(1),
-        takeUntil(this.destroy$)
+        takeUntilDestroyed(this.destroyRef)
       ).subscribe((params: PageQueryParam) => {
         if (this.displayPagination) {
           this.paginator.pageIndex = Number(params.page) || 0;
@@ -413,7 +415,7 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     }
     this.updateDataSubscription = ((this.displayPagination ? merge(sortSubscription$, paginatorSubscription$)
       : sortSubscription$) as Observable<PageQueryParam>).pipe(
-      takeUntil(this.destroy$)
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(queryParams => this.updatedRouterParamsAndData(queryParams));
   }
 

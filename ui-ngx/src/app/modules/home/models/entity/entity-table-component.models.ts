@@ -35,7 +35,7 @@ import { SafeHtml } from '@angular/platform-browser';
 import { PageLink } from '@shared/models/page/page-link';
 import { Timewindow } from '@shared/models/time/time.models';
 import { EntitiesDataSource } from '@home/models/datasource/entity-datasource';
-import { ElementRef, EventEmitter, Renderer2, ViewContainerRef } from '@angular/core';
+import { DestroyRef, ElementRef, EventEmitter, Renderer2, ViewContainerRef } from '@angular/core';
 import { TbAnchorComponent } from '@shared/components/tb-anchor.component';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
@@ -48,6 +48,7 @@ import {
 } from '@home/models/entity/entities-table-config.models';
 import { ActivatedRoute } from '@angular/router';
 import { EntityDetailsPanelComponent } from '@home/components/entity/entity-details-panel.component';
+import { TbPopoverService } from '@shared/components/popover.service';
 
 export type EntitiesTableAction = 'add';
 
@@ -83,6 +84,8 @@ export interface IEntitiesTableComponent {
   entityDetailsPanel: EntityDetailsPanelComponent;
   viewContainerRef: ViewContainerRef;
   renderer: Renderer2;
+  popoverService: TbPopoverService;
+  destroyRef: DestroyRef;
 
   addEnabled(): boolean;
   clearSelection(): void;
