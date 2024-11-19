@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.annotation.PostConstruct;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -91,15 +90,13 @@ public class SystemInfoController extends BaseController {
     @Value("${ui.dashboard.max_datapoints_limit}")
     private long maxDatapointsLimit;
 
-    @Value("${debug_mode.max_duration:60}")
+    @Value("${debug_mode.max_duration:15}")
     private int maxDebugModeDurationMinutes;
 
     @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.enabled:true}")
-    @Getter
     private boolean ruleChainDebugPerTenantLimitsEnabled;
 
     @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.configuration:50000:3600}")
-    @Getter
     private String ruleChainDebugPerTenantLimitsConfiguration;
 
     @Value("${event.debug.rate_limits.enabled}")
