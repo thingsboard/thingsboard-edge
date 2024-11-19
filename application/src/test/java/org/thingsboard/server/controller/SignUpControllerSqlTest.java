@@ -166,7 +166,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
     @After
     public void afterTest() throws Exception {
         loginSysAdmin();
-        whiteLabelingService.deleteTenantWhiteLabeling(tenantId);
+        whiteLabelingService.deleteTenantAllWhiteLabeling(tenantId);
 
         customMenuDao.removeAllByIds(idsToRemove);
         idsToRemove = new ArrayList<>();
