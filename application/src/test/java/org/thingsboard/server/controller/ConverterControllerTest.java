@@ -143,7 +143,7 @@ public class ConverterControllerTest extends AbstractControllerTest {
                 ActionType.ADDED, 1);
 
         savedConverter.setName("My new converter");
-        doPost("/api/converter", savedConverter, Converter.class);
+        savedConverter = doPost("/api/converter", savedConverter, Converter.class);
 
         Converter foundConverter = doGet("/api/converter/" + savedConverter.getId().getId().toString(), Converter.class);
         Assert.assertEquals(foundConverter.getName(), savedConverter.getName());
