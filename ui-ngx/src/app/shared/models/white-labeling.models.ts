@@ -178,6 +178,15 @@ export const checkWlParams = <T extends WhiteLabelingParams & LoginWhiteLabeling
   if (!whiteLabelParams.favicon) {
     whiteLabelParams.favicon = {};
   }
+  if(whiteLabelParams.platformName === null){
+    whiteLabelParams.platformName = 'ThingsBoard';
+  }
+  if(whiteLabelParams.platformVersion === null){
+    whiteLabelParams.platformVersion = env.tbVersion;
+  }
+  if (whiteLabelParams.showNameBottom === null){
+    whiteLabelParams.showNameBottom = true;
+  }
   return whiteLabelParams;
 };
 

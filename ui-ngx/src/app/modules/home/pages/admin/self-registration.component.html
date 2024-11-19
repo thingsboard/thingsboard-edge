@@ -162,10 +162,11 @@
           <tb-registration-permissions
             formControlName="permissions">
           </tb-registration-permissions>
-          <div class="flex flex-row items-center justify-end gap-2">
+          <div class="flex items-center justify-between gap-4">
             <button mat-raised-button color="warn" [disabled]="(isLoading$ | async)"
                     (click)="delete(selfRegistrationForm)">
-              {{ 'action.delete' | translate }}
+              <tb-icon matButtonIcon>mdi:broom</tb-icon>
+              {{ 'action.reset-default' | translate }}
             </button>
             <button mat-raised-button color="primary" [disabled]="(isLoading$ | async) || selfRegistrationFormGroup.invalid || !selfRegistrationFormGroup.dirty"
                     (click)="save()">

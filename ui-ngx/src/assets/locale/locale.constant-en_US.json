@@ -76,6 +76,7 @@
         "skip": "Skip",
         "send": "Send",
         "reset": "Reset",
+        "reset-default": "Reset to default",
         "show-more": "Show more",
         "dont-show-again": "Do not show again",
         "see-documentation": "See documentation",
