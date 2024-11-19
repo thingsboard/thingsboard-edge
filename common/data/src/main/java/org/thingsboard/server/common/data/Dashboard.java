@@ -32,6 +32,7 @@ package org.thingsboard.server.common.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Streams;
@@ -57,6 +58,7 @@ import java.util.stream.Collectors;
 
 @Schema
 @EqualsAndHashCode(callSuper = true)
+@JsonPropertyOrder({"title", "image", "mobileHide", "mobileOrder", "configuration", "name", "resources"})
 public class Dashboard extends BaseData<DashboardId> implements GroupEntity<DashboardId>, HasName, HasTenantId, HasTitle, ExportableEntity<DashboardId>, HasImage, HasVersion {
 
     private static final long serialVersionUID = 872682138346187503L;
