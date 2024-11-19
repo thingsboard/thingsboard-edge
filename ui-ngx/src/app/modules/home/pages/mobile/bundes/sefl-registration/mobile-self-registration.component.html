@@ -1,0 +1,203 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<section [formGroup]="selfRegistrationForm" class="flex flex-col">
+  <mat-slide-toggle formControlName="enabled" class="mb-4">
+    {{ 'mobile.enable-self-registration' | translate }}
+  </mat-slide-toggle>
+  <mat-form-field appearance="outline">
+    <mat-label translate>mobile.self-registration.page-title</mat-label>
+    <input matInput required formControlName="title">
+    <mat-error *ngIf="selfRegistrationForm.get('title').hasError('required')">
+      {{ 'mobile.self-registration.page-title-required' | translate }}
+    </mat-error>
+  </mat-form-field>
+  <mat-form-field appearance="outline">
+    <mat-label translate>self-registration.notification-email</mat-label>
+    <input matInput type="email" required formControlName="notificationEmail">
+    <mat-error *ngIf="selfRegistrationForm.get('notificationEmail').hasError('required')">
+      {{ 'self-registration.notification-email-required' | translate }}
+    </mat-error>
+    <mat-error *ngIf="selfRegistrationForm.get('notificationEmail').hasError('email')">
+      {{ 'self-registration.notification-email-invalid' | translate }}
+    </mat-error>
+  </mat-form-field>
+  <section class="tb-form-panel no-padding-bottom stroked mb-5.5" formGroupName="redirect">
+    <section class="tb-form-panel-title" translate>mobile.self-registration.redirect-settings</section>
+    <div class="flex flex-row items-center justify-start gap-2">
+      <mat-form-field class="mat-block flex-1" floatLabel="always" appearance="outline">
+        <mat-label translate>self-registration.mobile-app-scheme</mat-label>
+        <input matInput formControlName="scheme" placeholder="{{ 'self-registration.mobile-app-scheme-placeholder' | translate }}" required>
+        <mat-error *ngIf="selfRegistrationForm.get('redirect.scheme').hasError('required')">
+          {{'self-registration.mobile-app-scheme-required' | translate}}
+        </mat-error>
+      </mat-form-field>
+      <span class="mb-5.5">://</span>
+      <mat-form-field class="mat-block flex-1" floatLabel="always" appearance="outline">
+        <mat-label translate>self-registration.mobile-app-host</mat-label>
+        <input matInput formControlName="host" placeholder="{{ 'self-registration.mobile-app-host-placeholder' | translate }}" required>
+        <mat-error *ngIf="selfRegistrationForm.get('redirect.host').hasError('required')">
+          {{'self-registration.mobile-app-host-required' | translate}}
+        </mat-error>
+      </mat-form-field>
+    </div>
+  </section>
+  <tb-mobile-registration-fields-panel formControlName="signUpFields" class="mb-5.5">
+  </tb-mobile-registration-fields-panel>
+  <section class="tb-form-panel stroked mb-5.5">
+    <mat-expansion-panel class="tb-settings" expanded="true" formGroupName="captcha">
+      <mat-expansion-panel-header>
+        {{ "mobile.self-registration.captcha-properties" | translate }}
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <section>
+          <mat-form-field class="mat-block" appearance="outline">
+            <mat-label translate>self-registration.captcha-version</mat-label>
+            <mat-select formControlName="version">
+              <mat-option [value]="'v3'">v3</mat-option>
+              <mat-option [value]="'enterprise'">Enterprise</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field class="mat-block" appearance="outline">
+            <mat-label translate>self-registration.captcha-site-key</mat-label>
+            <input matInput required formControlName="siteKey"/>
+          </mat-form-field>
+          <mat-form-field class="mat-block" appearance="outline">
+            <mat-label translate>self-registration.captcha-secret-key</mat-label>
+            <input matInput required formControlName="secretKey"/>
+          </mat-form-field>
+          <mat-form-field *ngIf="selfRegistrationForm.get('captcha.version').value === 'v3'"
+                          class="mat-block" subscriptSizing="dynamic"
+                          appearance="outline">
+            <mat-label translate>self-registration.captcha-action</mat-label>
+            <input matInput type="number" formControlName="logActionName"/>
+          </mat-form-field>
+        </section>
+      </ng-template>
+    </mat-expansion-panel>
+  </section>
+  <div class="tb-form-row space-between mb-5.5">
+    <mat-slide-toggle class="mat-slide" formControlName="showPrivacyPolicy">
+      {{ 'self-registration.show-privacy-policy' | translate }}
+    </mat-slide-toggle>
+    <button
+      mat-stroked-button
+      type="button"
+      matTooltip="{{ 'self-registration.privacy-policy-text' | translate }}"
+      matTooltipPosition="above"
+      class="tb-box-button"
+      #editPrivacyButton
+      [disabled]="selfRegistrationForm.get('privacyPolicy').disabled"
+      (click)="editPolicy($event, editPrivacyButton, true)">
+      <tb-icon matButtonIcon>mdi:text-box-edit</tb-icon>
+    </button>
+  </div>
+  <div class="tb-form-row space-between mb-5.5">
+    <mat-slide-toggle class="mat-slide" formControlName="showTermsOfUse">
+      {{ 'self-registration.show-terms-of-use' | translate }}
+    </mat-slide-toggle>
+    <button
+      mat-stroked-button
+      type="button"
+      matTooltip="{{ 'self-registration.terms-of-use-text' | translate }}"
+      matTooltipPosition="above"
+      class="tb-box-button"
+      #editTernUseButton
+      [disabled]="selfRegistrationForm.get('termsOfUse').disabled"
+      (click)="editPolicy($event, editTernUseButton, false)">
+      <tb-icon matButtonIcon>mdi:text-box-edit</tb-icon>
+    </button>
+  </div>
+  <tb-user-group-panel formControlName="permissions" class="mb-5.5">
+  </tb-user-group-panel>
+  <section class="tb-form-panel stroked mb-5.5">
+    <mat-expansion-panel class="tb-settings" expanded="true">
+      <mat-expansion-panel-header>
+        {{ "mobile.self-registration.advanced-settings" | translate }}
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <section>
+          <tb-entity-group-autocomplete
+            appearance="outline"
+            useFullEntityId
+            placeholderText="mobile.self-registration.customer-group"
+            notFoundText="mobile.self-registration.no-customer-groups-matching"
+            [groupType]="EntityType.CUSTOMER"
+            formControlName="customerGroupId"
+          ></tb-entity-group-autocomplete>
+          <mat-form-field class="mat-block" appearance="outline">
+            <mat-label translate>mobile.self-registration.customer-title-prefix</mat-label>
+            <input matInput formControlName="customerTitlePrefix">
+          </mat-form-field>
+          <tb-custom-menu-autocomplete
+            formControlName="customMenuId"
+            appearance="outline"
+            [scope]="CMScope.CUSTOMER"
+            [assigneeType]="CMAssigneeType.USERS">
+          </tb-custom-menu-autocomplete>
+          <section class="tb-form-panel stroked mb-5.5" formGroupName="defaultDashboard">
+            <div class="tb-form-panel-title" translate>user.default-dashboard</div>
+            <section>
+              <tb-entity-autocomplete
+                class="flex-1"
+                [entityType]="EntityType.DASHBOARD"
+                appearance="outline"
+                formControlName="id">
+              </tb-entity-autocomplete>
+              <div class="tb-form-row">
+                <mat-slide-toggle class="mat-slide" formControlName="fullscreen">
+                  {{ 'user.always-fullscreen' | translate }}
+                </mat-slide-toggle>
+              </div>
+            </section>
+          </section>
+          <section class="tb-form-panel stroked" formGroupName="homeDashboard">
+            <div class="tb-form-panel-title" translate>dashboard.home-dashboard</div>
+            <section>
+              <tb-entity-autocomplete
+                class="flex-1"
+                [entityType]="EntityType.DASHBOARD"
+                appearance="outline"
+                formControlName="id">
+              </tb-entity-autocomplete>
+              <div class="tb-form-row">
+                <mat-slide-toggle class="mat-slide" formControlName="hideToolbar">
+                  {{ 'dashboard.home-dashboard-hide-toolbar' | translate }}
+                </mat-slide-toggle>
+              </div>
+            </section>
+          </section>
+        </section>
+      </ng-template>
+    </mat-expansion-panel>
+  </section>
+</section>

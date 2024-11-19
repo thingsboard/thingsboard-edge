@@ -51,7 +51,7 @@ import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.kv.DataType;
 import org.thingsboard.server.common.data.kv.KvEntry;
-import org.thingsboard.server.common.data.menu.Views;
+import org.thingsboard.server.common.data.Views;
 
 import java.io.File;
 import java.io.IOException;
@@ -259,6 +259,14 @@ public class JacksonUtil {
             return OBJECT_MAPPER.readValue(file, clazz);
         } catch (IOException e) {
             throw new IllegalArgumentException("Can't read file: " + file, e);
+        }
+    }
+
+    public static <T> T readValue(String object, TypeReference<T> clazz) {
+        try {
+            return OBJECT_MAPPER.readValue(object, clazz);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Can't read object: " + object, e);
         }
     }
 

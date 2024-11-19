@@ -73,9 +73,6 @@ import static org.thingsboard.server.controller.ControllerConstants.WL_WRITE_CHE
 @RequestMapping("/api")
 public class WhiteLabelingController extends BaseController {
 
-    @Autowired
-    private WhiteLabelingService whiteLabelingService;
-
     @ApiOperation(value = "Get White Labeling parameters",
             notes = "Returns white-labeling parameters for the current user.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")

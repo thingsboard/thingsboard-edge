@@ -114,7 +114,11 @@ export enum Resource {
   QUEUE_STATS = 'QUEUE_STATS',
   VERSION_CONTROL = 'VERSION_CONTROL',
   NOTIFICATION = 'NOTIFICATION',
-  MOBILE_APP_SETTINGS = 'MOBILE_APP_SETTINGS'
+  MOBILE_APP_SETTINGS = 'MOBILE_APP_SETTINGS',
+  MOBILE_APP_BUNDLE = 'MOBILE_APP_BUNDLE',
+  MOBILE_APP = 'MOBILE_APP',
+  OAUTH2_CLIENT = 'OAUTH2_CLIENT',
+  DOMAIN = 'DOMAIN',
 }
 
 const resourceTypeTranslations = new Map<Resource, string>();
@@ -149,7 +153,11 @@ export const resourceByEntityType = new Map<EntityType, Resource>(
     [EntityType.EDGE, Resource.EDGE],
     [EntityType.OTA_PACKAGE, Resource.OTA_PACKAGE],
     [EntityType.QUEUE, Resource.QUEUE],
-    [EntityType.QUEUE_STATS, Resource.QUEUE_STATS]
+    [EntityType.QUEUE_STATS, Resource.QUEUE_STATS],
+    [EntityType.MOBILE_APP, Resource.MOBILE_APP],
+    [EntityType.MOBILE_APP_BUNDLE, Resource.MOBILE_APP_BUNDLE],
+    [EntityType.DOMAIN, Resource.DOMAIN],
+    [EntityType.OAUTH2_CLIENT, Resource.OAUTH2_CLIENT],
   ]
 );
 

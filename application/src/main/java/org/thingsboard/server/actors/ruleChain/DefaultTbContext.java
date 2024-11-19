@@ -120,6 +120,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.nosql.CassandraStatementTask;
 import org.thingsboard.server.dao.nosql.TbResultSetFuture;
@@ -873,6 +874,11 @@ public class DefaultTbContext implements TbContext, TbPeContext {
     @Override
     public MobileAppService getMobileAppService() {
         return mainCtx.getMobileAppService();
+    }
+
+    @Override
+    public MobileAppBundleService getMobileAppBundleService() {
+        return mainCtx.getMobileAppBundleService();
     }
 
     @Override
