@@ -57,7 +57,7 @@
         </ng-template>
         <tb-integration-type-select formControlName="type" required class="flex-1">
         </tb-integration-type-select>
-        <div class="flex row">
+        <div class="flex gap-2">
           <mat-form-field class="mat-block flex-1">
             <mat-label translate>integration.name</mat-label>
             <input matInput formControlName="name" required>
@@ -69,7 +69,7 @@
             </mat-error>
           </mat-form-field>
           <tb-debug-config-button
-            class="flex items-center mb-5 ml-2"
+            class="flex items-center mb-5"
             [debugAll]="integrationWizardForm.get('debugAll').value"
             [debugFailures]="integrationWizardForm.get('debugFailures').value"
             [debugAllUntil]="integrationWizardForm.get('debugAllUntil').value"

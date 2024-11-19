@@ -63,11 +63,11 @@
           {{ 'integration.name-max-length' | translate }}
         </mat-error>
       </mat-form-field>
-      <div class="flex row">
+      <div class="flex gap-2">
         <tb-integration-type-select formControlName="type" required class="flex-1">
         </tb-integration-type-select>
         <tb-debug-config-button
-          class="flex items-center mb-5 ml-2"
+          class="flex items-center mb-5"
           [debugAll]="entityForm.get('debugAll').value"
           [debugFailures]="entityForm.get('debugFailures').value"
           [debugAllUntil]="entityForm.get('debugAllUntil').value"
