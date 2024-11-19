@@ -109,7 +109,7 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         LoginWhiteLabelingParams differentTenantWLParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
         differentTenantWLParams.setDomainId(savedTenantDomain.getId());
         doPost("/api/whiteLabel/loginWhiteLabelParams", loginWhiteLabelingParams)
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isForbidden());
     }
 
     @Test

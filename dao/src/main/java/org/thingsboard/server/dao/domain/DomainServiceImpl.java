@@ -146,20 +146,9 @@ public class DomainServiceImpl extends AbstractEntityService implements DomainSe
     }
 
     @Override
-    public void deleteDomainsByTenantId(TenantId tenantId) {
-        log.trace("Executing deleteDomainsByTenantId, tenantId [{}]", tenantId);
-        domainDao.deleteByTenantId(tenantId);
-    }
-
-    @Override
     public void deleteDomainsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing deleteDomainsByTenantIdAndCustomerId, tenantId [{}], customerId [{}]", tenantId, customerId);
         customerDomainsRemover.removeEntities(tenantId, customerId);
-    }
-
-    @Override
-    public void deleteByTenantId(TenantId tenantId) {
-        deleteDomainsByTenantId(tenantId);
     }
 
     @Override
