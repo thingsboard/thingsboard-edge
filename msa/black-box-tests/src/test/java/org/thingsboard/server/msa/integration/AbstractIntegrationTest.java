@@ -134,7 +134,7 @@ public abstract class AbstractIntegrationTest extends AbstractContainerTest {
         integration.setSecret(secretKey);
         integration.setEnabled(true);
         integration.setRemote(isRemote);
-        integration.setDebugMode(true);
+        integration.setDebugAll(true);
         integration.setAllowCreateDevicesOrAssets(true);
 
         integration = testRestClient.postIntegration(integration);
