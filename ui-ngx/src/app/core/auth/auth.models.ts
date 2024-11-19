@@ -46,6 +46,8 @@ export interface SysParamsState {
   maxResourceSize: number;
   maxDebugModeDurationMinutes: number;
   ruleChainDebugPerTenantLimitsConfiguration?: string;
+  integrationDebugPerTenantLimitsConfiguration?: string;
+  converterDebugPerTenantLimitsConfiguration?: string;
   availableLocales: string[];
 }
 
