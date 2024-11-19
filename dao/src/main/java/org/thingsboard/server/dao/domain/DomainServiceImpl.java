@@ -78,9 +78,6 @@ public class DomainServiceImpl extends AbstractEntityService implements DomainSe
     public Domain saveDomain(TenantId tenantId, Domain domain) {
         log.trace("Executing saveDomain [{}]", domain);
         try {
-            if (!isValidDomain(domain.getName())) {
-                throw new IncorrectParameterException("Domain name " + domain.getName() + " is invalid");
-            }
             Domain savedDomain = domainDao.save(tenantId, domain);
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId).entityId(savedDomain.getId()).entity(savedDomain).build());
             return savedDomain;

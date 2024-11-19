@@ -74,6 +74,7 @@ import static org.thingsboard.server.common.data.wl.WhiteLabelingType.PRIVACY_PO
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.SELF_REGISTRATION;
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.TERMS_OF_USE;
 import static org.thingsboard.server.dao.entity.AbstractEntityService.checkConstraintViolation;
+import static org.thingsboard.server.dao.service.DataValidator.isValidDomain;
 import static org.thingsboard.server.dao.service.DataValidator.isValidUrl;
 import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forTypeAndDomain;
 import static org.thingsboard.server.dao.wl.WhiteLabelingCacheKey.forKey;
@@ -292,6 +293,9 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             throw new IncorrectParameterException("Domain id could not be empty");
         }
         Domain domain = domainService.findDomainById(tenantId, loginWhiteLabelParams.getDomainId());
+        if (!isValidDomain(domain.getName())) {
+            throw new IncorrectParameterException("Domain name " + domain.getName() + " is invalid");
+        }
         if (!isUsedOnSystemLevel(domain.getName())) {
             throw new IncorrectParameterException("Current domain name " + domain.getName() + " already used in the system level");
         }
