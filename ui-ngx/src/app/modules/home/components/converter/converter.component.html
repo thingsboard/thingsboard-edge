@@ -64,7 +64,7 @@
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <div class="flex gap-2">
-        <mat-form-field class="mat-block flex-1">
+        <mat-form-field class="flex-1">
           <mat-label translate>converter.name</mat-label>
           <input matInput formControlName="name" required>
           <mat-error *ngIf="entityForm.get('name').hasError('required') || entityForm.get('name').hasError('pattern')">

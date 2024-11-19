@@ -53,7 +53,7 @@
   <fieldset [disabled]="(isLoading$ | async)">
     <div translate class="tb-hint tb-hint-edge" *ngIf="isEdgeTemplate">integration.edge-placeholder-hint</div>
     <div class="flex flex-row xs:flex-col gt-xs:gap-2">
-      <mat-form-field class="mat-block flex-1">
+      <mat-form-field class="flex-1">
         <mat-label translate>integration.name</mat-label>
         <input matInput formControlName="name" required>
         <mat-error *ngIf="entityForm.get('name').hasError('required') || entityForm.get('name').hasError('pattern')">
