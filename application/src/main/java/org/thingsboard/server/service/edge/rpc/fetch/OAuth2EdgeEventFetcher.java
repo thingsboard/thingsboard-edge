@@ -52,7 +52,7 @@ public class OAuth2EdgeEventFetcher extends BasePageableEdgeEventFetcher<DomainI
 
     @Override
     PageData<DomainInfo> fetchEntities(TenantId tenantId, Edge edge, PageLink pageLink) {
-        return domainService.findDomainInfosByOwner(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), pageLink);
+        return domainService.findDomainInfosByTenantIdAndCustomerId(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), pageLink);
     }
 
     @Override

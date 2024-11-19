@@ -50,7 +50,7 @@ public interface DomainService extends EntityDaoService {
 
     Domain findDomainById(TenantId tenantId, DomainId domainId);
 
-    PageData<DomainInfo> findDomainInfosByOwner(TenantId tenantId, CustomerId customerId, PageLink pageLink);
+    PageData<DomainInfo> findDomainInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
     DomainInfo findDomainInfoById(TenantId tenantId, DomainId domainId);
 

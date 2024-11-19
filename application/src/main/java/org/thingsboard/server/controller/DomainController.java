@@ -128,7 +128,7 @@ public class DomainController extends BaseController {
                                                @RequestParam(required = false) String sortOrder) throws ThingsboardException {
         SecurityUser currentUser = getCurrentUser();
         PageLink pageLink = createPageLink(pageSize, page, textSearch, sortProperty, sortOrder);
-        return domainService.findDomainInfosByOwner(currentUser.getTenantId(), currentUser.getCustomerId(), pageLink);
+        return domainService.findDomainInfosByTenantIdAndCustomerId(currentUser.getTenantId(), currentUser.getCustomerId(), pageLink);
     }
 
     @ApiOperation(value = "Get Domain info by Id (getDomainInfoById)", notes = SYSTEM_AUTHORITY_PARAGRAPH)

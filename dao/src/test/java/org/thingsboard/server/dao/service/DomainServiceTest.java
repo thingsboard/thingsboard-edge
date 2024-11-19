@@ -111,7 +111,7 @@ public class DomainServiceTest extends AbstractServiceTest {
             Domain savedOauth2Client = domainService.saveDomain(SYSTEM_TENANT_ID, oAuth2Client);
             domains.add(savedOauth2Client);
         }
-        PageData<DomainInfo> retrieved = domainService.findDomainInfosByOwner(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), new PageLink(10, 0));
+        PageData<DomainInfo> retrieved = domainService.findDomainInfosByTenantIdAndCustomerId(TenantId.SYS_TENANT_ID, new CustomerId(CustomerId.NULL_UUID), new PageLink(10, 0));
         List<DomainInfo> domainInfos = domains.stream().map(domain -> new DomainInfo(domain, Collections.emptyList())).toList();
         assertThat(retrieved.getData()).containsOnlyOnceElementsOf(domainInfos);
     }

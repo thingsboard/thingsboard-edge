@@ -126,8 +126,8 @@ public class DomainServiceImpl extends AbstractEntityService implements DomainSe
     }
 
     @Override
-    public PageData<DomainInfo> findDomainInfosByOwner(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
-        log.trace("Executing findDomainInfosByOwner [{}]", tenantId);
+    public PageData<DomainInfo> findDomainInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+        log.trace("Executing findDomainInfosByTenantIdAndCustomerId [{}]", tenantId);
         PageData<Domain> domains = domainDao.findByTenantIdAndCustomerId(tenantId, customerId, pageLink);
         return domains.mapData(this::getDomainInfo);
     }
