@@ -92,7 +92,7 @@ public class BaseConverterService extends AbstractEntityService implements Conve
     @Lazy
     private TbTenantProfileCache tbTenantProfileCache;
 
-    @Value("${debug_mode.max_duration:60}")
+    @Value("${debug_mode.max_duration:15}")
     private int maxDebugModeDurationMinutes;
 
     @Override

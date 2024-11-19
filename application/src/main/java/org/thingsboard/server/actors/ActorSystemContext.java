@@ -102,6 +102,7 @@ import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
+import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateReadExecutor;
 import org.thingsboard.server.dao.nosql.CassandraBufferedRateWriteExecutor;
@@ -446,6 +447,10 @@ public class ActorSystemContext {
 
     @Autowired
     @Getter
+    private MobileAppBundleService mobileAppBundleService;
+
+    @Autowired
+    @Getter
     private SlackService slackService;
 
     @Lazy
@@ -656,10 +661,6 @@ public class ActorSystemContext {
     @Value("${actors.rule.external.force_ack:false}")
     @Getter
     private boolean externalNodeForceAck;
-
-    @Value("${debug_mode.max_duration:60}")
-    @Getter
-    private int maxDebugModeDurationMinutes;
 
     @Value("${state.rule.node.deviceState.rateLimit:1:1,30:60,60:3600}")
     @Getter

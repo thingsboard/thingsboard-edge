@@ -33,6 +33,7 @@ import { Injectable } from '@angular/core';
 
 import {
   DateEntityTableColumn,
+  defaultEntityTablePermissions,
   EntityTableColumn,
   EntityTableConfig
 } from '@home/models/entity/entities-table-config.models';
@@ -50,6 +51,7 @@ import { ClientComponent } from '@home/pages/admin/oauth2/clients/client.compone
 import { ClientTableHeaderComponent } from '@home/pages/admin/oauth2/clients/client-table-header.component';
 import { Direction } from '@shared/models/page/sort-order';
 import { PageLink } from '@shared/models/page/page-link';
+import { UserPermissionsService } from '@core/http/user-permissions.service';
 
 @Injectable()
 export class ClientsTableConfigResolver  {
@@ -59,7 +61,9 @@ export class ClientsTableConfigResolver  {
 
   constructor(private translate: TranslateService,
               private datePipe: DatePipe,
-              private oauth2Service: OAuth2Service) {
+              private oauth2Service: OAuth2Service,
+              private userPermissionsService: UserPermissionsService,
+              ) {
     this.config.tableTitle = this.translate.instant('admin.oauth2.clients');
     this.config.selectionEnabled = false;
     this.config.entityType = EntityType.OAUTH2_CLIENT;
@@ -92,6 +96,7 @@ export class ClientsTableConfigResolver  {
   }
 
   resolve(): EntityTableConfig<OAuth2Client, PageLink, OAuth2ClientInfo> {
+    defaultEntityTablePermissions(this.userPermissionsService, this.config);
     return this.config;
   }
 

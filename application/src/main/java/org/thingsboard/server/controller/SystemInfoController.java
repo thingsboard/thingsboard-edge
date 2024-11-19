@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.annotation.PostConstruct;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,17 +50,17 @@ import org.thingsboard.server.common.data.SystemParams;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.mobile.MobileAppSettings;
-import org.thingsboard.server.common.data.mobile.QRCodeConfig;
 import org.thingsboard.server.common.data.page.PageData;
+import org.thingsboard.server.common.data.mobile.qrCodeSettings.QrCodeSettings;
+import org.thingsboard.server.common.data.mobile.qrCodeSettings.QRCodeConfig;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.settings.UserSettings;
 import org.thingsboard.server.common.data.settings.UserSettingsType;
 import org.thingsboard.server.common.data.tenant.profile.DefaultTenantProfileConfiguration;
-import org.thingsboard.server.dao.mobile.MobileAppSettingsService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
+import org.thingsboard.server.dao.mobile.QrCodeSettingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
@@ -91,15 +90,13 @@ public class SystemInfoController extends BaseController {
     @Value("${ui.dashboard.max_datapoints_limit}")
     private long maxDatapointsLimit;
 
-    @Value("${debug_mode.max_duration:60}")
+    @Value("${debug_mode.max_duration:15}")
     private int maxDebugModeDurationMinutes;
 
     @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.enabled:true}")
-    @Getter
     private boolean ruleChainDebugPerTenantLimitsEnabled;
 
     @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.configuration:50000:3600}")
-    @Getter
     private String ruleChainDebugPerTenantLimitsConfiguration;
 
     @Value("${event.debug.rate_limits.enabled}")
@@ -124,7 +121,7 @@ public class SystemInfoController extends BaseController {
     private TbTranslationService translationService;
 
     @Autowired
-    private MobileAppSettingsService mobileAppSettingsService;
+    private QrCodeSettingService qrCodeSettingService;
 
     @PostConstruct
     public void init() {
@@ -199,8 +196,8 @@ public class SystemInfoController extends BaseController {
             }
         }
         systemParams.setAvailableLocales(translationService.getAvailableLocaleCodes(tenantId, customerId));
-        systemParams.setMobileQrEnabled(Optional.ofNullable(mobileAppSettingsService.getMergedMobileAppSettings(tenantId))
-                .map(MobileAppSettings::getQrCodeConfig).map(QRCodeConfig::isShowOnHomePage)
+        systemParams.setMobileQrEnabled(Optional.ofNullable(qrCodeSettingService.getMergedQrCodeSettings(tenantId))
+                .map(QrCodeSettings::getQrCodeConfig).map(QRCodeConfig::isShowOnHomePage)
                 .orElse(false));
         return systemParams;
     }

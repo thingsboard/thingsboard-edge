@@ -53,8 +53,8 @@ import org.thingsboard.server.dao.device.DeviceProfileService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
+import org.thingsboard.server.dao.mobile.QrCodeSettingService;
 import org.thingsboard.server.dao.menu.CustomMenuService;
-import org.thingsboard.server.dao.mobile.MobileAppSettingsService;
 import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -101,7 +101,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
     @Autowired
     private NotificationSettingsService notificationSettingsService;
     @Autowired
-    private MobileAppSettingsService mobileAppSettingsService;
+    private QrCodeSettingService qrCodeSettingService;
     @Autowired
     private CustomMenuService customMenuService;
     @Autowired
@@ -200,10 +200,10 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
 
         userService.deleteAllByTenantId(tenantId);
-        whiteLabelingService.deleteDomainWhiteLabelingByEntityId(tenantId, null);
+        whiteLabelingService.deleteTenantWhiteLabeling(tenantId);
         customTranslationService.deleteCustomTranslationByTenantId(tenantId);
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
-        mobileAppSettingsService.deleteByTenantId(tenantId);
+        qrCodeSettingService.deleteByTenantId(tenantId);
         customMenuService.deleteByTenantId(tenantId);
         notificationSettingsService.deleteNotificationSettings(tenantId);
 
@@ -219,7 +219,8 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
                 EntityType.GROUP_PERMISSION, EntityType.ROLE, EntityType.API_USAGE_STATE, EntityType.TB_RESOURCE,
                 EntityType.OTA_PACKAGE, EntityType.RPC, EntityType.QUEUE, EntityType.NOTIFICATION_REQUEST,
                 EntityType.NOTIFICATION_RULE, EntityType.NOTIFICATION_TEMPLATE, EntityType.NOTIFICATION_TARGET,
-                EntityType.QUEUE_STATS, EntityType.CUSTOMER, EntityType.DOMAIN, EntityType.MOBILE_APP, EntityType.OAUTH2_CLIENT
+                EntityType.QUEUE_STATS, EntityType.CUSTOMER, EntityType.DOMAIN, EntityType.MOBILE_APP_BUNDLE,
+                EntityType.MOBILE_APP, EntityType.OAUTH2_CLIENT
         );
     }
 
