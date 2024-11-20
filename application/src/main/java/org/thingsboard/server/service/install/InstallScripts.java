@@ -55,7 +55,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.NotificationType;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientRegistrationTemplate;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
@@ -122,6 +122,7 @@ public class InstallScripts {
     public static final String DASHBOARDS_DIR = "dashboards";
     public static final String MAIL_TEMPLATES_DIR = "mail_templates";
     public static final String MAIL_TEMPLATES_JSON = "mail_templates.json";
+    public static final String NOTIFICATIONS_DIR = "notifications";
     public static final String MODELS_LWM2M_DIR = "lwm2m-registry";
     public static final String SOLUTIONS_DIR = "solutions";
     public static final String RESOURCES_DIR = "resources";
@@ -526,11 +527,25 @@ public class InstallScripts {
     }
 
     private void saveMailTemplates(JsonNode mailTemplatesJson) {
-        notificationSettingsService.moveMailTemplatesToNotificationCenter(TenantId.SYS_TENANT_ID, mailTemplatesJson, Map.of(
-                "userActivated", NotificationType.USER_ACTIVATED,
-                "userRegistered", NotificationType.USER_REGISTERED
-        ));
         whiteLabelingService.saveMailTemplates(TenantId.SYS_TENANT_ID, mailTemplatesJson);
+    }
+
+    public void updateSystemNotificationTemplates() {
+        getSystemNotificationTemplates().forEach(notificationTemplate -> {
+            notificationSettingsService.updateSystemNotificationTemplate(TenantId.SYS_TENANT_ID, notificationTemplate);
+        });
+    }
+
+    public void createSystemNotificationTemplates(TenantId tenantId) {
+        getSystemNotificationTemplates().forEach(notificationTemplate -> {
+            notificationSettingsService.createSystemNotificationTemplate(tenantId, notificationTemplate);
+        });
+    }
+
+    private List<NotificationTemplate> getSystemNotificationTemplates() {
+        return listDir(Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, NOTIFICATIONS_DIR))
+                .map(templateFile -> JacksonUtil.readValue(templateFile.toFile(), NotificationTemplate.class))
+                .toList();
     }
 
     public Optional<String> updateMailTemplatesFromVelocityToFreeMarker(String mailTemplatesJsonString) {

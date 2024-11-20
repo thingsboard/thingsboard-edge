@@ -185,6 +185,7 @@ public class ThingsboardInstallService {
                         installScripts.updateImages();
                     }
                     systemDataLoaderService.createDefaultCustomMenu();
+                    installScripts.updateSystemNotificationTemplates();
                 }
                 log.info("Upgrade finished successfully!");
 
@@ -225,6 +226,7 @@ public class ThingsboardInstallService {
                 systemDataLoaderService.createOAuth2Templates();
                 systemDataLoaderService.createQueues();
                 systemDataLoaderService.createDefaultNotificationConfigs();
+                installScripts.updateSystemNotificationTemplates();
                 systemDataLoaderService.createDefaultCustomMenu();
 
 //                systemDataLoaderService.loadSystemPlugins();

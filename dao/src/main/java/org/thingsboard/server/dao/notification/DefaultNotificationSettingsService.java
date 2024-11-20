@@ -268,49 +268,25 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
     }
 
     @Override
-    public void moveMailTemplatesToNotificationCenter(TenantId tenantId, JsonNode mailTemplates, Map<String, NotificationType> mailTemplatesNames) {
-        mailTemplatesNames.forEach((mailTemplateName, notificationType) -> {
-            moveMailTemplateToNotificationCenter(tenantId, mailTemplates, mailTemplateName, notificationType);
-        });
+    public void updateSystemNotificationTemplate(TenantId tenantId, NotificationTemplate template) {
+        NotificationType notificationType = template.getNotificationType();
+        notificationTemplateService.findNotificationTemplateByTenantIdAndType(tenantId, notificationType)
+                .ifPresentOrElse(existingTemplate -> {
+                    template.setId(existingTemplate.getId());
+                    template.setCreatedTime(existingTemplate.getCreatedTime());
+                    log.debug("Updating {} system notification template", notificationType);
+                    notificationTemplateService.saveNotificationTemplate(tenantId, template);
+                }, () -> {
+                    createSystemNotificationTemplate(tenantId, template);
+                });
     }
 
-    private void moveMailTemplateToNotificationCenter(TenantId tenantId, JsonNode mailTemplates, String mailTemplateName, NotificationType notificationType) {
-        JsonNode mailTemplate = mailTemplates.get(mailTemplateName);
-        if (mailTemplate == null || mailTemplate.isNull() || !mailTemplate.has("subject") || !mailTemplate.has("body")) {
-            return;
-        }
-
-        String subject = mailTemplate.get("subject").asText();
-        String body = mailTemplate.get("body").asText();
-        body = body.replace("targetEmail", "recipientEmail");
-
-        NotificationTemplate notificationTemplate = null;
-        if (tenantId.isSysTenantId()) {
-            // updating system notification template, not touching tenants' templates
-            notificationTemplate = notificationTemplateService.findNotificationTemplateByTenantIdAndType(tenantId, notificationType).orElse(null);
-        }
-        if (notificationTemplate == null) {
-            log.debug("[{}] Creating {} template", tenantId, notificationType);
-            notificationTemplate = new NotificationTemplate();
-        } else {
-            log.debug("[{}] Updating {} template", tenantId, notificationType);
-        }
-        String name = StringUtils.capitalize(notificationType.name().toLowerCase().replaceAll("_", " ")) + " notification";
-        notificationTemplate.setName(name);
-        notificationTemplate.setTenantId(tenantId);
-        notificationTemplate.setNotificationType(notificationType);
-        NotificationTemplateConfig notificationTemplateConfig = new NotificationTemplateConfig();
-
-        EmailDeliveryMethodNotificationTemplate emailNotificationTemplate = new EmailDeliveryMethodNotificationTemplate();
-        emailNotificationTemplate.setEnabled(true);
-        emailNotificationTemplate.setSubject(subject);
-        emailNotificationTemplate.setBody(body);
-
-        notificationTemplateConfig.setDeliveryMethodsTemplates(Map.of(NotificationDeliveryMethod.EMAIL, emailNotificationTemplate));
-        notificationTemplate.setConfiguration(notificationTemplateConfig);
-        notificationTemplateService.saveNotificationTemplate(tenantId, notificationTemplate);
-
-        ((ObjectNode) mailTemplates).remove(mailTemplateName);
+    @Override
+    public void createSystemNotificationTemplate(TenantId tenantId, NotificationTemplate template) {
+        template.setId(null);
+        template.setTenantId(tenantId);
+        log.debug("[{}] Creating {} system notification template", tenantId, template.getNotificationType());
+        notificationTemplateService.saveNotificationTemplate(tenantId, template);
     }
 
     private boolean isNotificationConfigured(TenantId tenantId, NotificationType... notificationTypes) {

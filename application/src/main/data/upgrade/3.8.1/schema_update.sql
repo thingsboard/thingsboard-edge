@@ -429,3 +429,5 @@ $$
             END LOOP;
     END;
 $$;
+
+DROP FUNCTION IF EXISTS update_self_registration_notification_config;

@@ -30,14 +30,11 @@
  */
 package org.thingsboard.server.dao.notification;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
-import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
 import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings;
-
-import java.util.Map;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 
 public interface NotificationSettingsService {
 
@@ -55,6 +52,8 @@ public interface NotificationSettingsService {
 
     void updateDefaultNotificationConfigs(TenantId tenantId);
 
-    void moveMailTemplatesToNotificationCenter(TenantId tenantId, JsonNode mailTemplates, Map<String, NotificationType> mailTemplatesNames);
+    void updateSystemNotificationTemplate(TenantId tenantId, NotificationTemplate template);
+
+    void createSystemNotificationTemplate(TenantId tenantId, NotificationTemplate template);
 
 }
