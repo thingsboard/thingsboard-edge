@@ -54,6 +54,13 @@ import {
   SignUpFieldMap
 } from '@shared/models/self-register.models';
 import { TranslateService } from '@ngx-translate/core';
+import { NotificationTargetId } from '@shared/models/id/notification-target-id';
+import {
+  RecipientNotificationDialogComponent,
+  RecipientNotificationDialogData
+} from '@home/pages/notification/recipient/recipient-notification-dialog.component';
+import { NotificationTarget } from '@shared/models/notification.models';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'tb-mobile-self-registration',
@@ -77,7 +84,7 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
   selfRegistrationForm = this.fb.group({
     enabled: [false],
     title: ['', Validators.required],
-    notificationEmail: ['', [Validators.required, Validators.email]],
+    notificationRecipient: this.fb.control<NotificationTargetId>(null, Validators.required),
     redirect: this.fb.group({
       scheme: ['', Validators.required],
       host: ['', Validators.required]
@@ -117,7 +124,8 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
               private popoverService: TbPopoverService,
               private renderer: Renderer2,
               private viewContainerRef: ViewContainerRef,
-              private translate: TranslateService) {
+              private translate: TranslateService,
+              private dialog: MatDialog) {
     this.selfRegistrationForm.get('enabled').valueChanges.pipe(
       takeUntilDestroyed()
     ).subscribe(value => {
@@ -206,6 +214,20 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
         }
       });
     }
+  }
+
+  createTarget() {
+    this.dialog.open<RecipientNotificationDialogComponent, RecipientNotificationDialogData,
+      NotificationTarget>(RecipientNotificationDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {}
+    }).afterClosed()
+      .subscribe((res) => {
+        if (res) {
+          this.selfRegistrationForm.get('notificationRecipient').setValue(res.id);
+        }
+      })
   }
 
   private updateModel() {

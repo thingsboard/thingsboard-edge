@@ -313,16 +313,17 @@ public class WhiteLabelingController extends BaseController {
         Authority authority = getCurrentUser().getAuthority();
         checkWhiteLabelingPermissions(Operation.WRITE);
         SecurityUser currentUser = getCurrentUser();
+        CustomerId customerId;
         if (Authority.TENANT_ADMIN.equals(authority) && !StringUtils.isEmpty(strCustomerId)) {
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+            customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.WRITE);
-            whiteLabelingService.deleteWhiteLabeling(getTenantId(), customerId, WhiteLabelingType.LOGIN);
         } else {
-            whiteLabelingService.deleteWhiteLabeling(currentUser.getTenantId(), currentUser.getCustomerId(), WhiteLabelingType.LOGIN);
+            customerId = currentUser.getCustomerId();
         }
+        whiteLabelingService.deleteWhiteLabeling(currentUser.getTenantId(), customerId, WhiteLabelingType.LOGIN);
     }
 
-    @ApiOperation(value = "Delete Login White Labeling configuration (deleteCurrentWhiteLabelParams)",
+    @ApiOperation(value = "Delete General White Labeling configuration (deleteCurrentWhiteLabelParams)",
             notes = "Delete the White Labeling configuration that corresponds to the authority of the user. " +
                     WL_WRITE_CHECK)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
@@ -332,13 +333,14 @@ public class WhiteLabelingController extends BaseController {
         Authority authority = getCurrentUser().getAuthority();
         checkWhiteLabelingPermissions(Operation.WRITE);
         SecurityUser currentUser = getCurrentUser();
+        CustomerId customerId;
         if (Authority.TENANT_ADMIN.equals(authority) && !StringUtils.isEmpty(strCustomerId)) {
-            CustomerId customerId = new CustomerId(toUUID(strCustomerId));
+            customerId = new CustomerId(toUUID(strCustomerId));
             checkCustomerId(customerId, Operation.WRITE);
-            whiteLabelingService.deleteWhiteLabeling(getTenantId(), customerId, WhiteLabelingType.GENERAL);
         } else {
-            whiteLabelingService.deleteWhiteLabeling(currentUser.getTenantId(), currentUser.getCustomerId(), WhiteLabelingType.GENERAL);
+            customerId = currentUser.getCustomerId();
         }
+        whiteLabelingService.deleteWhiteLabeling(currentUser.getTenantId(), customerId, WhiteLabelingType.GENERAL);
     }
 
     private void checkWhiteLabelingPermissions(Operation operation) throws ThingsboardException {

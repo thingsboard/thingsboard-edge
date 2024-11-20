@@ -81,7 +81,7 @@ public interface WhiteLabelingService {
 
     WhiteLabelingParams mergeCustomerWhiteLabelingParams(TenantId tenantId, CustomerId customerId, WhiteLabelingParams whiteLabelingParams);
 
-    void deleteTenantAllWhiteLabeling(TenantId tenantId);
+    void deleteAllTenantWhiteLabeling(TenantId tenantId);
 
     boolean isWhiteLabelingAllowed(TenantId tenantId, CustomerId customerId);
 

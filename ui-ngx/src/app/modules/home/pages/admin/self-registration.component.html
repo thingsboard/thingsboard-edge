@@ -101,16 +101,16 @@
             <legend class="group-title" translate>
               self-registration.general-settings
             </legend>
-            <mat-form-field class="mat-block">
-              <mat-label translate>self-registration.notification-email</mat-label>
-              <input matInput required type="email" formControlName="notificationEmail"/>
-              <mat-error *ngIf="selfRegistrationFormGroup.get('notificationEmail').hasError('email')">
-                {{ 'self-registration.notification-email-invalid' | translate }}
-              </mat-error>
-              <mat-error *ngIf="selfRegistrationFormGroup.get('notificationEmail').hasError('required')">
-                {{ 'self-registration.notification-email-required' | translate }}
-              </mat-error>
-            </mat-form-field>
+            <tb-entity-autocomplete
+              required
+              allowCreateNew
+              useFullEntityId
+              formControlName="notificationRecipient"
+              labelText="self-registration.notification-recipient"
+              requiredText="self-registration.notification-recipient-required"
+              [entityType]="entityTypes.NOTIFICATION_TARGET"
+              (createNew)="createTarget()">
+            </tb-entity-autocomplete>
             <mat-form-field class="mat-block flex-1" floatLabel="always">
               <mat-label translate>self-registration.text-message-page</mat-label>
               <textarea matInput #input formControlName="title"

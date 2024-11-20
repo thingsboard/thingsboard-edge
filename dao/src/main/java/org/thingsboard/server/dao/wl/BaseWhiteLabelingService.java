@@ -340,7 +340,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     @Override
-    public void deleteTenantAllWhiteLabeling(TenantId tenantId) {
+    public void deleteAllTenantWhiteLabeling(TenantId tenantId) {
         for (WhiteLabelingType type : WhiteLabelingType.values()) {
             deleteWhiteLabeling(tenantId, null, type);
         }

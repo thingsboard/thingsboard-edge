@@ -35,18 +35,19 @@ import {
   ControlValueAccessor,
   UntypedFormArray,
   UntypedFormBuilder,
-  UntypedFormControl,
   UntypedFormGroup,
   NG_VALIDATORS,
   NG_VALUE_ACCESSOR,
   Validator,
-  Validators
+  Validators,
+  ValidationErrors
 } from '@angular/forms';
 import { PageComponent } from '@shared/components/page.component';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { coerceBoolean } from '@shared/decorators/coercion';
 import { SubscriptSizing } from '@angular/material/form-field';
 import { isDefinedAndNotNull, isEqual } from '@core/utils';
 
@@ -70,6 +71,8 @@ import { isDefinedAndNotNull, isEqual } from '@core/utils';
 export class KeyValMapComponent extends PageComponent implements ControlValueAccessor, OnInit, OnDestroy, Validator {
 
   @Input() disabled: boolean;
+
+  @Input() @coerceBoolean() isValueRequired = true;
 
   @Input() titleText: string;
 
@@ -138,7 +141,7 @@ export class KeyValMapComponent extends PageComponent implements ControlValueAcc
         if (Object.prototype.hasOwnProperty.call(keyValMap, property)) {
           keyValsControls.push(this.fb.group({
             key: [property, [Validators.required]],
-            value: [keyValMap[property], [Validators.required]]
+            value: [keyValMap[property], this.isValueRequired ? [Validators.required] : []]
           }));
         }
       }
@@ -162,24 +165,12 @@ export class KeyValMapComponent extends PageComponent implements ControlValueAcc
     const keyValsFormArray = this.kvListFormGroup.get('keyVals') as UntypedFormArray;
     keyValsFormArray.push(this.fb.group({
       key: [this.isSinglePredefinedKey ? this.singlePredefinedKey : '', [Validators.required]],
-      value: ['', [Validators.required]]
+      value: ['', this.isValueRequired ? [Validators.required] : []]
     }));
   }
 
-  public validate(c: UntypedFormControl) {
-    const kvList: {key: string; value: string}[] = this.kvListFormGroup.get('keyVals').value;
-    let valid = true;
-    for (const entry of kvList) {
-      if (!entry.key || !entry.value) {
-        valid = false;
-        break;
-      }
-    }
-    return (valid) ? null : {
-      keyVals: {
-        valid: false,
-      },
-    };
+  public validate(): ValidationErrors | null {
+    return this.kvListFormGroup.valid ? null : { keyVals: { valid: false } };
   }
 
   get isSingleMode(): boolean {

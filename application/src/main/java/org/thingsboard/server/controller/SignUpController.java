@@ -56,6 +56,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
@@ -63,9 +64,14 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.mobile.app.MobileApp;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
+import org.thingsboard.server.common.data.notification.NotificationType;
+import org.thingsboard.server.common.data.notification.info.NotificationInfo;
+import org.thingsboard.server.common.data.notification.info.UserActivatedNotificationInfo;
+import org.thingsboard.server.common.data.notification.info.UserRegisteredNotificationInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.security.Authority;
@@ -138,6 +144,9 @@ public class SignUpController extends BaseController {
 
     @Autowired
     private MailService mailService;
+
+    @Autowired
+    private NotificationCenter notificationCenter;
 
     @Autowired
     private BCryptPasswordEncoder passwordEncoder;
@@ -219,7 +228,7 @@ public class SignUpController extends BaseController {
             throw e;
         }
         sendUserActivityNotification(tenantId, Optional.ofNullable(firstName).orElse("") + " " + Optional.ofNullable(lastName).orElse(""),
-                email, false, selfRegistrationParams.getNotificationEmail());
+                email, false, selfRegistrationParams.getNotificationRecipient());
 
         logEntityActionService.logEntityAction(tenantId, savedCustomer.getId(), savedCustomer, savedCustomer.getId(),
                 ActionType.ADDED, null);
@@ -246,14 +255,28 @@ public class SignUpController extends BaseController {
         }
     }
 
-    private void sendUserActivityNotification(TenantId tenantId, String userFullName, String userEmail, boolean activated, String infoMail) {
+    private void sendUserActivityNotification(TenantId tenantId, String userFullName, String userEmail, boolean activated, NotificationTargetId recipient) {
+        if (recipient == null) {
+            return;
+        }
         try {
+            NotificationType notificationType;
+            NotificationInfo notificationInfo;
             if (activated) {
-                mailService.sendUserActivatedEmail(tenantId, userFullName, userEmail, infoMail);
+                notificationType = NotificationType.USER_ACTIVATED;
+                notificationInfo = UserActivatedNotificationInfo.builder()
+                        .userFullName(userFullName)
+                        .userEmail(userEmail)
+                        .build();
             } else {
-                mailService.sendUserRegisteredEmail(tenantId, userFullName, userEmail, infoMail);
+                notificationType = NotificationType.USER_REGISTERED;
+                notificationInfo = UserRegisteredNotificationInfo.builder()
+                        .userFullName(userFullName)
+                        .userEmail(userEmail)
+                        .build();
             }
-        } catch (ThingsboardException e) {
+            notificationCenter.sendSystemNotification(tenantId, recipient, notificationType, notificationInfo);
+        } catch (Exception e) {
             String action = activated ? "activation" : "registration";
             log.error("Failed to send notification email about user {}", action, e);
         }
@@ -412,7 +435,7 @@ public class SignUpController extends BaseController {
             log.warn("Unable to send account activated email for {}: {}", email, e.getMessage());
         }
 
-        sendUserActivityNotification(tenantId, user.getFirstName() + " " + user.getLastName(), email, true, selfRegistrationParams.getNotificationEmail());
+        sendUserActivityNotification(tenantId, user.getFirstName() + " " + user.getLastName(), email, true, selfRegistrationParams.getNotificationRecipient());
 
         systemSecurityService.logLoginAction(user, new RestAuthenticationDetails(request), ActionType.LOGIN, null);
         return tokenFactory.createTokenPair(securityUser);
@@ -546,7 +569,7 @@ public class SignUpController extends BaseController {
         } else {
             checkParameter("Email", signUpRequestFields.get(EMAIL));
             checkParameter("Password", signUpRequestFields.get(PASSWORD));
-       }
+        }
     }
 
     private EntityGroup createCustomerUserGroup(SelfRegistrationParams selfRegistrationParams, Customer savedCustomer) {

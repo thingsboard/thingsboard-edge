@@ -206,7 +206,7 @@ public class MobileAppBundleControllerTest extends AbstractControllerTest {
         selfRegistrationParams.setShowPrivacyPolicy(true);
         selfRegistrationParams.setShowTermsOfUse(true);
         selfRegistrationParams.setEnabled(true);
-        selfRegistrationParams.setNotificationEmail("testEmail@gmail.com");
+        selfRegistrationParams.setNotificationRecipient(createNotificationTarget(customerUserId).getId());
         selfRegistrationParams.setTermsOfUse("My terms of use");
         selfRegistrationParams.setPrivacyPolicy("My privacy policy");
         selfRegistrationParams.setPermissions(Collections.emptyList());

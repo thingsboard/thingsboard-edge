@@ -55,6 +55,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientRegistrationTemplate;
 import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
@@ -62,6 +63,7 @@ import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.resource.ResourceService;
@@ -120,6 +122,7 @@ public class InstallScripts {
     public static final String DASHBOARDS_DIR = "dashboards";
     public static final String MAIL_TEMPLATES_DIR = "mail_templates";
     public static final String MAIL_TEMPLATES_JSON = "mail_templates.json";
+    public static final String NOTIFICATIONS_DIR = "notifications";
     public static final String MODELS_LWM2M_DIR = "lwm2m-registry";
     public static final String SOLUTIONS_DIR = "solutions";
     public static final String RESOURCES_DIR = "resources";
@@ -157,6 +160,9 @@ public class InstallScripts {
 
     @Autowired
     private ResourceService resourceService;
+
+    @Autowired
+    private NotificationSettingsService notificationSettingsService;
 
     @Autowired
     private ImagesUpdater imagesUpdater;
@@ -496,7 +502,7 @@ public class InstallScripts {
 
     public void loadMailTemplates() throws Exception {
         JsonNode mailTemplatesJson = readMailTemplates();
-        whiteLabelingService.saveMailTemplates(TenantId.SYS_TENANT_ID, mailTemplatesJson);
+        saveMailTemplates(mailTemplatesJson);
     }
 
     public void updateMailTemplates(JsonNode oldTemplates) throws IOException {
@@ -517,7 +523,29 @@ public class InstallScripts {
             result = (ObjectNode) JacksonUtil.toJsonNode(updated.get());
         }
 
-        whiteLabelingService.saveMailTemplates(TenantId.SYS_TENANT_ID, result);
+        saveMailTemplates(result);
+    }
+
+    private void saveMailTemplates(JsonNode mailTemplatesJson) {
+        whiteLabelingService.saveMailTemplates(TenantId.SYS_TENANT_ID, mailTemplatesJson);
+    }
+
+    public void updateSystemNotificationTemplates() {
+        getSystemNotificationTemplates().forEach(notificationTemplate -> {
+            notificationSettingsService.updateSystemNotificationTemplate(TenantId.SYS_TENANT_ID, notificationTemplate);
+        });
+    }
+
+    public void createSystemNotificationTemplates(TenantId tenantId) {
+        getSystemNotificationTemplates().forEach(notificationTemplate -> {
+            notificationSettingsService.createSystemNotificationTemplate(tenantId, notificationTemplate);
+        });
+    }
+
+    private List<NotificationTemplate> getSystemNotificationTemplates() {
+        return listDir(Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, NOTIFICATIONS_DIR))
+                .map(templateFile -> JacksonUtil.readValue(templateFile.toFile(), NotificationTemplate.class))
+                .toList();
     }
 
     public Optional<String> updateMailTemplatesFromVelocityToFreeMarker(String mailTemplatesJsonString) {
@@ -530,7 +558,7 @@ public class InstallScripts {
         }
     }
 
-    private JsonNode readMailTemplates() throws IOException {
+    private JsonNode readMailTemplates() {
         Path mailTemplatesFile = Paths.get(getDataDir(), JSON_DIR, SYSTEM_DIR, MAIL_TEMPLATES_DIR, MAIL_TEMPLATES_JSON);
         return JacksonUtil.toJsonNode(mailTemplatesFile.toFile());
     }
