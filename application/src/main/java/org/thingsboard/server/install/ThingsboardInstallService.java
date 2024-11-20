@@ -160,6 +160,7 @@ public class ThingsboardInstallService {
                         case "3.8.1":
                             log.info("Upgrading ThingsBoard from version 3.8.1 to 3.9.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.8.1");
+                            dataUpdateService.updateData("3.8.1");
                             installScripts.updateResourcesUsage();
                             break;
                         case "CE":
@@ -184,6 +185,7 @@ public class ThingsboardInstallService {
                         installScripts.updateImages();
                     }
                     systemDataLoaderService.createDefaultCustomMenu();
+                    installScripts.updateSystemNotificationTemplates();
                 }
                 log.info("Upgrade finished successfully!");
 
@@ -223,6 +225,7 @@ public class ThingsboardInstallService {
                 systemDataLoaderService.createOAuth2Templates();
                 systemDataLoaderService.createQueues();
                 systemDataLoaderService.createDefaultNotificationConfigs();
+                installScripts.updateSystemNotificationTemplates();
                 systemDataLoaderService.createDefaultCustomMenu();
 
 //                systemDataLoaderService.loadSystemPlugins();

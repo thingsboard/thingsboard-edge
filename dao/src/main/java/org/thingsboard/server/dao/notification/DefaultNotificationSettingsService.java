@@ -30,8 +30,11 @@
  */
 package org.thingsboard.server.dao.notification;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -41,6 +44,7 @@ import org.thingsboard.server.common.data.AdminSettings;
 import org.thingsboard.server.common.data.CacheConstants;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.id.UserId;
+import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
 import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
 import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings;
@@ -55,7 +59,9 @@ import org.thingsboard.server.common.data.notification.targets.platform.SystemAd
 import org.thingsboard.server.common.data.notification.targets.platform.TenantAdministratorsFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UsersFilter;
 import org.thingsboard.server.common.data.notification.targets.platform.UsersFilterType;
+import org.thingsboard.server.common.data.notification.template.EmailDeliveryMethodNotificationTemplate;
 import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplateConfig;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.settings.UserSettings;
 import org.thingsboard.server.common.data.settings.UserSettingsType;
@@ -259,6 +265,28 @@ public class DefaultNotificationSettingsService implements NotificationSettingsS
                 }
             }
         }
+    }
+
+    @Override
+    public void updateSystemNotificationTemplate(TenantId tenantId, NotificationTemplate template) {
+        NotificationType notificationType = template.getNotificationType();
+        notificationTemplateService.findNotificationTemplateByTenantIdAndType(tenantId, notificationType)
+                .ifPresentOrElse(existingTemplate -> {
+                    template.setId(existingTemplate.getId());
+                    template.setCreatedTime(existingTemplate.getCreatedTime());
+                    log.debug("Updating {} system notification template", notificationType);
+                    notificationTemplateService.saveNotificationTemplate(tenantId, template);
+                }, () -> {
+                    createSystemNotificationTemplate(tenantId, template);
+                });
+    }
+
+    @Override
+    public void createSystemNotificationTemplate(TenantId tenantId, NotificationTemplate template) {
+        template.setId(null);
+        template.setTenantId(tenantId);
+        log.debug("[{}] Creating {} system notification template", tenantId, template.getNotificationType());
+        notificationTemplateService.saveNotificationTemplate(tenantId, template);
     }
 
     private boolean isNotificationConfigured(TenantId tenantId, NotificationType... notificationTypes) {
