@@ -1738,7 +1738,7 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             }
             if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
                 if (genericPartAdded) {
-                    allowedGroupIdsSelect += " or ";
+                    allowedGroupIdsSelect += " and ";
                 }
                 allowedGroupIdsSelect += "id in (:where_group_ids)";
                 ctx.addUuidListParameter("where_group_ids",
