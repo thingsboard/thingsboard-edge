@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.widget;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,7 @@ import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.resource.ImageService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -83,6 +85,9 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
     @Autowired
     protected ImageService imageService;
 
+    @Autowired
+    private ResourceService resourceService;
+
     @Override
     public WidgetType findWidgetTypeById(TenantId tenantId, WidgetTypeId widgetTypeId) {
         log.trace("Executing findWidgetTypeById [{}]", widgetTypeId);
@@ -109,7 +114,12 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
         log.trace("Executing saveWidgetType [{}]", widgetTypeDetails);
         widgetTypeValidator.validate(widgetTypeDetails, WidgetType::getTenantId);
         try {
-            imageService.replaceBase64WithImageUrl(widgetTypeDetails);
+            if (CollectionUtils.isNotEmpty(widgetTypeDetails.getResources())) {
+                resourceService.importResources(widgetTypeDetails.getTenantId(), null, widgetTypeDetails.getResources());
+            }
+            imageService.updateImagesUsage(widgetTypeDetails);
+            resourceService.updateResourcesUsage(widgetTypeDetails);
+
             WidgetTypeDetails result = widgetTypeDao.save(widgetTypeDetails.getTenantId(), widgetTypeDetails);
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId())
                     .entityId(result.getId()).created(widgetTypeDetails.getId() == null).build());
@@ -261,6 +271,11 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
     public void deleteWidgetTypesByBundleId(TenantId tenantId, WidgetsBundleId bundleId) {
         log.trace("Executing deleteWidgetTypesByBundleId, tenantId [{}], bundleId [{}]", tenantId, bundleId);
         bundleWidgetTypesRemover.removeEntities(tenantId, bundleId);
+    }
+
+    @Override
+    public PageData<WidgetTypeId> findAllWidgetTypesIds(PageLink pageLink) {
+        return widgetTypeDao.findAllWidgetTypesIds(pageLink);
     }
 
     @Override

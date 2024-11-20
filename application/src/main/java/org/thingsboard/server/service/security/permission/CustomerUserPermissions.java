@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasOwnerId;
+import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.TenantEntity;
 import org.thingsboard.server.common.data.alarm.Alarm;
@@ -304,18 +305,22 @@ public class CustomerUserPermissions extends AbstractPermissions {
             new PermissionChecker<TbResourceId, TbResourceInfo>() {
 
                 @Override
-                @SuppressWarnings("unchecked")
                 public boolean hasPermission(SecurityUser user, Operation operation, TbResourceId resourceId, TbResourceInfo resource) {
-                    if (operation != Operation.READ) {
-                        return false;
-                    }
                     if (resource.getResourceType() == null || !resource.getResourceType().isCustomerAccess()) {
                         return false;
                     }
-                    if (resource.getTenantId() == null || resource.getTenantId().isNullUid()) {
-                        return true;
+                    if (operation == Operation.READ) {
+                        if (resource.getTenantId() == null || resource.getTenantId().isNullUid()) {
+                            return true;
+                        }
+                        return user.getTenantId().equals(resource.getTenantId());
+                    } else {
+                        if (resource.getResourceType() == ResourceType.IMAGE) {
+                            return user.getCustomerId().equals(resource.getCustomerId());
+                        } else {
+                            return false;
+                        }
                     }
-                    return user.getTenantId().equals(resource.getTenantId());
                 }
 
             };

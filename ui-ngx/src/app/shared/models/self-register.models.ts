@@ -32,6 +32,7 @@
 import { GroupPermission } from '@shared/models/group-permission.models';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { CustomMenuId } from '@shared/models/id/custom-menu-id';
+import { NotificationTargetId } from '@shared/models/id/notification-target-id';
 import { DomainId } from '@shared/models/id/domain-id';
 
 export type CaptchaVersion = 'v2' | 'v3' | 'Enterprise';
@@ -197,7 +198,7 @@ export interface AbstractSelfRegistrationParams {
   showTermsOfUse: boolean;
   privacyPolicy?: string;
   termsOfUse?: string;
-  notificationEmail: string;
+  notificationRecipient: NotificationTargetId;
   customerTitlePrefix: string;
   customerGroupId: EntityGroupId;
   permissions: GroupPermission[];

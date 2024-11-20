@@ -28,57 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.util;
+package org.thingsboard.server.common.data.notification.info;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
+import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
+
 @Data
-public class JsonPathProcessingTask {
-    private final String[] tokens;
-    private final Map<String, String> variables;
-    private final JsonNode node;
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class UserRegisteredNotificationInfo implements NotificationInfo {
 
-    public JsonPathProcessingTask(String[] tokens, Map<String, String> variables, JsonNode node) {
-        this.tokens = tokens;
-        this.variables = variables;
-        this.node = node;
-    }
-
-    public boolean isLast() {
-        return tokens.length == 1;
-    }
-
-    public String currentToken() {
-        return tokens[0];
-    }
-
-    public JsonPathProcessingTask next(JsonNode next) {
-        return new JsonPathProcessingTask(
-                Arrays.copyOfRange(tokens, 1, tokens.length),
-                variables,
-                next);
-    }
-
-    public JsonPathProcessingTask next(JsonNode next, String key, String value) {
-        Map<String, String> variables = new HashMap<>(this.variables);
-        variables.put(key, value);
-        return new JsonPathProcessingTask(
-                Arrays.copyOfRange(tokens, 1, tokens.length),
-                variables,
-                next);
-    }
+    private String userFullName;
+    private String userEmail;
 
     @Override
-    public String toString() {
-        return "JsonPathProcessingTask{" +
-                "tokens=" + Arrays.toString(tokens) +
-                ", variables=" + variables +
-                ", node=" + node.toString().substring(0, 20) +
-                '}';
+    public Map<String, String> getTemplateData() {
+        return mapOf(
+                "userFullName", userFullName,
+                "userEmail", userEmail
+        );
     }
+
 }

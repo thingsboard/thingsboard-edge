@@ -47,6 +47,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { BaseData } from '@shared/models/base-data';
 import { EntityId } from '@shared/models/id/entity-id';
 import { Operation, Resource } from '@shared/models/security.models';
+import {
+  RecipientNotificationDialogComponent,
+  RecipientNotificationDialogData
+} from '@home/pages/notification/recipient/recipient-notification-dialog.component';
+import { NotificationTarget } from '@shared/models/notification.models';
 
 @Component({
   selector: 'tb-self-registration',
@@ -60,6 +65,8 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   registerLink: string;
 
   entityTypes = EntityType;
+
+  deleteDisabled = true;
 
   tinyMceOptions: Record<string, any> = {
     base_url: '/assets/tinymce',
@@ -108,7 +115,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
         secretKey: ['', Validators.required],
         logActionName: ['']
       }),
-      notificationEmail: [null, [Validators.required, Validators.email]],
+      notificationRecipient: [null, Validators.required],
       title: [null, [Validators.maxLength(200)]],
       permissions: [null],
       defaultDashboard: this.fb.group({
@@ -194,11 +201,26 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       });
   }
 
+  createTarget() {
+    this.dialog.open<RecipientNotificationDialogComponent, RecipientNotificationDialogData,
+      NotificationTarget>(RecipientNotificationDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+      data: {}
+    }).afterClosed()
+      .subscribe((res) => {
+        if (res) {
+          this.selfRegistrationFormGroup.get('notificationRecipient').setValue(res.id);
+        }
+      })
+  }
+
   private onSelfRegistrationParamsLoaded(selfRegistrationParams: WebSelfRegistrationParams) {
     this.selfRegistrationParams = selfRegistrationParams || {
       type: SelfRegistrationType.WEB,
       enabled: true
     } as WebSelfRegistrationParams;
+    this.deleteDisabled = !this.selfRegistrationParams.domainId;
     const selfRegistrationFormValue = deepClone(this.selfRegistrationParams);
     if (selfRegistrationFormValue.title?.length) {
       selfRegistrationFormValue.title = this.convertHTMLToText(selfRegistrationFormValue.title);
@@ -234,5 +256,4 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   private convertHTMLToText(str: string): string {
     return str.replace(/<br\s*\/?>/gi, '\n');
   }
-
 }

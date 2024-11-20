@@ -105,16 +105,16 @@
             <legend class="group-title" translate>
               self-registration.general-settings
             </legend>
-            <mat-form-field class="mat-block">
-              <mat-label translate>self-registration.notification-email</mat-label>
-              <input matInput required type="email" formControlName="notificationEmail"/>
-              <mat-error *ngIf="selfRegistrationFormGroup.get('notificationEmail').hasError('email')">
-                {{ 'self-registration.notification-email-invalid' | translate }}
-              </mat-error>
-              <mat-error *ngIf="selfRegistrationFormGroup.get('notificationEmail').hasError('required')">
-                {{ 'self-registration.notification-email-required' | translate }}
-              </mat-error>
-            </mat-form-field>
+            <tb-entity-autocomplete
+              required
+              allowCreateNew
+              useFullEntityId
+              formControlName="notificationRecipient"
+              labelText="self-registration.notification-recipient"
+              requiredText="self-registration.notification-recipient-required"
+              [entityType]="entityTypes.NOTIFICATION_TARGET"
+              (createNew)="createTarget()">
+            </tb-entity-autocomplete>
             <mat-form-field class="mat-block flex-1" floatLabel="always">
               <mat-label translate>self-registration.text-message-page</mat-label>
               <textarea matInput #input formControlName="title"
@@ -166,10 +166,11 @@
           <tb-registration-permissions
             formControlName="permissions">
           </tb-registration-permissions>
-          <div class="flex flex-row items-center justify-end gap-2">
-            <button mat-raised-button color="warn" [disabled]="(isLoading$ | async)"
+          <div class="flex items-center justify-between gap-4">
+            <button mat-raised-button color="warn" [disabled]="(isLoading$ | async) || deleteDisabled"
                     (click)="delete(selfRegistrationForm)">
-              {{ 'action.delete' | translate }}
+              <tb-icon matButtonIcon>mdi:broom</tb-icon>
+              {{ 'action.reset-default' | translate }}
             </button>
             <button mat-raised-button color="primary" [disabled]="(isLoading$ | async) || selfRegistrationFormGroup.invalid || !selfRegistrationFormGroup.dirty"
                     (click)="save()">

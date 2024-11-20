@@ -245,6 +245,9 @@ export class EntityService {
       case EntityType.MOBILE_APP_BUNDLE:
         observable = this.mobileAppService.getMobileAppBundleInfoById(entityId, config);
         break;
+      case EntityType.NOTIFICATION_TARGET:
+        observable = this.notificationService.getNotificationTargetById(entityId, config);
+        break;
       case EntityType.DOMAIN:
         observable = this.domainService.getDomainInfoById(entityId, config);
         break;

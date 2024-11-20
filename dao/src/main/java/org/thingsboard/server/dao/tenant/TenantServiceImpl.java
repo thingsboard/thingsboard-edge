@@ -200,7 +200,7 @@ public class TenantServiceImpl extends AbstractCachedEntityService<TenantId, Ten
         Validator.validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
 
         userService.deleteAllByTenantId(tenantId);
-        whiteLabelingService.deleteTenantWhiteLabeling(tenantId);
+        whiteLabelingService.deleteAllTenantWhiteLabeling(tenantId);
         customTranslationService.deleteCustomTranslationByTenantId(tenantId);
         adminSettingsService.deleteAdminSettingsByTenantId(tenantId);
         qrCodeSettingService.deleteByTenantId(tenantId);
