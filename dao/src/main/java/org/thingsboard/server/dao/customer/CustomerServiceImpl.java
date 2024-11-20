@@ -295,6 +295,7 @@ public class CustomerServiceImpl extends AbstractCachedEntityService<CustomerCac
             }
         }
         whiteLabelingService.deleteWhiteLabeling(tenantId, customerId, WhiteLabelingType.LOGIN);
+        whiteLabelingService.deleteWhiteLabeling(tenantId, customerId, WhiteLabelingType.GENERAL);
         dashboardService.deleteDashboardsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         entityViewService.deleteEntityViewsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
         assetService.deleteAssetsByTenantIdAndCustomerId(customer.getTenantId(), customerId);
