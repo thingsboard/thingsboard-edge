@@ -35,7 +35,14 @@ import { coerceBoolean } from '@shared/decorators/coercion';
 import { Observable, of } from 'rxjs';
 import { catchError, debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
 import { isDefinedAndNotNull, isEmptyStr, isEqual, isObject } from '@core/utils';
-import { ResourceInfo, ResourceType } from '@shared/models/resource.models';
+import {
+  extractParamsFromJSResourceUrl,
+  isJSResource,
+  prependTbResourcePrefix,
+  removeTbResourcePrefix,
+  ResourceInfo,
+  ResourceType
+} from '@shared/models/resource.models';
 import { TbResourceId } from '@shared/models/id/tb-resource-id';
 import { ResourceService } from '@core/http/resource.service';
 import { PageLink } from '@shared/models/page/page-link';
@@ -79,7 +86,7 @@ export class ResourceAutocompleteComponent implements ControlValueAccessor, OnIn
   allowAutocomplete = false;
 
   resourceFormGroup = this.fb.group({
-    resource: [null]
+    resource: this.fb.control<string|ResourceInfo>(null)
   });
 
   filteredResources$: Observable<Array<ResourceInfo>>;
@@ -88,10 +95,10 @@ export class ResourceAutocompleteComponent implements ControlValueAccessor, OnIn
 
   @ViewChild('resourceInput', {static: true}) resourceInput: ElementRef;
 
-  private modelValue: string | TbResourceId;
+  private modelValue: string;
   private dirty = false;
 
-  private propagateChange = (v: any) => { };
+  private propagateChange: (value: any) => void = () => {};
 
   constructor(private fb: FormBuilder,
               private resourceService: ResourceService) {
@@ -106,13 +113,13 @@ export class ResourceAutocompleteComponent implements ControlValueAccessor, OnIn
       .pipe(
         debounceTime(150),
         tap(value => {
-          let modelValue;
+          let modelValue: string;
           if (isObject(value)) {
-            modelValue = value.id;
+            modelValue = prependTbResourcePrefix((value as ResourceInfo).link);
           } else if (isEmptyStr(value)) {
             modelValue = null;
           } else {
-            modelValue = value;
+            modelValue = value as string;
           }
           this.updateView(modelValue);
           if (value === null) {
@@ -120,7 +127,7 @@ export class ResourceAutocompleteComponent implements ControlValueAccessor, OnIn
           }
         }),
         map(value => value ? (typeof value === 'string' ? value : value.title) : ''),
-        switchMap(name => this.fetchResources(name) ),
+        switchMap(name => this.fetchResources(name)),
         share()
       );
   }
@@ -129,7 +136,7 @@ export class ResourceAutocompleteComponent implements ControlValueAccessor, OnIn
     this.propagateChange = fn;
   }
 
-  registerOnTouched(fn: any): void {
+  registerOnTouched(_fn: any): void {
   }
 
   setDisabledState(isDisabled: boolean) {
@@ -145,9 +152,9 @@ export class ResourceAutocompleteComponent implements ControlValueAccessor, OnIn
     if (isDefinedAndNotNull(value)) {
       this.searchText = '';
       if (isObject(value) && typeof value !== 'string' && (value as TbResourceId).id) {
-        this.resourceService.getResourceInfo(value.id, {ignoreLoading: true, ignoreErrors: true}).subscribe({
+        this.resourceService.getResourceInfoById(value.id, {ignoreLoading: true, ignoreErrors: true}).subscribe({
           next: resource => {
-            this.modelValue = resource.id;
+            this.modelValue = prependTbResourcePrefix(resource.link);
             this.resourceFormGroup.get('resource').patchValue(resource, {emitEvent: false});
           },
           error: () => {
@@ -155,9 +162,22 @@ export class ResourceAutocompleteComponent implements ControlValueAccessor, OnIn
             this.resourceFormGroup.get('resource').patchValue('');
           }
         });
+      } else if (typeof value === 'string' && isJSResource(value)) {
+        const url = removeTbResourcePrefix(value);
+        const params = extractParamsFromJSResourceUrl(url);
+        this.resourceService.getResourceInfo(params.type, params.scope, params.key, {ignoreLoading: true, ignoreErrors: true}).subscribe({
+          next: resource => {
+            this.modelValue = value;
+            this.resourceFormGroup.get('resource').patchValue(resource, {emitEvent: false});
+          },
+          error: () => {
+            this.modelValue = '';
+            this.resourceFormGroup.get('resource').patchValue('');
+          }
+        })
       } else {
-        this.modelValue = value;
-        this.resourceFormGroup.get('resource').patchValue(value, {emitEvent: false});
+        this.modelValue = value as string;
+        this.resourceFormGroup.get('resource').patchValue(value as string, {emitEvent: false});
       }
       this.dirty = true;
     }
@@ -182,7 +202,7 @@ export class ResourceAutocompleteComponent implements ControlValueAccessor, OnIn
     }
   }
 
-  private updateView(value: string | TbResourceId ) {
+  private updateView(value: string) {
     if (!isEqual(this.modelValue, value)) {
       this.modelValue = value;
       this.propagateChange(this.modelValue);
