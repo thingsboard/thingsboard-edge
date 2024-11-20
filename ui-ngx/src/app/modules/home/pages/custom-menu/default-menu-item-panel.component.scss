@@ -32,6 +32,8 @@
 @import '../../../../../scss/constants';
 
 .tb-default-menu-item-panel {
+  --mdc-outlined-text-field-outline-color: rgba(0,0,0,0.12);
+
   width: 500px;
   display: flex;
   flex-direction: column;
