@@ -219,6 +219,16 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
         }
     }
 
+    public long getEntitiesTtl(EntityType entityType) {
+        return switch (entityType) {
+            case ALARM -> alarmsTtlDays;
+            case RPC -> rpcTtlDays;
+            case QUEUE_STATS -> queueStatsTtlDays;
+            case BLOB_ENTITY -> blobEntityTtlDays;
+            default -> 0;
+        };
+    }
+
     @Override
     public TenantProfileType getType() {
         return TenantProfileType.DEFAULT;

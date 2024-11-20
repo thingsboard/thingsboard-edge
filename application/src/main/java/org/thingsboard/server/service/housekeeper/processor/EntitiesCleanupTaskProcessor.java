@@ -67,25 +67,17 @@ public class EntitiesCleanupTaskProcessor extends HousekeeperTaskProcessor<Entit
 
     private final EntityDaoRegistry entityDaoRegistry;
     private final TenantProfileService tenantProfileService;
-    @Value("${queue.core.housekeeper.check-expiration-frequency:3600}")
+    @Value("${queue.core.housekeeper.entities-cleanup-frequency:3600}")
     private long frequency;
-    @Value("${sql.ttl.blob_entities.enabled:false}")
-    private boolean blobTtlEnabled;
-    @Value("${sql.ttl.blob_entities.ttl:0}")
-    private long blobTtlSec;
     private ScheduledExecutorService executor;
 
     @PostConstruct
     public void init() {
         executor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("housekeeper-scheduler-" + getTaskType().name()));
         for (EntityType entityType : typesWithTtl) {
-            schedule(entityType);
+            executor.scheduleAtFixedRate(() ->
+                    housekeeperClient.submitTask(new EntitiesCleanupHousekeeperTask(entityType)), frequency, frequency, TimeUnit.SECONDS);
         }
-    }
-
-    private void schedule(EntityType entityType) {
-        executor.scheduleAtFixedRate(() ->
-                housekeeperClient.submitTask(new EntitiesCleanupHousekeeperTask(entityType)), frequency, frequency, TimeUnit.SECONDS);
     }
 
     @Override
@@ -137,23 +129,7 @@ public class EntitiesCleanupTaskProcessor extends HousekeeperTaskProcessor<Entit
 
     public long getTtl(TenantProfile tenantProfile, EntityType entityType) {
         var configuration = tenantProfile.getDefaultProfileConfiguration();
-        long ttlSec = switch (entityType) {
-            case BLOB_ENTITY ->
-                    computeTtl(blobTtlEnabled, blobTtlSec, TimeUnit.DAYS.toSeconds(configuration.getBlobEntityTtlDays()));
-            default -> throw new IllegalArgumentException("Unsupported entity type: " + entityType);
-        };
-        return TimeUnit.SECONDS.toMillis(ttlSec);
-    }
-
-    private long computeTtl(boolean systemTtlEnabled, long systemTtl, long ttl) {
-        if (systemTtlEnabled && systemTtl > 0) {
-            if (ttl == 0) {
-                ttl = systemTtl;
-            } else {
-                ttl = Math.min(systemTtl, ttl);
-            }
-        }
-        return ttl;
+        return TimeUnit.SECONDS.toMillis(configuration.getEntitiesTtl(entityType));
     }
 
 }
