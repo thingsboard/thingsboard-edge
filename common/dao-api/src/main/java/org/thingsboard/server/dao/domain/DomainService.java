@@ -59,4 +59,6 @@ public interface DomainService extends EntityDaoService {
     void updateOauth2Clients(TenantId tenantId, DomainId domainId, List<OAuth2ClientId> oAuth2ClientIds);
 
     void deleteDomainsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
+
+    void deleteDomainsByTenantId(TenantId tenantId);
 }

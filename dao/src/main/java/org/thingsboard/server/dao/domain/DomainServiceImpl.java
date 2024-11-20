@@ -50,7 +50,6 @@ import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
-import org.thingsboard.server.dao.exception.IncorrectParameterException;
 import org.thingsboard.server.dao.oauth2.OAuth2ClientDao;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 
@@ -60,8 +59,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static org.thingsboard.server.dao.service.DataValidator.isValidDomain;
 
 @Slf4j
 @Service
@@ -157,6 +154,17 @@ public class DomainServiceImpl extends AbstractEntityService implements DomainSe
     @Transactional
     public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
         deleteDomainById(tenantId, (DomainId) id);
+    }
+
+    @Override
+    public void deleteDomainsByTenantId(TenantId tenantId) {
+        log.trace("Executing deleteDomainsByTenantId, tenantId [{}]", tenantId);
+        domainDao.deleteByTenantId(tenantId);
+    }
+
+    @Override
+    public void deleteByTenantId(TenantId tenantId) {
+        deleteDomainsByTenantId(tenantId);
     }
 
     private final PaginatedRemover<CustomerId, Domain> customerDomainsRemover = new PaginatedRemover<>() {
