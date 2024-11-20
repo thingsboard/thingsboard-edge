@@ -43,7 +43,7 @@ import java.io.Serializable;
         include = JsonTypeInfo.As.EXISTING_PROPERTY,
         property = "version")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = EnterpriseCaptchaParams.class, name = "version"),
+        @JsonSubTypes.Type(value = EnterpriseCaptchaParams.class, name = "enterprise"),
         @JsonSubTypes.Type(value = V2CaptchaParams.class, name = "v2"),
         @JsonSubTypes.Type(value = V3CaptchaParams.class, name = "v3")
 })

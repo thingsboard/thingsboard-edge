@@ -33,7 +33,7 @@ import { GroupPermission } from '@shared/models/group-permission.models';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { CustomMenuId } from '@shared/models/id/custom-menu-id';
 
-export type CaptchaVersion = 'v2' | 'v3' | 'Enterprise';
+export type CaptchaVersion = 'v2' | 'v3' | 'enterprise';
 
 export enum SelfRegistrationType {
   WEB = 'WEB',
@@ -218,10 +218,13 @@ interface HomeDashboardParams {
 }
 
 export interface CaptchaParams {
-  siteKey: string;
+  siteKey?: string;
   version: CaptchaVersion;
-  logActionName: string;
-  secretKey: string;
+  logActionName?: string;
+  secretKey?: string;
+  projectId?: string;
+  androidKey?: string;
+  iOSKey?: string;
 }
 
 interface DefaultDashboardParams {

@@ -83,23 +83,55 @@
           <mat-form-field class="mat-block" appearance="outline">
             <mat-label translate>self-registration.captcha-version</mat-label>
             <mat-select formControlName="version">
+              <mat-option [value]="'v2'">v2 (Deprecated)</mat-option>
               <mat-option [value]="'v3'">v3</mat-option>
               <mat-option [value]="'enterprise'">Enterprise</mat-option>
             </mat-select>
           </mat-form-field>
-          <mat-form-field class="mat-block" appearance="outline">
-            <mat-label translate>self-registration.captcha-site-key</mat-label>
-            <input matInput required formControlName="siteKey"/>
-          </mat-form-field>
-          <mat-form-field class="mat-block" appearance="outline">
-            <mat-label translate>self-registration.captcha-secret-key</mat-label>
-            <input matInput required formControlName="secretKey"/>
-          </mat-form-field>
-          <mat-form-field *ngIf="selfRegistrationForm.get('captcha.version').value === 'v3'"
+          <ng-container *ngIf="selfRegistrationForm.get('captcha.version').value !== 'enterprise'">
+            <mat-form-field class="mat-block" appearance="outline">
+              <mat-label translate>self-registration.captcha-site-key</mat-label>
+              <input matInput required formControlName="siteKey"/>
+              <mat-error *ngIf="selfRegistrationForm.get('captcha.siteKey').hasError('required')">
+                {{ 'self-registration.captcha-site-key-required' | translate }}
+              </mat-error>
+            </mat-form-field>
+            <mat-form-field class="mat-block" appearance="outline">
+              <mat-label translate>self-registration.captcha-secret-key</mat-label>
+              <input matInput required formControlName="secretKey"/>
+              <mat-error *ngIf="selfRegistrationForm.get('captcha.secretKey').hasError('required')">
+                {{ 'self-registration.captcha-secret-key-required' | translate }}
+              </mat-error>
+            </mat-form-field>
+          </ng-container>
+          <ng-container *ngIf="selfRegistrationForm.get('captcha.version').value === 'enterprise'">
+            <mat-form-field class="mat-block" appearance="outline">
+              <mat-label translate>self-registration.project-id</mat-label>
+              <input matInput required formControlName="projectId"/>
+              <mat-error *ngIf="selfRegistrationForm.get('captcha.projectId').hasError('required')">
+                {{ 'self-registration.project-id-required' | translate }}
+              </mat-error>
+            </mat-form-field>
+            <mat-form-field class="mat-block" appearance="outline">
+              <mat-label translate>self-registration.android-key</mat-label>
+              <input matInput [required]="androidApp" formControlName="androidKey"/>
+              <mat-error *ngIf="selfRegistrationForm.get('captcha.androidKey').hasError('required')">
+                {{ 'self-registration.android-key-required' | translate }}
+              </mat-error>
+            </mat-form-field>
+            <mat-form-field class="mat-block" appearance="outline">
+              <mat-label translate>self-registration.ios-key</mat-label>
+              <input matInput [required]="iOSApp" formControlName="iOSKey"/>
+              <mat-error *ngIf="selfRegistrationForm.get('captcha.iOSKey').hasError('required')">
+                {{ 'self-registration.ios-key-required' | translate }}
+              </mat-error>
+            </mat-form-field>
+          </ng-container>
+          <mat-form-field *ngIf="selfRegistrationForm.get('captcha.version').value !== 'v2'"
                           class="mat-block" subscriptSizing="dynamic"
                           appearance="outline">
             <mat-label translate>self-registration.captcha-action</mat-label>
-            <input matInput type="number" formControlName="logActionName"/>
+            <input matInput formControlName="logActionName"/>
           </mat-form-field>
         </section>
       </ng-template>
