@@ -29,13 +29,10 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
-.mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--invalid) .mdc-notched-outline__leading,
-.mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--invalid) .mdc-notched-outline__notch,
-.mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--invalid) .mdc-notched-outline__trailing {
-  border-color: rgba(0,0,0,0.18);
-}
 
 .tb-edit-custom-menu-name-panel {
+  --mdc-outlined-text-field-outline-color: rgba(0,0,0,0.12);
+
   width: 300px;
   display: flex;
   flex-direction: column;

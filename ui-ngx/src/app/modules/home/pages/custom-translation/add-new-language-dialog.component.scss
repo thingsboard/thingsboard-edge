@@ -31,20 +31,13 @@
 @import "../../../../../scss/constants";
 
 :host {
+  --mdc-outlined-text-field-outline-color: rgba(0,0,0,0.12);
+
   width: 520px;
   max-width: 100%;
   height: 100%;
   display: grid;
   grid-template-rows: min-content auto min-content;
-
-  ::ng-deep {
-    .mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--invalid) .mdc-notched-outline__leading,
-    .mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--invalid) .mdc-notched-outline__notch,
-    .mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--invalid) .mdc-notched-outline__trailing {
-      border-color: rgba(0,0,0,0.18);
-    }
-  }
-
 }
 
 :host-context(.mat-mdc-dialog-container) {

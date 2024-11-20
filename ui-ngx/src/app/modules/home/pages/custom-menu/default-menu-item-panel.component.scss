@@ -31,13 +31,9 @@
 
 @import '../../../../../scss/constants';
 
-.mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--invalid) .mdc-notched-outline__leading,
-.mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--invalid) .mdc-notched-outline__notch,
-.mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--invalid) .mdc-notched-outline__trailing {
-  border-color: rgba(0,0,0,0.18);
-}
-
 .tb-default-menu-item-panel {
+  --mdc-outlined-text-field-outline-color: rgba(0,0,0,0.12);
+
   width: 500px;
   display: flex;
   flex-direction: column;
