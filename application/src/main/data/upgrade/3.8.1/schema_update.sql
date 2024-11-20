@@ -356,3 +356,78 @@ $$
         END IF;
     END;
 $$;
+
+-- migrating notification email to notification target in self registration configs
+CREATE OR REPLACE FUNCTION update_self_registration_notification_config(
+    self_registration_settings jsonb,
+    tenant uuid
+) RETURNS jsonb AS $$
+    DECLARE
+        notification_email varchar;
+        notification_target_id uuid;
+        tb_user record;
+    BEGIN
+        notification_email := self_registration_settings ->> 'notificationEmail';
+
+        IF notification_email IS NOT NULL AND notification_email NOT IN ('', 'null') THEN
+            SELECT * FROM tb_user WHERE tenant_id = tenant AND email = notification_email INTO tb_user;
+            IF tb_user IS NULL THEN
+                SELECT * FROM tb_user WHERE tenant_id = tenant ORDER BY created_time ASC LIMIT 1 INTO tb_user;
+            END IF;
+
+            SELECT id INTO notification_target_id FROM notification_target WHERE tenant_id = tenant AND name = tb_user.email;
+            IF notification_target_id IS NULL THEN
+                notification_target_id = uuid_generate_v4();
+                INSERT INTO notification_target (id, created_time, tenant_id, name, configuration)
+                    VALUES (notification_target_id, (extract(epoch from now()) * 1000), tenant,
+                    tb_user.email, jsonb_build_object('type', 'PLATFORM_USERS', 'description',
+                    concat('User ', tb_user.email, '; used in the self registration settings'), 'usersFilter',
+                        json_build_object('type', 'USER_LIST', 'usersIds', jsonb_build_array(tb_user.id::text))));
+            END IF;
+
+            self_registration_settings = jsonb_set(self_registration_settings, '{notificationRecipient}',
+                jsonb_build_object('id', notification_target_id::text, 'entityType', 'NOTIFICATION_TARGET'));
+            self_registration_settings = self_registration_settings - 'notificationEmail';
+            RETURN self_registration_settings;
+        ELSE
+            RETURN NULL;
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
+
+-- updating white labeling self registration records
+DO
+$$
+    DECLARE
+        wl_record record;
+        self_registration_settings jsonb;
+    BEGIN
+        FOR wl_record IN SELECT * FROM white_labeling WHERE type = 'SELF_REGISTRATION'
+            LOOP
+                self_registration_settings := update_self_registration_notification_config(wl_record.settings::jsonb, wl_record.tenant_id);
+                IF self_registration_settings IS NOT NULL THEN
+                    UPDATE white_labeling SET settings = self_registration_settings WHERE tenant_id = wl_record.tenant_id
+                        AND customer_id = wl_record.customer_id AND type = 'SELF_REGISTRATION';
+                END IF;
+            END LOOP;
+    END;
+$$;
+
+-- updating mobile bundle self registration records
+DO
+$$
+    DECLARE
+        mobile_bundle_record record;
+        self_registration_settings jsonb;
+    BEGIN
+        FOR mobile_bundle_record IN SELECT * FROM mobile_app_bundle WHERE self_registration_config IS NOT NULL
+            LOOP
+                self_registration_settings := update_self_registration_notification_config(mobile_bundle_record.self_registration_config::jsonb, mobile_bundle_record.tenant_id);
+                IF self_registration_settings IS NOT NULL THEN
+                    UPDATE mobile_app_bundle SET self_registration_config = self_registration_settings WHERE id = mobile_bundle_record.id;
+                END IF;
+            END LOOP;
+    END;
+$$;
+
+DROP FUNCTION IF EXISTS update_self_registration_notification_config;
