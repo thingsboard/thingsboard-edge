@@ -163,7 +163,7 @@
             formControlName="permissions">
           </tb-registration-permissions>
           <div class="flex items-center justify-between gap-4">
-            <button mat-raised-button color="warn" [disabled]="(isLoading$ | async)"
+            <button mat-raised-button color="warn" [disabled]="(isLoading$ | async) || deleteDisabled"
                     (click)="delete(selfRegistrationForm)">
               <tb-icon matButtonIcon>mdi:broom</tb-icon>
               {{ 'action.reset-default' | translate }}

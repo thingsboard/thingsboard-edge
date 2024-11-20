@@ -55,6 +55,8 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
 
   entityTypes = EntityType;
 
+  deleteDisabled = true;
+
   tinyMceOptions: Record<string, any> = {
     base_url: '/assets/tinymce',
     suffix: '.min',
@@ -167,8 +169,10 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     } as WebSelfRegistrationParams;
     if (this.selfRegistrationParams.domainName && this.selfRegistrationParams.domainName.length) {
       this.registerLink = this.selfRegistrationService.getRegistrationLink(this.selfRegistrationParams.domainName);
+      this.deleteDisabled = false;
     } else {
       this.registerLink = '';
+      this.deleteDisabled = true;
     }
     const selfRegistrationFormValue = deepClone(this.selfRegistrationParams);
     if (selfRegistrationFormValue.title?.length) {
