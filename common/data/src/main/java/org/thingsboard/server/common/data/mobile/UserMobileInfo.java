@@ -33,7 +33,8 @@ package org.thingsboard.server.common.data.mobile;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.HomeDashboardInfo;
 import org.thingsboard.server.common.data.User;
+import org.thingsboard.server.common.data.mobile.app.MobileAppVersionFullInfo;
 
 
-public record UserMobileInfo(User user, HomeDashboardInfo homeDashboardInfo, JsonNode pages) {
+public record UserMobileInfo(User user, MobileAppVersionFullInfo versionInfo, HomeDashboardInfo homeDashboardInfo, JsonNode pages) {
 }

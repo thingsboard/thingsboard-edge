@@ -106,4 +106,14 @@ public class MobileApp extends BaseData<MobileAppId> implements HasName, TenantE
     public EntityType getEntityType() {
         return EntityType.MOBILE_APP;
     }
+
+    public MobileAppVersionFullInfo toVersionFullInfo() {
+        if (versionInfo != null) {
+            String storeLink = storeInfo != null ? storeInfo.getStoreLink() : null;
+            return new MobileAppVersionFullInfo(versionInfo, storeLink);
+        } else {
+            return null;
+        }
+    }
+
 }

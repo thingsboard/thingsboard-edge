@@ -28,27 +28,47 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.mobile.qrCodeSettings;
+package org.thingsboard.server.common.data.selfregistration;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.validation.NoXss;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
 
+@Schema
 @Data
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode
-public class QRCodeConfig {
+public class EnterpriseCaptchaParams implements CaptchaParams {
 
-    private boolean showOnHomePage;
-    private boolean badgeEnabled;
-    private boolean qrCodeLabelEnabled;
-    private BadgePosition badgePosition;
-    @NoXss
-    private String qrCodeLabel;
+    @Schema(description = "Your Google Cloud project ID")
+    protected String projectId;
+    @Schema(description = "The reCAPTCHA key associated with android app.")
+    protected String androidKey;
+    @Schema(description = "The reCAPTCHA key associated with iOS app.")
+    protected String iOSKey;
+    @Schema(description = "Optional action name used for logging")
+    protected String logActionName;
 
+
+    public EnterpriseCaptchaParams(String projectId, String androidKey, String iOSKey, String logActionName) {
+        this.projectId = projectId;
+        this.androidKey = androidKey;
+        this.iOSKey = iOSKey;
+        this.logActionName = logActionName;
+    }
+
+    @Override
+    public String getVersion() {
+        return "enterprise";
+    }
+
+    @Override
+    public CaptchaParams toInfo(PlatformType platformType) {
+        if (platformType == PlatformType.ANDROID) {
+            return new EnterpriseCaptchaParams(projectId, androidKey, null, logActionName);
+        } else if (platformType == PlatformType.IOS) {
+            return new EnterpriseCaptchaParams(projectId, null, iOSKey, logActionName);
+        }
+        return null;
+    }
 }

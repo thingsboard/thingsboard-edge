@@ -445,6 +445,10 @@
             <groupId>com.google.firebase</groupId>
             <artifactId>firebase-admin</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-recaptchaenterprise</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

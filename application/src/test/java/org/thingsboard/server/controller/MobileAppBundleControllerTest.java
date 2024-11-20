@@ -52,7 +52,7 @@ import org.thingsboard.server.common.data.oauth2.OAuth2ClientInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.selfregistration.CaptchaParams;
+import org.thingsboard.server.common.data.selfregistration.V2CaptchaParams;
 import org.thingsboard.server.common.data.selfregistration.MobileRedirectParams;
 import org.thingsboard.server.common.data.selfregistration.MobileSelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpField;
@@ -198,7 +198,7 @@ public class MobileAppBundleControllerTest extends AbstractControllerTest {
     private MobileSelfRegistrationParams createMobileSelfRegistrationParams() {
         MobileSelfRegistrationParams selfRegistrationParams = new MobileSelfRegistrationParams();
         selfRegistrationParams.setTitle("Please sign up");
-        CaptchaParams captcha = new CaptchaParams();
+        V2CaptchaParams captcha = new V2CaptchaParams();
         captcha.setSecretKey("secretKey");
         captcha.setSiteKey("siteKey");
         captcha.setLogActionName("sign_up");

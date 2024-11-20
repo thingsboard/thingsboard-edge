@@ -28,27 +28,24 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.mobile.qrCodeSettings;
+package org.thingsboard.server.common.data.mobile.app;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode
-public class QRCodeConfig {
+@EqualsAndHashCode(callSuper = true)
+public class MobileAppVersionFullInfo extends MobileAppVersionInfo {
 
-    private boolean showOnHomePage;
-    private boolean badgeEnabled;
-    private boolean qrCodeLabelEnabled;
-    private BadgePosition badgePosition;
-    @NoXss
-    private String qrCodeLabel;
+    private String storeLink;
+
+    public MobileAppVersionFullInfo() {
+        super();
+    }
+
+    public MobileAppVersionFullInfo(MobileAppVersionInfo mobileAppVersionInfo, String storeLink) {
+        super(mobileAppVersionInfo);
+        this.storeLink = storeLink;
+    }
 
 }

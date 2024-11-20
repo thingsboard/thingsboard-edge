@@ -28,27 +28,35 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.mobile.qrCodeSettings;
+package org.thingsboard.server.common.data.selfregistration;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.validation.NoXss;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
 
+@Schema
 @Data
-@Builder
 @NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode
-public class QRCodeConfig {
+public class AbstractCaptchaParams implements CaptchaParams {
 
-    private boolean showOnHomePage;
-    private boolean badgeEnabled;
-    private boolean qrCodeLabelEnabled;
-    private BadgePosition badgePosition;
-    @NoXss
-    private String qrCodeLabel;
+    @Schema(description = "Captcha site key for 'I'm not a robot' validation")
+    protected String siteKey;
+    @Schema(description = "Captcha version ('v3' = Score based, 'enterprise')")
+    protected String version;
+    @Schema(description = "Optional action name used for logging (for captcha version 'v3' and 'enterprise')")
+    protected String logActionName;
+    @Schema(description = "Secret key to validate the Captcha. Should match the Captcha Site Key.")
+    private String secretKey;
 
+    public AbstractCaptchaParams(String siteKey, String version, String logActionName) {
+        this.siteKey = siteKey;
+        this.version = version;
+        this.logActionName = logActionName;
+    }
+
+    @Override
+    public CaptchaParams toInfo(PlatformType platformType) {
+        return new AbstractCaptchaParams(siteKey, version, logActionName);
+    }
 }

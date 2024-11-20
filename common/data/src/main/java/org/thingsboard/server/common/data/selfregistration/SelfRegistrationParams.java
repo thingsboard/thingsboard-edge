@@ -35,6 +35,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 
 import java.io.Serializable;
@@ -79,6 +80,6 @@ public interface SelfRegistrationParams extends Serializable {
 
     CustomMenuId getCustomMenuId();
 
-    SignUpSelfRegistrationParams toSignUpSelfRegistrationParams();
+    SignUpSelfRegistrationParams toSignUpSelfRegistrationParams(PlatformType platformType);
 
 }
