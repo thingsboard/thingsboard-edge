@@ -96,11 +96,6 @@ import { EdgeService } from '@core/http/edge.service';
 import { RuleNode, ScriptLanguage } from '@shared/models/rule-node.models';
 import { AssetProfileService } from '@core/http/asset-profile.service';
 import { AssetProfile } from '@shared/models/asset.models';
-import {
-  ExportWidgetsBundleDialogComponent,
-  ExportWidgetsBundleDialogData,
-  ExportWidgetsBundleDialogResult
-} from '@shared/import-export/export-widgets-bundle-dialog.component';
 import { ImageService } from '@core/http/image.service';
 import { ImageExportData, ImageResourceInfo, ImageResourceType } from '@shared/models/resource.models';
 import { selectUserSettingsProperty } from '@core/auth/auth.selectors';
@@ -119,7 +114,7 @@ import {
 export type editMissingAliasesFunction = (widgets: Array<Widget>, isSingleWidget: boolean,
                                           customTitle: string, missingEntityAliases: EntityAliases) => Observable<EntityAliases>;
 
-type SupportEntityResources = 'includeResourcesInExportWidgetTypes' | 'includeResourcesInExportDashboard';
+type SupportEntityResources = 'includeResourcesInExportWidgetTypes' | 'includeResourcesInExportDashboard' | 'includeBundleWidgetsInExport';
 
 const moment = moment_;
 
@@ -476,22 +471,11 @@ export class ImportExportService {
   }
 
   private handleExportWidgetsBundle(widgetsBundle: WidgetsBundle, includeBundleWidgetsInExport: boolean, ignoreLoading?: boolean): void {
-    this.dialog.open<ExportWidgetsBundleDialogComponent, ExportWidgetsBundleDialogData,
-      ExportWidgetsBundleDialogResult>(ExportWidgetsBundleDialogComponent, {
-      disableClose: true,
-      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-      data: {
-        widgetsBundle,
-        includeBundleWidgetsInExport,
-        ignoreLoading
-      }
-    }).afterClosed().subscribe(
-      (result) => {
+    this.openExportDialog('widgets-bundle.export', 'widgets-bundle.export-widgets-bundle-widgets-prompt',
+      includeBundleWidgetsInExport, ignoreLoading).subscribe((result) => {
         if (result) {
-          if (includeBundleWidgetsInExport !== result.exportWidgets) {
-            this.store.dispatch(new ActionPreferencesPutUserSettings({includeBundleWidgetsInExport: result.exportWidgets}));
-          }
-          if (result.exportWidgets) {
+          this.updateUserSettingsIncludeResourcesIfNeeded(includeBundleWidgetsInExport, result.include, 'includeBundleWidgetsInExport');
+          if (result.include) {
             this.exportWidgetsBundleWithWidgetTypes(widgetsBundle);
           } else {
             this.exportWidgetsBundleWithWidgetTypeFqns(widgetsBundle);
@@ -1395,12 +1379,12 @@ export class ImportExportService {
     );
   }
 
-  private openExportDialog(title: string, prompt: string, includeResources: boolean) {
+  private openExportDialog(title: string, prompt: string, includeResources: boolean, ignoreLoading?: boolean) {
     return this.dialog.open<ExportResourceDialogComponent, ExportResourceDialogData, ExportResourceDialogDialogResult>(
       ExportResourceDialogComponent, {
         disableClose: true,
         panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
-        data: { title, prompt, include: includeResources }
+        data: { title, prompt, include: includeResources, ignoreLoading }
       }
     ).afterClosed();
   }
