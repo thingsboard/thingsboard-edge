@@ -28,26 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.notification;
+package org.thingsboard.server.common.data.notification.info;
 
-import org.thingsboard.server.common.data.id.NotificationTemplateId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.NotificationType;
-import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.dao.Dao;
-import org.thingsboard.server.dao.ExportableEntityDao;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.Map;
 
-public interface NotificationTemplateDao extends Dao<NotificationTemplate>, ExportableEntityDao<NotificationTemplateId, NotificationTemplate> {
+import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
 
-    PageData<NotificationTemplate> findByTenantIdAndNotificationTypesAndPageLink(TenantId tenantId, List<NotificationType> notificationTypes, PageLink pageLink);
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class UserRegisteredNotificationInfo implements NotificationInfo {
 
-    int countByTenantIdAndNotificationTypes(TenantId tenantId, Collection<NotificationType> notificationTypes);
+    private String userFullName;
+    private String userEmail;
 
-    void removeByTenantId(TenantId tenantId);
+    @Override
+    public Map<String, String> getTemplateData() {
+        return mapOf(
+                "userFullName", userFullName,
+                "userEmail", userEmail
+        );
+    }
 
 }
