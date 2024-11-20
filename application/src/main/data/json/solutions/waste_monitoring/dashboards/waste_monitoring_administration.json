@@ -3085,17 +3085,6 @@
       "public": true
     },
     {
-      "link": "/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_3.svg",
-      "title": "\"Waste Management Administration\" dashboard widget \"Bins Map\" marker image 3",
-      "type": "IMAGE",
-      "subType": "IMAGE",
-      "fileName": "waste_management_administration_dashboard_widget_bins_map_marker_image_3.svg",
-      "publicResourceKey": "1EF2Eo4uxktb941Nml8CvdQKzw5AGWZf",
-      "mediaType": "image/svg+xml",
-      "data": "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjI4IiBoZWlnaHQ9IjI4IiBmaWxsPSIjZmZmIiByeD0iNCIvPjxwYXRoIHN0cm9rZT0iIzc1NzU3NSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik01IDcuNGgxOE0yMSA4djE0YTIgMiAwIDAgMS0yIDJIOWEyIDIgMCAwIDEtMi0yVjhtMy0uOVY2YTIgMiAwIDAgMSAyLTJoNGEyIDIgMCAwIDEgMiAydjEuMU0xMiAxM3Y2TTE2IDEzdjYiLz48L3N2Zz4=",
-      "public": true
-    },
-    {
       "link": "/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_0.svg",
       "title": "\"Waste Management Administration\" dashboard widget \"Bins Map\" marker image 0",
       "type": "IMAGE",
@@ -3126,6 +3115,17 @@
       "publicResourceKey": "s7cNtQtd6X7H3PJEKpxvb7RRYsFz86sp",
       "mediaType": "image/svg+xml",
       "data": "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjI4IiBoZWlnaHQ9IjI4IiBmaWxsPSIjZmZmIiByeD0iNCIvPjxwYXRoIHN0cm9rZT0iI0ZGOEEwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik01IDcuNGgxOE0yMSA4djE0YTIgMiAwIDAgMS0yIDJIOWEyIDIgMCAwIDEtMi0yVjhtMy0uOVY2YTIgMiAwIDAgMSAyLTJoNGEyIDIgMCAwIDEgMiAydjEuMU0xMiAxM3Y2TTE2IDEzdjYiLz48L3N2Zz4=",
+      "public": true
+    },
+    {
+      "link": "/api/images/system/waste_management_administration_dashboard_widget_bins_map_marker_image_3.svg",
+      "title": "\"Waste Management Administration\" dashboard widget \"Bins Map\" marker image 3",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "waste_management_administration_dashboard_widget_bins_map_marker_image_3.svg",
+      "publicResourceKey": "1EF2Eo4uxktb941Nml8CvdQKzw5AGWZf",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyOCIgaGVpZ2h0PSIyOCIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjI4IiBoZWlnaHQ9IjI4IiBmaWxsPSIjZmZmIiByeD0iNCIvPjxwYXRoIHN0cm9rZT0iIzc1NzU3NSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik01IDcuNGgxOE0yMSA4djE0YTIgMiAwIDAgMS0yIDJIOWEyIDIgMCAwIDEtMi0yVjhtMy0uOVY2YTIgMiAwIDAgMSAyLTJoNGEyIDIgMCAwIDEgMiAydjEuMU0xMiAxM3Y2TTE2IDEzdjYiLz48L3N2Zz4=",
       "public": true
     }
   ]
