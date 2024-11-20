@@ -36,6 +36,15 @@
   height: 100%;
   display: grid;
   grid-template-rows: min-content auto min-content;
+
+  ::ng-deep {
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--invalid) .mdc-notched-outline__leading,
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--invalid) .mdc-notched-outline__notch,
+    .mdc-text-field--outlined:not(.mdc-text-field--disabled):not(.mdc-text-field--invalid) .mdc-notched-outline__trailing {
+      border-color: rgba(0,0,0,0.18);
+    }
+  }
+
 }
 
 :host-context(.mat-mdc-dialog-container) {
