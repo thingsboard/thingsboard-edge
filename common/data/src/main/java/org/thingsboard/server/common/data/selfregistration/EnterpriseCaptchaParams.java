@@ -42,6 +42,9 @@ public class EnterpriseCaptchaParams implements CaptchaParams {
 
     @Schema(description = "Your Google Cloud project ID")
     protected String projectId;
+
+    @Schema(description = "Service account credentials")
+    private String serviceAccountCredentials;
     @Schema(description = "The reCAPTCHA key associated with android app.")
     protected String androidKey;
     @Schema(description = "The reCAPTCHA key associated with iOS app.")
@@ -50,8 +53,7 @@ public class EnterpriseCaptchaParams implements CaptchaParams {
     protected String logActionName;
 
 
-    public EnterpriseCaptchaParams(String projectId, String androidKey, String iOSKey, String logActionName) {
-        this.projectId = projectId;
+    public EnterpriseCaptchaParams(String androidKey, String iOSKey, String logActionName) {
         this.androidKey = androidKey;
         this.iosKey = iOSKey;
         this.logActionName = logActionName;
@@ -65,9 +67,9 @@ public class EnterpriseCaptchaParams implements CaptchaParams {
     @Override
     public CaptchaParams toInfo(PlatformType platformType) {
         if (platformType == PlatformType.ANDROID) {
-            return new EnterpriseCaptchaParams(projectId, androidKey, null, logActionName);
+            return new EnterpriseCaptchaParams(androidKey, null, logActionName);
         } else if (platformType == PlatformType.IOS) {
-            return new EnterpriseCaptchaParams(projectId, null, iosKey, logActionName);
+            return new EnterpriseCaptchaParams( null, iosKey, logActionName);
         }
         return null;
     }

@@ -32,7 +32,10 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.api.gax.core.FixedCredentialsProvider;
+import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.cloud.recaptchaenterprise.v1.RecaptchaEnterpriseServiceClient;
+import com.google.cloud.recaptchaenterprise.v1.RecaptchaEnterpriseServiceSettings;
 import com.google.recaptchaenterprise.v1.Assessment;
 import com.google.recaptchaenterprise.v1.CreateAssessmentRequest;
 import com.google.recaptchaenterprise.v1.Event;
@@ -100,6 +103,7 @@ import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.utils.MiscUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -531,7 +535,11 @@ public class SignUpController extends BaseController {
     private void validateEnterpriseReCaptcha(SignUpRequest signUpRequest, HttpServletRequest request, SelfRegistrationParams selfRegistrationParams)
             throws IOException {
         EnterpriseCaptchaParams captcha = (EnterpriseCaptchaParams) selfRegistrationParams.getCaptcha();
-        try (RecaptchaEnterpriseServiceClient client = RecaptchaEnterpriseServiceClient.create()) {
+        try (RecaptchaEnterpriseServiceClient client = RecaptchaEnterpriseServiceClient.create(
+                RecaptchaEnterpriseServiceSettings.newBuilder()
+                        .setCredentialsProvider(FixedCredentialsProvider.create(
+                                ServiceAccountCredentials.fromStream(new ByteArrayInputStream(captcha.getServiceAccountCredentials().getBytes()))))
+                        .build())) {
             String userAgent = request.getHeader("User-Agent");
             String siteKey;
             if (userAgent != null && userAgent.contains("Android")) {
