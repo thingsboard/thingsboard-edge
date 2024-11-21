@@ -45,6 +45,8 @@ public class EnterpriseCaptchaParams implements CaptchaParams {
 
     @Schema(description = "Service account credentials")
     private String serviceAccountCredentials;
+    @Schema(description = "Service account credentials file name")
+    private String serviceAccountCredentialsFileName;
     @Schema(description = "The reCAPTCHA key associated with android app.")
     protected String androidKey;
     @Schema(description = "The reCAPTCHA key associated with iOS app.")

@@ -225,6 +225,8 @@ export interface CaptchaParams {
   projectId?: string;
   androidKey?: string;
   iosKey?: string;
+  serviceAccountCredentials?: string;
+  serviceAccountCredentialsFileName?: string;
 }
 
 interface DefaultDashboardParams {

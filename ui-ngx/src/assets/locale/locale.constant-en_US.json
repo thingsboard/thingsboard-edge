@@ -7156,7 +7156,9 @@
         "show-privacy-policy": "Show Privacy Policy",
         "show-terms-of-use": "Show Terms of Use",
         "domain-settings": "Domain settings",
-        "general-settings": "General settings"
+        "general-settings": "General settings",
+        "recaptcha-enterprise-service-account-file": "reCAPTCHA Enterprise account credentials JSON file",
+        "select-recaptcha-enterprise-service-account-file": "Drag and drop your account credentials file"
     },
     "solution-template": {
         "solution-template": "Solution template",

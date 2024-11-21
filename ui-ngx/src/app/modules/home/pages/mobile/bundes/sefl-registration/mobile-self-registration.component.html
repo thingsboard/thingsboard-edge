@@ -112,6 +112,15 @@
                 {{ 'self-registration.project-id-required' | translate }}
               </mat-error>
             </mat-form-field>
+            <tb-file-input formControlName="serviceAccountCredentials"
+                           required
+                           dropLabel="{{ 'self-registration.select-recaptcha-enterprise-service-account-file' | translate }}"
+                           label="{{ 'self-registration.recaptcha-enterprise-service-account-file' | translate }}"
+                           accept=".json,application/json"
+                           allowedExtensions="json"
+                           [existingFileName]="selfRegistrationForm.get('captcha.serviceAccountCredentialsFileName')?.value"
+                           (fileNameChanged)="selfRegistrationForm.get('captcha.serviceAccountCredentialsFileName').patchValue($event)">
+            </tb-file-input>
             <mat-form-field class="mat-block" appearance="outline">
               <mat-label translate>self-registration.android-key</mat-label>
               <input matInput [required]="androidApp" formControlName="androidKey"/>

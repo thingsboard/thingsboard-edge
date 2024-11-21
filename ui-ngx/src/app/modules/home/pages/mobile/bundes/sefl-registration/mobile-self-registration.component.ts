@@ -107,6 +107,8 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
       projectId: [{value: '', disabled: true}, Validators.required],
       androidKey: [{value: '', disabled: true}],
       iosKey: [{value: '', disabled: true}],
+      serviceAccountCredentials: [{value: '', disabled: true}, Validators.required],
+      serviceAccountCredentialsFileName: [{value: '', disabled: true}],
     }),
     showPrivacyPolicy: [true],
     showTermsOfUse: [true],
@@ -270,12 +272,16 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
       this.selfRegistrationForm.get('captcha.projectId').enable({emitEvent: false});
       this.selfRegistrationForm.get('captcha.androidKey').enable({emitEvent: false});
       this.selfRegistrationForm.get('captcha.iosKey').enable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.serviceAccountCredentials').enable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.serviceAccountCredentialsFileName').enable({emitEvent: false});
     } else {
       this.selfRegistrationForm.get('captcha.siteKey').enable({emitEvent: false});
       this.selfRegistrationForm.get('captcha.secretKey').enable({emitEvent: false});
       this.selfRegistrationForm.get('captcha.projectId').disable({emitEvent: false});
       this.selfRegistrationForm.get('captcha.androidKey').disable({emitEvent: false});
       this.selfRegistrationForm.get('captcha.iosKey').disable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.serviceAccountCredentials').disable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.serviceAccountCredentialsFileName').disable({emitEvent: false});
     }
   }
 }
