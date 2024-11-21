@@ -532,53 +532,6 @@ public class SignUpController extends BaseController {
         return tokenObject;
     }
 
-    private void validateEnterpriseReCaptcha(SignUpRequest signUpRequest, HttpServletRequest request, SelfRegistrationParams selfRegistrationParams)
-            throws IOException {
-        EnterpriseCaptchaParams captcha = (EnterpriseCaptchaParams) selfRegistrationParams.getCaptcha();
-        try (RecaptchaEnterpriseServiceClient client = RecaptchaEnterpriseServiceClient.create(
-                RecaptchaEnterpriseServiceSettings.newBuilder()
-                        .setCredentialsProvider(FixedCredentialsProvider.create(
-                                ServiceAccountCredentials.fromStream(new ByteArrayInputStream(captcha.getServiceAccountCredentials().getBytes()))))
-                        .build())) {
-            String userAgent = request.getHeader("User-Agent");
-            String siteKey;
-            if (userAgent != null && userAgent.contains("Android")) {
-                siteKey = captcha.getAndroidKey();
-            } else if (userAgent != null && (userAgent.contains("iPhone") || userAgent.contains("iPad"))) {
-                siteKey = captcha.getIosKey();
-            } else {
-                throw new DataValidationException("Error validating reCAPTCHA: platform could not be detected");
-            }
-            Event event = Event.newBuilder()
-                    .setSiteKey(siteKey)
-                    .setToken(signUpRequest.getRecaptchaResponse())
-                    .setUserIpAddress(request.getRemoteAddr())
-                    .setUserAgent(userAgent)
-                    .build();
-
-            CreateAssessmentRequest createAssessmentRequest =
-                    CreateAssessmentRequest.newBuilder()
-                            .setParent(ProjectName.of(captcha.getProjectId()).toString())
-                            .setAssessment(Assessment.newBuilder().setEvent(event).build())
-                            .build();
-
-            Assessment response = client.createAssessment(createAssessmentRequest);
-
-            if (!response.getTokenProperties().getValid()) {
-                throw new DataValidationException("Invalid reCaptcha response!");
-            }
-
-            if (!response.getTokenProperties().getAction().equals(captcha.getLogActionName())) {
-                throw new DataValidationException("Wrong recaptcha version!");
-            }
-
-            float recaptchaScore = response.getRiskAnalysis().getScore();
-            if (recaptchaScore < 0.95) {
-                throw new DataValidationException("The reCAPTCHA score is low: " + recaptchaScore);
-            }
-        }
-    }
-
     private void validateReCaptcha(String userResponse, String ipAddress, String recaptchaSecretKey) throws ThingsboardException {
         checkParameter("Recaptcha response", userResponse);
         MultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
@@ -598,6 +551,54 @@ public class SignUpController extends BaseController {
         } catch (RestClientException ex) {
             log.error("Error validating reCAPTCHA. User response: [{}], verification URL: [{}]", userResponse, signUpConfig.getRecaptchaVerificationUrl());
             throw new ThingsboardException("Error validating reCAPTCHA", ex, ThingsboardErrorCode.GENERAL);
+        }
+    }
+
+    private void validateEnterpriseReCaptcha(SignUpRequest signUpRequest, HttpServletRequest request, SelfRegistrationParams selfRegistrationParams)
+            throws IOException {
+        EnterpriseCaptchaParams captcha = (EnterpriseCaptchaParams) selfRegistrationParams.getCaptcha();
+        try (RecaptchaEnterpriseServiceClient client = RecaptchaEnterpriseServiceClient.create(
+                RecaptchaEnterpriseServiceSettings.newBuilder()
+                        .setCredentialsProvider(FixedCredentialsProvider.create(
+                                ServiceAccountCredentials.fromStream(new ByteArrayInputStream(captcha.getServiceAccountCredentials().getBytes()))))
+                        .build())) {
+            String siteKey;
+            if (signUpRequest.getPlatform() == PlatformType.ANDROID) {
+                siteKey = captcha.getAndroidKey();
+            } else if (signUpRequest.getPlatform() == PlatformType.IOS) {
+                siteKey = captcha.getIosKey();
+            } else {
+                log.error("Error validating reCAPTCHA. Wrong platform type: [{}]", signUpRequest.getPlatform());
+                throw new DataValidationException("Error validating reCAPTCHA: platform could not be detected");
+            }
+            Event event = Event.newBuilder()
+                    .setSiteKey(siteKey)
+                    .setToken(signUpRequest.getRecaptchaResponse())
+                    .setUserIpAddress(request.getRemoteAddr())
+                    .setUserAgent(request.getHeader("User-Agent"))
+                    .build();
+
+            CreateAssessmentRequest createAssessmentRequest =
+                    CreateAssessmentRequest.newBuilder()
+                            .setParent(ProjectName.of(captcha.getProjectId()).toString())
+                            .setAssessment(Assessment.newBuilder().setEvent(event).build())
+                            .build();
+
+            Assessment response = client.createAssessment(createAssessmentRequest);
+
+            if (!response.getTokenProperties().getValid()) {
+                log.error("Error validating reCAPTCHA. Invalid reCaptcha response: [{}] ", response.getTokenProperties());
+                throw new DataValidationException("Error validating reCAPTCHA: Invalid reCaptcha response");
+            }
+            if (!response.getTokenProperties().getAction().equals(captcha.getLogActionName())) {
+                log.error("Error validating reCAPTCHA. Wrong recaptcha action name: [{}]", response.getTokenProperties().getAction());
+                throw new DataValidationException("Error validating reCAPTCHA: recaptcha action name");
+            }
+            float recaptchaScore = response.getRiskAnalysis().getScore();
+            if (recaptchaScore < 0.95) {
+                log.error("Error validating reCAPTCHA. Low score: [{}]", recaptchaScore);
+                throw new DataValidationException("Error validating reCAPTCHA: score is low");
+            }
         }
     }
 
