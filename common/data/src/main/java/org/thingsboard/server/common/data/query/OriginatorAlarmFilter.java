@@ -28,14 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.ws.telemetry.cmd.v2;
+package org.thingsboard.server.common.data.query;
 
-public enum CmdUpdateType {
-    ENTITY_DATA,
-    ALARM_DATA,
-    ALARM_COUNT_DATA,
-    ALARM_STATUS,
-    COUNT_DATA,
-    NOTIFICATIONS,
-    NOTIFICATIONS_COUNT
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.id.EntityId;
+
+import java.util.List;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+public class OriginatorAlarmFilter {
+    private EntityId originatorId;
+    private List<String> typeList;
+    private List<AlarmSeverity> severityList;
 }

@@ -30,12 +30,40 @@
  */
 package org.thingsboard.server.service.ws.telemetry.cmd.v2;
 
-public enum CmdUpdateType {
-    ENTITY_DATA,
-    ALARM_DATA,
-    ALARM_COUNT_DATA,
-    ALARM_STATUS,
-    COUNT_DATA,
-    NOTIFICATIONS,
-    NOTIFICATIONS_COUNT
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.ToString;
+import org.thingsboard.server.service.subscription.SubscriptionErrorCode;
+
+@ToString
+@Getter
+public class AlarmStatusUpdate extends CmdUpdate {
+
+    @Getter
+    private boolean active;
+
+    public AlarmStatusUpdate(int cmdId, boolean active) {
+        super(cmdId, SubscriptionErrorCode.NO_ERROR.getCode(), null);
+        this.active = active;
+    }
+
+    public AlarmStatusUpdate(int cmdId, int errorCode, String errorMsg) {
+        super(cmdId, errorCode, errorMsg);
+    }
+
+    @Builder
+    public AlarmStatusUpdate(@JsonProperty("cmdId") int cmdId,
+                             @JsonProperty("present") boolean active,
+                             @JsonProperty("errorCode") int errorCode,
+                             @JsonProperty("errorMsg") String errorMsg) {
+        super(cmdId, errorCode, errorMsg);
+        this.active = active;
+    }
+
+    @Override
+    public CmdUpdateType getCmdUpdateType() {
+        return CmdUpdateType.ALARM_STATUS;
+    }
+
 }
