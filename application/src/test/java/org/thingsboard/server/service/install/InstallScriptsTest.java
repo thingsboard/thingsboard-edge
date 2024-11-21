@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.resource.ResourceService;
@@ -55,7 +56,7 @@ import org.thingsboard.server.dao.usagerecord.ApiLimitService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
-import org.thingsboard.server.service.install.update.ImagesUpdater;
+import org.thingsboard.server.service.install.update.ResourcesUpdater;
 
 import java.nio.file.Path;
 import java.util.Collections;
@@ -91,8 +92,9 @@ class InstallScriptsTest {
     @MockBean
     ImageService imageService;
     @MockBean
-    ImagesUpdater imagesUpdater;
-
+    NotificationSettingsService notificationSettingsService;
+    @MockBean
+    ResourcesUpdater resourcesUpdater;
     @SpyBean
     InstallScripts installScripts;
 

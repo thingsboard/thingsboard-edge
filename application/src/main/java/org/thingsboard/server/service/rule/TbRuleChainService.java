@@ -41,13 +41,14 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainOutputLabelsUsage;
 import org.thingsboard.server.common.data.rule.RuleChainUpdateResult;
 import org.thingsboard.server.common.data.rule.RuleNode;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.List;
 import java.util.Set;
 
 public interface TbRuleChainService {
 
-    RuleChain save(RuleChain ruleChain, User user) throws Exception;
+    RuleChain save(RuleChain ruleChain, SecurityUser user) throws Exception;
 
     void delete(RuleChain ruleChain, User user);
 

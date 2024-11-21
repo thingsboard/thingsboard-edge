@@ -37,6 +37,7 @@ import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
+import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 
 import java.util.List;
@@ -60,9 +61,8 @@ public abstract class AbstractSelfRegistrationParams implements SelfRegistration
     protected Boolean showPrivacyPolicy;
     @Schema(description = "Show or hide 'Terms of Use'")
     protected Boolean showTermsOfUse;
-    @Schema(description = "Email to use for notifications when new user self-registered.")
-    @NotNull
-    protected String notificationEmail;
+    @Schema(description = "Recipient to use for notifications when new user self-registered.")
+    protected NotificationTargetId notificationRecipient;
     @Schema(description = "Prefix to add to created customer")
     protected String customerTitlePrefix;
     @Schema(description = "Id of the customer group customer wil be added to.")

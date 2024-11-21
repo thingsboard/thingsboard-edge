@@ -28,18 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.util;
+package org.thingsboard.server.common.data.notification.info;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.Map;
+
+import static org.thingsboard.server.common.data.util.CollectionsUtil.mapOf;
 
 @Data
-public class JsonNodeProcessingTask {
-    private final String path;
-    private final JsonNode node;
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class UserActivatedNotificationInfo implements NotificationInfo {
 
-    public JsonNodeProcessingTask(String path, JsonNode node) {
-        this.path = path;
-        this.node = node;
+    private String userFullName;
+    private String userEmail;
+
+    @Override
+    public Map<String, String> getTemplateData() {
+        return mapOf(
+                "userFullName", userFullName,
+                "userEmail", userEmail
+        );
     }
+
 }

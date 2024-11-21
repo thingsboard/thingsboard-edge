@@ -53,6 +53,9 @@ import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.mobile.app.MobileApp;
 import org.thingsboard.server.common.data.mobile.app.MobileAppStatus;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
+import org.thingsboard.server.common.data.notification.Notification;
+import org.thingsboard.server.common.data.notification.NotificationDeliveryMethod;
+import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.selfregistration.V2CaptchaParams;
@@ -77,9 +80,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -155,18 +161,21 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         selfRegistrationParams.setCustomerTitlePrefix(CUSTOMER_TITLE_PREFIX);
         selfRegistrationParams.setCustomerGroupId(customerGroup.getId());
         selfRegistrationParams.setCustomMenuId(customMenu.getId());
+        selfRegistrationParams.setNotificationRecipient(createNotificationTarget(currentUserId).getId());
         selfRegistrationParams.setPermissions(Collections.emptyList());
         selfRegistrationParams.setSignUpFields(List.of(new SignUpField(SignUpFieldId.EMAIL, "email", true),
                 new SignUpField(SignUpFieldId.PASSWORD, "password", true)));
 
         doPost("/api/selfRegistration/selfRegistrationParams",
                 selfRegistrationParams, JsonNode.class);
+
+        createNotificationTemplate(NotificationType.USER_REGISTERED, "User registered", "User ${userEmail} was registered", NotificationDeliveryMethod.WEB);
     }
 
     @After
     public void afterTest() throws Exception {
         loginSysAdmin();
-        whiteLabelingService.deleteTenantWhiteLabeling(tenantId);
+        whiteLabelingService.deleteAllTenantWhiteLabeling(tenantId);
 
         customMenuDao.removeAllByIds(idsToRemove);
         idsToRemove = new ArrayList<>();
@@ -286,9 +295,9 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
     protected SignUpRequest createWebSignUpRequest(String email) {
         var signUpRequest = new SignUpRequest();
         signUpRequest.setFields(Map.of(SignUpFieldId.EMAIL, email,
-                SignUpFieldId.FIRST_NAME,"John",
-                SignUpFieldId.LAST_NAME,"Gilmore",
-                SignUpFieldId.PASSWORD,"abcdef123"));
+                SignUpFieldId.FIRST_NAME, "John",
+                SignUpFieldId.LAST_NAME, "Gilmore",
+                SignUpFieldId.PASSWORD, "abcdef123"));
         signUpRequest.setRecaptchaResponse(RECAPTCHA_DUMMY_RESPONSE);
         return signUpRequest;
     }
@@ -296,9 +305,9 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
     protected SignUpRequest createMobileSignUpRequest(String email, String pkgName, String appSecret, PlatformType platformType) {
         var signUpRequest = new SignUpRequest();
         signUpRequest.setFields(Map.of(SignUpFieldId.EMAIL, email,
-                SignUpFieldId.FIRST_NAME,"John",
-                SignUpFieldId.LAST_NAME,"Gilmore",
-                SignUpFieldId.PASSWORD,"abcdef123",
+                SignUpFieldId.FIRST_NAME, "John",
+                SignUpFieldId.LAST_NAME, "Gilmore",
+                SignUpFieldId.PASSWORD, "abcdef123",
                 SignUpFieldId.COUNTRY, "Ukraine",
                 SignUpFieldId.STATE, "Kyiv",
                 SignUpFieldId.PHONE, "5555555555",
@@ -319,6 +328,14 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
                 }
         );
         Assert.assertEquals("Error while doing SignUp", SignUpResult.SUCCESS, result);
+
+        Notification notification = await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> {
+            return getMyNotifications(true, 10).stream()
+                    .filter(n -> n.getType() == NotificationType.USER_REGISTERED)
+                    .findFirst().orElse(null);
+        }, Objects::nonNull);
+        assertThat(notification.getText()).isEqualTo("User %s was registered", signUpRequest.getFields().get(SignUpFieldId.EMAIL));
+        doDelete("/api/notification/" + notification.getUuidId());
     }
 
     private void removeCreatedUser(User user) {
@@ -337,6 +354,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         selfRegistrationParams.setShowTermsOfUse(true);
         selfRegistrationParams.setShowPrivacyPolicy(true);
         selfRegistrationParams.setDomainName("localhost");
+        selfRegistrationParams.setNotificationRecipient(createNotificationTarget(currentUserId).getId());
         selfRegistrationParams.setPermissions(Collections.emptyList());
 
         doPost("/api/selfRegistration/selfRegistrationParams",
@@ -370,7 +388,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         selfRegistrationParams.setShowPrivacyPolicy(true);
         selfRegistrationParams.setShowTermsOfUse(true);
         selfRegistrationParams.setEnabled(true);
-        selfRegistrationParams.setNotificationEmail("testEmail@gmail.com");
+        selfRegistrationParams.setNotificationRecipient(createNotificationTarget(currentUserId).getId());
         selfRegistrationParams.setTermsOfUse("My terms of use");
         selfRegistrationParams.setPrivacyPolicy("My privacy policy");
         selfRegistrationParams.setPermissions(Collections.emptyList());
@@ -383,7 +401,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         redirect.setHost("test");
         redirect.setScheme("scheme");
         selfRegistrationParams.setRedirect(redirect);
-        selfRegistrationParams.setSignUpFields(List.of(new SignUpField(SignUpFieldId.EMAIL, "email",true)));
+        selfRegistrationParams.setSignUpFields(List.of(new SignUpField(SignUpFieldId.EMAIL, "email", true)));
         return selfRegistrationParams;
     }
 
@@ -395,4 +413,5 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         mobileApp.setAppSecret(secret);
         return mobileApp;
     }
+
 }

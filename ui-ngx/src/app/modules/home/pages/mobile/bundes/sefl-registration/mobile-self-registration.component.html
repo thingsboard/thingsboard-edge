@@ -41,16 +41,17 @@
       {{ 'mobile.self-registration.page-title-required' | translate }}
     </mat-error>
   </mat-form-field>
-  <mat-form-field appearance="outline">
-    <mat-label translate>self-registration.notification-email</mat-label>
-    <input matInput type="email" required formControlName="notificationEmail">
-    <mat-error *ngIf="selfRegistrationForm.get('notificationEmail').hasError('required')">
-      {{ 'self-registration.notification-email-required' | translate }}
-    </mat-error>
-    <mat-error *ngIf="selfRegistrationForm.get('notificationEmail').hasError('email')">
-      {{ 'self-registration.notification-email-invalid' | translate }}
-    </mat-error>
-  </mat-form-field>
+  <tb-entity-autocomplete
+    required
+    allowCreateNew
+    useFullEntityId
+    appearance="outline"
+    formControlName="notificationRecipient"
+    labelText="self-registration.notification-recipient"
+    requiredText="self-registration.notification-recipient-required"
+    [entityType]="EntityType.NOTIFICATION_TARGET"
+    (createNew)="createTarget()">
+  </tb-entity-autocomplete>
   <section class="tb-form-panel no-padding-bottom stroked mb-5.5" formGroupName="redirect">
     <section class="tb-form-panel-title" translate>mobile.self-registration.redirect-settings</section>
     <div class="flex flex-row items-center justify-start gap-2">

@@ -264,6 +264,7 @@ export interface WidgetTypeDetails extends WidgetType, ExportableEntity<WidgetTy
   image: string;
   description: string;
   tags: string[];
+  resources?: Array<any>;
 }
 
 export enum DeprecatedFilter {

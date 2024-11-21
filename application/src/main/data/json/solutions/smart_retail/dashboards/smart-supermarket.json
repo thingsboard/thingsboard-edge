@@ -3,6 +3,7 @@
   "image": null,
   "mobileHide": false,
   "mobileOrder": null,
+  "name": "Smart Supermarket",
   "configuration": {
     "description": "",
     "widgets": {
@@ -41,7 +42,7 @@
                     "useSetValueFunction": true,
                     "getValueFunctionBody": "return !value || value === 'Smart Shelf';",
                     "setValueFunctionBody": "return value ? 'Smart Shelf' : 'unset';",
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9maWx0ZXJfY3VzdG9tX2ljb24uc3Zn:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0yLjUgMkMyLjIyMzg2IDIgMiAyLjIyMzg2IDIgMi41VjE3LjVDMiAxNy43NzYxIDIuMjIzODYgMTggMi41IDE4QzIuNzc2MTQgMTggMyAxNy43NzYxIDMgMTcuNVYxN0gxN1YxNy41QzE3IDE3Ljc3NjEgMTcuMjIzOSAxOCAxNy41IDE4QzE3Ljc3NjEgMTggMTggMTcuNzc2MSAxOCAxNy41VjIuNUMxOCAyLjIyMzg2IDE3Ljc3NjEgMiAxNy41IDJDMTcuMjIzOSAyIDE3IDIuMjIzODYgMTcgMi41VjhIMTRDMTQuNTUyMyA4IDE1IDcuNTUyMjggMTUgN1Y0QzE1IDMuNDQ3NzIgMTQuNTUyMyAzIDE0IDNIMTFDMTAuNDQ3NyAzIDEwIDMuNDQ3NzIgMTAgNFY3QzEwIDcuNTUyMjggMTAuNDQ3NyA4IDExIDhIN0M3LjU1MjI4IDggOCA3LjU1MjI4IDggN1Y2QzggNS40NDc3MiA3LjU1MjI4IDUgNyA1SDZDNS40NDc3MiA1IDUgNS40NDc3MiA1IDZWN0M1IDcuNTUyMjggNS40NDc3MiA4IDYgOEgzVjIuNUMzIDIuMjIzODYgMi43NzYxNCAyIDIuNSAyWk0xNyAxNlY5SDNWMTZINkM1LjQ0NzcyIDE2IDUgMTUuNTUyMyA1IDE1VjEyQzUgMTEuNDQ3NyA1LjQ0NzcyIDExIDYgMTFIOUM5LjU1MjI4IDExIDEwIDExLjQ0NzcgMTAgMTJWMTVDMTAgMTUuNTUyMyA5LjU1MjI4IDE2IDkgMTZIMTJDMTEuNDQ3NyAxNiAxMSAxNS41NTIzIDExIDE1VjEzQzExIDEyLjQ0NzcgMTEuNDQ3NyAxMiAxMiAxMkgxNEMxNC41NTIzIDEyIDE1IDEyLjQ0NzcgMTUgMTNWMTVDMTUgMTUuNTUyMyAxNC41NTIzIDE2IDE0IDE2SDE3WiIgZmlsbD0iIzAwMCIvPgo8L3N2Zz4K"
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon.svg"
                   },
                   "_hash": 0.5184545311042434,
                   "units": null,
@@ -73,7 +74,7 @@
                     "useSetValueFunction": true,
                     "getValueFunctionBody": "return !value || value === 'Freezer';",
                     "setValueFunctionBody": "return value ? 'Freezer' : 'unset';",
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9maWx0ZXJfY3VzdG9tX2ljb25fKDEpLnN2Zw==:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iOSIgeT0iMiIgd2lkdGg9IjIiIGhlaWdodD0iMTYiIHJ4PSIxIiBmaWxsPSIjMDAwIi8+CjxwYXRoIGQ9Ik0xMi41IDMuNUwxMCA2TDcuNSAzLjVNMTIuNSAxNi41TDEwIDE0TDcuNSAxNi41IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNMTYuODc5MiA4LjkxNTA5TDEzLjQ2NDEgOC4wMDAwMkwxNC4zNzkyIDQuNTg0OTZNNS42MjA4MiAxNS40MTUxTDYuNTM1ODggMTJMMy4xMjA4MiAxMS4wODUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik01LjYyMDg1IDQuNTg0OTFMNi41MzU5MSA3Ljk5OTk4TDMuMTIwODUgOC45MTUwNE0xNi44NzkyIDExLjA4NDlMMTMuNDY0MSAxMkwxNC4zNzkyIDE1LjQxNSIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHJlY3QgeD0iMTYuNDI4MiIgeT0iNS4xMzM3OSIgd2lkdGg9IjIiIGhlaWdodD0iMTYiIHJ4PSIxIiB0cmFuc2Zvcm09InJvdGF0ZSg2MCAxNi40MjgyIDUuMTMzNzkpIiBmaWxsPSIjMDAwIi8+CjxyZWN0IHg9IjIuNTcxNzgiIHk9IjYuODY2MjEiIHdpZHRoPSIyIiBoZWlnaHQ9IjE2IiByeD0iMSIgdHJhbnNmb3JtPSJyb3RhdGUoLTYwIDIuNTcxNzggNi44NjYyMSkiIGZpbGw9IiMwMDAiLz4KPC9zdmc+Cg=="
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(1).svg"
                   },
                   "_hash": 0.39082762251115444,
                   "units": null,
@@ -103,7 +104,7 @@
                     "useCustomIcon": true,
                     "useGetValueFunction": true,
                     "useSetValueFunction": true,
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9maWx0ZXJfY3VzdG9tX2ljb25fKDIpLnN2Zw==:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xNCA0SDZWMTZIMTRWNFpNOCAxMkM4LjU1MjI4IDEyIDkgMTEuNTUyMyA5IDExQzkgMTAuNDQ3NyA4LjU1MjI4IDEwIDggMTBDNy40NDc3MiAxMCA3IDEwLjQ0NzcgNyAxMUM3IDExLjU1MjMgNy40NDc3MiAxMiA4IDEyWiIgZmlsbD0iIzIxMjEyMSIvPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTE2IDE3VjNDMTYgMi40NDc3MiAxNS41NTIzIDIgMTUgMkg1QzQuNDQ3NzIgMiA0IDIuNDQ3NzIgNCAzVjE3SDMuNUMzLjIyMzg2IDE3IDMgMTcuMjIzOSAzIDE3LjVDMyAxNy43NzYxIDMuMjIzODYgMTggMy41IDE4SDE2LjVDMTYuNzc2MSAxOCAxNyAxNy43NzYxIDE3IDE3LjVDMTcgMTcuMjIzOSAxNi43NzYxIDE3IDE2LjUgMTdIMTZaTTE1IDNINUw1IDE3SDE1VjNaIiBmaWxsPSIjMjEyMTIxIi8+Cjwvc3ZnPgo=",
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(2).svg",
                     "getValueFunctionBody": "return !value || value === 'Door Sensor';",
                     "setValueFunctionBody": "return value ? 'Door Sensor' : 'unset';"
                   },
@@ -135,7 +136,7 @@
                     "useCustomIcon": true,
                     "useGetValueFunction": true,
                     "useSetValueFunction": true,
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9maWx0ZXJfY3VzdG9tX2ljb25fKDMpLnN2Zw==:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIuNSA1QzIuMjIzODYgNSAyIDUuMjIzODYgMiA1LjVDMiA1Ljc3NjE0IDIuMjIzODYgNiAyLjUgNkg0QzQgNi41NTIyOCA0LjQ0NzcyIDcgNSA3SDE1QzE1LjU1MjMgNyAxNiA2LjU1MjI4IDE2IDZIMTcuNUMxNy43NzYxIDYgMTggNS43NzYxNCAxOCA1LjVDMTggNS4yMjM4NiAxNy43NzYxIDUgMTcuNSA1SDIuNVoiIGZpbGw9IiMyMTIxMjEiLz4KPHBhdGggZD0iTTEyLjAwMDEgMTJDMTIuNTUyNCAxMiAxMy4wMDAxIDExLjU1MjMgMTMuMDAwMSAxMUMxMy4wMDAxIDEwLjQ0NzcgMTIuNTUyNCAxMCAxMi4wMDAxIDEwQzExLjQ0NzggMTAgMTEuMDAwMSAxMC40NDc3IDExLjAwMDEgMTFDMTEuMDAwMSAxMS41NTIzIDExLjQ0NzggMTIgMTIuMDAwMSAxMloiIGZpbGw9IiMyMTIxMjEiLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMC4wMDAxIDE2QzE0LjA4MDQgMTYgMTcuNDQ3MiAxMi45NDUzIDE3LjkzODQgOC45OTgwMUMxOC4wMDY2IDguNDQ5OTYgMTcuNTUyNCA4IDE3LjAwMDEgOEgzLjAwMDA5QzIuNDQ3OCA4IDEuOTkzNTMgOC40NDk5NiAyLjA2MTczIDguOTk4MDFDMi41NTI5NSAxMi45NDUzIDUuOTE5NzggMTYgMTAuMDAwMSAxNlpNMTIuMDAwMSAxM0MxMy4xMDQ3IDEzIDE0LjAwMDEgMTIuMTA0NiAxNC4wMDAxIDExQzE0LjAwMDEgOS44OTU0MyAxMy4xMDQ3IDkgMTIuMDAwMSA5QzEwLjg5NTUgOSAxMC4wMDAxIDkuODk1NDMgMTAuMDAwMSAxMUMxMC4wMDAxIDEyLjEwNDYgMTAuODk1NSAxMyAxMi4wMDAxIDEzWiIgZmlsbD0iIzIxMjEyMSIvPgo8L3N2Zz4K",
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(3).svg",
                     "getValueFunctionBody": "return !value || value === 'Motion Sensor';",
                     "setValueFunctionBody": "return value ? 'Motion Sensor' : 'unset';"
                   },
@@ -167,7 +168,7 @@
                     "useCustomIcon": true,
                     "useGetValueFunction": true,
                     "useSetValueFunction": true,
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9maWx0ZXJfY3VzdG9tX2ljb25fKDQpLnN2Zw==:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik05LjY0NDkxIDIuMDgzMTlDOS40ODQ0NCAxLjk4ODggOS4yODQ4MiAxLjk5MTM4IDkuMTI2ODUgMi4wODk4OEM4Ljk2ODg3IDIuMTg4MzkgOC44Nzg3MSAyLjM2NjUgOC44OTI4NSAyLjU1MjEzQzguOTgxNjkgMy43MTg3NiA4Ljc4Nzk1IDQuNTk0MyA4LjQ1MzYzIDUuMzA0ODNDOC4xMTYwNyA2LjAyMjI1IDcuNjIyMDkgNi42MDAwOCA3LjA2Mzg3IDcuMTU3QzYuODg0MDEgNy4zMzY0NCA2LjY5MDA4IDcuNTIwMTMgNi40OTIxNCA3LjcwNzYzQzYuMTAxOTcgOC4wNzcyMSA1LjY5NjE4IDguNDYxNTggNS4zNTE4OSA4Ljg1NzE4QzQuODExMTMgOS40Nzg1MyA0LjM1MDgyIDEwLjE5ODIgNC4xNTc0MSAxMS4xMzFDMy4zNTQ3OCAxNS4wMDIzIDYuNDM5NTIgMTguMTY0OSAxMC4zNjEgMTcuOTgyMkMxMC40MSAxNy45ODA2IDEwLjQ1OTIgMTcuOTc3OSAxMC41MDg4IDE3Ljk3NDFMMTAuNTUgMTcuOTcwOEwxMC41NjczIDE3Ljk2OTVDMTAuNjYzNSAxNy45NjIyIDEwLjc1ODUgMTcuOTUzMiAxMC44NTIzIDE3Ljk0MjdDMTAuODk3IDE3Ljk0MjcgMTAuOTQyMiAxNy45NDA5IDEwLjk4NzggMTcuOTM3NUMxMS4xMzY5IDE3LjkyNjEgMTEuMjczNSAxNy45MDAyIDExLjM5NzYgMTcuODYxNEMxMi45MDI4IDE3LjU3ODcgMTQuMDU3MSAxNi44NTgxIDE0LjgzNiAxNS44MzAyQzE1Ljc0NTMgMTQuNjMwMyAxNi4xMDM2IDEzLjA2NDYgMTUuOTc4MSAxMS40MTUxQzE1LjcyNzUgOC4xMjE1IDEzLjU0NzMgNC4zNzg2NiA5LjY0NDkxIDIuMDgzMTlaTTEyLjEzNzIgMTUuNTMyNkMxMi4xNDg3IDE1LjUyNjkgMTIuMTYwMSAxNS41MjEgMTIuMTcxNCAxNS41MTUyQzEyLjIyMjcgMTUuMjcwNiAxMi4yMzkzIDE1LjAwMDMgMTIuMjE3MiAxNC43MTAxQzEyLjEzNTMgMTMuNjM0NCAxMS41MjQzIDEyLjM3NTIgMTAuMzkxMiAxMS40Mjk4QzEwLjM0NDMgMTEuNjc0MyAxMC4yNzExIDExLjg5NzkgMTAuMTc2NyAxMi4xMDQ1QzkuOTcyNDggMTIuNTUxNSA5LjY4MTE2IDEyLjg5MTUgOS40MDQ1MSAxMy4xNzQ4QzkuMjkxOCAxMy4yOTAyIDkuMTg5NyAxMy4zODkxIDkuMDk0NjEgMTMuNDgxMkM4LjkzNjY2IDEzLjYzNDEgOC43OTgwNCAxMy43Njg0IDguNjYyNDEgMTMuOTI4NEM4LjQ2Njk0IDE0LjE1OTEgOC4zMzU5NSAxNC4zODM5IDguMjgxMTkgMTQuNjU3NUM4LjIwOTA0IDE1LjAxOCA4LjIzMzU3IDE1LjM2MzQgOC4zMzU5NSAxNS42NzI1QzguNjk1MjYgMTUuODE4NiA5LjA4ODQ0IDE1LjkxODUgOS41MDk0OCAxNS45NjMzQzkuNjI2NTUgMTUuNzY0IDkuNzk5ODEgMTUuNjAzNiA5Ljk3Nzc3IDE1LjQzODlDMTAuMzUwNSAxNS4wOTM4IDEwLjc0MzkgMTQuNzI5NyAxMC42ODQ0IDEzLjk0OUMxMS4zOTI5IDE0LjM1NTggMTEuODgxMyAxNC45MzggMTIuMTM3MiAxNS41MzI2Wk0xMy4yMTQzIDE0LjYzNDNMMTMuMjE1OSAxNC42NTYzTDEzLjI0MjEgMTQuNjIyMkMxMy43OTA3IDEzLjg5ODMgMTQuMDgxNiAxMi44NTAzIDEzLjk4MzkgMTEuNTY2OEMxMy44MzAxIDkuNTQ0NSAxMi43MTM4IDcuMTU0NTkgMTAuNjA5NyA1LjI1NTQxQzEwLjUxNDMgNS41NzAyMSAxMC4zOTgxIDUuODY5OTMgMTAuMjYzNCA2LjE1NjI4QzkuNzgwOTggNy4xODE1NyA5LjA5ODY5IDcuOTUyMSA4LjQ3NjUyIDguNTcyODJDOC4yMDg4NSA4LjgzOTg2IDcuOTc2OTQgOS4wNTg0NyA3Ljc2NjEyIDkuMjU3MTlDNy40MzA1OCA5LjU3MzQ4IDcuMTQ4NDYgOS44Mzk0MSA2Ljg2MDY1IDEwLjE3MDFDNi40NTc0MiAxMC42MzM0IDYuMjE2NzggMTEuMDUwMiA2LjExNTg1IDExLjUzN0M1LjgzNTQ2IDEyLjg4OTQgNi4yOTMxMyAxNC4xNjE2IDcuMjM5NDUgMTQuOTk3MUM3LjI0NDIzIDE0LjgyMjIgNy4yNjQyMiAxNC42NDMyIDcuMzAwNjQgMTQuNDYxM0M3LjM5OTIxIDEzLjk2ODcgNy42MzU2NCAxMy41OTMzIDcuODk5NTEgMTMuMjgxOUM4LjA2MzY3IDEzLjA4ODIgOC4yNjY2MSAxMi44OTA4IDguNDQ5MTkgMTIuNzEzMUM4LjUzNTg0IDEyLjYyODggOC42MTc5MiAxMi41NDkgOC42ODkwNyAxMi40NzYxQzguOTMzNDcgMTIuMjI1OCA5LjEzMjk1IDExLjk4MjYgOS4yNjcxMyAxMS42ODlDOS4zOTg0NCAxMS40MDE2IDkuNDc5NjQgMTEuMDM3OSA5LjQ0MTI0IDEwLjUzMzdDOS40MjcwMiAxMC4zNDcgOS41MTgzNSAxMC4xNjggOS42Nzc4OCAxMC4wNjk4QzkuODM3NDEgOS45NzE3NCAxMC4wMzg0IDkuOTcxMDEgMTAuMTk4NiAxMC4wNjhDMTIuMDQ1MSAxMS4xODUxIDEzLjA5MDYgMTMuMDA4MiAxMy4yMTQzIDE0LjYzNDNaIiBmaWxsPSIjMjEyMTIxIi8+Cjwvc3ZnPgo=",
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(4).svg",
                     "getValueFunctionBody": "return !value || value === 'Smoke Sensor';",
                     "setValueFunctionBody": "return value ? 'Smoke Sensor' : 'unset';"
                   },
@@ -280,7 +281,7 @@
                     "useSetValueFunction": true,
                     "getValueFunctionBody": "return !value || value === 'normal';",
                     "setValueFunctionBody": "return value ? 'normal' : 'unset';",
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9zdGF0ZV9maWx0ZXJfY3VzdG9tX2ljb24uc3Zn:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJTdGF0ZSBGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iNiIgZmlsbD0iIzFGOEI0RCIvPgo8L3N2Zz4K"
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_state_filter_custom_icon.svg"
                   },
                   "_hash": 0.39082762251115444,
                   "units": null,
@@ -312,7 +313,7 @@
                     "useSetValueFunction": true,
                     "getValueFunctionBody": "return !value || value === 'major';",
                     "setValueFunctionBody": "return value ? 'major' : 'unset';",
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9zdGF0ZV9maWx0ZXJfY3VzdG9tX2ljb25fKDEpLnN2Zw==:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJTdGF0ZSBGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iNiIgZmlsbD0iI0Q1QzIxQiIvPgo8L3N2Zz4K"
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_state_filter_custom_icon_(1).svg"
                   },
                   "_hash": 0.34454051580229117,
                   "units": null,
@@ -344,7 +345,7 @@
                     "useSetValueFunction": true,
                     "getValueFunctionBody": "return !value || value === 'critical';",
                     "setValueFunctionBody": "return value ? 'critical' : 'unset';",
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9zdGF0ZV9maWx0ZXJfY3VzdG9tX2ljb25fKDIpLnN2Zw==:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJTdGF0ZSBGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iNiIgZmlsbD0iI0U2NEExOSIvPgo8L3N2Zz4K"
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_state_filter_custom_icon_(2).svg"
                   },
                   "_hash": 0.5184545311042434,
                   "units": null,
@@ -376,7 +377,7 @@
                     "useSetValueFunction": true,
                     "getValueFunctionBody": "return !value || value === 'false';",
                     "setValueFunctionBody": "return value ? false : true;",
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9zdGF0ZV9maWx0ZXJfY3VzdG9tX2ljb25fKDMpLnN2Zw==:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJTdGF0ZSBGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwXzI4MzlfNTI1NjQpIj4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iNiIgZmlsbD0iI0NBQzFEMiIvPgo8cGF0aCBkPSJNMS45Mjg5NiAxNi43MjhMMTYuMDcxMSAyLjU4NTg5TDE3LjQ4NTMgNC4wMDAxMUwzLjM0MzE3IDE4LjE0MjJMMS45Mjg5NiAxNi43MjhaIiBmaWxsPSIjQ0FDMUQyIi8+CjxwYXRoIGQ9Ik0yLjEwNjkyIDE2LjMxNzFDMS44MTM5MyAxNi4wMjQxIDEuODEzOTMgMTUuNTQ5MSAyLjEwNjkyIDE1LjI1NjFMMTUuMTg1MiAyLjE3Nzg4QzE1LjQ3ODEgMS44ODQ4OSAxNS45NTMyIDEuODg0ODkgMTYuMjQ2MiAyLjE3Nzg4QzE2LjUzOTIgMi40NzA4OCAxNi41MzkyIDIuOTQ1OTEgMTYuMjQ2MiAzLjIzODlMMy4xNjc5NCAxNi4zMTcxQzIuODc0OTUgMTYuNjEwMSAyLjM5OTkxIDE2LjYxMDEgMi4xMDY5MiAxNi4zMTcxWiIgZmlsbD0id2hpdGUiLz4KPC9nPgo8ZGVmcz4KPGNsaXBQYXRoIGlkPSJjbGlwMF8yODM5XzUyNTY0Ij4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo="
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_state_filter_custom_icon_(3).svg"
                   },
                   "_hash": 0.8262637732306279,
                   "units": null,
@@ -1418,7 +1419,7 @@
             "tooltipOffsetX": 0.5,
             "showPolygon": false,
             "tooltipOffsetY": -0.5,
-            "mapImageUrl": "tb-image:YWlyX3F1YWxpdHlfbW9uaXRvcmluZ19kYXNoYm9hcmRfd2lkZ2V0X25ld19vcGVuc3RyZWV0bWFwX21hcF9pbWFnZS5zdmc=:IkFpciBRdWFsaXR5IE1vbml0b3JpbmciIGRhc2hib2FyZCB3aWRnZXQgIk5ldyBPcGVuU3RyZWV0TWFwIiBtYXAgaW1hZ2U=;data:image/svg+xml;base64,PHN2ZyBpZD0ic3ZnMiIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMTAwIiB3aWR0aD0iMTAwIiB2ZXJzaW9uPSIxLjEiIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgdmlld0JveD0iMCAwIDEwMCAxMDAiPgogPGcgaWQ9ImxheWVyMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtOTUyLjM2KSI+CiAgPHJlY3QgaWQ9InJlY3Q0Njg0IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBoZWlnaHQ9Ijk5LjAxIiB3aWR0aD0iOTkuMDEiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiB5PSI5NTIuODYiIHg9Ii40OTUwNSIgc3Ryb2tlLXdpZHRoPSIuOTkwMTAiIGZpbGw9IiNlZWUiLz4KICA8dGV4dCBpZD0idGV4dDQ2ODYiIHN0eWxlPSJ3b3JkLXNwYWNpbmc6MHB4O2xldHRlci1zcGFjaW5nOjBweDt0ZXh0LWFuY2hvcjptaWRkbGU7dGV4dC1hbGlnbjpjZW50ZXIiIGZvbnQtd2VpZ2h0PSJib2xkIiB4bWw6c3BhY2U9InByZXNlcnZlIiBmb250LXNpemU9IjEwcHgiIGxpbmUtaGVpZ2h0PSIxMjUlIiB5PSI5NzAuNzI4MDkiIHg9IjQ5LjM5NjQ3NyIgZm9udC1mYW1pbHk9IlJvYm90byIgZmlsbD0iIzY2NjY2NiI+PHRzcGFuIGlkPSJ0c3BhbjQ2OTAiIHg9IjUwLjY0NjQ3NyIgeT0iOTcwLjcyODA5Ij5JbWFnZSBiYWNrZ3JvdW5kIDwvdHNwYW4+PHRzcGFuIGlkPSJ0c3BhbjQ2OTIiIHg9IjQ5LjM5NjQ3NyIgeT0iOTgzLjIyODA5Ij5pcyBub3QgY29uZmlndXJlZDwvdHNwYW4+PC90ZXh0PgogIDxyZWN0IGlkPSJyZWN0NDY5NCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgaGVpZ2h0PSIxOS4zNiIgd2lkdGg9IjY5LjM2IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgeT0iOTkyLjY4IiB4PSIxNS4zMiIgc3Ryb2tlLXdpZHRoPSIuNjM5ODYiIGZpbGw9Im5vbmUiLz4KIDwvZz4KPC9zdmc+Cg==",
+            "mapImageUrl": "tb-image;/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
             "disableZoomControl": false
           },
           "title": "Supermarket plan",
@@ -3463,7 +3464,7 @@
                     "useSetValueFunction": true,
                     "getValueFunctionBody": "return !value || value === 'Chiller';",
                     "setValueFunctionBody": "return value ? 'Chiller' : 'unset';",
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9maWx0ZXJfY3VzdG9tX2ljb25fKDUpLnN2Zw==:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMy4wMDAxIDcuNDk5OTRDMTMuMDAwMSA4LjUzNzE0IDEyLjI2NjEgOS4yNTE2IDExLjQ0NTQgOS42NDMzM0MxMS4yODA3IDkuNzIxOTEgMTEuMTE4NSA5Ljc1MDYxIDEwLjk2NTcgOS43Mzg3NEMxMC45ODgxIDkuODIyMDEgMTEuMDAwMSA5LjkwOTU3IDExLjAwMDEgOS45OTk5NEMxMS4wMDAxIDEwLjAzMDQgMTAuOTk4OCAxMC4wNjA1IDEwLjk5NjEgMTAuMDkwMkMxMS4xNTExIDEwLjAzMjIgMTEuMzIyIDkuOTk5OTMgMTEuNTAwMSA5Ljk5OTkzTDEyLjUwMDEgOS45OTk5NEwxMy41IDkuOTk5OTNDMTQuMzI4NSA5Ljk5OTkyIDE1LjAwMDMgMTAuNjk3NSAxNC42NDM1IDExLjQ0NTJDMTQuMjUxNyAxMi4yNjU4IDEzLjUzNzMgMTIuOTk5OSAxMi41MDAxIDEyLjk5OTlDMTEuNDYyOSAxMi45OTk5IDEwLjc0ODQgMTIuMjY1OCAxMC4zNTY3IDExLjQ0NTJDMTAuMjc4MSAxMS4yODA1IDEwLjI0OTQgMTEuMTE4NCAxMC4yNjEzIDEwLjk2NTVDMTAuMTc4IDEwLjk4OCAxMC4wOTA1IDEwLjk5OTkgMTAuMDAwMSAxMC45OTk5QzkuOTY5NjUgMTAuOTk5OSA5LjkzOTQ5IDEwLjk5ODYgOS45MDk3MSAxMC45OTU5QzkuOTY3NzkgMTEuMTUwOSAxMCAxMS4zMjE4IDEwIDExLjVMMTAgMTIuNDk5OUwxMCAxMy40OTk5QzEwLjAwMDEgMTQuMzI4NCA5LjMwMjQ2IDE1LjAwMDIgOC41NTQ4MiAxNC42NDMzQzcuNzM0MTMgMTQuMjUxNiA3LjAwMDA2IDEzLjUzNzEgNy4wMDAwNiAxMi40OTk5QzcuMDAwMDYgMTEuNDYyNyA3LjczNDEzIDEwLjc0ODMgOC41NTQ4MiAxMC4zNTY2QzguNzE5NDggMTAuMjc4IDguODgxNyAxMC4yNDkzIDkuMDM0NTkgMTAuMjYxMUM5LjAxMjEyIDEwLjE3NzkgOS4wMDAxMyAxMC4wOTAzIDkuMDAwMTMgOS45OTk5NEM5LjAwMDEzIDkuOTY5NSA5LjAwMTQ5IDkuOTM5MzggOS4wMDQxNiA5LjkwOTYzQzguODQ5MjEgOS45Njc2NiA4LjY3ODM3IDkuOTk5OSA4LjUwMDI5IDkuOTk5ODlMNy41MDAzMSA5Ljk5OTg4TDYuNTAwMzMgOS45OTk4OUM1LjY3MTg5IDkuOTk5OSA1LjAwMDA2IDkuMzAyMyA1LjM1NjkyIDguNTU0NjdDNS43NDg2NSA3LjczMzk3IDYuNDYzMTEgNi45OTk5MSA3LjUwMDMxIDYuOTk5OTFDOC41Mzc1IDYuOTk5OTEgOS4yNTE5NyA3LjczMzk3IDkuNjQzNyA4LjU1NDY3QzkuNzIyMjcgOC43MTkyOSA5Ljc1MDk4IDguODgxNDkgOS43MzkxMSA5LjAzNDM1QzkuODIyMzIgOS4wMTE5MSA5LjkwOTgzIDguOTk5OTQgMTAuMDAwMSA4Ljk5OTk0QzEwLjAzMDYgOC45OTk5NCAxMC4wNjA3IDkuMDAxMyAxMC4wOTA1IDkuMDAzOTdDMTAuMDMyNCA4Ljg0ODk4IDEwLjAwMDIgOC42NzgwNyAxMC4wMDAyIDguNDk5OTJMMTAuMDAwMiA3LjQ5OTk0TDEwLjAwMDIgNi40OTk5NkMxMC4wMDAxIDUuNjcxNTMgMTAuNjk3NyA0Ljk5OTY5IDExLjQ0NTQgNS4zNTY1NUMxMi4yNjYxIDUuNzQ4MjggMTMuMDAwMSA2LjQ2Mjc0IDEzLjAwMDEgNy40OTk5NFoiIGZpbGw9IiMwMDAiLz4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iOCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+Cg=="
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(5).svg"
                   },
                   "_hash": 0.34454051580229117,
                   "units": null,
@@ -3495,7 +3496,7 @@
                     "useSetValueFunction": true,
                     "getValueFunctionBody": "return !value || value === 'Smart Bin';",
                     "setValueFunctionBody": "return value ? 'Smart Bin' : 'unset';",
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9maWx0ZXJfY3VzdG9tX2ljb25fKDYpLnN2Zw==:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTYuNzE4NDkgMTRDNS4xNTI0MSAxNCA0LjE5Mzk0IDEyLjI4MTYgNS4wMTY4NiAxMC45NDkxTDUuMDk4MTYgMTAuODE3NUM1LjE3Nzk3IDEwLjgzMjcgNS4yNjA5NCAxMC44MzgzIDUuMzQ1NzUgMTAuODMzMkM1Ljg5NzA0IDEwLjgwMDEgNi4zMTcxMyAxMC4zMjY0IDYuMjg0MDQgOS43NzUwOUw2LjIxNzA1IDguNjU5MDZDNi4xOTgzOCA4LjM0Nzk1IDYuMDM1NzEgOC4wNjMzMyA1Ljc3NzE0IDcuODg5MzNDNS41MTg1NiA3LjcxNTMzIDUuMTkzNjMgNy42NzE4NCA0Ljg5ODQgNy43NzE3MUwzLjkzMjM3IDguMDk4NTFDMy40MDkyMSA4LjI3NTQ5IDMuMTI4NTggOC44NDMwNiAzLjMwNTU2IDkuMzY2MjJDMy4zNDIzNyA5LjQ3NTA0IDMuMzk2MDggOS41NzMzNyAzLjQ2Mjc4IDkuNjU5MjdMMy4zMTUyMyA5Ljg5ODE4QzEuNjY5MzkgMTIuNTYzMSAzLjU4NjMzIDE2IDYuNzE4NDkgMTZINy44MzQ4NUM4LjM4NzE0IDE2IDguODM0ODUgMTUuNTUyMyA4LjgzNDg1IDE1QzguODM0ODUgMTQuNDQ3OCA4LjM4NzE0IDE0IDcuODM0ODUgMTRMNi43MTg0OSAxNFoiIGZpbGw9IiMyMTIxMjEiLz4KPHBhdGggZD0iTTEzLjMxMzUgMTMuODQwOUMxNC44Nzg5IDEzLjg4NzMgMTUuODg3OSAxMi4xOTggMTUuMTA0OCAxMC44NDE4TDE0LjU0NjcgOS44NzQ5NUMxNC4yNzA1IDkuMzk2NjYgMTQuNDM0NCA4Ljc4NTA3IDE0LjkxMjcgOC41MDg5M0MxNS4zOTEgOC4yMzI3OSAxNi4wMDI2IDguMzk2NjYgMTYuMjc4NyA4Ljg3NDk1TDE2LjgzNjkgOS44NDE3NUMxOC40MDMgMTIuNTU0MyAxNi4zODQ5IDE1LjkzMjkgMTMuMjU0MiAxNS44NEwxMi45NzM1IDE1LjgzMTdDMTIuOTMyNCAxNS45MzI0IDEyLjg3NDEgMTYuMDI4MSAxMi43OTgzIDE2LjExNDNDMTIuNDMzNyAxNi41MjkyIDExLjgwMTkgMTYuNTY5OSAxMS4zODcgMTYuMjA1NEwxMC42MjEgMTUuNTMyMkMxMC4zODY5IDE1LjMyNjQgMTAuMjYyMSAxNS4wMjMzIDEwLjI4MzUgMTQuNzEyM0MxMC4zMDQ5IDE0LjQwMTQgMTAuNDcgMTQuMTE4MiAxMC43MzAxIDEzLjk0NjVMMTEuNjYzMiAxMy4zMzA1QzEyLjEyNCAxMy4wMjYyIDEyLjc0NDQgMTMuMTUzMSAxMy4wNDg3IDEzLjYxNEMxMy4wOTU1IDEzLjY4NDkgMTMuMTMyMSAxMy43NTk2IDEzLjE1ODggMTMuODM2M0wxMy4zMTM1IDEzLjg0MDlaIiBmaWxsPSIjMjEyMTIxIi8+CjxwYXRoIGQ9Ik0xMS42Njk2IDUuMjEwMDJDMTAuOTI3MiAzLjgzMTEzIDguOTU5NjggMy44MDE5NSA4LjE3NjY0IDUuMTU4MjFMNy42MTg0NiA2LjEyNTAxQzcuMzQyMzIgNi42MDMzIDYuNzMwNzMgNi43NjcxOCA2LjI1MjQ0IDYuNDkxMDRDNS43NzQxNCA2LjIxNDg5IDUuNjEwMjcgNS42MDMzIDUuODg2NDEgNS4xMjUwMUw2LjQ0NDU5IDQuMTU4MjFDOC4wMTA2NyAxLjQ0NTY4IDExLjk0NTYgMS41MDQwNCAxMy40MzA2IDQuMjYxODNMMTMuNTYzNyA0LjUwOTA3QzEzLjY3MTUgNC40OTQyNSAxMy43ODM1IDQuNDk2OSAxMy44OTYxIDQuNTE5NDNDMTQuNDM3NyA0LjYyNzc0IDE0Ljc4ODkgNS4xNTQ1NyAxNC42ODA2IDUuNjk2MTNMMTQuNDgwNiA2LjY5NjEzQzE0LjQxOTUgNy4wMDE3NSAxNC4yMTkzIDcuMjYxMzkgMTMuOTM5MyA3LjM5ODMzQzEzLjY1OTQgNy41MzUyNiAxMy4zMzE1IDcuNTMzODIgMTMuMDUyOCA3LjM5NDQ0TDEyLjA1MjggNi44OTQ0NEMxMS41NTg4IDYuNjQ3NDUgMTEuMzU4NiA2LjA0Njc4IDExLjYwNTYgNS41NTI4QzExLjY0MzYgNS40NzY4MSAxMS42ODk5IDUuNDA3NzcgMTEuNzQzIDUuMzQ2MjRMMTEuNjY5NiA1LjIxMDAyWiIgZmlsbD0iIzIxMjEyMSIvPgo8L3N2Zz4K"
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(6).svg"
                   },
                   "_hash": 0.49298504090043105,
                   "units": null,
@@ -3525,7 +3526,7 @@
                     "useCustomIcon": true,
                     "useGetValueFunction": true,
                     "useSetValueFunction": true,
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9maWx0ZXJfY3VzdG9tX2ljb25fKDcpLnN2Zw==:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE0LjYzNjMgMC40NTMyMTJDMTQuODIyOCAwLjIxMDI1NyAxNS4xNzcyIDAuMjEwMjU3IDE1LjM2MzcgMC40NTMyMTNDMTUuOTQwNCAxLjIwNDQgMTcgMi43MzA1NyAxNyAzLjgwMzczQzE3IDUuMDI3MjMgMTYuMTE0MyA1Ljk5OTgyIDE1IDUuOTk5ODJDMTMuODg1NyA1Ljk5OTgyIDEzIDUuMDI3MjMgMTMgMy44MDM3M0MxMyAyLjczMDU3IDE0LjA1OTYgMS4yMDQ0IDE0LjYzNjMgMC40NTMyMTJaIiBmaWxsPSIjMjEyMTIxIi8+CjxwYXRoIGQ9Ik04LjMwMTcgMi43NjA3M0M4LjY3Nzg4IDIuMzM3OTggOS4zMjIxMiAyLjMzNzk4IDkuNjk4MyAyLjc2MDczQzExLjI4MDEgNC41MzgzMiAxNSA5LjA0NzkgMTUgMTIuMTQzN0MxNSAxNS40MDY0IDEyLjM0MjcgMTggOSAxOEM1LjY1NzI1IDE4IDMgMTUuNDA2NCAzIDEyLjE0MzdDMyA5LjA0NzkgNi43MTk5NCA0LjUzODMyIDguMzAxNyAyLjc2MDczWiIgZmlsbD0iIzIxMjEyMSIvPgo8L3N2Zz4K",
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(7).svg",
                     "getValueFunctionBody": "return !value || value === 'Liquid Level Sensor';",
                     "setValueFunctionBody": "return value ? 'Liquid Level Sensor' : 'unset';"
                   },
@@ -3557,7 +3558,7 @@
                     "useCustomIcon": true,
                     "useGetValueFunction": true,
                     "useSetValueFunction": true,
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9maWx0ZXJfY3VzdG9tX2ljb25fKDgpLnN2Zw==:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTcgMy41QzcgNC4zMjg0MyA2LjMyODQzIDUgNS41IDVDNC42NzE1NyA1IDQgNC4zMjg0MyA0IDMuNUM0IDIuNjcxNTcgNC42NzE1NyAyIDUuNSAyQzYuMzI4NDMgMiA3IDIuNjcxNTcgNyAzLjVaIiBmaWxsPSIjMjEyMTIxIi8+CjxwYXRoIGQ9Ik0zIDEyQzIuNDQ3NzIgMTIgMiAxMS41NTIzIDIgMTFMMiA3Ljg4NjUyQzIgNi44NDQ2MiAyLjg0NDYyIDYgMy44ODY1MiA2QzMuOTA1MzUgNiAzLjkyNDAzIDYuMDAwNTUgMy45NDI1NSA2LjAwMTYyQzMuOTYxNTcgNi4wMDA1NSAzLjk4MDcyIDYgNCA2SDdDNy4wMTkyOCA2IDcuMDM4NDMgNi4wMDA1NSA3LjA1NzQ1IDYuMDAxNjJDNy4wNzU5NyA2LjAwMDU1IDcuMDk0NjUgNiA3LjExMzQ4IDZDOC4xNTUzOCA2IDkgNi44NDQ2MiA5IDcuODg2NTJWMTFDOSAxMS41NTIzIDguNTUyMjkgMTIgOCAxMlYxN0M4IDE3LjU1MjMgNy41NTIyOCAxOCA3IDE4QzYuNDQ3NzIgMTggNiAxNy41NTIzIDYgMTdMNiAxNEg1VjE3QzUgMTcuNTUyMyA0LjU1MjI4IDE4IDQgMThDMy40NDc3MiAxOCAzIDE3LjU1MjMgMyAxN1YxMloiIGZpbGw9IiMyMTIxMjEiLz4KPHBhdGggZD0iTTE2IDE4QzE1LjQ0NzcgMTggMTUgMTcuNTUyMyAxNSAxN1YxNEgxNFYxN0MxNCAxNy41NTIzIDEzLjU1MjMgMTggMTMgMThDMTIuNDQ3NyAxOCAxMiAxNy41NTIzIDEyIDE3VjE0SDEwLjcyMTVDMTAuMzcyNCAxNCAxMC4xMzA4IDEzLjY1MTMgMTAuMjUzMyAxMy4zMjQ0TDEyLjQ3MzMgNy40MDQ0OUMxMi43OTAxIDYuNTU5NjggMTMuNTk3NyA2IDE0LjUgNkMxNS40MDIzIDYgMTYuMjA5OSA2LjU1OTY4IDE2LjUyNjcgNy40MDQ0OUwxOC43NDY3IDEzLjMyNDRDMTguODY5MiAxMy42NTEzIDE4LjYyNzYgMTQgMTguMjc4NSAxNEgxN1YxN0MxNyAxNy41NTIzIDE2LjU1MjMgMTggMTYgMThaIiBmaWxsPSIjMjEyMTIxIi8+CjxwYXRoIGQ9Ik0xNC41IDVDMTUuMzI4NCA1IDE2IDQuMzI4NDMgMTYgMy41QzE2IDIuNjcxNTcgMTUuMzI4NCAyIDE0LjUgMkMxMy42NzE2IDIgMTMgMi42NzE1NyAxMyAzLjVDMTMgNC4zMjg0MyAxMy42NzE2IDUgMTQuNSA1WiIgZmlsbD0iIzIxMjEyMSIvPgo8L3N2Zz4K",
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(8).svg",
                     "getValueFunctionBody": "return !value || value === 'Occupancy Sensor';",
                     "setValueFunctionBody": "return value ? 'Occupancy Sensor' : 'unset';"
                   },
@@ -5537,7 +5538,7 @@
                     "useSetValueFunction": true,
                     "getValueFunctionBody": "return !value || value === 'normal';",
                     "setValueFunctionBody": "return value ? 'normal' : 'unset';",
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9zdGF0ZV9maWx0ZXJfY3VzdG9tX2ljb24uc3Zn:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJTdGF0ZSBGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iNiIgZmlsbD0iIzFGOEI0RCIvPgo8L3N2Zz4K"
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_state_filter_custom_icon.svg"
                   },
                   "_hash": 0.39082762251115444,
                   "units": null,
@@ -5569,7 +5570,7 @@
                     "useSetValueFunction": true,
                     "getValueFunctionBody": "return !value || value === 'major';",
                     "setValueFunctionBody": "return value ? 'major' : 'unset';",
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9zdGF0ZV9maWx0ZXJfY3VzdG9tX2ljb25fKDEpLnN2Zw==:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJTdGF0ZSBGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iNiIgZmlsbD0iI0Q1QzIxQiIvPgo8L3N2Zz4K"
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_state_filter_custom_icon_(1).svg"
                   },
                   "_hash": 0.34454051580229117,
                   "units": null,
@@ -5601,7 +5602,7 @@
                     "useSetValueFunction": true,
                     "getValueFunctionBody": "return !value || value === 'critical';",
                     "setValueFunctionBody": "return value ? 'critical' : 'unset';",
-                    "customIcon": "tb-image:c21hcnRfc3VwZXJtYXJrZXRfZGFzaGJvYXJkX3dpZGdldF9zdGF0ZV9maWx0ZXJfY3VzdG9tX2ljb25fKDIpLnN2Zw==:IlNtYXJ0IFN1cGVybWFya2V0IiBkYXNoYm9hcmQgd2lkZ2V0ICJTdGF0ZSBGaWx0ZXIiIGN1c3RvbSBpY29u;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iNiIgZmlsbD0iI0U2NEExOSIvPgo8L3N2Zz4K"
+                    "customIcon": "tb-image;/api/images/system/smart_supermarket_dashboard_widget_state_filter_custom_icon_(2).svg"
                   },
                   "_hash": 0.5184545311042434,
                   "units": null,
@@ -13395,5 +13396,160 @@
       "dashboardCss": ".tb-widget-container > .tb-widget {\n    border-radius: 8px;\n}\n\ngridster-item:not(.tb-noselect) > .tb-widget-container > .tb-widget {\n    cursor: default !important;\n}\n\n.tb-widget-container > .tb-widget .tb-table-widget .mat-mdc-row {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-legend-keys {\n    cursor: pointer;\n}\n\n.tb-widget-container > .tb-widget .tb-markdown-view .tb-progress-cover, .tb-widget-container > .tb-widget .tb-markdown-view .mat-drawer-container {\n    background-color: #fff;\n}\n\n.tb-widget-container > .tb-widget .tb-markdown-view div, .tb-widget-container > .tb-widget .tb-markdown-view p {\n    line-height: normal;\n}\n"
     }
   },
-  "name": "Smart Supermarket"
+  "resources": [
+    {
+      "link": "/api/images/system/air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
+      "title": "\"Air Quality Monitoring\" dashboard widget \"New OpenStreetMap\" map image",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "air_quality_monitoring_dashboard_widget_new_openstreetmap_map_image.svg",
+      "publicResourceKey": "tqOwYO62300IxbMN7XadhrP23toIW8W4",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyBpZD0ic3ZnMiIgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIGhlaWdodD0iMTAwIiB3aWR0aD0iMTAwIiB2ZXJzaW9uPSIxLjEiIHhtbG5zOmNjPSJodHRwOi8vY3JlYXRpdmVjb21tb25zLm9yZy9ucyMiIHhtbG5zOmRjPSJodHRwOi8vcHVybC5vcmcvZGMvZWxlbWVudHMvMS4xLyIgdmlld0JveD0iMCAwIDEwMCAxMDAiPgogPGcgaWQ9ImxheWVyMSIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtOTUyLjM2KSI+CiAgPHJlY3QgaWQ9InJlY3Q0Njg0IiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBoZWlnaHQ9Ijk5LjAxIiB3aWR0aD0iOTkuMDEiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiB5PSI5NTIuODYiIHg9Ii40OTUwNSIgc3Ryb2tlLXdpZHRoPSIuOTkwMTAiIGZpbGw9IiNlZWUiLz4KICA8dGV4dCBpZD0idGV4dDQ2ODYiIHN0eWxlPSJ3b3JkLXNwYWNpbmc6MHB4O2xldHRlci1zcGFjaW5nOjBweDt0ZXh0LWFuY2hvcjptaWRkbGU7dGV4dC1hbGlnbjpjZW50ZXIiIGZvbnQtd2VpZ2h0PSJib2xkIiB4bWw6c3BhY2U9InByZXNlcnZlIiBmb250LXNpemU9IjEwcHgiIGxpbmUtaGVpZ2h0PSIxMjUlIiB5PSI5NzAuNzI4MDkiIHg9IjQ5LjM5NjQ3NyIgZm9udC1mYW1pbHk9IlJvYm90byIgZmlsbD0iIzY2NjY2NiI+PHRzcGFuIGlkPSJ0c3BhbjQ2OTAiIHg9IjUwLjY0NjQ3NyIgeT0iOTcwLjcyODA5Ij5JbWFnZSBiYWNrZ3JvdW5kIDwvdHNwYW4+PHRzcGFuIGlkPSJ0c3BhbjQ2OTIiIHg9IjQ5LjM5NjQ3NyIgeT0iOTgzLjIyODA5Ij5pcyBub3QgY29uZmlndXJlZDwvdHNwYW4+PC90ZXh0PgogIDxyZWN0IGlkPSJyZWN0NDY5NCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgaGVpZ2h0PSIxOS4zNiIgd2lkdGg9IjY5LjM2IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgeT0iOTkyLjY4IiB4PSIxNS4zMiIgc3Ryb2tlLXdpZHRoPSIuNjM5ODYiIGZpbGw9Im5vbmUiLz4KIDwvZz4KPC9zdmc+Cg==",
+      "public": true
+    },
+    {
+      "link": "/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon.svg",
+      "title": "\"Smart Supermarket\" dashboard widget \"Filter\" custom icon",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "smart_supermarket_dashboard_widget_filter_custom_icon.svg",
+      "publicResourceKey": "alF3xARfzlSi0pu6DFH1RiAsBQTTr4t9",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0yLjUgMkMyLjIyMzg2IDIgMiAyLjIyMzg2IDIgMi41VjE3LjVDMiAxNy43NzYxIDIuMjIzODYgMTggMi41IDE4QzIuNzc2MTQgMTggMyAxNy43NzYxIDMgMTcuNVYxN0gxN1YxNy41QzE3IDE3Ljc3NjEgMTcuMjIzOSAxOCAxNy41IDE4QzE3Ljc3NjEgMTggMTggMTcuNzc2MSAxOCAxNy41VjIuNUMxOCAyLjIyMzg2IDE3Ljc3NjEgMiAxNy41IDJDMTcuMjIzOSAyIDE3IDIuMjIzODYgMTcgMi41VjhIMTRDMTQuNTUyMyA4IDE1IDcuNTUyMjggMTUgN1Y0QzE1IDMuNDQ3NzIgMTQuNTUyMyAzIDE0IDNIMTFDMTAuNDQ3NyAzIDEwIDMuNDQ3NzIgMTAgNFY3QzEwIDcuNTUyMjggMTAuNDQ3NyA4IDExIDhIN0M3LjU1MjI4IDggOCA3LjU1MjI4IDggN1Y2QzggNS40NDc3MiA3LjU1MjI4IDUgNyA1SDZDNS40NDc3MiA1IDUgNS40NDc3MiA1IDZWN0M1IDcuNTUyMjggNS40NDc3MiA4IDYgOEgzVjIuNUMzIDIuMjIzODYgMi43NzYxNCAyIDIuNSAyWk0xNyAxNlY5SDNWMTZINkM1LjQ0NzcyIDE2IDUgMTUuNTUyMyA1IDE1VjEyQzUgMTEuNDQ3NyA1LjQ0NzcyIDExIDYgMTFIOUM5LjU1MjI4IDExIDEwIDExLjQ0NzcgMTAgMTJWMTVDMTAgMTUuNTUyMyA5LjU1MjI4IDE2IDkgMTZIMTJDMTEuNDQ3NyAxNiAxMSAxNS41NTIzIDExIDE1VjEzQzExIDEyLjQ0NzcgMTEuNDQ3NyAxMiAxMiAxMkgxNEMxNC41NTIzIDEyIDE1IDEyLjQ0NzcgMTUgMTNWMTVDMTUgMTUuNTUyMyAxNC41NTIzIDE2IDE0IDE2SDE3WiIgZmlsbD0iIzAwMCIvPgo8L3N2Zz4K",
+      "public": true
+    },
+    {
+      "link": "/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(1).svg",
+      "title": "\"Smart Supermarket\" dashboard widget \"Filter\" custom icon",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "smart_supermarket_dashboard_widget_filter_custom_icon_(1).svg",
+      "publicResourceKey": "YiI8vkFPdiTHqk2tglafu1ql4blDJzpD",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iOSIgeT0iMiIgd2lkdGg9IjIiIGhlaWdodD0iMTYiIHJ4PSIxIiBmaWxsPSIjMDAwIi8+CjxwYXRoIGQ9Ik0xMi41IDMuNUwxMCA2TDcuNSAzLjVNMTIuNSAxNi41TDEwIDE0TDcuNSAxNi41IiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNMTYuODc5MiA4LjkxNTA5TDEzLjQ2NDEgOC4wMDAwMkwxNC4zNzkyIDQuNTg0OTZNNS42MjA4MiAxNS40MTUxTDYuNTM1ODggMTJMMy4xMjA4MiAxMS4wODUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik01LjYyMDg1IDQuNTg0OTFMNi41MzU5MSA3Ljk5OTk4TDMuMTIwODUgOC45MTUwNE0xNi44NzkyIDExLjA4NDlMMTMuNDY0MSAxMkwxNC4zNzkyIDE1LjQxNSIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHJlY3QgeD0iMTYuNDI4MiIgeT0iNS4xMzM3OSIgd2lkdGg9IjIiIGhlaWdodD0iMTYiIHJ4PSIxIiB0cmFuc2Zvcm09InJvdGF0ZSg2MCAxNi40MjgyIDUuMTMzNzkpIiBmaWxsPSIjMDAwIi8+CjxyZWN0IHg9IjIuNTcxNzgiIHk9IjYuODY2MjEiIHdpZHRoPSIyIiBoZWlnaHQ9IjE2IiByeD0iMSIgdHJhbnNmb3JtPSJyb3RhdGUoLTYwIDIuNTcxNzggNi44NjYyMSkiIGZpbGw9IiMwMDAiLz4KPC9zdmc+Cg==",
+      "public": true
+    },
+    {
+      "link": "/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(2).svg",
+      "title": "\"Smart Supermarket\" dashboard widget \"Filter\" custom icon",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "smart_supermarket_dashboard_widget_filter_custom_icon_(2).svg",
+      "publicResourceKey": "PWuuVjDHJy4AkJzj5eG38Ete9jPCQvn7",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xNCA0SDZWMTZIMTRWNFpNOCAxMkM4LjU1MjI4IDEyIDkgMTEuNTUyMyA5IDExQzkgMTAuNDQ3NyA4LjU1MjI4IDEwIDggMTBDNy40NDc3MiAxMCA3IDEwLjQ0NzcgNyAxMUM3IDExLjU1MjMgNy40NDc3MiAxMiA4IDEyWiIgZmlsbD0iIzIxMjEyMSIvPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTE2IDE3VjNDMTYgMi40NDc3MiAxNS41NTIzIDIgMTUgMkg1QzQuNDQ3NzIgMiA0IDIuNDQ3NzIgNCAzVjE3SDMuNUMzLjIyMzg2IDE3IDMgMTcuMjIzOSAzIDE3LjVDMyAxNy43NzYxIDMuMjIzODYgMTggMy41IDE4SDE2LjVDMTYuNzc2MSAxOCAxNyAxNy43NzYxIDE3IDE3LjVDMTcgMTcuMjIzOSAxNi43NzYxIDE3IDE2LjUgMTdIMTZaTTE1IDNINUw1IDE3SDE1VjNaIiBmaWxsPSIjMjEyMTIxIi8+Cjwvc3ZnPgo=",
+      "public": true
+    },
+    {
+      "link": "/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(3).svg",
+      "title": "\"Smart Supermarket\" dashboard widget \"Filter\" custom icon",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "smart_supermarket_dashboard_widget_filter_custom_icon_(3).svg",
+      "publicResourceKey": "HjCAWE3CFyNM5jReqlGoFt5AdVCN4uFx",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIuNSA1QzIuMjIzODYgNSAyIDUuMjIzODYgMiA1LjVDMiA1Ljc3NjE0IDIuMjIzODYgNiAyLjUgNkg0QzQgNi41NTIyOCA0LjQ0NzcyIDcgNSA3SDE1QzE1LjU1MjMgNyAxNiA2LjU1MjI4IDE2IDZIMTcuNUMxNy43NzYxIDYgMTggNS43NzYxNCAxOCA1LjVDMTggNS4yMjM4NiAxNy43NzYxIDUgMTcuNSA1SDIuNVoiIGZpbGw9IiMyMTIxMjEiLz4KPHBhdGggZD0iTTEyLjAwMDEgMTJDMTIuNTUyNCAxMiAxMy4wMDAxIDExLjU1MjMgMTMuMDAwMSAxMUMxMy4wMDAxIDEwLjQ0NzcgMTIuNTUyNCAxMCAxMi4wMDAxIDEwQzExLjQ0NzggMTAgMTEuMDAwMSAxMC40NDc3IDExLjAwMDEgMTFDMTEuMDAwMSAxMS41NTIzIDExLjQ0NzggMTIgMTIuMDAwMSAxMloiIGZpbGw9IiMyMTIxMjEiLz4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMC4wMDAxIDE2QzE0LjA4MDQgMTYgMTcuNDQ3MiAxMi45NDUzIDE3LjkzODQgOC45OTgwMUMxOC4wMDY2IDguNDQ5OTYgMTcuNTUyNCA4IDE3LjAwMDEgOEgzLjAwMDA5QzIuNDQ3OCA4IDEuOTkzNTMgOC40NDk5NiAyLjA2MTczIDguOTk4MDFDMi41NTI5NSAxMi45NDUzIDUuOTE5NzggMTYgMTAuMDAwMSAxNlpNMTIuMDAwMSAxM0MxMy4xMDQ3IDEzIDE0LjAwMDEgMTIuMTA0NiAxNC4wMDAxIDExQzE0LjAwMDEgOS44OTU0MyAxMy4xMDQ3IDkgMTIuMDAwMSA5QzEwLjg5NTUgOSAxMC4wMDAxIDkuODk1NDMgMTAuMDAwMSAxMUMxMC4wMDAxIDEyLjEwNDYgMTAuODk1NSAxMyAxMi4wMDAxIDEzWiIgZmlsbD0iIzIxMjEyMSIvPgo8L3N2Zz4K",
+      "public": true
+    },
+    {
+      "link": "/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(4).svg",
+      "title": "\"Smart Supermarket\" dashboard widget \"Filter\" custom icon",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "smart_supermarket_dashboard_widget_filter_custom_icon_(4).svg",
+      "publicResourceKey": "q89HelRlXGAxwoPDWSJhR6wS2hXNaZEQ",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik05LjY0NDkxIDIuMDgzMTlDOS40ODQ0NCAxLjk4ODggOS4yODQ4MiAxLjk5MTM4IDkuMTI2ODUgMi4wODk4OEM4Ljk2ODg3IDIuMTg4MzkgOC44Nzg3MSAyLjM2NjUgOC44OTI4NSAyLjU1MjEzQzguOTgxNjkgMy43MTg3NiA4Ljc4Nzk1IDQuNTk0MyA4LjQ1MzYzIDUuMzA0ODNDOC4xMTYwNyA2LjAyMjI1IDcuNjIyMDkgNi42MDAwOCA3LjA2Mzg3IDcuMTU3QzYuODg0MDEgNy4zMzY0NCA2LjY5MDA4IDcuNTIwMTMgNi40OTIxNCA3LjcwNzYzQzYuMTAxOTcgOC4wNzcyMSA1LjY5NjE4IDguNDYxNTggNS4zNTE4OSA4Ljg1NzE4QzQuODExMTMgOS40Nzg1MyA0LjM1MDgyIDEwLjE5ODIgNC4xNTc0MSAxMS4xMzFDMy4zNTQ3OCAxNS4wMDIzIDYuNDM5NTIgMTguMTY0OSAxMC4zNjEgMTcuOTgyMkMxMC40MSAxNy45ODA2IDEwLjQ1OTIgMTcuOTc3OSAxMC41MDg4IDE3Ljk3NDFMMTAuNTUgMTcuOTcwOEwxMC41NjczIDE3Ljk2OTVDMTAuNjYzNSAxNy45NjIyIDEwLjc1ODUgMTcuOTUzMiAxMC44NTIzIDE3Ljk0MjdDMTAuODk3IDE3Ljk0MjcgMTAuOTQyMiAxNy45NDA5IDEwLjk4NzggMTcuOTM3NUMxMS4xMzY5IDE3LjkyNjEgMTEuMjczNSAxNy45MDAyIDExLjM5NzYgMTcuODYxNEMxMi45MDI4IDE3LjU3ODcgMTQuMDU3MSAxNi44NTgxIDE0LjgzNiAxNS44MzAyQzE1Ljc0NTMgMTQuNjMwMyAxNi4xMDM2IDEzLjA2NDYgMTUuOTc4MSAxMS40MTUxQzE1LjcyNzUgOC4xMjE1IDEzLjU0NzMgNC4zNzg2NiA5LjY0NDkxIDIuMDgzMTlaTTEyLjEzNzIgMTUuNTMyNkMxMi4xNDg3IDE1LjUyNjkgMTIuMTYwMSAxNS41MjEgMTIuMTcxNCAxNS41MTUyQzEyLjIyMjcgMTUuMjcwNiAxMi4yMzkzIDE1LjAwMDMgMTIuMjE3MiAxNC43MTAxQzEyLjEzNTMgMTMuNjM0NCAxMS41MjQzIDEyLjM3NTIgMTAuMzkxMiAxMS40Mjk4QzEwLjM0NDMgMTEuNjc0MyAxMC4yNzExIDExLjg5NzkgMTAuMTc2NyAxMi4xMDQ1QzkuOTcyNDggMTIuNTUxNSA5LjY4MTE2IDEyLjg5MTUgOS40MDQ1MSAxMy4xNzQ4QzkuMjkxOCAxMy4yOTAyIDkuMTg5NyAxMy4zODkxIDkuMDk0NjEgMTMuNDgxMkM4LjkzNjY2IDEzLjYzNDEgOC43OTgwNCAxMy43Njg0IDguNjYyNDEgMTMuOTI4NEM4LjQ2Njk0IDE0LjE1OTEgOC4zMzU5NSAxNC4zODM5IDguMjgxMTkgMTQuNjU3NUM4LjIwOTA0IDE1LjAxOCA4LjIzMzU3IDE1LjM2MzQgOC4zMzU5NSAxNS42NzI1QzguNjk1MjYgMTUuODE4NiA5LjA4ODQ0IDE1LjkxODUgOS41MDk0OCAxNS45NjMzQzkuNjI2NTUgMTUuNzY0IDkuNzk5ODEgMTUuNjAzNiA5Ljk3Nzc3IDE1LjQzODlDMTAuMzUwNSAxNS4wOTM4IDEwLjc0MzkgMTQuNzI5NyAxMC42ODQ0IDEzLjk0OUMxMS4zOTI5IDE0LjM1NTggMTEuODgxMyAxNC45MzggMTIuMTM3MiAxNS41MzI2Wk0xMy4yMTQzIDE0LjYzNDNMMTMuMjE1OSAxNC42NTYzTDEzLjI0MjEgMTQuNjIyMkMxMy43OTA3IDEzLjg5ODMgMTQuMDgxNiAxMi44NTAzIDEzLjk4MzkgMTEuNTY2OEMxMy44MzAxIDkuNTQ0NSAxMi43MTM4IDcuMTU0NTkgMTAuNjA5NyA1LjI1NTQxQzEwLjUxNDMgNS41NzAyMSAxMC4zOTgxIDUuODY5OTMgMTAuMjYzNCA2LjE1NjI4QzkuNzgwOTggNy4xODE1NyA5LjA5ODY5IDcuOTUyMSA4LjQ3NjUyIDguNTcyODJDOC4yMDg4NSA4LjgzOTg2IDcuOTc2OTQgOS4wNTg0NyA3Ljc2NjEyIDkuMjU3MTlDNy40MzA1OCA5LjU3MzQ4IDcuMTQ4NDYgOS44Mzk0MSA2Ljg2MDY1IDEwLjE3MDFDNi40NTc0MiAxMC42MzM0IDYuMjE2NzggMTEuMDUwMiA2LjExNTg1IDExLjUzN0M1LjgzNTQ2IDEyLjg4OTQgNi4yOTMxMyAxNC4xNjE2IDcuMjM5NDUgMTQuOTk3MUM3LjI0NDIzIDE0LjgyMjIgNy4yNjQyMiAxNC42NDMyIDcuMzAwNjQgMTQuNDYxM0M3LjM5OTIxIDEzLjk2ODcgNy42MzU2NCAxMy41OTMzIDcuODk5NTEgMTMuMjgxOUM4LjA2MzY3IDEzLjA4ODIgOC4yNjY2MSAxMi44OTA4IDguNDQ5MTkgMTIuNzEzMUM4LjUzNTg0IDEyLjYyODggOC42MTc5MiAxMi41NDkgOC42ODkwNyAxMi40NzYxQzguOTMzNDcgMTIuMjI1OCA5LjEzMjk1IDExLjk4MjYgOS4yNjcxMyAxMS42ODlDOS4zOTg0NCAxMS40MDE2IDkuNDc5NjQgMTEuMDM3OSA5LjQ0MTI0IDEwLjUzMzdDOS40MjcwMiAxMC4zNDcgOS41MTgzNSAxMC4xNjggOS42Nzc4OCAxMC4wNjk4QzkuODM3NDEgOS45NzE3NCAxMC4wMzg0IDkuOTcxMDEgMTAuMTk4NiAxMC4wNjhDMTIuMDQ1MSAxMS4xODUxIDEzLjA5MDYgMTMuMDA4MiAxMy4yMTQzIDE0LjYzNDNaIiBmaWxsPSIjMjEyMTIxIi8+Cjwvc3ZnPgo=",
+      "public": true
+    },
+    {
+      "link": "/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(5).svg",
+      "title": "\"Smart Supermarket\" dashboard widget \"Filter\" custom icon",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "smart_supermarket_dashboard_widget_filter_custom_icon_(5).svg",
+      "publicResourceKey": "KpPQNrxumQAF19JTfA3hRWwthQuGBRGN",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMy4wMDAxIDcuNDk5OTRDMTMuMDAwMSA4LjUzNzE0IDEyLjI2NjEgOS4yNTE2IDExLjQ0NTQgOS42NDMzM0MxMS4yODA3IDkuNzIxOTEgMTEuMTE4NSA5Ljc1MDYxIDEwLjk2NTcgOS43Mzg3NEMxMC45ODgxIDkuODIyMDEgMTEuMDAwMSA5LjkwOTU3IDExLjAwMDEgOS45OTk5NEMxMS4wMDAxIDEwLjAzMDQgMTAuOTk4OCAxMC4wNjA1IDEwLjk5NjEgMTAuMDkwMkMxMS4xNTExIDEwLjAzMjIgMTEuMzIyIDkuOTk5OTMgMTEuNTAwMSA5Ljk5OTkzTDEyLjUwMDEgOS45OTk5NEwxMy41IDkuOTk5OTNDMTQuMzI4NSA5Ljk5OTkyIDE1LjAwMDMgMTAuNjk3NSAxNC42NDM1IDExLjQ0NTJDMTQuMjUxNyAxMi4yNjU4IDEzLjUzNzMgMTIuOTk5OSAxMi41MDAxIDEyLjk5OTlDMTEuNDYyOSAxMi45OTk5IDEwLjc0ODQgMTIuMjY1OCAxMC4zNTY3IDExLjQ0NTJDMTAuMjc4MSAxMS4yODA1IDEwLjI0OTQgMTEuMTE4NCAxMC4yNjEzIDEwLjk2NTVDMTAuMTc4IDEwLjk4OCAxMC4wOTA1IDEwLjk5OTkgMTAuMDAwMSAxMC45OTk5QzkuOTY5NjUgMTAuOTk5OSA5LjkzOTQ5IDEwLjk5ODYgOS45MDk3MSAxMC45OTU5QzkuOTY3NzkgMTEuMTUwOSAxMCAxMS4zMjE4IDEwIDExLjVMMTAgMTIuNDk5OUwxMCAxMy40OTk5QzEwLjAwMDEgMTQuMzI4NCA5LjMwMjQ2IDE1LjAwMDIgOC41NTQ4MiAxNC42NDMzQzcuNzM0MTMgMTQuMjUxNiA3LjAwMDA2IDEzLjUzNzEgNy4wMDAwNiAxMi40OTk5QzcuMDAwMDYgMTEuNDYyNyA3LjczNDEzIDEwLjc0ODMgOC41NTQ4MiAxMC4zNTY2QzguNzE5NDggMTAuMjc4IDguODgxNyAxMC4yNDkzIDkuMDM0NTkgMTAuMjYxMUM5LjAxMjEyIDEwLjE3NzkgOS4wMDAxMyAxMC4wOTAzIDkuMDAwMTMgOS45OTk5NEM5LjAwMDEzIDkuOTY5NSA5LjAwMTQ5IDkuOTM5MzggOS4wMDQxNiA5LjkwOTYzQzguODQ5MjEgOS45Njc2NiA4LjY3ODM3IDkuOTk5OSA4LjUwMDI5IDkuOTk5ODlMNy41MDAzMSA5Ljk5OTg4TDYuNTAwMzMgOS45OTk4OUM1LjY3MTg5IDkuOTk5OSA1LjAwMDA2IDkuMzAyMyA1LjM1NjkyIDguNTU0NjdDNS43NDg2NSA3LjczMzk3IDYuNDYzMTEgNi45OTk5MSA3LjUwMDMxIDYuOTk5OTFDOC41Mzc1IDYuOTk5OTEgOS4yNTE5NyA3LjczMzk3IDkuNjQzNyA4LjU1NDY3QzkuNzIyMjcgOC43MTkyOSA5Ljc1MDk4IDguODgxNDkgOS43MzkxMSA5LjAzNDM1QzkuODIyMzIgOS4wMTE5MSA5LjkwOTgzIDguOTk5OTQgMTAuMDAwMSA4Ljk5OTk0QzEwLjAzMDYgOC45OTk5NCAxMC4wNjA3IDkuMDAxMyAxMC4wOTA1IDkuMDAzOTdDMTAuMDMyNCA4Ljg0ODk4IDEwLjAwMDIgOC42NzgwNyAxMC4wMDAyIDguNDk5OTJMMTAuMDAwMiA3LjQ5OTk0TDEwLjAwMDIgNi40OTk5NkMxMC4wMDAxIDUuNjcxNTMgMTAuNjk3NyA0Ljk5OTY5IDExLjQ0NTQgNS4zNTY1NUMxMi4yNjYxIDUuNzQ4MjggMTMuMDAwMSA2LjQ2Mjc0IDEzLjAwMDEgNy40OTk5NFoiIGZpbGw9IiMwMDAiLz4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iOCIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjIiLz4KPC9zdmc+Cg==",
+      "public": true
+    },
+    {
+      "link": "/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(6).svg",
+      "title": "\"Smart Supermarket\" dashboard widget \"Filter\" custom icon",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "smart_supermarket_dashboard_widget_filter_custom_icon_(6).svg",
+      "publicResourceKey": "UvVWowx7fgorNHTiDjcBM1zggRIMjzaP",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTYuNzE4NDkgMTRDNS4xNTI0MSAxNCA0LjE5Mzk0IDEyLjI4MTYgNS4wMTY4NiAxMC45NDkxTDUuMDk4MTYgMTAuODE3NUM1LjE3Nzk3IDEwLjgzMjcgNS4yNjA5NCAxMC44MzgzIDUuMzQ1NzUgMTAuODMzMkM1Ljg5NzA0IDEwLjgwMDEgNi4zMTcxMyAxMC4zMjY0IDYuMjg0MDQgOS43NzUwOUw2LjIxNzA1IDguNjU5MDZDNi4xOTgzOCA4LjM0Nzk1IDYuMDM1NzEgOC4wNjMzMyA1Ljc3NzE0IDcuODg5MzNDNS41MTg1NiA3LjcxNTMzIDUuMTkzNjMgNy42NzE4NCA0Ljg5ODQgNy43NzE3MUwzLjkzMjM3IDguMDk4NTFDMy40MDkyMSA4LjI3NTQ5IDMuMTI4NTggOC44NDMwNiAzLjMwNTU2IDkuMzY2MjJDMy4zNDIzNyA5LjQ3NTA0IDMuMzk2MDggOS41NzMzNyAzLjQ2Mjc4IDkuNjU5MjdMMy4zMTUyMyA5Ljg5ODE4QzEuNjY5MzkgMTIuNTYzMSAzLjU4NjMzIDE2IDYuNzE4NDkgMTZINy44MzQ4NUM4LjM4NzE0IDE2IDguODM0ODUgMTUuNTUyMyA4LjgzNDg1IDE1QzguODM0ODUgMTQuNDQ3OCA4LjM4NzE0IDE0IDcuODM0ODUgMTRMNi43MTg0OSAxNFoiIGZpbGw9IiMyMTIxMjEiLz4KPHBhdGggZD0iTTEzLjMxMzUgMTMuODQwOUMxNC44Nzg5IDEzLjg4NzMgMTUuODg3OSAxMi4xOTggMTUuMTA0OCAxMC44NDE4TDE0LjU0NjcgOS44NzQ5NUMxNC4yNzA1IDkuMzk2NjYgMTQuNDM0NCA4Ljc4NTA3IDE0LjkxMjcgOC41MDg5M0MxNS4zOTEgOC4yMzI3OSAxNi4wMDI2IDguMzk2NjYgMTYuMjc4NyA4Ljg3NDk1TDE2LjgzNjkgOS44NDE3NUMxOC40MDMgMTIuNTU0MyAxNi4zODQ5IDE1LjkzMjkgMTMuMjU0MiAxNS44NEwxMi45NzM1IDE1LjgzMTdDMTIuOTMyNCAxNS45MzI0IDEyLjg3NDEgMTYuMDI4MSAxMi43OTgzIDE2LjExNDNDMTIuNDMzNyAxNi41MjkyIDExLjgwMTkgMTYuNTY5OSAxMS4zODcgMTYuMjA1NEwxMC42MjEgMTUuNTMyMkMxMC4zODY5IDE1LjMyNjQgMTAuMjYyMSAxNS4wMjMzIDEwLjI4MzUgMTQuNzEyM0MxMC4zMDQ5IDE0LjQwMTQgMTAuNDcgMTQuMTE4MiAxMC43MzAxIDEzLjk0NjVMMTEuNjYzMiAxMy4zMzA1QzEyLjEyNCAxMy4wMjYyIDEyLjc0NDQgMTMuMTUzMSAxMy4wNDg3IDEzLjYxNEMxMy4wOTU1IDEzLjY4NDkgMTMuMTMyMSAxMy43NTk2IDEzLjE1ODggMTMuODM2M0wxMy4zMTM1IDEzLjg0MDlaIiBmaWxsPSIjMjEyMTIxIi8+CjxwYXRoIGQ9Ik0xMS42Njk2IDUuMjEwMDJDMTAuOTI3MiAzLjgzMTEzIDguOTU5NjggMy44MDE5NSA4LjE3NjY0IDUuMTU4MjFMNy42MTg0NiA2LjEyNTAxQzcuMzQyMzIgNi42MDMzIDYuNzMwNzMgNi43NjcxOCA2LjI1MjQ0IDYuNDkxMDRDNS43NzQxNCA2LjIxNDg5IDUuNjEwMjcgNS42MDMzIDUuODg2NDEgNS4xMjUwMUw2LjQ0NDU5IDQuMTU4MjFDOC4wMTA2NyAxLjQ0NTY4IDExLjk0NTYgMS41MDQwNCAxMy40MzA2IDQuMjYxODNMMTMuNTYzNyA0LjUwOTA3QzEzLjY3MTUgNC40OTQyNSAxMy43ODM1IDQuNDk2OSAxMy44OTYxIDQuNTE5NDNDMTQuNDM3NyA0LjYyNzc0IDE0Ljc4ODkgNS4xNTQ1NyAxNC42ODA2IDUuNjk2MTNMMTQuNDgwNiA2LjY5NjEzQzE0LjQxOTUgNy4wMDE3NSAxNC4yMTkzIDcuMjYxMzkgMTMuOTM5MyA3LjM5ODMzQzEzLjY1OTQgNy41MzUyNiAxMy4zMzE1IDcuNTMzODIgMTMuMDUyOCA3LjM5NDQ0TDEyLjA1MjggNi44OTQ0NEMxMS41NTg4IDYuNjQ3NDUgMTEuMzU4NiA2LjA0Njc4IDExLjYwNTYgNS41NTI4QzExLjY0MzYgNS40NzY4MSAxMS42ODk5IDUuNDA3NzcgMTEuNzQzIDUuMzQ2MjRMMTEuNjY5NiA1LjIxMDAyWiIgZmlsbD0iIzIxMjEyMSIvPgo8L3N2Zz4K",
+      "public": true
+    },
+    {
+      "link": "/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(7).svg",
+      "title": "\"Smart Supermarket\" dashboard widget \"Filter\" custom icon",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "smart_supermarket_dashboard_widget_filter_custom_icon_(7).svg",
+      "publicResourceKey": "ctCC7FP1HmkRn2exic12LC3HkgLzzbAU",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE0LjYzNjMgMC40NTMyMTJDMTQuODIyOCAwLjIxMDI1NyAxNS4xNzcyIDAuMjEwMjU3IDE1LjM2MzcgMC40NTMyMTNDMTUuOTQwNCAxLjIwNDQgMTcgMi43MzA1NyAxNyAzLjgwMzczQzE3IDUuMDI3MjMgMTYuMTE0MyA1Ljk5OTgyIDE1IDUuOTk5ODJDMTMuODg1NyA1Ljk5OTgyIDEzIDUuMDI3MjMgMTMgMy44MDM3M0MxMyAyLjczMDU3IDE0LjA1OTYgMS4yMDQ0IDE0LjYzNjMgMC40NTMyMTJaIiBmaWxsPSIjMjEyMTIxIi8+CjxwYXRoIGQ9Ik04LjMwMTcgMi43NjA3M0M4LjY3Nzg4IDIuMzM3OTggOS4zMjIxMiAyLjMzNzk4IDkuNjk4MyAyLjc2MDczQzExLjI4MDEgNC41MzgzMiAxNSA5LjA0NzkgMTUgMTIuMTQzN0MxNSAxNS40MDY0IDEyLjM0MjcgMTggOSAxOEM1LjY1NzI1IDE4IDMgMTUuNDA2NCAzIDEyLjE0MzdDMyA5LjA0NzkgNi43MTk5NCA0LjUzODMyIDguMzAxNyAyLjc2MDczWiIgZmlsbD0iIzIxMjEyMSIvPgo8L3N2Zz4K",
+      "public": true
+    },
+    {
+      "link": "/api/images/system/smart_supermarket_dashboard_widget_filter_custom_icon_(8).svg",
+      "title": "\"Smart Supermarket\" dashboard widget \"Filter\" custom icon",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "smart_supermarket_dashboard_widget_filter_custom_icon_(8).svg",
+      "publicResourceKey": "0U7kTUHFj7Y84RxVMBRc9NgLOXOQRV2C",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTcgMy41QzcgNC4zMjg0MyA2LjMyODQzIDUgNS41IDVDNC42NzE1NyA1IDQgNC4zMjg0MyA0IDMuNUM0IDIuNjcxNTcgNC42NzE1NyAyIDUuNSAyQzYuMzI4NDMgMiA3IDIuNjcxNTcgNyAzLjVaIiBmaWxsPSIjMjEyMTIxIi8+CjxwYXRoIGQ9Ik0zIDEyQzIuNDQ3NzIgMTIgMiAxMS41NTIzIDIgMTFMMiA3Ljg4NjUyQzIgNi44NDQ2MiAyLjg0NDYyIDYgMy44ODY1MiA2QzMuOTA1MzUgNiAzLjkyNDAzIDYuMDAwNTUgMy45NDI1NSA2LjAwMTYyQzMuOTYxNTcgNi4wMDA1NSAzLjk4MDcyIDYgNCA2SDdDNy4wMTkyOCA2IDcuMDM4NDMgNi4wMDA1NSA3LjA1NzQ1IDYuMDAxNjJDNy4wNzU5NyA2LjAwMDU1IDcuMDk0NjUgNiA3LjExMzQ4IDZDOC4xNTUzOCA2IDkgNi44NDQ2MiA5IDcuODg2NTJWMTFDOSAxMS41NTIzIDguNTUyMjkgMTIgOCAxMlYxN0M4IDE3LjU1MjMgNy41NTIyOCAxOCA3IDE4QzYuNDQ3NzIgMTggNiAxNy41NTIzIDYgMTdMNiAxNEg1VjE3QzUgMTcuNTUyMyA0LjU1MjI4IDE4IDQgMThDMy40NDc3MiAxOCAzIDE3LjU1MjMgMyAxN1YxMloiIGZpbGw9IiMyMTIxMjEiLz4KPHBhdGggZD0iTTE2IDE4QzE1LjQ0NzcgMTggMTUgMTcuNTUyMyAxNSAxN1YxNEgxNFYxN0MxNCAxNy41NTIzIDEzLjU1MjMgMTggMTMgMThDMTIuNDQ3NyAxOCAxMiAxNy41NTIzIDEyIDE3VjE0SDEwLjcyMTVDMTAuMzcyNCAxNCAxMC4xMzA4IDEzLjY1MTMgMTAuMjUzMyAxMy4zMjQ0TDEyLjQ3MzMgNy40MDQ0OUMxMi43OTAxIDYuNTU5NjggMTMuNTk3NyA2IDE0LjUgNkMxNS40MDIzIDYgMTYuMjA5OSA2LjU1OTY4IDE2LjUyNjcgNy40MDQ0OUwxOC43NDY3IDEzLjMyNDRDMTguODY5MiAxMy42NTEzIDE4LjYyNzYgMTQgMTguMjc4NSAxNEgxN1YxN0MxNyAxNy41NTIzIDE2LjU1MjMgMTggMTYgMThaIiBmaWxsPSIjMjEyMTIxIi8+CjxwYXRoIGQ9Ik0xNC41IDVDMTUuMzI4NCA1IDE2IDQuMzI4NDMgMTYgMy41QzE2IDIuNjcxNTcgMTUuMzI4NCAyIDE0LjUgMkMxMy42NzE2IDIgMTMgMi42NzE1NyAxMyAzLjVDMTMgNC4zMjg0MyAxMy42NzE2IDUgMTQuNSA1WiIgZmlsbD0iIzIxMjEyMSIvPgo8L3N2Zz4K",
+      "public": true
+    },
+    {
+      "link": "/api/images/system/smart_supermarket_dashboard_widget_state_filter_custom_icon.svg",
+      "title": "\"Smart Supermarket\" dashboard widget \"State Filter\" custom icon",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "smart_supermarket_dashboard_widget_state_filter_custom_icon.svg",
+      "publicResourceKey": "WwaLv2sVj9xK4lqrQjjhwnrbnHx2YGMg",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iNiIgZmlsbD0iIzFGOEI0RCIvPgo8L3N2Zz4K",
+      "public": true
+    },
+    {
+      "link": "/api/images/system/smart_supermarket_dashboard_widget_state_filter_custom_icon_(1).svg",
+      "title": "\"Smart Supermarket\" dashboard widget \"State Filter\" custom icon",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "smart_supermarket_dashboard_widget_state_filter_custom_icon_(1).svg",
+      "publicResourceKey": "DfpkSJE6fRty8laL6HlTvbIZtEhQhupe",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iNiIgZmlsbD0iI0Q1QzIxQiIvPgo8L3N2Zz4K",
+      "public": true
+    },
+    {
+      "link": "/api/images/system/smart_supermarket_dashboard_widget_state_filter_custom_icon_(2).svg",
+      "title": "\"Smart Supermarket\" dashboard widget \"State Filter\" custom icon",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "smart_supermarket_dashboard_widget_state_filter_custom_icon_(2).svg",
+      "publicResourceKey": "xgxJAH9KQSxF0Rxh2vpEYR1u9pjvaw5O",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iNiIgZmlsbD0iI0U2NEExOSIvPgo8L3N2Zz4K",
+      "public": true
+    },
+    {
+      "link": "/api/images/system/smart_supermarket_dashboard_widget_state_filter_custom_icon_(3).svg",
+      "title": "\"Smart Supermarket\" dashboard widget \"State Filter\" custom icon",
+      "type": "IMAGE",
+      "subType": "IMAGE",
+      "fileName": "smart_supermarket_dashboard_widget_state_filter_custom_icon_(3).svg",
+      "publicResourceKey": "S5CL2SRjQb6FccumQL4y1ATApJ0v14uP",
+      "mediaType": "image/svg+xml",
+      "data": "PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGcgY2xpcC1wYXRoPSJ1cmwoI2NsaXAwXzI4MzlfNTI1NjQpIj4KPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iNiIgZmlsbD0iI0NBQzFEMiIvPgo8cGF0aCBkPSJNMS45Mjg5NiAxNi43MjhMMTYuMDcxMSAyLjU4NTg5TDE3LjQ4NTMgNC4wMDAxMUwzLjM0MzE3IDE4LjE0MjJMMS45Mjg5NiAxNi43MjhaIiBmaWxsPSIjQ0FDMUQyIi8+CjxwYXRoIGQ9Ik0yLjEwNjkyIDE2LjMxNzFDMS44MTM5MyAxNi4wMjQxIDEuODEzOTMgMTUuNTQ5MSAyLjEwNjkyIDE1LjI1NjFMMTUuMTg1MiAyLjE3Nzg4QzE1LjQ3ODEgMS44ODQ4OSAxNS45NTMyIDEuODg0ODkgMTYuMjQ2MiAyLjE3Nzg4QzE2LjUzOTIgMi40NzA4OCAxNi41MzkyIDIuOTQ1OTEgMTYuMjQ2MiAzLjIzODlMMy4xNjc5NCAxNi4zMTcxQzIuODc0OTUgMTYuNjEwMSAyLjM5OTkxIDE2LjYxMDEgMi4xMDY5MiAxNi4zMTcxWiIgZmlsbD0id2hpdGUiLz4KPC9nPgo8ZGVmcz4KPGNsaXBQYXRoIGlkPSJjbGlwMF8yODM5XzUyNTY0Ij4KPHJlY3Qgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiBmaWxsPSJ3aGl0ZSIvPgo8L2NsaXBQYXRoPgo8L2RlZnM+Cjwvc3ZnPgo=",
+      "public": true
+    }
+  ]
 }
