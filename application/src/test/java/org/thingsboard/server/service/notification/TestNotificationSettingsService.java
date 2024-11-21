@@ -33,6 +33,7 @@ package org.thingsboard.server.service.notification;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
 import org.thingsboard.server.dao.notification.DefaultNotificationSettingsService;
 import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
@@ -48,6 +49,11 @@ public class TestNotificationSettingsService extends DefaultNotificationSettings
                                            NotificationTemplateService notificationTemplateService,
                                            UserSettingsService userSettingsService) {
         super(adminSettingsService, notificationTargetService, notificationTemplateService, null, userSettingsService);
+    }
+
+    @Override
+    public void createSystemNotificationTemplate(TenantId tenantId, NotificationTemplate template) {
+        // do nothing
     }
 
     @Override
