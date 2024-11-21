@@ -190,7 +190,7 @@ abstract public class AbstractEdgeTest extends AbstractControllerTest {
         edgeImitator = new EdgeImitator("localhost", 7070, edge.getRoutingKey(), edge.getSecret());
         edgeImitator.ignoreType(OAuth2ClientUpdateMsg.class);
         edgeImitator.ignoreType(OAuth2DomainUpdateMsg.class);
-        edgeImitator.expectMessageAmount(32);
+        edgeImitator.expectMessageAmount(30);
         edgeImitator.connect();
 
         requestEdgeRuleChainMetadata();

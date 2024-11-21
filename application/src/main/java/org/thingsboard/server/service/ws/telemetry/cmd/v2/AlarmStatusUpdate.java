@@ -28,37 +28,42 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.notification;
+package org.thingsboard.server.service.ws.telemetry.cmd.v2;
 
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
-import org.thingsboard.server.dao.notification.DefaultNotificationSettingsService;
-import org.thingsboard.server.dao.notification.NotificationTargetService;
-import org.thingsboard.server.dao.notification.NotificationTemplateService;
-import org.thingsboard.server.dao.settings.AdminSettingsService;
-import org.thingsboard.server.dao.user.UserSettingsService;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.ToString;
+import org.thingsboard.server.service.subscription.SubscriptionErrorCode;
 
-@Service
-@Primary
-public class TestNotificationSettingsService extends DefaultNotificationSettingsService {
+@ToString
+@Getter
+public class AlarmStatusUpdate extends CmdUpdate {
 
-    public TestNotificationSettingsService(AdminSettingsService adminSettingsService,
-                                           NotificationTargetService notificationTargetService,
-                                           NotificationTemplateService notificationTemplateService,
-                                           UserSettingsService userSettingsService) {
-        super(adminSettingsService, notificationTargetService, notificationTemplateService, null, userSettingsService);
+    @Getter
+    private boolean active;
+
+    public AlarmStatusUpdate(int cmdId, boolean active) {
+        super(cmdId, SubscriptionErrorCode.NO_ERROR.getCode(), null);
+        this.active = active;
+    }
+
+    public AlarmStatusUpdate(int cmdId, int errorCode, String errorMsg) {
+        super(cmdId, errorCode, errorMsg);
+    }
+
+    @Builder
+    public AlarmStatusUpdate(@JsonProperty("cmdId") int cmdId,
+                             @JsonProperty("present") boolean active,
+                             @JsonProperty("errorCode") int errorCode,
+                             @JsonProperty("errorMsg") String errorMsg) {
+        super(cmdId, errorCode, errorMsg);
+        this.active = active;
     }
 
     @Override
-    public void createSystemNotificationTemplate(TenantId tenantId, NotificationTemplate template) {
-        // do nothing
-    }
-
-    @Override
-    public void createDefaultNotificationConfigs(TenantId tenantId) {
-        // do nothing
+    public CmdUpdateType getCmdUpdateType() {
+        return CmdUpdateType.ALARM_STATUS;
     }
 
 }

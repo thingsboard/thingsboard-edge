@@ -207,7 +207,7 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     @Override
     public String getFileContentAtCommit(TenantId tenantId, String relativePath, String versionId) {
         GitRepository repository = checkRepository(tenantId);
-        return repository.getFileContentAtCommit(relativePath, versionId);
+        return new String(repository.getFileContentAtCommit(relativePath, versionId), StandardCharsets.UTF_8);
     }
 
     @Override
