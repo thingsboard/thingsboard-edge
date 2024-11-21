@@ -41,7 +41,7 @@ public interface GitSyncService {
 
     List<RepoFile> listFiles(String key, String path, int depth, FileType type);
 
-    String getFileContent(String key, String path);
+    byte[] getFileContent(String key, String path);
 
     String getGithubRawContentUrl(String key, String path);
 

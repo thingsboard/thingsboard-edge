@@ -45,6 +45,7 @@ import org.thingsboard.server.service.sync.GitSyncService;
 import org.thingsboard.server.service.sync.vc.GitRepository.FileType;
 import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Comparator;
@@ -186,7 +187,12 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
         if (!enabled) {
             throw new IllegalArgumentException("Data converters library is disabled");
         }
-        return gitSyncService.getFileContent(REPO_KEY, path);
+        try {
+            return new String(gitSyncService.getFileContent(REPO_KEY, path), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.warn("Failed to get file content for path {}: {}", path, e.getMessage());
+            return "{}";
+        }
     }
 
     private String getConverterDir(IntegrationType integrationType, String converterType, String vendorName, String model) {
