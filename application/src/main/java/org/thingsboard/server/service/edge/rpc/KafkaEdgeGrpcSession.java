@@ -59,7 +59,7 @@ import java.util.function.BiConsumer;
 @Slf4j
 public class KafkaEdgeGrpcSession extends AbstractEdgeGrpcSession {
 
-    private final TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> edgeEventsConsumer;
+    private final TbCoreQueueFactory tbCoreQueueFactory;
 
     private volatile boolean isHighPriorityProcessing;
 
@@ -72,7 +72,7 @@ public class KafkaEdgeGrpcSession extends AbstractEdgeGrpcSession {
                                 BiConsumer<Edge, UUID> sessionCloseListener, ScheduledExecutorService sendDownlinkExecutorService,
                                 int maxInboundMessageSize, int maxHighPriorityQueueSizePerSession) {
         super(ctx, outputStream, sessionOpenListener, sessionCloseListener, sendDownlinkExecutorService, maxInboundMessageSize, maxHighPriorityQueueSizePerSession);
-        edgeEventsConsumer = tbCoreQueueFactory.createEdgeEventMsgConsumer(tenantId, edge.getId());
+        this.tbCoreQueueFactory = tbCoreQueueFactory;
     }
 
     private void processMsgs(List<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> msgs, TbQueueConsumer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> consumer) {
@@ -117,7 +117,7 @@ public class KafkaEdgeGrpcSession extends AbstractEdgeGrpcSession {
                     .name("TB Edge events")
                     .msgPackProcessor(this::processMsgs)
                     .pollInterval(ctx.getEdgeEventStorageSettings().getNoRecordsSleepInterval())
-                    .consumerCreator(() -> edgeEventsConsumer)
+                    .consumerCreator(() -> tbCoreQueueFactory.createEdgeEventMsgConsumer(tenantId, edge.getId()))
                     .consumerExecutor(consumerExecutor)
                     .threadPrefix("edge-events")
                     .build();
@@ -131,6 +131,7 @@ public class KafkaEdgeGrpcSession extends AbstractEdgeGrpcSession {
     public void processHighPriorityEvents() {
         isHighPriorityProcessing = true;
         super.processHighPriorityEvents();
+        isHighPriorityProcessing = false;
     }
 
     @Override
