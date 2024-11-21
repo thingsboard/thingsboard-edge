@@ -224,7 +224,7 @@ export interface CaptchaParams {
   secretKey?: string;
   projectId?: string;
   androidKey?: string;
-  iOSKey?: string;
+  iosKey?: string;
 }
 
 interface DefaultDashboardParams {

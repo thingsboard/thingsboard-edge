@@ -45,7 +45,7 @@ public class EnterpriseCaptchaParams implements CaptchaParams {
     @Schema(description = "The reCAPTCHA key associated with android app.")
     protected String androidKey;
     @Schema(description = "The reCAPTCHA key associated with iOS app.")
-    protected String iOSKey;
+    protected String iosKey;
     @Schema(description = "Optional action name used for logging")
     protected String logActionName;
 
@@ -53,7 +53,7 @@ public class EnterpriseCaptchaParams implements CaptchaParams {
     public EnterpriseCaptchaParams(String projectId, String androidKey, String iOSKey, String logActionName) {
         this.projectId = projectId;
         this.androidKey = androidKey;
-        this.iOSKey = iOSKey;
+        this.iosKey = iOSKey;
         this.logActionName = logActionName;
     }
 
@@ -67,7 +67,7 @@ public class EnterpriseCaptchaParams implements CaptchaParams {
         if (platformType == PlatformType.ANDROID) {
             return new EnterpriseCaptchaParams(projectId, androidKey, null, logActionName);
         } else if (platformType == PlatformType.IOS) {
-            return new EnterpriseCaptchaParams(projectId, null, iOSKey, logActionName);
+            return new EnterpriseCaptchaParams(projectId, null, iosKey, logActionName);
         }
         return null;
     }

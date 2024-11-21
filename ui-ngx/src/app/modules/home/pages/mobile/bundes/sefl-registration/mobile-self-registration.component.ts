@@ -106,7 +106,7 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
       logActionName: [''],
       projectId: [{value: '', disabled: true}, Validators.required],
       androidKey: [{value: '', disabled: true}],
-      iOSKey: [{value: '', disabled: true}],
+      iosKey: [{value: '', disabled: true}],
     }),
     showPrivacyPolicy: [true],
     showTermsOfUse: [true],
@@ -173,11 +173,11 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
           this.selfRegistrationForm.get('captcha.androidKey').updateValueAndValidity();
         } else if (propName === 'iOSApp') {
           if (this.androidApp) {
-            this.selfRegistrationForm.get('captcha.iOSKey').addValidators(Validators.required);
+            this.selfRegistrationForm.get('captcha.iosKey').addValidators(Validators.required);
           } else {
-            this.selfRegistrationForm.get('captcha.iOSKey').clearValidators();
+            this.selfRegistrationForm.get('captcha.iosKey').clearValidators();
           }
-          this.selfRegistrationForm.get('captcha.iOSKey').updateValueAndValidity();
+          this.selfRegistrationForm.get('captcha.iosKey').updateValueAndValidity();
         }
       }
     }
@@ -269,13 +269,13 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
       this.selfRegistrationForm.get('captcha.secretKey').disable({emitEvent: false});
       this.selfRegistrationForm.get('captcha.projectId').enable({emitEvent: false});
       this.selfRegistrationForm.get('captcha.androidKey').enable({emitEvent: false});
-      this.selfRegistrationForm.get('captcha.iOSKey').enable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.iosKey').enable({emitEvent: false});
     } else {
       this.selfRegistrationForm.get('captcha.siteKey').enable({emitEvent: false});
       this.selfRegistrationForm.get('captcha.secretKey').enable({emitEvent: false});
       this.selfRegistrationForm.get('captcha.projectId').disable({emitEvent: false});
       this.selfRegistrationForm.get('captcha.androidKey').disable({emitEvent: false});
-      this.selfRegistrationForm.get('captcha.iOSKey').disable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.iosKey').disable({emitEvent: false});
     }
   }
 }

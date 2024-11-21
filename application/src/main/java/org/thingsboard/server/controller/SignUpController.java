@@ -76,7 +76,6 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.model.JwtPair;
-import org.thingsboard.server.common.data.selfregistration.CaptchaParams;
 import org.thingsboard.server.common.data.selfregistration.EnterpriseCaptchaParams;
 import org.thingsboard.server.common.data.selfregistration.V2CaptchaParams;
 import org.thingsboard.server.common.data.selfregistration.MobileRedirectParams;
@@ -538,7 +537,7 @@ public class SignUpController extends BaseController {
             if (userAgent != null && userAgent.contains("Android")) {
                 siteKey = captcha.getAndroidKey();
             } else if (userAgent != null && (userAgent.contains("iPhone") || userAgent.contains("iPad"))) {
-                siteKey = captcha.getIOSKey();
+                siteKey = captcha.getIosKey();
             } else {
                 throw new DataValidationException("Error validating reCAPTCHA: platform could not be detected");
             }

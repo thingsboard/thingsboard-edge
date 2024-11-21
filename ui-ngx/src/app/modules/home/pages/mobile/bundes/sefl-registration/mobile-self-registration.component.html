@@ -121,8 +121,8 @@
             </mat-form-field>
             <mat-form-field class="mat-block" appearance="outline">
               <mat-label translate>self-registration.ios-key</mat-label>
-              <input matInput [required]="iOSApp" formControlName="iOSKey"/>
-              <mat-error *ngIf="selfRegistrationForm.get('captcha.iOSKey').hasError('required')">
+              <input matInput [required]="iOSApp" formControlName="iosKey"/>
+              <mat-error *ngIf="selfRegistrationForm.get('captcha.iosKey').hasError('required')">
                 {{ 'self-registration.ios-key-required' | translate }}
               </mat-error>
             </mat-form-field>
