@@ -109,8 +109,15 @@ public class DomainServiceImpl extends AbstractEntityService implements DomainSe
     @Override
     public void deleteDomainById(TenantId tenantId, DomainId domainId) {
         log.trace("Executing deleteDomainById [{}]", domainId.getId());
-        domainDao.removeById(tenantId, domainId.getId());
-        eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(domainId).build());
+        try {
+            domainDao.removeById(tenantId, domainId.getId());
+            eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(domainId).build());
+        } catch (Exception e) {
+            checkConstraintViolation(e, Map.of(
+                    "fk_white_labeling_domain_id", "The domain is referenced by a white labeling settings"
+            ));
+            throw e;
+        }
     }
 
     @Override

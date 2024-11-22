@@ -130,7 +130,7 @@ public class OAuth2Controller extends BaseController {
         return tbOauth2ClientService.save(oAuth2Client, currentUser);
     }
 
-    @ApiOperation(value = "Get OAuth2 Client infos (findTenantOAuth2ClientInfos)", notes = SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
+    @ApiOperation(value = "Get OAuth2 Client infos (findOAuth2ClientInfos)", notes = SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/oauth2/client/infos")
     public PageData<OAuth2ClientInfo> findOAuth2ClientInfos(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
@@ -148,7 +148,7 @@ public class OAuth2Controller extends BaseController {
         return oAuth2ClientService.findOAuth2ClientInfosByTenantIdAndCustomerId(getTenantId(), getCurrentUser().getCustomerId(), pageLink);
     }
 
-    @ApiOperation(value = "Get OAuth2 Client infos By Ids (findTenantOAuth2ClientInfosByIds)",
+    @ApiOperation(value = "Get OAuth2 Client infos By Ids (findOAuth2ClientInfosByIds)",
             notes = "Fetch OAuth2 Client info objects based on the provided ids. " + SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/oauth2/client/infos", params = {"clientIds"})
