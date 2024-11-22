@@ -28,37 +28,21 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.notification;
+package org.thingsboard.server.common.data.query;
 
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.notification.template.NotificationTemplate;
-import org.thingsboard.server.dao.notification.DefaultNotificationSettingsService;
-import org.thingsboard.server.dao.notification.NotificationTargetService;
-import org.thingsboard.server.dao.notification.NotificationTemplateService;
-import org.thingsboard.server.dao.settings.AdminSettingsService;
-import org.thingsboard.server.dao.user.UserSettingsService;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.id.EntityId;
 
-@Service
-@Primary
-public class TestNotificationSettingsService extends DefaultNotificationSettingsService {
+import java.util.List;
 
-    public TestNotificationSettingsService(AdminSettingsService adminSettingsService,
-                                           NotificationTargetService notificationTargetService,
-                                           NotificationTemplateService notificationTemplateService,
-                                           UserSettingsService userSettingsService) {
-        super(adminSettingsService, notificationTargetService, notificationTemplateService, null, userSettingsService);
-    }
-
-    @Override
-    public void createSystemNotificationTemplate(TenantId tenantId, NotificationTemplate template) {
-        // do nothing
-    }
-
-    @Override
-    public void createDefaultNotificationConfigs(TenantId tenantId) {
-        // do nothing
-    }
-
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+public class OriginatorAlarmFilter {
+    private EntityId originatorId;
+    private List<String> typeList;
+    private List<AlarmSeverity> severityList;
 }

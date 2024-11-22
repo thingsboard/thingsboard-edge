@@ -169,7 +169,6 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         doPost("/api/selfRegistration/selfRegistrationParams",
                 selfRegistrationParams, JsonNode.class);
 
-        createNotificationTemplate(NotificationType.USER_ACTIVATED, "User activated", "User ${userEmail} was activated", NotificationDeliveryMethod.WEB);
         createNotificationTemplate(NotificationType.USER_REGISTERED, "User registered", "User ${userEmail} was registered", NotificationDeliveryMethod.WEB);
     }
 
