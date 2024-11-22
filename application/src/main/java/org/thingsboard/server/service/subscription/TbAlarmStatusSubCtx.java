@@ -30,21 +30,16 @@
  */
 package org.thingsboard.server.service.subscription;
 
-import lombok.Getter;
-import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.thingsboard.server.common.data.alarm.AlarmInfo;
-import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.OriginatorAlarmFilter;
 import org.thingsboard.server.dao.alarm.AlarmService;
-import org.thingsboard.server.dao.attributes.AttributesService;
-import org.thingsboard.server.dao.entity.EntityService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.ws.WebSocketService;
 import org.thingsboard.server.service.ws.WebSocketSessionRef;
-import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmCountUpdate;
 import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmStatusCmd;
+import org.thingsboard.server.service.ws.telemetry.cmd.v2.AlarmStatusUpdate;
 import org.thingsboard.server.service.ws.telemetry.sub.AlarmSubscriptionUpdate;
 
 import java.util.List;
@@ -97,7 +92,10 @@ public class TbAlarmStatusSubCtx extends TbAbstractSubCtx {
     }
 
     public void sendUpdate() {
-        sendWsMsg(subscription.createUpdate());
+        sendWsMsg(AlarmStatusUpdate.builder()
+                .cmdId(cmdId)
+                .active(subscription.hasAlarms())
+                .build());
     }
 
     public void fetchActiveAlarms() {
