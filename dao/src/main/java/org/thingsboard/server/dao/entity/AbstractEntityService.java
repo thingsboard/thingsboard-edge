@@ -32,8 +32,10 @@ package org.thingsboard.server.dao.entity;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
+import org.thingsboard.server.common.data.HasDebugMode;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.relation.EntityRelation;
@@ -43,10 +45,12 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.housekeeper.CleanUpService;
 import org.thingsboard.server.dao.relation.RelationService;
+import org.thingsboard.server.dao.tenant.TbTenantProfileCache;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public abstract class AbstractEntityService {
@@ -73,6 +77,13 @@ public abstract class AbstractEntityService {
     @Autowired
     @Lazy
     protected CleanUpService cleanUpService;
+
+    @Autowired
+    @Lazy
+    private TbTenantProfileCache tbTenantProfileCache;
+
+    @Value("${debug_mode.max_duration:15}")
+    private int maxDebugModeDurationMinutes;
 
     protected void createRelation(TenantId tenantId, EntityRelation relation) {
         log.debug("Creating relation: {}", relation);
@@ -104,6 +115,17 @@ public abstract class AbstractEntityService {
                     }
                 }
             }
+        }
+    }
+
+    protected void setDebugAllUntil(TenantId tenantId, HasDebugMode entity, long now) {
+        int debugDuration = tbTenantProfileCache.get(tenantId).getDefaultProfileConfiguration().getMaxDebugModeDurationMinutes(maxDebugModeDurationMinutes);
+        long debugUntil = now + TimeUnit.MINUTES.toMillis(debugDuration);
+
+        if (entity.isDebugAll()) {
+            entity.setDebugAllUntil(debugUntil);
+        } else if (entity.getDebugAllUntil() > debugUntil) {
+            throw new DataValidationException("Unable to update 'debugAllUntil' property. To reset the debug duration, please modify the 'debugAll' property instead.");
         }
     }
 }
