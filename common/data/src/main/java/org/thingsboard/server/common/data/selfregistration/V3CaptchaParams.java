@@ -34,6 +34,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 
+import static org.thingsboard.server.common.data.selfregistration.CaptchaVersion.V_3;
+
 @Schema
 @NoArgsConstructor
 public class V3CaptchaParams extends AbstractCaptchaParams {
@@ -45,7 +47,7 @@ public class V3CaptchaParams extends AbstractCaptchaParams {
 
     @Override
     public String getVersion() {
-        return "v3";
+        return V_3.getName();
     }
 
     @Override

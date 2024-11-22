@@ -35,6 +35,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 
+import static org.thingsboard.server.common.data.selfregistration.CaptchaVersion.ENTERPRISE;
+
 @Schema
 @Data
 @NoArgsConstructor
@@ -63,7 +65,7 @@ public class EnterpriseCaptchaParams implements CaptchaParams {
 
     @Override
     public String getVersion() {
-        return "enterprise";
+        return ENTERPRISE.getName();
     }
 
     @Override

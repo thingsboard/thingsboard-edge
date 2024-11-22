@@ -30,22 +30,4 @@
  */
 package org.thingsboard.server.common.data.mobile.app;
 
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-@Data
-@EqualsAndHashCode(callSuper = true)
-public class MobileAppVersionFullInfo extends MobileAppVersionInfo {
-
-    private String storeLink;
-
-    public MobileAppVersionFullInfo() {
-        super();
-    }
-
-    public MobileAppVersionFullInfo(MobileAppVersionInfo mobileAppVersionInfo, String storeLink) {
-        super(mobileAppVersionInfo);
-        this.storeLink = storeLink;
-    }
-
-}
+public record MobileAppVersionFullInfo (StoreInfo storeInfo, MobileAppVersionInfo mobileAppVersionInfo) {}

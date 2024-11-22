@@ -85,12 +85,14 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.model.JwtPair;
+import org.thingsboard.server.common.data.selfregistration.AbstractCaptchaParams;
+import org.thingsboard.server.common.data.selfregistration.CaptchaParams;
 import org.thingsboard.server.common.data.selfregistration.EnterpriseCaptchaParams;
-import org.thingsboard.server.common.data.selfregistration.V2CaptchaParams;
 import org.thingsboard.server.common.data.selfregistration.MobileRedirectParams;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpField;
 import org.thingsboard.server.common.data.selfregistration.SignUpFieldId;
+import org.thingsboard.server.common.data.selfregistration.V2CaptchaParams;
 import org.thingsboard.server.common.data.selfregistration.V3CaptchaParams;
 import org.thingsboard.server.common.data.selfregistration.WebSelfRegistrationParams;
 import org.thingsboard.server.common.data.signup.SignUpRequest;
@@ -208,12 +210,12 @@ public class SignUpController extends BaseController {
         String password = signUpRequest.getFields().get(PASSWORD);
 
         //Verify recaptcha response
-        if (selfRegistrationParams.getCaptcha() instanceof EnterpriseCaptchaParams) {
-            validateEnterpriseReCaptcha(signUpRequest, request, selfRegistrationParams);
-        } else if (selfRegistrationParams.getCaptcha() instanceof V2CaptchaParams captcha) {
-            validateReCaptcha(signUpRequest.getRecaptchaResponse(), request.getRemoteAddr(), captcha.getSecretKey());
-        } else if (selfRegistrationParams.getCaptcha() instanceof V3CaptchaParams captcha) {
-            validateReCaptcha(signUpRequest.getRecaptchaResponse(), request.getRemoteAddr(), captcha.getSecretKey());
+        CaptchaParams captcha = selfRegistrationParams.getCaptcha();
+        if (captcha instanceof EnterpriseCaptchaParams captchaParams) {
+            validateEnterpriseReCaptcha(signUpRequest, request, captchaParams);
+        } else if (captcha instanceof V2CaptchaParams || captcha instanceof V3CaptchaParams) {
+            validateReCaptcha(signUpRequest.getRecaptchaResponse(), request.getRemoteAddr(),
+                    ((AbstractCaptchaParams)captcha).getSecretKey());
         } else {
             throw new DataValidationException("Error validating captcha: wrong captcha version");
         }
@@ -577,19 +579,18 @@ public class SignUpController extends BaseController {
         }
     }
 
-    private void validateEnterpriseReCaptcha(SignUpRequest signUpRequest, HttpServletRequest request, SelfRegistrationParams selfRegistrationParams)
+    private void validateEnterpriseReCaptcha(SignUpRequest signUpRequest, HttpServletRequest request, EnterpriseCaptchaParams captchaParams)
             throws IOException {
-        EnterpriseCaptchaParams captcha = (EnterpriseCaptchaParams) selfRegistrationParams.getCaptcha();
         try (RecaptchaEnterpriseServiceClient client = RecaptchaEnterpriseServiceClient.create(
                 RecaptchaEnterpriseServiceSettings.newBuilder()
                         .setCredentialsProvider(FixedCredentialsProvider.create(
-                                ServiceAccountCredentials.fromStream(new ByteArrayInputStream(captcha.getServiceAccountCredentials().getBytes()))))
+                                ServiceAccountCredentials.fromStream(new ByteArrayInputStream(captchaParams.getServiceAccountCredentials().getBytes()))))
                         .build())) {
             String siteKey;
             if (signUpRequest.getPlatform() == PlatformType.ANDROID) {
-                siteKey = captcha.getAndroidKey();
+                siteKey = captchaParams.getAndroidKey();
             } else if (signUpRequest.getPlatform() == PlatformType.IOS) {
-                siteKey = captcha.getIosKey();
+                siteKey = captchaParams.getIosKey();
             } else {
                 log.error("Error validating reCAPTCHA. Wrong platform type: [{}]", signUpRequest.getPlatform());
                 throw new DataValidationException("Error validating reCAPTCHA: platform could not be detected");
@@ -603,7 +604,7 @@ public class SignUpController extends BaseController {
 
             CreateAssessmentRequest createAssessmentRequest =
                     CreateAssessmentRequest.newBuilder()
-                            .setParent(ProjectName.of(captcha.getProjectId()).toString())
+                            .setParent(ProjectName.of(captchaParams.getProjectId()).toString())
                             .setAssessment(Assessment.newBuilder().setEvent(event).build())
                             .build();
 
@@ -613,7 +614,7 @@ public class SignUpController extends BaseController {
                 log.error("Error validating reCAPTCHA. Invalid reCaptcha response: [{}] ", response.getTokenProperties());
                 throw new DataValidationException("Error validating reCAPTCHA: Invalid reCaptcha response");
             }
-            if (!response.getTokenProperties().getAction().equals(captcha.getLogActionName())) {
+            if (!response.getTokenProperties().getAction().equals(captchaParams.getLogActionName())) {
                 log.error("Error validating reCAPTCHA. Wrong recaptcha action name: [{}]", response.getTokenProperties().getAction());
                 throw new DataValidationException("Error validating reCAPTCHA: recaptcha action name");
             }
@@ -630,13 +631,15 @@ public class SignUpController extends BaseController {
         List<SignUpField> selfRegisterSignUpFields = selfRegistrationParams.getSignUpFields();
         if (selfRegisterSignUpFields != null) {
             for (SignUpField field : selfRegisterSignUpFields) {
-                if (field.isRequired()) {
+                if (field.isRequired() && field.getId().isValidate()) {
                     checkNotNull(signUpRequestFields.get(field.getId()));
                 }
             }
         } else {
             checkNotNull(signUpRequestFields.get(EMAIL));
             checkNotNull(signUpRequestFields.get(PASSWORD));
+            checkNotNull(signUpRequestFields.get(FIRST_NAME));
+            checkNotNull(signUpRequestFields.get(LAST_NAME));
        }
     }
 
