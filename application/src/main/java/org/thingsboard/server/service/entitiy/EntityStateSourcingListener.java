@@ -53,7 +53,6 @@ import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.edge.Edge;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
 import org.thingsboard.server.common.data.id.DeviceId;
-import org.thingsboard.server.common.data.id.EdgeId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.RuleChainId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -74,12 +73,7 @@ import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.tenant.TenantService;
-import org.thingsboard.server.queue.discovery.TopicService;
-import org.thingsboard.server.queue.kafka.TbKafkaAdmin;
-import org.thingsboard.server.queue.kafka.TbKafkaSettings;
-import org.thingsboard.server.queue.kafka.TbKafkaTopicConfigs;
 
-import java.util.Optional;
 import java.util.Set;
 
 @Slf4j
@@ -87,12 +81,8 @@ import java.util.Set;
 @RequiredArgsConstructor
 public class EntityStateSourcingListener {
 
-    private final TopicService topicService;
-    private final TbClusterService tbClusterService;
     private final TenantService tenantService;
-
-    private final Optional<TbKafkaSettings> kafkaSettings;
-    private final Optional<TbKafkaTopicConfigs> kafkaTopicConfigs;
+    private final TbClusterService tbClusterService;
 
     @PostConstruct
     public void init() {
@@ -188,7 +178,7 @@ public class EntityStateSourcingListener {
         log.debug("[{}][{}][{}] Handling entity deletion event: {}", tenantId, entityType, entityId, event);
 
         switch (entityType) {
-            case ASSET, ASSET_PROFILE, ENTITY_VIEW, CUSTOMER, NOTIFICATION_RULE -> {
+            case ASSET, ASSET_PROFILE, EDGE, ENTITY_VIEW, CUSTOMER, NOTIFICATION_RULE -> {
                 tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityId, ComponentLifecycleEvent.DELETED);
             }
             case NOTIFICATION_REQUEST -> {
@@ -227,10 +217,6 @@ public class EntityStateSourcingListener {
             case TB_RESOURCE -> {
                 TbResourceInfo tbResource = (TbResourceInfo) event.getEntity();
                 tbClusterService.onResourceDeleted(tbResource, null);
-            }
-            case EDGE -> {
-                onEdgeDelete(tenantId, (EdgeId) event.getEntityId());
-                tbClusterService.broadcastEntityStateChangeEvent(tenantId, entityId, ComponentLifecycleEvent.DELETED);
             }
             case INTEGRATION -> {
                 Integration integration = (Integration) event.getEntity();
@@ -311,14 +297,6 @@ public class EntityStateSourcingListener {
             tbClusterService.onEdgeStateChangeEvent(new ComponentLifecycleMsg(tenantId, entityId, lifecycleEvent));
         } else if (entity instanceof EdgeEvent edgeEvent) {
             tbClusterService.onEdgeEventUpdate(new EdgeEventUpdateMsg(tenantId, edgeEvent.getEdgeId()));
-        }
-    }
-
-    private void onEdgeDelete(TenantId tenantId, EdgeId edgeId) {
-        if (kafkaSettings.isPresent() && kafkaTopicConfigs.isPresent()) {
-            String topic = topicService.buildEdgeEventNotificationsTopicPartitionInfo(tenantId, edgeId).getTopic();
-            TbKafkaAdmin kafkaAdmin = new TbKafkaAdmin(kafkaSettings.get(), kafkaTopicConfigs.get().getEdgeEventConfigs());
-            kafkaAdmin.deleteTopic(topic);
         }
     }
 
