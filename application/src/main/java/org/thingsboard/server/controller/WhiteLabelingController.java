@@ -35,10 +35,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -54,10 +55,11 @@ import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.config.annotations.ApiOperation;
-import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.mail.MailTemplates;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.concurrent.ExecutionException;
 
@@ -299,6 +301,46 @@ public class WhiteLabelingController extends BaseController {
         ((ObjectNode) mailTemplates).remove(MailTemplates.API_USAGE_STATE_DISABLED);
 
         return mailTemplates;
+    }
+
+    @ApiOperation(value = "Delete Login White Labeling configuration (deleteCurrentLoginWhiteLabelParams)",
+            notes = "Delete the Login White Labeling configuration that corresponds to the authority of the user. " +
+                    WL_WRITE_CHECK)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @DeleteMapping(value = "/whiteLabel/currentLoginWhiteLabelParams")
+    public void deleteCurrentLoginWhiteLabelParams(@Parameter(description = CUSTOMER_ID_PARAM_DESCRIPTION)
+                                                   @RequestParam(value = "customerId", required = false) String strCustomerId) throws Exception {
+        Authority authority = getCurrentUser().getAuthority();
+        checkWhiteLabelingPermissions(Operation.WRITE);
+        SecurityUser currentUser = getCurrentUser();
+        CustomerId customerId;
+        if (Authority.TENANT_ADMIN.equals(authority) && !StringUtils.isEmpty(strCustomerId)) {
+            customerId = new CustomerId(toUUID(strCustomerId));
+            checkCustomerId(customerId, Operation.WRITE);
+        } else {
+            customerId = currentUser.getCustomerId();
+        }
+        whiteLabelingService.deleteWhiteLabeling(currentUser.getTenantId(), customerId, WhiteLabelingType.LOGIN);
+    }
+
+    @ApiOperation(value = "Delete General White Labeling configuration (deleteCurrentWhiteLabelParams)",
+            notes = "Delete the White Labeling configuration that corresponds to the authority of the user. " +
+                    WL_WRITE_CHECK)
+    @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
+    @DeleteMapping(value = "/whiteLabel/currentWhiteLabelParams")
+    public void deleteCurrentWhiteLabelParams(@Parameter(description = CUSTOMER_ID_PARAM_DESCRIPTION)
+                                              @RequestParam(value = "customerId", required = false) String strCustomerId) throws Exception {
+        Authority authority = getCurrentUser().getAuthority();
+        checkWhiteLabelingPermissions(Operation.WRITE);
+        SecurityUser currentUser = getCurrentUser();
+        CustomerId customerId;
+        if (Authority.TENANT_ADMIN.equals(authority) && !StringUtils.isEmpty(strCustomerId)) {
+            customerId = new CustomerId(toUUID(strCustomerId));
+            checkCustomerId(customerId, Operation.WRITE);
+        } else {
+            customerId = currentUser.getCustomerId();
+        }
+        whiteLabelingService.deleteWhiteLabeling(currentUser.getTenantId(), customerId, WhiteLabelingType.GENERAL);
     }
 
     private void checkWhiteLabelingPermissions(Operation operation) throws ThingsboardException {

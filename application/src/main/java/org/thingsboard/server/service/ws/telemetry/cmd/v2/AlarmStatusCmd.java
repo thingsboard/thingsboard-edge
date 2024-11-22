@@ -28,30 +28,30 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data;
+package org.thingsboard.server.service.ws.telemetry.cmd.v2;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.alarm.AlarmSeverity;
+import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.service.ws.WsCmd;
+import org.thingsboard.server.service.ws.WsCmdType;
 
-@Schema
-@Slf4j
+import java.util.List;
+
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class ImageExportData {
+@NoArgsConstructor
+public class AlarmStatusCmd implements WsCmd {
 
-    private String mediaType;
-    private String fileName;
-    private String title;
-    private String subType;
-    private String resourceKey;
-    private boolean isPublic;
-    private String publicResourceKey;
-    private String data;
+    private int cmdId;
+    private EntityId originatorId;
+    private List<String> typeList;
+    private List<AlarmSeverity> severityList;
 
+    @Override
+    public WsCmdType getType() {
+        return WsCmdType.ALARM_STATUS;
+    }
 }

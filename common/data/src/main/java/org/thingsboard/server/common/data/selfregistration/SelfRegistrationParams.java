@@ -35,6 +35,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 
 import java.io.Serializable;
@@ -61,7 +62,7 @@ public interface SelfRegistrationParams extends Serializable {
 
     List<GroupPermission> getPermissions();
 
-    String getNotificationEmail();
+    NotificationTargetId getNotificationRecipient();
 
     List<SignUpField> getSignUpFields();
 

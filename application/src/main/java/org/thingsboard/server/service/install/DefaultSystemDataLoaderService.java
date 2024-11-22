@@ -557,6 +557,8 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
         installScripts.loadDashboards(demoTenant.getId(), null);
         installScripts.createDefaultTenantDashboards(demoTenant.getId(), null);
+
+        installScripts.createSystemNotificationTemplates(demoTenant.getId());
     }
 
     @Override

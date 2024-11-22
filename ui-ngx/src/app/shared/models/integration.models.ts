@@ -387,6 +387,7 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.KPN, 'integrationKpn'],
     [IntegrationType.AZURE_EVENT_HUB, 'integrationAzureEventHub'],
     [IntegrationType.AZURE_IOT_HUB, 'integrationAzureIoTHub'],
+    [IntegrationType.AZURE_SERVICE_BUS, 'integrationAzureServiceBus'],
     [IntegrationType.OPC_UA, 'integrationOpcUa'],
     [IntegrationType.UDP, 'integrationUdp'],
     [IntegrationType.TCP, 'integrationTcp'],
