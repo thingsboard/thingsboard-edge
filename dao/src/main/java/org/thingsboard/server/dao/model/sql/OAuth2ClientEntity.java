@@ -67,7 +67,7 @@ public class OAuth2ClientEntity extends BaseSqlEntity<OAuth2Client> {
 
     @Column(name = ModelConstants.TENANT_ID_COLUMN)
     private UUID tenantId;
-    @Column(name = ModelConstants.CUSTOMER_ID_COLUMN)
+    @Column(name = ModelConstants.CUSTOMER_ID_PROPERTY)
     private UUID customerId;
     @Column(name = ModelConstants.OAUTH2_CLIENT_TITLE_PROPERTY)
     private String title;

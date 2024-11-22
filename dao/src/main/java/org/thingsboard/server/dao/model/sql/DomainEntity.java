@@ -44,7 +44,7 @@ import org.thingsboard.server.dao.model.ModelConstants;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.CUSTOMER_ID_COLUMN;
+import static org.thingsboard.server.dao.model.ModelConstants.CUSTOMER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.TENANT_ID_COLUMN;
 
 @Data
@@ -56,7 +56,7 @@ public class DomainEntity extends BaseSqlEntity<Domain> {
     @Column(name = TENANT_ID_COLUMN)
     private UUID tenantId;
 
-    @Column(name = CUSTOMER_ID_COLUMN)
+    @Column(name = CUSTOMER_ID_PROPERTY)
     private UUID customerId;
 
     @Column(name = ModelConstants.DOMAIN_NAME_PROPERTY)
