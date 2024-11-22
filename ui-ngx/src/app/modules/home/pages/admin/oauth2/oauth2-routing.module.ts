@@ -41,7 +41,6 @@ import { DomainTableConfigResolver } from '@home/pages/admin/oauth2/domains/doma
 import { EntityDetailsPageComponent } from '@home/components/entity/entity-details-page.component';
 import { entityDetailsPageBreadcrumbLabelFunction } from '@home/pages/home-pages.models';
 import { BreadCrumbConfig } from '@shared/components/breadcrumb';
-import { MobileAppTableConfigResolver } from '@home/pages/admin/oauth2/mobile-apps/mobile-app-table-config.resolver';
 import { MenuId } from '@core/services/menu.models';
 
 @Injectable()
@@ -60,7 +59,7 @@ export const oAuth2Routes: Routes = [
     path: 'oauth2',
     component: RouterTabsComponent,
     data: {
-      auth: [Authority.SYS_ADMIN],
+      auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
       breadcrumb: {
         label: 'admin.oauth2.oauth2',
         icon: 'mdi:shield-account'
@@ -71,8 +70,11 @@ export const oAuth2Routes: Routes = [
         path: '',
         children: [],
         data: {
-          auth: [Authority.SYS_ADMIN],
-          redirectTo: '/security-settings/oauth2/domains'
+          auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
+          redirectTo: {
+            SYS_ADMIN: '/security-settings/oauth2/domains',
+            TENANT_ADMIN: '/security-settings/oauth2/clients'
+          }
         }
       },
       {
@@ -90,20 +92,6 @@ export const oAuth2Routes: Routes = [
         }
       },
       {
-        path: 'mobile-applications',
-        component: EntitiesTableComponent,
-        data: {
-          auth: [Authority.SYS_ADMIN],
-          title: 'admin.oauth2.mobile-apps',
-          breadcrumb: {
-            menuId: MenuId.mobile_apps
-          }
-        },
-        resolve: {
-          entitiesTableConfig: MobileAppTableConfigResolver
-        }
-      },
-      {
         path: 'clients',
         data: {
           title: 'admin.oauth2.clients',
@@ -116,7 +104,7 @@ export const oAuth2Routes: Routes = [
             path: '',
             component: EntitiesTableComponent,
             data: {
-              auth: [Authority.SYS_ADMIN],
+              auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
               title: 'admin.oauth2.clients'
             },
             resolve: {
@@ -134,7 +122,7 @@ export const oAuth2Routes: Routes = [
                     labelFunction: entityDetailsPageBreadcrumbLabelFunction,
                     icon: 'public'
                   } as BreadCrumbConfig<EntityDetailsPageComponent>,
-                  auth: [Authority.SYS_ADMIN],
+                  auth: [Authority.SYS_ADMIN, Authority.TENANT_ADMIN],
                   title: 'admin.oauth2.clients',
                   hideTabs: true,
                   backNavigationCommands: ['../..']
@@ -155,8 +143,7 @@ export const oAuth2Routes: Routes = [
   providers: [
     OAuth2LoginProcessingUrlResolver,
     ClientsTableConfigResolver,
-    DomainTableConfigResolver,
-    MobileAppTableConfigResolver
+    DomainTableConfigResolver
   ],
   imports: [RouterModule.forChild(oAuth2Routes)],
   exports: [RouterModule]

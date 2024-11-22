@@ -88,42 +88,45 @@
       <table #table mat-table [dataSource]="dataSource" [trackBy]="trackByLocale"
              matSort [matSortActive]="pageLink.sortOrder?.property" [matSortDirection]="pageLink.sortDirection()" matSortDisableClear>
         <ng-container matColumnDef="k">
-          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%">{{ 'custom-translation.term-key' | translate }}</mat-header-cell>
-          <mat-header-cell *matHeaderCellDef style="width: 33%">Gav gav</mat-header-cell>
-          <mat-cell *matCellDef="let translate" style="width: 33%" class="constant-value">
-            <span>{{ translate.k }}</span>&nbsp;
-            <tb-copy-button
-              class="copy-button"
-              [disabled]="isLoading$ | async"
-              [copyText]="translate.k"
-              tooltipText="{{ 'custom-translation.copy-term-key' | translate }}"
-              tooltipPosition="above"
-              icon="content_copy"
-              [style]="{padding: '4px', 'font-size': '16px', color: 'rgba(0,0,0,.87)'}"
-            >
-            </tb-copy-button>
+          <mat-header-cell *matHeaderCellDef mat-sort-header class="w-1/3 max-w-1/3">{{ 'custom-translation.term-key' | translate }}</mat-header-cell>
+          <mat-cell *matCellDef="let translate" class="w-1/3 max-w-1/3">
+            <div class="constant-value flex items-center">
+              <div>{{ translate.k }}</div>
+              <tb-copy-button
+                class="copy-button"
+                [disabled]="isLoading$ | async"
+                [copyText]="translate.k"
+                tooltipText="{{ 'custom-translation.copy-term-key' | translate }}"
+                tooltipPosition="above"
+                icon="content_copy"
+                [style]="{padding: '4px', 'font-size': '16px', color: 'rgba(0,0,0,.87)'}"
+              >
+              </tb-copy-button>
+            </div>
           </mat-cell>
         </ng-container>
         <ng-container matColumnDef="o">
-          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%">{{ 'language.locales.' + defaultLang | translate }}</mat-header-cell>
-          <mat-cell *matCellDef="let translate" style="width: 33%" class="constant-value">
-            <span>{{ translate.o }}</span>&nbsp;
-            <tb-copy-button
-              *ngIf="translate.o"
-              class="copy-button"
-              [disabled]="isLoading$ | async"
-              [copyText]="translate.o"
-              tooltipText="{{ 'custom-translation.copy-original-text' | translate }}"
-              tooltipPosition="above"
-              icon="content_copy"
-              [style]="{padding: '4px', 'font-size': '16px', color: 'rgba(0,0,0,.87)'}"
-            >
-            </tb-copy-button>
+          <mat-header-cell *matHeaderCellDef mat-sort-header class="w-1/3 max-w-1/3">{{ 'language.locales.' + defaultLang | translate }}</mat-header-cell>
+          <mat-cell *matCellDef="let translate" class="w-1/3 max-w-1/3">
+            <div class="constant-value flex items-center">
+              <div>{{ translate.o }}</div>
+              <tb-copy-button
+                *ngIf="translate.o"
+                class="copy-button"
+                [disabled]="isLoading$ | async"
+                [copyText]="translate.o"
+                tooltipText="{{ 'custom-translation.copy-original-text' | translate }}"
+                tooltipPosition="above"
+                icon="content_copy"
+                [style]="{padding: '4px', 'font-size': '16px', color: 'rgba(0,0,0,.87)'}"
+              >
+              </tb-copy-button>
+            </div>
           </mat-cell>
         </ng-container>
         <ng-container matColumnDef="t">
-          <mat-header-cell *matHeaderCellDef mat-sort-header style="width: 33%">{{ localeName }}</mat-header-cell>
-          <mat-cell *matCellDef="let translate" style="width: 33%">
+          <mat-header-cell *matHeaderCellDef mat-sort-header class="w-1/3 max-w-1/3">{{ localeName }}</mat-header-cell>
+          <mat-cell *matCellDef="let translate" class="w-1/3 max-w-1/3">
             <ng-container *ngIf="(translate.s === CustomTranslationState.Untranslated || translate.edit || translate.s === CustomTranslationState.Added && !translate.t) && !readonly; else translateValue">
               <div class="tb-form-row no-padding no-gap no-border">
                 <mat-form-field class="flex" appearance="outline" subscriptSizing="dynamic">

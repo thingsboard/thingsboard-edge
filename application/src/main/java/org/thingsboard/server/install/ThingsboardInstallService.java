@@ -156,8 +156,11 @@ public class ThingsboardInstallService {
                             log.info("Upgrading ThingsBoard from version 3.7.0 to 3.8.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.7.0");
                         case "3.8.0":
+                        case "3.8.1":
                             log.info("Upgrading ThingsBoard from version 3.8.0 to 3.9.0 ...");
                             databaseEntitiesUpgradeService.upgradeDatabase("3.8.0");
+                            dataUpdateService.updateData("3.8.1");
+                            installScripts.updateResourcesUsage();
                             //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache
                             break;
                         case "CE":
@@ -180,14 +183,14 @@ public class ThingsboardInstallService {
 
                     log.info("Updating system data...");
                     // dataUpdateService.upgradeRuleNodes();
-                    // installScripts.loadSystemResources();
-                    systemDataLoaderService.loadSystemWidgets();
+                    // systemDataLoaderService.loadSystemWidgets();
                     // installScripts.loadSystemLwm2mResources();
-                    installScripts.loadSystemImages();
+                    installScripts.loadSystemImagesAndResources();
                     if (installScripts.isUpdateImages()) {
                         installScripts.updateImages();
                     }
-                    systemDataLoaderService.createDefaultCustomMenu();
+                    // systemDataLoaderService.createDefaultCustomMenu();
+                    // installScripts.updateSystemNotificationTemplates();
                 }
 
                 log.info("Upgrade finished successfully!");
@@ -229,12 +232,13 @@ public class ThingsboardInstallService {
                 // systemDataLoaderService.createOAuth2Templates();
                 // systemDataLoaderService.createQueues();
                 // systemDataLoaderService.createDefaultNotificationConfigs();
+                // installScripts.updateSystemNotificationTemplates();
                 // systemDataLoaderService.createDefaultCustomMenu();
 
                 // systemDataLoaderService.loadSystemPlugins();
                 // systemDataLoaderService.loadSystemRules();
                 // installScripts.loadSystemLwm2mResources();
-                installScripts.loadSystemImages();
+                installScripts.loadSystemImagesAndResources();
 
                 if (loadDemo) {
                     // log.info("Loading demo data...");

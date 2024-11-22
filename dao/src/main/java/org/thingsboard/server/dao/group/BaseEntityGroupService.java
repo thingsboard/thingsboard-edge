@@ -109,6 +109,7 @@ import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.DaoUtil.extractConstraintViolationException;
 import static org.thingsboard.server.dao.DaoUtil.toUUIDs;
+import static org.thingsboard.server.dao.service.Validator.checkNotNull;
 import static org.thingsboard.server.dao.service.Validator.validateEntityId;
 import static org.thingsboard.server.dao.service.Validator.validateEntityIds;
 import static org.thingsboard.server.dao.service.Validator.validateId;
@@ -766,13 +767,16 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
         log.trace("Executing addEntityToEntityGroup, entityGroupId [{}], entityId [{}]", entityGroupId, entityId);
         validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
         validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
+        validator.validateIfGroupEntity(entityId);
+        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+        checkNotNull(entityGroup, "Entity group with id '" + entityGroupId + "' does not exist.");
+        validator.validateEntityTypesMatch(entityId, entityGroup);
         EntityRelation entityRelation = new EntityRelation();
         entityRelation.setFrom(entityGroupId);
         entityRelation.setTo(entityId);
         entityRelation.setTypeGroup(RelationTypeGroup.FROM_ENTITY_GROUP);
         entityRelation.setType(EntityRelation.CONTAINS_TYPE);
         relationService.saveRelation(tenantId, entityRelation);
-        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
         eventPublisher.publishEvent(ActionEntityEvent.builder()
                 .tenantId(tenantId)
                 .entityId(entityId)
@@ -782,10 +786,14 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
 
     @Override
     public void addEntitiesToEntityGroup(TenantId tenantId, EntityGroupId entityGroupId, List<EntityId> entityIds) {
-        log.trace("Executing addEntityToEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
+        log.trace("Executing addEntitiesToEntityGroup, entityGroupId [{}], entityIds [{}]", entityGroupId, entityIds);
         validateId(entityGroupId, id -> INCORRECT_ENTITY_GROUP_ID + id);
+        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
+        checkNotNull(entityGroup, "Entity group with id '" + entityGroupId + "' does not exist.");
         for (EntityId entityId : entityIds) {
             validateEntityId(entityId, id -> INCORRECT_ENTITY_ID + id);
+            validator.validateIfGroupEntity(entityId);
+            validator.validateEntityTypesMatch(entityId, entityGroup);
         }
         var relations = entityIds.stream().map(entityId -> {
             EntityRelation entityRelation = new EntityRelation();
@@ -796,7 +804,6 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
             return entityRelation;
         }).collect(Collectors.toList());
         relationService.saveRelations(tenantId, relations);
-        EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, entityGroupId);
         for (EntityId entityId : entityIds) {
             eventPublisher.publishEvent(ActionEntityEvent.builder()
                     .tenantId(tenantId)
@@ -1247,6 +1254,18 @@ public class BaseEntityGroupService extends AbstractCachedEntityService<EntityGr
             }
             if (entityGroup.getOwnerId() == null || entityGroup.getOwnerId().isNullUid()) {
                 throw new DataValidationException("Entity group ownerId should be specified!");
+            }
+        }
+
+        protected void validateIfGroupEntity(EntityId entityId) {
+            if (!entityId.getEntityType().isGroupEntityType()) {
+                throw new DataValidationException("Entity '" + entityId.getEntityType() + "' is not a group entity!");
+            }
+        }
+
+        protected void validateEntityTypesMatch(EntityId entityId, EntityGroup entityGroup) {
+            if (!entityId.getEntityType().equals(entityGroup.getType())) {
+                throw new DataValidationException("Entity type should match the entity group type!");
             }
         }
     }

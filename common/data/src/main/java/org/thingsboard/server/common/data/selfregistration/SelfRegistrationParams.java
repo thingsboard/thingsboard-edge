@@ -30,42 +30,56 @@
  */
 package org.thingsboard.server.common.data.selfregistration;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.thingsboard.server.common.data.id.CustomMenuId;
+import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 
+import java.io.Serializable;
 import java.util.List;
 
-@Data
-@EqualsAndHashCode
-public class SelfRegistrationParams extends SignUpSelfRegistrationParams {
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.EXISTING_PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = WebSelfRegistrationParams.class, name = "WEB"),
+        @JsonSubTypes.Type(value = MobileSelfRegistrationParams.class, name = "MOBILE"),
+})
+public interface SelfRegistrationParams extends Serializable {
 
-    @Schema(description = "ID of the administration settings that store this parameters")
-    private String adminSettingsId;
-    @Schema(description = "Domain name for self registration URL. Typically this matches the domain name from the Login White Labeling page.")
-    private String domainName;
-    @Schema(description = "Secret key to validate the Captcha. Should match the Captcha Site Key.")
-    private String captchaSecretKey;
-    @Schema(description = "Privacy policy text. Supports HTML.")
-    private String privacyPolicy;
-    @Schema(description = "Terms of User text. Supports HTML.")
-    private String termsOfUse;
-    @Schema(description = "Email to use for notifications when new user self-registered.")
-    private String notificationEmail;
-    @Schema(description = "Default dashboard Id to assign for the new user.", example = "784f394c-42b6-435a-983c-b7beff2784f9")
-    private String defaultDashboardId;
-    @Schema(description = "Set default dashboard to full screen mode.")
-    private boolean defaultDashboardFullscreen;
-    @Schema(description = "Group Permissions to assign for the new customer user.")
-    private List<GroupPermission> permissions;
-    @Schema(description = "Mobile application verification settings. Package name filter. Contains id of android or iOS application.")
-    private String pkgName;
-    @Schema(description = "Mobile application verification settings. Used to verify the mobile application signup request.")
-    private String appSecret;
-    @Schema(description = "Mobile application verification settings. Used for callback to mobile application once user is registered.")
-    private String appScheme;
-    @Schema(description = "Mobile application verification settings. Used for callback to mobile application once user is registered.")
-    private String appHost;
+    SelfRegistrationType getType();
+
+    Boolean getEnabled();
+
+    String getTitle();
+
+    CaptchaParams getCaptcha();
+
+    List<GroupPermission> getPermissions();
+
+    NotificationTargetId getNotificationRecipient();
+
+    List<SignUpField> getSignUpFields();
+
+    String getCustomerTitlePrefix();
+
+    Boolean getShowPrivacyPolicy();
+
+    Boolean getShowTermsOfUse();
+
+    DefaultDashboardParams getDefaultDashboard();
+
+    HomeDashboardParams getHomeDashboard();
+
+    EntityGroupId getCustomerGroupId();
+
+    CustomMenuId getCustomMenuId();
+
+    SignUpSelfRegistrationParams toSignUpSelfRegistrationParams();
 
 }

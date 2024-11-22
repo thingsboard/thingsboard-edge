@@ -890,12 +890,16 @@ public class DefaultSolutionService implements SolutionService {
             CustomerId customerId = ctx.getIdFromMap(EntityType.CUSTOMER, entityDef.getCustomer());
             Path dashboardsPath = resolve(ctx.getSolutionId(), "dashboards", entityDef.getFile());
             JsonNode dashboardJson = replaceIds(ctx, JacksonUtil.toJsonNode(dashboardsPath));
+            Dashboard dashboardTemplate = JacksonUtil.treeToValue(dashboardJson, Dashboard.class);
+
             Dashboard dashboard = new Dashboard();
             dashboard.setTenantId(ctx.getTenantId());
             dashboard.setTitle(entityDef.getName());
-            dashboard.setConfiguration(dashboardJson.get("configuration"));
+            dashboard.setConfiguration(dashboardTemplate.getConfiguration());
             dashboard.setCustomerId(customerId);
+            dashboard.setResources(dashboardTemplate.getResources());
             dashboard = dashboardService.saveDashboard(dashboard);
+
             ctx.register(entityDef, dashboard);
             ctx.putIdToMap(EntityType.DASHBOARD, entityDef.getName(), dashboard.getId());
             EntityGroupId entityGroupId = addEntityToGroup(ctx, entityDef, dashboard.getId());

@@ -71,7 +71,7 @@ import org.thingsboard.server.common.data.kv.BooleanDataEntry;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMScope;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
-import org.thingsboard.server.common.data.mobile.MobileApp;
+import org.thingsboard.server.common.data.mobile.app.MobileApp;
 import org.thingsboard.server.common.data.page.PageDataIterable;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.queue.ProcessingStrategy;
@@ -317,7 +317,7 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
             jwtSettingsService.saveJwtSettings(jwtSettings);
         }
 
-        List<MobileApp> mobiles = mobileAppDao.findByTenantId(TenantId.SYS_TENANT_ID, new PageLink(Integer.MAX_VALUE,0)).getData();
+        List<MobileApp> mobiles = mobileAppDao.findByTenantId(TenantId.SYS_TENANT_ID, null, new PageLink(Integer.MAX_VALUE,0)).getData();
         if (CollectionUtils.isNotEmpty(mobiles)) {
             mobiles.stream()
                     .filter(mobileApp -> !validateKeyLength(mobileApp.getAppSecret()))
@@ -530,6 +530,8 @@ public class DefaultSystemDataLoaderService implements SystemDataLoaderService {
 
         installScripts.loadDashboards(demoTenant.getId(), null);
         installScripts.createDefaultTenantDashboards(demoTenant.getId(), null);
+
+        installScripts.createSystemNotificationTemplates(demoTenant.getId());
          */
     }
 
