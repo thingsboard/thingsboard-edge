@@ -34,7 +34,6 @@ import com.google.gson.JsonParseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.controller.HttpIntegrationMsg;
 import org.thingsboard.integration.api.util.ConvertUtil;
@@ -72,14 +71,8 @@ public abstract class AbstractHttpIntegration<T extends HttpIntegrationMsg<?>> e
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
         }
-        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
-            try {
-                persistDebug(context, getTypeUplink(msg), msg.getContentType(),
-                        ConvertUtil.toDebugMessage(msg.getContentType(), msg.getMsgInBytes()), status, exception);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        persistDebug(context, getTypeUplink(msg), msg.getContentType(),
+                () -> ConvertUtil.toDebugMessage(msg.getContentType(), msg.getMsgInBytes()), status, exception);
     }
 
     private void handleException(T msg, Exception e) {

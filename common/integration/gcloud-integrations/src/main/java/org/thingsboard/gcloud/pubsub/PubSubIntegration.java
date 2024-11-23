@@ -37,7 +37,6 @@ import com.google.cloud.pubsub.v1.MessageReceiver;
 import com.google.cloud.pubsub.v1.Subscriber;
 import com.google.pubsub.v1.ProjectSubscriptionName;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
@@ -84,6 +83,8 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
         if (stopped) {
             return;
         }
+        String status = "OK";
+        Exception exception = null;
         try {
             List<UplinkData> uplinkDataList = convertToUplinkDataList(context, msg.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), msg.getDeviceMetadata()));
             if (uplinkDataList != null) {
@@ -93,17 +94,14 @@ public class PubSubIntegration extends AbstractIntegration<PubSubIntegrationMsg>
                 }
             }
             integrationStatistics.incMessagesProcessed();
-            if (DebugModeUtil.isDebugAllAvailable(configuration)) {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(),
-                        ConvertUtil.toDebugMessage(getDefaultUplinkContentType(), msg.getPayload()), "OK", null);
-            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             integrationStatistics.incErrorsOccurred();
-            if (DebugModeUtil.isDebugFailuresAvailable(configuration)) {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
-            }
+            exception = e;
+            status = "ERROR";
         }
+        persistDebug(context, "Uplink", getDefaultUplinkContentType(),
+                () -> ConvertUtil.toDebugMessage(getDefaultUplinkContentType(), msg.getPayload()), status, exception);
     }
 
     @Override

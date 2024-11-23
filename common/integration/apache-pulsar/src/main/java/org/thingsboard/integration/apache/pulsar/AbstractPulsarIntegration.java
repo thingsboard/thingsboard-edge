@@ -35,12 +35,11 @@ import org.apache.pulsar.client.api.BatchReceivePolicy;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
-import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.ThingsBoardThreadFactory;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
-import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.ContentType;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -96,19 +95,11 @@ public abstract class AbstractPulsarIntegration<T extends PulsarIntegrationMsg> 
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
             log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
+            integrationStatistics.incErrorsOccurred();
             exception = e;
             status = "ERROR";
         }
-        if (!status.equals("OK")) {
-            integrationStatistics.incErrorsOccurred();
-        }
-        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
-            try {
-                persistDebug(context, "Uplink", UplinkContentType.BINARY, toDebugMessage(UplinkContentType.BINARY, msg.getMsg()), status, exception);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        persistDebug(context, "Uplink", ContentType.BINARY, () -> toDebugMessage(ContentType.BINARY, msg.getMsg()), status, exception);
     }
 
     @Override

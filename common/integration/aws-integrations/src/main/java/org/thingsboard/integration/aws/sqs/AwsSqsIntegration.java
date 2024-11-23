@@ -40,7 +40,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.util.CollectionUtils;
-import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
@@ -137,6 +136,8 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
 
     @Override
     public void process(SqsIntegrationMsg message) {
+        String status = "OK";
+        Exception exception = null;
         try {
             List<UplinkData> uplinkDataList = convertToUplinkDataList(context, message.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), message.getDeviceMetadata()));
             if (uplinkDataList != null) {
@@ -146,16 +147,13 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
                 }
             }
             integrationStatistics.incMessagesProcessed();
-            if (DebugModeUtil.isDebugAllAvailable(configuration)) {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(message.getJson()), "OK", null);
-            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             integrationStatistics.incErrorsOccurred();
-            if (DebugModeUtil.isDebugFailuresAvailable(configuration)) {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
-            }
+            exception = e;
+            status = "ERROR";
         }
+        persistDebug(context, "Uplink", getDefaultUplinkContentType(), () -> JacksonUtil.toString(message.getJson()), status, exception);
     }
 
     @Override

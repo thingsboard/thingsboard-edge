@@ -42,11 +42,11 @@ import com.microsoft.azure.sdk.iot.service.IotHubServiceClientProtocol;
 import com.microsoft.azure.sdk.iot.service.Message;
 import com.microsoft.azure.sdk.iot.service.ServiceClient;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
@@ -69,6 +69,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 @Slf4j
 public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubIntegrationMsg> {
@@ -112,19 +113,11 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
             log.debug("Failed to apply data converter function: {}", e.getMessage(), e);
+            integrationStatistics.incErrorsOccurred();
             exception = e;
             status = "ERROR";
         }
-        if (!status.equals("OK")) {
-            integrationStatistics.incErrorsOccurred();
-        }
-        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
-            try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        persistDebug(context, "Uplink", getDefaultUplinkContentType(), () -> JacksonUtil.toString(msg.toJson()), status, exception);
     }
 
     @Override
@@ -266,20 +259,17 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
 
     private void logEventHubDownlink(IntegrationContext context, Message message, String deviceId, String contentType) {
         String status = downlinkConverter != null ? "OK" : "FAILURE";
-        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
-            try {
-                ObjectNode json = JacksonUtil.newObjectNode();
-                json.put("deviceId", deviceId);
-                json.set("payload", getDownlinkPayloadJson(message, contentType));
-                json.set("properties", JacksonUtil.valueToTree(message.getProperties()));
-                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), status, null);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        Supplier<String> msgSupplier = () -> {
+            ObjectNode json = JacksonUtil.newObjectNode();
+            json.put("deviceId", deviceId);
+            json.set("payload", getDownlinkPayloadJson(message, contentType));
+            json.set("properties", JacksonUtil.valueToTree(message.getProperties()));
+            return JacksonUtil.toString(json);
+        };
+        persistDebug(context, "Downlink", ContentType.JSON, msgSupplier, status, null);
     }
 
-    private JsonNode getDownlinkPayloadJson(Message message, String contentType) throws IOException {
+    private JsonNode getDownlinkPayloadJson(Message message, String contentType) {
         if ("JSON".equals(contentType)) {
             return JacksonUtil.fromBytes(message.getBytes());
         } else if ("TEXT".equals(contentType)) {

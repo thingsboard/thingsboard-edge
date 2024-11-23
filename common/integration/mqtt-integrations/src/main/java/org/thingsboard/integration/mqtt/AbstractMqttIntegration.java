@@ -42,7 +42,6 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.util.concurrent.Promise;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.ListeningExecutor;
 import org.thingsboard.integration.api.AbstractIntegration;
@@ -193,13 +192,7 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     }
 
     private void persistDebug(T msg, String status, Throwable exception) {
-        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
-            try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        persistDebug(context, "Uplink", getDefaultUplinkContentType(), () -> JacksonUtil.toString(msg.toJson()), status, exception);
     }
 
     @Override
@@ -212,18 +205,14 @@ public abstract class AbstractMqttIntegration<T extends MqttIntegrationMsg> exte
     }
 
     protected void processDownLinkMsg(IntegrationContext context, TbMsg msg) {
-        String status = "OK";
-        Exception exception = null;
         try {
             if (doProcessDownLinkMsg(context, msg)) {
                 integrationStatistics.incMessagesProcessed();
             }
         } catch (Exception e) {
             log.warn("Failed to process downLink message", e);
-            exception = e;
-            status = "ERROR";
+            reportDownlinkError(context, msg, "ERROR", e);
         }
-        reportDownlinkError(context, msg, status, exception);
     }
 
     protected abstract boolean doProcessDownLinkMsg(IntegrationContext context, TbMsg msg) throws Exception;

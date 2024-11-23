@@ -43,7 +43,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.UplinkData;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.script.api.js.JsInvokeService;
@@ -301,7 +301,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         return JsonConverter.convertToAttributesProto(src);
     }
 
-    private void persistUplinkDebug(ConverterContext context, UplinkContentType inMessageType, byte[] inMessage, String outMessage, UplinkMetaData metadata) {
+    private void persistUplinkDebug(ConverterContext context, ContentType inMessageType, byte[] inMessage, String outMessage, UplinkMetaData metadata) {
         try {
             persistDebug(context, getTypeUplink(inMessage), inMessageType.name(), inMessage, "JSON", outMessage.getBytes(StandardCharsets.UTF_8), metadataToJson(metadata), null);
         } catch (JsonProcessingException e) {
@@ -309,7 +309,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         }
     }
 
-    private void persistUplinkDebug(ConverterContext context, UplinkContentType inMessageType, byte[] inMessage, UplinkMetaData metadata, Exception e) {
+    private void persistUplinkDebug(ConverterContext context, ContentType inMessageType, byte[] inMessage, UplinkMetaData metadata, Exception e) {
         try {
             persistDebug(context, "Uplink", inMessageType.name(), inMessage, null, null, metadataToJson(metadata), e);
         } catch (JsonProcessingException ex) {

@@ -31,7 +31,7 @@
 package org.thingsboard.integration.tcpip.configs;
 
 import lombok.Data;
-import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.tcpip.AbstractIpIntegration;
 import org.thingsboard.integration.tcpip.HandlerConfiguration;
 
@@ -52,6 +52,6 @@ public class BinaryHandlerConfiguration implements HandlerConfiguration {
     }
 
     @Override
-    public UplinkContentType getUplinkContentType() {return UplinkContentType.BINARY;}
+    public ContentType getUplinkContentType() {return ContentType.BINARY;}
 
 }

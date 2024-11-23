@@ -41,11 +41,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
@@ -56,7 +56,6 @@ import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.msg.TbMsg;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -65,6 +64,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 @Slf4j
 public class AzureServiceBusIntegration extends AbstractIntegration<AzureServiceBusIntegrationMsg> {
@@ -110,13 +110,7 @@ public class AzureServiceBusIntegration extends AbstractIntegration<AzureService
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
         }
-        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
-            try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        persistDebug(context, "Uplink", getDefaultUplinkContentType(), () -> JacksonUtil.toString(msg.toJson()), status, exception);
     }
 
     @Override
@@ -257,20 +251,17 @@ public class AzureServiceBusIntegration extends AbstractIntegration<AzureService
 
     private void logServiceBusDownlink(IntegrationContext context, ServiceBusMessage message, String deviceId, String contentType) {
         String status = downlinkConverter != null ? "OK" : "FAILURE";
-        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
-            try {
-                ObjectNode json = JacksonUtil.newObjectNode();
-                json.put("deviceId", deviceId);
-                json.set("payload", getDownlinkPayloadJson(message, contentType));
-                json.set("properties", JacksonUtil.valueToTree(message.getApplicationProperties()));
-                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), status, null);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        Supplier<String> msgSupplier = () -> {
+            ObjectNode json = JacksonUtil.newObjectNode();
+            json.put("deviceId", deviceId);
+            json.set("payload", getDownlinkPayloadJson(message, contentType));
+            json.set("properties", JacksonUtil.valueToTree(message.getApplicationProperties()));
+            return JacksonUtil.toString(json);
+        };
+        persistDebug(context, "Downlink", ContentType.JSON, msgSupplier, status, null);
     }
 
-    private JsonNode getDownlinkPayloadJson(ServiceBusMessage message, String contentType) throws IOException {
+    private JsonNode getDownlinkPayloadJson(ServiceBusMessage message, String contentType) {
         if ("JSON".equals(contentType)) {
             return JacksonUtil.fromBytes(message.getBody().toBytes());
         } else if ("TEXT".equals(contentType)) {

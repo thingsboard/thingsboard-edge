@@ -44,11 +44,11 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
-import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
@@ -93,6 +93,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 @Slf4j
 public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegrationMsg> {
@@ -308,7 +309,7 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
             log.info("Completed, shutting down now.");
         }
 
-        if(kinesisProducer != null) {
+        if (kinesisProducer != null) {
             kinesisProducer.destroy();
         }
     }
@@ -322,19 +323,11 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
             integrationStatistics.incMessagesProcessed();
         } catch (Exception e) {
             log.warn("Failed to apply data converter function: {}", e.getMessage(), e);
+            integrationStatistics.incErrorsOccurred();
             exception = e;
             status = "ERROR";
         }
-        if (!status.equals("OK")) {
-            integrationStatistics.incErrorsOccurred();
-        }
-        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
-            try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        persistDebug(context, "Uplink", getDefaultUplinkContentType(), () -> JacksonUtil.toString(msg.toJson()), status, exception);
     }
 
     @Override
@@ -437,16 +430,13 @@ public class AwsKinesisIntegration extends AbstractIntegration<KinesisIntegratio
 
     private void logKinesisDownlink(IntegrationContext context, KinesisProducerKey producerKey, DownlinkData data) {
         String status = downlinkConverter != null ? "OK" : "FAILURE";
-        if (DebugModeUtil.isDebugAvailable(configuration, status)) {
-            try {
-                ObjectNode json = JacksonUtil.newObjectNode();
-                json.put("streamName", producerKey.getStreamName());
-                json.put("partitionKey", producerKey.getPartitionKey());
-                json.set("payload", getDownlinkPayloadJson(data));
-                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), status, null);
-            } catch (Exception e) {
-                log.warn("Failed to persist debug message", e);
-            }
-        }
+        Supplier<String> msgSupplier = () -> {
+            ObjectNode json = JacksonUtil.newObjectNode();
+            json.put("streamName", producerKey.getStreamName());
+            json.put("partitionKey", producerKey.getPartitionKey());
+            json.set("payload", getDownlinkPayloadJson(data));
+            return JacksonUtil.toString(json);
+        };
+        persistDebug(context, "Downlink", ContentType.JSON, msgSupplier, status, null);
     }
 }
