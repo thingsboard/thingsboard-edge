@@ -129,7 +129,11 @@ public class EntitiesCleanupTaskProcessor extends HousekeeperTaskProcessor<Entit
 
     public long getTtl(TenantProfile tenantProfile, EntityType entityType) {
         var configuration = tenantProfile.getDefaultProfileConfiguration();
-        return TimeUnit.DAYS.toMillis(configuration.getEntitiesTtl(entityType));
+        var ttlDays = switch (entityType) {
+            case BLOB_ENTITY -> configuration.getBlobEntityTtlDays();
+            default -> 0;
+        };
+        return TimeUnit.DAYS.toMillis(ttlDays);
     }
 
 }
