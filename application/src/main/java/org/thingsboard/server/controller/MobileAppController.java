@@ -96,12 +96,12 @@ public class MobileAppController extends BaseController {
     public LoginMobileInfo getLoginMobileInfo(@Parameter(description = "Mobile application package name")
                                               @RequestParam String pkgName,
                                               @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}))
-                                              @RequestParam PlatformType platform) {
+                                              @RequestParam PlatformType platform) throws ThingsboardException {
         List<OAuth2ClientLoginInfo> oauth2Clients = oAuth2ClientService.findOAuth2ClientLoginInfosByMobilePkgNameAndPlatformType(pkgName, platform);
-        MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform,false);
-        SignUpSelfRegistrationParams signUpSelfRegistrationParams = (mobileAppBundle != null && mobileAppBundle.getSelfRegistrationParams() != null) ?
+        MobileAppBundle mobileAppBundle = checkNotNull(mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform,false));
+        SignUpSelfRegistrationParams signUpSelfRegistrationParams = (mobileAppBundle.getSelfRegistrationParams() != null) ?
                 mobileAppBundle.getSelfRegistrationParams().toSignUpSelfRegistrationParams(platform) : null;
-        MobileApp mobileApp = mobileAppService.findMobileAppByPkgNameAndPlatformType(pkgName, platform);
+        MobileApp mobileApp = checkNotNull(mobileAppService.findMobileAppByPkgNameAndPlatformType(pkgName, platform));
         return new LoginMobileInfo(oauth2Clients, signUpSelfRegistrationParams, mobileApp.getStoreInfo(), mobileApp.getVersionInfo());
     }
 
@@ -115,8 +115,8 @@ public class MobileAppController extends BaseController {
         SecurityUser securityUser = getCurrentUser();
         User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
         HomeDashboardInfo homeDashboardInfo = securityUser.isSystemAdmin() ? null : getHomeDashboardInfo(securityUser, user.getAdditionalInfo());
-        MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(securityUser.getTenantId(), pkgName, platform, false);
-        MobileApp mobileApp = mobileAppService.findMobileAppByPkgNameAndPlatformType(pkgName, platform);
+        MobileAppBundle mobileAppBundle = checkNotNull(mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(securityUser.getTenantId(), pkgName, platform, false));
+        MobileApp mobileApp = checkNotNull(mobileAppService.findMobileAppByPkgNameAndPlatformType(pkgName, platform));
         return new UserMobileInfo(user, mobileApp.getStoreInfo(), mobileApp.getVersionInfo(), homeDashboardInfo, getVisiblePages(mobileAppBundle));
     }
 
