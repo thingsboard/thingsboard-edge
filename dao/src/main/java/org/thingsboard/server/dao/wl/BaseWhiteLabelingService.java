@@ -566,7 +566,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             return saved;
         } catch (Exception t) {
             checkConstraintViolation(t,
-                    "white_labeling_domain_name_type_key", "Such domain name is already used for such type of white_labeling!");
+                    "white_labeling_domain_name_type_key", "Such domain name is already used for such type of white labeling settings!");
             throw t;
         }
     }
