@@ -180,6 +180,7 @@ public class EntityServiceTest extends AbstractServiceTest {
 
     static final int ENTITY_COUNT = 5;
     public static final String TEST_CUSTOMER_NAME = "Test customer";
+    public static final String OTHER_TEST_CUSTOMER_NAME = "Other test customer";
 
     @Autowired
     AssetService assetService;
@@ -239,6 +240,7 @@ public class EntityServiceTest extends AbstractServiceTest {
 
     private MergedUserPermissions mergedUserPermissionsPE;
     private CustomerId customerId;
+    private CustomerId otherCustomerId;
 
     @Before
     public void before() {
@@ -261,6 +263,12 @@ public class EntityServiceTest extends AbstractServiceTest {
         customer.setTitle(TEST_CUSTOMER_NAME);
         customer = customerService.saveCustomer(customer);
         customerId = customer.getId();
+
+        Customer otherCustomer = new Customer();
+        otherCustomer.setTenantId(tenantId);
+        otherCustomer.setTitle(OTHER_TEST_CUSTOMER_NAME);
+        otherCustomer = customerService.saveCustomer(otherCustomer);
+        otherCustomerId = otherCustomer.getId();
     }
 
     @Test
@@ -1879,6 +1887,88 @@ public class EntityServiceTest extends AbstractServiceTest {
         PageData<EntityData> result = entityService.findEntityDataByQuery(tenantId, customerId, mergedUserPermissions, query);
         List<DeviceId> resultDevices = result.getData().stream().map(entityData -> (DeviceId) entityData.getEntityId()).collect(Collectors.toList());
         List<DeviceId> expectedDevices = subCustomerDevices2.stream().map(Device::getId).collect(Collectors.toList());
+        assertThat(resultDevices).hasSameElementsAs(expectedDevices);
+    }
+
+    @Test
+    public void testFindEntitiesByGroupNameFilterWhenUserHasGenericGroupAccessAndGroupAccessTwoOtherCustomerDeviceGroup() {
+        EntityGroup customerGroup = new EntityGroup();
+        customerGroup.setName("customers");
+        customerGroup.setType(EntityType.CUSTOMER);
+        customerGroup = entityGroupService.saveEntityGroup(tenantId, tenantId, customerGroup);
+
+        Customer subCustomer = new Customer();
+        subCustomer.setTenantId(tenantId);
+        subCustomer.setOwnerId(customerId);
+        subCustomer.setTitle("EntitiesByGroupNameFilter Customer");
+        subCustomer = customerService.saveCustomer(subCustomer);
+        CustomerId subCustomerId = subCustomer.getId();
+        entityGroupService.addEntityToEntityGroup(tenantId, customerGroup.getId(), subCustomerId);
+
+        EntityGroup otherCustomerGroup = new EntityGroup();
+        otherCustomerGroup.setName("customers");
+        otherCustomerGroup.setType(EntityType.CUSTOMER);
+        otherCustomerGroup = entityGroupService.saveEntityGroup(tenantId, tenantId, customerGroup);
+
+        Customer otherSubCustomer = new Customer();
+        otherSubCustomer.setTenantId(tenantId);
+        otherSubCustomer.setOwnerId(otherCustomerId);
+        otherSubCustomer.setTitle("EntitiesByGroupNameFilter Other customer");
+        otherSubCustomer = customerService.saveCustomer(otherSubCustomer);
+        CustomerId otherSubCustomerId = otherSubCustomer.getId();
+        entityGroupService.addEntityToEntityGroup(tenantId, otherCustomerGroup.getId(), otherSubCustomerId);
+
+        List<Device> subCustomerDevices = new ArrayList<>();
+        List<Device> otherSubCustomerDevices = new ArrayList<>();
+
+        EntityGroup deviceGroup = new EntityGroup();
+        deviceGroup.setName("devices");
+        deviceGroup.setType(EntityType.DEVICE);
+        deviceGroup.setOwnerId(subCustomerId);
+        deviceGroup = entityGroupService.saveEntityGroup(tenantId, subCustomerId, deviceGroup);
+
+        EntityGroup otherDeviceGroup = new EntityGroup();
+        otherDeviceGroup.setName("devices");
+        otherDeviceGroup.setType(EntityType.DEVICE);
+        otherDeviceGroup.setOwnerId(otherSubCustomerId);
+        otherDeviceGroup = entityGroupService.saveEntityGroup(tenantId, otherSubCustomerId, otherDeviceGroup);
+
+        for (int i = 0; i < 10; i++) {
+            Device device = createDevice(subCustomerId);
+            Device savedDevice = deviceService.saveDevice(device);
+            subCustomerDevices.add(savedDevice);
+            entityGroupService.addEntityToEntityGroup(tenantId, deviceGroup.getId(), savedDevice.getId());
+        }
+
+        for (int i = 0; i < 10; i++) {
+            Device device = createDevice(otherSubCustomerId);
+            Device savedDevice = deviceService.saveDevice(device);
+            otherSubCustomerDevices.add(savedDevice);
+            entityGroupService.addEntityToEntityGroup(tenantId, otherDeviceGroup.getId(), savedDevice.getId());
+        }
+
+        EntitiesByGroupNameFilter entitiesByGroupNameFilter = new EntitiesByGroupNameFilter();
+        entitiesByGroupNameFilter.setGroupType(EntityType.DEVICE);
+        entitiesByGroupNameFilter.setEntityGroupNameFilter("devices");
+        entitiesByGroupNameFilter.setOwnerId(otherSubCustomerId);
+
+        List<EntityKey> entityFields = List.of(
+                new EntityKey(EntityKeyType.ENTITY_FIELD, "name")
+        );
+
+        Map<Resource, Set<Operation>> genericPermissions = new HashMap<>();
+        genericPermissions.put(Resource.DEVICE_GROUP, Collections.singleton(Operation.ALL));
+        genericPermissions.put(Resource.CUSTOMER_GROUP, Collections.singleton(Operation.ALL));
+
+        Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions = new HashMap<>();
+        groupPermissions.put(otherDeviceGroup.getId(), new MergedGroupPermissionInfo(EntityType.DEVICE, Set.of(Operation.READ)));
+        MergedUserPermissions mergedUserPermissions = new MergedUserPermissions(genericPermissions, groupPermissions);
+
+        EntityDataPageLink pageLink = new EntityDataPageLink(1000, 0, null, null);
+        EntityDataQuery query = new EntityDataQuery(entitiesByGroupNameFilter, pageLink, entityFields, null, null);
+        PageData<EntityData> result = entityService.findEntityDataByQuery(tenantId, customerId, mergedUserPermissions, query);
+        List<DeviceId> resultDevices = result.getData().stream().map(entityData -> (DeviceId) entityData.getEntityId()).collect(Collectors.toList());
+        List<DeviceId> expectedDevices = otherSubCustomerDevices.stream().map(Device::getId).collect(Collectors.toList());
         assertThat(resultDevices).hasSameElementsAs(expectedDevices);
     }
 

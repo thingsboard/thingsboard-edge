@@ -1739,12 +1739,14 @@ public class DefaultEntityQueryRepository implements EntityQueryRepository {
             if (!groupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
                 if (genericPartAdded) {
                     if (customOwnerId == null) {
-                        allowedGroupIdsSelect += " or ";
+                        allowedGroupIdsSelect += " or id in (:where_group_ids)";
                     } else {
-                        allowedGroupIdsSelect += " and ";
+                        allowedGroupIdsSelect += " or (id in (:where_group_ids) and owner_id = :customOwnerId) ";
+                        ctx.addUuidParameter("customOwnerId", customOwnerId.getId());
                     }
+                } else {
+                    allowedGroupIdsSelect += " id in (:where_group_ids)";
                 }
-                allowedGroupIdsSelect += "id in (:where_group_ids)";
                 ctx.addUuidListParameter("where_group_ids",
                         groupTypePermissionInfo.getEntityGroupIds().stream()
                                 .map(EntityGroupId::getId).collect(Collectors.toList()));
