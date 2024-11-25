@@ -169,7 +169,7 @@ export const mergeDefaults = <T extends WhiteLabelingParams & LoginWhiteLabeling
   return wlParams;
 };
 
-export const checkWlParams = <T extends WhiteLabelingParams & LoginWhiteLabelingParams>(whiteLabelParams: T): T  => {
+export const checkWlParams = <T extends WhiteLabelingParams & LoginWhiteLabelingParams>(whiteLabelParams: T): T => {
   if (!whiteLabelParams) {
     whiteLabelParams = {} as T;
   }
@@ -179,13 +179,13 @@ export const checkWlParams = <T extends WhiteLabelingParams & LoginWhiteLabeling
   if (!whiteLabelParams.favicon) {
     whiteLabelParams.favicon = {};
   }
-  if(whiteLabelParams.platformName === null){
+  if (isUndefinedOrNull(whiteLabelParams.platformName)) {
     whiteLabelParams.platformName = 'ThingsBoard';
   }
-  if(whiteLabelParams.platformVersion === null){
+  if (isUndefinedOrNull(whiteLabelParams.platformVersion)) {
     whiteLabelParams.platformVersion = env.tbVersion;
   }
-  if (whiteLabelParams.showNameBottom === null){
+  if (isUndefinedOrNull(whiteLabelParams.showNameBottom)) {
     whiteLabelParams.showNameBottom = true;
   }
   return whiteLabelParams;

@@ -29,21 +29,21 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, DestroyRef, inject, Inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, Inject, OnInit } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
 import { ActivatedRoute } from '@angular/router';
 import { FormGroupDirective, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
-import { checkWlParams, LoginWhiteLabelingParams, WhiteLabelingParams } from '@shared/models/white-labeling.models';
+import { LoginWhiteLabelingParams, WhiteLabelingParams } from '@shared/models/white-labeling.models';
 import { Operation, Resource } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { environment as env } from '@env/environment';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import { Observable } from 'rxjs';
+import { mergeMap, Observable } from 'rxjs';
 import { isDefined, isEqual } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import { CustomCssDialogComponent, CustomCssDialogData } from '@home/pages/admin/custom-css-dialog.component';
@@ -257,13 +257,19 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, Has
   }
 
   delete(form: FormGroupDirective) {
-    (this.isLoginWl
-        ? this.whiteLabelingService.deleteCurrentLoginWhiteLabelParams()
-        : this.whiteLabelingService.deleteCurrentWhiteLabelParams()
-    ).subscribe(() => {
-      const wl = checkWlParams<WhiteLabelingParams & LoginWhiteLabelingParams>(null);
-      this.setWhiteLabelingParams(wl);
-      form.resetForm();
+    let deleteParams: Observable<LoginWhiteLabelingParams | WhiteLabelingParams>;
+    if (this.isLoginWl) {
+      deleteParams = this.whiteLabelingService.deleteCurrentLoginWhiteLabelParams().pipe(
+        mergeMap(() => this.whiteLabelingService.getCurrentLoginWhiteLabelParams())
+      );
+    } else {
+      deleteParams =  this.whiteLabelingService.deleteCurrentWhiteLabelParams().pipe(
+        mergeMap(() => this.whiteLabelingService.getCurrentWhiteLabelParams())
+      );
+    }
+    deleteParams.subscribe((value) => {
+      this.setWhiteLabelingParams(value);
+      form.resetForm(value);
     })
   }
 

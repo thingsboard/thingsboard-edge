@@ -1223,6 +1223,13 @@ const menuFilters = new Map<MenuId, MenuFilter>([
           userPermissionsService.hasSharedReadGroupsPermission(EntityType.ENTITY_VIEW)
   ],
   [
+    MenuId.gateways, (authState, userPermissionsService) =>
+          authState.authUser.authority === Authority.TENANT_ADMIN &&
+          userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE) &&
+          (userPermissionsService.hasReadGenericPermission(Resource.DASHBOARD) ||
+            userPermissionsService.hasReadGenericPermission(Resource.WIDGET_TYPE))
+  ],
+  [
     MenuId.device_profiles, (authState, userPermissionsService) =>
           authState.authUser.authority === Authority.TENANT_ADMIN &&
           userPermissionsService.hasReadGenericPermission(Resource.DEVICE_PROFILE)

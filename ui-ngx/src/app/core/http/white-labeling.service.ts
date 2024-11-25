@@ -373,8 +373,10 @@ export class WhiteLabelingService {
     return this.http.delete<void>('/api/whiteLabel/currentLoginWhiteLabelParams', defaultHttpOptionsFromConfig(config))
   }
 
-  public deleteCurrentWhiteLabelParams(config?: RequestConfig): Observable<void> {
-    return this.http.delete<void>('/api/whiteLabel/currentWhiteLabelParams', defaultHttpOptionsFromConfig(config))
+  public deleteCurrentWhiteLabelParams(config?: RequestConfig) {
+    return this.http.delete<void>('/api/whiteLabel/currentWhiteLabelParams', defaultHttpOptionsFromConfig(config)).pipe(
+      mergeMap(() => this.loadUserWhiteLabelingParams())
+    );
   }
 
   public isWhiteLabelingAllowed(): Observable<boolean> {
