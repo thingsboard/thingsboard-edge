@@ -1891,7 +1891,7 @@ public class EntityServiceTest extends AbstractServiceTest {
     }
 
     @Test
-    public void testFindEntitiesByGroupNameFilterWhenUserHasGenericGroupAccessAndGroupAccessTwoOtherCustomerDeviceGroup() {
+    public void testFindEntitiesByGroupNameFilterWhenUserHasGenericAccessAndGroupAccessTwoOtherCustomerDeviceGroup() {
         EntityGroup customerGroup = new EntityGroup();
         customerGroup.setName("customers");
         customerGroup.setType(EntityType.CUSTOMER);
