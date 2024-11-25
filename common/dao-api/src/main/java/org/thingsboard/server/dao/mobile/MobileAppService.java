@@ -34,7 +34,6 @@ import org.thingsboard.server.common.data.id.MobileAppBundleId;
 import org.thingsboard.server.common.data.id.MobileAppId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.mobile.app.MobileApp;
-import org.thingsboard.server.common.data.mobile.app.MobileAppVersionFullInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -51,8 +50,6 @@ public interface MobileAppService extends EntityDaoService {
     MobileApp findByBundleIdAndPlatformType(TenantId tenantId, MobileAppBundleId mobileAppBundleId, PlatformType platformType);
 
     MobileApp findMobileAppByPkgNameAndPlatformType(String pkgName, PlatformType platform);
-
-    MobileAppVersionFullInfo findMobileAppVersionInfo(String pkgName, PlatformType platform);
 
     void deleteMobileAppById(TenantId tenantId, MobileAppId mobileAppId);
 

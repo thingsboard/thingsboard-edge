@@ -56,7 +56,6 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.mobile.LoginMobileInfo;
 import org.thingsboard.server.common.data.mobile.UserMobileInfo;
 import org.thingsboard.server.common.data.mobile.app.MobileApp;
-import org.thingsboard.server.common.data.mobile.app.MobileAppVersionFullInfo;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
 import org.thingsboard.server.common.data.mobile.layout.MobilePage;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientLoginInfo;
@@ -102,8 +101,8 @@ public class MobileAppController extends BaseController {
         MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform,false);
         SignUpSelfRegistrationParams signUpSelfRegistrationParams = (mobileAppBundle != null && mobileAppBundle.getSelfRegistrationParams() != null) ?
                 mobileAppBundle.getSelfRegistrationParams().toSignUpSelfRegistrationParams(platform) : null;
-        MobileAppVersionFullInfo mobileAppVersionInfo = mobileAppService.findMobileAppVersionInfo(pkgName, platform);
-        return new LoginMobileInfo(oauth2Clients, signUpSelfRegistrationParams, mobileAppVersionInfo);
+        MobileApp mobileApp = mobileAppService.findMobileAppByPkgNameAndPlatformType(pkgName, platform);
+        return new LoginMobileInfo(oauth2Clients, signUpSelfRegistrationParams, mobileApp.getStoreInfo(), mobileApp.getVersionInfo());
     }
 
     @ApiOperation(value = "Get user mobile app basic info (getUserMobileInfo)", notes = AVAILABLE_FOR_ANY_AUTHORIZED_USER)
@@ -117,18 +116,8 @@ public class MobileAppController extends BaseController {
         User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
         HomeDashboardInfo homeDashboardInfo = securityUser.isSystemAdmin() ? null : getHomeDashboardInfo(securityUser, user.getAdditionalInfo());
         MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(securityUser.getTenantId(), pkgName, platform, false);
-        MobileAppVersionFullInfo mobileAppVersionInfo = mobileAppService.findMobileAppVersionInfo(pkgName, platform);
-        return new UserMobileInfo(user, mobileAppVersionInfo, homeDashboardInfo, getVisiblePages(mobileAppBundle));
-    }
-
-    @ApiOperation(value = "Get mobile app version info (getMobileVersionInfo)")
-    @PreAuthorize("hasAnyAuthority('SYS_ADMIN','TENANT_ADMIN', 'CUSTOMER_USER')")
-    @GetMapping(value = "/mobile/versionInfo")
-    public MobileAppVersionFullInfo getMobileVersionInfo(@Parameter(description = "Mobile application package name")
-                                                     @RequestParam String pkgName,
-                                                     @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}))
-                                                     @RequestParam PlatformType platform) {
-        return mobileAppService.findMobileAppVersionInfo(pkgName, platform);
+        MobileApp mobileApp = mobileAppService.findMobileAppByPkgNameAndPlatformType(pkgName, platform);
+        return new UserMobileInfo(user, mobileApp.getStoreInfo(), mobileApp.getVersionInfo(), homeDashboardInfo, getVisiblePages(mobileAppBundle));
     }
 
     @ApiOperation(value = "Save Or update Mobile app (saveMobileApp)",
