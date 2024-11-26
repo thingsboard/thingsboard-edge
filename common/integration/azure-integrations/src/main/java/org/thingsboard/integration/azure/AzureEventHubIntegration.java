@@ -75,6 +75,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -83,6 +84,7 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
 
     private ServiceClient serviceClient;
     private EventProcessorClient eventProcessorClient;
+    private LocalCheckpointStore localCheckpointStore;
 
     @Override
     public void init(TbIntegrationInitParams params) throws Exception {
@@ -256,11 +258,15 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     }
 
     private CheckpointStore buildCheckpointStore(AzureEventHubClientConfiguration configuration) {
-        if (configuration.isReadEarliestMessages()) {
-            return new BlobCheckpointStore(buildContainerClient(configuration));
+        CheckpointStore checkpointStore;
+        if (configuration.isEnablePersistentCheckpoints()) {
+            checkpointStore = new BlobCheckpointStore(buildContainerClient(configuration));
+        } else if (localCheckpointStore != null) {
+            checkpointStore = localCheckpointStore;
         } else {
-            return new DummyCheckpointStore();
+            checkpointStore = localCheckpointStore = new LocalCheckpointStore();
         }
+        return checkpointStore;
     }
 
     private BlobContainerAsyncClient buildContainerClient(AzureEventHubClientConfiguration configuration) {
@@ -315,26 +321,75 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
         }
     }
 
-    private static class DummyCheckpointStore implements CheckpointStore {
+    private static class LocalCheckpointStore implements CheckpointStore {
+
+        private final Map<String, PartitionOwnership> ownershipMap = new ConcurrentHashMap<>();
+        private final Map<String, Checkpoint> checkpointMap = new ConcurrentHashMap<>();
 
         @Override
         public Flux<PartitionOwnership> listOwnership(String fullyQualifiedNamespace, String eventHubName, String consumerGroup) {
-            return Flux.empty();
+            return Flux.fromIterable(ownershipMap.values())
+                    .filter(o -> matches(o, fullyQualifiedNamespace, eventHubName, consumerGroup));
         }
 
         @Override
         public Flux<PartitionOwnership> claimOwnership(List<PartitionOwnership> requestedPartitionOwnerships) {
-            return Flux.empty();
+            return Flux.fromIterable(requestedPartitionOwnerships).flatMap(partitionOwnership -> {
+                String key = getKey(partitionOwnership);
+                ownershipMap.compute(key, (k, existingOwnership) -> {
+                    if (existingOwnership == null || existingOwnership.getETag() == null || existingOwnership.getETag().equals(partitionOwnership.getETag())) {
+                        partitionOwnership.setETag(UUID.randomUUID().toString());
+                        partitionOwnership.setLastModifiedTime(System.currentTimeMillis());
+                        return partitionOwnership;
+                    } else {
+                        return existingOwnership;
+                    }
+                });
+
+                return Mono.just(partitionOwnership);
+            });
         }
 
         @Override
         public Flux<Checkpoint> listCheckpoints(String fullyQualifiedNamespace, String eventHubName, String consumerGroup) {
-            return Flux.empty();
+            return Flux.fromIterable(checkpointMap.values())
+                    .filter(checkpoint -> matches(checkpoint, fullyQualifiedNamespace, eventHubName, consumerGroup));
         }
 
         @Override
         public Mono<Void> updateCheckpoint(Checkpoint checkpoint) {
-            return Mono.empty();
+            return Mono.fromRunnable(() -> checkpointMap.put(getKey(checkpoint), checkpoint));
+        }
+
+        private boolean matches(Object item, String namespace, String eventHub, String consumerGroup) {
+            if (item instanceof PartitionOwnership ownership) {
+                return ownership.getFullyQualifiedNamespace().equals(namespace) &&
+                        ownership.getEventHubName().equals(eventHub) &&
+                        ownership.getConsumerGroup().equals(consumerGroup);
+            } else if (item instanceof Checkpoint checkpoint) {
+                return checkpoint.getFullyQualifiedNamespace().equals(namespace) &&
+                        checkpoint.getEventHubName().equals(eventHub) &&
+                        checkpoint.getConsumerGroup().equals(consumerGroup);
+            }
+            return false;
+        }
+
+        private String getKey(PartitionOwnership ownership) {
+            return String.format("%s/%s/%s/%s",
+                    ownership.getFullyQualifiedNamespace(),
+                    ownership.getEventHubName(),
+                    ownership.getConsumerGroup(),
+                    ownership.getPartitionId()
+            );
+        }
+
+        private String getKey(Checkpoint checkpoint) {
+            return String.format("%s/%s/%s/%s",
+                    checkpoint.getFullyQualifiedNamespace(),
+                    checkpoint.getEventHubName(),
+                    checkpoint.getConsumerGroup(),
+                    checkpoint.getPartitionId()
+            );
         }
     }
 

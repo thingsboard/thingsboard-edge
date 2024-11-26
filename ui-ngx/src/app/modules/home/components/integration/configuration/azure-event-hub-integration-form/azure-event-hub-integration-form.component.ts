@@ -88,14 +88,14 @@ export class AzureEventHubIntegrationFormComponent extends IntegrationForm imple
       iotHubName: [''],
       storageConnectionString: [{value: '', disabled: true}, Validators.required],
       containerName: [{value: '', disabled: true}],
-      readEarliestMessages: [false]
+      enablePersistentCheckpoints: [false]
     });
     this.azureEventHubIntegrationConfigForm.valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe(() => {
       this.updateModels(this.azureEventHubIntegrationConfigForm.getRawValue());
     });
-    this.azureEventHubIntegrationConfigForm.get('readEarliestMessages').valueChanges.pipe(
+    this.azureEventHubIntegrationConfigForm.get('enablePersistentCheckpoints').valueChanges.pipe(
       takeUntil(this.destroy$)
     ).subscribe(() => {
       this.updateEnableFields();
@@ -138,8 +138,8 @@ export class AzureEventHubIntegrationFormComponent extends IntegrationForm imple
   }
 
   private updateEnableFields() {
-    const readEarliestMessages = this.azureEventHubIntegrationConfigForm.get('readEarliestMessages').value;
-    if (readEarliestMessages) {
+    const enablePersistentCheckpoints = this.azureEventHubIntegrationConfigForm.get('enablePersistentCheckpoints').value;
+    if (enablePersistentCheckpoints) {
       this.azureEventHubIntegrationConfigForm.get('storageConnectionString').enable({emitEvent: false});
       this.azureEventHubIntegrationConfigForm.get('containerName').enable({emitEvent: false});
     } else {

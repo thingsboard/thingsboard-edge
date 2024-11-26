@@ -46,7 +46,7 @@ public class AzureEventHubClientConfiguration {
 
     private String storageConnectionString;
     private String containerName;
-    private boolean readEarliestMessages;
+    private boolean enablePersistentCheckpoints;
 
     public String getConsumerGroup() {
         return (consumerGroup == null || consumerGroup.isEmpty())

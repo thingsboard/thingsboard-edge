@@ -697,7 +697,7 @@ export interface AzureEventHubIntegration {
     iotHubName?: string;
     storageConnectionString?: string;
     containerName?: string;
-    readEarliestMessages?: boolean;
+    enablePersistentCheckpoints?: boolean;
   };
 }
 
