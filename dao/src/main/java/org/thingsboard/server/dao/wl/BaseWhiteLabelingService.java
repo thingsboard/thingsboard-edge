@@ -68,6 +68,7 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.net.URI;
+import java.util.List;
 
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.LOGIN;
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.PRIVACY_POLICY;
@@ -345,8 +346,15 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     @Override
     public void deleteAllTenantWhiteLabeling(TenantId tenantId) {
-        for (WhiteLabelingType type : WhiteLabelingType.values()) {
-            deleteWhiteLabeling(tenantId, null, type);
+        List<WhiteLabeling> wlSettings = whiteLabelingDao.findByTenantId(tenantId);
+        for (WhiteLabeling whiteLabeling : wlSettings) {
+            WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(whiteLabeling.getTenantId(), whiteLabeling.getCustomerId(), whiteLabeling.getType());
+            whiteLabelingDao.removeById(tenantId, key);
+            publishEvictEvent(new WhiteLabelingEvictEvent(forKey(key)));
+            if (whiteLabeling.getDomainId() != null) {
+                Domain domain = domainService.findDomainById(tenantId, whiteLabeling.getDomainId());
+                publishEvictEvent(new WhiteLabelingEvictEvent(forTypeAndDomain(whiteLabeling.getType(), domain.getName())));
+            }
         }
     }
 

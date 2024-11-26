@@ -69,7 +69,7 @@ import static org.thingsboard.server.controller.ControllerConstants.PAGE_NUMBER_
 import static org.thingsboard.server.controller.ControllerConstants.PAGE_SIZE_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_ORDER_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SORT_PROPERTY_DESCRIPTION;
-import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_AUTHORITY_PARAGRAPH;
+import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
 
 @RestController
@@ -86,7 +86,7 @@ public class DomainController extends BaseController {
                     "The newly created Domain Id will be present in the response. " +
                     "Specify existing Domain Id to update the domain. " +
                     "Referencing non-existing Domain Id will cause 'Not Found' error." +
-                    "\n\nDomain name is unique for entire platform setup.\n\n" + SYSTEM_AUTHORITY_PARAGRAPH)
+                    "\n\nDomain name is unique for entire platform setup.\n\n" + SYSTEM_OR_TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PostMapping(value = "/domain")
     public Domain saveDomain(
@@ -102,7 +102,7 @@ public class DomainController extends BaseController {
     }
 
     @ApiOperation(value = "Update oauth2 clients (updateOauth2Clients)",
-            notes = "Update oauth2 clients for the specified domain. ")
+            notes = "Update oauth2 clients for the specified domain. " + SYSTEM_OR_TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @PutMapping(value = "/domain/{id}/oauth2Clients")
     public void updateOauth2Clients(@PathVariable UUID id,
@@ -113,7 +113,7 @@ public class DomainController extends BaseController {
         tbDomainService.updateOauth2Clients(domain, oAuth2ClientIds, getCurrentUser());
     }
 
-    @ApiOperation(value = "Get Domain infos (getDomainInfos)", notes = SYSTEM_AUTHORITY_PARAGRAPH)
+    @ApiOperation(value = "Get Domain infos (getDomainInfos)", notes = SYSTEM_OR_TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/domain/infos")
     public PageData<DomainInfo> getDomainInfos(@Parameter(description = PAGE_SIZE_DESCRIPTION, required = true)
@@ -131,7 +131,7 @@ public class DomainController extends BaseController {
         return domainService.findDomainInfosByTenantIdAndCustomerId(currentUser.getTenantId(), currentUser.getCustomerId(), pageLink);
     }
 
-    @ApiOperation(value = "Get Domain info by Id (getDomainInfoById)", notes = SYSTEM_AUTHORITY_PARAGRAPH)
+    @ApiOperation(value = "Get Domain info by Id (getDomainInfoById)", notes = SYSTEM_OR_TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @GetMapping(value = "/domain/info/{id}")
     public DomainInfo getDomainInfoById(@PathVariable UUID id) throws ThingsboardException {
@@ -140,7 +140,7 @@ public class DomainController extends BaseController {
     }
 
     @ApiOperation(value = "Delete Domain by ID (deleteDomain)",
-            notes = "Deletes Domain by ID. Referencing non-existing domain Id will cause an error." + SYSTEM_AUTHORITY_PARAGRAPH)
+            notes = "Deletes Domain by ID. Referencing non-existing domain Id will cause an error." + SYSTEM_OR_TENANT_OR_CUSTOMER_AUTHORITY_PARAGRAPH)
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
     @DeleteMapping(value = "/domain/{id}")
     public void deleteDomain(@PathVariable UUID id) throws Exception {

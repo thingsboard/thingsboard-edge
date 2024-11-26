@@ -56,4 +56,5 @@ public interface WhiteLabelingDao {
 
     PageData<WhiteLabeling> findAllByType(PageLink pageLink, Set<WhiteLabelingType> types);
 
+    List<WhiteLabeling> findByTenantId(TenantId tenantId);
 }
