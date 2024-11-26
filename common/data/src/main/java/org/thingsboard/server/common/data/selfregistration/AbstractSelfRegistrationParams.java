@@ -36,6 +36,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.thingsboard.server.common.data.id.CustomMenuId;
 import org.thingsboard.server.common.data.id.EntityGroupId;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 
@@ -81,10 +82,10 @@ public abstract class AbstractSelfRegistrationParams implements SelfRegistration
     protected String termsOfUse;
 
     @Override
-    public SignUpSelfRegistrationParams toSignUpSelfRegistrationParams() {
+    public SignUpSelfRegistrationParams toSignUpSelfRegistrationParams(PlatformType platformType) {
         return (enabled) ? new SignUpSelfRegistrationParams(
                 title,
-                new CaptchaParams(captcha.siteKey, captcha.version, captcha.logActionName),
+                captcha.toInfo(platformType),
                 signUpFields,
                 showPrivacyPolicy,
                 showTermsOfUse) : null;

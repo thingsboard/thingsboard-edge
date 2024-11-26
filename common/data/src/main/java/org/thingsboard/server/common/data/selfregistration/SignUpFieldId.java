@@ -30,18 +30,27 @@
  */
 package org.thingsboard.server.common.data.selfregistration;
 
+import lombok.Getter;
+
 public enum SignUpFieldId {
 
-    EMAIL,
-    PASSWORD,
-    REPEAT_PASSWORD,
-    FIRST_NAME,
-    LAST_NAME,
-    PHONE,
-    COUNTRY,
-    CITY,
-    STATE,
-    ZIP,
-    ADDRESS,
-    ADDRESS2;
+    EMAIL(true),
+    PASSWORD(true),
+    REPEAT_PASSWORD(false),
+    FIRST_NAME(true),
+    LAST_NAME(true),
+    PHONE(true),
+    COUNTRY(true),
+    CITY(true),
+    STATE(true),
+    ZIP(true),
+    ADDRESS(true),
+    ADDRESS2(true);
+
+    @Getter
+    private final boolean validate;
+
+    SignUpFieldId(boolean needCheck) {
+        this.validate = needCheck;
+    }
 }

@@ -7135,7 +7135,15 @@
         "captcha-version": "Captcha version",
         "captcha-action": "Captcha log action name",
         "captcha-site-key": "Captcha site key",
+        "captcha-site-key-required": "Captcha site key is required.",
         "captcha-secret-key": "Captcha secret key",
+        "captcha-secret-key-required": "Captcha secret key is required.",
+        "project-id": "Project ID",
+        "project-id-required": "Project ID is required.",
+        "android-key": "Android key",
+        "android-key-required": "Android key is required.",
+        "ios-key": "iOS key",
+        "ios-key-required": "iOS key is required.",
         "notification-recipient": "Notification recipient",
         "notification-recipient-required": "Notification recipient is required.",
         "privacy-policy-text": "Privacy policy text",
@@ -7159,7 +7167,9 @@
         "show-privacy-policy": "Show Privacy Policy",
         "show-terms-of-use": "Show Terms of Use",
         "domain-settings": "Domain settings",
-        "general-settings": "General settings"
+        "general-settings": "General settings",
+        "recaptcha-enterprise-service-account-file": "reCAPTCHA Enterprise account credentials JSON file",
+        "select-recaptcha-enterprise-service-account-file": "Drag and drop your account credentials file"
     },
     "solution-template": {
         "solution-template": "Solution template",

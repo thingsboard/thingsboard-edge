@@ -156,6 +156,8 @@
         <antisamy.version>1.7.5</antisamy.version>
         <snmp4j.version>3.8.0</snmp4j.version>
         <json-path.version>2.9.0</json-path.version>
+        <recaptcha.enterprise.version>3.38.0</recaptcha.enterprise.version>
+        <google.oauth2-http.version>1.23.0</google.oauth2-http.version>
         <!--         TEST SCOPE         -->
         <awaitility.version>4.2.1</awaitility.version>
         <dbunit.version>2.7.3</dbunit.version>
@@ -2485,6 +2487,16 @@
                 <groupId>com.drewnoakes</groupId>
                 <artifactId>metadata-extractor</artifactId>
                 <version>${drewnoakes-metadata-extractor.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.cloud</groupId>
+                <artifactId>google-cloud-recaptchaenterprise</artifactId>
+                <version>${recaptcha.enterprise.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.auth</groupId>
+                <artifactId>google-auth-library-oauth2-http</artifactId>
+                <version>${google.oauth2-http.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

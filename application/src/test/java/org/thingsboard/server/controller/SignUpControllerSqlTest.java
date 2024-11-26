@@ -59,7 +59,7 @@ import org.thingsboard.server.common.data.notification.NotificationDeliveryMetho
 import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.selfregistration.CaptchaParams;
+import org.thingsboard.server.common.data.selfregistration.V2CaptchaParams;
 import org.thingsboard.server.common.data.selfregistration.MobileRedirectParams;
 import org.thingsboard.server.common.data.selfregistration.MobileSelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpField;
@@ -331,7 +331,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
 
         WebSelfRegistrationParams selfRegistrationParams = new WebSelfRegistrationParams();
         selfRegistrationParams.setTitle("Please sign up");
-        CaptchaParams captcha = new CaptchaParams();
+        V2CaptchaParams captcha = new V2CaptchaParams();
         captcha.setSiteKey("6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI");
         captcha.setSecretKey("6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe");
         selfRegistrationParams.setCaptcha(captcha);
@@ -370,7 +370,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
     private MobileSelfRegistrationParams createMobileSelfRegistrationParams() {
         MobileSelfRegistrationParams selfRegistrationParams = new MobileSelfRegistrationParams();
         selfRegistrationParams.setTitle("Please sign up");
-        CaptchaParams captcha = new CaptchaParams();
+        V2CaptchaParams captcha = new V2CaptchaParams();
         captcha.setSecretKey("6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe");
         captcha.setSiteKey("6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI");
         captcha.setLogActionName("sign_up");

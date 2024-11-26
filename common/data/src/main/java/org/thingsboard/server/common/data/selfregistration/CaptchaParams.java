@@ -30,28 +30,26 @@
  */
 package org.thingsboard.server.common.data.selfregistration;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
 
-@Schema
-@Data
-@NoArgsConstructor
-public class CaptchaParams {
+import java.io.Serializable;
 
-    @Schema(description = "Captcha site key for 'I'm not a robot' validation")
-    protected String siteKey;
-    @Schema(description = "Captcha version ('v3' = Score based, 'enterprise')")
-    protected String version;
-    @Schema(description = "Optional action name used for logging (for captcha version 'v3' only)")
-    protected String logActionName;
-    @Schema(description = "Secret key to validate the Captcha. Should match the Captcha Site Key.")
-    private String secretKey;
+@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.EXISTING_PROPERTY,
+        property = "version")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = EnterpriseCaptchaParams.class, name = "enterprise"),
+        @JsonSubTypes.Type(value = V2CaptchaParams.class, name = "v2"),
+        @JsonSubTypes.Type(value = V3CaptchaParams.class, name = "v3")
+})
+public interface CaptchaParams extends Serializable {
 
-    public CaptchaParams(String siteKey, String version, String logActionName) {
-        this.siteKey = siteKey;
-        this.version = version;
-        this.logActionName = logActionName;
-    }
+    String getVersion();
+
+    CaptchaParams toInfo(PlatformType platformType);
 }
