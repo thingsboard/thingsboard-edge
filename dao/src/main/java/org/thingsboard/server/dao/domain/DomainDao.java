@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.domain;
 
 import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.domain.DomainOauth2Client;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DomainId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
@@ -42,7 +43,7 @@ import java.util.List;
 
 public interface DomainDao extends Dao<Domain> {
 
-    PageData<Domain> findByTenantId(TenantId tenantId, PageLink pageLink);
+    PageData<Domain> findByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
     int countDomainByTenantIdAndOauth2Enabled(TenantId tenantId, boolean oauth2Enabled);
 

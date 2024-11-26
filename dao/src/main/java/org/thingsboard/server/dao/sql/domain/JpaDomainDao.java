@@ -36,8 +36,8 @@ import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.domain.DomainOauth2Client;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DomainId;
-import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -71,8 +71,8 @@ public class JpaDomainDao extends JpaAbstractDao<DomainEntity, Domain> implement
     }
 
     @Override
-    public PageData<Domain> findByTenantId(TenantId tenantId, PageLink pageLink) {
-        return DaoUtil.toPageData(domainRepository.findByTenantId(tenantId.getId(), pageLink.getTextSearch(), DaoUtil.toPageable(pageLink)));
+    public PageData<Domain> findByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
+        return DaoUtil.toPageData(domainRepository.findByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink.getTextSearch(), DaoUtil.toPageable(pageLink)));
     }
 
     @Override

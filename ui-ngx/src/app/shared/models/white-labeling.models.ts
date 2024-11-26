@@ -34,6 +34,7 @@ import { deepClone, isDefined, isUndefinedOrNull } from '@core/utils';
 import { ColorPalette, extendDefaultPalette } from '@shared/models/material.models';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { CustomerId } from '@shared/models/id/customer-id';
+import { DomainId } from '@shared/models/id/domain-id';
 
 export interface Favicon {
   url?: string;
@@ -69,7 +70,7 @@ export interface WhiteLabelingParams {
 export interface LoginWhiteLabelingParams extends WhiteLabelingParams {
   pageBackgroundColor?: string;
   darkForeground?: boolean;
-  domainName?: string;
+  domainId?: DomainId;
   baseUrl?: string;
   adminSettingsId?: string;
   showNameBottom?: boolean;

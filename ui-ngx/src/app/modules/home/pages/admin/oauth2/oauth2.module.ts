@@ -39,6 +39,7 @@ import { ClientTableHeaderComponent } from '@home/pages/admin/oauth2/clients/cli
 import { DomainComponent } from '@home/pages/admin/oauth2/domains/domain.component';
 import { ClientDialogComponent } from '@home/pages/admin/oauth2/clients/client-dialog.component';
 import { DomainTableHeaderComponent } from '@home/pages/admin/oauth2/domains/domain-table-header.component';
+import { DomainDialogComponent } from '@home/pages/admin/oauth2/domains/domain-dialog.component';
 
 @NgModule({
   declarations: [
@@ -46,13 +47,17 @@ import { DomainTableHeaderComponent } from '@home/pages/admin/oauth2/domains/dom
     ClientDialogComponent,
     ClientTableHeaderComponent,
     DomainComponent,
-    DomainTableHeaderComponent
+    DomainTableHeaderComponent,
+    DomainDialogComponent,
   ],
   imports: [
     Oauth2RoutingModule,
     CommonModule,
     SharedModule,
     HomeComponentsModule
+  ],
+  exports: [
+    DomainDialogComponent,
   ]
 })
 export class OAuth2Module {

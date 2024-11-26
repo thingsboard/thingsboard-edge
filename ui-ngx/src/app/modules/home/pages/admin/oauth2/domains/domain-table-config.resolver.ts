@@ -102,7 +102,7 @@ export class DomainTableConfigResolver  {
 
     this.config.deleteEntityTitle = (domain) => this.translate.instant('admin.oauth2.delete-domain-title', {domainName: domain.name});
     this.config.deleteEntityContent = () => this.translate.instant('admin.oauth2.delete-domain-text');
-    this.config.entitiesFetchFunction = pageLink => this.domainService.getTenantDomainInfos(pageLink);
+    this.config.entitiesFetchFunction = pageLink => this.domainService.getDomainInfos(pageLink);
     this.config.loadEntity = id => this.domainService.getDomainInfoById(id.id);
     this.config.saveEntity = (domain, originalDomain) => {
       const clientsIds = domain.oauth2ClientInfos as Array<string> || [];

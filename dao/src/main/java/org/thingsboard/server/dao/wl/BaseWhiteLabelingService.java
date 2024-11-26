@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.DataConstants;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.edge.EdgeEventType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
@@ -55,6 +56,7 @@ import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.customer.CustomerService;
+import org.thingsboard.server.dao.domain.DomainService;
 import org.thingsboard.server.dao.entity.AbstractCachedService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.exception.IncorrectParameterException;
@@ -86,6 +88,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     private static final String ALLOW_CUSTOMER_WHITE_LABELING = "allowCustomerWhiteLabeling";
 
     private final AdminSettingsService adminSettingsService;
+    private final DomainService domainService;
     private final WhiteLabelingDao whiteLabelingDao;
     private final TenantService tenantService;
     private final CustomerService customerService;
@@ -96,7 +99,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     @Override
     public LoginWhiteLabelingParams getSystemLoginWhiteLabelingParams() {
         WhiteLabeling whiteLabeling = findByEntityId(TenantId.SYS_TENANT_ID, null, LOGIN);
-        return constructLoginWlParams(whiteLabeling != null ? whiteLabeling.getSettings() : null);
+        return constructLoginWlParams(whiteLabeling);
     }
 
     @Override
@@ -229,8 +232,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     @Override
     public LoginWhiteLabelingParams saveSystemLoginWhiteLabelingParams(LoginWhiteLabelingParams loginWhiteLabelingParams) {
-        if (!StringUtils.isBlank(loginWhiteLabelingParams.getDomainName())) {
-            throw new DataValidationException("Domain name is prohibited for system level");
+        if (loginWhiteLabelingParams.getDomainId() != null) {
+            throw new DataValidationException("Domain is prohibited for system level");
         }
         if (loginWhiteLabelingParams.getBaseUrl() != null && !isValidUrl(loginWhiteLabelingParams.getBaseUrl())) {
             throw new IncorrectParameterException("Base url " + loginWhiteLabelingParams.getBaseUrl() + " is invalid");
@@ -286,14 +289,15 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     }
 
     private void saveEntityLoginWhiteLabelingParams(TenantId tenantId, CustomerId customerId, LoginWhiteLabelingParams loginWhiteLabelParams) {
-        if (loginWhiteLabelParams.getDomainName() == null) {
-            throw new IncorrectParameterException("Domain name could not be empty");
+        if (loginWhiteLabelParams.getDomainId() == null) {
+            throw new IncorrectParameterException("Domain id could not be empty");
         }
-        if (!isUsedOnSystemLevel(loginWhiteLabelParams.getDomainName())) {
-            throw new IncorrectParameterException("Current domain name " + loginWhiteLabelParams.getDomainName() + " already used in the system level");
+        Domain domain = domainService.findDomainById(tenantId, loginWhiteLabelParams.getDomainId());
+        if (!isValidDomain(domain.getName())) {
+            throw new IncorrectParameterException("Domain name " + domain.getName() + " is invalid");
         }
-        if (!isValidDomain(loginWhiteLabelParams.getDomainName())) {
-            throw new IncorrectParameterException("Domain name " + loginWhiteLabelParams.getDomainName() + " is invalid");
+        if (!isUsedOnSystemLevel(domain.getName())) {
+            throw new IncorrectParameterException("Current domain name " + domain.getName() + " already used in the system level");
         }
         if (loginWhiteLabelParams.getBaseUrl() != null && !isValidUrl(loginWhiteLabelParams.getBaseUrl())) {
             throw new IncorrectParameterException("Base url " + loginWhiteLabelParams.getBaseUrl() + " is invalid");
@@ -389,32 +393,21 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         return constructWlParams(jsonNode, false);
     }
 
-    private LoginWhiteLabelingParams constructLoginWlParams(JsonNode json) {
-        LoginWhiteLabelingParams result = null;
-        if (json != null) {
-            try {
-                result = JacksonUtil.treeToValue(json, LoginWhiteLabelingParams.class);
-            } catch (IllegalArgumentException e) {
-                log.error("Unable to read Login White Labeling Params from JSON!", e);
-                throw new IncorrectParameterException("Unable to read Login White Labeling Params from JSON!");
-            }
+    private LoginWhiteLabelingParams constructLoginWlParams(WhiteLabeling whiteLabeling) {
+        if (whiteLabeling == null || whiteLabeling.getSettings() == null) {
+            return new LoginWhiteLabelingParams();
         }
-        if (result == null) {
-            result = new LoginWhiteLabelingParams();
-        }
-        return result;
+        LoginWhiteLabelingParams  loginWLParams = JacksonUtil.treeToValue(whiteLabeling.getSettings(), LoginWhiteLabelingParams.class);
+        loginWLParams.setDomainId(whiteLabeling.getDomainId());
+        return loginWLParams;
     }
 
-
     private LoginWhiteLabelingParams getEntityLoginWhiteLabelParams(TenantId tenantId, CustomerId customerId) {
-        JsonNode jsonNode = null;
+        WhiteLabeling whiteLabeling = null;
         if (isWhiteLabelingAllowed(tenantId, customerId)) {
-            WhiteLabeling whiteLabeling = findByEntityId(tenantId, customerId, LOGIN);
-            if (whiteLabeling != null) {
-                jsonNode = whiteLabeling.getSettings();
-            }
+            whiteLabeling = findByEntityId(tenantId, customerId, LOGIN);
         }
-        return constructLoginWlParams(jsonNode);
+        return constructLoginWlParams(whiteLabeling);
     }
 
     public boolean isWhiteLabelingAllowed(TenantId tenantId, CustomerId customerId) {
@@ -535,10 +528,9 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         whiteLabeling.setTenantId(tenantId);
         whiteLabeling.setCustomerId(customerId);
         whiteLabeling.setType(LOGIN);
-        whiteLabelingParams.setDomainName(StringUtils.toLowerCase(whiteLabelingParams.getDomainName()));
         whiteLabelingParams.setBaseUrl(StringUtils.toLowerCase(whiteLabelingParams.getBaseUrl()));
         whiteLabeling.setSettings(JacksonUtil.valueToTree(whiteLabelingParams));
-        whiteLabeling.setDomain(whiteLabelingParams.getDomainName());
+        whiteLabeling.setDomainId(whiteLabelingParams.getDomainId());
 
         doSaveWhiteLabelingSettings(tenantId, whiteLabeling);
         eventPublisher.publishEvent(ActionEntityEvent.builder().tenantId(tenantId).entityId(getEntityIdForEvent(tenantId, customerId))
@@ -567,13 +559,14 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             WhiteLabeling saved = whiteLabelingDao.save(tenantId, whiteLabeling);
             WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(saved.getTenantId(), saved.getCustomerId(), saved.getType());
             publishEvictEvent(new WhiteLabelingEvictEvent(forKey(key)));
-            if (!StringUtils.isEmpty(whiteLabeling.getDomain())){
-                publishEvictEvent(new WhiteLabelingEvictEvent(forTypeAndDomain(whiteLabeling.getType(), whiteLabeling.getDomain())));
+            if (whiteLabeling.getDomainId() != null) {
+                Domain domain = domainService.findDomainById(tenantId, whiteLabeling.getDomainId());
+                publishEvictEvent(new WhiteLabelingEvictEvent(forTypeAndDomain(whiteLabeling.getType(), domain.getName())));
             }
             return saved;
         } catch (Exception t) {
             checkConstraintViolation(t,
-                    "white_labeling_domain_name_key", "Such domain name already registered in the system!");
+                    "white_labeling_domain_id_type_key", "Such domain name is already used for such type of white labeling settings!");
             throw t;
         }
     }
@@ -600,7 +593,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             WhiteLabeling privacyPolicy = WhiteLabeling.builder()
                     .tenantId(tenantId)
                     .type(PRIVACY_POLICY)
-                    .domain(selfRegistrationParams.getDomainName())
+                    .domainId(selfRegistrationParams.getDomainId())
                     .settings(JacksonUtil.newObjectNode().put("privacyPolicy", selfRegistrationParams.getPrivacyPolicy()))
                     .build();
             doSaveWhiteLabelingSettings(tenantId, privacyPolicy);
@@ -610,7 +603,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
             WhiteLabeling termsOfUse = WhiteLabeling.builder()
                     .tenantId(tenantId)
                     .type(TERMS_OF_USE)
-                    .domain(selfRegistrationParams.getDomainName())
+                    .domainId(selfRegistrationParams.getDomainId())
                     .settings(JacksonUtil.newObjectNode().put("termsOfUse", selfRegistrationParams.getTermsOfUse()))
                     .build();
             doSaveWhiteLabelingSettings(tenantId, termsOfUse);
@@ -622,7 +615,7 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         WhiteLabeling selfRegistration = WhiteLabeling.builder()
                 .tenantId(tenantId)
                 .type(SELF_REGISTRATION)
-                .domain(selfRegistrationParams.getDomainName())
+                .domainId(selfRegistrationParams.getDomainId())
                 .settings(JacksonUtil.valueToTree(selfRegistrationParams))
                 .build();
 
@@ -633,7 +626,16 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
     @Override
     public WebSelfRegistrationParams getTenantSelfRegistrationParams(TenantId tenantId) {
         WhiteLabeling whiteLabeling = findByEntityId(tenantId, null, SELF_REGISTRATION);
-        return whiteLabeling != null ? JacksonUtil.treeToValue(whiteLabeling.getSettings(), WebSelfRegistrationParams.class) : null;
+        return constructSRParams(whiteLabeling);
+    }
+
+    private WebSelfRegistrationParams constructSRParams(WhiteLabeling whiteLabeling) {
+        if (whiteLabeling == null || whiteLabeling.getSettings() == null) {
+            return null;
+        }
+        WebSelfRegistrationParams selfRegistrationParams =  JacksonUtil.treeToValue(whiteLabeling.getSettings(), WebSelfRegistrationParams.class);
+        selfRegistrationParams.setDomainId(whiteLabeling.getDomainId());
+        return selfRegistrationParams;
     }
 
     @Override
@@ -673,8 +675,9 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
         if (whiteLabeling != null) {
             whiteLabelingDao.removeById(tenantId, key);
             publishEvictEvent(new WhiteLabelingEvictEvent(forKey(key)));
-            if (!StringUtils.isEmpty(whiteLabeling.getDomain())){
-                publishEvictEvent(new WhiteLabelingEvictEvent(forTypeAndDomain(type, whiteLabeling.getDomain())));
+            if (whiteLabeling.getDomainId() != null) {
+                Domain domain = domainService.findDomainById(tenantId, whiteLabeling.getDomainId());
+                publishEvictEvent(new WhiteLabelingEvictEvent(forTypeAndDomain(type, domain.getName())));
             }
         }
     }
