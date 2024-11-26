@@ -99,7 +99,7 @@ const dashboardRoute = (entityGroup: any, singlePageMode = false, isAllPage = fa
       } as BreadCrumbConfig<DashboardPageComponent>,
       auth: [Authority.TENANT_ADMIN, Authority.CUSTOMER_USER],
       canActivate: (userPermissionsService: UserPermissionsService): boolean =>
-        isAllPage ?
+        (isAllPage || entityGroup === 'emptyEntityGroupResolver') ?
           userPermissionsService.hasReadGenericPermission(Resource.DASHBOARD) :
           userPermissionsService.hasReadGroupsPermission(EntityType.DASHBOARD),
       title: 'dashboard.dashboard',
