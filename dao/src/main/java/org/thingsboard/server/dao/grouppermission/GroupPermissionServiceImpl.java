@@ -38,6 +38,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.group.EntityGroup;
@@ -149,9 +150,9 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
 
     @Override
     public PageData<GroupPermission> findGroupPermissionByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId(TenantId tenantId,
-                                                                                                              EntityGroupId entityGroupId,
-                                                                                                              EntityGroupId userGroupId,
-                                                                                                              RoleId roleId, PageLink pageLink) {
+                                                                                                          EntityGroupId entityGroupId,
+                                                                                                          EntityGroupId userGroupId,
+                                                                                                          RoleId roleId, PageLink pageLink) {
         log.trace("Executing findGroupPermissionByTenantIdAndEntityGroupIdAndUserGroupIdAndRoleId, tenantId [{}], entityGroupId [{}], " +
                 "userGroupId [{}], roleId [{}], pageLink [{}]", tenantId, userGroupId, roleId, pageLink);
         validateId(tenantId, id -> INCORRECT_TENANT_ID + id);
@@ -233,26 +234,27 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
         return groupPermissionDao.findByIdAsync(tenantId, groupPermissionId.getId());
     }
 
+    @Transactional
     @Override
-    public void deleteGroupPermission(TenantId tenantId, GroupPermissionId groupPermissionId) {
+    public EntityGroup deleteGroupPermission(TenantId tenantId, GroupPermissionId groupPermissionId) {
         log.trace("Executing deleteGroupPermission [{}]", groupPermissionId);
         validateId(groupPermissionId, id -> INCORRECT_GROUP_PERMISSION_ID + id);
-        deleteEntity(tenantId, groupPermissionId, false);
+        return deleteGroupPermission(tenantId, groupPermissionId, false);
     }
 
-    @Override
-    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
-        GroupPermissionId groupPermissionId = (GroupPermissionId) id;
+    private EntityGroup deleteGroupPermission(TenantId tenantId, GroupPermissionId groupPermissionId, boolean force) {
         GroupPermission groupPermission = groupPermissionDao.findById(tenantId, groupPermissionId.getId());
         if (groupPermission == null) {
             if (force) {
-                return;
+                return null;
             } else {
                 throw new IncorrectParameterException("Unable to delete non-existent group permission.");
             }
         }
+
+        EntityGroup entityGroup = null;
         if (!force && groupPermission.isPublic() && groupPermission.getEntityGroupId() != null) {
-            EntityGroup entityGroup = entityGroupDao.findById(tenantId, groupPermission.getEntityGroupId().getId());
+            entityGroup = entityGroupDao.findById(tenantId, groupPermission.getEntityGroupId().getId());
             if (entityGroup != null) {
                 JsonNode additionalInfo = entityGroup.getAdditionalInfo();
                 if (additionalInfo == null) {
@@ -261,11 +263,17 @@ public class GroupPermissionServiceImpl extends AbstractEntityService implements
                 ((ObjectNode) additionalInfo).put("isPublic", false);
                 ((ObjectNode) additionalInfo).put("publicCustomerId", "");
                 entityGroup.setAdditionalInfo(additionalInfo);
-                entityGroupDao.save(tenantId, entityGroup);
+                entityGroup = entityGroupDao.save(tenantId, entityGroup);
             }
         }
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(groupPermissionId).build());
         groupPermissionDao.removeById(tenantId, groupPermissionId.getId());
+        return entityGroup; // returning entity group in case it was updated
+    }
+
+    @Override
+    public void deleteEntity(TenantId tenantId, EntityId id, boolean force) {
+        deleteGroupPermission(tenantId, (GroupPermissionId) id, force);
     }
 
     @Override

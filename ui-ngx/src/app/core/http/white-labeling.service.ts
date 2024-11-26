@@ -369,6 +369,16 @@ export class WhiteLabelingService {
     return this.http.post<WhiteLabelingParams>('/api/whiteLabel/loginWhiteLabelParams', wlParams);
   }
 
+  public deleteCurrentLoginWhiteLabelParams(config?: RequestConfig): Observable<void> {
+    return this.http.delete<void>('/api/whiteLabel/currentLoginWhiteLabelParams', defaultHttpOptionsFromConfig(config))
+  }
+
+  public deleteCurrentWhiteLabelParams(config?: RequestConfig) {
+    return this.http.delete<void>('/api/whiteLabel/currentWhiteLabelParams', defaultHttpOptionsFromConfig(config)).pipe(
+      mergeMap(() => this.loadUserWhiteLabelingParams())
+    );
+  }
+
   public isWhiteLabelingAllowed(): Observable<boolean> {
     return this.http.get<boolean>('/api/whiteLabel/isWhiteLabelingAllowed');
   }

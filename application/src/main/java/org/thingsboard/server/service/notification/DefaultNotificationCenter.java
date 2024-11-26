@@ -55,7 +55,9 @@ import org.thingsboard.server.common.data.notification.NotificationRequestConfig
 import org.thingsboard.server.common.data.notification.NotificationRequestStats;
 import org.thingsboard.server.common.data.notification.NotificationRequestStatus;
 import org.thingsboard.server.common.data.notification.NotificationStatus;
+import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.info.GeneralNotificationInfo;
+import org.thingsboard.server.common.data.notification.info.NotificationInfo;
 import org.thingsboard.server.common.data.notification.info.RuleOriginatedNotificationInfo;
 import org.thingsboard.server.common.data.notification.settings.NotificationSettings;
 import org.thingsboard.server.common.data.notification.settings.UserNotificationSettings;
@@ -86,6 +88,7 @@ import org.thingsboard.server.service.executors.NotificationExecutorService;
 import org.thingsboard.server.service.notification.channels.NotificationChannel;
 import org.thingsboard.server.service.subscription.TbSubscriptionUtils;
 import org.thingsboard.server.service.telemetry.AbstractSubscriptionService;
+import org.thingsboard.server.service.translation.TbTranslationService;
 import org.thingsboard.server.service.ws.notification.sub.NotificationRequestUpdate;
 import org.thingsboard.server.service.ws.notification.sub.NotificationUpdate;
 
@@ -115,6 +118,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
     private final TopicService topicService;
     private final TbQueueProducerProvider producerProvider;
     private final RateLimitService rateLimitService;
+    private final TbTranslationService translationService;
 
     private Map<NotificationDeliveryMethod, NotificationChannel> channels;
 
@@ -196,6 +200,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
                 .template(notificationTemplate)
                 .settings(settings)
                 .systemSettings(systemSettings)
+                .translationProvider(locale -> translationService.getFullTranslation(tenantId, null, locale))
                 .build();
 
         processNotificationRequestAsync(ctx, targets, callback);
@@ -230,6 +235,21 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
         } catch (Exception e) {
             log.error("Failed to process notification request for recipients {} for template '{}'", recipients, template.getName(), e);
         }
+    }
+
+    @Override
+    public void sendSystemNotification(TenantId tenantId, NotificationTargetId targetId, NotificationType type, NotificationInfo info) {
+        log.debug("[{}] Sending {} system notification to {}: {}", tenantId, type, targetId, info);
+        NotificationTemplate notificationTemplate = notificationTemplateService.findTenantOrSystemNotificationTemplate(tenantId, type)
+                .orElseThrow(() -> new IllegalArgumentException("No notification template found for type " + type));
+        NotificationRequest notificationRequest = NotificationRequest.builder()
+                .tenantId(TenantId.SYS_TENANT_ID)
+                .targets(List.of(targetId.getId()))
+                .templateId(notificationTemplate.getId())
+                .info(info)
+                .originatorEntityId(TenantId.SYS_TENANT_ID)
+                .build();
+        processNotificationRequest(TenantId.SYS_TENANT_ID, notificationRequest, null);
     }
 
     private void processNotificationRequestAsync(NotificationProcessingContext ctx, List<NotificationTarget> targets, FutureCallback<NotificationRequestStats> callback) {
@@ -286,7 +306,7 @@ public class DefaultNotificationCenter extends AbstractSubscriptionService imple
                     }, 256);
                 } else {
                     recipients = new PageDataIterable<>(pageLink -> {
-                        return notificationTargetService.findRecipientsForNotificationTargetConfig(ctx.getTenantId(), targetConfig, pageLink);
+                        return notificationTargetService.findRecipientsForNotificationTargetConfig(target.getTenantId(), targetConfig, pageLink);
                     }, 256);
                 }
             }

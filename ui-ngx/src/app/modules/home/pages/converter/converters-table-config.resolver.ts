@@ -91,7 +91,8 @@ export class ConvertersTableConfigResolver  {
       new EntityTableColumn<Converter>('name', 'converter.name', '33%', this.config.entityTitle),
       new EntityTableColumn<Converter>('type', 'converter.type', '33%', (converter) => {
         return this.translate.instant(converterTypeTranslationMap.get(converter.type));
-      })
+      }),
+      new EntityTableColumn<Converter>('description', 'converter.description', '33%', (converter) => converter.additionalInfo.description),
     );
 
     this.config.cellActionDescriptors.push(

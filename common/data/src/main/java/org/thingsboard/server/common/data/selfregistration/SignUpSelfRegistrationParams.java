@@ -30,26 +30,10 @@
  */
 package org.thingsboard.server.common.data.selfregistration;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import java.util.List;
 
-@Schema
-@Data
-@EqualsAndHashCode
-public class SignUpSelfRegistrationParams {
-
-    @Schema(description = "The text message to appear on login form")
-    protected String signUpTextMessage;
-    @Schema(description = "Captcha site key for 'I'm not a robot' validation")
-    protected String captchaSiteKey;
-    @Schema(description = "Captcha version ('v2' = Challenge: display checkbox, 'v3' = Score based)")
-    protected String captchaVersion;
-    @Schema(description = "Optional action name used for logging (for captcha version 'v3' only)")
-    protected String captchaAction;
-    @Schema(description = "Show or hide 'Privacy Policy'")
-    protected Boolean showPrivacyPolicy;
-    @Schema(description = "Show or hide 'Terms of Use'")
-    protected Boolean showTermsOfUse;
-
-}
+public record SignUpSelfRegistrationParams (String title,
+                                            CaptchaParams captcha,
+                                            List<SignUpField> fields,
+                                            Boolean showPrivacyPolicy,
+                                            Boolean showTermsOfUse) {}

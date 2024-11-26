@@ -34,7 +34,7 @@ import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
 import { ActivatedRoute } from '@angular/router';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormGroupDirective, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { HasConfirmForm } from '@core/guards/confirm-on-exit.guard';
 import { LoginWhiteLabelingParams, WhiteLabelingParams } from '@shared/models/white-labeling.models';
 import { Operation, Resource } from '@shared/models/security.models';
@@ -43,7 +43,7 @@ import { WhiteLabelingService } from '@core/http/white-labeling.service';
 import { environment as env } from '@env/environment';
 import { getCurrentAuthUser } from '@core/auth/auth.selectors';
 import { Authority } from '@shared/models/authority.enum';
-import { Observable, Subject } from 'rxjs';
+import { mergeMap, Observable, Subject } from 'rxjs';
 import { isDefined, isEqual } from '@core/utils';
 import { MatDialog } from '@angular/material/dialog';
 import { CustomCssDialogComponent, CustomCssDialogData } from '@home/pages/admin/custom-css-dialog.component';
@@ -108,25 +108,11 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
   }
 
   private loadWhiteLabelingParams() {
-    (this.isLoginWl ? this.whiteLabelingService.getCurrentLoginWhiteLabelParams()
-      : this.whiteLabelingService.getCurrentWhiteLabelParams()).subscribe((whiteLabelingParams) => {
-      this.whiteLabelingParams = whiteLabelingParams;
-      if (!this.whiteLabelingParams.paletteSettings) {
-        this.whiteLabelingParams.paletteSettings = {};
-      }
-      if(this.whiteLabelingParams.platformName === null){
-        this.whiteLabelingParams.platformName = 'ThingsBoard';
-      }
-      if(this.whiteLabelingParams.platformVersion === null){
-        this.whiteLabelingParams.platformVersion = env.tbVersion;
-      }
-      if (this.whiteLabelingParams.showNameBottom === null){
-        this.whiteLabelingParams.showNameBottom = true;
-      }
-      this.wlSettings.reset(this.whiteLabelingParams, {emitEvent: false});
-      if (!this.readonly) {
-        this.updateValidators();
-      }
+    (this.isLoginWl
+        ? this.whiteLabelingService.getCurrentLoginWhiteLabelParams()
+        : this.whiteLabelingService.getCurrentWhiteLabelParams()
+    ).subscribe((whiteLabelingParams) => {
+      this.setWhiteLabelingParams(whiteLabelingParams);
     });
   }
 
@@ -276,4 +262,28 @@ export class WhiteLabelingComponent extends PageComponent implements OnInit, OnD
     return this.whiteLabelingService.cancelWhiteLabelPreview();
   }
 
+  delete(form: FormGroupDirective) {
+    let deleteParams: Observable<LoginWhiteLabelingParams | WhiteLabelingParams>;
+    if (this.isLoginWl) {
+      deleteParams = this.whiteLabelingService.deleteCurrentLoginWhiteLabelParams().pipe(
+        mergeMap(() => this.whiteLabelingService.getCurrentLoginWhiteLabelParams())
+      );
+    } else {
+      deleteParams =  this.whiteLabelingService.deleteCurrentWhiteLabelParams().pipe(
+        mergeMap(() => this.whiteLabelingService.getCurrentWhiteLabelParams())
+      );
+    }
+    deleteParams.subscribe((value) => {
+      this.setWhiteLabelingParams(value);
+      form.resetForm(value);
+    })
+  }
+
+  private setWhiteLabelingParams(whiteLabelingParams: WhiteLabelingParams & LoginWhiteLabelingParams) {
+    this.whiteLabelingParams = whiteLabelingParams;
+    this.wlSettings.reset(this.whiteLabelingParams, {emitEvent: false});
+    if (!this.readonly) {
+      this.updateValidators();
+    }
+  }
 }

@@ -33,6 +33,7 @@ package org.thingsboard.server.dao.resource;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.Dashboard;
 import org.thingsboard.server.common.data.HasImage;
+import org.thingsboard.server.common.data.ResourceExportData;
 import org.thingsboard.server.common.data.ResourceSubType;
 import org.thingsboard.server.common.data.TbImageDeleteResult;
 import org.thingsboard.server.common.data.TbResource;
@@ -44,6 +45,8 @@ import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
+
+import java.util.Collection;
 
 public interface ImageService {
 
@@ -67,6 +70,10 @@ public interface ImageService {
 
     byte[] getImagePreview(TenantId tenantId, TbResourceId imageId);
 
+    ResourceExportData exportImage(TbResourceInfo imageInfo);
+
+    TbResource toImage(TenantId tenantId, CustomerId customerId, ResourceExportData imageData, boolean checkExisting);
+
     TbImageDeleteResult deleteImage(TbResourceInfo imageInfo, boolean force);
 
     String calculateImageEtag(byte[] imageData);
@@ -77,17 +84,17 @@ public interface ImageService {
 
     boolean replaceBase64WithImageUrl(HasImage entity, String type);
 
-    boolean replaceBase64WithImageUrl(Dashboard dashboard);
-
-    boolean replaceBase64WithImageUrl(WidgetTypeDetails widgetType);
-
     boolean replaceBase64WithImageUrl(WhiteLabeling whiteLabeling);
+
+    boolean updateImagesUsage(Dashboard dashboard);
+
+    boolean updateImagesUsage(WidgetTypeDetails widgetType);
 
     void inlineImage(HasImage entity);
 
-    void inlineImages(Dashboard dashboard);
+    Collection<TbResourceInfo> getUsedImages(Dashboard dashboard);
 
-    void inlineImages(WidgetTypeDetails widgetTypeDetails);
+    Collection<TbResourceInfo> getUsedImages(WidgetTypeDetails widgetTypeDetails);
 
     void inlineImageForEdge(HasImage entity);
 
@@ -96,4 +103,7 @@ public interface ImageService {
     void inlineImagesForEdge(WidgetTypeDetails widgetTypeDetails);
 
     void inlineImagesForEdge(TenantId tenantId, JsonNode settings);
+
+    TbResourceInfo createOrUpdateSystemImage(String resourceKey, byte[] data);
+
 }

@@ -56,6 +56,7 @@ import org.thingsboard.server.common.data.permission.MergedUserPermissions;
 import org.thingsboard.server.common.data.query.AlarmCountQuery;
 import org.thingsboard.server.common.data.query.AlarmData;
 import org.thingsboard.server.common.data.query.AlarmDataQuery;
+import org.thingsboard.server.common.data.query.OriginatorAlarmFilter;
 import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.dao.entity.EntityDaoService;
 
@@ -141,5 +142,7 @@ public interface AlarmService extends EntityDaoService {
     long countAlarmsByQuery(TenantId tenantId, CustomerId customerId, MergedUserPermissions mergedUserPermissions, AlarmCountQuery query);
 
     PageData<EntitySubtype> findAlarmTypesByTenantId(TenantId tenantId, PageLink pageLink);
+
+    List<UUID> findActiveOriginatorAlarms(TenantId tenantId, OriginatorAlarmFilter originatorAlarmFilter, int limit);
 
 }

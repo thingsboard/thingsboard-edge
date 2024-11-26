@@ -59,6 +59,7 @@ import org.thingsboard.server.common.data.permission.Operation;
 import org.thingsboard.server.common.data.permission.Resource;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
+import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.config.annotations.ApiOperation;
 import org.thingsboard.server.dao.translation.TranslationCacheKey;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
@@ -170,7 +171,7 @@ public class TranslationController extends BaseController {
             @RequestHeader(name = HttpHeaders.ACCEPT_ENCODING, required = false) String acceptEncodingHeader,
             HttpServletRequest request, HttpServletResponse response) throws IOException {
         String domainName = request.getServerName();
-        WhiteLabeling loginWL = whiteLabelingService.findByDomainName(domainName);
+        WhiteLabeling loginWL = whiteLabelingService.findWhiteLabelingByDomainAndType(domainName, WhiteLabelingType.LOGIN);
         TranslationCacheKey cacheKey;
         if (loginWL != null) {
             cacheKey = TranslationCacheKey.forLoginTranslation(loginWL.getTenantId(), loginWL.getCustomerId(), localeCode, domainName);

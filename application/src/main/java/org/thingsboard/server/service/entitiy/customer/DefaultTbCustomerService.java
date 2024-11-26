@@ -40,6 +40,7 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.service.entitiy.AbstractTbEntityService;
+import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.List;
 
@@ -48,7 +49,7 @@ import java.util.List;
 public class DefaultTbCustomerService extends AbstractTbEntityService implements TbCustomerService {
 
     @Override
-    public Customer save(Customer customer, List<EntityGroup> entityGroups, User user) throws Exception {
+    public Customer save(Customer customer, List<EntityGroup> entityGroups, SecurityUser user) throws Exception {
         ActionType actionType = customer.getId() == null ? ActionType.ADDED : ActionType.UPDATED;
         TenantId tenantId = customer.getTenantId();
         try {
@@ -77,4 +78,5 @@ public class DefaultTbCustomerService extends AbstractTbEntityService implements
             throw e;
         }
     }
+
 }

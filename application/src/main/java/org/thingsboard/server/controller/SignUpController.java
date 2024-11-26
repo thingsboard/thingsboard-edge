@@ -33,6 +33,7 @@ package org.thingsboard.server.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -44,17 +45,18 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.rule.engine.api.MailService;
+import org.thingsboard.rule.engine.api.NotificationCenter;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
@@ -62,17 +64,29 @@ import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.exception.ThingsboardErrorCode;
 import org.thingsboard.server.common.data.exception.ThingsboardException;
 import org.thingsboard.server.common.data.group.EntityGroup;
+import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.mobile.app.MobileApp;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
+import org.thingsboard.server.common.data.notification.NotificationType;
+import org.thingsboard.server.common.data.notification.info.NotificationInfo;
+import org.thingsboard.server.common.data.notification.info.UserActivatedNotificationInfo;
+import org.thingsboard.server.common.data.notification.info.UserRegisteredNotificationInfo;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.model.JwtPair;
+import org.thingsboard.server.common.data.selfregistration.MobileRedirectParams;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
+import org.thingsboard.server.common.data.selfregistration.SignUpField;
+import org.thingsboard.server.common.data.selfregistration.SignUpFieldId;
+import org.thingsboard.server.common.data.selfregistration.WebSelfRegistrationParams;
 import org.thingsboard.server.common.data.signup.SignUpRequest;
 import org.thingsboard.server.common.data.signup.SignUpResult;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.config.SignUpConfig;
 import org.thingsboard.server.config.annotations.ApiOperation;
-import org.thingsboard.server.dao.selfregistration.SelfRegistrationService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.data.RecaptchaValidationResult;
 import org.thingsboard.server.exception.DataValidationException;
@@ -88,12 +102,36 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.ADDRESS;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.ADDRESS2;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.CITY;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.COUNTRY;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.EMAIL;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.FIRST_NAME;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.LAST_NAME;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.PASSWORD;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.PHONE;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.STATE;
+import static org.thingsboard.server.common.data.selfregistration.SignUpFieldId.ZIP;
+import static org.thingsboard.server.common.data.wl.WhiteLabelingType.SELF_REGISTRATION;
 
 @RestController
 @TbCoreComponent
 @RequestMapping("/api")
 @Slf4j
 public class SignUpController extends BaseController {
+
+    private static final String SELF_REGISTRATION_SETTINGS_WAS_NOT_FOUND = "Self registration settings was not found";
+    private static final String SELF_REGISTRATION_SETTINGS_IS_NOT_ALLOWED = "Self registration is not allowed";
+
+    private static final String WL_SETTINGS_WAS_NOT_FOUND = "White labeling settings was not found";
+
+    private static final String INVALID_APP_SECRET = "Invalid Application Secret!";
+
+    private static final String MOBILE_APP_BUNDLE_WAS_NOT_FOUND = "Mobile app bundle was not found";
 
     private static final String PRIVACY_POLICY_ACCEPTED = "privacyPolicyAccepted";
 
@@ -108,13 +146,13 @@ public class SignUpController extends BaseController {
     private MailService mailService;
 
     @Autowired
+    private NotificationCenter notificationCenter;
+
+    @Autowired
     private BCryptPasswordEncoder passwordEncoder;
 
     @Autowired
     private JwtTokenFactory tokenFactory;
-
-    @Autowired
-    private SelfRegistrationService selfRegistrationService;
 
     @Autowired
     private SystemSecurityService systemSecurityService;
@@ -130,45 +168,40 @@ public class SignUpController extends BaseController {
                     "The result is either 'SUCCESS' or 'INACTIVE_USER_EXISTS'. " +
                     "If Success, the user will receive an email with instruction to activate the account. " +
                     "The content of the email is customizable via the mail templates.")
-    @RequestMapping(value = "/noauth/signup", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.OK)
-    @ResponseBody
+    @PostMapping(value = "/noauth/signup")
     public SignUpResult signUp(
             @Parameter(description = "A JSON value representing the signup request.", required = true)
-            @RequestBody SignUpRequest signUpRequest, HttpServletRequest request) throws ThingsboardException, IOException {
-        SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
-                request.getServerName(), null);
+            @RequestBody SignUpRequest signUpRequest, HttpServletRequest request) throws ThingsboardException {
+        SelfRegistrationParams selfRegistrationParams;
+        TenantId tenantId;
         if (!StringUtils.isEmpty(signUpRequest.getPkgName())) {
-            if (!signUpRequest.getPkgName().equals(selfRegistrationParams.getPkgName())) {
-                throw new DataValidationException("Invalid Application Id!");
-            }
-            if (StringUtils.isEmpty(signUpRequest.getAppSecret())) {
-                throw new DataValidationException("Invalid Application Secret!");
-            }
-            if (!signUpRequest.getAppSecret().equals(selfRegistrationParams.getAppSecret())) {
-                throw new DataValidationException("Invalid Application Secret!");
-            }
+            validateAppSecret(signUpRequest);
+            MobileAppBundle mobileAppBundle = checkMobileSRSettings(signUpRequest.getPkgName(), signUpRequest.getPlatform());
+            selfRegistrationParams = mobileAppBundle.getSelfRegistrationParams();
+            tenantId = mobileAppBundle.getTenantId();
+        } else {
+            WhiteLabeling whiteLabeling = checkWebSRSettings(request.getServerName());
+            selfRegistrationParams = JacksonUtil.treeToValue(whiteLabeling.getSettings(), WebSelfRegistrationParams.class);
+            tenantId = whiteLabeling.getTenantId();
         }
-        TenantId tenantId = selfRegistrationService.getTenantIdByDomainName(TenantId.SYS_TENANT_ID, request.getServerName());
 
-        checkNotNull(signUpRequest);
-        checkParameter("First name", signUpRequest.getFirstName());
-        checkParameter("Last name", signUpRequest.getLastName());
-        checkParameter("Email", signUpRequest.getEmail());
-        checkParameter("Password", signUpRequest.getPassword());
-        checkParameter("Recaptcha response", signUpRequest.getRecaptchaResponse());
+        //validate self-registration is allowed
+        validateSelfRegistrationAllowed(selfRegistrationParams);
+
+        //validate required fields
+        validateRequiredFields(signUpRequest, selfRegistrationParams);
+        String email = signUpRequest.getFields().get(EMAIL);
+        String firstName = signUpRequest.getFields().get(FIRST_NAME);
+        String lastName = signUpRequest.getFields().get(LAST_NAME);
+        String password = signUpRequest.getFields().get(PASSWORD);
 
         //Verify recaptcha response
-        RecaptchaValidationResult result = validateReCaptcha(signUpRequest.getRecaptchaResponse(), request.getRemoteAddr(),
-                selfRegistrationParams.getCaptchaSecretKey());
-        if (result.isFailure()) {
-            log.error("reCAPTCHA validation failed: {}", result);
-            throw new DataValidationException("Invalid reCaptcha response!");
-        }
+        validateReCaptcha(signUpRequest.getRecaptchaResponse(), request.getRemoteAddr(),
+                selfRegistrationParams.getCaptcha().getSecretKey());
 
         //Verify email
-        DataValidator.validateEmail(signUpRequest.getEmail());
-        User existingUser = userService.findUserByEmail(tenantId, signUpRequest.getEmail());
+        DataValidator.validateEmail(email);
+        User existingUser = userService.findUserByEmail(tenantId, email);
         if (existingUser != null) {
             UserCredentials credentials = userService.findUserCredentialsByUserId(tenantId, existingUser.getId());
             if (credentials.isEnabled()) {
@@ -179,74 +212,30 @@ public class SignUpController extends BaseController {
             }
         }
 
-        systemSecurityService.validatePassword(signUpRequest.getPassword(), null);
+        systemSecurityService.validatePassword(password, null);
 
-        Customer customer = new Customer();
+        Customer savedCustomer = createCustomer(signUpRequest, selfRegistrationParams, tenantId);
+        EntityGroup savedUsersGroup = createCustomerUserGroup(selfRegistrationParams, savedCustomer);
 
-        customer.setTenantId(tenantId);
-        customer.setTitle(signUpRequest.getEmail());
-        customer.setOwnerId(tenantId);
-        customer.setEmail(signUpRequest.getEmail());
-
-        Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
-
-        User user = new User();
-        user.setFirstName(signUpRequest.getFirstName());
-        user.setLastName(signUpRequest.getLastName());
-        user.setEmail(signUpRequest.getEmail());
-        user.setAuthority(Authority.CUSTOMER_USER);
-        user.setTenantId(tenantId);
-        user.setCustomerId(savedCustomer.getId());
-        ObjectNode objectNode = JacksonUtil.newObjectNode();
-        objectNode.put("lang", "en_US");
-        if (!StringUtils.isEmpty(selfRegistrationParams.getDefaultDashboardId())) {
-            objectNode.put("defaultDashboardId", selfRegistrationParams.getDefaultDashboardId());
-        }
-        objectNode.put("defaultDashboardFullscreen", selfRegistrationParams.isDefaultDashboardFullscreen());
-        user.setAdditionalInfo(objectNode);
-
-        User savedUser = checkNotNull(userService.saveUser(tenantId, user));
-
-        List<GroupPermission> permissions = selfRegistrationParams.getPermissions();
-
-        EntityGroup usersEntityGroup = entityGroupService.findOrCreateUserGroup(tenantId, savedCustomer.getId(), "Self Registration Users",
-                "Autogenerated Self Registration group");
-        entityGroupService.addEntityToEntityGroup(tenantId, usersEntityGroup.getId(), savedUser.getId());
-
-        for (GroupPermission permission : permissions) {
-            permission.setTenantId(tenantId);
-            permission.setUserGroupId(usersEntityGroup.getId());
-            if (permission.getEntityGroupId() != null) {
-                EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, permission.getEntityGroupId());
-                if (entityGroup != null) {
-                    permission.setEntityGroupType(entityGroup.getType());
-                    groupPermissionService.saveGroupPermission(tenantId, permission);
-                }
-            } else {
-                groupPermissionService.saveGroupPermission(tenantId, permission);
-            }
-        }
-
-        UserCredentials userCredentials = userService.findUserCredentialsByUserId(tenantId, savedUser.getId());
-        userCredentials.setPassword(passwordEncoder.encode(signUpRequest.getPassword()));
-
-        userService.saveUserCredentials(tenantId, userCredentials);
+        User savedUser = createUser(signUpRequest, selfRegistrationParams, savedCustomer);
+        entityGroupService.addEntityToEntityGroup(tenantId, savedUsersGroup.getId(), savedUser.getId());
+        UserCredentials savedUserCredentials = saveUserCredentials(savedUser, signUpRequest);
 
         try {
-            sendEmailVerification(tenantId, request, userCredentials, signUpRequest.getEmail(), null, signUpRequest.getPkgName());
+            sendEmailVerification(tenantId, request, savedUserCredentials, email, null, signUpRequest.getPkgName());
         } catch (ThingsboardException e) {
             customerService.deleteCustomer(tenantId, savedCustomer.getId());
             throw e;
         }
-        sendUserActivityNotification(tenantId, signUpRequest.getFirstName() + " " + signUpRequest.getLastName(),
-                signUpRequest.getEmail(), false, selfRegistrationParams.getNotificationEmail());
+        sendUserActivityNotification(tenantId, Optional.ofNullable(firstName).orElse("") + " " + Optional.ofNullable(lastName).orElse(""),
+                email, false, selfRegistrationParams.getNotificationRecipient());
 
         logEntityActionService.logEntityAction(tenantId, savedCustomer.getId(), savedCustomer, savedCustomer.getId(),
                 ActionType.ADDED, null);
         logEntityActionService.logEntityAction(tenantId, savedUser.getId(), savedUser, savedUser.getCustomerId(),
                 ActionType.ADDED, null);
         logEntityActionService.logEntityAction(tenantId, savedUser.getId(), savedUser, savedCustomer.getId(),
-                ActionType.ADDED_TO_ENTITY_GROUP, null, usersEntityGroup.toString(), usersEntityGroup.getName());
+                ActionType.ADDED_TO_ENTITY_GROUP, null, savedUsersGroup.toString(), savedUsersGroup.getName());
 
         return SignUpResult.SUCCESS;
     }
@@ -266,14 +255,28 @@ public class SignUpController extends BaseController {
         }
     }
 
-    private void sendUserActivityNotification(TenantId tenantId, String userFullName, String userEmail, boolean activated, String infoMail) {
+    private void sendUserActivityNotification(TenantId tenantId, String userFullName, String userEmail, boolean activated, NotificationTargetId recipient) {
+        if (recipient == null) {
+            return;
+        }
         try {
+            NotificationType notificationType;
+            NotificationInfo notificationInfo;
             if (activated) {
-                mailService.sendUserActivatedEmail(tenantId, userFullName, userEmail, infoMail);
+                notificationType = NotificationType.USER_ACTIVATED;
+                notificationInfo = UserActivatedNotificationInfo.builder()
+                        .userFullName(userFullName)
+                        .userEmail(userEmail)
+                        .build();
             } else {
-                mailService.sendUserRegisteredEmail(tenantId, userFullName, userEmail, infoMail);
+                notificationType = NotificationType.USER_REGISTERED;
+                notificationInfo = UserRegisteredNotificationInfo.builder()
+                        .userFullName(userFullName)
+                        .userEmail(userEmail)
+                        .build();
             }
-        } catch (ThingsboardException e) {
+            notificationCenter.sendSystemNotification(tenantId, recipient, notificationType, notificationInfo);
+        } catch (Exception e) {
             String action = activated ? "activation" : "registration";
             log.error("Failed to send notification email about user {}", action, e);
         }
@@ -281,21 +284,23 @@ public class SignUpController extends BaseController {
 
     @ApiOperation(value = "Resend Activation Email (resendEmailActivation)",
             notes = "Request to resend the activation email for the user. Checks that user was not activated yet.")
-    @RequestMapping(value = "/noauth/resendEmailActivation", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.OK)
+    @PostMapping(value = "/noauth/resendEmailActivation")
     public void resendEmailActivation(
             @Parameter(description = "Email of the user.", required = true, example = "john.doe@company.com")
             @RequestParam(value = "email") String email,
             @Parameter(description = "Optional package name of the mobile application.")
-            @RequestParam(required = false) String pkgName, HttpServletRequest request) throws ThingsboardException, IOException {
-        SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
-                request.getServerName(), pkgName);
+            @RequestParam(required = false) String pkgName,
+            @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}))
+            @RequestParam(required = false) PlatformType platform,
+            HttpServletRequest request) throws ThingsboardException, IOException {
+        TenantId tenantId;
         if (!StringUtils.isEmpty(pkgName)) {
-            if (!pkgName.equals(selfRegistrationParams.getPkgName())) {
-                throw new DataValidationException("Invalid Application Id!");
-            }
+            MobileAppBundle mobileAppBundle = checkMobileSRSettings(pkgName, platform);
+            tenantId = mobileAppBundle.getTenantId();
+        } else {
+            WhiteLabeling whiteLabeling = checkWebSRSettings(request.getServerName());
+            tenantId = whiteLabeling.getTenantId();
         }
-        TenantId tenantId = selfRegistrationService.getTenantIdByDomainName(TenantId.SYS_TENANT_ID, request.getServerName());
 
         User existingUser = userService.findUserByEmail(TenantId.SYS_TENANT_ID, email);
         if (existingUser != null) {
@@ -316,12 +321,14 @@ public class SignUpController extends BaseController {
             notes = "Activate the user using code(link) from the activation email. " +
                     "Validates the code an redirects according to the signup flow. " +
                     "Checks that user was not activated yet.")
-    @RequestMapping(value = "/noauth/activateEmail", params = {"emailCode"}, method = RequestMethod.GET)
+    @GetMapping(value = "/noauth/activateEmail", params = {"emailCode"})
     public ResponseEntity<String> activateEmail(
             @Parameter(description = "Activation token.", required = true)
             @RequestParam(value = "emailCode") String emailCode,
             @Parameter(description = "Optional package name of the mobile application.")
             @RequestParam(required = false) String pkgName,
+            @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}))
+            @RequestParam(required = false) PlatformType platform,
             HttpServletRequest request) {
         HttpHeaders headers = new HttpHeaders();
         HttpStatus responseStatus;
@@ -330,19 +337,16 @@ public class SignUpController extends BaseController {
             String emailVerifiedURI = null;
             try {
                 if (!StringUtils.isEmpty(pkgName)) {
-                    SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
-                            request.getServerName(), pkgName);
-                    if (!pkgName.equals(selfRegistrationParams.getPkgName())) {
-                        throw new DataValidationException("Invalid Application Id!");
-                    }
-                    emailVerifiedURI = selfRegistrationParams.getAppScheme() + "://" + selfRegistrationParams.getAppHost() + "/signup/emailVerified";
+                    MobileAppBundle mobileAppBundle = checkMobileSRSettings(pkgName, platform);
+                    MobileRedirectParams redirect = mobileAppBundle.getSelfRegistrationParams().getRedirect();
+                    emailVerifiedURI = redirect.getScheme() + "://" + redirect.getHost() + "/signup/emailVerified";
                 } else {
                     emailVerifiedURI = "/signup/emailVerified";
                 }
                 URI location = new URI(emailVerifiedURI + "?emailCode=" + emailCode);
                 headers.setLocation(location);
                 responseStatus = HttpStatus.PERMANENT_REDIRECT;
-            } catch (URISyntaxException e) {
+            } catch (URISyntaxException | ThingsboardException e) {
                 log.error("Unable to create URI with address [{}]", emailVerifiedURI);
                 responseStatus = HttpStatus.BAD_REQUEST;
             }
@@ -354,19 +358,17 @@ public class SignUpController extends BaseController {
 
     @ApiOperation(value = "Mobile Login redirect (mobileLogin)",
             notes = "This method generates redirect to the special link that is handled by mobile application. Useful for email verification flow on mobile app.")
-    @RequestMapping(value = "/noauth/login", params = {"pkgName"}, method = RequestMethod.GET)
+    @GetMapping(value = "/noauth/login", params = {"pkgName, platform"})
     public ResponseEntity<String> mobileLogin(
             @Parameter(description = "Mobile app package name. Used to identify the application and build the redirect link.", required = true)
             @RequestParam(value = "pkgName") String pkgName,
-            HttpServletRequest request) {
+            @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}), required = true)
+            @RequestParam PlatformType platform) throws ThingsboardException {
         HttpHeaders headers = new HttpHeaders();
         HttpStatus responseStatus;
-        SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
-                request.getServerName(), pkgName);
-        if (!pkgName.equals(selfRegistrationParams.getPkgName())) {
-            throw new DataValidationException("Invalid Application Id!");
-        }
-        String redirectURI = selfRegistrationParams.getAppScheme() + "://" + selfRegistrationParams.getAppHost() + "/login";
+        MobileAppBundle mobileAppBundle = checkMobileSRSettings(pkgName, platform);
+        MobileRedirectParams redirect = mobileAppBundle.getSelfRegistrationParams().getRedirect();
+        String redirectURI = redirect.getScheme() + "://" + redirect.getHost() + "/login";
         try {
             URI location = new URI(redirectURI);
             headers.setLocation(location);
@@ -382,23 +384,26 @@ public class SignUpController extends BaseController {
             notes = "Activate the user using code(link) from the activation email and return the JWT Token. " +
                     "Sends the notification and email about user activation. " +
                     "Checks that user was not activated yet.")
-    @RequestMapping(value = "/noauth/activateByEmailCode", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.OK)
-    @ResponseBody
+    @PostMapping(value = "/noauth/activateByEmailCode")
     public JwtPair activateUserByEmailCode(
             @Parameter(description = "Activation token.", required = true)
             @RequestParam(value = "emailCode") String emailCode,
             @Parameter(description = "Optional package name of the mobile application.")
             @RequestParam(required = false) String pkgName,
+            @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}))
+            @RequestParam(required = false) PlatformType platform,
             HttpServletRequest request) throws ThingsboardException {
-        SelfRegistrationParams selfRegistrationParams = selfRegistrationService.getSelfRegistrationParams(TenantId.SYS_TENANT_ID,
-                request.getServerName(), pkgName);
+        SelfRegistrationParams selfRegistrationParams;
+        TenantId tenantId;
         if (!StringUtils.isEmpty(pkgName)) {
-            if (!pkgName.equals(selfRegistrationParams.getPkgName())) {
-                throw new DataValidationException("Invalid Application Id!");
-            }
+            MobileAppBundle mobileAppBundle = checkMobileSRSettings(pkgName, platform);
+            selfRegistrationParams = mobileAppBundle.getSelfRegistrationParams();
+            tenantId = mobileAppBundle.getTenantId();
+        } else {
+            WhiteLabeling whiteLabeling = checkWebSRSettings(request.getServerName());
+            selfRegistrationParams = JacksonUtil.treeToValue(whiteLabeling.getSettings(), WebSelfRegistrationParams.class);
+            tenantId = whiteLabeling.getTenantId();
         }
-        TenantId tenantId = selfRegistrationService.getTenantIdByDomainName(TenantId.SYS_TENANT_ID, request.getServerName());
 
         UserCredentials userCredentials = userService.findUserCredentialsByActivateToken(TenantId.SYS_TENANT_ID, emailCode);
         if (userCredentials == null) {
@@ -430,7 +435,7 @@ public class SignUpController extends BaseController {
             log.warn("Unable to send account activated email for {}: {}", email, e.getMessage());
         }
 
-        sendUserActivityNotification(tenantId, user.getFirstName() + " " + user.getLastName(), email, true, selfRegistrationParams.getNotificationEmail());
+        sendUserActivityNotification(tenantId, user.getFirstName() + " " + user.getLastName(), email, true, selfRegistrationParams.getNotificationRecipient());
 
         systemSecurityService.logLoginAction(user, new RestAuthenticationDetails(request), ActionType.LOGIN, null);
         return tokenFactory.createTokenPair(securityUser);
@@ -456,7 +461,7 @@ public class SignUpController extends BaseController {
     @ApiOperation(value = "Check privacy policy (privacyPolicyAccepted)",
             notes = "Checks that current user accepted the privacy policy.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/signup/privacyPolicyAccepted", method = RequestMethod.GET)
+    @GetMapping(value = "/signup/privacyPolicyAccepted")
     public @ResponseBody
     Boolean privacyPolicyAccepted() throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
@@ -467,9 +472,7 @@ public class SignUpController extends BaseController {
     @ApiOperation(value = "Accept privacy policy (acceptPrivacyPolicy)",
             notes = "Accept privacy policy by the current user.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/signup/acceptPrivacyPolicy", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.OK)
-    @ResponseBody
+    @PostMapping(value = "/signup/acceptPrivacyPolicy")
     public JsonNode acceptPrivacyPolicy() throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
         User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
@@ -505,7 +508,7 @@ public class SignUpController extends BaseController {
     @ApiOperation(value = "Check Terms Of User (termsOfUseAccepted)",
             notes = "Checks that current user accepted the privacy policy.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/signup/termsOfUseAccepted", method = RequestMethod.GET)
+    @GetMapping(value = "/signup/termsOfUseAccepted")
     public @ResponseBody
     Boolean termsOfUseAccepted() throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
@@ -516,9 +519,7 @@ public class SignUpController extends BaseController {
     @ApiOperation(value = "Accept Terms of Use (acceptTermsOfUse)",
             notes = "Accept Terms of Use by the current user.")
     @PreAuthorize("hasAnyAuthority('SYS_ADMIN', 'TENANT_ADMIN', 'CUSTOMER_USER')")
-    @RequestMapping(value = "/signup/acceptTermsOfUse", method = RequestMethod.POST)
-    @ResponseStatus(value = HttpStatus.OK)
-    @ResponseBody
+    @PostMapping(value = "/signup/acceptTermsOfUse")
     public JsonNode acceptTermsOfUse() throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
         User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
@@ -534,7 +535,8 @@ public class SignUpController extends BaseController {
         return tokenObject;
     }
 
-    private RecaptchaValidationResult validateReCaptcha(String userResponse, String ipAddress, String recaptchaSecretKey) throws ThingsboardException {
+    private void validateReCaptcha(String userResponse, String ipAddress, String recaptchaSecretKey) throws ThingsboardException {
+        checkParameter("Recaptcha response", userResponse);
         MultiValueMap<String, Object> parameters = new LinkedMultiValueMap<>();
         parameters.add("secret", recaptchaSecretKey);
         parameters.add("response", userResponse);
@@ -545,10 +547,133 @@ public class SignUpController extends BaseController {
         try {
             RecaptchaValidationResult result = restTemplate.postForEntity(signUpConfig.getRecaptchaVerificationUrl(), parameters, RecaptchaValidationResult.class).getBody();
             log.debug("reCAPTCHA validation finished: {}", result);
-            return result;
+            if (result.isFailure()) {
+                log.error("reCAPTCHA validation failed: {}", result);
+                throw new DataValidationException("Invalid reCaptcha response!");
+            }
         } catch (RestClientException ex) {
             log.error("Error validating reCAPTCHA. User response: [{}], verification URL: [{}]", userResponse, signUpConfig.getRecaptchaVerificationUrl());
             throw new ThingsboardException("Error validating reCAPTCHA", ex, ThingsboardErrorCode.GENERAL);
+        }
+    }
+
+    private void validateRequiredFields(SignUpRequest signUpRequest, SelfRegistrationParams selfRegistrationParams) throws ThingsboardException {
+        Map<SignUpFieldId, String> signUpRequestFields = signUpRequest.getFields();
+        List<SignUpField> selfRegisterSignUpFields = selfRegistrationParams.getSignUpFields();
+        if (selfRegisterSignUpFields != null) {
+            for (SignUpField field : selfRegisterSignUpFields) {
+                if (field.isRequired()) {
+                    checkParameter(field.getLabel(), signUpRequestFields.get(field.getId()));
+                }
+            }
+        } else {
+            checkParameter("Email", signUpRequestFields.get(EMAIL));
+            checkParameter("Password", signUpRequestFields.get(PASSWORD));
+        }
+    }
+
+    private EntityGroup createCustomerUserGroup(SelfRegistrationParams selfRegistrationParams, Customer savedCustomer) {
+        TenantId tenantId = savedCustomer.getTenantId();
+        EntityGroup usersEntityGroup = entityGroupService.findOrCreateUserGroup(tenantId, savedCustomer.getId(), "Self Registration Users",
+                "Autogenerated Self Registration group");
+
+        List<GroupPermission> permissions = selfRegistrationParams.getPermissions();
+        for (GroupPermission permission : permissions) {
+            permission.setTenantId(tenantId);
+            permission.setUserGroupId(usersEntityGroup.getId());
+            if (permission.getEntityGroupId() != null) {
+                EntityGroup entityGroup = entityGroupService.findEntityGroupById(tenantId, permission.getEntityGroupId());
+                if (entityGroup != null) {
+                    permission.setEntityGroupType(entityGroup.getType());
+                    groupPermissionService.saveGroupPermission(tenantId, permission);
+                }
+            } else {
+                groupPermissionService.saveGroupPermission(tenantId, permission);
+            }
+        }
+        return usersEntityGroup;
+    }
+
+    private User createUser(SignUpRequest signUpRequest, SelfRegistrationParams selfRegistrationParams, Customer savedCustomer) throws ThingsboardException {
+        User user = new User();
+        Map<SignUpFieldId, String> signUpRequestFields = signUpRequest.getFields();
+        user.setFirstName(signUpRequestFields.get(FIRST_NAME));
+        user.setLastName(signUpRequestFields.get(LAST_NAME));
+        user.setEmail(signUpRequestFields.get(EMAIL));
+        user.setPhone(signUpRequestFields.get(PHONE));
+        user.setAuthority(Authority.CUSTOMER_USER);
+        user.setTenantId(savedCustomer.getTenantId());
+        user.setCustomerId(savedCustomer.getId());
+        ObjectNode objectNode = JacksonUtil.newObjectNode();
+        objectNode.put("lang", "en_US");
+
+        Optional.ofNullable(selfRegistrationParams.getDefaultDashboard())
+                .ifPresent(dashboard -> {
+                    objectNode.put("defaultDashboardId", dashboard.getId());
+                    objectNode.put("defaultDashboardFullscreen", dashboard.isFullscreen());
+                });
+        user.setAdditionalInfo(objectNode);
+
+        return checkNotNull(userService.saveUser(savedCustomer.getTenantId(), user));
+    }
+
+    private Customer createCustomer(SignUpRequest signUpRequest, SelfRegistrationParams selfRegistrationParams, TenantId tenantId) throws ThingsboardException {
+        Customer customer = new Customer();
+
+        customer.setTenantId(tenantId);
+        String customerTitlePrefix = Optional.ofNullable(selfRegistrationParams.getCustomerTitlePrefix()).orElse("");
+        Map<SignUpFieldId, String> signUpRequestFields = signUpRequest.getFields();
+        customer.setTitle(customerTitlePrefix + signUpRequestFields.get(EMAIL));
+        customer.setOwnerId(tenantId);
+        customer.setEmail(signUpRequestFields.get(EMAIL));
+        customer.setCountry(signUpRequestFields.get(COUNTRY));
+        customer.setState(signUpRequestFields.get(STATE));
+        customer.setCity(signUpRequestFields.get(CITY));
+        customer.setAddress(signUpRequestFields.get(ADDRESS));
+        customer.setAddress2(signUpRequestFields.get(ADDRESS2));
+        customer.setZip(signUpRequestFields.get(ZIP));
+        customer.setPhone(signUpRequestFields.get(PHONE));
+        customer.setCustomMenuId(selfRegistrationParams.getCustomMenuId());
+
+        Customer savedCustomer = checkNotNull(customerService.saveCustomer(customer));
+        if (selfRegistrationParams.getCustomerGroupId() != null) {
+            entityGroupService.addEntityToEntityGroup(tenantId, selfRegistrationParams.getCustomerGroupId(), savedCustomer.getId());
+        }
+        return savedCustomer;
+    }
+
+    private UserCredentials saveUserCredentials(User savedUser, SignUpRequest signUpRequest) {
+        UserCredentials userCredentials = userService.findUserCredentialsByUserId(savedUser.getTenantId(), savedUser.getId());
+        userCredentials.setPassword(passwordEncoder.encode(signUpRequest.getFields().get(PASSWORD)));
+
+        userService.saveUserCredentials(savedUser.getTenantId(), userCredentials);
+        return userCredentials;
+    }
+
+    private void validateAppSecret(SignUpRequest signUpRequest) {
+        MobileApp mobileApp = mobileAppService.findMobileAppByPkgNameAndPlatformType(signUpRequest.getPkgName(), signUpRequest.getPlatform());
+        if (StringUtils.isEmpty(signUpRequest.getAppSecret()) || !signUpRequest.getAppSecret().equals(mobileApp.getAppSecret())) {
+            throw new DataValidationException(INVALID_APP_SECRET);
+        }
+    }
+
+    private MobileAppBundle checkMobileSRSettings(String pkgName, PlatformType platform) throws ThingsboardException {
+        MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform, false);
+        checkNotNull(mobileAppBundle, MOBILE_APP_BUNDLE_WAS_NOT_FOUND);
+        checkNotNull(mobileAppBundle.getSelfRegistrationParams(), SELF_REGISTRATION_SETTINGS_WAS_NOT_FOUND);
+        return mobileAppBundle;
+    }
+
+    private WhiteLabeling checkWebSRSettings(String domain) throws ThingsboardException {
+        WhiteLabeling whiteLabeling = whiteLabelingService.findWhiteLabelingByDomainAndType(domain, SELF_REGISTRATION);
+        checkNotNull(whiteLabeling, WL_SETTINGS_WAS_NOT_FOUND);
+        checkNotNull(whiteLabeling.getSettings(), SELF_REGISTRATION_SETTINGS_WAS_NOT_FOUND);
+        return whiteLabeling;
+    }
+
+    private void validateSelfRegistrationAllowed(SelfRegistrationParams selfRegistrationParams) {
+        if (selfRegistrationParams.getEnabled() != null && !selfRegistrationParams.getEnabled()) {
+            throw new DataValidationException(SELF_REGISTRATION_SETTINGS_IS_NOT_ALLOWED);
         }
     }
 
