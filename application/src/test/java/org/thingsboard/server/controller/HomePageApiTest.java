@@ -412,7 +412,6 @@ public class HomePageApiTest extends AbstractControllerTest {
         adminSettingsService.deleteAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, "sms");
         adminSettingsService.deleteAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, "whiteLabelParams");
         oAuth2ClientService.deleteOauth2ClientsByTenantId(TenantId.SYS_TENANT_ID);
-        domainService.deleteDomainsByTenantId(TenantId.SYS_TENANT_ID);
     }
 
     @Test

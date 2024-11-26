@@ -77,10 +77,6 @@ $$
             ALTER TABLE mobile_app_oauth2_client RENAME TO mobile_app_bundle_oauth2_client;
             ALTER TABLE mobile_app_bundle_oauth2_client DROP CONSTRAINT IF EXISTS fk_domain;
             ALTER TABLE mobile_app_bundle_oauth2_client RENAME COLUMN mobile_app_id TO mobile_app_bundle_id;
-            IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'fk_mobile_app_bundle_oauth2_client_bundle_id') THEN
-                ALTER TABLE mobile_app_bundle_oauth2_client ADD CONSTRAINT fk_mobile_app_bundle_oauth2_client_bundle_id
-                    FOREIGN KEY (mobile_app_bundle_id) REFERENCES mobile_app_bundle(id) ON DELETE CASCADE;
-            END IF;
         END IF;
     END;
 $$;
@@ -115,6 +111,10 @@ $$
                 ON CONFLICT DO NOTHING;
                 UPDATE mobile_app_bundle_oauth2_client SET mobile_app_bundle_id = generatedBundleId WHERE mobile_app_bundle_id = mobileAppRecord.id;
             END LOOP;
+        END IF;
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'fk_mobile_app_bundle_oauth2_client_bundle_id') THEN
+            ALTER TABLE mobile_app_bundle_oauth2_client ADD CONSTRAINT fk_mobile_app_bundle_oauth2_client_bundle_id
+                FOREIGN KEY (mobile_app_bundle_id) REFERENCES mobile_app_bundle(id) ON DELETE CASCADE;
         END IF;
         ALTER TABLE mobile_app DROP COLUMN IF EXISTS oauth2_enabled;
         IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'mobile_app_pkg_name_platform_unq_key') THEN
@@ -426,3 +426,62 @@ $$
 $$;
 
 DROP FUNCTION IF EXISTS update_self_registration_notification_config;
+
+-- DOMAINS MIGRATION START
+
+-- update domain table structure
+DO
+$$
+    BEGIN
+        ALTER TABLE domain ADD COLUMN IF NOT EXISTS customer_id uuid not null default '13814000-1dd2-11b2-8080-808080808080';
+        ALTER TABLE domain DROP CONSTRAINT IF EXISTS domain_unq_key;
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'domain_name_key') THEN
+            ALTER TABLE domain ADD CONSTRAINT domain_name_key UNIQUE (name);
+        END IF;
+    END;
+$$;
+
+-- update white_labeling table structure
+DO
+$$
+    BEGIN
+        ALTER TABLE white_labeling DROP CONSTRAINT IF EXISTS white_labeling_domain_name_type_key;
+        ALTER TABLE white_labeling ADD COLUMN IF NOT EXISTS domain_id uuid;
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'white_labeling_domain_id_type_key') THEN
+            ALTER TABLE white_labeling ADD CONSTRAINT white_labeling_domain_id_type_key UNIQUE (domain_id, type);
+        END IF;
+        IF NOT EXISTS(SELECT 1 FROM pg_constraint WHERE conname = 'fk_white_labeling_domain_id') THEN
+            ALTER TABLE white_labeling ADD CONSTRAINT fk_white_labeling_domain_id FOREIGN KEY (domain_id) REFERENCES domain(id);
+        END IF;
+    END;
+$$;
+
+-- migrate white_labeling.domain_name -> domain_id
+DO
+$$
+    DECLARE
+        generatedDomainId uuid;
+        wlRecord record;
+        domainRecord record;
+    BEGIN
+        IF EXISTS(SELECT 1 FROM information_schema.columns WHERE table_name = 'white_labeling' AND column_name = 'domain_name') THEN
+            FOR wlRecord IN SELECT * FROM white_labeling WHERE domain_name IS NOT NULL
+            LOOP
+                SELECT * INTO domainRecord FROM domain WHERE domain.name = wlRecord.domain_name;
+                IF domainRecord IS NULL THEN
+                    generatedDomainId := uuid_generate_v4();
+                    INSERT INTO domain(id, created_time, tenant_id, customer_id, name, oauth2_enabled, edge_enabled)
+                    VALUES (generatedDomainId, (extract(epoch from now()) * 1000), wlRecord.tenant_id, wlRecord.customer_id, wlRecord.domain_name, true, true);
+                    UPDATE white_labeling SET domain_id = generatedDomainId WHERE domain_name = wlRecord.domain_name AND type = wlRecord.type;
+                ELSE IF (domainRecord.tenant_id = wlRecord.tenant_id AND domainRecord.customer_id = wlRecord.customer_id) THEN
+                        UPDATE white_labeling SET domain_id = domainRecord.id WHERE domain_name = wlRecord.domain_name AND type = wlRecord.type;
+                    END IF;
+                END IF;
+            END LOOP;
+            ALTER TABLE white_labeling DROP COLUMN IF EXISTS domain_name;
+            UPDATE white_labeling SET settings = (settings::jsonb - 'domainName')::text WHERE type = 'LOGIN';
+        END IF;
+    END;
+$$;
+
+ALTER TABLE oauth2_client ADD COLUMN IF NOT EXISTS customer_id uuid not null default '13814000-1dd2-11b2-8080-808080808080';

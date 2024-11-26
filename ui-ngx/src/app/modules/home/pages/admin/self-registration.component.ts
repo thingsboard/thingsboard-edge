@@ -41,12 +41,17 @@ import { deepClone } from '@core/utils';
 import { ActionNotificationShow } from '@core/notification/notification.actions';
 import { TranslateService } from '@ngx-translate/core';
 import { EntityType } from '@shared/models/entity-type.models';
+import { DomainDialogComponent } from '@home/pages/admin/oauth2/domains/domain-dialog.component';
+import { Domain } from '@shared/models/oauth2.models';
+import { MatDialog } from '@angular/material/dialog';
+import { BaseData } from '@shared/models/base-data';
+import { EntityId } from '@shared/models/id/entity-id';
+import { Operation, Resource } from '@shared/models/security.models';
 import {
   RecipientNotificationDialogComponent,
   RecipientNotificationDialogData
 } from '@home/pages/notification/recipient/recipient-notification-dialog.component';
 import { NotificationTarget } from '@shared/models/notification.models';
-import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'tb-self-registration',
@@ -80,12 +85,16 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
 
   showMainLoadingBar = false;
 
+  readonly EntityType = EntityType;
+  readonly operation = Operation;
+  readonly resource = Resource;
+
   constructor(protected store: Store<AppState>,
+              private dialog: MatDialog,
               private selfRegistrationService: SelfRegistrationService,
               private translate: TranslateService,
-              private fb: UntypedFormBuilder,
-              private dialog: MatDialog) {
-    super(store);
+              private fb: UntypedFormBuilder) {
+    super();
   }
 
   ngOnInit() {
@@ -99,7 +108,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
 
   buildSelfRegistrationForm() {
     this.selfRegistrationFormGroup = this.fb.group({
-      domainName: [null, [Validators.required, Validators.pattern('((?![:/]).)*$')]],
+      domainId: [null, [Validators.required]],
       captcha: this.fb.group({
         version: ['v3'],
         siteKey: ['', Validators.required],
@@ -137,6 +146,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
   save(): void {
     this.selfRegistrationParams = {...this.selfRegistrationParams,
       ...this.selfRegistrationParamsFromFormValue(this.selfRegistrationFormGroup.value)};
+    this.selfRegistrationParams.type = SelfRegistrationType.WEB;
     this.selfRegistrationService.saveSelfRegistrationParams(this.selfRegistrationParams).subscribe(
       (selfRegistrationParams) => {
         this.onSelfRegistrationParamsLoaded(selfRegistrationParams);
@@ -148,6 +158,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
     this.selfRegistrationService.deleteSelfRegistrationParams().subscribe(
       () => {
         this.onSelfRegistrationParamsLoaded(null);
+        this.registerLink = '';
         form.resetForm();
       }
     );
@@ -169,6 +180,27 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       }));
   }
 
+  domainChange(domain: BaseData<EntityId>) {
+    if (domain?.name?.length) {
+      this.registerLink = this.selfRegistrationService.getRegistrationLink(domain.name);
+    } else {
+      this.registerLink = '';
+    }
+  }
+
+  createDomain() {
+    this.dialog.open<DomainDialogComponent, any, Domain>(DomainDialogComponent, {
+      disableClose: true,
+      panelClass: ['tb-dialog', 'tb-fullscreen-dialog'],
+    }).afterClosed()
+      .subscribe((domain) => {
+        if (domain) {
+          this.selfRegistrationFormGroup.get('domainId').patchValue(domain.id);
+          this.selfRegistrationFormGroup.get('domainId').markAsDirty();
+        }
+      });
+  }
+
   createTarget() {
     this.dialog.open<RecipientNotificationDialogComponent, RecipientNotificationDialogData,
       NotificationTarget>(RecipientNotificationDialogComponent, {
@@ -188,13 +220,7 @@ export class SelfRegistrationComponent extends PageComponent implements OnInit, 
       type: SelfRegistrationType.WEB,
       enabled: true
     } as WebSelfRegistrationParams;
-    if (this.selfRegistrationParams.domainName && this.selfRegistrationParams.domainName.length) {
-      this.registerLink = this.selfRegistrationService.getRegistrationLink(this.selfRegistrationParams.domainName);
-      this.deleteDisabled = false;
-    } else {
-      this.registerLink = '';
-      this.deleteDisabled = true;
-    }
+    this.deleteDisabled = !this.selfRegistrationParams.domainId;
     const selfRegistrationFormValue = deepClone(this.selfRegistrationParams);
     if (selfRegistrationFormValue.title?.length) {
       selfRegistrationFormValue.title = this.convertHTMLToText(selfRegistrationFormValue.title);
