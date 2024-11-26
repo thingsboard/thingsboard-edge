@@ -30,24 +30,31 @@
  */
 package org.thingsboard.server.common.data.housekeeper;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.TenantId;
 
-@RequiredArgsConstructor
-@Getter
-public enum HousekeeperTaskType {
+@Data
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+public class EntitiesCleanupHousekeeperTask extends HousekeeperTask {
 
-    DELETE_ATTRIBUTES("attributes deletion"),
-    DELETE_TELEMETRY("telemetry deletion"),
-    DELETE_LATEST_TS("latest telemetry deletion"),
-    DELETE_TS_HISTORY("timeseries history deletion"),
-    DELETE_EVENTS("events deletion"),
-    DELETE_ALARMS("alarms deletion"),
-    UNASSIGN_ALARMS("alarms unassigning"),
-    DELETE_TENANT_ENTITIES("tenant entities deletion"),
-    DELETE_ENTITIES("entities deletion"),
-    CLEANUP_ENTITIES("entities cleanup");
+    private EntityType entityType;
 
-    private final String description;
+    public EntitiesCleanupHousekeeperTask(EntityType entityType) {
+        super(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, HousekeeperTaskType.CLEANUP_ENTITIES);
+        this.entityType = entityType;
+    }
+
+    @JsonIgnore
+    @Override
+    public String getDescription() {
+        return entityType.getNormalName().toLowerCase() + "s cleanup";
+    }
 
 }

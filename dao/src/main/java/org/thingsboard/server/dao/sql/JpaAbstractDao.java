@@ -41,9 +41,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.exception.EntityVersionMismatchException;
 import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.util.TbPair;
 import org.thingsboard.server.dao.Dao;
 import org.thingsboard.server.dao.DaoUtil;
 import org.thingsboard.server.dao.model.BaseEntity;
@@ -211,6 +213,35 @@ public abstract class JpaAbstractDao<E extends BaseEntity<D>, D>
         query += " ORDER BY id LIMIT ?";
 
         return getJdbcTemplate().queryForList(query, UUID.class, params);
+    }
+
+    @Override
+    public List<TbPair<UUID, UUID>> findIdsByTenantProfileIdAndIdOffsetAndExpired(UUID tenantProfileId, UUID idOffset, int limit, long ttl) {
+        EntityType entityType = getEntityType();
+
+        long expirationTime = System.currentTimeMillis() - ttl;
+        StringBuilder queryBuilder = new StringBuilder();
+        queryBuilder.append("SELECT e.tenant_id, e.id FROM ");
+        queryBuilder.append(entityType.getTableName());
+        queryBuilder.append(" AS e");
+        queryBuilder.append(" JOIN tenant t ON e.tenant_id = t.id");
+        queryBuilder.append(" WHERE e.created_time > 0");
+        queryBuilder.append(" AND e.created_time < ?");
+        queryBuilder.append(" AND t.tenant_profile_id = ?");
+
+        Object[] params;
+        if (idOffset == null) {
+            params = new Object[]{expirationTime, tenantProfileId, limit};
+        } else {
+            queryBuilder.append(" AND e.id > ?");
+            params = new Object[]{expirationTime, tenantProfileId, idOffset, limit};
+        }
+        queryBuilder.append(" ORDER BY e.id LIMIT ?");
+
+        return getJdbcTemplate().query(
+                queryBuilder.toString(),
+                (rs, rowNum) -> TbPair.of(rs.getObject(getTenantIdColumn(), UUID.class), rs.getObject("id", UUID.class)),
+                params);
     }
 
     protected String getTenantIdColumn() {
