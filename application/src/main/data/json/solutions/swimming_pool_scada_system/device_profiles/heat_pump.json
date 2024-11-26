@@ -605,10 +605,71 @@
                     "type": "NUMERIC",
                     "operation": "GREATER_OR_EQUAL",
                     "value": {
-                      "defaultValue": 80,
+                      "defaultValue": 200,
                       "userValue": null,
                       "dynamicValue": null
                     }
+                  }
+                },
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "running"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "NUMERIC",
+                    "operation": "EQUAL",
+                    "value": {
+                      "defaultValue": 1,
+                      "userValue": null,
+                      "dynamicValue": null
+                    }
+                  }
+                }
+              ],
+              "spec": {
+                "type": "SIMPLE"
+              }
+            },
+            "schedule": null,
+            "alarmDetails": null,
+            "dashboardId": null
+          },
+          "WARNING": {
+            "condition": {
+              "condition": [
+                {
+                  "key": {
+                    "type": "TIME_SERIES",
+                    "key": "compressorTemperature"
+                  },
+                  "valueType": "NUMERIC",
+                  "value": null,
+                  "predicate": {
+                    "type": "COMPLEX",
+                    "operation": "AND",
+                    "predicates": [
+                      {
+                        "type": "NUMERIC",
+                        "operation": "GREATER_OR_EQUAL",
+                        "value": {
+                          "defaultValue": 100,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      },
+                      {
+                        "type": "NUMERIC",
+                        "operation": "LESS",
+                        "value": {
+                          "defaultValue": 200,
+                          "userValue": null,
+                          "dynamicValue": null
+                        }
+                      }
+                    ]
                   }
                 },
                 {
@@ -649,31 +710,23 @@
                 "valueType": "NUMERIC",
                 "value": null,
                 "predicate": {
-                  "type": "NUMERIC",
-                  "operation": "GREATER_OR_EQUAL",
-                  "value": {
-                    "defaultValue": 0,
-                    "userValue": null,
-                    "dynamicValue": null
-                  }
-                }
-              },
-              {
-                "key": {
-                  "type": "TIME_SERIES",
-                  "key": "compressorTemperature"
-                },
-                "valueType": "NUMERIC",
-                "value": null,
-                "predicate": {
                   "type": "COMPLEX",
                   "operation": "AND",
                   "predicates": [
                     {
                       "type": "NUMERIC",
+                      "operation": "GREATER_OR_EQUAL",
+                      "value": {
+                        "defaultValue": 0,
+                        "userValue": null,
+                        "dynamicValue": null
+                      }
+                    },
+                    {
+                      "type": "NUMERIC",
                       "operation": "LESS",
                       "value": {
-                        "defaultValue": 80,
+                        "defaultValue": 100,
                         "userValue": null,
                         "dynamicValue": null
                       }
