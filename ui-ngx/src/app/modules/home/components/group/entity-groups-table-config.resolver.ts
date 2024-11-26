@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { ActivatedRoute, ActivatedRouteSnapshot, Router } from '@angular/router';
+import { ActivatedRouteSnapshot, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { UtilsService } from '@core/services/utils.service';
@@ -45,6 +45,7 @@ import { CustomerService } from '@core/http/customer.service';
 import { EntityGroupsTableConfig } from './entity-groups-table-config';
 import { MatDialog } from '@angular/material/dialog';
 import { EdgeService } from '@core/http/edge.service';
+import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 
 @Injectable()
 export class EntityGroupsTableConfigResolver  {
@@ -56,10 +57,10 @@ export class EntityGroupsTableConfigResolver  {
               private translate: TranslateService,
               private datePipe: DatePipe,
               private utils: UtilsService,
-              private route: ActivatedRoute,
               private router: Router,
               private dialog: MatDialog,
-              private homeDialogs: HomeDialogsService) {
+              private homeDialogs: HomeDialogsService,
+              private customTranslate: CustomTranslatePipe) {
   }
 
   resolve(route: ActivatedRouteSnapshot): Observable<EntityGroupsTableConfig> | EntityGroupsTableConfig {
@@ -71,15 +72,14 @@ export class EntityGroupsTableConfigResolver  {
 
     const config = new EntityGroupsTableConfig(
       this.entityGroupService,
-      this.customerService,
       this.userPermissionsService,
       this.translate,
       this.datePipe,
       this.utils,
-      this.route,
       this.router,
       this.dialog,
       this.homeDialogs,
+      this.customTranslate,
       params
     );
 
