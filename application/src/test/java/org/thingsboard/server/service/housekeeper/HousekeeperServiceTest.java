@@ -47,14 +47,17 @@ import org.thingsboard.rule.engine.metadata.TbGetAttributesNodeConfiguration;
 import org.thingsboard.server.common.data.ApiUsageState;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.Device;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.alarm.Alarm;
 import org.thingsboard.server.common.data.alarm.AlarmSeverity;
 import org.thingsboard.server.common.data.alarm.EntityAlarm;
 import org.thingsboard.server.common.data.asset.Asset;
+import org.thingsboard.server.common.data.blob.BlobEntity;
 import org.thingsboard.server.common.data.event.EventType;
 import org.thingsboard.server.common.data.event.LifecycleEvent;
+import org.thingsboard.server.common.data.housekeeper.EntitiesCleanupHousekeeperTask;
 import org.thingsboard.server.common.data.housekeeper.HousekeeperTask;
 import org.thingsboard.server.common.data.housekeeper.HousekeeperTaskType;
 import org.thingsboard.server.common.data.id.AlarmId;
@@ -87,10 +90,12 @@ import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.common.data.rule.RuleChainType;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.util.TbPair;
+import org.thingsboard.server.common.msg.housekeeper.HousekeeperClient;
 import org.thingsboard.server.controller.AbstractControllerTest;
 import org.thingsboard.server.dao.alarm.AlarmDao;
 import org.thingsboard.server.dao.alarm.AlarmService;
 import org.thingsboard.server.dao.attributes.AttributesService;
+import org.thingsboard.server.dao.blob.BlobEntityService;
 import org.thingsboard.server.dao.entity.EntityServiceRegistry;
 import org.thingsboard.server.dao.event.EventService;
 import org.thingsboard.server.dao.relation.RelationService;
@@ -100,8 +105,10 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 import org.thingsboard.server.dao.usagerecord.ApiUsageStateDao;
 import org.thingsboard.server.gen.transport.TransportProtos.HousekeeperTaskProto;
 import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
+import org.thingsboard.server.service.housekeeper.processor.EntitiesCleanupTaskProcessor;
 import org.thingsboard.server.service.housekeeper.processor.TsHistoryDeletionTaskProcessor;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -118,6 +125,7 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doCallRealMethod;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -155,6 +163,12 @@ public class HousekeeperServiceTest extends AbstractControllerTest {
     private EntityServiceRegistry entityServiceRegistry;
     @SpyBean
     private TsHistoryDeletionTaskProcessor tsHistoryDeletionTaskProcessor;
+    @Autowired
+    private BlobEntityService blobEntityService;
+    @Autowired
+    private HousekeeperClient housekeeperClient;
+    @SpyBean
+    private EntitiesCleanupTaskProcessor cleanupTaskProcessor;
 
     private TenantId tenantId;
 
@@ -379,6 +393,28 @@ public class HousekeeperServiceTest extends AbstractControllerTest {
         doCallRealMethod().when(tsHistoryDeletionTaskProcessor).process(any());
         TimeUnit.SECONDS.sleep(2);
         verify(housekeeperService, never()).processTask(argThat(getTaskMatcher(device.getId(), HousekeeperTaskType.DELETE_TS_HISTORY, null)));
+    }
+
+    @Test
+    public void cleanupByTtlTest() throws Exception {
+        BlobEntity blobEntity = new BlobEntity();
+        blobEntity.setTenantId(tenantId);
+        blobEntity.setCustomerId(customerId);
+        blobEntity.setName("Test Blob entity");
+        blobEntity.setType("Test type");
+        blobEntity.setData(ByteBuffer.wrap("Test Blob".getBytes()));
+        blobEntity.setContentType("application/json");
+        BlobEntity savedBlobEntity = blobEntityService.saveBlobEntity(blobEntity);
+        BlobEntity foundBlobEntity = blobEntityService.findBlobEntityById(tenantId, savedBlobEntity.getId());
+        assertThat(foundBlobEntity).isEqualTo(savedBlobEntity);
+
+        doReturn(1L).when(cleanupTaskProcessor).getTtl(any(), any());
+        housekeeperClient.submitTask(new EntitiesCleanupHousekeeperTask(EntityType.BLOB_ENTITY));
+
+        await().atMost(TIMEOUT, TimeUnit.SECONDS).until(() -> blobEntityService.findBlobEntityById(tenantId, savedBlobEntity.getId()) == null);
+
+        verify(housekeeperService, never()).processTask(argThat(getTaskMatcher(TenantId.SYS_TENANT_ID, HousekeeperTaskType.CLEANUP_ENTITIES, null)));
+        verify(housekeeperService, never()).processTask(argThat(getTaskMatcher(tenantId, HousekeeperTaskType.DELETE_ENTITIES, null)));
     }
 
     private void verifyTaskProcessing(EntityId entityId, HousekeeperTaskType taskType, int expectedAttempt) throws Exception {

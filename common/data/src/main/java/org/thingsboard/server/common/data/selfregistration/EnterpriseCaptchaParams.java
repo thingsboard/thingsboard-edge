@@ -28,47 +28,53 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.wl;
+package org.thingsboard.server.common.data.selfregistration;
 
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.id.DomainId;
+import lombok.NoArgsConstructor;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
 
+import static org.thingsboard.server.common.data.selfregistration.CaptchaVersion.ENTERPRISE;
+
+@Schema
 @Data
-@EqualsAndHashCode(callSuper = true)
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class LoginWhiteLabelingParams extends WhiteLabelingParams {
+@NoArgsConstructor
+public class EnterpriseCaptchaParams implements CaptchaParams {
 
-    @Schema(description = "Login page background color", example = "#d90f0f")
-    private String pageBackgroundColor;
-    @Schema(description = "Enable/Disable dark foreground")
-    private boolean darkForeground;
-    @Schema(description = "Domain id")
-    private DomainId domainId;
-    @Schema(description = "Base URL for the activation link, etc", example = "https://iot.mycompany.com")
-    private String baseUrl;
-    @Schema(description = "Prohibit use of other URLs. It is recommended to enable this setting", example = "true")
-    private boolean prohibitDifferentUrl;
-    @Schema(description = "Id of the settings object that store this parameters")
-    private String adminSettingsId;
-    @Schema(description = "Show platform name and version on login page")
-    private Boolean showNameBottom;
+    @Schema(description = "Your Google Cloud project ID")
+    protected String projectId;
 
-    public LoginWhiteLabelingParams merge(LoginWhiteLabelingParams otherWlParams) {
-        Integer prevLogoImageHeight = this.logoImageHeight;
-        super.merge(otherWlParams);
-        if (prevLogoImageHeight == null) {
-            this.logoImageHeight = null;
+    @Schema(description = "Service account credentials")
+    private String serviceAccountCredentials;
+    @Schema(description = "Service account credentials file name")
+    private String serviceAccountCredentialsFileName;
+    @Schema(description = "The reCAPTCHA key associated with android app.")
+    protected String androidKey;
+    @Schema(description = "The reCAPTCHA key associated with iOS app.")
+    protected String iosKey;
+    @Schema(description = "Optional action name used for logging")
+    protected String logActionName;
+
+
+    public EnterpriseCaptchaParams(String androidKey, String iOSKey, String logActionName) {
+        this.androidKey = androidKey;
+        this.iosKey = iOSKey;
+        this.logActionName = logActionName;
+    }
+
+    @Override
+    public String getVersion() {
+        return ENTERPRISE.getName();
+    }
+
+    @Override
+    public CaptchaParams toInfo(PlatformType platformType) {
+        if (platformType == PlatformType.ANDROID) {
+            return new EnterpriseCaptchaParams(androidKey, null, logActionName);
+        } else if (platformType == PlatformType.IOS) {
+            return new EnterpriseCaptchaParams( null, iosKey, logActionName);
         }
-        if (this.showNameBottom == null) {
-            this.showNameBottom = otherWlParams.showNameBottom;
-        }
-        if (this.pageBackgroundColor == null) {
-            this.pageBackgroundColor = otherWlParams.pageBackgroundColor;
-        }
-        return this;
+        return null;
     }
 }

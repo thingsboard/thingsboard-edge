@@ -307,6 +307,12 @@ export class EntityAutocompleteComponent implements ControlValueAccessor, OnInit
           this.entityRequiredText = 'mobile.bundle-required';
           this.notFoundEntities = 'mobile.no-bundle-text';
           break;
+        case EntityType.DOMAIN:
+          this.entityText = 'entity.type-domain';
+          this.noEntitiesMatchingText = 'admin.oauth2.no-domain-matching';
+          this.entityRequiredText = 'admin.oauth2.domain-required';
+          this.notFoundEntities = 'admin.oauth2.no-domain-text';
+          break;
         case AliasEntityType.CURRENT_CUSTOMER:
           this.entityText = 'customer.default-customer';
           this.noEntitiesMatchingText = 'customer.no-customers-matching';

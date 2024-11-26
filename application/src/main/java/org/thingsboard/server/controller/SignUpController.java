@@ -32,6 +32,14 @@ package org.thingsboard.server.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.api.gax.core.FixedCredentialsProvider;
+import com.google.auth.oauth2.ServiceAccountCredentials;
+import com.google.cloud.recaptchaenterprise.v1.RecaptchaEnterpriseServiceClient;
+import com.google.cloud.recaptchaenterprise.v1.RecaptchaEnterpriseServiceSettings;
+import com.google.recaptchaenterprise.v1.Assessment;
+import com.google.recaptchaenterprise.v1.CreateAssessmentRequest;
+import com.google.recaptchaenterprise.v1.Event;
+import com.google.recaptchaenterprise.v1.ProjectName;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.annotation.PostConstruct;
@@ -77,10 +85,15 @@ import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.security.Authority;
 import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.security.model.JwtPair;
+import org.thingsboard.server.common.data.selfregistration.AbstractCaptchaParams;
+import org.thingsboard.server.common.data.selfregistration.CaptchaParams;
+import org.thingsboard.server.common.data.selfregistration.EnterpriseCaptchaParams;
 import org.thingsboard.server.common.data.selfregistration.MobileRedirectParams;
 import org.thingsboard.server.common.data.selfregistration.SelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpField;
 import org.thingsboard.server.common.data.selfregistration.SignUpFieldId;
+import org.thingsboard.server.common.data.selfregistration.V2CaptchaParams;
+import org.thingsboard.server.common.data.selfregistration.V3CaptchaParams;
 import org.thingsboard.server.common.data.selfregistration.WebSelfRegistrationParams;
 import org.thingsboard.server.common.data.signup.SignUpRequest;
 import org.thingsboard.server.common.data.signup.SignUpResult;
@@ -98,6 +111,7 @@ import org.thingsboard.server.service.security.model.token.JwtTokenFactory;
 import org.thingsboard.server.service.security.system.SystemSecurityService;
 import org.thingsboard.server.utils.MiscUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -171,7 +185,7 @@ public class SignUpController extends BaseController {
     @PostMapping(value = "/noauth/signup")
     public SignUpResult signUp(
             @Parameter(description = "A JSON value representing the signup request.", required = true)
-            @RequestBody SignUpRequest signUpRequest, HttpServletRequest request) throws ThingsboardException {
+            @RequestBody SignUpRequest signUpRequest, HttpServletRequest request) throws ThingsboardException, IOException {
         SelfRegistrationParams selfRegistrationParams;
         TenantId tenantId;
         if (!StringUtils.isEmpty(signUpRequest.getPkgName())) {
@@ -196,8 +210,15 @@ public class SignUpController extends BaseController {
         String password = signUpRequest.getFields().get(PASSWORD);
 
         //Verify recaptcha response
-        validateReCaptcha(signUpRequest.getRecaptchaResponse(), request.getRemoteAddr(),
-                selfRegistrationParams.getCaptcha().getSecretKey());
+        CaptchaParams captcha = selfRegistrationParams.getCaptcha();
+        if (captcha instanceof EnterpriseCaptchaParams captchaParams) {
+            validateEnterpriseReCaptcha(signUpRequest, request, captchaParams);
+        } else if (captcha instanceof V2CaptchaParams || captcha instanceof V3CaptchaParams) {
+            validateReCaptcha(signUpRequest.getRecaptchaResponse(), request.getRemoteAddr(),
+                    ((AbstractCaptchaParams)captcha).getSecretKey());
+        } else {
+            throw new DataValidationException("Error validating captcha: wrong captcha version");
+        }
 
         //Verify email
         DataValidator.validateEmail(email);
@@ -222,7 +243,7 @@ public class SignUpController extends BaseController {
         UserCredentials savedUserCredentials = saveUserCredentials(savedUser, signUpRequest);
 
         try {
-            sendEmailVerification(tenantId, request, savedUserCredentials, email, null, signUpRequest.getPkgName());
+            sendEmailVerification(tenantId, request, savedUserCredentials, email, null, signUpRequest.getPkgName(), signUpRequest.getPlatform());
         } catch (ThingsboardException e) {
             customerService.deleteCustomer(tenantId, savedCustomer.getId());
             throw e;
@@ -240,13 +261,14 @@ public class SignUpController extends BaseController {
         return SignUpResult.SUCCESS;
     }
 
-    private void sendEmailVerification(TenantId tenantId, HttpServletRequest request, UserCredentials userCredentials, String targetEmail, String baseUrl, String pkgName) throws ThingsboardException {
+    private void sendEmailVerification(TenantId tenantId, HttpServletRequest request, UserCredentials userCredentials,
+                                       String targetEmail, String baseUrl, String pkgName, PlatformType platformType) throws ThingsboardException {
         if (baseUrl == null) {
             baseUrl = MiscUtils.constructBaseUrl(request);
         }
         String activationLink = String.format("%s/api/noauth/activateEmail?emailCode=%s", baseUrl, userCredentials.getActivateToken());
         if (!StringUtils.isEmpty(pkgName)) {
-            activationLink = String.format("%s&pkgName=%s", activationLink, pkgName);
+            activationLink = String.format("%s&pkgName=%s&platform=%s", activationLink, pkgName, platformType);
         }
         try {
             mailService.sendActivationEmail(tenantId, activationLink, userCredentials.getActivationTokenTtl(), targetEmail);
@@ -309,7 +331,7 @@ public class SignUpController extends BaseController {
                 throw new DataValidationException("User with email '" + existingUser.getEmail() + "' "
                         + " is already active!");
             } else {
-                sendEmailVerification(tenantId, request, credentials, email, null, pkgName);
+                sendEmailVerification(tenantId, request, credentials, email, null, pkgName, platform);
             }
         } else {
             throw new DataValidationException("User with email '" + email + "' "
@@ -557,19 +579,68 @@ public class SignUpController extends BaseController {
         }
     }
 
+    private void validateEnterpriseReCaptcha(SignUpRequest signUpRequest, HttpServletRequest request, EnterpriseCaptchaParams captchaParams)
+            throws IOException {
+        try (RecaptchaEnterpriseServiceClient client = RecaptchaEnterpriseServiceClient.create(
+                RecaptchaEnterpriseServiceSettings.newBuilder()
+                        .setCredentialsProvider(FixedCredentialsProvider.create(
+                                ServiceAccountCredentials.fromStream(new ByteArrayInputStream(captchaParams.getServiceAccountCredentials().getBytes()))))
+                        .build())) {
+            String siteKey;
+            if (signUpRequest.getPlatform() == PlatformType.ANDROID) {
+                siteKey = captchaParams.getAndroidKey();
+            } else if (signUpRequest.getPlatform() == PlatformType.IOS) {
+                siteKey = captchaParams.getIosKey();
+            } else {
+                log.error("Error validating reCAPTCHA. Wrong platform type: [{}]", signUpRequest.getPlatform());
+                throw new DataValidationException("Error validating reCAPTCHA: platform could not be detected");
+            }
+            Event event = Event.newBuilder()
+                    .setSiteKey(siteKey)
+                    .setToken(signUpRequest.getRecaptchaResponse())
+                    .setUserIpAddress(request.getRemoteAddr())
+                    .setUserAgent(request.getHeader("User-Agent"))
+                    .build();
+
+            CreateAssessmentRequest createAssessmentRequest =
+                    CreateAssessmentRequest.newBuilder()
+                            .setParent(ProjectName.of(captchaParams.getProjectId()).toString())
+                            .setAssessment(Assessment.newBuilder().setEvent(event).build())
+                            .build();
+
+            Assessment response = client.createAssessment(createAssessmentRequest);
+
+            if (!response.getTokenProperties().getValid()) {
+                log.error("Error validating reCAPTCHA. Invalid reCaptcha response: [{}] ", response.getTokenProperties());
+                throw new DataValidationException("Error validating reCAPTCHA: Invalid reCaptcha response");
+            }
+            if (!response.getTokenProperties().getAction().equals(captchaParams.getLogActionName())) {
+                log.error("Error validating reCAPTCHA. Wrong recaptcha action name: [{}]", response.getTokenProperties().getAction());
+                throw new DataValidationException("Error validating reCAPTCHA: recaptcha action name");
+            }
+            float recaptchaScore = response.getRiskAnalysis().getScore();
+            if (recaptchaScore < 0.95) {
+                log.error("Error validating reCAPTCHA. Low score: [{}]", recaptchaScore);
+                throw new DataValidationException("Error validating reCAPTCHA: score is low");
+            }
+        }
+    }
+
     private void validateRequiredFields(SignUpRequest signUpRequest, SelfRegistrationParams selfRegistrationParams) throws ThingsboardException {
         Map<SignUpFieldId, String> signUpRequestFields = signUpRequest.getFields();
         List<SignUpField> selfRegisterSignUpFields = selfRegistrationParams.getSignUpFields();
         if (selfRegisterSignUpFields != null) {
             for (SignUpField field : selfRegisterSignUpFields) {
-                if (field.isRequired()) {
-                    checkParameter(field.getLabel(), signUpRequestFields.get(field.getId()));
+                if (field.isRequired() && field.getId().isValidate()) {
+                    checkNotNull(signUpRequestFields.get(field.getId()));
                 }
             }
         } else {
-            checkParameter("Email", signUpRequestFields.get(EMAIL));
-            checkParameter("Password", signUpRequestFields.get(PASSWORD));
-        }
+            checkNotNull(signUpRequestFields.get(EMAIL));
+            checkNotNull(signUpRequestFields.get(PASSWORD));
+            checkNotNull(signUpRequestFields.get(FIRST_NAME));
+            checkNotNull(signUpRequestFields.get(LAST_NAME));
+       }
     }
 
     private EntityGroup createCustomerUserGroup(SelfRegistrationParams selfRegistrationParams, Customer savedCustomer) {

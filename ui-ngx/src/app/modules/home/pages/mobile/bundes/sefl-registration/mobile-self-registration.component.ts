@@ -29,7 +29,16 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { Component, forwardRef, Renderer2, ViewContainerRef } from '@angular/core';
+import {
+  booleanAttribute,
+  Component,
+  forwardRef,
+  Input,
+  OnChanges,
+  Renderer2,
+  SimpleChanges,
+  ViewContainerRef
+} from '@angular/core';
 import {
   ControlValueAccessor,
   FormBuilder,
@@ -48,6 +57,7 @@ import { EntityType } from '@shared/models/entity-type.models';
 import { CMAssigneeType, CMScope } from '@app/shared/models/custom-menu.models';
 import { GroupPermission } from '@shared/models/group-permission.models';
 import {
+  CaptchaVersion,
   defaultSignUpFields,
   MobileSelfRegistrationParams,
   SelfRegistrationType,
@@ -79,7 +89,13 @@ import { MatDialog } from '@angular/material/dialog';
     }
   ],
 })
-export class MobileSelfRegistrationComponent implements ControlValueAccessor, Validator {
+export class MobileSelfRegistrationComponent implements ControlValueAccessor, Validator, OnChanges {
+
+  @Input({transform: booleanAttribute})
+  androidApp = false;
+
+  @Input({transform: booleanAttribute})
+  iOSApp = false;
 
   selfRegistrationForm = this.fb.group({
     enabled: [false],
@@ -91,10 +107,15 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
     }),
     signUpFields: [null],
     captcha: this.fb.group({
-      version: ['v3'],
+      version: this.fb.control<CaptchaVersion>('v3'),
       siteKey: ['', Validators.required],
       secretKey: ['', Validators.required],
-      logActionName: ['']
+      logActionName: [''],
+      projectId: [{value: '', disabled: true}, Validators.required],
+      androidKey: [{value: '', disabled: true}],
+      iosKey: [{value: '', disabled: true}],
+      serviceAccountCredentials: [{value: '', disabled: true}, Validators.required],
+      serviceAccountCredentialsFileName: [{value: '', disabled: true}],
     }),
     showPrivacyPolicy: [true],
     showTermsOfUse: [true],
@@ -131,15 +152,45 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
     ).subscribe(value => {
       if(value) {
         this.selfRegistrationForm.enable({emitEvent: false});
+        this.updatedCaptchaDisabledState(this.selfRegistrationForm.get('captcha.version').value);
       } else {
         this.selfRegistrationForm.disable({emitEvent: false});
         this.selfRegistrationForm.get('enabled').enable({emitEvent: false});
       }
+    });
+
+    this.selfRegistrationForm.get('captcha.version').valueChanges.pipe(
+      takeUntilDestroyed()
+    ).subscribe((version) => {
+      this.updatedCaptchaDisabledState(version);
     })
 
     this.selfRegistrationForm.valueChanges.pipe(
       takeUntilDestroyed()
     ).subscribe(() => this.updateModel());
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    for (const propName of Object.keys(changes)) {
+      const change = changes[propName];
+      if (!change.firstChange && change.currentValue !== change.previousValue) {
+        if (propName === 'androidApp') {
+          if (this.androidApp) {
+            this.selfRegistrationForm.get('captcha.androidKey').addValidators(Validators.required);
+          } else {
+            this.selfRegistrationForm.get('captcha.androidKey').clearValidators();
+          }
+          this.selfRegistrationForm.get('captcha.androidKey').updateValueAndValidity();
+        } else if (propName === 'iOSApp') {
+          if (this.androidApp) {
+            this.selfRegistrationForm.get('captcha.iosKey').addValidators(Validators.required);
+          } else {
+            this.selfRegistrationForm.get('captcha.iosKey').clearValidators();
+          }
+          this.selfRegistrationForm.get('captcha.iosKey').updateValueAndValidity();
+        }
+      }
+    }
   }
 
   registerOnChange(fn: any) {
@@ -234,5 +285,25 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
     const value =  this.selfRegistrationForm.getRawValue() as MobileSelfRegistrationParams;
     value.type = SelfRegistrationType.MOBILE;
     this.propagateChange(value);
+  }
+
+  private updatedCaptchaDisabledState(version: CaptchaVersion) {
+    if (version === 'enterprise') {
+      this.selfRegistrationForm.get('captcha.siteKey').disable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.secretKey').disable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.projectId').enable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.androidKey').enable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.iosKey').enable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.serviceAccountCredentials').enable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.serviceAccountCredentialsFileName').enable({emitEvent: false});
+    } else {
+      this.selfRegistrationForm.get('captcha.siteKey').enable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.secretKey').enable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.projectId').disable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.androidKey').disable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.iosKey').disable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.serviceAccountCredentials').disable({emitEvent: false});
+      this.selfRegistrationForm.get('captcha.serviceAccountCredentialsFileName').disable({emitEvent: false});
+    }
   }
 }

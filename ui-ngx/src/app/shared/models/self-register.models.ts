@@ -33,8 +33,9 @@ import { GroupPermission } from '@shared/models/group-permission.models';
 import { EntityGroupId } from '@shared/models/id/entity-group-id';
 import { CustomMenuId } from '@shared/models/id/custom-menu-id';
 import { NotificationTargetId } from '@shared/models/id/notification-target-id';
+import { DomainId } from '@shared/models/id/domain-id';
 
-export type CaptchaVersion = 'v2' | 'v3' | 'Enterprise';
+export type CaptchaVersion = 'v2' | 'v3' | 'enterprise';
 
 export enum SelfRegistrationType {
   WEB = 'WEB',
@@ -185,7 +186,7 @@ export interface SignUpSelfRegistrationParams {
 }
 
 export interface WebSelfRegistrationParams extends AbstractSelfRegistrationParams {
-  domainName?: string;
+  domainId?: DomainId;
 }
 
 export interface AbstractSelfRegistrationParams {
@@ -219,10 +220,15 @@ interface HomeDashboardParams {
 }
 
 export interface CaptchaParams {
-  siteKey: string;
+  siteKey?: string;
   version: CaptchaVersion;
-  logActionName: string;
-  secretKey: string;
+  logActionName?: string;
+  secretKey?: string;
+  projectId?: string;
+  androidKey?: string;
+  iosKey?: string;
+  serviceAccountCredentials?: string;
+  serviceAccountCredentialsFileName?: string;
 }
 
 interface DefaultDashboardParams {

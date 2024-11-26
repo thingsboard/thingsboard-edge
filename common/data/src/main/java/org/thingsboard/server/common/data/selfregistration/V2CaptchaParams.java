@@ -28,27 +28,29 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.mobile.qrCodeSettings;
+package org.thingsboard.server.common.data.selfregistration;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.validation.NoXss;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
 
-@Data
-@Builder
+import static org.thingsboard.server.common.data.selfregistration.CaptchaVersion.V_2;
+
+@Schema
 @NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode
-public class QRCodeConfig {
+public class V2CaptchaParams extends AbstractCaptchaParams {
 
-    private boolean showOnHomePage;
-    private boolean badgeEnabled;
-    private boolean qrCodeLabelEnabled;
-    private BadgePosition badgePosition;
-    @NoXss
-    private String qrCodeLabel;
+    public V2CaptchaParams(String siteKey) {
+        this.siteKey = siteKey;
+    }
 
+    @Override
+    public String getVersion() {
+        return V_2.getName();
+    }
+
+    @Override
+    public CaptchaParams toInfo(PlatformType platformType) {
+        return new V2CaptchaParams(siteKey);
+    }
 }

@@ -44,11 +44,12 @@ import java.util.UUID;
 
 public interface OAuth2ClientRepository extends JpaRepository<OAuth2ClientEntity, UUID> {
 
-    @Query("SELECT с FROM OAuth2ClientEntity с WHERE с.tenantId = :tenantId AND " +
+    @Query("SELECT с FROM OAuth2ClientEntity с WHERE с.tenantId = :tenantId AND с.customerId = :customerId AND " +
             "(:searchText is NULL OR ilike(с.title, concat('%', :searchText, '%')) = true)")
-    Page<OAuth2ClientEntity> findByTenantId(@Param("tenantId") UUID tenantId,
-                                            @Param("searchText") String searchText,
-                                            Pageable pageable);
+    Page<OAuth2ClientEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                                         @Param("customerId") UUID customerId,
+                                                         @Param("searchText") String searchText,
+                                                         Pageable pageable);
 
     @Query("SELECT c " +
             "FROM OAuth2ClientEntity c " +

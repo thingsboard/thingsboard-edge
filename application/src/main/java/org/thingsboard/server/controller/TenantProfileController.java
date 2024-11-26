@@ -178,6 +178,7 @@ public class TenantProfileController extends BaseController {
                     "      \"rpcTtlDays\": 0,\n" +
                     "      \"queueStatsTtlDays\": 0,\n" +
                     "      \"ruleEngineExceptionsTtlDays\": 0,\n" +
+                    "      \"blobEntityTtlDays\": 0,\n" +
                     "      \"warnThreshold\": 0\n" +
                     "    }\n" +
                     "  },\n" +

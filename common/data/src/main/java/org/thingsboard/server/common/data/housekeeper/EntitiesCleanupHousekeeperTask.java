@@ -28,47 +28,33 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.common.data.wl;
+package org.thingsboard.server.common.data.housekeeper;
 
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import io.swagger.v3.oas.annotations.media.Schema;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.thingsboard.server.common.data.id.DomainId;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
+import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.TenantId;
 
 @Data
+@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class LoginWhiteLabelingParams extends WhiteLabelingParams {
+@NoArgsConstructor
+public class EntitiesCleanupHousekeeperTask extends HousekeeperTask {
 
-    @Schema(description = "Login page background color", example = "#d90f0f")
-    private String pageBackgroundColor;
-    @Schema(description = "Enable/Disable dark foreground")
-    private boolean darkForeground;
-    @Schema(description = "Domain id")
-    private DomainId domainId;
-    @Schema(description = "Base URL for the activation link, etc", example = "https://iot.mycompany.com")
-    private String baseUrl;
-    @Schema(description = "Prohibit use of other URLs. It is recommended to enable this setting", example = "true")
-    private boolean prohibitDifferentUrl;
-    @Schema(description = "Id of the settings object that store this parameters")
-    private String adminSettingsId;
-    @Schema(description = "Show platform name and version on login page")
-    private Boolean showNameBottom;
+    private EntityType entityType;
 
-    public LoginWhiteLabelingParams merge(LoginWhiteLabelingParams otherWlParams) {
-        Integer prevLogoImageHeight = this.logoImageHeight;
-        super.merge(otherWlParams);
-        if (prevLogoImageHeight == null) {
-            this.logoImageHeight = null;
-        }
-        if (this.showNameBottom == null) {
-            this.showNameBottom = otherWlParams.showNameBottom;
-        }
-        if (this.pageBackgroundColor == null) {
-            this.pageBackgroundColor = otherWlParams.pageBackgroundColor;
-        }
-        return this;
+    public EntitiesCleanupHousekeeperTask(EntityType entityType) {
+        super(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID, HousekeeperTaskType.CLEANUP_ENTITIES);
+        this.entityType = entityType;
     }
+
+    @JsonIgnore
+    @Override
+    public String getDescription() {
+        return entityType.getNormalName().toLowerCase() + "s cleanup";
+    }
+
 }

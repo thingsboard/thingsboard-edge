@@ -344,6 +344,7 @@ public abstract class AbstractServiceTest {
     protected OAuth2Client validClientInfo(TenantId tenantId, String title, List<PlatformType> platforms) {
         OAuth2Client oAuth2Client = new OAuth2Client();
         oAuth2Client.setTenantId(tenantId);
+        oAuth2Client.setCustomerId(new CustomerId(EntityId.NULL_UUID));
         oAuth2Client.setTitle(title);
         oAuth2Client.setClientId(UUID.randomUUID().toString());
         oAuth2Client.setClientSecret(UUID.randomUUID().toString());

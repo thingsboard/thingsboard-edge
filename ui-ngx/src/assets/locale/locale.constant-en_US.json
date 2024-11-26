@@ -387,7 +387,11 @@
           "update-access-token": "Update access token",
           "access-token-status": "Access token status:",
           "token-status-generated": "generated",
-          "token-status-not-generated": "not generated"
+          "token-status-not-generated": "not generated",
+          "domain": "Domain",
+          "no-domain-matching": "No domain matching '{{entity}}' were found.",
+          "domain-required": "Domain is required",
+          "no-domain-text": "No domain found"
         },
         "smpp-provider": {
             "smpp-version": "SMPP version",
@@ -6003,6 +6007,9 @@
         "rule-engine-exceptions-ttl-days": "Rule Engine exceptions TTL days",
         "rule-engine-exceptions-ttl-days-required": "Rule Engine exceptions TTL days required",
         "rule-engine-exceptions-ttl-days-range": "Rule Engine exceptions TTL days can't be negative",
+        "blob-entity-ttl-days": "Blob entity TTL days",
+        "blob-entity-ttl-days-required": "Blob entity TTL days required",
+        "blob-entity-ttl-days-range": "Blob entity TTL days can't be negative",
         "max-rule-node-executions-per-message": "Rule node per message executions maximum number",
         "max-rule-node-executions-per-message-required": "MRule node per message executions maximum number is required.",
         "max-rule-node-executions-per-message-range": "Rule node per message executions maximum number can't be negative",
@@ -7150,7 +7157,15 @@
         "captcha-version": "Captcha version",
         "captcha-action": "Captcha log action name",
         "captcha-site-key": "Captcha site key",
+        "captcha-site-key-required": "Captcha site key is required.",
         "captcha-secret-key": "Captcha secret key",
+        "captcha-secret-key-required": "Captcha secret key is required.",
+        "project-id": "Project ID",
+        "project-id-required": "Project ID is required.",
+        "android-key": "Android key",
+        "android-key-required": "Android key is required.",
+        "ios-key": "iOS key",
+        "ios-key-required": "iOS key is required.",
         "notification-recipient": "Notification recipient",
         "notification-recipient-required": "Notification recipient is required.",
         "privacy-policy-text": "Privacy policy text",
@@ -7174,7 +7189,9 @@
         "show-privacy-policy": "Show Privacy Policy",
         "show-terms-of-use": "Show Terms of Use",
         "domain-settings": "Domain settings",
-        "general-settings": "General settings"
+        "general-settings": "General settings",
+        "recaptcha-enterprise-service-account-file": "reCAPTCHA Enterprise account credentials JSON file",
+        "select-recaptcha-enterprise-service-account-file": "Drag and drop your account credentials file"
     },
     "solution-template": {
         "solution-template": "Solution template",
@@ -7236,6 +7253,7 @@
         "dark-foreground": "Dark foreground",
         "domain-name": "Domain name",
         "base-url": "Base URL",
+        "base-url-required": "Base URL is required",
         "prohibit-different-url": "Prohibit to use hostname from the client request headers",
         "prohibit-different-url-hint": "This setting should be enabled for production environments. May cause security issues when disabled",
         "help-link-base-url": "Help links base url",
