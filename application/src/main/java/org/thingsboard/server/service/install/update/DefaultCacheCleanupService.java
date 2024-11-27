@@ -44,8 +44,6 @@ import java.util.Optional;
 
 import static org.thingsboard.server.common.data.CacheConstants.RESOURCE_INFO_CACHE;
 import static org.thingsboard.server.common.data.CacheConstants.SECURITY_SETTINGS_CACHE;
-import static org.thingsboard.server.common.data.CacheConstants.TENANT_PROFILE_CACHE;
-import static org.thingsboard.server.common.data.CacheConstants.WHITE_LABELING_CACHE;
 
 @RequiredArgsConstructor
 @Service
@@ -84,8 +82,7 @@ public class DefaultCacheCleanupService implements CacheCleanupService {
                 break;
             case "3.8.1":
                 log.info("Clearing cache to upgrade from version 3.8.1 to 3.9.0");
-                clearCacheByName(WHITE_LABELING_CACHE);
-                clearCacheByName(TENANT_PROFILE_CACHE);
+                clearAll();
                 break;
             default:
                 //Do nothing, since cache cleanup is optional.
