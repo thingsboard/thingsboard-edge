@@ -162,8 +162,6 @@
             "account-lockout": "Account lockout message",
             "reset-password": "Reset password message",
             "password-was-reset": "Password was reset message",
-            "user-activated": "User activated message",
-            "user-registered": "User registered message",
             "api-usage-state-enabled": "Api usage state enabled",
             "api-usage-state-warning": "Api usage state warning",
             "api-usage-state-disabled": "Api usage state disabled",
