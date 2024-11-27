@@ -56,6 +56,8 @@ import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.mobile.LoginMobileInfo;
 import org.thingsboard.server.common.data.mobile.UserMobileInfo;
 import org.thingsboard.server.common.data.mobile.app.MobileApp;
+import org.thingsboard.server.common.data.mobile.app.MobileAppVersionInfo;
+import org.thingsboard.server.common.data.mobile.app.StoreInfo;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
 import org.thingsboard.server.common.data.mobile.layout.MobilePage;
 import org.thingsboard.server.common.data.oauth2.OAuth2ClientLoginInfo;
@@ -70,6 +72,7 @@ import org.thingsboard.server.service.entitiy.mobile.TbMobileAppService;
 import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -96,13 +99,15 @@ public class MobileAppController extends BaseController {
     public LoginMobileInfo getLoginMobileInfo(@Parameter(description = "Mobile application package name")
                                               @RequestParam String pkgName,
                                               @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}))
-                                              @RequestParam PlatformType platform) throws ThingsboardException {
+                                              @RequestParam PlatformType platform) {
         List<OAuth2ClientLoginInfo> oauth2Clients = oAuth2ClientService.findOAuth2ClientLoginInfosByMobilePkgNameAndPlatformType(pkgName, platform);
-        MobileAppBundle mobileAppBundle = checkNotNull(mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform,false));
-        SignUpSelfRegistrationParams signUpSelfRegistrationParams = (mobileAppBundle.getSelfRegistrationParams() != null) ?
-                mobileAppBundle.getSelfRegistrationParams().toSignUpSelfRegistrationParams(platform) : null;
-        MobileApp mobileApp = checkNotNull(mobileAppService.findMobileAppByPkgNameAndPlatformType(pkgName, platform));
-        return new LoginMobileInfo(oauth2Clients, signUpSelfRegistrationParams, mobileApp.getStoreInfo(), mobileApp.getVersionInfo());
+        MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(TenantId.SYS_TENANT_ID, pkgName, platform,false);
+        SignUpSelfRegistrationParams signUpParams = Optional.ofNullable(mobileAppBundle.getSelfRegistrationParams())
+                .map(srParams -> srParams.toSignUpSelfRegistrationParams(platform)).orElse(null);
+        MobileApp mobileApp = mobileAppService.findMobileAppByPkgNameAndPlatformType(pkgName, platform);
+        StoreInfo storeInfo = Optional.ofNullable(mobileApp).map(MobileApp::getStoreInfo).orElse(null);
+        MobileAppVersionInfo versionInfo = Optional.ofNullable(mobileApp).map(MobileApp::getVersionInfo).orElse(null);
+        return new LoginMobileInfo(oauth2Clients, signUpParams, storeInfo, versionInfo);
     }
 
     @ApiOperation(value = "Get user mobile app basic info (getUserMobileInfo)", notes = AVAILABLE_FOR_ANY_AUTHORIZED_USER)
@@ -115,9 +120,11 @@ public class MobileAppController extends BaseController {
         SecurityUser securityUser = getCurrentUser();
         User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
         HomeDashboardInfo homeDashboardInfo = securityUser.isSystemAdmin() ? null : getHomeDashboardInfo(securityUser, user.getAdditionalInfo());
-        MobileAppBundle mobileAppBundle = checkNotNull(mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(securityUser.getTenantId(), pkgName, platform, false));
-        MobileApp mobileApp = checkNotNull(mobileAppService.findMobileAppByPkgNameAndPlatformType(pkgName, platform));
-        return new UserMobileInfo(user, mobileApp.getStoreInfo(), mobileApp.getVersionInfo(), homeDashboardInfo, getVisiblePages(mobileAppBundle));
+        MobileAppBundle mobileAppBundle = mobileAppBundleService.findMobileAppBundleByPkgNameAndPlatform(securityUser.getTenantId(), pkgName, platform, false);
+        MobileApp mobileApp = mobileAppService.findMobileAppByPkgNameAndPlatformType(pkgName, platform);
+        StoreInfo storeInfo = Optional.ofNullable(mobileApp).map(MobileApp::getStoreInfo).orElse(null);
+        MobileAppVersionInfo versionInfo = Optional.ofNullable(mobileApp).map(MobileApp::getVersionInfo).orElse(null);
+        return new UserMobileInfo(user, storeInfo, versionInfo, homeDashboardInfo, getVisiblePages(mobileAppBundle));
     }
 
     @ApiOperation(value = "Save Or update Mobile app (saveMobileApp)",
