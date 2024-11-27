@@ -346,15 +346,8 @@ public class BaseWhiteLabelingService extends AbstractCachedService<WhiteLabelin
 
     @Override
     public void deleteAllTenantWhiteLabeling(TenantId tenantId) {
-        List<WhiteLabeling> wlSettings = whiteLabelingDao.findByTenantId(tenantId);
-        for (WhiteLabeling whiteLabeling : wlSettings) {
-            WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(whiteLabeling.getTenantId(), whiteLabeling.getCustomerId(), whiteLabeling.getType());
-            whiteLabelingDao.removeById(tenantId, key);
-            publishEvictEvent(new WhiteLabelingEvictEvent(forKey(key)));
-            if (whiteLabeling.getDomainId() != null) {
-                Domain domain = domainService.findDomainById(tenantId, whiteLabeling.getDomainId());
-                publishEvictEvent(new WhiteLabelingEvictEvent(forTypeAndDomain(whiteLabeling.getType(), domain.getName())));
-            }
+        for (WhiteLabelingType type : WhiteLabelingType.values()) {
+            deleteWhiteLabeling(tenantId, null, type);
         }
     }
 

@@ -94,9 +94,5 @@ public class JpaWhiteLabelingDao extends JpaAbstractDaoListeningExecutorService 
         ))));
     }
 
-    @Override
-    public List<WhiteLabeling> findByTenantId(TenantId tenantId) {
-        return DaoUtil.convertDataList(whiteLabelingRepository.findByTenantId(tenantId.getId()));
-    }
 
 }

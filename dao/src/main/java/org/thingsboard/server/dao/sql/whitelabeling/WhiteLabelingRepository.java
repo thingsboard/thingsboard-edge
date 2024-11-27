@@ -66,5 +66,4 @@ public interface WhiteLabelingRepository extends JpaRepository<WhiteLabelingEnti
     @Query("SELECT w FROM WhiteLabelingEntity w WHERE w.type IN :types")
     Page<WhiteLabelingEntity> findAllByTypeIn(@Param("types") Set<WhiteLabelingType> types, Pageable pageable);
 
-    List<WhiteLabelingEntity> findByTenantId(UUID id);
 }
