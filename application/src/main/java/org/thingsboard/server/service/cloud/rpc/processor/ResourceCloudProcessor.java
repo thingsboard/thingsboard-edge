@@ -89,13 +89,10 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
     }
 
     private void deleteSystemResourceIfAlreadyExists(TbResourceId tbResourceId, ResourceType resourceType, String resourceKey) {
-        PageDataIterable<TbResource> entityIdsIterator = new PageDataIterable<>(
-                link -> resourceService.findAllTenantResources(TenantId.SYS_TENANT_ID, link), 1024);
+        PageDataIterable<TbResource> entityIdsIterator = new PageDataIterable<>(link -> resourceService.findAllTenantResources(TenantId.SYS_TENANT_ID, link), 1024);
         for (TbResource resource : entityIdsIterator) {
-            if (resource.getResourceType().equals(resourceType)
-                    && resource.getResourceKey().equals(resourceKey)
-                    && !resource.getId().equals(tbResourceId)) {
-                resourceService.deleteResource(TenantId.SYS_TENANT_ID, resource.getId());
+            if (resource.getResourceType().equals(resourceType) && resource.getResourceKey().equals(resourceKey) && !resource.getId().equals(tbResourceId)) {
+                resourceService.deleteResource(TenantId.SYS_TENANT_ID, resource.getId(), true);
                 break;
             }
         }
