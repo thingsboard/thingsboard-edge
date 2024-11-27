@@ -53,4 +53,19 @@ public interface NotificationInfo {
         return null;
     }
 
+
+    static NotificationInfo userActivated(String userFullName, String userEmail) {
+        return UserActivatedNotificationInfo.builder()
+                .userFullName(userFullName)
+                .userEmail(userEmail)
+                .build();
+    }
+
+    static NotificationInfo userRegistered(String userFullName, String userEmail) {
+        return UserRegisteredNotificationInfo.builder()
+                .userFullName(userFullName)
+                .userEmail(userEmail)
+                .build();
+    }
+
 }
