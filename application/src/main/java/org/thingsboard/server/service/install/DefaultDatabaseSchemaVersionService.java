@@ -134,7 +134,7 @@ public class DefaultDatabaseSchemaVersionService implements DatabaseSchemaVersio
 
     @Override
     public void updateSchemaVersion() {
-        jdbcTemplate.execute("UPDATE tb_schema_settings SET schema_version = " + getCurrentSchemaVersion());
+        jdbcTemplate.execute("UPDATE tb_schema_settings SET schema_version = " + getCurrentSchemaVersion() + ", product = '" + CURRENT_PRODUCT + "'");
     }
 
     private Long getSchemaVersionFromDb() {
