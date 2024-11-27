@@ -76,8 +76,7 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
     }
 
     private Pair<Boolean, TbResourceId> renamePreviousResource(TenantId tenantId, TbResourceId tbResourceId, ResourceType resourceType, String resourceKey) {
-        PageDataIterable<TbResource> resourcesIterable = new PageDataIterable<>(
-                link -> resourceService.findTenantResourcesByResourceTypeAndPageLink(tenantId, resourceType, link), 1024);
+        PageDataIterable<TbResource> resourcesIterable = new PageDataIterable<>(link -> resourceService.findTenantResourcesByResourceTypeAndPageLink(tenantId, resourceType, link), 1024);
         for (TbResource tbResource : resourcesIterable) {
             if (tbResource.getResourceKey().equals(resourceKey) && !tbResourceId.equals(tbResource.getId())) {
                 tbResource.setResourceKey(StringUtils.randomAlphanumeric(15) + resourceKey);

@@ -199,7 +199,7 @@ public class ThingsboardInstallService {
 
                 // systemDataLoaderService.createSysAdmin();
                 systemDataLoaderService.createDefaultTenantProfiles();
-                systemDataLoaderService.createAdminSettings();
+                // systemDataLoaderService.createAdminSettings();
                 systemDataLoaderService.createRandomJwtSettings();
                 systemDataLoaderService.loadSystemWidgets();
                 // systemDataLoaderService.createOAuth2Templates();
