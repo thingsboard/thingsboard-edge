@@ -55,7 +55,7 @@ public interface OAuth2ClientService extends EntityDaoService {
 
     OAuth2Client findOAuth2ClientById(TenantId tenantId, OAuth2ClientId providerId);
 
-    String findAppSecret(OAuth2ClientId oAuth2ClientId, String pkgName);
+    String findAppSecret(OAuth2ClientId oAuth2ClientId, String pkgName, PlatformType platformType);
 
     void deleteOAuth2ClientById(TenantId tenantId, OAuth2ClientId oAuth2ClientId);
 

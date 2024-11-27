@@ -53,7 +53,7 @@ public interface OAuth2ClientDao extends Dao<OAuth2Client> {
 
     List<OAuth2Client> findByMobileAppBundleId(UUID mobileAppBundleId);
 
-    String findAppSecret(UUID id, String pkgName);
+    String findAppSecret(UUID id, String pkgName, PlatformType platformType);
 
     void deleteByTenantId(UUID tenantId);
 
