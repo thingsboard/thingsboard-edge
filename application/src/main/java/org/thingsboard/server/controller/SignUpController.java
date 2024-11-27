@@ -70,8 +70,6 @@ import org.thingsboard.server.common.data.mobile.app.MobileApp;
 import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
 import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.notification.info.NotificationInfo;
-import org.thingsboard.server.common.data.notification.info.UserActivatedNotificationInfo;
-import org.thingsboard.server.common.data.notification.info.UserRegisteredNotificationInfo;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.permission.GroupPermission;
 import org.thingsboard.server.common.data.security.Authority;
@@ -227,8 +225,8 @@ public class SignUpController extends BaseController {
             customerService.deleteCustomer(tenantId, savedCustomer.getId());
             throw e;
         }
-        sendUserActivityNotification(tenantId, Optional.ofNullable(firstName).orElse("") + " " + Optional.ofNullable(lastName).orElse(""),
-                email, false, selfRegistrationParams.getNotificationRecipient());
+        sendUserActivityNotification(tenantId, NotificationType.USER_REGISTERED, Optional.ofNullable(firstName).orElse("") + " " + Optional.ofNullable(lastName).orElse(""),
+                email, selfRegistrationParams.getNotificationRecipient());
 
         logEntityActionService.logEntityAction(tenantId, savedCustomer.getId(), savedCustomer, savedCustomer.getId(),
                 ActionType.ADDED, null);
@@ -255,30 +253,23 @@ public class SignUpController extends BaseController {
         }
     }
 
-    private void sendUserActivityNotification(TenantId tenantId, String userFullName, String userEmail, boolean activated, NotificationTargetId recipient) {
+    private void sendUserActivityNotification(TenantId tenantId, NotificationType notificationType, String userFullName, String userEmail, NotificationTargetId recipient) {
         if (recipient == null) {
             return;
         }
         try {
-            NotificationType notificationType;
             NotificationInfo notificationInfo;
-            if (activated) {
-                notificationType = NotificationType.USER_ACTIVATED;
-                notificationInfo = UserActivatedNotificationInfo.builder()
-                        .userFullName(userFullName)
-                        .userEmail(userEmail)
-                        .build();
+            if (notificationType == NotificationType.USER_ACTIVATED) {
+                notificationInfo = NotificationInfo.userActivated(userFullName, userEmail);
+            } else if (notificationType == NotificationType.USER_REGISTERED) {
+                notificationInfo = NotificationInfo.userRegistered(userFullName, userEmail);
             } else {
-                notificationType = NotificationType.USER_REGISTERED;
-                notificationInfo = UserRegisteredNotificationInfo.builder()
-                        .userFullName(userFullName)
-                        .userEmail(userEmail)
-                        .build();
+                return;
             }
+
             notificationCenter.sendSystemNotification(tenantId, recipient, notificationType, notificationInfo);
         } catch (Exception e) {
-            String action = activated ? "activation" : "registration";
-            log.error("Failed to send notification email about user {}", action, e);
+            log.error("Failed to send {} notification about user {}", notificationType, userEmail, e);
         }
     }
 
@@ -435,7 +426,7 @@ public class SignUpController extends BaseController {
             log.warn("Unable to send account activated email for {}: {}", email, e.getMessage());
         }
 
-        sendUserActivityNotification(tenantId, user.getFirstName() + " " + user.getLastName(), email, true, selfRegistrationParams.getNotificationRecipient());
+        sendUserActivityNotification(tenantId, NotificationType.USER_ACTIVATED, user.getFirstName() + " " + user.getLastName(), email, selfRegistrationParams.getNotificationRecipient());
 
         systemSecurityService.logLoginAction(user, new RestAuthenticationDetails(request), ActionType.LOGIN, null);
         return tokenFactory.createTokenPair(securityUser);
