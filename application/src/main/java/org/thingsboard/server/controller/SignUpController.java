@@ -266,6 +266,7 @@ public class SignUpController extends BaseController {
         }
         String activationLink = String.format("%s/api/noauth/activateEmail?emailCode=%s", baseUrl, userCredentials.getActivateToken());
         if (!StringUtils.isEmpty(pkgName)) {
+            checkNotNull(platformType);
             activationLink = String.format("%s&pkgName=%s&platform=%s", activationLink, pkgName, platformType);
         }
         try {
@@ -305,7 +306,7 @@ public class SignUpController extends BaseController {
             @RequestParam(required = false) String pkgName,
             @Parameter(description = "Platform type", schema = @Schema(allowableValues = {"ANDROID", "IOS"}))
             @RequestParam(required = false) PlatformType platform,
-            HttpServletRequest request) throws ThingsboardException, IOException {
+            HttpServletRequest request) throws ThingsboardException {
         TenantId tenantId;
         if (!StringUtils.isEmpty(pkgName)) {
             MobileAppBundle mobileAppBundle = checkMobileSRSettings(pkgName, platform);

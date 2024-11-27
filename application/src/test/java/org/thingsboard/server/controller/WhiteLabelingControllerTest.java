@@ -43,6 +43,7 @@ import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.wl.Favicon;
 import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
+import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
 import org.thingsboard.server.dao.model.sql.WhiteLabelingCompositeKey;
@@ -52,6 +53,7 @@ import org.thingsboard.server.dao.wl.WhiteLabelingDao;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.thingsboard.server.common.data.id.TenantId.SYS_TENANT_ID;
 
@@ -63,15 +65,16 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
 
     @After
     public void afterTest() {
-        WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, WhiteLabelingType.MAIL_TEMPLATES);
-        if (whiteLabelingDao.findById(SYS_TENANT_ID, key) != null) {
-            whiteLabelingDao.removeById(SYS_TENANT_ID, key);
+        if (tenantId != null) {
+            WhiteLabelingCompositeKey key = new WhiteLabelingCompositeKey(tenantId, WhiteLabelingType.MAIL_TEMPLATES);
+            if (whiteLabelingDao.findById(SYS_TENANT_ID, key) != null) {
+                whiteLabelingDao.removeById(SYS_TENANT_ID, key);
+            }
         }
 
-        key.setTenantId(SYS_TENANT_ID.getId());
-
-        if (whiteLabelingDao.findById(SYS_TENANT_ID, key) != null) {
-            whiteLabelingDao.removeById(SYS_TENANT_ID, key);
+        WhiteLabelingCompositeKey sysKey = new WhiteLabelingCompositeKey(SYS_TENANT_ID, WhiteLabelingType.MAIL_TEMPLATES);
+        if (whiteLabelingDao.findById(SYS_TENANT_ID, sysKey) != null) {
+            whiteLabelingDao.removeById(SYS_TENANT_ID, sysKey);
         }
     }
 
@@ -320,6 +323,44 @@ public class WhiteLabelingControllerTest extends AbstractControllerTest {
         LoginWhiteLabelingParams updatedLoginWhiteLabelingParams = doGet("/api/whiteLabel/currentLoginWhiteLabelParams", LoginWhiteLabelingParams.class);
 
         assertThat(updatedLoginWhiteLabelingParams.getDomainId()).isEqualTo(savedTenantDomain.getId());
+    }
+
+    @Test
+    public void shouldDeleteLoginWhiteLabelParamsAfterTenantDeletion() throws Exception {
+        loginSysAdmin();
+        updateBaseUrlAndVerify("https://domain.com");
+
+        loginTenantAdmin();
+        Domain savedTenantDomain = doPost("/api/domain", constructDomain("domain2.com"), Domain.class);
+        updateDomainAndVerify(savedTenantDomain);
+
+        loginCustomerAdminUser();
+        Domain savedCustomerDomain = doPost("/api/domain", constructDomain("domain3.com"), Domain.class);
+        updateDomainAndVerify(savedCustomerDomain);
+
+        loginSubCustomerAdminUser();
+        Domain savedSubCustomerDomain = doPost("/api/domain", constructDomain("domain4.com"), Domain.class);
+        updateDomainAndVerify(savedSubCustomerDomain);
+
+        //delete tenant
+        loginSysAdmin();
+        deleteTenant(tenantId);
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+            WhiteLabeling tenantWL = whiteLabelingDao.findById(SYS_TENANT_ID,  new WhiteLabelingCompositeKey(tenantId, WhiteLabelingType.LOGIN));
+            assertThat(tenantWL).isNull();
+        });
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+            WhiteLabeling customerWL = whiteLabelingDao.findById(SYS_TENANT_ID,  new WhiteLabelingCompositeKey(tenantId, customerId, WhiteLabelingType.LOGIN));
+            assertThat(customerWL).isNull();
+        });
+
+        await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
+            WhiteLabeling subCustomerWL = whiteLabelingDao.findById(SYS_TENANT_ID,  new WhiteLabelingCompositeKey(tenantId, subCustomerId, WhiteLabelingType.LOGIN));
+            assertThat(subCustomerWL).isNull();
+        });
+        tenantId = null;
     }
 
     private void updateAppTitleAndVerify(String appTile) throws Exception {

@@ -68,6 +68,7 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.exception.DataValidationException;
 
 import java.net.URI;
+import java.util.List;
 
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.LOGIN;
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.PRIVACY_POLICY;

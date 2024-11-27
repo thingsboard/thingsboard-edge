@@ -298,7 +298,6 @@ $$
                     'enabled', true,
                     'type', 'WEB',
                     'title', settings::jsonb ->> 'signUpTextMessage',
-                    'domainName', settings::jsonb ->> 'domainName',
                     'notificationEmail', settings::jsonb ->> 'notificationEmail',
                     'showPrivacyPolicy', settings::jsonb ->> 'showPrivacyPolicy',
                     'showTermsOfUse', settings::jsonb ->> 'showTermsOfUse',
