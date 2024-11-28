@@ -39,7 +39,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.install.DatabaseEntitiesUpgradeService;
-import org.thingsboard.server.service.install.DatabaseSchemaVersionService;
+import org.thingsboard.server.service.install.DatabaseSchemaSettingsService;
 import org.thingsboard.server.service.install.EntityDatabaseSchemaService;
 import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.NoSqlKeyspaceService;
@@ -104,7 +104,7 @@ public class ThingsboardInstallService {
     private InstallScripts installScripts;
 
     @Autowired
-    private DatabaseSchemaVersionService databaseSchemaVersionService;
+    private DatabaseSchemaSettingsService databaseSchemaVersionService;
 
     public void performInstall() {
         try {
@@ -117,32 +117,28 @@ public class ThingsboardInstallService {
                 } else if (upgradeFromVersion.equals("3.6.2-images")) {
                     installScripts.updateImages();
                 } else {
-                    upgradeFromVersion = databaseSchemaVersionService.validateSchemaSettings(upgradeFromVersion);
-                    cacheCleanupService.clearCache(upgradeFromVersion);
-                    switch (upgradeFromVersion) {
-                        case "3.8.0":
-                            log.info("Upgrading ThingsBoard from version 3.8.0 to 3.8.1 ...");
-                        case "3.8.1":
-                            log.info("Upgrading ThingsBoard from version 3.8.1 to 3.9.0 ...");
-                            databaseEntitiesUpgradeService.upgradeDatabase("3.8.1");
-                            dataUpdateService.updateData("3.8.1");
-                            installScripts.updateResourcesUsage();
-                            break;
-                        case "CE":
-                            log.info("Upgrading ThingsBoard from version CE to PE ...");
-                            //TODO: check CE schema version before launch of the update.
-                            //TODO DON'T FORGET to update switch statement in the CacheCleanupService if you need to clear the cache (include previous versions without upgrade)
-                            //TODO DON'T FORGET to update SUPPORTED_VERSIONS_FROM, this list should include last version and can include previous versions without upgrade
-                            break;
-                        default:
-                            throw new RuntimeException("Unable to upgrade ThingsBoard, unsupported fromVersion: " + upgradeFromVersion);
+                    boolean fromCE = "CE".equals(upgradeFromVersion);
+                    databaseSchemaVersionService.validateSchemaSettings(fromCE);
+                    //TODO DON'T FORGET to update SUPPORTED_VERSIONS_FROM in DatabaseSchemaVersionService,
+                    // this list should include last version and can include previous versions without upgrade
+                    String fromVersion = databaseSchemaVersionService.getDbSchemaVersion();
+                    String toVersion = databaseSchemaVersionService.getPackageSchemaVersion();
+                    cacheCleanupService.clearCache(fromVersion, toVersion);
+                    if (fromCE) {
+                        log.info("Upgrading ThingsBoard from version CE to PE ...");
+                    } else {
+                        log.info("Upgrading ThingsBoard from version {} to {} ...", fromVersion, toVersion);
+                        databaseEntitiesUpgradeService.upgradeDatabase(fromVersion, toVersion);
+                        dataUpdateService.updateData(fromVersion, toVersion);
+                        installScripts.updateResourcesUsage();
                     }
+
                     // We always run the CE to PE update script, just in case..
                     entityDatabaseSchemaService.createDatabaseSchema(false);
-                    databaseEntitiesUpgradeService.upgradeDatabase("ce");
+                    databaseEntitiesUpgradeService.upgradeDatabase(); //CE
                     entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
                     entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
-                    dataUpdateService.updateData("ce");
+                    dataUpdateService.updateData(); //CE
                     entityDatabaseSchemaService.createDatabaseIndexes();
                     log.info("Updating system data...");
                     dataUpdateService.upgradeRuleNodes();

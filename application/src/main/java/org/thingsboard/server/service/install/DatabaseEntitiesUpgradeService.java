@@ -32,6 +32,8 @@ package org.thingsboard.server.service.install;
 
 public interface DatabaseEntitiesUpgradeService {
 
-    void upgradeDatabase(String fromVersion) throws Exception;
+    void upgradeDatabase(String fromVersion, String toVersion) throws Exception;
+
+    void upgradeDatabase() throws Exception;
 
 }

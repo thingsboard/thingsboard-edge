@@ -165,30 +165,27 @@ public class DefaultDataUpdateService implements DataUpdateService {
     private NotificationTemplateService notificationTemplateService;
 
     @Override
-    public void updateData(String fromVersion) throws Exception {
-        switch (fromVersion) {
-            case "3.8.1":
-                log.info("Updating data from version 3.8.1 to 3.9.0 ...");
-                moveMailTemplatesToNotificationCenter(Map.of(
-                        "userActivated", NotificationType.USER_ACTIVATED,
-                        "userRegistered", NotificationType.USER_REGISTERED
-                ));
-                break;
-            case "ce":
-                log.info("Updating data ...");
-                tenantsCustomersGroupAllUpdater.updateEntities();
-                tenantEntitiesGroupAllUpdater.updateEntities();
-                tenantIntegrationUpdater.updateEntities();
-                //for 2.4.0
-                JsonNode mailTemplatesSettings = whiteLabelingService.findMailTemplatesByTenantId(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
-                if (mailTemplatesSettings.isEmpty()) {
-                    systemDataLoaderService.loadMailTemplates();
-                } else {
-                    systemDataLoaderService.updateMailTemplates(mailTemplatesSettings);
-                }
-                break;
-            default:
-                throw new RuntimeException("Unable to update data, unsupported fromVersion: " + fromVersion);
+    public void updateData(String fromVersion, String toVersion) throws Exception {
+        log.info("Updating data from version {} to {} ...", fromVersion, toVersion);
+        moveMailTemplatesToNotificationCenter(Map.of(
+                "userActivated", NotificationType.USER_ACTIVATED,
+                "userRegistered", NotificationType.USER_REGISTERED
+        ));
+        log.info("Data updated.");
+    }
+
+    @Override
+    public void updateData() throws Exception {
+        log.info("Updating data ...");
+        tenantsCustomersGroupAllUpdater.updateEntities();
+        tenantEntitiesGroupAllUpdater.updateEntities();
+        tenantIntegrationUpdater.updateEntities();
+        //for 2.4.0
+        JsonNode mailTemplatesSettings = whiteLabelingService.findMailTemplatesByTenantId(TenantId.SYS_TENANT_ID, TenantId.SYS_TENANT_ID);
+        if (mailTemplatesSettings.isEmpty()) {
+            systemDataLoaderService.loadMailTemplates();
+        } else {
+            systemDataLoaderService.updateMailTemplates(mailTemplatesSettings);
         }
     }
 

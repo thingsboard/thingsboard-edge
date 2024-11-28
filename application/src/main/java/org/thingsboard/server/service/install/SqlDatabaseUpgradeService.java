@@ -66,16 +66,17 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
     }
 
     @Override
-    public void upgradeDatabase(String fromVersion) {
-        switch (fromVersion) {
-            case "3.8.1" -> loadSql(getSchemaUpdateFile(fromVersion));
-            case "ce" -> {
-                log.info("Updating schema ...");
-                loadSql(getSchemaUpdateFile("pe"));
-                log.info("Schema updated.");
-            }
-            default -> throw new RuntimeException("Unsupported fromVersion '" + fromVersion + "'");
-        }
+    public void upgradeDatabase(String fromVersion, String toVersion) {
+        log.info("Updating schema from version {} to {} ...", fromVersion, toVersion);
+        loadSql(getSchemaUpdateFile("basic"));
+        log.info("Schema updated.");
+    }
+
+    @Override
+    public void upgradeDatabase() {
+        log.info("Updating schema ...");
+        loadSql(getSchemaUpdateFile("pe"));
+        log.info("Schema updated.");
     }
 
     private Path getSchemaUpdateFile(String version) {
