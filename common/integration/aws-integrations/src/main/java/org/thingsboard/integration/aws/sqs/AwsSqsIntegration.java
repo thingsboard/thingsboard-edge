@@ -136,6 +136,8 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
 
     @Override
     public void process(SqsIntegrationMsg message) {
+        String status = "OK";
+        Exception exception = null;
         try {
             List<UplinkData> uplinkDataList = convertToUplinkDataList(context, message.getPayload(), new UplinkMetaData(getDefaultUplinkContentType(), message.getDeviceMetadata()));
             if (uplinkDataList != null) {
@@ -145,14 +147,13 @@ public class AwsSqsIntegration extends AbstractIntegration<SqsIntegrationMsg> {
                 }
             }
             integrationStatistics.incMessagesProcessed();
-            if (configuration.isDebugMode()) {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(message.getJson()), "OK", null);
-            }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             integrationStatistics.incErrorsOccurred();
-            persistDebug(context, "Uplink", getDefaultUplinkContentType(), e.getMessage(), "ERROR", e);
+            exception = e;
+            status = "ERROR";
         }
+        persistDebug(context, "Uplink", getDefaultUplinkContentType(), () -> JacksonUtil.toString(message.getJson()), status, exception);
     }
 
     @Override

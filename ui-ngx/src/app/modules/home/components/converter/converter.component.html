@@ -63,16 +63,27 @@
 <div class="mat-padding flex flex-col">
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
-      <mat-form-field class="mat-block">
-        <mat-label translate>converter.name</mat-label>
-        <input matInput formControlName="name" required>
-        <mat-error *ngIf="entityForm.get('name').hasError('required') || entityForm.get('name').hasError('pattern')">
-          {{ 'converter.name-required' | translate }}
-        </mat-error>
-        <mat-error *ngIf="entityForm.get('name').hasError('maxlength')">
-          {{ 'converter.name-max-length' | translate }}
-        </mat-error>
-      </mat-form-field>
+      <div class="flex gap-2">
+        <mat-form-field class="flex-1">
+          <mat-label translate>converter.name</mat-label>
+          <input matInput formControlName="name" required>
+          <mat-error *ngIf="entityForm.get('name').hasError('required') || entityForm.get('name').hasError('pattern')">
+            {{ 'converter.name-required' | translate }}
+          </mat-error>
+          <mat-error *ngIf="entityForm.get('name').hasError('maxlength')">
+            {{ 'converter.name-max-length' | translate }}
+          </mat-error>
+        </mat-form-field>
+        <tb-debug-config-button
+          class="flex items-center mb-5"
+          [debugAll]="entityForm.get('debugAll').value"
+          [debugFailures]="entityForm.get('debugFailures').value"
+          [debugAllUntil]="entityForm.get('debugAllUntil').value"
+          [debugLimitsConfiguration]="converterDebugPerTenantLimitsConfiguration"
+          [disabled]="entityForm.get('debugAll').disabled"
+          (onDebugConfigChanged)="onDebugConfigChanged($event)"
+        />
+      </div>
       <mat-form-field class="mat-block" *ngIf="!hideType">
         <mat-label translate>converter.type</mat-label>
         <mat-select formControlName="type" required>
@@ -84,9 +95,6 @@
           {{ 'converter.type-required' | translate }}
         </mat-error>
       </mat-form-field>
-      <mat-slide-toggle class="flex-1" formControlName="debugMode" style="margin-bottom: 16px;">
-        {{ 'converter.debug-mode' | translate }}
-      </mat-slide-toggle>
       <div formGroupName="configuration" class="flex flex-col">
         <tb-script-lang formControlName="scriptLang" *ngIf="tbelEnabled"></tb-script-lang>
         <section *ngIf="entityForm.get('type').value === converterType.UPLINK">

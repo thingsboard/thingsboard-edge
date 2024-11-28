@@ -104,11 +104,13 @@ public class BaseIntegrationService extends CachedVersionedEntityService<Integra
     public Integration saveIntegration(Integration integration) {
         log.trace("Executing saveIntegration [{}]", integration);
         integrationValidator.validate(integration, Integration::getTenantId);
+        TenantId tenantId = integration.getTenantId();
         try {
-            var result = integrationDao.save(integration.getTenantId(), integration);
+            setDebugAllUntil(tenantId, integration, System.currentTimeMillis());
+            var result = integrationDao.save(tenantId, integration);
             publishEvictEvent(new IntegrationCacheEvictEvent(result.getId(), result));
             if (integration.getId() == null) {
-                entityCountService.publishCountEntityEvictEvent(integration.getTenantId(), EntityType.INTEGRATION);
+                entityCountService.publishCountEntityEvictEvent(tenantId, EntityType.INTEGRATION);
             }
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId()).entity(result)
                     .entityId(result.getId()).created(integration.getId() == null).build());

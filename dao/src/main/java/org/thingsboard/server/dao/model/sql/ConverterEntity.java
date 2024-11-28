@@ -49,7 +49,6 @@ import org.thingsboard.server.dao.util.mapping.JsonConverter;
 
 import java.util.UUID;
 
-import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_DEBUG_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_IS_EDGE_TEMPLATE_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_NAME_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.CONVERTER_TABLE_NAME;
@@ -73,8 +72,11 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
     @Column(name = CONVERTER_TYPE_PROPERTY)
     private ConverterType type;
 
-    @Column(name = CONVERTER_DEBUG_MODE_PROPERTY)
-    private boolean debugMode;
+    @Column(name = ModelConstants.DEBUG_FAILURES)
+    private boolean debugFailures;
+
+    @Column(name = ModelConstants.DEBUG__ALL_UNTIL)
+    private long debugAllUntil;
 
     @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.CONVERTER_CONFIGURATION_PROPERTY)
@@ -101,7 +103,8 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
         }
         this.name = converter.getName();
         this.type = converter.getType();
-        this.debugMode = converter.isDebugMode();
+        this.debugFailures = converter.isDebugFailures();
+        this.debugAllUntil = converter.getDebugAllUntil();
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
         if (converter.getExternalId() != null) {
@@ -120,7 +123,8 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
         }
         converter.setName(name);
         converter.setType(type);
-        converter.setDebugMode(debugMode);
+        converter.setDebugFailures(debugFailures);
+        converter.setDebugAllUntil(debugAllUntil);
         converter.setConfiguration(configuration);
         converter.setAdditionalInfo(additionalInfo);
         if (externalId != null) {

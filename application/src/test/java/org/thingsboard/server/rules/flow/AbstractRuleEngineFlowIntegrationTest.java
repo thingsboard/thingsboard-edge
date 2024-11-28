@@ -157,7 +157,7 @@ public abstract class AbstractRuleEngineFlowIntegrationTest extends AbstractRule
         ruleNode1.setName("Simple Rule Node 1");
         ruleNode1.setType(org.thingsboard.rule.engine.metadata.TbGetAttributesNode.class.getName());
         ruleNode1.setConfigurationVersion(TbGetAttributesNode.class.getAnnotation(org.thingsboard.rule.engine.api.RuleNode.class).version());
-        ruleNode1.setDebugMode(true);
+        ruleNode1.setDebugAll(true);
         TbGetAttributesNodeConfiguration configuration1 = new TbGetAttributesNodeConfiguration();
         configuration1.setFetchTo(TbMsgSource.METADATA);
         configuration1.setServerAttributeNames(Collections.singletonList("serverAttributeKey1"));
@@ -167,7 +167,7 @@ public abstract class AbstractRuleEngineFlowIntegrationTest extends AbstractRule
         ruleNode2.setName("Simple Rule Node 2");
         ruleNode2.setType(org.thingsboard.rule.engine.metadata.TbGetAttributesNode.class.getName());
         ruleNode2.setConfigurationVersion(TbGetAttributesNode.class.getAnnotation(org.thingsboard.rule.engine.api.RuleNode.class).version());
-        ruleNode2.setDebugMode(true);
+        ruleNode2.setDebugAll(true);
         TbGetAttributesNodeConfiguration configuration2 = new TbGetAttributesNodeConfiguration();
         configuration2.setFetchTo(TbMsgSource.METADATA);
         configuration2.setServerAttributeNames(Collections.singletonList("serverAttributeKey2"));
@@ -263,7 +263,7 @@ public abstract class AbstractRuleEngineFlowIntegrationTest extends AbstractRule
         ruleNode1.setName("Simple Rule Node 1");
         ruleNode1.setType(org.thingsboard.rule.engine.metadata.TbGetAttributesNode.class.getName());
         ruleNode1.setConfigurationVersion(TbGetAttributesNode.class.getAnnotation(org.thingsboard.rule.engine.api.RuleNode.class).version());
-        ruleNode1.setDebugMode(true);
+        ruleNode1.setDebugAll(true);
         TbGetAttributesNodeConfiguration configuration1 = new TbGetAttributesNodeConfiguration();
         configuration1.setFetchTo(TbMsgSource.METADATA);
         configuration1.setServerAttributeNames(Collections.singletonList("serverAttributeKey1"));
@@ -272,7 +272,7 @@ public abstract class AbstractRuleEngineFlowIntegrationTest extends AbstractRule
         RuleNode ruleNode12 = new RuleNode();
         ruleNode12.setName("Simple Rule Node 1");
         ruleNode12.setType(org.thingsboard.rule.engine.flow.TbRuleChainInputNode.class.getName());
-        ruleNode12.setDebugMode(true);
+        ruleNode12.setDebugAll(true);
         TbRuleChainInputNodeConfiguration configuration12 = new TbRuleChainInputNodeConfiguration();
         configuration12.setRuleChainId(secondaryRuleChain.getId().getId().toString());
         ruleNode12.setConfiguration(JacksonUtil.valueToTree(configuration12));
@@ -297,7 +297,7 @@ public abstract class AbstractRuleEngineFlowIntegrationTest extends AbstractRule
         ruleNode2.setName("Simple Rule Node 2");
         ruleNode2.setType(org.thingsboard.rule.engine.metadata.TbGetAttributesNode.class.getName());
         ruleNode2.setConfigurationVersion(TbGetAttributesNode.class.getAnnotation(org.thingsboard.rule.engine.api.RuleNode.class).version());
-        ruleNode2.setDebugMode(true);
+        ruleNode2.setDebugAll(true);
         TbGetAttributesNodeConfiguration configuration2 = new TbGetAttributesNodeConfiguration();
         configuration2.setFetchTo(TbMsgSource.METADATA);
         configuration2.setServerAttributeNames(Collections.singletonList("serverAttributeKey2"));

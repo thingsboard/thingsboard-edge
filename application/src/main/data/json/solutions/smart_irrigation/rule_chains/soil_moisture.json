@@ -21,7 +21,8 @@
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "defaultTTL": 0
         },
@@ -34,7 +35,8 @@
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Client Attributes",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "scope": "CLIENT_SCOPE"
         },
@@ -48,7 +50,8 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
         "name": "Message Type Switch",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "version": 0
         },
@@ -62,7 +65,8 @@
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log RPC from Device",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
@@ -78,7 +82,8 @@
         },
         "type": "org.thingsboard.rule.engine.action.TbLogNode",
         "name": "Log Other",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return '\\nIncoming message:\\n' + JSON.stringify(msg) + '\\nIncoming metadata:\\n' + JSON.stringify(metadata);",
@@ -93,7 +98,8 @@
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "RPC Call Request",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "timeoutInSeconds": 60
         },
@@ -107,7 +113,8 @@
         },
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "Device Profile Node",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "persistAlarmRulesState": false,
           "fetchAlarmRulesStateOnStart": false
@@ -122,7 +129,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.TbGetRelatedAttributeNode",
         "name": "Fetch Moisture Thresholds",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "relationsQuery": {
             "fetchLastLevelOnly": false,
@@ -153,7 +161,8 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "To Field Asset",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "originatorSource": "RELATED",
           "relationsQuery": {
@@ -180,7 +189,8 @@
         },
         "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
         "name": "Aggregate Avg",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "inputValueKey": "moisture",
           "outputValueKey": "avgMoisture",
@@ -215,7 +225,8 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbCheckMessageNode",
         "name": "Has Moisture?",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "messageNames": [
             "moisture"
@@ -233,7 +244,8 @@
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "To Field Rule Chain",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "ruleChainId": "7e327000-38ee-11ed-af17-3d7337747e91"
         },
@@ -247,7 +259,8 @@
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Attributes",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "scope": "SERVER_SCOPE",
           "notifyDevice": false
@@ -262,7 +275,8 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbTransformMsgNode",
         "name": "Change msg type",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "var newMsg = {};\nnewMsg.maxMoistureThreshold = parseInt(metadata[\"maxMoistureThreshold\"]);\nnewMsg.minMoistureThreshold = parseInt(metadata[\"minMoistureThreshold\"]);\nreturn {\n    msg: newMsg, \n    metadata: metadata, \n    msgType: \"POST_ATTRIBUTES_REQUEST\"\n};",
@@ -278,7 +292,8 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbJsFilterNode",
         "name": "Check Field relation",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "scriptLang": "TBEL",
           "jsScript": "return msg.type === \"FieldToMoistureSensor\";",
@@ -294,7 +309,8 @@
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "Count Alarms",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "ruleChainId": "fa108300-4a3d-11ed-bda9-a3d6eb01ab48"
         },
@@ -308,7 +324,8 @@
         },
         "type": "org.thingsboard.rule.engine.analytics.latest.telemetry.TbAggLatestTelemetryNodeV2",
         "name": "Aggregate Latest Moisture",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "direction": "FROM",
           "relationType": "FieldToMoistureSensor",

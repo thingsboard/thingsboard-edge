@@ -39,6 +39,8 @@ import org.thingsboard.server.common.data.ApiUsageRecordKey;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TenantProfileType;
 
+import java.io.Serial;
+
 @Schema
 @AllArgsConstructor
 @NoArgsConstructor
@@ -46,7 +48,10 @@ import org.thingsboard.server.common.data.TenantProfileType;
 @Data
 public class DefaultTenantProfileConfiguration implements TenantProfileConfiguration {
 
+    @Serial
     private static final long serialVersionUID = -7134932690332578595L;
+
+    private static final int DEBUG_MODE_DEFAULT_DURATION_MINUTES = 15;
 
     private long maxDevices;
     private long maxAssets;
@@ -115,6 +120,8 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
     private long maxDPStorageDays;
     @Schema(example = "50")
     private int maxRuleNodeExecutionsPerMessage;
+    @Schema(example = "15")
+    private int maxDebugModeDurationMinutes;
     @Schema(example = "0")
     private long maxEmails;
     @Schema(example = "true")
@@ -229,4 +236,9 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
         return maxRuleNodeExecutionsPerMessage;
     }
 
+    @Override
+    public int getMaxDebugModeDurationMinutes(int systemMaxDebugModeDurationMinutes) {
+        return maxDebugModeDurationMinutes > 0 ? maxDebugModeDurationMinutes : systemMaxDebugModeDurationMinutes > 0 ?
+                systemMaxDebugModeDurationMinutes : DEBUG_MODE_DEFAULT_DURATION_MINUTES;
+    }
 }

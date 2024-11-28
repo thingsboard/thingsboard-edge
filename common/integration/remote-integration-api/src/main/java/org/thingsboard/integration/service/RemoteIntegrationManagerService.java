@@ -345,7 +345,8 @@ public class RemoteIntegrationManagerService {
         converter.setTenantId(new TenantId(new UUID(converterProto.getTenantIdMSB(), converterProto.getTenantIdLSB())));
         converter.setName(converterProto.getName());
         converter.setType(converterType);
-        converter.setDebugMode(converterProto.getDebugMode());
+        converter.setDebugFailures(converterProto.getDebugFailures());
+        converter.setDebugAllUntil(converterProto.getDebugAllUntil());
         converter.setConfiguration(JacksonUtil.toJsonNode(converterProto.getConfiguration()));
         converter.setAdditionalInfo(JacksonUtil.toJsonNode(converterProto.getAdditionalInfo()));
         return converter;
@@ -367,7 +368,8 @@ public class RemoteIntegrationManagerService {
         integration.setName(integrationConfigurationProto.getName());
         integration.setRoutingKey(integrationConfigurationProto.getRoutingKey());
         integration.setType(IntegrationType.valueOf(integrationConfigurationProto.getType()));
-        integration.setDebugMode(integrationConfigurationProto.getDebugMode());
+        integration.setDebugFailures(integrationConfigurationProto.getDebugFailures());
+        integration.setDebugAllUntil(integrationConfigurationProto.getDebugAllUntil());
         integration.setRemote(true);
         integration.setSecret(routingSecret);
         integration.setConfiguration(JacksonUtil.toJsonNode(integrationConfigurationProto.getConfiguration()));

@@ -90,6 +90,24 @@ public class SystemInfoController extends BaseController {
     @Value("${ui.dashboard.max_datapoints_limit}")
     private long maxDatapointsLimit;
 
+    @Value("${debug_mode.max_duration:15}")
+    private int maxDebugModeDurationMinutes;
+
+    @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.enabled:true}")
+    private boolean ruleChainDebugPerTenantLimitsEnabled;
+
+    @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.configuration:50000:3600}")
+    private String ruleChainDebugPerTenantLimitsConfiguration;
+
+    @Value("${event.debug.rate_limits.enabled}")
+    private boolean eventRateLimitsEnabled;
+
+    @Value("${event.debug.rate_limits.integration}")
+    private String integrationDebugPerTenantLimitsConfiguration;
+
+    @Value("${event.debug.rate_limits.converter}")
+    private String converterDebugPerTenantLimitsConfiguration;
+
     @Autowired(required = false)
     private BuildProperties buildProperties;
 
@@ -168,6 +186,14 @@ public class SystemInfoController extends BaseController {
         if (!currentUser.isSystemAdmin()) {
             DefaultTenantProfileConfiguration tenantProfileConfiguration = tenantProfileCache.get(tenantId).getDefaultProfileConfiguration();
             systemParams.setMaxResourceSize(tenantProfileConfiguration.getMaxResourceSize());
+            systemParams.setMaxDebugModeDurationMinutes(tenantProfileConfiguration.getMaxDebugModeDurationMinutes(maxDebugModeDurationMinutes));
+            if (ruleChainDebugPerTenantLimitsEnabled) {
+                systemParams.setRuleChainDebugPerTenantLimitsConfiguration(ruleChainDebugPerTenantLimitsConfiguration);
+            }
+            if (eventRateLimitsEnabled) {
+                systemParams.setIntegrationDebugPerTenantLimitsConfiguration(integrationDebugPerTenantLimitsConfiguration);
+                systemParams.setConverterDebugPerTenantLimitsConfiguration(converterDebugPerTenantLimitsConfiguration);
+            }
         }
         systemParams.setAvailableLocales(translationService.getAvailableLocaleCodes(tenantId, customerId));
         systemParams.setMobileQrEnabled(Optional.ofNullable(qrCodeSettingService.getMergedQrCodeSettings(tenantId))

@@ -287,11 +287,13 @@ class ProtoUtilsTest {
         assertEqualDeserializedEntity(expectedSettings, actualSettings, "RepositorySettings");
 
         Integration expectedIntegration = easyRandom.nextObject(Integration.class);
+        expectedIntegration.setDebugAll(false);
         IntegrationProto integrationProto = ProtoUtils.toProto(expectedIntegration);
         Integration actualIntegration = ProtoUtils.fromProto(integrationProto);
         assertEqualDeserializedEntity(expectedIntegration, actualIntegration, "Integration");
 
         Converter expectedConverter = easyRandom.nextObject(Converter.class);
+        expectedConverter.setDebugAll(false);
         ConverterProto converterProto = ProtoUtils.toProto(expectedConverter);
         Converter actualConverter = ProtoUtils.fromProto(converterProto);
         assertEqualDeserializedEntity(expectedConverter, actualConverter, "Converter");

@@ -77,7 +77,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         newConverter.setName(converterName);
         newConverter.setType(type);
         newConverter.setConfiguration(converterConfig);
-        newConverter.setDebugMode(true);
+        newConverter.setDebugAll(true);
         switch (type) {
             case UPLINK:
                 uplinkConverter = doPost("/api/converter", newConverter, Converter.class);
@@ -105,7 +105,7 @@ public abstract class AbstractIntegrationTest extends AbstractControllerTest {
         integrationConfiguration.set("clientConfiguration", clientConfig);
         integrationConfiguration.set("metadata", JacksonUtil.newObjectNode());
         newIntegration.setConfiguration(integrationConfiguration);
-        newIntegration.setDebugMode(true);
+        newIntegration.setDebugAll(true);
         newIntegration.setEnabled(false);
         newIntegration.setAllowCreateDevicesOrAssets(true);
         integration = doPost("/api/integration", newIntegration, Integration.class);

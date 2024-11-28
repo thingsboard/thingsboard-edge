@@ -1054,6 +1054,20 @@
         "type-owner-changed": "Owner changed",
         "type-sms-sent": "SMS sent"
     },
+    "debug-config": {
+        "min": "{{number}} min",
+        "label": "Debug configuration",
+        "on-failure": "Failures only (24/7)",
+        "all-messages": "All messages ({{time}})",
+        "failures": "Failures",
+        "all": "All",
+        "hint": {
+            "main": "All node debug messages rate limited with:",
+            "main-limited": "All node debug messages will be rate-limited, with a maximum of {{msg}} messages allowed per {{sec}} seconds.",
+            "on-failure": "Save all failure debug events without time limit.",
+            "all-messages": "Save all debug events during time limit."
+        }
+    },
     "confirm-on-exit": {
         "message": "You have unsaved changes. Are you sure you want to leave this page?",
         "html-message": "You have unsaved changes.<br/>Are you sure you want to leave this page?",
@@ -1085,11 +1099,13 @@
         "enter-password": "Enter password",
         "enter-search": "Enter search",
         "created-time": "Created time",
+        "disabled": "Disabled",
         "loading": "Loading...",
         "proceed": "Proceed",
         "open-details-page": "Open details page",
         "not-found": "Not found",
-        "documentation": "Documentation"
+        "documentation": "Documentation",
+        "time-left": "{{time}} left"
     },
     "converter": {
         "converter": "Data converter",
@@ -5298,7 +5314,7 @@
         "deselect-all": "Deselect all",
         "rulenode-details": "Rule node details",
         "debug-mode": "Debug mode",
-        "singleton-mode": "Singleton mode",
+        "singleton": "Singleton",
         "configuration": "Configuration",
         "link": "Link",
         "link-details": "Rule node link details",
@@ -5939,6 +5955,9 @@
         "maximum-ota-packages-sum-data-size": "Maximum total size of OTA package files (bytes)",
         "maximum-ota-package-sum-data-size-required": "Maximum total size of OTA package files is required.",
         "maximum-ota-package-sum-data-size-range": "Maximum total size of OTA package files can't be negative",
+        "maximum-debug-duration-min": "Maximum debug duration (min)",
+        "maximum-debug-duration-min-required": "Maximum debug duration is required.",
+        "maximum-debug-duration-min-range": "Maximum debug duration can't be negative",
         "rest-requests-for-tenant": "REST requests for tenant",
         "transport-tenant-telemetry-msg-rate-limit": "Transport tenant telemetry messages",
         "transport-tenant-telemetry-data-points-rate-limit": "Transport tenant telemetry data points",

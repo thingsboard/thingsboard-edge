@@ -230,4 +230,10 @@ export interface HasVersion {
   version?: number;
 }
 
+export interface HasDebugConfig {
+  debugAll?: boolean;
+  debugFailures?: boolean;
+  debugAllUntil?: number;
+}
+
 export type VersionedEntity = EntityInfoData & HasVersion | RuleChainMetaData;

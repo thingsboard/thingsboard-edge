@@ -72,6 +72,7 @@ import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.DownlinkData;
 import org.thingsboard.integration.api.data.IntegrationDownlinkMsg;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
@@ -105,6 +106,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -176,13 +178,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         if (!status.equals("OK")) {
             integrationStatistics.incErrorsOccurred();
         }
-        if (configuration.isDebugMode()) {
-            try {
-                persistDebug(context, "Uplink", getDefaultUplinkContentType(), JacksonUtil.toString(msg.toJson()), status, exception);
-            } catch (Exception e) {
-                log.warn("[{}] Failed to persist debug message", getConfigurationId(), e);
-            }
-        }
+        persistDebug(context, "Uplink", getDefaultUplinkContentType(), () -> JacksonUtil.toString(msg.toJson()), status, exception);
     }
 
     private void doProcess(IntegrationContext context, OpcUaIntegrationMsg msg) throws Exception {
@@ -225,7 +221,7 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
         Map<String, String> mdMap = new HashMap<>(metadataTemplate.getKvMap());
         List<DownlinkData> result = downlinkConverter.convertDownLink(context.getDownlinkConverterContext(), Collections.singletonList(msg), new IntegrationMetaData(mdMap));
         if (!connected) {
-            persistDebug(context, "Downlink", "ERROR", "Cannot process downlink message because of connection was lost.", "FAILURE", new OpcUaIntegrationException("Not connected", new RuntimeException()));
+            persistDebug(context, "Downlink", "ERROR", null, "Cannot process downlink message because of connection was lost.", "FAILURE", new OpcUaIntegrationException("Not connected", new RuntimeException()));
             return false;
         }
         List<WriteValue> writeValues = prepareWriteValues(result);
@@ -381,13 +377,13 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     private void sendConnectionSucceededMessageToRuleEngine() {
         log.info("[{}] Sending OPC-UA integration succeeded message to Rule Engine", getConfigurationId());
         TbMsg tbMsg = sendAlertToRuleEngine(TbMsgType.OPC_UA_INT_SUCCESS);
-        persistDebug(context, "CONNECT", "JSON", tbMsg.getData(), "SUCCESS", null);
+        persistDebug(context, "CONNECT", ContentType.JSON, tbMsg.getData(), "SUCCESS", null);
     }
 
     private void sendConnectionFailedMessageToRuleEngine(Exception e) {
         log.warn("[{}] Sending OPC-UA integration failed message to Rule Engine", getConfigurationId());
         TbMsg tbMsg = sendAlertToRuleEngine(TbMsgType.OPC_UA_INT_FAILURE);
-        persistDebug(context, "CONNECT", "JSON", tbMsg.getData(), "FAILURE", e);
+        persistDebug(context, "CONNECT", ContentType.JSON, tbMsg.getData(), "FAILURE", e);
     }
 
     private TbMsg sendAlertToRuleEngine(TbMsgType messageType) {
@@ -863,20 +859,18 @@ public class OpcUaIntegration extends AbstractIntegration<OpcUaIntegrationMsg> {
     }
 
     private void logOpcUaDownlink(IntegrationContext context, List<WriteValue> writeValues, List<CallMethodRequest> callMethods) {
-        if (configuration.isDebugMode() && (!writeValues.isEmpty() || !callMethods.isEmpty())) {
-            try {
-                ObjectNode json = JacksonUtil.newObjectNode();
-                if (!writeValues.isEmpty()) {
-                    json.set("writeValues", toJsonStringList(writeValues));
-                }
-                if (!callMethods.isEmpty()) {
-                    json.set("callMethods", toJsonStringList(callMethods));
-                }
-                persistDebug(context, "Downlink", "JSON", JacksonUtil.toString(json), downlinkConverter != null ? "OK" : "FAILURE", null);
-            } catch (Exception e) {
-                log.warn("[{}] Failed to persist debug message", getConfigurationId(), e);
+        String status = downlinkConverter != null ? "OK" : "FAILURE";
+        Supplier<String> msgSupplier = () -> {
+            ObjectNode json = JacksonUtil.newObjectNode();
+            if (!writeValues.isEmpty()) {
+                json.set("writeValues", toJsonStringList(writeValues));
             }
-        }
+            if (!callMethods.isEmpty()) {
+                json.set("callMethods", toJsonStringList(callMethods));
+            }
+            return JacksonUtil.toString(json);
+        };
+        persistDebug(context, "Downlink", ContentType.JSON, msgSupplier, status, null);
     }
 
     private JsonNode toJsonStringList(List<?> list) {

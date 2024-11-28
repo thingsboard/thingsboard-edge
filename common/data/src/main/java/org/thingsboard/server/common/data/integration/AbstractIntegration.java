@@ -36,8 +36,10 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.HasDebugMode;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.TenantEntity;
@@ -49,7 +51,8 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @Schema
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-public abstract class AbstractIntegration extends BaseData<IntegrationId> implements HasName, TenantEntity, HasVersion {
+@ToString(callSuper = true)
+public abstract class AbstractIntegration extends BaseData<IntegrationId> implements HasName, TenantEntity, HasVersion, HasDebugMode {
 
     private static final long serialVersionUID = 1934983577296873728L;
 
@@ -58,7 +61,9 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
     @Length(fieldName = "name")
     private String name;
     private IntegrationType type;
-    private boolean debugMode;
+    private boolean debugFailures;
+    private boolean debugAll;
+    private long debugAllUntil;
     private Boolean enabled;
     private Boolean isRemote;
     private Boolean allowCreateDevicesOrAssets;
@@ -80,7 +85,9 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         this.tenantId = integration.getTenantId();
         this.name = integration.getName();
         this.type = integration.getType();
-        this.debugMode = integration.isDebugMode();
+        this.debugFailures = integration.isDebugFailures();
+        this.debugAll = integration.isDebugAll();
+        this.debugAllUntil = integration.getDebugAllUntil();
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
@@ -121,13 +128,31 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         this.type = type;
     }
 
-    @Schema(description = "Boolean flag to enable/disable saving received messages as debug events")
-    public boolean isDebugMode() {
-        return debugMode;
+    @Schema(description = "Debug failures. ", example = "false")
+    public boolean isDebugFailures() {
+        return debugFailures;
     }
 
-    public void setDebugMode(boolean debugMode) {
-        this.debugMode = debugMode;
+    public void setDebugFailures(boolean debugFailures) {
+        this.debugFailures = debugFailures;
+    }
+
+    @Schema(description = "Debug All. Used as a trigger for updating debugAllUntil.", example = "false")
+    public boolean isDebugAll() {
+        return debugAll;
+    }
+
+    public void setDebugAll(boolean debugAll) {
+        this.debugAll = debugAll;
+    }
+
+    @Schema(description = "Timestamp of the end time for the processing debug events.")
+    public long getDebugAllUntil() {
+        return debugAllUntil;
+    }
+
+    public void setDebugAllUntil(long debugAllUntil) {
+        this.debugAllUntil = debugAllUntil;
     }
 
     @Schema(description = "Boolean flag to enable/disable the integration")
@@ -175,29 +200,6 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
 
     public void setEdgeTemplate(boolean edgeTemplate) {
         this.isEdgeTemplate = edgeTemplate;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("Integration [tenantId=");
-        builder.append(tenantId);
-        builder.append(", name=");
-        builder.append(name);
-        builder.append(", type=");
-        builder.append(type);
-        builder.append(", isRemote=");
-        builder.append(isRemote);
-        builder.append(", allowCreateDevicesOrAssets=");
-        builder.append(allowCreateDevicesOrAssets);
-        builder.append(", isEdgeTemplate=");
-        builder.append(isEdgeTemplate);
-        builder.append(", createdTime=");
-        builder.append(createdTime);
-        builder.append(", id=");
-        builder.append(id);
-        builder.append("]");
-        return builder.toString();
     }
 
     @Override

@@ -49,7 +49,7 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.mqtt.BasicMqttIntegrationMsg;
 import org.thingsboard.server.common.data.EventInfo;
 import org.thingsboard.server.common.data.StringUtils;
@@ -155,7 +155,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
                 .secret(SECRET_KEY)
                 .isRemote(false)
                 .enabled(true)
-                .debugMode(true)
+                .debugAll(true)
                 .allowCreateDevicesOrAssets(true)
                 .build();
 
@@ -193,7 +193,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
 
         JsonNode payloadForUplink = createPayloadForUplink();
         byte[] uplinkPayload = payloadForUplink.toString().getBytes();
-        assertEquals(UplinkContentType.JSON, new BasicMqttIntegrationMsg(TOPIC, Unpooled.wrappedBuffer(uplinkPayload)).getContentType());
+        assertEquals(ContentType.JSON, new BasicMqttIntegrationMsg(TOPIC, Unpooled.wrappedBuffer(uplinkPayload)).getContentType());
         sendMessageToBroker(connOpts, uplinkPayload);
         waitForConverterDebugEvent(uplinkConverter, "Uplink", 1);
         PageData<EventInfo> events = testRestClient.getEvents(uplinkConverter.getId(), EventType.DEBUG_CONVERTER, uplinkConverter.getTenantId(), new TimePageLink(1024));
@@ -203,7 +203,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
 
         String textPayload = "textPayload";
         uplinkPayload = textPayload.getBytes(StandardCharsets.UTF_8);
-        assertEquals(UplinkContentType.TEXT, new BasicMqttIntegrationMsg(TOPIC, Unpooled.wrappedBuffer(uplinkPayload)).getContentType());
+        assertEquals(ContentType.TEXT, new BasicMqttIntegrationMsg(TOPIC, Unpooled.wrappedBuffer(uplinkPayload)).getContentType());
         sendMessageToBroker(connOpts, uplinkPayload);
         waitForConverterDebugEvent(uplinkConverter, "Uplink", 1);
         events = testRestClient.getEvents(uplinkConverter.getId(), EventType.DEBUG_CONVERTER, uplinkConverter.getTenantId(), new TimePageLink(1024));
@@ -212,7 +212,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
         Assert.assertEquals(latestEventInfo.getBody().get("in").asText(), textPayload);
 
         byte[] binaryPayload = {0x01, 0x02, 0x03};
-        assertEquals(UplinkContentType.BINARY, new BasicMqttIntegrationMsg(TOPIC, Unpooled.wrappedBuffer(binaryPayload)).getContentType());
+        assertEquals(ContentType.BINARY, new BasicMqttIntegrationMsg(TOPIC, Unpooled.wrappedBuffer(binaryPayload)).getContentType());
         sendMessageToBroker(connOpts, binaryPayload);
         waitForConverterDebugEvent(uplinkConverter, "Uplink", 1);
         events = testRestClient.getEvents(uplinkConverter.getId(), EventType.DEBUG_CONVERTER, uplinkConverter.getTenantId(), new TimePageLink(1024));
