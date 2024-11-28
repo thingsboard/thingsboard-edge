@@ -72,10 +72,6 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
     @Autowired
     private UserPermissionsService userPermissionsService;
 
-    private final Set<Operation> groupRoleOperations = new HashSet<>(Arrays.asList(Operation.RPC_CALL,
-            Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_CREDENTIALS, Operation.READ_TELEMETRY,
-            Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY, Operation.WRITE_CREDENTIALS));
-
     private final Set<Operation> genericRoleOperations = new HashSet<>(Arrays.asList(Operation.RPC_CALL,
             Operation.READ, Operation.READ_ATTRIBUTES, Operation.READ_CREDENTIALS, Operation.READ_TELEMETRY,
             Operation.WRITE_ATTRIBUTES, Operation.WRITE_TELEMETRY, Operation.WRITE_CREDENTIALS));
@@ -137,20 +133,7 @@ public class RoleCloudProcessor extends BaseEdgeProcessor {
 
     Role replaceWriteOperationsToReadIfRequired(Role role) {
         if (RoleType.GROUP.equals(role.getType())) {
-            CollectionType collectionType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
-            List<Operation> originOperations = JacksonUtil.fromString(JacksonUtil.toString(role.getPermissions()), collectionType);
-            if (originOperations == null) {
-                return role;
-            }
-            List<Operation> operations;
-            if (originOperations.contains(Operation.ALL)) {
-                operations = new ArrayList<>(groupRoleOperations);
-            } else {
-                operations = originOperations.stream()
-                        .filter(groupRoleOperations::contains)
-                        .collect(Collectors.toList());
-            }
-            role.setPermissions(JacksonUtil.valueToTree(operations));
+            return role;
         } else {
             CollectionType operationType = TypeFactory.defaultInstance().constructCollectionType(List.class, Operation.class);
             JavaType resourceType = JacksonUtil.OBJECT_MAPPER.getTypeFactory().constructType(Resource.class);
