@@ -961,13 +961,9 @@ public abstract class EdgeGrpcSession implements Closeable {
         return Futures.allAsList(result);
     }
 
-    protected void destroy() {
-        // used for KafkaEdgeGrpcSession only
-    }
+    protected void destroy() {}
 
-    protected void deleteTopic(EdgeId edgeId) {
-        // used for KafkaEdgeGrpcSession only
-    }
+    protected void cleanUp() {}
 
     @Override
     public void close() {

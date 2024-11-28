@@ -94,7 +94,9 @@ public interface TbRuleEngineQueueFactory extends TbUsageStatsClientQueueFactory
 
     TbQueueProducer<TbProtoQueueMsg<ToEdgeNotificationMsg>> createEdgeNotificationsMsgProducer();
 
-    TbQueueProducer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> createEdgeEventMsgProducer();
+    default TbQueueProducer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> createEdgeEventMsgProducer() {
+        return null;
+    }
 
     /**
      * Used to push downlink messages to instances of TB Integration Executor

@@ -42,7 +42,6 @@ import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationM
 import org.thingsboard.server.gen.js.JsInvokeProtos;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
-import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeEventNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
@@ -156,11 +155,6 @@ public class AwsSqsTbRuleEngineQueueFactory implements TbRuleEngineQueueFactory 
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToEdgeNotificationMsg>> createEdgeNotificationsMsgProducer() {
         return new TbAwsSqsProducerTemplate<>(notificationAdmin, sqsSettings, topicService.getEdgeNotificationsTopic(serviceInfoProvider.getServiceId()).getFullTopicName());
-    }
-
-    @Override
-    public TbQueueProducer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> createEdgeEventMsgProducer() {
-        return null;
     }
 
     @Override
