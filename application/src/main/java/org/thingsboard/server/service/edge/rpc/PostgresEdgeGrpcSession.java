@@ -51,7 +51,6 @@ public class PostgresEdgeGrpcSession extends EdgeGrpcSession {
                             BiConsumer<Edge, UUID> sessionCloseListener, ScheduledExecutorService sendDownlinkExecutorService,
                             int maxInboundMessageSize, int maxHighPriorityQueueSizePerSession) {
         super(ctx, outputStream, sessionOpenListener, sessionCloseListener, sendDownlinkExecutorService, maxInboundMessageSize, maxHighPriorityQueueSizePerSession);
-        initInputStream();
     }
 
     @Override
