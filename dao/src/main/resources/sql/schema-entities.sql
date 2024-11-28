@@ -743,6 +743,7 @@ CREATE TABLE IF NOT EXISTS oauth2_client (
     id uuid NOT NULL CONSTRAINT oauth2_client_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
     tenant_id uuid NOT NULL,
+    customer_id uuid NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
     title varchar(100) NOT NULL,
     additional_info varchar,
     client_id varchar(255),
@@ -780,6 +781,7 @@ CREATE TABLE IF NOT EXISTS domain (
     id uuid NOT NULL CONSTRAINT domain_pkey PRIMARY KEY,
     created_time bigint NOT NULL,
     tenant_id uuid NOT NULL,
+    customer_id uuid NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
     name varchar(255) UNIQUE,
     oauth2_enabled boolean,
     edge_enabled boolean
@@ -811,8 +813,8 @@ CREATE TABLE IF NOT EXISTS mobile_app_bundle (
     terms_of_use varchar(10000000),
     privacy_policy varchar(10000000),
     oauth2_enabled boolean,
-    CONSTRAINT fk_android_app_id FOREIGN KEY (android_app_id) REFERENCES mobile_app(id),
-    CONSTRAINT fk_ios_app_id FOREIGN KEY (ios_app_id) REFERENCES mobile_app(id)
+    CONSTRAINT fk_android_app_id FOREIGN KEY (android_app_id) REFERENCES mobile_app(id) ON DELETE SET NULL,
+    CONSTRAINT fk_ios_app_id FOREIGN KEY (ios_app_id) REFERENCES mobile_app(id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS domain_oauth2_client (
@@ -1107,9 +1109,10 @@ CREATE TABLE IF NOT EXISTS white_labeling (
     customer_id UUID NOT NULL default '13814000-1dd2-11b2-8080-808080808080',
     type VARCHAR(30),
     settings VARCHAR(10000000),
-    domain_name VARCHAR(255),
+    domain_id UUID,
     CONSTRAINT white_labeling_pkey PRIMARY KEY (tenant_id, customer_id, type),
-    CONSTRAINT white_labeling_domain_name_type_key UNIQUE (domain_name, type)
+    CONSTRAINT white_labeling_domain_id_type_key UNIQUE (type, domain_id),
+    CONSTRAINT fk_white_labeling_domain_id FOREIGN KEY (domain_id) REFERENCES domain(id)
 );
 
 CREATE TABLE IF NOT EXISTS custom_menu (

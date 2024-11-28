@@ -124,7 +124,7 @@ public class ModelConstants {
     public static final String WHITE_LABELING_TABLE_NAME = "white_labeling";
     public static final String WHITE_LABELING_SETTINGS_TYPE = "type";
     public static final String WHITE_LABELING_SETTINGS = "settings";
-    public static final String WHITE_LABELING_DOMAIN = "domain_name";
+    public static final String WHITE_LABELING_DOMAIN_ID = "domain_id";
 
     /**
      * Custom menu settings constants.

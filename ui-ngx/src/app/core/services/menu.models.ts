@@ -1462,7 +1462,6 @@ const menuFilters = new Map<MenuId, MenuFilter>([
   ],
   [
     MenuId.clients, (authState, userPermissionsService) =>
-            authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.OAUTH2_CLIENT)
   ],
   [
@@ -1741,6 +1740,7 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           {
             id: MenuId.oauth2,
             pages: [
+              {id: MenuId.domains},
               {id: MenuId.clients}
             ]
           }
@@ -1847,7 +1847,14 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
         id: MenuId.security_settings,
         pages: [
           {id: MenuId.roles},
-          {id: MenuId.audit_log}
+          {id: MenuId.audit_log},
+          {
+            id: MenuId.oauth2,
+            pages: [
+              {id: MenuId.domains},
+              {id: MenuId.clients}
+            ]
+          }
         ]
       }
     ]

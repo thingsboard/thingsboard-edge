@@ -117,7 +117,10 @@
     <mat-step [stepControl]="selfRegistrationForm" *ngIf="!isSysAdmin">
       <ng-template matStepLabel>{{ 'mobile.self-registration.self-registration' | translate }}</ng-template>
       <form [formGroup]="selfRegistrationForm" class="layout-form mt-2">
-        <tb-mobile-self-registration formControlName="selfRegistrationParams">
+        <tb-mobile-self-registration
+          [androidApp]="bundlesForms.get('androidAppId').value"
+          [iOSApp]="bundlesForms.get('iosAppId').value"
+          formControlName="selfRegistrationParams">
         </tb-mobile-self-registration>
       </form>
     </mat-step>

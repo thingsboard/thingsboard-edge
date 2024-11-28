@@ -61,4 +61,11 @@ public class MobileAppVersionInfo {
     @Length(fieldName = "latestVersionReleaseNotes", max = 40000)
     private String latestVersionReleaseNotes;
 
+    public MobileAppVersionInfo(MobileAppVersionInfo mobileAppVersionInfo) {
+        this.minVersion = mobileAppVersionInfo.getMinVersion();
+        this.minVersionReleaseNotes = mobileAppVersionInfo.getMinVersionReleaseNotes();
+        this.latestVersion = mobileAppVersionInfo.getLatestVersion();
+        this.latestVersionReleaseNotes = mobileAppVersionInfo.getLatestVersionReleaseNotes();
+    }
+
 }

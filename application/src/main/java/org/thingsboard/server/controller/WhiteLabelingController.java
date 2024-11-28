@@ -64,6 +64,7 @@ import org.thingsboard.server.service.security.model.SecurityUser;
 
 import java.util.concurrent.ExecutionException;
 
+import static org.thingsboard.server.common.data.permission.Operation.READ;
 import static org.thingsboard.server.controller.ControllerConstants.CUSTOMER_ID_PARAM_DESCRIPTION;
 import static org.thingsboard.server.controller.ControllerConstants.SYSTEM_OR_TENANT_AUTHORITY_PARAGRAPH;
 import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHORITY_PARAGRAPH;
@@ -216,6 +217,9 @@ public class WhiteLabelingController extends BaseController {
             @RequestParam(name = "customerId", required = false) String strCustomerId) throws Exception {
         Authority authority = getCurrentUser().getAuthority();
         checkWhiteLabelingPermissions(Operation.WRITE);
+        if (loginWhiteLabelingParams.getDomainId() != null) {
+            checkEntityId(loginWhiteLabelingParams.getDomainId(), domainService::findDomainById, READ);
+        }
         LoginWhiteLabelingParams savedLoginWhiteLabelingParams = null;
         if (Authority.SYS_ADMIN.equals(authority)) {
             savedLoginWhiteLabelingParams = whiteLabelingService.saveSystemLoginWhiteLabelingParams(loginWhiteLabelingParams);

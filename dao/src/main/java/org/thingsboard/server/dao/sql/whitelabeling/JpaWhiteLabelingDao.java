@@ -94,4 +94,5 @@ public class JpaWhiteLabelingDao extends JpaAbstractDaoListeningExecutorService 
         ))));
     }
 
+
 }

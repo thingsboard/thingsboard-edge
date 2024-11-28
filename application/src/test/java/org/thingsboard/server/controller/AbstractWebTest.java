@@ -456,13 +456,15 @@ public abstract class AbstractWebTest extends AbstractInMemoryStorageTest {
     }
 
     protected void deleteTenant(TenantId tenantId) {
-        try {
-            doDelete("/api/tenant/" + tenantId.getId()).andExpect(status().isOk());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        if (tenantId != null) {
+            try {
+                doDelete("/api/tenant/" + tenantId.getId()).andExpect(status().isOk());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            Awaitility.await("all tasks processed").atMost(60, TimeUnit.SECONDS).during(300, TimeUnit.MILLISECONDS)
+                    .until(() -> storage.getLag("tb_housekeeper") == 0);
         }
-        Awaitility.await("all tasks processed").atMost(60, TimeUnit.SECONDS).during(300, TimeUnit.MILLISECONDS)
-                .until(() -> storage.getLag("tb_housekeeper") == 0);
     }
 
     private List<Tenant> getAllTenants() throws Exception {

@@ -69,8 +69,8 @@ public class JpaOAuth2ClientDao extends JpaAbstractDao<OAuth2ClientEntity, OAuth
     }
 
     @Override
-    public PageData<OAuth2Client> findByTenantId(UUID tenantId, PageLink pageLink) {
-        return DaoUtil.toPageData(repository.findByTenantId(tenantId, pageLink.getTextSearch(), DaoUtil.toPageable(pageLink)));
+    public PageData<OAuth2Client> findByTenantIdAndCustomerId(UUID tenantId, UUID customerId, PageLink pageLink) {
+        return DaoUtil.toPageData(repository.findByTenantIdAndCustomerId(tenantId, customerId, pageLink.getTextSearch(), DaoUtil.toPageable(pageLink)));
     }
 
     @Override
@@ -95,8 +95,8 @@ public class JpaOAuth2ClientDao extends JpaAbstractDao<OAuth2ClientEntity, OAuth
     }
 
     @Override
-    public String findAppSecret(UUID id, String pkgName) {
-        return repository.findAppSecret(id, pkgName);
+    public String findAppSecret(UUID id, String pkgName, PlatformType platformType) {
+        return repository.findAppSecret(id, pkgName, platformType);
     }
 
     @Override

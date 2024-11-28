@@ -49,7 +49,7 @@
       <tb-side-menu></tb-side-menu>
     </mat-toolbar>
     <mat-toolbar *ngIf="wl.isShowVersion$() | async"
-                 class="tb-side-menu-toolbar flex min-w-7.5 max-w-7.5 flex-1 basis-7.5 flex-col items-end justify-center"
+                 class="tb-side-menu-toolbar flex max-h-7.5 min-h-7.5 flex-1 basis-7.5 flex-col items-end justify-center"
                  color="primary">
       <section class="version"
                [innerHTML]="platformNameAndVersion$() | async"></section>

@@ -46,6 +46,7 @@ import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.User;
 import org.thingsboard.server.common.data.audit.ActionType;
+import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.menu.CMAssigneeType;
 import org.thingsboard.server.common.data.menu.CMScope;
@@ -58,7 +59,7 @@ import org.thingsboard.server.common.data.notification.NotificationDeliveryMetho
 import org.thingsboard.server.common.data.notification.NotificationType;
 import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.common.data.page.PageLink;
-import org.thingsboard.server.common.data.selfregistration.CaptchaParams;
+import org.thingsboard.server.common.data.selfregistration.V2CaptchaParams;
 import org.thingsboard.server.common.data.selfregistration.MobileRedirectParams;
 import org.thingsboard.server.common.data.selfregistration.MobileSelfRegistrationParams;
 import org.thingsboard.server.common.data.selfregistration.SignUpField;
@@ -149,27 +150,6 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         entityGroup.setType(EntityType.CUSTOMER);
         customerGroup = doPost("/api/entityGroup", entityGroup, EntityGroup.class);
 
-        WebSelfRegistrationParams selfRegistrationParams = new WebSelfRegistrationParams();
-        selfRegistrationParams.setTitle("Please sign up");
-        CaptchaParams captcha = new CaptchaParams();
-        captcha.setSiteKey("6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI");
-        captcha.setSecretKey("6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe");
-        selfRegistrationParams.setCaptcha(captcha);
-        selfRegistrationParams.setShowTermsOfUse(true);
-        selfRegistrationParams.setShowPrivacyPolicy(true);
-        selfRegistrationParams.setDomainName("localhost");
-        selfRegistrationParams.setCustomerTitlePrefix(CUSTOMER_TITLE_PREFIX);
-        selfRegistrationParams.setCustomerGroupId(customerGroup.getId());
-        selfRegistrationParams.setCustomMenuId(customMenu.getId());
-        selfRegistrationParams.setNotificationRecipient(createNotificationTarget(currentUserId).getId());
-        selfRegistrationParams.setPermissions(Collections.emptyList());
-        selfRegistrationParams.setSignUpFields(List.of(new SignUpField(SignUpFieldId.EMAIL, "email", true),
-                new SignUpField(SignUpFieldId.PASSWORD, "password", true)));
-
-        doPost("/api/selfRegistration/selfRegistrationParams",
-                selfRegistrationParams, JsonNode.class);
-
-        createNotificationTemplate(NotificationType.USER_REGISTERED, "User registered", "User ${userEmail} was registered", NotificationDeliveryMethod.WEB);
     }
 
     @After
@@ -242,6 +222,7 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
 
     @Test
     public void testSelfRegistrationCreateMessageInRuleChain() throws Exception {
+        createWebSelfRegistrationSettings();
         var signUpRequest = createWebSignUpRequest(CUSTOMER_TEST_EMAIL);
         doSignUp(signUpRequest);
 
@@ -345,20 +326,26 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
     }
 
     private void createWebSelfRegistrationSettings() {
+        Domain domain = constructDomain("localhost");
+        Domain savedDomain = doPost("/api/domain", domain, Domain.class);
+
         WebSelfRegistrationParams selfRegistrationParams = new WebSelfRegistrationParams();
         selfRegistrationParams.setTitle("Please sign up");
-        CaptchaParams captcha = new CaptchaParams();
+        V2CaptchaParams captcha = new V2CaptchaParams();
         captcha.setSiteKey("6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI");
         captcha.setSecretKey("6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe");
         selfRegistrationParams.setCaptcha(captcha);
         selfRegistrationParams.setShowTermsOfUse(true);
         selfRegistrationParams.setShowPrivacyPolicy(true);
-        selfRegistrationParams.setDomainName("localhost");
+        selfRegistrationParams.setDomainId(savedDomain.getId());
         selfRegistrationParams.setNotificationRecipient(createNotificationTarget(currentUserId).getId());
         selfRegistrationParams.setPermissions(Collections.emptyList());
 
         doPost("/api/selfRegistration/selfRegistrationParams",
                 selfRegistrationParams, JsonNode.class);
+
+        createNotificationTemplate(NotificationType.USER_ACTIVATED, "User activated", "User ${userEmail} was activated", NotificationDeliveryMethod.WEB);
+        createNotificationTemplate(NotificationType.USER_REGISTERED, "User registered", "User ${userEmail} was registered", NotificationDeliveryMethod.WEB);
     }
 
     private void createMobileSelfRegistrationSettings(String mobilePkgName, String appSecret, PlatformType platformType) {
@@ -375,12 +362,15 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         MobileSelfRegistrationParams selfRegistrationParams = createMobileSelfRegistrationParams();
         mobileAppBundle.setSelfRegistrationParams(selfRegistrationParams);
         MobileAppBundle createdMobileAppBundle = doPost("/api/mobile/bundle", mobileAppBundle, MobileAppBundle.class);
+
+        createNotificationTemplate(NotificationType.USER_ACTIVATED, "User activated", "User ${userEmail} was activated", NotificationDeliveryMethod.WEB);
+        createNotificationTemplate(NotificationType.USER_REGISTERED, "User registered", "User ${userEmail} was registered", NotificationDeliveryMethod.WEB);
     }
 
     private MobileSelfRegistrationParams createMobileSelfRegistrationParams() {
         MobileSelfRegistrationParams selfRegistrationParams = new MobileSelfRegistrationParams();
         selfRegistrationParams.setTitle("Please sign up");
-        CaptchaParams captcha = new CaptchaParams();
+        V2CaptchaParams captcha = new V2CaptchaParams();
         captcha.setSecretKey("6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe");
         captcha.setSiteKey("6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI");
         captcha.setLogActionName("sign_up");
@@ -414,4 +404,11 @@ public class SignUpControllerSqlTest extends AbstractControllerTest {
         return mobileApp;
     }
 
+    private Domain constructDomain(String domainName) {
+        Domain domain = new Domain();
+        domain.setName(domainName);
+        domain.setOauth2Enabled(true);
+        domain.setPropagateToEdge(true);
+        return domain;
+    }
 }

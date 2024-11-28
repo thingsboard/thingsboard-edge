@@ -49,13 +49,17 @@
             <legend class="group-title" translate>
               self-registration.domain-settings
             </legend>
-            <mat-form-field class="mat-block">
-              <mat-label translate>white-labeling.domain-name</mat-label>
-              <input matInput required formControlName="domainName"/>
-              <mat-error *ngIf="selfRegistrationFormGroup.get('domainName').hasError('pattern')">
-                {{'white-labeling.error-verification-url' | translate}}
-              </mat-error>
-            </mat-form-field>
+            <tb-entity-autocomplete
+              [entityType]="EntityType.DOMAIN"
+              labelText="white-labeling.domain-name"
+              useFullEntityId
+              required
+              formControlName="domainId"
+              [allowCreateNew]="resource.DOMAIN | hasGenericPermission: operation.CREATE"
+              (entityChanged)="domainChange($event)"
+              (createNew)="createDomain()"
+            >
+            </tb-entity-autocomplete>
             <div class="mat-content flex flex-col" id="registration-link-content"
                  tb-toast toastTarget="registrationLinkContent">
               <span translate>self-registration.self-registration-url</span>

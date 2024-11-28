@@ -37,6 +37,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
 import org.thingsboard.server.dao.model.sql.OAuth2ClientEntity;
 
 import java.util.List;
@@ -44,11 +45,12 @@ import java.util.UUID;
 
 public interface OAuth2ClientRepository extends JpaRepository<OAuth2ClientEntity, UUID> {
 
-    @Query("SELECT с FROM OAuth2ClientEntity с WHERE с.tenantId = :tenantId AND " +
+    @Query("SELECT с FROM OAuth2ClientEntity с WHERE с.tenantId = :tenantId AND с.customerId = :customerId AND " +
             "(:searchText is NULL OR ilike(с.title, concat('%', :searchText, '%')) = true)")
-    Page<OAuth2ClientEntity> findByTenantId(@Param("tenantId") UUID tenantId,
-                                            @Param("searchText") String searchText,
-                                            Pageable pageable);
+    Page<OAuth2ClientEntity> findByTenantIdAndCustomerId(@Param("tenantId") UUID tenantId,
+                                                         @Param("customerId") UUID customerId,
+                                                         @Param("searchText") String searchText,
+                                                         Pageable pageable);
 
     @Query("SELECT c " +
             "FROM OAuth2ClientEntity c " +
@@ -87,9 +89,10 @@ public interface OAuth2ClientRepository extends JpaRepository<OAuth2ClientEntity
             "LEFT JOIN MobileAppBundleOauth2ClientEntity bc ON bc.mobileAppBundleId = b.id " +
             "LEFT JOIN OAuth2ClientEntity c ON bc.oauth2ClientId = c.id " +
             "WHERE c.id = :clientId " +
-            "AND a.pkgName = :pkgName")
+            "AND a.pkgName = :pkgName and a.platformType = :platformType")
     String findAppSecret(@Param("clientId") UUID id,
-                         @Param("pkgName") String pkgName);
+                         @Param("pkgName") String pkgName,
+                         @Param("platformType") PlatformType platformType);
 
     @Transactional
     @Modifying

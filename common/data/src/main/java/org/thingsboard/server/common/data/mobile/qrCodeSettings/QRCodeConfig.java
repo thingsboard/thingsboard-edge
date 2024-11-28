@@ -35,7 +35,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.thingsboard.server.common.data.mobile.qrCodeSettings.BadgePosition;
 import org.thingsboard.server.common.data.validation.NoXss;
 
 @Data

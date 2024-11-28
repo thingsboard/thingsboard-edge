@@ -34,6 +34,7 @@ import { deepClone, isDefined, isUndefinedOrNull } from '@core/utils';
 import { ColorPalette, extendDefaultPalette } from '@shared/models/material.models';
 import { TenantId } from '@shared/models/id/tenant-id';
 import { CustomerId } from '@shared/models/id/customer-id';
+import { DomainId } from '@shared/models/id/domain-id';
 
 export interface Favicon {
   url?: string;
@@ -69,7 +70,7 @@ export interface WhiteLabelingParams {
 export interface LoginWhiteLabelingParams extends WhiteLabelingParams {
   pageBackgroundColor?: string;
   darkForeground?: boolean;
-  domainName?: string;
+  domainId?: DomainId;
   baseUrl?: string;
   adminSettingsId?: string;
   showNameBottom?: boolean;
@@ -166,7 +167,7 @@ export const mergeDefaults = <T extends WhiteLabelingParams & LoginWhiteLabeling
   return wlParams;
 };
 
-export const checkWlParams = <T extends WhiteLabelingParams & LoginWhiteLabelingParams>(whiteLabelParams: T): T  => {
+export const checkWlParams = <T extends WhiteLabelingParams & LoginWhiteLabelingParams>(whiteLabelParams: T): T => {
   if (!whiteLabelParams) {
     whiteLabelParams = {} as T;
   }
@@ -176,13 +177,13 @@ export const checkWlParams = <T extends WhiteLabelingParams & LoginWhiteLabeling
   if (!whiteLabelParams.favicon) {
     whiteLabelParams.favicon = {};
   }
-  if(whiteLabelParams.platformName === null){
+  if (isUndefinedOrNull(whiteLabelParams.platformName)) {
     whiteLabelParams.platformName = 'ThingsBoard';
   }
-  if(whiteLabelParams.platformVersion === null){
+  if (isUndefinedOrNull(whiteLabelParams.platformVersion)) {
     whiteLabelParams.platformVersion = env.tbVersion;
   }
-  if (whiteLabelParams.showNameBottom === null){
+  if (isUndefinedOrNull(whiteLabelParams.showNameBottom)) {
     whiteLabelParams.showNameBottom = true;
   }
   return whiteLabelParams;

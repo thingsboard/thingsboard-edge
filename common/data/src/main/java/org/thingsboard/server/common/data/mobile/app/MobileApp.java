@@ -106,4 +106,5 @@ public class MobileApp extends BaseData<MobileAppId> implements HasName, TenantE
     public EntityType getEntityType() {
         return EntityType.MOBILE_APP;
     }
+
 }

@@ -160,7 +160,7 @@ public class SelfRegistrationController extends BaseController {
         } else {
             selfRegistrationParams = whiteLabelingService.getWebSelfRegistrationParams(request.getServerName());
         }
-        return selfRegistrationParams != null ? selfRegistrationParams.toSignUpSelfRegistrationParams() : null;
+        return selfRegistrationParams != null ? selfRegistrationParams.toSignUpSelfRegistrationParams(platformType) : null;
     }
 
     @ApiOperation(value = "Get Privacy Policy for Self Registration form (getPrivacyPolicy)",

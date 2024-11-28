@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.EntityType;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.EntityId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
@@ -49,6 +50,7 @@ import org.thingsboard.server.dao.entity.AbstractEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.service.DataValidator;
+import org.thingsboard.server.dao.service.Validator;
 
 import java.util.Comparator;
 import java.util.List;
@@ -59,6 +61,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service("OAuth2ClientService")
 public class OAuth2ClientServiceImpl extends AbstractEntityService implements OAuth2ClientService {
+
+    private static final String PLATFORM_TYPE_IS_REQUIRED = "Platform type is required if package name is specified";
 
     @Autowired
     private OAuth2ClientDao oauth2ClientDao;
@@ -99,15 +103,16 @@ public class OAuth2ClientServiceImpl extends AbstractEntityService implements OA
     }
 
     @Override
-    public List<OAuth2Client> findOAuth2ClientsByTenantId(TenantId tenantId) {
+    public List<OAuth2Client> findOAuth2ClientsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId) {
         log.trace("Executing findOAuth2ClientsByTenantId [{}]", tenantId);
-        return oauth2ClientDao.findByTenantId(tenantId.getId(), new PageLink(Integer.MAX_VALUE)).getData();
+        return oauth2ClientDao.findByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), new PageLink(Integer.MAX_VALUE)).getData();
     }
 
     @Override
-    public String findAppSecret(OAuth2ClientId oAuth2ClientId, String pkgName) {
-        log.trace("Executing findAppSecret oAuth2ClientId = [{}] pkgName = [{}]", oAuth2ClientId, pkgName);
-        return oauth2ClientDao.findAppSecret(oAuth2ClientId.getId(), pkgName);
+    public String findAppSecret(OAuth2ClientId oAuth2ClientId, String pkgName, PlatformType platformType) {
+        log.trace("Executing findAppSecret oAuth2ClientId = [{}] pkgName = [{}], platform [{}]", oAuth2ClientId, pkgName, platformType);
+        Validator.checkNotNull(platformType, PLATFORM_TYPE_IS_REQUIRED);
+        return oauth2ClientDao.findAppSecret(oAuth2ClientId.getId(), pkgName, platformType);
     }
 
     @Override
@@ -128,9 +133,9 @@ public class OAuth2ClientServiceImpl extends AbstractEntityService implements OA
     }
 
     @Override
-    public PageData<OAuth2ClientInfo> findOAuth2ClientInfosByTenantId(TenantId tenantId, PageLink pageLink) {
+    public PageData<OAuth2ClientInfo> findOAuth2ClientInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink) {
         log.trace("Executing findOAuth2ClientInfosByTenantId tenantId=[{}]", tenantId);
-        PageData<OAuth2Client> clients = oauth2ClientDao.findByTenantId(tenantId.getId(), pageLink);
+        PageData<OAuth2Client> clients = oauth2ClientDao.findByTenantIdAndCustomerId(tenantId.getId(), customerId.getId(), pageLink);
         return clients.mapData(OAuth2ClientInfo::new);
     }
 
