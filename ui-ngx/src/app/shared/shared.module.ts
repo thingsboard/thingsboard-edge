@@ -252,6 +252,7 @@ import { CountryData } from '@shared/models/country.models';
 import { SvgXmlComponent } from '@shared/components/svg-xml.component';
 import { CustomMenuAutocompleteComponent } from '@shared/components/custom-menu-autocomplete.component';
 import { DatapointsLimitComponent } from '@shared/components/time/datapoints-limit.component';
+import { WidgetButtonToggleComponent } from '@shared/components/button/widget-button-toggle.component';
 
 export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService) {
   return markedOptionsService;
@@ -474,6 +475,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     EmbedImageDialogComponent,
     ImageGalleryDialogComponent,
     WidgetButtonComponent,
+    WidgetButtonToggleComponent,
     HexInputComponent,
     ScadaSymbolInputComponent,
     CustomMenuAutocompleteComponent
@@ -752,7 +754,8 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ImageGalleryDialogComponent,
     WidgetButtonComponent,
     ScadaSymbolInputComponent,
-    CustomMenuAutocompleteComponent
+    CustomMenuAutocompleteComponent,
+    WidgetButtonToggleComponent
   ]
 })
 export class SharedModule { }

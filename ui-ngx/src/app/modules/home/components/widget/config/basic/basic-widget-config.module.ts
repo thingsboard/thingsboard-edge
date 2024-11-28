@@ -158,6 +158,9 @@ import {
   UnreadNotificationBasicConfigComponent
 } from '@home/components/widget/config/basic/cards/unread-notification-basic-config.component';
 import { ScadaSymbolBasicConfigComponent } from '@home/components/widget/config/basic/scada/scada-symbol-basic-config.component';
+import {
+  SegmentedButtonBasicConfigComponent
+} from '@home/components/widget/config/basic/button/segmented-button-basic-config.component';
 
 @NgModule({
   declarations: [
@@ -189,6 +192,7 @@ import { ScadaSymbolBasicConfigComponent } from '@home/components/widget/config/
     BarChartWithLabelsBasicConfigComponent,
     SingleSwitchBasicConfigComponent,
     ActionButtonBasicConfigComponent,
+    SegmentedButtonBasicConfigComponent,
     CommandButtonBasicConfigComponent,
     PowerButtonBasicConfigComponent,
     SliderBasicConfigComponent,
@@ -242,6 +246,7 @@ import { ScadaSymbolBasicConfigComponent } from '@home/components/widget/config/
     BarChartWithLabelsBasicConfigComponent,
     SingleSwitchBasicConfigComponent,
     ActionButtonBasicConfigComponent,
+    SegmentedButtonBasicConfigComponent,
     CommandButtonBasicConfigComponent,
     PowerButtonBasicConfigComponent,
     SliderBasicConfigComponent,
@@ -287,6 +292,7 @@ export const basicWidgetConfigComponentsMap: {[key: string]: Type<IBasicWidgetCo
   'tb-bar-chart-with-labels-basic-config': BarChartWithLabelsBasicConfigComponent,
   'tb-single-switch-basic-config': SingleSwitchBasicConfigComponent,
   'tb-action-button-basic-config': ActionButtonBasicConfigComponent,
+  'tb-segmented-button-basic-config': SegmentedButtonBasicConfigComponent,
   'tb-command-button-basic-config': CommandButtonBasicConfigComponent,
   'tb-power-button-basic-config': PowerButtonBasicConfigComponent,
   'tb-slider-basic-config': SliderBasicConfigComponent,
