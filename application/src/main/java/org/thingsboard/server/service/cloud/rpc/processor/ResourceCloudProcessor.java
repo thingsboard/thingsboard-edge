@@ -91,8 +91,7 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
     }
 
     private Pair<Boolean, TbResourceId> renamePreviousResource(TenantId tenantId, TbResourceId tbResourceId, ResourceType resourceType, String resourceKey) {
-        PageDataIterable<TbResource> resourcesIterable = new PageDataIterable<>(
-                link -> resourceService.findTenantResourcesByResourceTypeAndPageLink(tenantId, resourceType, link), 1024);
+        PageDataIterable<TbResource> resourcesIterable = new PageDataIterable<>(link -> resourceService.findTenantResourcesByResourceTypeAndPageLink(tenantId, resourceType, link), 1024);
         for (TbResource tbResource : resourcesIterable) {
             if (tbResource.getResourceKey().equals(resourceKey) && !tbResourceId.equals(tbResource.getId())) {
                 tbResource.setResourceKey(StringUtils.randomAlphanumeric(15) + resourceKey);
@@ -104,13 +103,10 @@ public class ResourceCloudProcessor extends BaseResourceProcessor {
     }
 
     private void deleteSystemResourceIfAlreadyExists(TbResourceId tbResourceId, ResourceType resourceType, String resourceKey) {
-        PageDataIterable<TbResource> entityIdsIterator = new PageDataIterable<>(
-                link -> resourceService.findAllTenantResources(TenantId.SYS_TENANT_ID, link), 1024);
+        PageDataIterable<TbResource> entityIdsIterator = new PageDataIterable<>(link -> resourceService.findAllTenantResources(TenantId.SYS_TENANT_ID, link), 1024);
         for (TbResource resource : entityIdsIterator) {
-            if (resource.getResourceType().equals(resourceType)
-                    && resource.getResourceKey().equals(resourceKey)
-                    && !resource.getId().equals(tbResourceId)) {
-                resourceService.deleteResource(TenantId.SYS_TENANT_ID, resource.getId());
+            if (resource.getResourceType().equals(resourceType) && resource.getResourceKey().equals(resourceKey) && !resource.getId().equals(tbResourceId)) {
+                resourceService.deleteResource(TenantId.SYS_TENANT_ID, resource.getId(), true);
                 break;
             }
         }
