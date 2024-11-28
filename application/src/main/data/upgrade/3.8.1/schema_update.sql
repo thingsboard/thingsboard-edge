@@ -253,7 +253,7 @@ $$
                                     (SELECT settings FROM white_labeling WHERE type = 'TERMS_OF_USE' AND tenant_id = srSettings.entity_id),
                                     (SELECT settings FROM white_labeling WHERE type = 'PRIVACY_POLICY' AND tenant_id = srSettings.entity_id));
                         ELSE IF androidApp.tenant_id != '13814000-1dd2-11b2-8080-808080808080' THEN
-                            UPDATE mobile_app_bundle SET self_registration_config = srSettings.entity_id,
+                            UPDATE mobile_app_bundle SET self_registration_config = srSettings.str_v,
                                                          terms_of_use = (SELECT settings FROM white_labeling WHERE type = 'TERMS_OF_USE' AND tenant_id = srSettings.entity_id),
                                                          privacy_policy = (SELECT settings FROM white_labeling WHERE type = 'PRIVACY_POLICY' AND tenant_id = srSettings.entity_id)
                             WHERE android_app_id = androidAppId;
