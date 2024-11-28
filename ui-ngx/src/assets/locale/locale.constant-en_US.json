@@ -507,7 +507,9 @@
             "set": "Set",
             "preview": "Preview",
             "connect-mobile-app": "Connect mobile app",
-            "use-system-settings": "Use system settings"
+            "use-system-settings": "Use system settings",
+            "warning-not-set-white-labeling": "These settings cannot be applied without specifying the Base URL in Login white labeling. Before editing QR code widget settings set ",
+            "base-url": "Base Url"
         },
         "2fa":  {
             "2fa": "Two-factor authentication",
@@ -4630,7 +4632,7 @@
             "get-source-code-title": "Get app source code",
             "get-source-code-text": "You can get Flutter ThingsBoard Mobile Application source code by cloning it from the GitHub repository:",
             "configure-api-title": "Configure ThingsBoard API endpoint",
-            "configure-api-text": "Open the flutter_thingsboard_app project in your editor/IDE. Edit:",
+            "configure-api-text": "Open the flutter_thingsboard_pe_app project in your editor/IDE. Edit:",
             "configure-api-hint": "Set the value of the thingsBoardApiEndpoint constant to match the API endpoint of your ThingsBoard server instance. Do not use “localhost” or “127.0.0.1” hostnames.",
             "run-app-title": "Run the app",
             "run-app-text": "Run the app as described in your IDE.\nIf using the terminal, run the app with the following command:",
