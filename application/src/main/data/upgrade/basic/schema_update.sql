@@ -55,8 +55,8 @@ CREATE TABLE IF NOT EXISTS mobile_app_bundle (
     terms_of_use varchar(10000000),
     privacy_policy varchar(10000000),
     oauth2_enabled boolean,
-    CONSTRAINT fk_android_app_id FOREIGN KEY (android_app_id) REFERENCES mobile_app(id),
-    CONSTRAINT fk_ios_app_id FOREIGN KEY (ios_app_id) REFERENCES mobile_app(id)
+    CONSTRAINT fk_android_app_id FOREIGN KEY (android_app_id) REFERENCES mobile_app(id) ON DELETE SET NULL,
+    CONSTRAINT fk_ios_app_id FOREIGN KEY (ios_app_id) REFERENCES mobile_app(id) ON DELETE SET NULL
 );
 CREATE INDEX IF NOT EXISTS mobile_app_bundle_tenant_id ON mobile_app_bundle(tenant_id);
 
@@ -298,7 +298,6 @@ $$
                     'enabled', true,
                     'type', 'WEB',
                     'title', settings::jsonb ->> 'signUpTextMessage',
-                    'domainName', settings::jsonb ->> 'domainName',
                     'notificationEmail', settings::jsonb ->> 'notificationEmail',
                     'showPrivacyPolicy', settings::jsonb ->> 'showPrivacyPolicy',
                     'showTermsOfUse', settings::jsonb ->> 'showTermsOfUse',

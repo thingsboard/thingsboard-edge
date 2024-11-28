@@ -37,18 +37,21 @@ import jakarta.annotation.PostConstruct;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.postgresql.jdbc.PgArray;
 import org.postgresql.util.PGobject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.thingsboard.migrator.utils.PostgresService.Blob;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -68,18 +71,21 @@ import java.util.zip.GZIPOutputStream;
 public class Storage {
 
     @Value("${working_directory}")
-    private String workingDir;
+    private Path workingDir;
+    @Value("${mode}")
+    private String mode;
     private static final String FINAL_ARCHIVE_FILE = "data.tar";
 
     private final ObjectMapper jsonMapper = new ObjectMapper();
     private final List<Path> createdFiles = new ArrayList<>();
 
-    private static final String BYTEA_DATA_PREFIX = "BASE64_BYTES:";
+    private static final String BYTES_DATA_PREFIX = "BYTES:";
     private static final String ARRAY_DATA_PREFIX = "ARRAY:";
+    private static final String BLOB_DATA_PREFIX = "BLOB:";
 
     @PostConstruct
     private void init() throws IOException {
-        Files.createDirectories(Path.of(workingDir));
+        Files.createDirectories(workingDir);
     }
 
     public void newFile(String name) throws IOException {
@@ -98,16 +104,18 @@ public class Storage {
     @SneakyThrows
     public void addToFile(Writer writer, Map<String, Object> row) {
         row.replaceAll((column, data) -> {
-            if (data instanceof PGobject) {
-                data = ((PGobject) data).getValue();
-            } else if (data instanceof byte[]) {
-                data = BYTEA_DATA_PREFIX + Base64.getEncoder().encodeToString((byte[]) data);
-            } else if (data instanceof PgArray) {
+            if (data instanceof PGobject object) {
+                data = object.getValue();
+            } else if (data instanceof byte[] bytes) {
+                data = BYTES_DATA_PREFIX + Base64.getEncoder().encodeToString(bytes);
+            } else if (data instanceof PgArray array) {
                 try {
-                    return ARRAY_DATA_PREFIX + jsonMapper.writeValueAsString(((PgArray) data).getArray());
+                    return ARRAY_DATA_PREFIX + jsonMapper.writeValueAsString(array.getArray());
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
+            } else if (data instanceof Blob blob) {
+                return BLOB_DATA_PREFIX + Base64.getEncoder().encodeToString(blob.data());
             }
             return data;
         });
@@ -121,7 +129,7 @@ public class Storage {
                 if (StringUtils.isNotBlank(line)) {
                     Map<String, Object> data;
                     try {
-                        data = jsonMapper.readValue(line, new TypeReference<Map<String, Object>>() {});
+                        data = jsonMapper.readValue(line, new TypeReference<>() {});
                     } catch (JsonProcessingException e) {
                         throw new RuntimeException(e);
                     }
@@ -133,16 +141,18 @@ public class Storage {
                             } catch (IllegalArgumentException ignored) {}
                         } else if (value instanceof Map) {
                             value = jsonMapper.valueToTree(value);
-                        } else if (value instanceof String) {
-                            String string = (String) value;
-                            if (string.startsWith(BYTEA_DATA_PREFIX)) {
-                                value = Base64.getDecoder().decode(StringUtils.removeStart(string, BYTEA_DATA_PREFIX));
+                        } else if (value instanceof String string) {
+                            if (string.startsWith(BYTES_DATA_PREFIX)) {
+                                value = Base64.getDecoder().decode(StringUtils.removeStart(string, BYTES_DATA_PREFIX));
                             } else if (string.startsWith(ARRAY_DATA_PREFIX)) {
                                 try {
                                     value = jsonMapper.readValue(StringUtils.removeStart(string, ARRAY_DATA_PREFIX), new TypeReference<String[]>() {});
                                 } catch (JsonProcessingException e) {
                                     throw new RuntimeException(e);
                                 }
+                            } else if (string.startsWith(BLOB_DATA_PREFIX)) {
+                                byte[] blobData = Base64.getDecoder().decode(StringUtils.removeStart(string, BLOB_DATA_PREFIX));
+                                return new Blob(blobData);
                             }
                         }
                         return value;
@@ -164,7 +174,7 @@ public class Storage {
     }
 
     private Path getPath(String file) {
-        return Path.of(workingDir, file + ".gz");
+        return workingDir.resolve(file + ".gz");
     }
 
     @SneakyThrows
@@ -172,15 +182,33 @@ public class Storage {
         if (createdFiles.isEmpty()) {
             return;
         }
-        log.info("Archiving {} files", createdFiles.size());
-        TarArchiveOutputStream tarArchive = new TarArchiveOutputStream(new FileOutputStream(Path.of(workingDir, FINAL_ARCHIVE_FILE).toFile()));
-        for (Path file : createdFiles) {
-            TarArchiveEntry archiveEntry = new TarArchiveEntry(file, file.getFileName().toString());
-            tarArchive.putArchiveEntry(archiveEntry);
-            Files.copy(file, tarArchive);
-            tarArchive.closeArchiveEntry();
-            Files.delete(file);
+        if (mode.equals("TENANT_DATA_EXPORT")) {
+            log.info("Archiving {} files", createdFiles.size());
+            TarArchiveOutputStream tarArchive = new TarArchiveOutputStream(new FileOutputStream(workingDir.resolve(FINAL_ARCHIVE_FILE).toFile()));
+            for (Path file : createdFiles) {
+                TarArchiveEntry archiveEntry = new TarArchiveEntry(file, file.getFileName().toString());
+                tarArchive.putArchiveEntry(archiveEntry);
+                Files.copy(file, tarArchive);
+                tarArchive.closeArchiveEntry();
+                Files.delete(file);
+            }
+            tarArchive.close();
         }
-        tarArchive.close();
     }
+
+    @SneakyThrows
+    public void open() {
+        if (mode.equals("TENANT_DATA_IMPORT")) {
+            try (TarArchiveInputStream tarArchive = new TarArchiveInputStream(new FileInputStream(workingDir.resolve(FINAL_ARCHIVE_FILE).toFile()))) {
+                log.info("Unarchiving data.tar");
+                TarArchiveEntry entry;
+                while ((entry = tarArchive.getNextEntry()) != null) {
+                    try (OutputStream file = new FileOutputStream(workingDir.resolve(entry.getName()).toFile())) {
+                        tarArchive.transferTo(file);
+                    }
+                }
+            }
+        }
+    }
+
 }
