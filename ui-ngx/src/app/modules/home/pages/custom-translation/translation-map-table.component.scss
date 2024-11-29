@@ -104,23 +104,12 @@
     }
   }
 
-  .copy-button {
-    visibility: hidden;
-    transition: visibility 0.1s;
-  }
-
   .constant-value {
     white-space: nowrap;
 
     & > div {
       filter: opacity(0.54);
       white-space: normal;
-    }
-
-    &:hover {
-      .copy-button {
-        visibility: visible;
-      }
     }
   }
 
