@@ -102,8 +102,8 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
     title: ['', Validators.required],
     notificationRecipient: this.fb.control<NotificationTargetId>(null, Validators.required),
     redirect: this.fb.group({
-      scheme: ['', Validators.required],
-      host: ['', Validators.required]
+      scheme: ['tbscheme', Validators.required],
+      host: ['app.pe.thingsboard.org', Validators.required]
     }),
     signUpFields: [null],
     captcha: this.fb.group({
