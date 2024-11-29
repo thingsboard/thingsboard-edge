@@ -34,11 +34,7 @@ public class KafkaTSUplinkMessageService extends KafkaUplinkMessageService imple
 
     @Override
     protected PageData<CloudEvent> findCloudEvents(TenantId tenantId) {
-        PageData<CloudEvent> cloudEvents = cloudEventService.findTsKvCloudEvents(tenantId, null, null, null);
-
-        cloudEventService.commit(true);
-
-        return cloudEvents;
+        return cloudEventService.findTsKvCloudEvents(tenantId, null, null, null);
     }
 
     @Override

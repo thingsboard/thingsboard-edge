@@ -157,6 +157,8 @@ public class KafkaCloudEventService implements CloudEventService {
         subscribe(consumer, tpi);
 
         List<TbProtoQueueMsg<ToCloudEventMsg>> cloudMessages = consumer.poll(pollInterval);
+        consumer.commit();
+
         List<CloudEvent> cloudEvents =
                 cloudMessages.stream()
                         .map(msg -> ProtoUtils.fromProto(msg.getValue().getCloudEventMsg()))
@@ -175,11 +177,6 @@ public class KafkaCloudEventService implements CloudEventService {
     public void unsubscribeConsumers() {
         tbCloudEventProvider.getCloudEventMsgConsumer().unsubscribe();
         tbCloudEventProvider.getCloudEventTSMsgConsumer().unsubscribe();
-    }
-
-    @Override
-    public void commit(boolean isTS) {
-        chooseConsumer(isTS).commit();
     }
 
     private TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> chooseConsumer(boolean isTS) {

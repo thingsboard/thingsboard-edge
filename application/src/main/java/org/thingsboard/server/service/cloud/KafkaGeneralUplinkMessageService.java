@@ -29,19 +29,18 @@ import org.thingsboard.server.common.data.page.TimePageLink;
 @Service
 @ConditionalOnExpression("'${queue.type:null}'=='kafka'")
 public class KafkaGeneralUplinkMessageService extends KafkaUplinkMessageService implements GeneralUplinkMessageService {
+    public PageData<CloudEvent> newCloudEvents = new PageData<>();
 
     @Override
     protected PageData<CloudEvent> findCloudEvents(TenantId tenantId) {
-        PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, null, null, null);
-
-        cloudEventService.commit(false);
-
-        return cloudEvents;
+        return cloudEventService.findCloudEvents(tenantId, null, null, null);
     }
 
     @Override
     public TimePageLink newCloudEventsAvailable(TenantId tenantId, Long queueSeqIdStart) {
         PageData<CloudEvent> cloudEvents = cloudEventService.findCloudEvents(tenantId, null, null, null);
+
+        newCloudEvents = cloudEvents;
 
         return cloudEvents.getTotalElements() != 0 ? new TimePageLink(0) : null;
     }

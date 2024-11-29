@@ -53,8 +53,6 @@ public interface CloudEventService {
 
     void unsubscribeConsumers();
 
-    void commit(boolean isTS);
-
     void cleanupEvents(long ttl);
 
 }

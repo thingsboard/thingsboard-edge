@@ -148,6 +148,10 @@ public abstract class PostgresUplinkMessageService extends BaseUplinkMessageServ
         } while (isProcessContinue(tenantId, cloudEvents));
     }
 
+    private boolean isProcessContinue(TenantId tenantId, PageData<CloudEvent> cloudEvents) {
+        return super.isProcessContinue(tenantId) && cloudEvents.hasNext();
+    }
+
     private PageData<CloudEvent> prepareCloudEvents(TenantId tenantId, Long queueSeqIdStart, TimePageLink pageLink) {
         PageData<CloudEvent> cloudEvents = findCloudEvents(tenantId, queueSeqIdStart, null, pageLink);
 

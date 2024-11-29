@@ -28,11 +28,19 @@ public abstract class KafkaUplinkMessageService extends BaseUplinkMessageService
     protected CloudEventService cloudEventService;
 
     public void processHandleMessages(TenantId tenantId) {
-        PageData<CloudEvent> cloudEvents = findCloudEvents(tenantId);
+        PageData<CloudEvent> newCloudEvents = findNewCloudEvents(tenantId);
 
-        if (cloudEvents.getTotalElements() != 0) {
-            processCloudEvents(tenantId, cloudEvents);
+        if (newCloudEvents.getTotalElements() != 0) {
+            processCloudEvents(tenantId, newCloudEvents);
         }
+    }
+
+    private PageData<CloudEvent> findNewCloudEvents(TenantId tenantId) {
+        boolean hasNewGeneralCloudEvent =
+                this.getClass() == KafkaGeneralUplinkMessageService.class &&
+                        ((KafkaGeneralUplinkMessageService) this).newCloudEvents.getTotalElements() != 0;
+
+        return hasNewGeneralCloudEvent ? ((KafkaGeneralUplinkMessageService) this).newCloudEvents : findCloudEvents(tenantId);
     }
 
     public void processCloudEvents(TenantId tenantId, PageData<CloudEvent> newCloudEvents) {
@@ -42,6 +50,10 @@ public abstract class KafkaUplinkMessageService extends BaseUplinkMessageService
             cloudEvents = cloudEvents == null ? newCloudEvents : findCloudEvents(tenantId);
             sendCloudEvents(cloudEvents);
         } while (isProcessContinue(tenantId, cloudEvents));
+    }
+
+    private boolean isProcessContinue(TenantId tenantId, PageData<CloudEvent> cloudEvents) {
+        return super.isProcessContinue(tenantId) && !cloudEvents.getData().isEmpty();
     }
 
     protected abstract PageData<CloudEvent> findCloudEvents(TenantId tenantId);

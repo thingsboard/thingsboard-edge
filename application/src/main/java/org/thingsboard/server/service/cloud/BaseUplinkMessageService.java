@@ -309,8 +309,8 @@ public abstract class BaseUplinkMessageService {
         };
     }
 
-    protected boolean isProcessContinue(TenantId tenantId, PageData<CloudEvent> cloudEvents) {
-        return !newMessagesAvailableInGeneralQueue(tenantId) && cloudEvents.hasNext();
+    protected boolean isProcessContinue(TenantId tenantId) {
+        return !newMessagesAvailableInGeneralQueue(tenantId);
     }
 
     protected abstract boolean newMessagesAvailableInGeneralQueue(TenantId tenantId);
