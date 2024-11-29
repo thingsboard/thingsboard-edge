@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.processor.wl;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.EdgeUtils;
@@ -50,6 +51,7 @@ import org.thingsboard.server.common.data.wl.LoginWhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.common.data.wl.WhiteLabelingParams;
 import org.thingsboard.server.common.data.wl.WhiteLabelingType;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.gen.edge.v1.DownlinkMsg;
 import org.thingsboard.server.gen.edge.v1.EdgeVersion;
 import org.thingsboard.server.gen.edge.v1.LoginWhiteLabelingParamsProto;
@@ -57,6 +59,7 @@ import org.thingsboard.server.gen.edge.v1.WhiteLabelingParamsProto;
 import org.thingsboard.server.gen.edge.v1.WhiteLabelingProto;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.edge.rpc.constructor.wl.WhiteLabelingParamsProtoConstructor;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 import org.thingsboard.server.service.edge.rpc.utils.EdgeVersionUtils;
 
@@ -68,6 +71,12 @@ import java.util.UUID;
 @Component
 @TbCoreComponent
 public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
+
+    @Autowired
+    protected WhiteLabelingService whiteLabelingService;
+
+    @Autowired
+    protected WhiteLabelingParamsProtoConstructor whiteLabelingParamsProtoConstructor;
 
     public DownlinkMsg convertWhiteLabelingEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         DownlinkMsg result = null;
@@ -245,8 +254,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             case TENANT:
                 List<ListenableFuture<Void>> futures = new ArrayList<>();
                 if (TenantId.SYS_TENANT_ID.equals(tenantId)) {
-                    PageDataIterable<TenantId> tenantIds = new PageDataIterable<>(
-                            link -> tenantService.findTenantsIds(link), 1024);
+                    PageDataIterable<TenantId> tenantIds = new PageDataIterable<>(link -> edgeCtx.getTenantService().findTenantsIds(link), 1024);
                     for (TenantId tenantId1 : tenantIds) {
                         futures.addAll(processActionForAllEdgesByTenantId(tenantId1, type, actionType, null, JacksonUtil.valueToTree(entityId), sourceEdgeId, null));
                     }
@@ -257,7 +265,7 @@ public class WhiteLabelingEdgeProcessor extends BaseEdgeProcessor {
             case CUSTOMER:
                 if (EdgeEventActionType.UPDATED.equals(actionType)) {
                     List<EdgeId> edgesByCustomerId =
-                            customersHierarchyEdgeService.findAllEdgesInHierarchyByCustomerId(tenantId, new CustomerId(entityId.getId()));
+                            edgeCtx.getCustomersHierarchyEdgeService().findAllEdgesInHierarchyByCustomerId(tenantId, new CustomerId(entityId.getId()));
                     if (edgesByCustomerId != null) {
                         for (EdgeId edgeId : edgesByCustomerId) {
                             saveEdgeEvent(tenantId, edgeId, type, actionType, null, JacksonUtil.valueToTree(entityId));

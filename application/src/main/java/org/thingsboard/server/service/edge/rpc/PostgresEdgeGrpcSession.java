@@ -28,25 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.edge.rpc.processor.dashboard;
+package org.thingsboard.server.service.edge.rpc;
 
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.common.data.Dashboard;
-import org.thingsboard.server.common.data.id.DashboardId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.gen.edge.v1.DashboardUpdateMsg;
-import org.thingsboard.server.queue.util.TbCoreComponent;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import io.grpc.stub.StreamObserver;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.gen.edge.v1.ResponseMsg;
+import org.thingsboard.server.service.edge.EdgeContextComponent;
 
-@Primary
-@Component
-@TbCoreComponent
-public class DashboardEdgeProcessorV2 extends DashboardEdgeProcessor {
+import java.util.UUID;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.BiConsumer;
+
+@Slf4j
+public class PostgresEdgeGrpcSession extends EdgeGrpcSession {
+
+    PostgresEdgeGrpcSession(EdgeContextComponent ctx, StreamObserver<ResponseMsg> outputStream,
+                            BiConsumer<EdgeId, EdgeGrpcSession> sessionOpenListener,
+                            BiConsumer<Edge, UUID> sessionCloseListener, ScheduledExecutorService sendDownlinkExecutorService,
+                            int maxInboundMessageSize, int maxHighPriorityQueueSizePerSession) {
+        super(ctx, outputStream, sessionOpenListener, sessionCloseListener, sendDownlinkExecutorService, maxInboundMessageSize, maxHighPriorityQueueSizePerSession);
+    }
 
     @Override
-    protected Dashboard constructDashboardFromUpdateMsg(TenantId tenantId, DashboardId dashboardId, DashboardUpdateMsg dashboardUpdateMsg) {
-        return JacksonUtil.fromString(dashboardUpdateMsg.getEntity(), Dashboard.class, true);
+    public ListenableFuture<Boolean> migrateEdgeEvents() {
+        return Futures.immediateFuture(Boolean.FALSE);
     }
 
 }
