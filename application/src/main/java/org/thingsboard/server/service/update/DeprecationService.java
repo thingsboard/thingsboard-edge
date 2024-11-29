@@ -53,9 +53,16 @@ public class DeprecationService {
     @Value("${queue.type}")
     private String queueType;
 
+    @Value("${database.ts.type}")
+    private String tsType;
+
+    @Value("${database.ts_latest.type}")
+    private String tsLatestType;
+
     @AfterStartUp(order = Integer.MAX_VALUE)
     public void checkDeprecation() {
         checkQueueTypeDeprecation();
+        checkDatabaseTypeDeprecation();
     }
 
     private void checkQueueTypeDeprecation() {
@@ -78,4 +85,16 @@ public class DeprecationService {
                 )));
     }
 
+    private void checkDatabaseTypeDeprecation() {
+        if ("timescale".equals(tsType) || "timescale".equals(tsLatestType)) {
+            String deprecatedDatabaseType = "Timescale";
+
+            log.warn("WARNING: Starting with ThingsBoard 4.0, the database type {} will no longer be supported as a storage provider. " +
+                    "Please migrate to Cassandra or PostgreSQL.", deprecatedDatabaseType);
+            notificationCenter.sendGeneralWebNotification(TenantId.SYS_TENANT_ID, new SystemAdministratorsFilter(),
+                    DefaultNotifications.databaseTypeDeprecation.toTemplate(), new GeneralNotificationInfo(Map.of(
+                            "databaseType", deprecatedDatabaseType
+                    )));
+        }
+    }
 }
