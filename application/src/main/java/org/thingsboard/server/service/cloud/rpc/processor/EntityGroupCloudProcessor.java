@@ -93,21 +93,21 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
                 case ENTITY_UPDATED_RPC_MESSAGE:
                     entityGroupCreationLock.lock();
                     try {
-                        entityGroupService.saveEntityGroup(tenantId, entityGroup.getOwnerId(), entityGroup, false);
+                        edgeCtx.getEntityGroupService().saveEntityGroup(tenantId, entityGroup.getOwnerId(), entityGroup, false);
                     } finally {
                         entityGroupCreationLock.unlock();
                     }
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    ListenableFuture<EntityGroup> entityGroupByIdAsyncFuture = entityGroupService.findEntityGroupByIdAsync(tenantId, entityGroupId);
+                    ListenableFuture<EntityGroup> entityGroupByIdAsyncFuture = edgeCtx.getEntityGroupService().findEntityGroupByIdAsync(tenantId, entityGroupId);
                     ListenableFuture<Void> deleteFuture = Futures.transformAsync(entityGroupByIdAsyncFuture, entityGroupFromDb -> {
                         if (entityGroupFromDb != null) {
-                            ListenableFuture<List<EntityId>> entityIdsFuture = entityGroupService.findAllEntityIdsAsync(tenantId, entityGroupId, new TimePageLink(Integer.MAX_VALUE));
+                            ListenableFuture<List<EntityId>> entityIdsFuture = edgeCtx.getEntityGroupService().findAllEntityIdsAsync(tenantId, entityGroupId, new TimePageLink(Integer.MAX_VALUE));
                             return Futures.transformAsync(entityIdsFuture, entityIds -> {
                                 List<ListenableFuture<Void>> deleteEntitiesFutures = new ArrayList<>();
                                 if (entityIds != null && !entityIds.isEmpty()) {
                                     for (EntityId entityId : entityIds) {
-                                        ListenableFuture<List<EntityGroupId>> entityGroupsForEntityFuture = entityGroupService.findEntityGroupsForEntityAsync(tenantId, entityId);
+                                        ListenableFuture<List<EntityGroupId>> entityGroupsForEntityFuture = edgeCtx.getEntityGroupService().findEntityGroupsForEntityAsync(tenantId, entityId);
                                         deleteEntitiesFutures.add(Futures.transform(entityGroupsForEntityFuture, entityGroupIds -> {
                                             if (entityGroupIds != null && entityGroupIds.contains(entityGroupId) && entityGroupIds.size() == 2) {
                                                 deleteEntityById(tenantId, entityId);
@@ -118,7 +118,7 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
                                 }
                                 ListenableFuture<List<Void>> allFuture = Futures.allAsList(deleteEntitiesFutures);
                                 return Futures.transform(allFuture, all -> {
-                                    entityGroupService.deleteEntityGroup(tenantId, entityGroupId);
+                                    edgeCtx.getEntityGroupService().deleteEntityGroup(tenantId, entityGroupId);
                                     return null;
                                 }, dbCallbackExecutorService);
                             }, dbCallbackExecutorService);
@@ -150,33 +150,33 @@ public class EntityGroupCloudProcessor extends BaseEdgeProcessor {
     private void deleteEntityById(TenantId tenantId, EntityId entityId) {
         switch (entityId.getEntityType()) {
             case DEVICE -> {
-                Device deviceToDelete = deviceService.findDeviceById(tenantId, new DeviceId(entityId.getId()));
+                Device deviceToDelete = edgeCtx.getDeviceService().findDeviceById(tenantId, new DeviceId(entityId.getId()));
                 if (deviceToDelete != null) {
-                    deviceService.deleteDevice(tenantId, deviceToDelete.getId());
+                    edgeCtx.getDeviceService().deleteDevice(tenantId, deviceToDelete.getId());
                 }
             }
             case ASSET -> {
-                Asset assetToDelete = assetService.findAssetById(tenantId, new AssetId(entityId.getId()));
+                Asset assetToDelete = edgeCtx.getAssetService().findAssetById(tenantId, new AssetId(entityId.getId()));
                 if (assetToDelete != null) {
-                    assetService.deleteAsset(tenantId, assetToDelete.getId());
+                    edgeCtx.getAssetService().deleteAsset(tenantId, assetToDelete.getId());
                 }
             }
             case ENTITY_VIEW -> {
-                EntityView entityViewToDelete = entityViewService.findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
+                EntityView entityViewToDelete = edgeCtx.getEntityViewService().findEntityViewById(tenantId, new EntityViewId(entityId.getId()));
                 if (entityViewToDelete != null) {
-                    entityViewService.deleteEntityView(tenantId, entityViewToDelete.getId());
+                    edgeCtx.getEntityViewService().deleteEntityView(tenantId, entityViewToDelete.getId());
                 }
             }
             case USER -> {
-                User userToDelete = userService.findUserById(tenantId, new UserId(entityId.getId()));
+                User userToDelete = edgeCtx.getUserService().findUserById(tenantId, new UserId(entityId.getId()));
                 if (userToDelete != null) {
-                    userService.deleteUser(tenantId, userToDelete.getId());
+                    edgeCtx.getUserService().deleteUser(tenantId, userToDelete.getId());
                 }
             }
             case DASHBOARD -> {
-                Dashboard dashboardToDelete = dashboardService.findDashboardById(tenantId, new DashboardId(entityId.getId()));
+                Dashboard dashboardToDelete = edgeCtx.getDashboardService().findDashboardById(tenantId, new DashboardId(entityId.getId()));
                 if (dashboardToDelete != null) {
-                    dashboardService.deleteDashboard(tenantId, dashboardToDelete.getId());
+                    edgeCtx.getDashboardService().deleteDashboard(tenantId, dashboardToDelete.getId());
                 }
             }
         }

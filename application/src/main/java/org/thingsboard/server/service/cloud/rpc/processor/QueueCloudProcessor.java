@@ -30,21 +30,18 @@
  */
 package org.thingsboard.server.service.cloud.rpc.processor;
 
-import com.datastax.oss.driver.api.core.uuid.Uuids;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.id.QueueId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.queue.ProcessingStrategy;
-import org.thingsboard.server.common.data.queue.ProcessingStrategyType;
 import org.thingsboard.server.common.data.queue.Queue;
-import org.thingsboard.server.common.data.queue.SubmitStrategy;
-import org.thingsboard.server.common.data.queue.SubmitStrategyType;
 import org.thingsboard.server.gen.edge.v1.QueueUpdateMsg;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
+import org.thingsboard.server.service.entitiy.queue.TbQueueService;
 
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -53,6 +50,9 @@ import java.util.concurrent.locks.ReentrantLock;
 @Component
 @Slf4j
 public class QueueCloudProcessor extends BaseEdgeProcessor {
+
+    @Autowired
+    private TbQueueService tbQueueService;
 
     private final Lock queueCreationLock = new ReentrantLock();
 
@@ -69,16 +69,16 @@ public class QueueCloudProcessor extends BaseEdgeProcessor {
                         if (queue == null) {
                             throw new RuntimeException("[{" + tenantId + "}] queueUpdateMsg {" + queueUpdateMsg + "} cannot be converted to queue");
                         }
-                        Queue queueById = queueService.findQueueById(tenantId, queueId);
+                        Queue queueById = edgeCtx.getQueueService().findQueueById(tenantId, queueId);
                         boolean create = queueById == null;
-                        queueService.saveQueue(queue, false);
+                        edgeCtx.getQueueService().saveQueue(queue, false);
                         tbQueueService.saveQueue(queue, create);
                     } finally {
                         queueCreationLock.unlock();
                     }
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    Queue queue = queueService.findQueueById(tenantId, queueId);
+                    Queue queue = edgeCtx.getQueueService().findQueueById(tenantId, queueId);
                     if (queue != null) {
                         tbQueueService.deleteQueue(tenantId, queueId);
                     }

@@ -122,10 +122,10 @@ public abstract class BaseEdgeProcessor {
     protected EdgeSynchronizationManager edgeSynchronizationManager;
 
     @Autowired
-    protected CloudEventService cloudEventService;
+    protected CloudSynchronizationManager cloudSynchronizationManager;
 
     @Autowired
-    protected CloudSynchronizationManager cloudSynchronizationManager;
+    protected CloudEventService cloudEventService;
 
     @Autowired
     protected DbCallbackExecutorService dbCallbackExecutorService;

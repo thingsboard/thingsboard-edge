@@ -61,19 +61,19 @@ public class WidgetTypeCloudProcessor extends BaseEdgeProcessor {
                         if (widgetTypeDetails == null) {
                             throw new RuntimeException("[{" + tenantId + "}] widgetTypeUpdateMsg {" + widgetTypeUpdateMsg + "} cannot be converted to widget type");
                         }
-                        WidgetType widgetTypeByTenantIdAndFqn = widgetTypeService.findWidgetTypeByTenantIdAndFqn(widgetTypeDetails.getTenantId(), widgetTypeDetails.getFqn());
+                        WidgetType widgetTypeByTenantIdAndFqn = edgeCtx.getWidgetTypeService().findWidgetTypeByTenantIdAndFqn(widgetTypeDetails.getTenantId(), widgetTypeDetails.getFqn());
                         if (widgetTypeByTenantIdAndFqn != null && !widgetTypeByTenantIdAndFqn.getId().equals(widgetTypeDetails.getId())) {
-                            widgetTypeService.deleteWidgetType(widgetTypeByTenantIdAndFqn.getTenantId(), widgetTypeByTenantIdAndFqn.getId());
+                            edgeCtx.getWidgetTypeService().deleteWidgetType(widgetTypeByTenantIdAndFqn.getTenantId(), widgetTypeByTenantIdAndFqn.getId());
                         }
-                        widgetTypeService.saveWidgetType(widgetTypeDetails, false);
+                        edgeCtx.getWidgetTypeService().saveWidgetType(widgetTypeDetails, false);
                     } finally {
                         widgetCreationLock.unlock();
                     }
                     break;
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    WidgetType widgetType = widgetTypeService.findWidgetTypeById(tenantId, widgetTypeId);
+                    WidgetType widgetType = edgeCtx.getWidgetTypeService().findWidgetTypeById(tenantId, widgetTypeId);
                     if (widgetType != null) {
-                        widgetTypeService.deleteWidgetType(tenantId, widgetType.getId());
+                        edgeCtx.getWidgetTypeService().deleteWidgetType(tenantId, widgetType.getId());
                     }
                     break;
                 case UNRECOGNIZED:

@@ -68,23 +68,23 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
                         renamePreviousTenantProfile(tenantProfileByName);
                         removePreviousProfile = true;
                     }
-                    TenantProfile tenantProfile = tenantProfileService.findTenantProfileById(tenantId, tenantProfileMsg.getId());
+                    TenantProfile tenantProfile = edgeCtx.getTenantProfileService().findTenantProfileById(tenantId, tenantProfileMsg.getId());
                     boolean isDefault = tenantProfileMsg.isDefault();
                     if (tenantProfile == null) {
                         tenantProfileMsg.setDefault(false);
-                        tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfileMsg, false);
+                        edgeCtx.getTenantProfileService().saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfileMsg, false);
                     }
                     if (isDefault) {
-                        tenantProfileService.setDefaultTenantProfile(TenantId.SYS_TENANT_ID, tenantProfileMsg.getId());
+                        edgeCtx.getTenantProfileService().setDefaultTenantProfile(TenantId.SYS_TENANT_ID, tenantProfileMsg.getId());
                         tenantProfileMsg.setDefault(true);
                     }
 
                     clearRateLimitsProfileConfiguration(tenantProfileMsg);
-                    tenantProfileService.saveTenantProfile(tenantId, tenantProfileMsg, false);
+                    edgeCtx.getTenantProfileService().saveTenantProfile(tenantId, tenantProfileMsg, false);
 
                     if (removePreviousProfile) {
                         updateTenants(tenantProfileMsg.getId(), tenantProfileByName.getId());
-                        tenantProfileService.deleteTenantProfile(tenantId, tenantProfileByName.getId());
+                        edgeCtx.getTenantProfileService().deleteTenantProfile(tenantId, tenantProfileByName.getId());
                     }
 
                     break;
@@ -137,7 +137,7 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
 
     private TenantProfile findTenantProfileByName(TenantId tenantId, String name) {
         PageDataIterable<TenantProfile> tenantProfiles = new PageDataIterable<>(
-                link -> tenantProfileService.findTenantProfiles(tenantId, link), 1000);
+                link -> edgeCtx.getTenantProfileService().findTenantProfiles(tenantId, link), 1000);
 
         for (TenantProfile tenantProfile : tenantProfiles) {
             if (tenantProfile.getName().equals(name)) {
@@ -149,16 +149,16 @@ public class TenantProfileCloudProcessor extends BaseEdgeProcessor {
 
     private void renamePreviousTenantProfile(TenantProfile tenantProfileByName) {
         tenantProfileByName.setName(tenantProfileByName.getName() + StringUtils.randomAlphanumeric(15));
-        tenantProfileService.saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfileByName);
+        edgeCtx.getTenantProfileService().saveTenantProfile(TenantId.SYS_TENANT_ID, tenantProfileByName);
     }
 
     private void updateTenants(TenantProfileId newTenantProfileId, TenantProfileId oldTenantProfileId) {
-        List<TenantId> tenantIdList = tenantService.findTenantIdsByTenantProfileId(oldTenantProfileId);
-        PageDataIterable<Tenant> tenants = new PageDataIterable<>(link -> tenantService.findTenants(link), 1000);
+        List<TenantId> tenantIdList = edgeCtx.getTenantService().findTenantIdsByTenantProfileId(oldTenantProfileId);
+        PageDataIterable<Tenant> tenants = new PageDataIterable<>(link -> edgeCtx.getTenantService().findTenants(link), 1000);
         for (Tenant tenant : tenants) {
             if (tenantIdList.contains(tenant.getId())) {
                 tenant.setTenantProfileId(newTenantProfileId);
-                tenantService.saveTenant(tenant);
+                edgeCtx.getTenantService().saveTenant(tenant);
             }
         }
     }

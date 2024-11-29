@@ -90,7 +90,6 @@ import org.thingsboard.server.dao.edge.EdgeService;
 import org.thingsboard.server.dao.entityview.EntityViewService;
 import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.integration.IntegrationService;
-import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.notification.NotificationTemplateService;
 import org.thingsboard.server.dao.relation.RelationService;
 import org.thingsboard.server.dao.rule.RuleChainService;
@@ -202,9 +201,6 @@ public class DefaultDataUpdateService implements DataUpdateService {
 
     @Autowired
     private NotificationTemplateService notificationTemplateService;
-
-    @Autowired
-    private NotificationSettingsService notificationSettingsService;
 
     @Override
     public void updateData(String fromVersion) throws Exception {
