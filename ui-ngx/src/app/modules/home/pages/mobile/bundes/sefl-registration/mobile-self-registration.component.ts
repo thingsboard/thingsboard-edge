@@ -244,7 +244,7 @@ export class MobileSelfRegistrationComponent implements ControlValueAccessor, Va
       const ctx: any = {
         disabled: this.selfRegistrationForm.disabled,
         title: isPrivacy ? 'self-registration.privacy-policy-text' : 'self-registration.terms-of-use-text',
-        releaseNotes: isPrivacy
+        content: isPrivacy
           ? this.selfRegistrationForm.get('privacyPolicy').value
           : this.selfRegistrationForm.get('termsOfUse').value
       };
