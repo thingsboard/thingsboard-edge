@@ -69,7 +69,8 @@ export class EditorPanelComponent implements OnInit {
     height: 400,
     autofocus: false,
     branding: false,
-    promotion: false
+    promotion: false,
+    resize: false
   };
 
   constructor(private fb: FormBuilder) {
@@ -79,6 +80,9 @@ export class EditorPanelComponent implements OnInit {
     this.editorControl = this.fb.control(this.content);
     if (this.disabled) {
       this.editorControl.disable({emitEvent: false});
+      this.tinyMceOptions.toolbar = false;
+      this.tinyMceOptions.menubar = false;
+      this.tinyMceOptions.statusbar = false;
     }
   }
 
