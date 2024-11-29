@@ -28,21 +28,43 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.edge;
+package org.thingsboard.server.service.edge.rpc;
 
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.stereotype.Service;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
-import org.thingsboard.server.common.data.id.EdgeId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.page.PageData;
-import org.thingsboard.server.common.data.page.TimePageLink;
+import org.thingsboard.server.common.msg.queue.TopicPartitionInfo;
+import org.thingsboard.server.common.util.ProtoUtils;
+import org.thingsboard.server.dao.edge.BaseEdgeEventService;
+import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeEventNotificationMsg;
+import org.thingsboard.server.queue.common.TbProtoQueueMsg;
+import org.thingsboard.server.queue.discovery.TopicService;
+import org.thingsboard.server.queue.provider.TbQueueProducerProvider;
 
-public interface EdgeEventService {
+import java.util.UUID;
 
-    ListenableFuture<Void> saveAsync(EdgeEvent edgeEvent);
+@Slf4j
+@Service
+@RequiredArgsConstructor
+@ConditionalOnExpression("'${queue.type:null}'=='kafka'")
+public class KafkaEdgeEventService extends BaseEdgeEventService {
 
-    PageData<EdgeEvent> findEdgeEvents(TenantId tenantId, EdgeId edgeId, Long seqIdStart, Long seqIdEnd, TimePageLink pageLink);
+    private final TopicService topicService;
+    private final TbQueueProducerProvider producerProvider;
 
-    void cleanupEvents(long ttl);
+    @Override
+    public ListenableFuture<Void> saveAsync(EdgeEvent edgeEvent) {
+        validateEdgeEvent(edgeEvent);
+
+        TopicPartitionInfo tpi = topicService.getEdgeEventNotificationsTopic(edgeEvent.getTenantId(), edgeEvent.getEdgeId());
+        ToEdgeEventNotificationMsg msg = ToEdgeEventNotificationMsg.newBuilder().setEdgeEventMsg(ProtoUtils.toProto(edgeEvent)).build();
+        producerProvider.getTbEdgeEventsMsgProducer().send(tpi, new TbProtoQueueMsg<>(UUID.randomUUID(), msg), null);
+
+        return Futures.immediateFuture(null);
+    }
 
 }

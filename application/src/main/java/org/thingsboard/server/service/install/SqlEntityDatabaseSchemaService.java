@@ -47,7 +47,7 @@ public class SqlEntityDatabaseSchemaService extends SqlAbstractDatabaseSchemaSer
     public static final String SCHEMA_ENTITIES_IDX_PSQL_ADDON_SQL = "schema-entities-idx-psql-addon.sql";
     public static final String SCHEMA_VIEWS_AND_FUNCTIONS_SQL = "schema-views-and-functions.sql";
 
-    @Autowired
+    @Autowired(required = false)
     private BuildProperties buildProperties;
     @Autowired
     private JdbcTemplate jdbcTemplate;

@@ -122,6 +122,8 @@ import static org.thingsboard.server.controller.ControllerConstants.TENANT_AUTHO
 import static org.thingsboard.server.controller.ControllerConstants.TEST_DOWNLINK_CONVERTER_DEFINITION;
 import static org.thingsboard.server.controller.ControllerConstants.TEST_UPLINK_CONVERTER_DEFINITION;
 import static org.thingsboard.server.controller.ControllerConstants.UUID_WIKI_LINK;
+import static org.thingsboard.server.controller.ControllerConstants.INCLUDE_GATEWAY_INFO;
+import static org.thingsboard.server.controller.ControllerConstants.IS_GATEWAY_INFO_INCLUDED;
 
 @RestController
 @TbCoreComponent
@@ -287,6 +289,7 @@ public class ConverterController extends AutoCommitController {
         ObjectNode debugIn = JacksonUtil.newObjectNode();
         ObjectNode metadata = JacksonUtil.newObjectNode();
         metadata.put(INTEGRATION_NAME, integrationName);
+        metadata.put(INCLUDE_GATEWAY_INFO, IS_GATEWAY_INFO_INCLUDED);
         String inContent = converterDefaultMessages.get(targetIntegrationType);
 
         if (converterDefaultMetadatas.containsKey(targetIntegrationType)) {

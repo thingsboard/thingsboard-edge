@@ -50,9 +50,9 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class RelatedEdgesSourcingListener {
 
     private final RelatedEdgesService relatedEdgesService;

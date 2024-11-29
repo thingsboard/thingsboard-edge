@@ -38,6 +38,7 @@ import org.thingsboard.server.gen.integration.ToIntegrationExecutorDownlinkMsg;
 import org.thingsboard.server.gen.integration.ToIntegrationExecutorNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToCoreNotificationMsg;
+import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeEventNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToEdgeNotificationMsg;
 import org.thingsboard.server.gen.transport.TransportProtos.ToHousekeeperServiceMsg;
@@ -67,6 +68,7 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
     private TbQueueProducer<TbProtoQueueMsg<ToHousekeeperServiceMsg>> toHousekeeper;
     private TbQueueProducer<TbProtoQueueMsg<ToEdgeMsg>> toEdge;
     private TbQueueProducer<TbProtoQueueMsg<ToEdgeNotificationMsg>> toEdgeNotifications;
+    private TbQueueProducer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> toEdgeEvents;
 
     public TbRuleEngineProducerProvider(TbRuleEngineQueueFactory tbQueueProvider) {
         this.tbQueueProvider = tbQueueProvider;
@@ -85,6 +87,7 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
         this.toHousekeeper = tbQueueProvider.createHousekeeperMsgProducer();
         this.toEdge = tbQueueProvider.createEdgeMsgProducer();
         this.toEdgeNotifications = tbQueueProvider.createEdgeNotificationsMsgProducer();
+        this.toEdgeEvents = tbQueueProvider.createEdgeEventMsgProducer();
     }
 
     @Override
@@ -125,6 +128,11 @@ public class TbRuleEngineProducerProvider implements TbQueueProducerProvider {
     @Override
     public TbQueueProducer<TbProtoQueueMsg<ToEdgeNotificationMsg>> getTbEdgeNotificationsMsgProducer() {
         return toEdgeNotifications;
+    }
+
+    @Override
+    public TbQueueProducer<TbProtoQueueMsg<ToEdgeEventNotificationMsg>> getTbEdgeEventsMsgProducer() {
+        return toEdgeEvents;
     }
 
     @Override
