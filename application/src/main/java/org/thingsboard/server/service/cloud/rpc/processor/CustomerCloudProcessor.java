@@ -50,15 +50,15 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                         if (customer == null) {
                             throw new RuntimeException("[{" + tenantId + "}] customerUpdateMsg {" + customerUpdateMsg + "} cannot be converted to customer");
                         }
-                        customerService.saveCustomer(customer, false);
+                        edgeCtx.getCustomerService().saveCustomer(customer, false);
                     } finally {
                         customerCreationLock.unlock();
                     }
                     return requestForAdditionalData(tenantId, customerId, queueStartTs);
                 case ENTITY_DELETED_RPC_MESSAGE:
-                    Customer customerById = customerService.findCustomerById(tenantId, customerId);
+                    Customer customerById = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
                     if (customerById != null) {
-                       customerService.deleteCustomer(tenantId, customerId);
+                        edgeCtx.getCustomerService().deleteCustomer(tenantId, customerId);
                     }
                     return Futures.immediateFuture(null);
                 case UNRECOGNIZED:
@@ -72,7 +72,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
 
     public void createCustomerIfNotExists(TenantId tenantId, EdgeConfiguration edgeConfiguration) {
         CustomerId customerId = safeGetCustomerId(edgeConfiguration.getCustomerIdMSB(), edgeConfiguration.getCustomerIdLSB());
-        Customer customer = customerService.findCustomerById(tenantId, customerId);
+        Customer customer = edgeCtx.getCustomerService().findCustomerById(tenantId, customerId);
         if (customer == null && customerId != null && !customerId.isNullUid()) {
             customerCreationLock.lock();
             try {
@@ -81,7 +81,7 @@ public class CustomerCloudProcessor extends BaseEdgeProcessor {
                 customer.setCreatedTime(Uuids.unixTimestamp(customerId.getId()));
                 customer.setTenantId(tenantId);
                 customer.setTitle("TMP_NAME_" + StringUtils.randomAlphanumeric(10));
-                customerService.saveCustomer(customer, false);
+                edgeCtx.getCustomerService().saveCustomer(customer, false);
             } finally {
                 customerCreationLock.unlock();
             }

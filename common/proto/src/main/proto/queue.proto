@@ -1127,6 +1127,18 @@ message ComponentLifecycleMsgProto {
   ComponentLifecycleEvent event = 6;
 }
 
+message EdgeEventMsgProto {
+  int64 tenantIdMSB = 1;
+  int64 tenantIdLSB = 2;
+  string entityType = 3;
+  string action = 4;
+  optional int64 edgeIdMSB = 5;
+  optional int64 edgeIdLSB = 6;
+  optional int64 entityIdMSB = 7;
+  optional int64 entityIdLSB = 8;
+  optional string body = 9;
+}
+
 message EdgeNotificationMsgProto {
   int64 tenantIdMSB = 1;
   int64 tenantIdLSB = 2;
@@ -1547,6 +1559,10 @@ message ToEdgeNotificationMsg {
   ToEdgeSyncRequestMsgProto toEdgeSyncRequest = 3;
   FromEdgeSyncResponseMsgProto fromEdgeSyncResponse = 4;
   ComponentLifecycleMsgProto componentLifecycle = 5;
+}
+
+message ToEdgeEventNotificationMsg {
+  EdgeEventMsgProto edgeEventMsg = 1;
 }
 
 /* Messages that are handled by ThingsBoard RuleEngine Service */
