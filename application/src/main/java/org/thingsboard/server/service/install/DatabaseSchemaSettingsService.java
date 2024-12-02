@@ -30,8 +30,14 @@
  */
 package org.thingsboard.server.service.install;
 
-public interface DatabaseTsUpgradeService {
+public interface DatabaseSchemaSettingsService {
+    void validateSchemaSettings(boolean fromCE);
 
-    void upgradeDatabase(String fromVersion) throws Exception;
+    void createSchemaSettings();
 
+    void updateSchemaVersion();
+
+    String getPackageSchemaVersion();
+
+    String getDbSchemaVersion();
 }
