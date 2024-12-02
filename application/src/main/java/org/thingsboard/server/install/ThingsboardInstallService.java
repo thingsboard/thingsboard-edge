@@ -114,8 +114,6 @@ public class ThingsboardInstallService {
                 if ("cassandra-latest-to-postgres".equals(upgradeFromVersion)) {
                     log.info("Migrating ThingsBoard latest timeseries data from cassandra to SQL database ...");
                     latestMigrateService.migrate();
-                } else if (upgradeFromVersion.equals("3.6.2-images")) {
-                    installScripts.updateImages();
                 } else {
                     boolean fromCE = "CE".equals(upgradeFromVersion);
                     databaseSchemaVersionService.validateSchemaSettings(fromCE);
