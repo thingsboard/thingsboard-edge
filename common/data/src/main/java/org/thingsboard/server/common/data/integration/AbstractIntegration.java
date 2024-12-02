@@ -39,10 +39,11 @@ import lombok.Setter;
 import lombok.ToString;
 import org.thingsboard.server.common.data.BaseData;
 import org.thingsboard.server.common.data.EntityType;
-import org.thingsboard.server.common.data.HasDebugMode;
+import org.thingsboard.server.common.data.HasDebugSettings;
 import org.thingsboard.server.common.data.HasName;
 import org.thingsboard.server.common.data.HasVersion;
 import org.thingsboard.server.common.data.TenantEntity;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.validation.Length;
@@ -52,7 +53,7 @@ import org.thingsboard.server.common.data.validation.NoXss;
 @EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @ToString(callSuper = true)
-public abstract class AbstractIntegration extends BaseData<IntegrationId> implements HasName, TenantEntity, HasVersion, HasDebugMode {
+public abstract class AbstractIntegration extends BaseData<IntegrationId> implements HasName, TenantEntity, HasVersion, HasDebugSettings {
 
     private static final long serialVersionUID = 1934983577296873728L;
 
@@ -61,9 +62,9 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
     @Length(fieldName = "name")
     private String name;
     private IntegrationType type;
-    private boolean debugFailures;
-    private boolean debugAll;
-    private long debugAllUntil;
+    @Deprecated
+    private boolean debugMode;
+    private DebugSettings debugSettings;
     private Boolean enabled;
     private Boolean isRemote;
     private Boolean allowCreateDevicesOrAssets;
@@ -85,9 +86,7 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         this.tenantId = integration.getTenantId();
         this.name = integration.getName();
         this.type = integration.getType();
-        this.debugFailures = integration.isDebugFailures();
-        this.debugAll = integration.isDebugAll();
-        this.debugAllUntil = integration.getDebugAllUntil();
+        this.debugSettings = integration.getDebugSettings();
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
@@ -128,31 +127,26 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         this.type = type;
     }
 
-    @Schema(description = "Debug failures. ", example = "false")
-    public boolean isDebugFailures() {
-        return debugFailures;
+    @Schema(description = "Enable/disable debug. ", example = "false", deprecated = true)
+    @Override
+    public boolean isDebugMode() {
+        return debugMode;
     }
 
-    public void setDebugFailures(boolean debugFailures) {
-        this.debugFailures = debugFailures;
+    @Override
+    public void setDebugMode(boolean debugMode) {
+        this.debugMode = debugMode;
     }
 
-    @Schema(description = "Debug All. Used as a trigger for updating debugAllUntil.", example = "false")
-    public boolean isDebugAll() {
-        return debugAll;
+    @Schema(description = "Debug settings object.")
+    @Override
+    public DebugSettings getDebugSettings() {
+        return debugSettings;
     }
 
-    public void setDebugAll(boolean debugAll) {
-        this.debugAll = debugAll;
-    }
-
-    @Schema(description = "Timestamp of the end time for the processing debug events.")
-    public long getDebugAllUntil() {
-        return debugAllUntil;
-    }
-
-    public void setDebugAllUntil(long debugAllUntil) {
-        this.debugAllUntil = debugAllUntil;
+    @Override
+    public void setDebugSettings(DebugSettings debugSettings) {
+        this.debugSettings = debugSettings;
     }
 
     @Schema(description = "Boolean flag to enable/disable the integration")

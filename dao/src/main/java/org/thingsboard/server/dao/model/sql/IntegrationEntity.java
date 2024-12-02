@@ -39,6 +39,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -91,11 +93,8 @@ public class IntegrationEntity extends BaseVersionedEntity<Integration> {
     @Column(name = INTEGRATION_TYPE_PROPERTY)
     private IntegrationType type;
 
-    @Column(name = ModelConstants.DEBUG_FAILURES)
-    private boolean debugFailures;
-
-    @Column(name = ModelConstants.DEBUG__ALL_UNTIL)
-    private long debugAllUntil;
+    @Column(name = ModelConstants.DEBUG_SETTINGS)
+    private String debugSettings;
 
     @Column(name = INTEGRATION_ENABLED_PROPERTY)
     private Boolean enabled;
@@ -139,8 +138,7 @@ public class IntegrationEntity extends BaseVersionedEntity<Integration> {
         this.routingKey = integration.getRoutingKey();
         this.secret = integration.getSecret();
         this.type = integration.getType();
-        this.debugFailures = integration.isDebugFailures();
-        this.debugAllUntil = integration.getDebugAllUntil();
+        this.debugSettings = JacksonUtil.toString(integration.getDebugSettings());
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
@@ -170,8 +168,7 @@ public class IntegrationEntity extends BaseVersionedEntity<Integration> {
         integration.setRoutingKey(routingKey);
         integration.setSecret(secret);
         integration.setType(type);
-        integration.setDebugFailures(debugFailures);
-        integration.setDebugAllUntil(debugAllUntil);
+        integration.setDebugSettings(JacksonUtil.fromString(debugSettings, DebugSettings.class));
         integration.setEnabled(enabled);
         integration.setRemote(isRemote);
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);

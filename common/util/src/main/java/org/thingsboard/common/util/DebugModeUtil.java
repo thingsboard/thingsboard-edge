@@ -30,30 +30,58 @@
  */
 package org.thingsboard.common.util;
 
-import org.thingsboard.server.common.data.HasDebugMode;
+import org.thingsboard.server.common.data.HasDebugSettings;
 import org.thingsboard.server.common.data.msg.TbNodeConnectionType;
 
 import java.util.Set;
 
 public final class DebugModeUtil {
+
+    private static final int DEBUG_MODE_DEFAULT_DURATION_MINUTES = 15;
+
     private DebugModeUtil() {
     }
 
-    public static boolean isDebugAllAvailable(HasDebugMode debugMode) {
-        return debugMode.getDebugAllUntil() > System.currentTimeMillis();
+    public static int getMaxDebugAllDuration(int tenantProfileDuration, int systemDefaultDuration) {
+        if (tenantProfileDuration > 0) {
+            return tenantProfileDuration;
+        } else {
+            return systemDefaultDuration > 0 ? systemDefaultDuration : DEBUG_MODE_DEFAULT_DURATION_MINUTES;
+        }
     }
 
-    public static boolean isDebugAvailable(HasDebugMode debugMode, String nodeConnectionOrStatus) {
-        return isDebugAllAvailable(debugMode) || debugMode.isDebugFailures() &&
-                (TbNodeConnectionType.FAILURE.equals(nodeConnectionOrStatus) || "ERROR".equals(nodeConnectionOrStatus) || "FAILURE".equals(nodeConnectionOrStatus));
+    public static boolean isDebugAllAvailable(HasDebugSettings debugSettingsAware) {
+        var debugSettings = debugSettingsAware.getDebugSettings();
+        return debugSettings != null && debugSettings.getAllEnabledUntil() > System.currentTimeMillis();
     }
 
-    public static boolean isDebugFailuresAvailable(HasDebugMode debugMode, Set<String> nodeConnections) {
-        return isDebugFailuresAvailable(debugMode) && nodeConnections.contains(TbNodeConnectionType.FAILURE);
+    public static boolean isDebugAvailable(HasDebugSettings debugSettingsAware, String nodeConnection) {
+        if (isDebugAllAvailable(debugSettingsAware)) {
+            return true;
+        } else {
+            var debugSettings = debugSettingsAware.getDebugSettings();
+            return debugSettings != null && debugSettings.isFailuresEnabled() && TbNodeConnectionType.FAILURE.equals(nodeConnection);
+        }
     }
 
-    public static boolean isDebugFailuresAvailable(HasDebugMode debugMode) {
-        return debugMode.isDebugFailures() || isDebugAllAvailable(debugMode);
+    public static boolean isDebugFailuresAvailable(HasDebugSettings debugSettingsAware, Set<String> nodeConnections) {
+        if (isDebugAllAvailable(debugSettingsAware)) {
+            return true;
+        } else {
+            var debugSettings = debugSettingsAware.getDebugSettings();
+            return debugSettings != null && nodeConnections != null && debugSettings.isFailuresEnabled() && nodeConnections.contains(TbNodeConnectionType.FAILURE);
+            // || "ERROR".equals(nodeConnectionOrStatus) || "FAILURE".equals(nodeConnectionOrStatus)
+        }
+    }
+
+    public static boolean isDebugIntegrationFailuresAvailable(HasDebugSettings debugSettingsAware) {
+        if (isDebugAllAvailable(debugSettingsAware)) {
+            return true;
+        } else {
+            var debugSettings = debugSettingsAware.getDebugSettings();
+            return debugSettings != null && debugSettings.isFailuresEnabled();
+            // || "ERROR".equals(nodeConnectionOrStatus) || "FAILURE".equals(nodeConnectionOrStatus)
+        }
     }
 
 }

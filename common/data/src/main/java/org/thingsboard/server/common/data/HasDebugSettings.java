@@ -28,8 +28,20 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host {
-  .mini-debug-btn {
-    color: rgba(0, 0, 0, 0.6);
-  }
+package org.thingsboard.server.common.data;
+
+import org.thingsboard.server.common.data.debug.DebugSettings;
+
+public interface HasDebugSettings {
+
+    @Deprecated
+    boolean isDebugMode();
+
+    @Deprecated
+    void setDebugMode(boolean debugMode);
+
+    DebugSettings getDebugSettings();
+
+    void setDebugSettings(DebugSettings debugSettings);
+
 }

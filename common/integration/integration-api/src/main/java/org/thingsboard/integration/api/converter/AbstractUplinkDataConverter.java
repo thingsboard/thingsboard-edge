@@ -134,7 +134,7 @@ public abstract class AbstractUplinkDataConverter extends AbstractDataConverter 
         DonAsynchron.withCallback(result, r -> {
         }, t -> {
             if (t instanceof Exception) {
-                if (DebugModeUtil.isDebugFailuresAvailable(configuration)) {
+                if (DebugModeUtil.isDebugIntegrationFailuresAvailable(configuration)) {
                     persistUplinkDebug(context, metadata.getContentType(), data, metadata, (Exception) t);
                 }
             } else {

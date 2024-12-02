@@ -29,89 +29,142 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import {
-  Component,
-  Input,
-  Renderer2,
-  ViewContainerRef,
-  DestroyRef,
-  ChangeDetectionStrategy,
-  EventEmitter,
-  Output
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, Input, Renderer2, ViewContainerRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SharedModule } from '@shared/shared.module';
 import { DurationLeftPipe } from '@shared/pipe/duration-left.pipe';
 import { TbPopoverService } from '@shared/components/popover.service';
 import { MatButton } from '@angular/material/button';
-import { DebugConfigPanelComponent } from './debug-config-panel.component';
+import { DebugSettingsPanelComponent } from './debug-settings-panel.component';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { shareReplay, timer } from 'rxjs';
+import { of, shareReplay, timer } from 'rxjs';
 import { SECOND } from '@shared/models/time/time.models';
-import { HasDebugConfig } from '@shared/models/entity.models';
-import { map } from 'rxjs/operators';
+import { DebugSettings } from '@shared/models/entity.models';
+import { map, startWith, switchMap, takeWhile } from 'rxjs/operators';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 import { AppState } from '@core/core.state';
 import { Store } from '@ngrx/store';
+import { ControlValueAccessor, FormBuilder, NG_VALUE_ACCESSOR } from '@angular/forms';
 
 @Component({
-  selector: 'tb-debug-config-button',
-  templateUrl: './debug-config-button.component.html',
-  styleUrls: ['./debug-config-button.component.scss'],
+  selector: 'tb-debug-settings-button',
+  templateUrl: './debug-settings-button.component.html',
   standalone: true,
   imports: [
     CommonModule,
     SharedModule,
     DurationLeftPipe,
   ],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => DebugSettingsButtonComponent),
+      multi: true
+    },
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DebugConfigButtonComponent {
+export class DebugSettingsButtonComponent implements ControlValueAccessor {
 
-  @Input() debugFailures = false;
-  @Input() debugAll = false;
-  @Input() debugAllUntil = 0;
-  @Input() disabled = false;
-  @Input() minifyMode = false;
   @Input() debugLimitsConfiguration: string;
 
-  @Output() onDebugConfigChanged = new EventEmitter<HasDebugConfig>();
+  debugSettingsFormGroup = this.fb.group({
+    failuresEnabled: [false],
+    allEnabled: [false],
+    allEnabledUntil: []
+  });
 
-  isDebugAllActive$ = timer(0, SECOND).pipe(map(() => this.debugAllUntil > new Date().getTime() || this.debugAll), shareReplay(1));
+  disabled = false;
+
+  isDebugAllActive$ = this.debugSettingsFormGroup.get('allEnabled').valueChanges.pipe(
+    startWith(this.debugSettingsFormGroup.get('allEnabled').value),
+    switchMap(value => {
+      if (value) {
+        return of(true);
+      } else {
+        return timer(0, SECOND).pipe(
+          map(() => this.allEnabledUntil > new Date().getTime()),
+          takeWhile(value => value, true)
+        );
+      }
+    }),
+    takeUntilDestroyed(),
+    shareReplay(1)
+  );
 
   readonly maxDebugModeDurationMinutes = getCurrentAuthState(this.store).maxDebugModeDurationMinutes;
+
+  private propagateChange: (settings: DebugSettings) => void;
 
   constructor(private popoverService: TbPopoverService,
               private renderer: Renderer2,
               private store: Store<AppState>,
               private viewContainerRef: ViewContainerRef,
-              private destroyRef: DestroyRef,
-  ) {}
+              private fb: FormBuilder,
+  ) {
+    this.debugSettingsFormGroup.valueChanges.pipe(
+      takeUntilDestroyed()
+    ).subscribe(value => {
+      this.propagateChange(value);
+    })
+  }
+
+  get failuresEnabled(): boolean {
+    return this.debugSettingsFormGroup.get('failuresEnabled').value;
+  }
+
+  get allEnabled(): boolean {
+    return this.debugSettingsFormGroup.get('allEnabled').value;
+  }
+
+  get allEnabledUntil(): number {
+    return this.debugSettingsFormGroup.get('allEnabledUntil').value;
+  }
 
   openDebugStrategyPanel($event: Event, matButton: MatButton): void {
     if ($event) {
       $event.stopPropagation();
     }
     const trigger = matButton._elementRef.nativeElement;
+    const debugSettings = this.debugSettingsFormGroup.value;
+
     if (this.popoverService.hasPopover(trigger)) {
       this.popoverService.hidePopover(trigger);
     } else {
       const debugStrategyPopover = this.popoverService.displayPopover(trigger, this.renderer,
-        this.viewContainerRef, DebugConfigPanelComponent, 'bottom', true, null,
+        this.viewContainerRef, DebugSettingsPanelComponent, 'bottom', true, null,
         {
-          debugFailures: this.debugFailures,
-          debugAll: this.debugAll,
-          debugAllUntil: this.debugAllUntil,
+          ...debugSettings,
           maxDebugModeDurationMinutes: this.maxDebugModeDurationMinutes,
           debugLimitsConfiguration: this.debugLimitsConfiguration
         },
         {},
         {}, {}, true);
       debugStrategyPopover.tbComponentRef.instance.popover = debugStrategyPopover;
-      debugStrategyPopover.tbComponentRef.instance.onConfigApplied.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((config: HasDebugConfig) => {
-        this.onDebugConfigChanged.emit(config);
+      debugStrategyPopover.tbComponentRef.instance.onSettingsApplied.subscribe((settings: DebugSettings) => {
+        this.debugSettingsFormGroup.patchValue(settings);
         debugStrategyPopover.hide();
       });
+    }
+  }
+
+  registerOnChange(fn: (settings: DebugSettings) => void): void {
+    this.propagateChange = fn;
+  }
+
+  registerOnTouched(_: () => void): void {}
+
+  writeValue(settings: DebugSettings): void {
+    this.debugSettingsFormGroup.patchValue(settings, {emitEvent: false});
+    this.debugSettingsFormGroup.get('allEnabled').updateValueAndValidity({onlySelf: true});
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
+    if (isDisabled) {
+      this.debugSettingsFormGroup.disable({emitEvent: false});
+    } else {
+      this.debugSettingsFormGroup.enable({emitEvent: false});
     }
   }
 }

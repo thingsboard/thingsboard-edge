@@ -43,6 +43,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.thingsboard.common.util.DebugModeUtil;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.DashboardInfo;
 import org.thingsboard.server.common.data.EntityType;
@@ -90,8 +91,8 @@ public class SystemInfoController extends BaseController {
     @Value("${ui.dashboard.max_datapoints_limit}")
     private long maxDatapointsLimit;
 
-    @Value("${debug_mode.max_duration:15}")
-    private int maxDebugModeDurationMinutes;
+    @Value("${debug.settings.default_duration:15}")
+    private int defaultDebugDurationMinutes;
 
     @Value("${actors.rule.chain.debug_mode_rate_limits_per_tenant.enabled:true}")
     private boolean ruleChainDebugPerTenantLimitsEnabled;
@@ -186,7 +187,7 @@ public class SystemInfoController extends BaseController {
         if (!currentUser.isSystemAdmin()) {
             DefaultTenantProfileConfiguration tenantProfileConfiguration = tenantProfileCache.get(tenantId).getDefaultProfileConfiguration();
             systemParams.setMaxResourceSize(tenantProfileConfiguration.getMaxResourceSize());
-            systemParams.setMaxDebugModeDurationMinutes(tenantProfileConfiguration.getMaxDebugModeDurationMinutes(maxDebugModeDurationMinutes));
+            systemParams.setMaxDebugModeDurationMinutes(DebugModeUtil.getMaxDebugAllDuration(tenantProfileConfiguration.getMaxDebugModeDurationMinutes(), defaultDebugDurationMinutes));
             if (ruleChainDebugPerTenantLimitsEnabled) {
                 systemParams.setRuleChainDebugPerTenantLimitsConfiguration(ruleChainDebugPerTenantLimitsConfiguration);
             }

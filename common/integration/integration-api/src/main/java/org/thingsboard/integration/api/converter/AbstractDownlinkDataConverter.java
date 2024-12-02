@@ -88,7 +88,7 @@ public abstract class AbstractDownlinkDataConverter extends AbstractDataConverte
             }
             return result;
         } catch (Exception e) {
-            if (DebugModeUtil.isDebugFailuresAvailable(configuration)) {
+            if (DebugModeUtil.isDebugIntegrationFailuresAvailable(configuration)) {
                 persistDownlinkDebug(context, downLinkMsgs, metadata, e);
             }
             throw e;

@@ -518,8 +518,7 @@ public class ModelConstants {
     public static final String EVENT_OUT_MSG_COLUMN_NAME = "e_out_message";
 
     public static final String DEBUG_MODE = "debug_mode";
-    public static final String DEBUG_FAILURES = "debug_failures";
-    public static final String DEBUG__ALL_UNTIL = "debug_all_until";
+    public static final String DEBUG_SETTINGS = "debug_settings";
     public static final String SINGLETON_MODE = "singleton_mode";
     public static final String QUEUE_NAME = "queue_name";
 

@@ -39,8 +39,10 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.dao.model.BaseVersionedEntity;
@@ -72,11 +74,8 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
     @Column(name = CONVERTER_TYPE_PROPERTY)
     private ConverterType type;
 
-    @Column(name = ModelConstants.DEBUG_FAILURES)
-    private boolean debugFailures;
-
-    @Column(name = ModelConstants.DEBUG__ALL_UNTIL)
-    private long debugAllUntil;
+    @Column(name = ModelConstants.DEBUG_SETTINGS)
+    private String debugSettings;
 
     @Convert(converter = JsonConverter.class)
     @Column(name = ModelConstants.CONVERTER_CONFIGURATION_PROPERTY)
@@ -103,8 +102,7 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
         }
         this.name = converter.getName();
         this.type = converter.getType();
-        this.debugFailures = converter.isDebugFailures();
-        this.debugAllUntil = converter.getDebugAllUntil();
+        this.debugSettings = JacksonUtil.toString(converter.getDebugSettings());
         this.configuration = converter.getConfiguration();
         this.additionalInfo = converter.getAdditionalInfo();
         if (converter.getExternalId() != null) {
@@ -123,8 +121,7 @@ public final class ConverterEntity extends BaseVersionedEntity<Converter> {
         }
         converter.setName(name);
         converter.setType(type);
-        converter.setDebugFailures(debugFailures);
-        converter.setDebugAllUntil(debugAllUntil);
+        converter.setDebugSettings(JacksonUtil.fromString(debugSettings, DebugSettings.class));
         converter.setConfiguration(configuration);
         converter.setAdditionalInfo(additionalInfo);
         if (externalId != null) {
