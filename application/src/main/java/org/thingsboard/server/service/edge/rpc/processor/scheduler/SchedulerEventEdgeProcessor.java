@@ -31,6 +31,7 @@
 package org.thingsboard.server.service.edge.rpc.processor.scheduler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.edge.EdgeEvent;
@@ -42,24 +43,27 @@ import org.thingsboard.server.gen.edge.v1.SchedulerEventUpdateMsg;
 import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.constructor.scheduler.SchedulerEventMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.scheduler.SchedulerEventMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
-@Component
 @Slf4j
+@Component
 @TbCoreComponent
 public class SchedulerEventEdgeProcessor extends BaseEdgeProcessor {
 
+    @Autowired
+    protected SchedulerEventMsgConstructorFactory schedulerEventMsgConstructorFactory;
+
     public DownlinkMsg convertSchedulerEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         SchedulerEventId schedulerEventId = new SchedulerEventId(edgeEvent.getEntityId());
-        DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         var msgConstructor = (SchedulerEventMsgConstructor) schedulerEventMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion);
         switch (msgType) {
             case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
-                SchedulerEvent schedulerEvent = schedulerEventService.findSchedulerEventById(edgeEvent.getTenantId(), schedulerEventId);
+                SchedulerEvent schedulerEvent = edgeCtx.getSchedulerEventService().findSchedulerEventById(edgeEvent.getTenantId(), schedulerEventId);
                 if (schedulerEvent != null) {
                     SchedulerEventUpdateMsg schedulerEventUpdateMsg = msgConstructor.constructSchedulerEventUpdatedMsg(msgType, schedulerEvent);
-                    downlinkMsg = DownlinkMsg.newBuilder()
+                    return DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                             .addSchedulerEventUpdateMsg(schedulerEventUpdateMsg)
                             .build();
@@ -67,13 +71,13 @@ public class SchedulerEventEdgeProcessor extends BaseEdgeProcessor {
             }
             case ENTITY_DELETED_RPC_MESSAGE -> {
                 SchedulerEventUpdateMsg schedulerEventUpdateMsg = msgConstructor.constructEventDeleteMsg(schedulerEventId);
-                downlinkMsg = DownlinkMsg.newBuilder()
+                return DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
                         .addSchedulerEventUpdateMsg(schedulerEventUpdateMsg)
                         .build();
             }
         }
-        return downlinkMsg;
+        return null;
     }
 
 }

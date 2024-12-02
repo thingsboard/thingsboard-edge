@@ -28,37 +28,27 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.translation;
+package org.thingsboard.server.actors.device;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.server.common.data.id.CustomerId;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.common.data.translation.TranslationInfo;
-import org.thingsboard.server.dao.translation.TranslationCacheKey;
-import org.thingsboard.server.service.custommenu.EtagCacheService;
+import lombok.Getter;
 
-import java.util.List;
-import java.util.Set;
+@Getter
+public enum TransportSessionCloseReason {
 
-public interface TbTranslationService extends EtagCacheService<TranslationCacheKey> {
+    UNKNOWN_REASON(0, "Unknown Reason.", "Session closed with unknown reason."),
+    CREDENTIALS_UPDATED(1, "device credentials updated!", "Close session due to device credentials update."),
+    MAX_CONCURRENT_SESSIONS_LIMIT_REACHED(2, "max concurrent sessions limit reached per device!", "Remove eldest session (max concurrent sessions limit reached per device)."),
+    SESSION_TIMEOUT(3, "session timeout!", "Close session due to session timeout."),
+    RPC_DELIVERY_TIMEOUT(4, "RPC delivery failed!", "Close session due to RPC delivery failure.");
 
-    List<TranslationInfo> getTranslationInfos(TenantId tenantId, CustomerId customerId);
+    private final int protoNumber;
+    private final String notificationMessage;
+    private final String logMessage;
 
-    Set<String> getAvailableLocaleCodes(TenantId tenantId, CustomerId customerId);
-
-    JsonNode getLoginTranslation(String localeCode, String domainName);
-
-    JsonNode getFullTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
-
-    JsonNode getTranslationForBasicEdit(TenantId tenantId, CustomerId customerId, String localeCode);
-
-    void saveCustomTranslation(CustomTranslation customTranslation);
-
-    void patchCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode customTranslation);
-
-    void deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String key);
-
-    void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
+    TransportSessionCloseReason(int protoNumber, String notificationMessage, String logMessage) {
+        this.protoNumber = protoNumber;
+        this.notificationMessage = notificationMessage;
+        this.logMessage = logMessage;
+    }
 
 }

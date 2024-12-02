@@ -28,61 +28,34 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host ::ng-deep {
-  .mat-button-toggle-group.tb-notification-unread-toggle-group {
-    &.mat-button-toggle-group-appearance-standard {
-      border: none;
-      border-radius: 14px;
+package org.thingsboard.server.service.edge.rpc;
 
-      .mat-button-toggle + .mat-button-toggle {
-        border-left: none;
-      }
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import io.grpc.stub.StreamObserver;
+import lombok.extern.slf4j.Slf4j;
+import org.thingsboard.server.common.data.edge.Edge;
+import org.thingsboard.server.common.data.id.EdgeId;
+import org.thingsboard.server.gen.edge.v1.ResponseMsg;
+import org.thingsboard.server.service.edge.EdgeContextComponent;
+
+import java.util.UUID;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.BiConsumer;
+
+@Slf4j
+public class PostgresEdgeGrpcSession extends EdgeGrpcSession {
+
+    PostgresEdgeGrpcSession(EdgeContextComponent ctx, StreamObserver<ResponseMsg> outputStream,
+                            BiConsumer<EdgeId, EdgeGrpcSession> sessionOpenListener,
+                            BiConsumer<Edge, UUID> sessionCloseListener, ScheduledExecutorService sendDownlinkExecutorService,
+                            int maxInboundMessageSize, int maxHighPriorityQueueSizePerSession) {
+        super(ctx, outputStream, sessionOpenListener, sessionCloseListener, sendDownlinkExecutorService, maxInboundMessageSize, maxHighPriorityQueueSizePerSession);
     }
 
-    .mat-button-toggle {
-      background: rgba(0, 0, 0, 0.06);
-      height: 28px;
-      align-items: center;
-      display: flex;
-
-      .mat-button-toggle-ripple {
-        top: 2px;
-        left: 2px;
-        right: 2px;
-        bottom: 2px;
-        border-radius: 14px;
-      }
+    @Override
+    public ListenableFuture<Boolean> migrateEdgeEvents() {
+        return Futures.immediateFuture(Boolean.FALSE);
     }
 
-    .mat-button-toggle-button {
-      color: #959595;
-    }
-
-    .mat-button-toggle-focus-overlay {
-      border-radius: 14px;
-      margin: 2px;
-    }
-
-    .mat-button-toggle-checked .mat-button-toggle-button {
-      background-color: var(--tb-primary-500);
-      color: #fff;
-      border-radius: 14px;
-      margin-left: 2px;
-      margin-right: 2px;
-    }
-
-    .mat-button-toggle-appearance-standard .mat-button-toggle-label-content {
-      line-height: 24px;
-      font-size: 14px;
-      font-weight: 500;
-      letter-spacing: .25px;
-      .mat-pseudo-checkbox {
-        display: none;
-      }
-    }
-
-    .mat-button-toggle-checked.mat-button-toggle-appearance-standard:not(.mat-button-toggle-disabled):hover .mat-button-toggle-focus-overlay {
-      opacity: .01;
-    }
-  }
 }

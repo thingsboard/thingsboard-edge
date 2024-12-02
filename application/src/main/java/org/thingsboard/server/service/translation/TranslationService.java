@@ -28,43 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
+package org.thingsboard.server.service.translation;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-import org.thingsboard.server.dao.util.TimescaleDBTsDao;
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.translation.TranslationInfo;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.Connection;
+import java.util.List;
+import java.util.Set;
 
-@Service
-@Profile("install")
-@Slf4j
-@TimescaleDBTsDao
-public class TimescaleTsDatabaseUpgradeService extends AbstractSqlTsDatabaseUpgradeService implements DatabaseTsUpgradeService {
+public interface TranslationService {
 
-    @Autowired
-    private InstallScripts installScripts;
+    List<TranslationInfo> getTranslationInfos(TenantId tenantId, CustomerId customerId);
 
-    @Override
-    public void upgradeDatabase(String fromVersion) throws Exception {
-        switch (fromVersion) {
-            default:
-                throw new RuntimeException("Unable to upgrade SQL database, unsupported fromVersion: " + fromVersion);
-        }
-    }
+    Set<String> getAvailableLocaleCodes(TenantId tenantId, CustomerId customerId);
 
-    @Override
-    protected void loadSql(Connection conn, String fileName, String version) {
-        Path schemaUpdateFile = Paths.get(installScripts.getDataDir(), "upgrade", version, fileName);
-        try {
-            loadFunctions(schemaUpdateFile, conn);
-            log.info("Functions successfully loaded!");
-        } catch (Exception e) {
-            log.info("Failed to load PostgreSQL upgrade functions due to: {}", e.getMessage());
-        }
-    }
+    JsonNode getLoginTranslation(String localeCode, String domainName);
+
+    JsonNode getFullTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
+
+    JsonNode getTranslationForBasicEdit(TenantId tenantId, CustomerId customerId, String localeCode);
+
 }

@@ -28,10 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.service.install;
+package org.thingsboard.server.service.translation;
 
-public interface DatabaseTsUpgradeService {
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.dao.translation.TranslationCacheKey;
+import org.thingsboard.server.service.custommenu.EtagCacheService;
 
-    void upgradeDatabase(String fromVersion) throws Exception;
+public interface TbCustomTranslationService extends EtagCacheService<TranslationCacheKey> {
+
+    void saveCustomTranslation(CustomTranslation customTranslation);
+
+    void patchCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode customTranslation);
+
+    void deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String key);
+
+    void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
 }

@@ -29,6 +29,17 @@
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
 
+:host {
+  .tb-form-hint {
+    background-color: #00000008;
+    border-radius: 4px;
+    padding: 4px 8px;
+
+    .mat-icon {
+      color: #FAA405;
+    }
+  }
+}
 .tb-qrcode-preview {
   background-color: rgba(0, 0, 0, 0.04);
   box-shadow: none;
