@@ -59,6 +59,7 @@ import org.thingsboard.server.common.data.asset.AssetProfile;
 import org.thingsboard.server.common.data.audit.ActionType;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.device.data.DefaultDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.DeviceData;
 import org.thingsboard.server.common.data.device.profile.DefaultDeviceProfileConfiguration;
@@ -637,7 +638,7 @@ public class ExportImportServiceSqlTest extends AbstractControllerTest {
         converter.setConfiguration(JacksonUtil.newObjectNode()
                 .<ObjectNode>set("encoder", new TextNode("b"))
                 .set("decoder", new TextNode("c")));
-        converter.setDebugAll(true);
+        converter.setDebugSettings(DebugSettings.all());
         converter.setAdditionalInfo(JacksonUtil.newObjectNode().set("a", new TextNode("b")));
         return converterService.saveConverter(converter);
     }
