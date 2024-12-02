@@ -87,7 +87,7 @@ export class AzureEventHubIntegrationFormComponent extends IntegrationForm imple
       consumerGroup: [''],
       iotHubName: [''],
       storageConnectionString: [{value: '', disabled: true}, Validators.required],
-      containerName: [{value: '', disabled: true}],
+      containerName: [{value: '', disabled: true}, Validators.required],
       enablePersistentCheckpoints: [false]
     });
     this.azureEventHubIntegrationConfigForm.valueChanges.pipe(

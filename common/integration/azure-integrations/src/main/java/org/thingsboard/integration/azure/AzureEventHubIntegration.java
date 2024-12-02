@@ -160,7 +160,9 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
                 throw new RuntimeException("Unable to connect. Check for correct Connection String!", e);
             }
             try {
-                buildContainerClient(configuration).exists().block();
+                if (configuration.isEnablePersistentCheckpoints()) {
+                    buildContainerClient(configuration).exists().block();
+                }
             } catch (Exception e) {
                 throw new RuntimeException("Unable to connect. Check for correct Storage Connection String!", e);
             }
@@ -260,7 +262,9 @@ public class AzureEventHubIntegration extends AbstractIntegration<AzureEventHubI
     private CheckpointStore buildCheckpointStore(AzureEventHubClientConfiguration configuration) {
         CheckpointStore checkpointStore;
         if (configuration.isEnablePersistentCheckpoints()) {
-            checkpointStore = new BlobCheckpointStore(buildContainerClient(configuration));
+            BlobContainerAsyncClient containerClient = buildContainerClient(configuration);
+            containerClient.createIfNotExists().block();
+            checkpointStore = new BlobCheckpointStore(containerClient);
         } else if (localCheckpointStore != null) {
             checkpointStore = localCheckpointStore;
         } else {
