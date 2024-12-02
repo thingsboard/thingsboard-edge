@@ -30,13 +30,13 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="solution-template-details" fxLayout="column" fxLayoutGap="20px">
-  <div fxLayout="column" fxLayout.gt-md="row" fxLayoutGap="20px">
-    <div class="title-container mat-elevation-z1" fxFlex.gt-md="50" style="padding: 20px;">
-      <div fxLayout="row" fxLayoutAlign="start start">
+<div class="solution-template-details flex flex-col gap-5">
+  <div class="flex flex-col gt-md:flex-row gap-5">
+    <div class="title-container mat-elevation-z1 gt-md:max-w-50% gt-md:flex-full" style="padding: 20px;">
+      <div class="flex flex-row items-start justify-start">
         <h2>{{solutionTemplateDetails.title}}</h2>
-        <span fxFlex></span>
-        <div fxLayout="row" fxLayoutAlign="end center" fxLayoutGap="16px">
+        <span class="flex-1"></span>
+        <div class="flex flex-row items-center justify-end gap-4">
           <button *ngIf="solutionTemplateDetails.installed" (click)="openInstructions()" [disabled]="isLoading$ | async" mat-button mat-stroked-button color="primary">
             <mat-icon>info_outline</mat-icon>
             <span>{{ 'solution-template.instructions' | translate }}</span>
@@ -49,7 +49,7 @@
       <mat-divider style="margin-bottom: 20px;"></mat-divider>
       <tb-markdown [style]="{ paddingTop: '20px' }" [data]="solutionTemplateDetails.highlights" lineNumbers fallbackToPlainMarkdown></tb-markdown>
     </div>
-    <div fxFlex.gt-md="50" class="preview-container mat-elevation-z1" style="padding: 20px;">
+    <div class="preview-container mat-elevation-z1 gt-md:max-w-50% gt-md:flex-full" style="padding: 20px;">
       <ngx-hm-carousel #carousel
                        [(ngModel)]="imageCarouselIndex"
                        [autoplay]="true"
@@ -99,7 +99,7 @@
       </ngx-hm-carousel>
     </div>
   </div>
-  <div fxFlex class="description-container mat-elevation-z1" style="padding: 20px;">
+  <div class="description-container mat-elevation-z1 flex-1" style="padding: 20px;">
     <tb-markdown [data]="solutionTemplateDetails.description" lineNumbers fallbackToPlainMarkdown></tb-markdown>
   </div>
 </div>

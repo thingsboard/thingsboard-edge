@@ -31,7 +31,7 @@
 
 -->
 <span class="group-table-title">{{ tableTitle }}</span>
-<span fxHide.xs fxHide.sm class="group-table-entities-title">{{ entitiesTitle }}</span>
+<span class="group-table-entities-title xs:!hidden sm:!hidden">{{ entitiesTitle }}</span>
 <button [disabled]="isLoading$ | async" mat-icon-button (click)="toggleGroupDetails()"
   matTooltip="{{ 'entity-group.entity-group-details' | translate }}"
   matTooltipPosition="above">

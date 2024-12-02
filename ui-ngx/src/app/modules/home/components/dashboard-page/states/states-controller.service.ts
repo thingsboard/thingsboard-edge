@@ -29,12 +29,12 @@
 /// OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 ///
 
-import { ComponentFactory, ComponentFactoryResolver, Injectable, Type } from '@angular/core';
+import { Injectable, Type } from '@angular/core';
 import { deepClone } from '@core/utils';
 import { IStateControllerComponent } from '@home/components/dashboard-page/states/state-controller.models';
 
 export interface StateControllerData {
-  factory: ComponentFactory<IStateControllerComponent>;
+  component: Type<IStateControllerComponent>;
 }
 
 @Injectable()
@@ -44,13 +44,12 @@ export class StatesControllerService {
 
   statesControllerStates: {[stateControllerInstanceId: string]: any} = {};
 
-  constructor(private componentFactoryResolver: ComponentFactoryResolver) {
+  constructor() {
   }
 
   public registerStatesController(stateControllerId: string, stateControllerComponent: Type<IStateControllerComponent>): void {
-    const componentFactory = this.componentFactoryResolver.resolveComponentFactory(stateControllerComponent);
     this.statesControllers[stateControllerId] = {
-      factory: componentFactory
+      component: stateControllerComponent
     };
   }
 

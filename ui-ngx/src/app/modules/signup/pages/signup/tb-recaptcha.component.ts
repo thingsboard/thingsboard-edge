@@ -33,7 +33,6 @@ import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import { PageComponent } from '@shared/components/page.component';
-import { ActivatedRoute } from '@angular/router';
 import { ReCaptcha2Component, ReCaptchaV3Service } from 'ngx-captcha';
 import { MobileService } from '@core/services/mobile.service';
 import { SelfRegistrationService } from '@app/core/http/self-register.service';
@@ -56,7 +55,6 @@ export class TbRecaptchaComponent extends PageComponent implements OnInit, OnDes
   isMobileApp = this.mobileService.isMobileApp();
 
   constructor(protected store: Store<AppState>,
-              private activatedRoute: ActivatedRoute,
               private selfRegistrationService: SelfRegistrationService,
               private reCaptchaV3Service: ReCaptchaV3Service,
               private mobileService: MobileService) {
@@ -76,9 +74,9 @@ export class TbRecaptchaComponent extends PageComponent implements OnInit, OnDes
         this.mobileService.onRecaptchaLoaded();
       });
     }
-    if (this.signupParams?.activate && this.signupParams?.captchaVersion === 'v3') {
-      from(this.reCaptchaV3Service.executeAsPromise(this.signupParams?.captchaSiteKey,
-        this.signupParams?.captchaAction, {useGlobalDomain: true})).subscribe(
+    if (this.signupParams?.activate && this.signupParams?.captcha?.version === 'v3') {
+      from(this.reCaptchaV3Service.executeAsPromise(this.signupParams.captcha.siteKey,
+        this.signupParams.captcha.logActionName, {useGlobalDomain: true})).subscribe(
         {
           next: (token) => {
             this.mobileService.handleReCaptchaResponse(token);

@@ -31,7 +31,7 @@
 
 import { Injectable } from '@angular/core';
 
-import { Resolve, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import {
   DateEntityTableColumn, defaultEntityTablePermissions,
   EntityTableColumn,
@@ -47,9 +47,10 @@ import { RoleComponent } from '@home/pages/role/role.component';
 import { RoleTabsComponent } from '@home/pages/role/role-tabs.component';
 import { roleTypeTranslationMap } from '@shared/models/security.models';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
+import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 
 @Injectable()
-export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>> {
+export class RolesTableConfigResolver  {
 
   private readonly config: EntityTableConfig<Role> = new EntityTableConfig<Role>();
 
@@ -57,7 +58,8 @@ export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private router: Router,
-              private datePipe: DatePipe) {
+              private datePipe: DatePipe,
+              private customTranslate: CustomTranslatePipe) {
 
     this.config.entityType = EntityType.ROLE;
     this.config.entityComponent = RoleComponent;
@@ -76,7 +78,8 @@ export class RolesTableConfigResolver implements Resolve<EntityTableConfig<Role>
         return this.translate.instant(roleTypeTranslationMap.get(role.type));
       }),
       new EntityTableColumn<Role>('description', 'role.description', '40%',
-        (role) => role && role.additionalInfo ? role.additionalInfo.description : '', entity => ({}), false)
+        (role) => this.customTranslate.transform(role?.additionalInfo?.description || ''),
+        () => ({}), false)
     );
 
     this.config.deleteEntityTitle = role =>

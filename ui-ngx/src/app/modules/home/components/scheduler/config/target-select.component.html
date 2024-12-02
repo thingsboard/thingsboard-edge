@@ -30,11 +30,11 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="targetFormGroup" fxLayoutGap="16px" class="tb-target-select" fxLayout="column" [ngClass]="{'optional': !required}">
+<section [formGroup]="targetFormGroup" class="tb-target-select flex flex-col gap-4" [class.optional]="!required">
   <tb-toggle-select appearance="fill" [options]="headerOptions" formControlName="target">
   </tb-toggle-select>
   <tb-entity-autocomplete
-    fxFlex [fxShow]="targetFormGroup.get('target').value === 'entity'"
+    class="flex-1" [class.!hidden]="targetFormGroup.get('target').value !== 'entity'"
     [required]="required"
     [entityType]="entityType"
     [useFullEntityId]="true"
@@ -42,13 +42,13 @@
     formControlName="deviceTargetId">
   </tb-entity-autocomplete>
   <tb-device-profile-autocomplete
-    fxFlex [fxShow]="targetFormGroup.get('target').value === 'deviceProfile'"
+    class="flex-1" [class.!hidden]="targetFormGroup.get('target').value !== 'deviceProfile'"
     [required]="required"
     [editProfileEnabled]="false"
     (deviceProfileChanged)="deviceProfileLoaded($event)"
     formControlName="deviceProfileTargetId"
   ></tb-device-profile-autocomplete>
-  <section fxLayout="row" fxLayoutGap="8px" [fxShow]="targetFormGroup.get('target').value === 'ownerGroup' || targetFormGroup.get('target').value === 'groupTenant'">
+  <section class="flex flex-row gap-2" [class.!hidden]="targetFormGroup.get('target').value !== 'ownerGroup' && targetFormGroup.get('target').value !== 'groupTenant'">
     <tb-owner-autocomplete
       formControlName="groupOwnerId"
       [excludeOwnerIds]="[currentUser.tenantId]"
@@ -59,7 +59,7 @@
       requiredText="group-permission.target-user-group-owner-required">
     </tb-owner-autocomplete>
     <tb-entity-group-select
-      fxFlex
+      class="flex-1"
       [ownerId]="targetFormGroup.get('groupOwnerId').value"
       [allowedGroupTypes]="[entityType]"
       (currentGroupInfo)="entityGroupLoaded($event)"

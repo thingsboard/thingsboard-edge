@@ -149,6 +149,10 @@ public class IntegrationContextComponent {
     @Autowired
     private IntegrationRateLimitService rateLimitService;
 
+    @Lazy
+    @Autowired
+    private EventStorageService eventStorageService;
+
     private EventLoopGroup eventLoopGroup;
     private ScheduledExecutorService scheduledExecutorService;
     private ExecutorService callBackExecutorService;

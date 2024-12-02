@@ -30,9 +30,9 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section [formGroup]="tcpConfigForm" fxLayout="column">
-  <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-    <mat-form-field fxFlex class="mat-block">
+<section [formGroup]="tcpConfigForm" class="flex flex-col">
+  <div class="flex flex-row xs:flex-col gt-xs:gap-2">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.port</mat-label>
       <input matInput type="number" step="1" min="1" max="65535" required formControlName="port">
       <mat-error translate *ngIf="tcpConfigForm.get('port').hasError('required')">
@@ -42,7 +42,7 @@
         integration.port-range
       </mat-error>
     </mat-form-field>
-    <mat-form-field fxFlex class="mat-block">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.so-backlog-option</mat-label>
       <input matInput type="number" step="1" min="1" max="65535" required formControlName="soBacklogOption">
       <mat-error translate *ngIf="tcpConfigForm.get('soBacklogOption').hasError('required')">
@@ -54,8 +54,8 @@
       </mat-error>
     </mat-form-field>
   </div>
-  <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-    <mat-form-field fxFlex class="mat-block">
+  <div class="flex flex-row xs:flex-col gt-xs:gap-2">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.so-rcv-buf</mat-label>
       <input matInput type="number" step="1" min="1" max="65535" required formControlName="soRcvBuf">
       <mat-error translate *ngIf="tcpConfigForm.get('soRcvBuf').hasError('required')">
@@ -65,7 +65,7 @@
         integration.so-rcv-buf-range
       </mat-error>
     </mat-form-field>
-    <mat-form-field fxFlex class="mat-block">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.so-snd-buf</mat-label>
       <input matInput type="number" step="1" min="1" max="65535" required formControlName="soSndBuf">
       <mat-error translate *ngIf="tcpConfigForm.get('soSndBuf').hasError('required')">
@@ -77,15 +77,15 @@
       </mat-error>
     </mat-form-field>
   </div>
-  <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px" *ngIf="isSetDownlink" style="margin-bottom: 8px">
-    <mat-form-field fxFlex class="mat-block">
+  <div class="flex flex-row xs:flex-col gt-xs:gap-2" *ngIf="isSetDownlink" style="margin-bottom: 8px">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.cache-size</mat-label>
       <input matInput type="number" min="0" pattern="[0-9]+" formControlName="cacheSize">
       <mat-error translate *ngIf="tcpConfigForm.get('cacheSize').hasError('min')">
         integration.min-cache-size
       </mat-error>
     </mat-form-field>
-    <mat-form-field fxFlex class="mat-block">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.cache-time-to-live</mat-label>
       <input matInput type="number" min="0" max="525600" pattern="[0-9]+" formControlName="timeToLiveInMinutes">
       <mat-error translate *ngIf="tcpConfigForm.get('timeToLiveInMinutes').hasError('min')">
@@ -117,8 +117,8 @@
       </mat-select>
     </mat-form-field>
     <section *ngIf="tcpConfigForm.get('handlerConfiguration.handlerType').value === HandlerConfigurationType.BINARY">
-      <div fxLayout.xs="column" fxLayout="row wrap" fxLayoutGap.gt-xs="8px">
-        <mat-form-field fxFlex class="mat-block">
+      <div class="flex flex-row flex-wrap xs:flex-col gt-xs:gap-2">
+        <mat-form-field class="mat-block flex-1">
           <mat-label translate>integration.max-frame-length</mat-label>
           <input matInput required type="number" step="1" min="1" max="65535" formControlName="maxFrameLength">
           <mat-error translate *ngIf="tcpConfigForm.get('handlerConfiguration').get('maxFrameLength').hasError('required')">
@@ -129,7 +129,7 @@
             integration.max-frame-length-range
           </mat-error>
         </mat-form-field>
-        <mat-form-field fxFlex class="mat-block">
+        <mat-form-field class="mat-block flex-1">
           <mat-label translate>integration.length-field-offset</mat-label>
           <input matInput required type="number" step="1" min="0" max="8" formControlName="lengthFieldOffset">
           <mat-error translate
@@ -141,7 +141,7 @@
             integration.length-field-offset-range
           </mat-error>
         </mat-form-field>
-        <mat-form-field fxFlex class="mat-block">
+        <mat-form-field class="mat-block flex-1">
           <mat-label translate>integration.length-field-length</mat-label>
           <input matInput required type="number" step="1" min="0" max="8" formControlName="lengthFieldLength">
           <mat-error translate *ngIf="tcpConfigForm.get('handlerConfiguration').get('lengthFieldLength').hasError('required')">
@@ -154,7 +154,7 @@
           </mat-error>
         </mat-form-field>
       </div>
-      <mat-form-field fxFlex class="mat-block">
+      <mat-form-field class="mat-block flex-1">
         <mat-label translate>integration.length-adjustment</mat-label>
         <input matInput required type="number" step="1" min="0" max="8" formControlName="lengthAdjustment">
         <mat-error translate *ngIf="tcpConfigForm.get('handlerConfiguration').get('lengthAdjustment').hasError('required')">
@@ -166,7 +166,7 @@
           integration.length-adjustment-range
         </mat-error>
       </mat-form-field>
-      <mat-form-field fxFlex class="mat-block">
+      <mat-form-field class="mat-block flex-1">
         <mat-label translate>integration.initial-bytes-to-strip</mat-label>
         <input matInput required type="number" step="1" min="0" max="8" formControlName="initialBytesToStrip">
         <mat-error translate *ngIf="tcpConfigForm.get('handlerConfiguration').get('initialBytesToStrip').hasError('required')">
@@ -178,7 +178,7 @@
         </mat-error>
       </mat-form-field>
       <p class="mat-subhead" translate>integration.byte-order</p>
-      <mat-radio-group formControlName="byteOrder" fxFlex fxLayout="column" fxLayoutGap="8px">
+      <mat-radio-group formControlName="byteOrder" class="flex flex-1 flex-col gap-2">
         <mat-radio-button [value]="TcpBinaryByteOrder.LITTLE_ENDIAN">
           {{ 'integration.tcp.byte-order-little-endian' | translate }}
         </mat-radio-button>
@@ -191,7 +191,7 @@
       </mat-slide-toggle>
     </section>
     <section *ngIf="tcpConfigForm.get('handlerConfiguration.handlerType').value === HandlerConfigurationType.TEXT">
-      <mat-form-field fxFlex class="mat-block">
+      <mat-form-field class="mat-block flex-1">
         <mat-label translate>integration.max-frame-length</mat-label>
         <input matInput type="number" step="1" min="1" max="65535" required formControlName="maxFrameLength">
         <mat-error translate *ngIf="tcpConfigForm.get('handlerConfiguration').get('maxFrameLength').hasError('required')">
@@ -226,7 +226,7 @@
 
   <mat-expansion-panel class="configuration-panel">
     <mat-expansion-panel-header>
-      <mat-panel-description fxLayoutAlign="end" translate>
+      <mat-panel-description class="flex items-stretch justify-end" translate>
         integration.advanced-settings
       </mat-panel-description>
     </mat-expansion-panel-header>

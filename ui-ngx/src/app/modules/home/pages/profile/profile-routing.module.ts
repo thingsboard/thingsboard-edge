@@ -30,7 +30,7 @@
 ///
 
 import { inject, Injectable, NgModule } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve, ResolveFn, RouterModule, RouterStateSnapshot, Routes } from '@angular/router';
+import { ActivatedRouteSnapshot, ResolveFn, RouterModule, RouterStateSnapshot, Routes } from '@angular/router';
 
 import { ProfileComponent } from './profile.component';
 import { ConfirmOnExitGuard } from '@core/guards/confirm-on-exit.guard';
@@ -45,7 +45,7 @@ import { CustomTranslationService } from '@core/http/custom-translation.service'
 import { map } from 'rxjs/operators';
 
 @Injectable()
-export class UserProfileResolver implements Resolve<User> {
+export class UserProfileResolver  {
 
   constructor(private store: Store<AppState>,
               private userService: UserService) {

@@ -58,7 +58,6 @@ import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
@@ -208,7 +207,7 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     @Override
     public String getFileContentAtCommit(TenantId tenantId, String relativePath, String versionId) {
         GitRepository repository = checkRepository(tenantId);
-        return repository.getFileContentAtCommit(relativePath, versionId);
+        return new String(repository.getFileContentAtCommit(relativePath, versionId), StandardCharsets.UTF_8);
     }
 
     @Override
@@ -238,9 +237,9 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
         GitRepository gitRepository = Optional.ofNullable(repositories.get(tenantId))
                 .orElseThrow(() -> new IllegalStateException("Repository is not initialized"));
 
-        if (!Files.exists(Path.of(gitRepository.getDirectory()))) {
+        if (!GitRepository.exists(gitRepository.getDirectory())) {
             try {
-                return cloneRepository(tenantId, gitRepository.getSettings());
+                return openOrCloneRepository(tenantId, gitRepository.getSettings(), false);
             } catch (Exception e) {
                 throw new IllegalStateException("Could not initialize the repository: " + e.getMessage(), e);
             }
@@ -329,11 +328,11 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
     }
 
     @Override
-    public void initRepository(TenantId tenantId, RepositorySettings settings) throws Exception {
+    public void initRepository(TenantId tenantId, RepositorySettings settings, boolean fetch) throws Exception {
         if (!settings.isLocalOnly()) {
             clearRepository(tenantId);
         }
-        cloneRepository(tenantId, settings);
+        openOrCloneRepository(tenantId, settings, fetch);
     }
 
     @Override
@@ -370,22 +369,10 @@ public class DefaultGitRepositoryService implements GitRepositoryService {
         return EntityIdFactory.getByTypeAndUuid(entityType, entityId);
     }
 
-    private GitRepository cloneRepository(TenantId tenantId, RepositorySettings settings) throws Exception {
+    private GitRepository openOrCloneRepository(TenantId tenantId, RepositorySettings settings, boolean fetch) throws Exception {
         log.debug("[{}] Init tenant repository started.", tenantId);
         Path repositoryDirectory = Path.of(repositoriesFolder, settings.isLocalOnly() ? "local_" + settings.getRepositoryUri() : tenantId.getId().toString());
-
-        GitRepository repository;
-        if (Files.exists(repositoryDirectory)) {
-            repository = GitRepository.open(repositoryDirectory.toFile(), settings);
-        } else {
-            Files.createDirectories(repositoryDirectory);
-            if (settings.isLocalOnly()) {
-                repository = GitRepository.create(settings, repositoryDirectory.toFile());
-            } else {
-                repository = GitRepository.clone(settings, repositoryDirectory.toFile());
-            }
-        }
-
+        GitRepository repository = GitRepository.openOrClone(repositoryDirectory, settings, fetch);
         repositories.put(tenantId, repository);
         log.debug("[{}] Init tenant repository completed.", tenantId);
         return repository;

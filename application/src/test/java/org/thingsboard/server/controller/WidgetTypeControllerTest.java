@@ -391,4 +391,5 @@ public class WidgetTypeControllerTest extends AbstractControllerTest {
         role.setPermissions(JacksonUtil.toJsonNode("{\"ALL\":[\"READ\"]}"));
         return role;
     }
+
 }

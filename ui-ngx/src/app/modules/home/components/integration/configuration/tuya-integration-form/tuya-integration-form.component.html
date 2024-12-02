@@ -31,8 +31,8 @@
 
 -->
 <section [formGroup]="tuyaIntegrationConfigForm">
-  <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-    <mat-form-field fxFlex class="mat-block">
+  <div class="flex flex-row xs:flex-col gt-xs:gap-2">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.region</mat-label>
       <mat-select required formControlName="region">
         <mat-option *ngFor="let region of tuyaRegion | keyvalue" [value]="region.value">
@@ -43,7 +43,7 @@
         {{ 'integration.region-required' | translate }}
       </mat-error>
     </mat-form-field>
-    <mat-form-field fxFlex class="mat-block">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.environment</mat-label>
       <mat-select required formControlName="env">
         <mat-option *ngFor="let env of tuyaEnv | keyvalue" [value]="env.value">
@@ -55,15 +55,15 @@
       </mat-error>
     </mat-form-field>
   </div>
-  <div fxLayout.xs="column" fxLayout="row" fxLayoutGap.gt-xs="8px">
-    <mat-form-field fxFlex class="mat-block">
+  <div class="flex flex-row xs:flex-col gt-xs:gap-2">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.access-id</mat-label>
       <input matInput required formControlName="accessId" autocomplete="new-username">
       <mat-error *ngIf="tuyaIntegrationConfigForm.get('accessId').hasError('required')">
         {{ 'integration.access-id-required' | translate }}
       </mat-error>
     </mat-form-field>
-    <mat-form-field fxFlex class="mat-block">
+    <mat-form-field class="mat-block flex-1">
       <mat-label translate>integration.access-key</mat-label>
       <input matInput minlength="32" maxlength="32" required formControlName="accessKey" autocomplete="new-password">
       <mat-error *ngIf="tuyaIntegrationConfigForm.get('accessKey').hasError('required')">
@@ -80,7 +80,7 @@
 
   <mat-expansion-panel class="configuration-panel">
     <mat-expansion-panel-header>
-      <mat-panel-description fxLayoutAlign="end" translate>
+      <mat-panel-description class="flex items-stretch justify-end" translate>
         integration.advanced-settings
       </mat-panel-description>
     </mat-expansion-panel-header>

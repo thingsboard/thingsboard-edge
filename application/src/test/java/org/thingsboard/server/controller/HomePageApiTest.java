@@ -412,7 +412,6 @@ public class HomePageApiTest extends AbstractControllerTest {
         adminSettingsService.deleteAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, "sms");
         adminSettingsService.deleteAdminSettingsByTenantIdAndKey(TenantId.SYS_TENANT_ID, "whiteLabelParams");
         oAuth2ClientService.deleteOauth2ClientsByTenantId(TenantId.SYS_TENANT_ID);
-        domainService.deleteDomainsByTenantId(TenantId.SYS_TENANT_ID);
     }
 
     @Test
@@ -441,6 +440,9 @@ public class HomePageApiTest extends AbstractControllerTest {
 
         Assert.assertEquals(DEFAULT_DASHBOARDS_COUNT, usageInfo.getDashboards());
         Assert.assertEquals(configuration.getMaxDashboards(), usageInfo.getMaxDashboards());
+
+        Assert.assertEquals(0, usageInfo.getEdges());
+        Assert.assertEquals(configuration.getMaxEdges(), usageInfo.getMaxEdges());
 
         Assert.assertEquals(0, usageInfo.getTransportMessages());
         Assert.assertEquals(configuration.getMaxTransportMessages(), usageInfo.getMaxTransportMessages());

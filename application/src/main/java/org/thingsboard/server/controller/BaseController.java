@@ -30,6 +30,7 @@
  */
 package org.thingsboard.server.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.util.concurrent.ListenableFuture;
 import jakarta.mail.MessagingException;
@@ -55,6 +56,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.thingsboard.common.util.DonAsynchron;
+import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbBiFunction;
 import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.ContactBased;
@@ -70,6 +72,7 @@ import org.thingsboard.server.common.data.EntityView;
 import org.thingsboard.server.common.data.EntityViewInfo;
 import org.thingsboard.server.common.data.GroupEntity;
 import org.thingsboard.server.common.data.HasName;
+import org.thingsboard.server.common.data.HomeDashboardInfo;
 import org.thingsboard.server.common.data.OtaPackage;
 import org.thingsboard.server.common.data.OtaPackageInfo;
 import org.thingsboard.server.common.data.StringUtils;
@@ -119,7 +122,9 @@ import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.GroupPermissionId;
 import org.thingsboard.server.common.data.id.HasId;
 import org.thingsboard.server.common.data.id.IntegrationId;
+import org.thingsboard.server.common.data.id.MobileAppBundleId;
 import org.thingsboard.server.common.data.id.MobileAppId;
+import org.thingsboard.server.common.data.id.NotificationTargetId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.id.OtaPackageId;
 import org.thingsboard.server.common.data.id.QueueId;
@@ -138,7 +143,9 @@ import org.thingsboard.server.common.data.id.WidgetsBundleId;
 import org.thingsboard.server.common.data.integration.Integration;
 import org.thingsboard.server.common.data.menu.CustomMenu;
 import org.thingsboard.server.common.data.menu.CustomMenuInfo;
-import org.thingsboard.server.common.data.mobile.MobileApp;
+import org.thingsboard.server.common.data.mobile.app.MobileApp;
+import org.thingsboard.server.common.data.mobile.bundle.MobileAppBundle;
+import org.thingsboard.server.common.data.notification.targets.NotificationTarget;
 import org.thingsboard.server.common.data.oauth2.OAuth2Client;
 import org.thingsboard.server.common.data.page.PageData;
 import org.thingsboard.server.common.data.page.PageLink;
@@ -163,6 +170,7 @@ import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.common.data.scheduler.SchedulerEvent;
 import org.thingsboard.server.common.data.scheduler.SchedulerEventWithCustomerInfo;
 import org.thingsboard.server.common.data.security.Authority;
+import org.thingsboard.server.common.data.security.UserCredentials;
 import org.thingsboard.server.common.data.util.ThrowingBiFunction;
 import org.thingsboard.server.common.data.widget.WidgetTypeDetails;
 import org.thingsboard.server.common.data.widget.WidgetsBundle;
@@ -188,8 +196,10 @@ import org.thingsboard.server.dao.group.EntityGroupService;
 import org.thingsboard.server.dao.grouppermission.GroupPermissionService;
 import org.thingsboard.server.dao.integration.IntegrationService;
 import org.thingsboard.server.dao.menu.CustomMenuService;
+import org.thingsboard.server.dao.mobile.MobileAppBundleService;
 import org.thingsboard.server.dao.mobile.MobileAppService;
 import org.thingsboard.server.dao.model.ModelConstants;
+import org.thingsboard.server.dao.notification.NotificationTargetService;
 import org.thingsboard.server.dao.oauth2.OAuth2ClientService;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 import org.thingsboard.server.dao.ota.DeviceGroupOtaPackageService;
@@ -209,6 +219,7 @@ import org.thingsboard.server.dao.tenant.TenantService;
 import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
+import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.exception.DataValidationException;
 import org.thingsboard.server.exception.ThingsboardErrorResponseHandler;
 import org.thingsboard.server.queue.discovery.PartitionService;
@@ -257,11 +268,17 @@ import java.util.zip.GZIPOutputStream;
 
 import static org.thingsboard.server.common.data.StringUtils.isNotEmpty;
 import static org.thingsboard.server.common.data.query.EntityKeyType.ENTITY_FIELD;
+import static org.thingsboard.server.controller.ControllerConstants.DEFAULT_DASHBOARD;
+import static org.thingsboard.server.controller.ControllerConstants.HOME_DASHBOARD;
 import static org.thingsboard.server.controller.UserController.YOU_DON_T_HAVE_PERMISSION_TO_PERFORM_THIS_OPERATION;
 import static org.thingsboard.server.dao.service.Validator.validateId;
 
 @TbCoreComponent
 public abstract class BaseController {
+
+    protected static final String DASHBOARD_ID = "dashboardId";
+    protected static final String HOME_DASHBOARD_ID = "homeDashboardId";
+    protected static final String HOME_DASHBOARD_HIDE_TOOLBAR = "homeDashboardHideToolbar";
 
     protected final Logger log = org.slf4j.LoggerFactory.getLogger(getClass());
 
@@ -284,6 +301,9 @@ public abstract class BaseController {
 
     @Autowired
     protected UserService userService;
+
+    @Autowired
+    protected WhiteLabelingService whiteLabelingService;
 
     @Autowired
     protected TbUserSettingsService userSettingsService;
@@ -332,6 +352,9 @@ public abstract class BaseController {
 
     @Autowired
     protected MobileAppService mobileAppService;
+
+    @Autowired
+    protected MobileAppBundleService mobileAppBundleService;
 
     @Autowired
     protected OAuth2ConfigTemplateService oAuth2ConfigTemplateService;
@@ -453,6 +476,9 @@ public abstract class BaseController {
     @Autowired
     protected CustomMenuService customMenuService;
 
+    @Autowired
+    protected NotificationTargetService notificationTargetService;
+
     @Value("${server.log_controller_error_stack_trace}")
     @Getter
     private boolean logControllerErrorStackTrace;
@@ -513,7 +539,7 @@ public abstract class BaseController {
                 || exception instanceof DataValidationException || cause instanceof IncorrectParameterException) {
             return new ThingsboardException(exception.getMessage(), ThingsboardErrorCode.BAD_REQUEST_PARAMS);
         } else if (exception instanceof MessagingException) {
-            return new ThingsboardException("Unable to send mail: " + exception.getMessage(), ThingsboardErrorCode.GENERAL);
+            return new ThingsboardException("Unable to send mail", ThingsboardErrorCode.GENERAL);
         } else if (exception instanceof AsyncRequestTimeoutException) {
             return new ThingsboardException("Request timeout", ThingsboardErrorCode.GENERAL);
         } else if (exception instanceof DataAccessException) {
@@ -959,6 +985,9 @@ public abstract class BaseController {
                 case MOBILE_APP:
                     checkMobileAppId(new MobileAppId(entityId.getId()), operation);
                     return;
+                case MOBILE_APP_BUNDLE:
+                    checkMobileAppBundleId(new MobileAppBundleId(entityId.getId()), operation);
+                    return;
                 default:
                     checkEntityId(entityId, entitiesService::findEntityByTenantIdAndId, operation);
             }
@@ -1210,6 +1239,14 @@ public abstract class BaseController {
         return checkEntityId(mobileAppId, mobileAppService::findMobileAppById, operation);
     }
 
+    MobileAppBundle checkMobileAppBundleId(MobileAppBundleId mobileAppBundleId, Operation operation) throws ThingsboardException {
+        return checkEntityId(mobileAppBundleId, mobileAppBundleService::findMobileAppBundleById, operation);
+    }
+
+    NotificationTarget checkNotificationTargetId(NotificationTargetId notificationTargetId, Operation operation) throws ThingsboardException {
+        return checkEntityId(notificationTargetId, notificationTargetService::findNotificationTargetById, operation);
+    }
+
     protected <I extends EntityId> I emptyId(EntityType entityType) {
         return (I) EntityIdFactory.getByTypeAndUuid(entityType, ModelConstants.NULL_UUID);
     }
@@ -1313,13 +1350,73 @@ public abstract class BaseController {
         }
     }
 
-    protected void processDashboardIdFromAdditionalInfo(ObjectNode additionalInfo, String requiredFields) throws ThingsboardException {
-        String dashboardId = additionalInfo.has(requiredFields) ? additionalInfo.get(requiredFields).asText() : null;
-        if (dashboardId != null && !dashboardId.equals("null")) {
-            if (dashboardService.findDashboardById(getTenantId(), new DashboardId(UUID.fromString(dashboardId))) == null) {
-                additionalInfo.remove(requiredFields);
+    protected void checkUserInfo(User user) throws ThingsboardException {
+        ObjectNode info;
+        if (user.getAdditionalInfo() instanceof ObjectNode additionalInfo) {
+            info = additionalInfo;
+            checkDashboardInfo(info);
+        } else {
+            info = JacksonUtil.newObjectNode();
+            user.setAdditionalInfo(info);
+        }
+
+        UserCredentials userCredentials = userService.findUserCredentialsByUserId(user.getTenantId(), user.getId());
+        info.put("userCredentialsEnabled", userCredentials.isEnabled());
+        info.put("lastLoginTs", userCredentials.getLastLoginTs());
+    }
+
+    protected void checkDashboardInfo(JsonNode additionalInfo) throws ThingsboardException {
+        checkDashboardInfo(additionalInfo, DEFAULT_DASHBOARD);
+        checkDashboardInfo(additionalInfo, HOME_DASHBOARD);
+    }
+
+    protected void checkDashboardInfo(JsonNode node, String dashboardField) throws ThingsboardException {
+        if (node instanceof ObjectNode additionalInfo) {
+            DashboardId dashboardId = Optional.ofNullable(additionalInfo.get(dashboardField))
+                    .filter(JsonNode::isTextual).map(JsonNode::asText)
+                    .map(id -> {
+                        try {
+                            return new DashboardId(UUID.fromString(id));
+                        } catch (IllegalArgumentException e) {
+                            return null;
+                        }
+                    }).orElse(null);
+
+            if (dashboardId != null && !dashboardService.existsById(getTenantId(), dashboardId)) {
+                additionalInfo.remove(dashboardField);
             }
         }
+    }
+
+    protected HomeDashboardInfo getHomeDashboardInfo(SecurityUser securityUser, JsonNode additionalInfo) {
+        HomeDashboardInfo homeDashboardInfo = extractHomeDashboardInfoFromAdditionalInfo(additionalInfo);
+        if (homeDashboardInfo == null) {
+            if (securityUser.isCustomerUser()) {
+                Customer customer = customerService.findCustomerById(securityUser.getTenantId(), securityUser.getCustomerId());
+                homeDashboardInfo = extractHomeDashboardInfoFromAdditionalInfo(customer.getAdditionalInfo());
+            }
+            if (homeDashboardInfo == null) {
+                Tenant tenant = tenantService.findTenantById(securityUser.getTenantId());
+                homeDashboardInfo = extractHomeDashboardInfoFromAdditionalInfo(tenant.getAdditionalInfo());
+            }
+        }
+        return homeDashboardInfo;
+    }
+
+    private HomeDashboardInfo extractHomeDashboardInfoFromAdditionalInfo(JsonNode additionalInfo) {
+        try {
+            if (additionalInfo != null && additionalInfo.has(HOME_DASHBOARD_ID) && !additionalInfo.get(HOME_DASHBOARD_ID).isNull()) {
+                String strDashboardId = additionalInfo.get(HOME_DASHBOARD_ID).asText();
+                DashboardId dashboardId = new DashboardId(toUUID(strDashboardId));
+                checkDashboardId(dashboardId, Operation.READ);
+                boolean hideDashboardToolbar = true;
+                if (additionalInfo.has(HOME_DASHBOARD_HIDE_TOOLBAR)) {
+                    hideDashboardToolbar = additionalInfo.get(HOME_DASHBOARD_HIDE_TOOLBAR).asBoolean();
+                }
+                return new HomeDashboardInfo(dashboardId, hideDashboardToolbar);
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 
     protected MediaType parseMediaType(String contentType) {

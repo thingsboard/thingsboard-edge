@@ -30,7 +30,7 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { Resolve, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { TenantProfile } from '@shared/models/tenant.model';
 import {
   checkBoxCell,
@@ -51,9 +51,10 @@ import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { UtilsService } from '@core/services/utils.service';
 import { Operation, Resource } from '@shared/models/security.models';
 import { ImportExportService } from '@shared/import-export/import-export.service';
+import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 
 @Injectable()
-export class TenantProfilesTableConfigResolver implements Resolve<EntityTableConfig<TenantProfile>> {
+export class TenantProfilesTableConfigResolver  {
 
   private readonly config: EntityTableConfig<TenantProfile> = new EntityTableConfig<TenantProfile>();
 
@@ -63,6 +64,7 @@ export class TenantProfilesTableConfigResolver implements Resolve<EntityTableCon
               private datePipe: DatePipe,
               private router: Router,
               private dialogService: DialogService,
+              private customTranslate: CustomTranslatePipe,
               private utils: UtilsService,
               private userPermissionService: UserPermissionsService) {
 
@@ -78,7 +80,8 @@ export class TenantProfilesTableConfigResolver implements Resolve<EntityTableCon
     this.config.columns.push(
       new DateEntityTableColumn<TenantProfile>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<TenantProfile>('name', 'tenant-profile.name', '40%'),
-      new EntityTableColumn<TenantProfile>('description', 'tenant-profile.description', '60%'),
+      new EntityTableColumn<TenantProfile>('description', 'tenant-profile.description', '60%',
+        entity => this.customTranslate.transform(entity.description || '')),
       new EntityTableColumn<TenantProfile>('isDefault', 'tenant-profile.default', '60px',
         entity => {
           return checkBoxCell(entity.default);

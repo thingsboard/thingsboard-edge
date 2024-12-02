@@ -30,7 +30,7 @@
 ///
 
 
-import { ChangeDetectorRef, Component, Inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Optional } from '@angular/core';
 import { EntityComponent } from '@home/components/entity/entity.component';
 import { DomainInfo } from '@shared/models/oauth2.models';
 import { AppState } from '@core/core.state';
@@ -41,7 +41,6 @@ import { Store } from '@ngrx/store';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { WINDOW } from '@core/services/window.service';
 import { isDefinedAndNotNull } from '@core/utils';
-import { MatButton } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { ClientDialogComponent } from '@home/pages/admin/oauth2/clients/client-dialog.component';
 import { EntityType } from '@shared/models/entity-type.models';
@@ -53,15 +52,15 @@ import { EntityType } from '@shared/models/entity-type.models';
 })
 export class DomainComponent extends EntityComponent<DomainInfo> {
 
-  private loginProcessingUrl: string = '';
+  private loginProcessingUrl = '';
 
   entityType = EntityType;
 
   constructor(protected store: Store<AppState>,
               protected translate: TranslateService,
               private oauth2Service: OAuth2Service,
-              @Inject('entity') protected entityValue: DomainInfo,
-              @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<DomainInfo>,
+              @Optional() @Inject('entity') protected entityValue: DomainInfo,
+              @Optional() @Inject('entitiesTableConfig') protected entitiesTableConfigValue: EntityTableConfig<DomainInfo>,
               protected cd: ChangeDetectorRef,
               public fb: UntypedFormBuilder,
               @Inject(WINDOW) private window: Window,
@@ -98,7 +97,7 @@ export class DomainComponent extends EntityComponent<DomainInfo> {
     return domainName !== '' ? `${domainName}${this.loginProcessingUrl}` : '';
   }
 
-  createClient($event: Event, button: MatButton) {
+  createClient($event: Event) {
     if ($event) {
       $event.stopPropagation();
       $event.preventDefault();

@@ -31,33 +31,40 @@
 package org.thingsboard.server.service.converter;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.common.util.ThingsBoardExecutors;
-import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.sync.vc.RepositorySettings;
+import org.thingsboard.server.common.data.LibraryConvertersInfo;
+import org.thingsboard.server.common.data.integration.IntegrationType;
 import org.thingsboard.server.queue.util.AfterStartUp;
+import org.thingsboard.server.queue.util.TbCoreComponent;
+import org.thingsboard.server.service.sync.GitSyncService;
+import org.thingsboard.server.service.sync.vc.GitRepository.FileType;
 import org.thingsboard.server.service.sync.vc.GitRepository.RepoFile;
-import org.thingsboard.server.service.sync.vc.GitRepositoryService;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static org.thingsboard.server.common.data.converter.ConverterType.DOWNLINK;
+import static org.thingsboard.server.common.data.converter.ConverterType.UPLINK;
+
+@TbCoreComponent
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class DefaultConverterLibraryService implements ConverterLibraryService {
 
-    private final GitRepositoryService gitRepositoryService;
+    private final GitSyncService gitSyncService;
 
     @Value("${integrations.converters.library.enabled:true}")
     private boolean enabled;
@@ -66,62 +73,41 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
     @Value("${integrations.converters.library.fetch_frequency:24}")
     private int fetchFrequencyHours;
 
-    private ScheduledExecutorService executor;
+    private Map<String, LibraryConvertersInfo> convertersInfo;
+
+    private static final String REPO_KEY = "data-converters-library";
 
     @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
     public void init() throws Exception {
         if (!enabled) {
             return;
         }
-        executor = ThingsBoardExecutors.newSingleThreadScheduledExecutor("data-converters-library");
-        RepositorySettings settings = new RepositorySettings();
-        settings.setRepositoryUri(repoUrl);
-
-        executor.execute(() -> {
-            try {
-                gitRepositoryService.initRepository(TenantId.SYS_TENANT_ID, settings);
-                log.info("Initialized data converters repository");
-            } catch (Throwable e) {
-                log.error("Failed to init data converters repository for settings {}", settings, e);
-            }
-        });
-        executor.scheduleWithFixedDelay(() -> {
-            try {
-                gitRepositoryService.fetch(TenantId.SYS_TENANT_ID);
-            } catch (Throwable e) {
-                log.error("Failed to fetch data converters repository", e);
-            }
-        }, fetchFrequencyHours, fetchFrequencyHours, TimeUnit.HOURS);
-    }
-
-    @PreDestroy
-    public void preDestroy() {
-        if (executor != null) {
-            executor.shutdownNow();
-        }
+        gitSyncService.registerSync(REPO_KEY, repoUrl, "main", TimeUnit.HOURS.toMillis(fetchFrequencyHours), this::updateConvertersInfo);
     }
 
     @Override
-    public List<Vendor> getVendors(String integrationType) {
+    public List<Vendor> getVendors(IntegrationType integrationType) {
+        log.trace("Executing getVendors [{}]", integrationType);
         return listFiles("VENDORS", 1, true).stream()
                 .filter(vendorDir -> {
                     Set<String> integrationTypes = listFiles(vendorDir.path(), 3, true).stream()
                             .map(RepoFile::name)
                             .collect(Collectors.toSet());
-                    return integrationTypes.contains(integrationType);
+                    return integrationTypes.contains(integrationType.getDirectory());
                 })
                 .map(vendorDir -> {
                     String logoFile = findFile(vendorDir.path(), 2, "logo");
-                    return new Vendor(vendorDir.name(), getGithubRawContentUrl(logoFile));
+                    return new Vendor(vendorDir.name(), gitSyncService.getGithubRawContentUrl(REPO_KEY, logoFile));
                 })
                 .toList();
     }
 
     @Override
-    public List<Model> getVendorModels(String integrationType, String converterType, String vendorName) {
+    public List<Model> getVendorModels(IntegrationType integrationType, String converterType, String vendorName) {
+        log.trace("Executing getVendorModels [{}][{}][{}]", integrationType, converterType, vendorName);
         return listFiles("VENDORS/" + vendorName, 3, true).stream()
                 .filter(integrationDir -> {
-                    if (!integrationDir.name().equals(integrationType)) {
+                    if (!integrationDir.name().equals(integrationType.getDirectory())) {
                         return false;
                     }
                     if (StringUtils.isEmpty(converterType)) {
@@ -136,7 +122,7 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
                     String name = modelPath.getFileName().toString();
                     JsonNode modelInfo = JacksonUtil.toJsonNode(getFileContent(modelPath + "/info.json"));
                     String photoFile = findFile(modelPath.toString(), 3, "photo");
-                    String photo = getGithubRawContentUrl(photoFile);
+                    String photo = gitSyncService.getGithubRawContentUrl(REPO_KEY, photoFile);
                     return new Model(name, modelInfo, photo);
                 })
                 .toList();
@@ -144,25 +130,44 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
 
 
     @Override
-    public String getConverter(String integrationType, String converterType, String vendorName, String model) {
+    public String getConverter(IntegrationType integrationType, String converterType, String vendorName, String model) {
+        log.trace("Executing getConverter [{}][{}][{}][{}]", integrationType, converterType, vendorName, model);
         return getFileContent(getConverterDir(integrationType, converterType, vendorName, model) + "/converter.json");
     }
 
     @Override
-    public String getConverterMetadata(String integrationType, String converterType, String vendorName, String model) {
+    public String getConverterMetadata(IntegrationType integrationType, String converterType, String vendorName, String model) {
+        log.trace("Executing getConverterMetadata [{}][{}][{}][{}]", integrationType, converterType, vendorName, model);
         return getFileContent(getConverterDir(integrationType, converterType, vendorName, model) + "/metadata.json");
     }
 
     @Override
-    public String getPayload(String integrationType, String converterType, String vendorName, String model) {
-        return getFileContent(getConverterDir(integrationType, converterType, vendorName, model) + "/payload.json");
+    public String getPayload(IntegrationType integrationType, String converterType, String vendorName, String model) {
+        log.trace("Executing getPayload [{}][{}][{}][{}]", integrationType, converterType, vendorName, model);
+        List<RepoFile> payloadFiles = listFiles(getConverterDir(integrationType, converterType, vendorName, model), -1, false).stream()
+                .filter(file -> file.name().startsWith("payload"))
+                .sorted(Comparator.comparing(RepoFile::name))
+                .toList();
+        if (payloadFiles.isEmpty()) {
+            return "{}";
+        }
+
+        RepoFile payloadFile = null;
+        for (RepoFile file : payloadFiles) {
+            if (file.name().endsWith("json")) { // preferring json payload
+                payloadFile = file;
+                break;
+            }
+        }
+        if (payloadFile == null) {
+            payloadFile = payloadFiles.get(0);
+        }
+        return getFileContent(payloadFile.path());
     }
 
-    private String getGithubRawContentUrl(String path) {
-        if (path == null) {
-            return "";
-        }
-        return StringUtils.removeEnd(repoUrl, ".git") + "/blob/master/" + path + "?raw=true";
+    @Override
+    public Map<String, LibraryConvertersInfo> getConvertersInfo() {
+        return convertersInfo != null ? convertersInfo : Collections.emptyMap();
     }
 
     private String findFile(String dir, int depth, String prefix) {
@@ -175,20 +180,41 @@ public class DefaultConverterLibraryService implements ConverterLibraryService {
         if (!enabled) {
             throw new IllegalArgumentException("Data converters library is disabled");
         }
-        return gitRepositoryService.listFiles(TenantId.SYS_TENANT_ID, "HEAD", path, depth).stream()
-                .filter(file -> file.isDirectory() == isDirectory)
-                .toList();
+        return gitSyncService.listFiles(REPO_KEY, path, depth, isDirectory ? FileType.DIRECTORY : FileType.FILE);
     }
 
     private String getFileContent(String path) {
         if (!enabled) {
             throw new IllegalArgumentException("Data converters library is disabled");
         }
-        return gitRepositoryService.getFileContentAtCommit(TenantId.SYS_TENANT_ID, path, "HEAD");
+        try {
+            return new String(gitSyncService.getFileContent(REPO_KEY, path), StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            log.warn("Failed to get file content for path {}: {}", path, e.getMessage());
+            return "{}";
+        }
     }
 
-    private String getConverterDir(String integrationType, String converterType, String vendorName, String model) {
-        return Path.of("VENDORS", vendorName, model, integrationType, converterType).toString();
+    private String getConverterDir(IntegrationType integrationType, String converterType, String vendorName, String model) {
+        return Path.of("VENDORS", vendorName, model, integrationType.getDirectory(), converterType).toString();
+    }
+
+    private void updateConvertersInfo() {
+        log.debug("Updating converters info");
+        convertersInfo = listFiles("VENDORS", 4, true).stream()
+                .collect(Collectors.groupingBy(
+                        repoFile -> Path.of(repoFile.path()).getParent().getFileName().toString(),
+                        Collectors.collectingAndThen(
+                                Collectors.toList(),
+                                converters -> {
+                                    boolean hasUplink = converters.stream()
+                                            .anyMatch(converterPath -> UPLINK.getDirectory().equals(converterPath.name()));
+                                    boolean hasDownlink = converters.stream()
+                                            .anyMatch(converterPath -> DOWNLINK.getDirectory().equals(converterPath.name()));
+                                    return new LibraryConvertersInfo(hasUplink, hasDownlink);
+                                }
+                        )
+                ));
     }
 
 }

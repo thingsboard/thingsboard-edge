@@ -36,7 +36,7 @@ import { beautifyCss } from '@shared/models/beautify.models';
 
 class ThingsboardCss extends React.Component<JsonFormFieldProps, JsonFormFieldState> {
 
-    constructor(props) {
+    constructor(props: JsonFormFieldProps) {
         super(props);
         this.onTidyCss = this.onTidyCss.bind(this);
     }

@@ -47,7 +47,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.thingsboard.common.util.DonAsynchron;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.common.util.TbBiFunction;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.adaptor.JsonConverter;
 import org.thingsboard.server.common.data.AttributeScope;
 import org.thingsboard.server.common.data.EntityType;
@@ -89,8 +89,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
@@ -109,16 +108,11 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
     @Autowired
     private EntityActionService entityActionService;
 
-    private ThreadPoolExecutor executor;
+    private ExecutorService executor;
 
     @PostConstruct
     private void initExecutor() {
-        if (executor == null) {
-            executor = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime.getRuntime().availableProcessors(),
-                    60L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(150_000),
-                    ThingsBoardThreadFactory.forName("bulk-import"), new ThreadPoolExecutor.CallerRunsPolicy());
-            executor.allowCoreThreadTimeOut(true);
-        }
+        executor = ThingsBoardExecutors.newLimitedTasksExecutor(Runtime.getRuntime().availableProcessors(), 150_000, "bulk-import");
     }
 
     public final BulkImportResult<E> processBulkImport(BulkImportRequest request, SecurityUser user, BiConsumer<E, TbBiFunction<E, EntityGroup, E>> entityGroupAssigner) throws Exception {
@@ -307,8 +301,8 @@ public abstract class AbstractBulkImportService<E extends HasId<? extends Entity
 
     @PreDestroy
     private void shutdownExecutor() {
-        if (!executor.isTerminating()) {
-            executor.shutdown();
+        if (executor != null) {
+            executor.shutdownNow();
         }
     }
 

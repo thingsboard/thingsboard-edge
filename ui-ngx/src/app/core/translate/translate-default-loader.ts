@@ -66,21 +66,23 @@ export class TranslateDefaultLoader implements TranslateLoader {
       observe = this.http.get<object>(`/api/noauth/translation/login/${lang}`);
     }
     return observe.pipe(
-      catchError(() => {
-        const tasks = [
-          this.http.get(`/assets/locale/locale.constant-${env.defaultLang}.json`)
-        ];
-        if (env.supportedLangs && env.supportedLangs.indexOf(lang) !== -1) {
-          tasks.push(this.http.get(`/assets/locale/locale.constant-${lang}.json`));
+      catchError(() => this.loadSystemLang(lang))
+    );
+  }
+
+  private loadSystemLang(lang: string): Observable<object> {
+    const tasks = [
+      this.http.get(`/assets/locale/locale.constant-${env.defaultLang}.json`)
+    ];
+    if (env.supportedLangs && env.supportedLangs.indexOf(lang) !== -1) {
+      tasks.push(this.http.get(`/assets/locale/locale.constant-${lang}.json`));
+    }
+    return forkJoin(tasks).pipe(
+      map((results) => {
+        if (results.length > 1) {
+          return mergeDeep({}, results[0], results[1]);
         }
-        return forkJoin(tasks).pipe(
-          map((results) => {
-            if (results.length > 1) {
-              return mergeDeep({}, results[0], results[1]);
-            }
-            return results[0];
-          })
-        );
+        return results[0];
       })
     );
   }

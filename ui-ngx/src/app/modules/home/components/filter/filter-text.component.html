@@ -30,5 +30,5 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-filter-text" [ngClass]="{disabled: disabled, required: requiredClass, nowrap: nowrap}"
+<div class="tb-filter-text" [class.disabled]="disabled" [class.required]="requiredClass" [class.nowrap]="nowrap"
      [innerHTML]="filterText"></div>

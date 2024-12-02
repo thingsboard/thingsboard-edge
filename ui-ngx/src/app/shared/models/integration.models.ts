@@ -68,16 +68,22 @@ export enum IntegrationType {
   TUYA = 'TUYA'
 }
 
-export enum IntegrationDirectory {
-  CHIRPSTACK = 'ChirpStack',
-  TTI = 'ThingsStackIndustries',
-  TTN = 'ThingsStackIndustries'
-}
-
 export enum CoapSecurityMode {
   NO_SECURE = 'NO_SECURE',
   DTLS = 'DTLS',
   MIXED = 'MIXED',
+}
+
+export type IntegrationsConvertersInfo = Record<IntegrationType, IntegrationConvertersInfo>;
+
+export interface IntegrationConvertersInfo {
+  uplink: ConverterInfo,
+  downlink: ConverterInfo,
+}
+
+export interface ConverterInfo {
+  library: boolean;
+  existing: boolean;
 }
 
 export const coapSecurityModeTranslationsMap = new Map<CoapSecurityMode, string>(
@@ -380,6 +386,7 @@ const integrationHelpLinkMap = new Map<IntegrationType, string>(
     [IntegrationType.KPN, 'integrationKpn'],
     [IntegrationType.AZURE_EVENT_HUB, 'integrationAzureEventHub'],
     [IntegrationType.AZURE_IOT_HUB, 'integrationAzureIoTHub'],
+    [IntegrationType.AZURE_SERVICE_BUS, 'integrationAzureServiceBus'],
     [IntegrationType.OPC_UA, 'integrationOpcUa'],
     [IntegrationType.UDP, 'integrationUdp'],
     [IntegrationType.TCP, 'integrationTcp'],
@@ -689,6 +696,9 @@ export interface AzureEventHubIntegration {
     connectionString: string;
     consumerGroup?: string;
     iotHubName?: string;
+    storageConnectionString?: string;
+    containerName?: string;
+    enablePersistentCheckpoints?: boolean;
   };
 }
 
@@ -868,7 +878,6 @@ export interface RabbitMqIntegration {
     password: string;
     downlinkTopic: string;
     queues: string;
-    routingKeys: string;
     connectionTimeout: number;
     handshakeTimeout: number;
     pollPeriod: number;

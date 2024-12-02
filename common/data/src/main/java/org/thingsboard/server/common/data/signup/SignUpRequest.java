@@ -31,43 +31,29 @@
 package org.thingsboard.server.common.data.signup;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import lombok.ToString;
+import org.thingsboard.server.common.data.oauth2.PlatformType;
+import org.thingsboard.server.common.data.selfregistration.SignUpFieldId;
+
+import java.util.Map;
 
 /**
  * Created by igor on 12/13/16.
  */
 @Schema
+@Data
 @ToString
 public class SignUpRequest {
 
-    @Getter
-    @Setter
-    @Schema(description = "First Name", example = "John")
-    private String firstName;
-    @Getter
-    @Setter
-    @Schema(description = "Last Name", example = "Doe")
-    private String lastName;
-    @Getter
-    @Setter
-    @Schema(description = "Email will be used for new user to login", example = "john.doe@company.com")
-    private String email;
-    @Getter
-    @Setter
-    @Schema(description = "New User Password", example = "secret")
-    private String password;
-    @Getter
-    @Setter
+    @Schema(description = "List of sign-up form fields")
+    protected Map<SignUpFieldId, String> fields;
     @Schema(description = "Response from reCAPTCHA validation")
     private String recaptchaResponse;
-    @Getter
-    @Setter
     @Schema(description = "For mobile apps only. Mobile app package name")
     private String pkgName;
-    @Getter
-    @Setter
+    @Schema(description = "For mobile apps only. Mobile app package platform")
+    private PlatformType platform;
     @Schema(description = "For mobile apps only. Mobile app secret")
     private String appSecret;
 

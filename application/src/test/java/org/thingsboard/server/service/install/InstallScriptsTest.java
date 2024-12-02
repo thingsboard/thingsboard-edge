@@ -44,6 +44,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleChainMetaData;
 import org.thingsboard.server.dao.dashboard.DashboardService;
 import org.thingsboard.server.dao.group.EntityGroupService;
+import org.thingsboard.server.dao.notification.NotificationSettingsService;
 import org.thingsboard.server.dao.oauth2.OAuth2ConfigTemplateService;
 import org.thingsboard.server.dao.resource.ImageService;
 import org.thingsboard.server.dao.resource.ResourceService;
@@ -55,9 +56,8 @@ import org.thingsboard.server.dao.usagerecord.ApiLimitService;
 import org.thingsboard.server.dao.widget.WidgetTypeService;
 import org.thingsboard.server.dao.widget.WidgetsBundleService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
-import org.thingsboard.server.service.install.update.ImagesUpdater;
+import org.thingsboard.server.service.install.update.ResourcesUpdater;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
@@ -92,8 +92,9 @@ class InstallScriptsTest {
     @MockBean
     ImageService imageService;
     @MockBean
-    ImagesUpdater imagesUpdater;
-
+    NotificationSettingsService notificationSettingsService;
+    @MockBean
+    ResourcesUpdater resourcesUpdater;
     @SpyBean
     InstallScripts installScripts;
 
@@ -112,7 +113,7 @@ class InstallScriptsTest {
     }
 
     @Test
-    void testDefaultRuleChainsTemplates() throws IOException {
+    void testDefaultRuleChainsTemplates() {
         Path dir = installScripts.getTenantRuleChainsDir();
         installScripts.findRuleChainsFromPath(dir)
                 .forEach(this::validateRuleChainTemplate);
@@ -124,7 +125,7 @@ class InstallScriptsTest {
     }
 
     @Test
-    void testDefaultEdgeRuleChainsTemplates() throws IOException {
+    void testDefaultEdgeRuleChainsTemplates() {
         Path dir = installScripts.getEdgeRuleChainsDir();
         installScripts.findRuleChainsFromPath(dir)
                 .forEach(this::validateRuleChainTemplate);

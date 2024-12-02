@@ -58,10 +58,11 @@ import { ActionSettingsChangeWhiteLabeling } from '@core/settings/settings.actio
 import { Store } from '@ngrx/store';
 import { AppState } from '@core/core.state';
 import cssjs from '@core/css/css';
-import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { DomSanitizer } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
 import { MailTemplatesSettings } from '@shared/models/settings.models';
+import { docPlatformPrefix } from '@shared/models/constants';
 
 const cssParser = new cssjs();
 cssParser.testMode = false;
@@ -210,6 +211,10 @@ export class WhiteLabelingService {
 
   public getLoginAccentPalette(): ColorPalette {
     return this.loginAccentPalette.colors;
+  }
+
+  public getDocsUrl(): string {
+    return `${this.getHelpLinkBaseUrl()}/docs${docPlatformPrefix}/`;
   }
 
   public getHelpLinkBaseUrl(): string {
@@ -362,6 +367,16 @@ export class WhiteLabelingService {
 
   public saveLoginWhiteLabelParams(wlParams: LoginWhiteLabelingParams): Observable<LoginWhiteLabelingParams> {
     return this.http.post<WhiteLabelingParams>('/api/whiteLabel/loginWhiteLabelParams', wlParams);
+  }
+
+  public deleteCurrentLoginWhiteLabelParams(config?: RequestConfig): Observable<void> {
+    return this.http.delete<void>('/api/whiteLabel/currentLoginWhiteLabelParams', defaultHttpOptionsFromConfig(config))
+  }
+
+  public deleteCurrentWhiteLabelParams(config?: RequestConfig) {
+    return this.http.delete<void>('/api/whiteLabel/currentWhiteLabelParams', defaultHttpOptionsFromConfig(config)).pipe(
+      mergeMap(() => this.loadUserWhiteLabelingParams())
+    );
   }
 
   public isWhiteLabelingAllowed(): Observable<boolean> {

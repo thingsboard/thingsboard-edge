@@ -36,13 +36,13 @@
       {{ 'custom-menu.visible' | translate }}
     </mat-slide-toggle>
   </div>
-  <div fxLayout="row" fxLayoutGap="8px" fxLayoutAlign="center center">
+  <div class="flex flex-row items-center justify-center gap-2">
     <tb-material-icon-select asBoxInput
                              required
                              color="var(--tb-primary-500)"
                              formControlName="icon">
     </tb-material-icon-select>
-    <mat-form-field fxFlex appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+    <mat-form-field class="flex-1" appearance="outline" subscriptSizing="dynamic" floatLabel="always">
       <mat-label translate>custom-menu.menu-item-name</mat-label>
       <input required matInput formControlName="name" placeholder="{{ 'custom-menu.menu-item-name' | translate }}">
     </mat-form-field>
@@ -64,7 +64,7 @@
         </tb-toggle-select>
       </div>
       <ng-container *ngIf="menuItemFormGroup.get('linkType').value === CMItemLinkType.URL">
-        <mat-form-field fxFlex appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+        <mat-form-field class="flex-1" appearance="outline" subscriptSizing="dynamic" floatLabel="always">
           <mat-label translate>custom-menu.url</mat-label>
           <input required matInput formControlName="url" placeholder="{{ 'custom-menu.set-url' | translate }}">
         </mat-form-field>
@@ -75,7 +75,7 @@
         </div>
       </ng-container>
       <ng-container *ngIf="menuItemFormGroup.get('linkType').value === CMItemLinkType.DASHBOARD">
-        <tb-dashboard-autocomplete fxFlex
+        <tb-dashboard-autocomplete class="flex-1"
                                    formControlName="dashboardId"
                                    required
                                    label="{{ 'dashboard.dashboard' | translate }}"

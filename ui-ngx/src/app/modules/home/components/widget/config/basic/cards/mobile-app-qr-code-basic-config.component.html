@@ -43,7 +43,7 @@
       <div class="tb-form-panel-title" translate>widget-config.appearance</div>
       <div class="tb-form-hint tb-primary-fill">
         {{ 'widgets.mobile-app-qr-code.configuration-hint' | translate }}
-        <button mat-icon-button color="primary" class="tb-mat-24"
+        <button *ngIf="displayConfigurationHint" mat-icon-button color="primary" class="tb-mat-24"
                 style="position: absolute;top: 9px"
                 (click)="navigateToMobileAppSettings($event)">
           <mat-icon class="material-icons tb-mat-16">open_in_new</mat-icon>
@@ -90,10 +90,10 @@
           {{ 'widgets.liquid-level-card.icon' | translate }}
         </mat-slide-toggle>
         <div class="tb-flex row flex-end align-center">
-          <mat-form-field appearance="outline" class="flex number" subscriptSizing="dynamic">
+          <mat-form-field appearance="outline" class="number flex" subscriptSizing="dynamic">
             <input matInput type="number" min="0" formControlName="iconSize" placeholder="{{ 'widget-config.set' | translate }}">
           </mat-form-field>
-          <tb-css-unit-select fxFlex formControlName="iconSizeUnit"></tb-css-unit-select>
+          <tb-css-unit-select class="flex-1" formControlName="iconSizeUnit"></tb-css-unit-select>
           <tb-material-icon-select asBoxInput
                                    iconClearButton
                                    [color]="mobileAppQrCodeWidgetConfigForm.get('iconColor').value"

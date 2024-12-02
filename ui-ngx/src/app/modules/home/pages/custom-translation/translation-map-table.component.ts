@@ -35,7 +35,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  Input,
+  Input, NgZone,
   OnDestroy,
   OnInit,
   Output,
@@ -136,7 +136,8 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
               private elementRef: ElementRef,
               private router: Router,
               private route: ActivatedRoute,
-              private translate: TranslateService) {
+              private translate: TranslateService,
+              private zone: NgZone) {
     super(store);
     this.pageLink = new PageLink(this.defaultPageSize, 0, null, this.defaultSortOrder);
     this.displayedColumns = ['k', 'o', 't', 'action'];
@@ -261,11 +262,13 @@ export class TranslationMapTableComponent extends PageComponent implements OnIni
     });
 
     this.tableResize$ = new ResizeObserver(() => {
-      const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
-      if (showHidePageSize !== this.hidePageSize) {
-        this.hidePageSize = showHidePageSize;
-        this.cd.markForCheck();
-      }
+      this.zone.run(() => {
+        const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+        if (showHidePageSize !== this.hidePageSize) {
+          this.hidePageSize = showHidePageSize;
+          this.cd.markForCheck();
+        }
+      });
     });
     this.tableResize$.observe(this.elementRef.nativeElement);
   }

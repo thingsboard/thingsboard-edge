@@ -48,7 +48,7 @@ import {
   isUndefined
 } from '@core/utils';
 import { EntityType } from '@shared/models/entity-type.models';
-import * as _moment from 'moment';
+import _moment from 'moment';
 import { UntypedFormBuilder, UntypedFormGroup, ValidatorFn, Validators } from '@angular/forms';
 import { RequestConfig } from '@core/http/http-utils';
 import { AttributeService } from '@core/http/attribute.service';
@@ -204,7 +204,9 @@ export class MultipleInputWidgetComponent extends PageComponent implements OnIni
     this.buildForm();
     this.ctx.updateWidgetParams();
     this.formResize$ = new ResizeObserver(() => {
-      this.resize();
+      this.ngZone.run(() => {
+        this.resize();
+      });
     });
     this.formResize$.observe(this.formContainerRef.nativeElement);
   }

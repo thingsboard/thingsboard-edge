@@ -158,6 +158,8 @@ import { EntityGroupColumnsComponent } from '@home/components/group/entity-group
 import { EntityGroupColumnDialogComponent } from '@home/components/group/entity-group-column-dialog.component';
 import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
 import { RegistrationPermissionsComponent } from '@home/components/role/registration-permissions.component';
+import { UserGroupPanelComponent } from '@home/components/role/user-group-panel.component';
+import { UserGroupsPanelRowComponent } from '@home/components/role/user-groups-panel-row.component';
 import { EntityGroupComponent } from '@home/components/group/entity-group.component';
 import { HomeDialogsModule } from '@home/dialogs/home-dialogs.module';
 import { EntityGroupColumnComponent } from '@home/components/group/entity-group-column.component';
@@ -231,6 +233,7 @@ import {
   SelectDashboardBreakpointComponent
 } from '@home/components/dashboard-page/layout/select-dashboard-breakpoint.component';
 import { EntityChipsComponent } from '@home/components/entity/entity-chips.component';
+import { DashboardViewComponent } from '@home/components/dashboard-view/dashboard-view.component';
 import { ConverterLibraryComponent } from '@home/components/converter/converter-library.component';
 
 @NgModule({
@@ -301,6 +304,8 @@ import { ConverterLibraryComponent } from '@home/components/converter/converter-
       OwnerAndGroupsComponent,
       ManageOwnerAndGroupsDialogComponent,
       RegistrationPermissionsComponent,
+      UserGroupPanelComponent,
+      UserGroupsPanelRowComponent,
       BooleanFilterPredicateComponent,
       StringFilterPredicateComponent,
       NumericFilterPredicateComponent,
@@ -403,6 +408,7 @@ import { ConverterLibraryComponent } from '@home/components/converter/converter-
       ConverterTestDialogComponent,
       SendNotificationButtonComponent,
       EntityChipsComponent,
+      DashboardViewComponent,
       ConverterLibraryComponent
     ],
   imports: [
@@ -474,6 +480,7 @@ import { ConverterLibraryComponent } from '@home/components/converter/converter-
     OwnerAndGroupsComponent,
     ManageOwnerAndGroupsDialogComponent,
     RegistrationPermissionsComponent,
+    UserGroupPanelComponent,
     BooleanFilterPredicateComponent,
     StringFilterPredicateComponent,
     NumericFilterPredicateComponent,
@@ -567,7 +574,8 @@ import { ConverterLibraryComponent } from '@home/components/converter/converter-
     RateLimitsTextComponent,
     IntegrationWizardDialogComponent,
     SendNotificationButtonComponent,
-    EntityChipsComponent
+    EntityChipsComponent,
+    DashboardViewComponent
   ],
   providers: [
     WidgetComponentService,

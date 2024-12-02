@@ -32,6 +32,7 @@ package org.thingsboard.server.dao.domain;
 
 import org.thingsboard.server.common.data.domain.Domain;
 import org.thingsboard.server.common.data.domain.DomainInfo;
+import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.DomainId;
 import org.thingsboard.server.common.data.id.OAuth2ClientId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -49,13 +50,15 @@ public interface DomainService extends EntityDaoService {
 
     Domain findDomainById(TenantId tenantId, DomainId domainId);
 
-    PageData<DomainInfo> findDomainInfosByTenantId(TenantId tenantId, PageLink pageLink);
+    PageData<DomainInfo> findDomainInfosByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId, PageLink pageLink);
 
     DomainInfo findDomainInfoById(TenantId tenantId, DomainId domainId);
 
     boolean isOauth2Enabled(TenantId tenantId);
 
     void updateOauth2Clients(TenantId tenantId, DomainId domainId, List<OAuth2ClientId> oAuth2ClientIds);
+
+    void deleteDomainsByTenantIdAndCustomerId(TenantId tenantId, CustomerId customerId);
 
     void deleteDomainsByTenantId(TenantId tenantId);
 }

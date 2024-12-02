@@ -36,9 +36,9 @@ import { AppState } from '@app/core/core.state';
 import { TranslateService } from '@ngx-translate/core';
 import { AliasEntityType, EntityType, entityTypeTranslations } from '@app/shared/models/entity-type.models';
 import { EntityService } from '@core/http/entity.service';
-import { coerceBooleanProperty } from '@angular/cdk/coercion';
 import { Operation } from '@shared/models/security.models';
 import { coerceBoolean } from '@shared/decorators/coercion';
+import { MatFormFieldAppearance } from '@angular/material/form-field';
 
 @Component({
   selector: 'tb-entity-type-select',
@@ -84,6 +84,9 @@ export class EntityTypeSelectComponent implements ControlValueAccessor, OnInit, 
 
   @Input()
   additionEntityTypes: {[key in string]: string} = {};
+
+  @Input()
+  appearance: MatFormFieldAppearance = 'fill';
 
   entityTypes: Array<EntityType | AliasEntityType | string>;
 

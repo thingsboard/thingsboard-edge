@@ -33,7 +33,7 @@
 <form [formGroup]="selectOwnerFormGroup" (ngSubmit)="selectOwner()" style="width: 800px;">
   <mat-toolbar color="primary">
     <h2>{{ selectOwnerTitle | translate }}</h2>
-    <span fxFlex></span>
+    <span class="flex-1"></span>
     <button mat-icon-button
             (click)="cancel()"
             type="button">
@@ -45,7 +45,7 @@
   <div style="height: 4px;" *ngIf="!(isLoading$ | async)"></div>
   <div mat-dialog-content>
     <fieldset [disabled]="isLoading$ | async">
-      <section fxFlex fxLayout="column">
+      <section class="flex flex-1 flex-col">
         <tb-owner-autocomplete
           formControlName="targetOwnerId"
           [excludeOwnerIds]="excludeOwnerIds"
@@ -57,7 +57,7 @@
       </section>
     </fieldset>
   </div>
-  <div mat-dialog-actions fxLayout="row" fxLayoutAlign="end center">
+  <div mat-dialog-actions class="flex flex-row items-center justify-end">
     <button mat-button color="primary"
             type="button"
             [disabled]="(isLoading$ | async)"

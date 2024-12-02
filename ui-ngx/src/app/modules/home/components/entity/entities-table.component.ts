@@ -34,10 +34,9 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ComponentFactoryResolver,
   ElementRef,
   EventEmitter,
-  Input,
+  Input, NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -158,9 +157,9 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
               private domSanitizer: DomSanitizer,
               private cd: ChangeDetectorRef,
               private router: Router,
-              private componentFactoryResolver: ComponentFactoryResolver,
               private elementRef: ElementRef,
               private fb: FormBuilder,
+              private zone: NgZone,
               public viewContainerRef: ViewContainerRef,
               public renderer: Renderer2) {
     super(store);
@@ -177,11 +176,13 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
       });
     }
     this.widgetResize$ = new ResizeObserver(() => {
-      const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
-      if (showHidePageSize !== this.hidePageSize) {
-        this.hidePageSize = showHidePageSize;
-        this.cd.markForCheck();
-      }
+      this.zone.run(() => {
+        const showHidePageSize = this.elementRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+        if (showHidePageSize !== this.hidePageSize) {
+          this.hidePageSize = showHidePageSize;
+          this.cd.markForCheck();
+        }
+      });
     });
     this.widgetResize$.observe(this.elementRef.nativeElement);
   }
@@ -214,10 +215,9 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     this.entitiesTableConfig = entitiesTableConfig;
     this.pageMode = this.entitiesTableConfig.pageMode;
     if (this.entitiesTableConfig.headerComponent) {
-      const componentFactory = this.componentFactoryResolver.resolveComponentFactory(this.entitiesTableConfig.headerComponent);
       const viewContainerRef = this.entityTableHeaderAnchor.viewContainerRef;
       viewContainerRef.clear();
-      const componentRef = viewContainerRef.createComponent(componentFactory);
+      const componentRef = viewContainerRef.createComponent(this.entitiesTableConfig.headerComponent);
       const headerComponent = componentRef.instance;
       headerComponent.entitiesTableConfig = this.entitiesTableConfig;
     }
@@ -456,8 +456,8 @@ export class EntitiesTableComponent extends PageComponent implements IEntitiesTa
     }
   }
 
-  private getTimePageLinkInterval(): {startTime?: number, endTime?: number} {
-    const interval: {startTime?: number, endTime?: number} = {};
+  private getTimePageLinkInterval(): {startTime?: number; endTime?: number} {
+    const interval: {startTime?: number; endTime?: number} = {};
     switch (this.timewindow.history.historyType) {
       case HistoryWindowType.LAST_INTERVAL:
         const currentTime = Date.now();

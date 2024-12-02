@@ -367,7 +367,7 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
     this.pagesFormArray().removeAt(this.actualPageIndex(index));
   }
 
-  addCustomPage() {
+  addCustomPage(button: MatButton) {
     this.dialog.open<AddCustomMenuItemDialogComponent, AddCustomMenuItemDialogData,
       CustomMenuItem>(AddCustomMenuItemDialogComponent, {
       disableClose: true,
@@ -381,6 +381,9 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
         const pagesArray = this.pagesFormArray();
         const pageControl = this.fb.control(page, []);
         pagesArray.push(pageControl);
+        setTimeout(() => {
+          button._elementRef.nativeElement.scrollIntoView({block: 'nearest'});
+        }, 0);
       }
     });
   }
@@ -389,7 +392,7 @@ export class CustomMenuItemRowComponent implements ControlValueAccessor, OnInit,
     this.menuItemRowFormGroup.patchValue(
       {
         visible: menuItem.visible,
-        icon: menuItem.icon,
+        icon: menuItem.icon || (this.isDefaultMenuItem ? this.defaultMenuSection.icon : null),
         name: menuItem.name
       }, {emitEvent: false}
     );

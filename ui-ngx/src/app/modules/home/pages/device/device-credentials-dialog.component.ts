@@ -40,9 +40,10 @@ import { DeviceCredentials, DeviceProfileInfo, DeviceTransportType } from '@shar
 import { DialogComponent } from '@shared/components/dialog.component';
 import { Router } from '@angular/router';
 import { DeviceProfileService } from '@core/http/device-profile.service';
-import { forkJoin, Observable } from 'rxjs';
+import { forkJoin, throwError, Observable } from 'rxjs';
 import { isDefinedAndNotNull } from '@core/utils';
-import { mergeMap } from 'rxjs/operators';
+import { catchError, mergeMap } from 'rxjs/operators';
+import { HttpStatusCode } from '@angular/common/http';
 
 export interface DeviceCredentialsDialogData {
   isReadOnly: boolean;
@@ -129,7 +130,16 @@ export class DeviceCredentialsDialogComponent extends
     this.submitted = true;
     const deviceCredentialsValue = this.deviceCredentialsFormGroup.value.credential;
     this.deviceCredentials = {...this.deviceCredentials, ...deviceCredentialsValue};
-    this.deviceService.saveDeviceCredentials(this.deviceCredentials).subscribe(
+    this.deviceService.saveDeviceCredentials(this.deviceCredentials)
+      .pipe(
+        catchError((err) => {
+          if (err.status === HttpStatusCode.Conflict) {
+            return this.deviceService.getDeviceCredentials(this.deviceCredentials.deviceId.id);
+          }
+          return throwError(() => err);
+        })
+      )
+      .subscribe(
       (deviceCredentials) => {
         this.dialogRef.close(deviceCredentials);
       }

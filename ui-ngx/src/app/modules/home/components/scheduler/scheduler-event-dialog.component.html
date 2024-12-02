@@ -31,9 +31,9 @@
 
 -->
 <form [formGroup]="schedulerEventFormGroup" (ngSubmit)="save()">
-  <mat-toolbar fxLayout="row" color="primary">
+  <mat-toolbar class="flex flex-row" color="primary">
     <h2 translate>{{ isAdd ? 'scheduler.create' : (readonly ? 'scheduler.view' : 'scheduler.edit')}}</h2>
-    <span fxFlex></span>
+    <span class="flex-1"></span>
     <div [tb-help]="'scheduler'"></div>
     <button mat-icon-button
             (click)="cancel()"
@@ -58,27 +58,27 @@
       </mat-form-field>
       <mat-tab-group dynamicHeight>
         <mat-tab label="{{ 'scheduler.configuration' | translate }}">
-          <div fxLayout="column" class="tb-scheduler-configuration">
+          <div class="tb-scheduler-configuration flex flex-col">
             <tb-scheduler-event-type-autocomplete
               formControlName="type"
               required
               [schedulerEventConfigTypes]="schedulerEventConfigTypes"
             ></tb-scheduler-event-type-autocomplete>
-            <mat-slide-toggle [fxShow]="schedulerEventFormGroup.get('type').value"
+            <mat-slide-toggle [class.!hidden]="!schedulerEventFormGroup.get('type').value"
                               class="mat-slide" formControlName="enabled" style="margin-bottom: 22px;">
               {{ 'scheduler.enabled' | translate }}
             </mat-slide-toggle>
             <tb-scheduler-event-config
-              [fxShow]="schedulerEventFormGroup.get('type').value"
+              [class.!hidden]="!schedulerEventFormGroup.get('type').value"
               formControlName="configuration"
               [schedulerEventConfigTypes]="schedulerEventConfigTypes"
               [schedulerEventType]="schedulerEventFormGroup.get('type').value">
             </tb-scheduler-event-config>
-            <div [fxShow]="!schedulerEventFormGroup.get('type').value" style="height: 300px;"></div>
+            <div [class.!hidden]="schedulerEventFormGroup.get('type').value" style="height: 300px;"></div>
           </div>
         </mat-tab>
         <mat-tab label="{{ 'scheduler.schedule' | translate }}">
-          <div fxLayout="column" class="tb-scheduler-configuration">
+          <div class="tb-scheduler-configuration flex flex-col">
             <tb-scheduler-event-schedule
               formControlName="schedule">
             </tb-scheduler-event-schedule>
@@ -87,8 +87,8 @@
       </mat-tab-group>
     </fieldset>
   </div>
-  <div mat-dialog-actions fxLayout="row">
-    <span fxFlex></span>
+  <div mat-dialog-actions class="flex flex-row">
+    <span class="flex-1"></span>
     <button mat-button color="primary"
             type="button"
             [disabled]="(isLoading$ | async)"

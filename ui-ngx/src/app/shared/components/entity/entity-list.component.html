@@ -32,7 +32,7 @@
 -->
 <mat-form-field [formGroup]="entityListFormGroup" class="mat-block"
                 [appearance]="appearance"
-                [ngClass]="{'tb-chip-list': !labelText}" [subscriptSizing]="subscriptSizing">
+                [class.tb-chip-list]="!labelText" [subscriptSizing]="subscriptSizing">
   <mat-label *ngIf="labelText">{{ labelText }}</mat-label>
   <mat-chip-grid #chipList formControlName="entities">
     <mat-chip-row

@@ -100,7 +100,9 @@ public class AuthController extends BaseController {
     @GetMapping(value = "/auth/user")
     public User getUser() throws ThingsboardException {
         SecurityUser securityUser = getCurrentUser();
-        return userService.findUserById(securityUser.getTenantId(), securityUser.getId());
+        User user = userService.findUserById(securityUser.getTenantId(), securityUser.getId());
+        checkDashboardInfo(user.getAdditionalInfo());
+        return user;
     }
 
     @ApiOperation(value = "Logout (logout)",
@@ -241,7 +243,7 @@ public class AuthController extends BaseController {
             try {
                 mailService.sendAccountActivatedEmail(user.getTenantId(), loginUrl, email);
             } catch (Exception e) {
-                log.info("Unable to send account activation email [{}]", e.getMessage());
+                log.warn("Unable to send account activation email [{}]", e.getMessage());
             }
         }
 
@@ -280,7 +282,11 @@ public class AuthController extends BaseController {
             String baseUrl = systemSecurityService.getBaseUrl(user.getAuthority(), user.getTenantId(), user.getCustomerId(), request);
             String loginUrl = String.format("%s/login", baseUrl);
             String email = user.getEmail();
-            mailService.sendPasswordWasResetEmail(user.getTenantId(), loginUrl, email);
+            try {
+                mailService.sendPasswordWasResetEmail(user.getTenantId(), loginUrl, email);
+            } catch (Exception e) {
+                log.warn("Couldn't send password was reset email: {}", e.getMessage());
+            }
 
             eventPublisher.publishEvent(new UserCredentialsInvalidationEvent(securityUser.getId()));
 

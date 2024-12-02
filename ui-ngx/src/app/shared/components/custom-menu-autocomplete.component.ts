@@ -37,10 +37,10 @@ import {
   UntypedFormGroup,
   Validators
 } from '@angular/forms';
-import { Observable, of } from 'rxjs';
+import { merge, Observable, of, Subject } from 'rxjs';
 import { PageLink } from '@shared/models/page/page-link';
 import { Direction } from '@shared/models/page/sort-order';
-import { catchError, debounceTime, distinctUntilChanged, map, share, switchMap, tap } from 'rxjs/operators';
+import { catchError, debounceTime, map, share, switchMap, tap } from 'rxjs/operators';
 import { emptyPageData, PageData } from '@shared/models/page/page-data';
 import { Store } from '@ngrx/store';
 import { AppState } from '@app/core/core.state';
@@ -64,6 +64,7 @@ import { CustomMenuService } from '@core/http/custom-menu.service';
 export class CustomMenuAutocompleteComponent implements ControlValueAccessor, OnInit, AfterViewInit {
 
   private dirty = false;
+  private refresh$ = new Subject<Array<CustomMenuInfo>>();
 
   selectCustomMenuFormGroup: UntypedFormGroup;
 
@@ -75,8 +76,19 @@ export class CustomMenuAutocompleteComponent implements ControlValueAccessor, On
   @Input()
   placeholder: string;
 
-  @Input()
-  scope: CMScope;
+  private scopeValue: CMScope;
+  @Input({required: true})
+  set scope(value: CMScope) {
+    if (this.scopeValue !== value) {
+      this.scopeValue = value;
+      this.selectCustomMenuFormGroup.get('customMenu').patchValue('', {emitEvent: false});
+      this.refresh$.next([]);
+      this.dirty = true;
+    }
+  }
+  get scope() {
+    return this.scopeValue;
+  }
 
   @Input()
   assigneeType: CMAssigneeType;
@@ -129,22 +141,23 @@ export class CustomMenuAutocompleteComponent implements ControlValueAccessor, On
   }
 
   ngOnInit() {
-    this.filteredCustomMenus = this.selectCustomMenuFormGroup.get('customMenu').valueChanges
-    .pipe(
-      debounceTime(150),
-      tap(value => {
-        let modelValue: CustomMenuId | null;
-        if (typeof value === 'string' || !value) {
-          modelValue = null;
-        } else {
-          modelValue = value.id;
-        }
-        this.updateView(modelValue);
-      }),
-      map(value => value ? (typeof value === 'string' ? value : value.name) : ''),
-      distinctUntilChanged(),
-      switchMap(name => this.fetchCustomMenus(name) ),
-      share()
+    this.filteredCustomMenus = merge(
+      this.refresh$.asObservable(),
+      this.selectCustomMenuFormGroup.get('customMenu').valueChanges.pipe(
+        debounceTime(150),
+        tap(value => {
+          let modelValue: CustomMenuId | null;
+          if (typeof value === 'string' || !value) {
+            modelValue = null;
+          } else {
+            modelValue = value.id;
+          }
+          this.updateView(modelValue);
+        }),
+        map(value => value ? (typeof value === 'string' ? value : value.name) : ''),
+        switchMap(name => this.fetchCustomMenus(name) ),
+        share()
+      )
     );
   }
 

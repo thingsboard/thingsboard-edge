@@ -30,31 +30,31 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<div class="tb-details-buttons" fxLayout.xs="column">
+<div class="tb-details-buttons xs:flex xs:flex-col">
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'open')"
-          [fxShow]="!isEdit && !isDetailsPage">
+          [class.!hidden]="isEdit || isDetailsPage">
     {{'common.open-details-page' | translate }}
   </button>
   <button mat-raised-button color="primary"
           [disabled]="(isLoading$ | async)"
           (click)="onEntityAction($event, 'delete')"
-          [fxShow]="!hideDelete() && !isEdit">
+          [class.!hidden]="hideDelete() || isEdit">
     {{'role.delete' | translate }}
   </button>
-  <div fxLayout="row" fxLayout.xs="column">
+  <div class="flex flex-row xs:flex-col">
     <button mat-raised-button
             ngxClipboard
             (cbOnSuccess)="onRoleIdCopied($event)"
             [cbContent]="entity?.id?.id"
-            [fxShow]="!isEdit">
+            [class.!hidden]="isEdit">
       <mat-icon svgIcon="mdi:clipboard-arrow-left"></mat-icon>
       <span translate>role.copyId</span>
     </button>
   </div>
 </div>
-<div class="mat-padding" fxLayout="column">
+<div class="mat-padding flex flex-col">
   <form [formGroup]="entityForm">
     <fieldset [disabled]="(isLoading$ | async) || !isEdit">
       <mat-form-field class="mat-block">
@@ -75,7 +75,7 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-      <div formGroupName="additionalInfo" fxLayout="column">
+      <div formGroupName="additionalInfo" class="flex flex-col">
         <mat-form-field class="mat-block">
           <mat-label translate>role.description</mat-label>
           <textarea matInput formControlName="description" rows="2"></textarea>
@@ -87,12 +87,12 @@
             <div class="tb-panel-title" translate>role.permissions</div>
           </mat-panel-title>
         </mat-expansion-panel-header>
-        <section [fxShow]="entityForm.get('type').value === roleType.GENERIC">
+        <section [class.!hidden]="entityForm.get('type').value !== roleType.GENERIC">
           <tb-permission-list
             formControlName="genericPermissions">
           </tb-permission-list>
         </section>
-        <section [fxShow]="entityForm.get('type').value === roleType.GROUP" fxLayout="column">
+        <section [class.!hidden]="entityForm.get('type').value !== roleType.GROUP" class="flex flex-col">
           <label class="tb-title tb-required" translate>permission.operation.operations</label>
           <tb-operation-type-list
             formControlName="groupPermissions"

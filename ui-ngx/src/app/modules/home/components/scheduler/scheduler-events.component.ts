@@ -34,7 +34,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  Input,
+  Input, NgZone,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -103,7 +103,7 @@ import {
 import { EntityType } from '@shared/models/entity-type.models';
 import { hidePageSizePixelValue } from '@shared/models/constants';
 import { asRoughMs, rangeContainsMarker } from '@fullcalendar/core/internal';
-import * as _moment from 'moment';
+import _moment from 'moment';
 import { FormBuilder } from '@angular/forms';
 
 @Component({
@@ -195,7 +195,8 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
               private router: Router,
               private route: ActivatedRoute,
               private cd: ChangeDetectorRef,
-              private fb: FormBuilder) {
+              private fb: FormBuilder,
+              private zone: NgZone) {
     super(store);
   }
 
@@ -253,11 +254,13 @@ export class SchedulerEventsComponent extends PageComponent implements OnInit, A
     }
     if (this.displayPagination) {
       this.widgetResize$ = new ResizeObserver(() => {
-        const showHidePageSize = this.schedulerEventWidgetContainerRef.nativeElement.offsetWidth < hidePageSizePixelValue;
-        if (showHidePageSize !== this.hidePageSize) {
-          this.hidePageSize = showHidePageSize;
-          this.cd.markForCheck();
-        }
+        this.zone.run(() => {
+          const showHidePageSize = this.schedulerEventWidgetContainerRef.nativeElement.offsetWidth < hidePageSizePixelValue;
+          if (showHidePageSize !== this.hidePageSize) {
+            this.hidePageSize = showHidePageSize;
+            this.cd.markForCheck();
+          }
+        });
       });
       this.widgetResize$.observe(this.schedulerEventWidgetContainerRef.nativeElement);
     }

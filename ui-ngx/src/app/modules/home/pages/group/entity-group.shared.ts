@@ -30,7 +30,7 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { ActivatedRouteSnapshot } from '@angular/router';
 import { EntityGroupStateInfo } from '@home/models/group/group-entities-table-config.models';
 import { EntityGroupConfigResolver } from '@home/components/group/entity-group-config.resolver';
 import { Observable } from 'rxjs';
@@ -39,7 +39,7 @@ import { BreadCrumbLabelFunction } from '@shared/components/breadcrumb';
 import { GroupEntitiesTableComponent } from '@home/components/group/group-entities-table.component';
 
 @Injectable()
-export class EntityGroupResolver<T> implements Resolve<EntityGroupStateInfo<T>> {
+export class EntityGroupResolver<T>  {
 
   constructor(private entityGroupConfigResolver: EntityGroupConfigResolver) {
   }

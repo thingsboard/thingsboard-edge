@@ -35,6 +35,7 @@ import { NgModule } from '@angular/core';
 import { devicesRoute } from '@home/pages/device/device-routing.module';
 import { assetsRoute } from '@home/pages/asset/asset-routing.module';
 import { entityViewsRoute } from '@home/pages/entity-view/entity-view-routing.module';
+import { gatewaysRoutes } from '@home/pages/gateways/gateways-routing.module';
 
 export const entitiesRoute = (root = false): Route => ({
     path: 'entities',
@@ -55,7 +56,8 @@ export const entitiesRoute = (root = false): Route => ({
       },
       devicesRoute(root),
       assetsRoute(root),
-      entityViewsRoute(root)
+      entityViewsRoute(root),
+      ...gatewaysRoutes
     ]
   });
 

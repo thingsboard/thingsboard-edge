@@ -31,11 +31,16 @@
 
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { SelfRegistrationParams, SignUpSelfRegistrationParams } from '@shared/models/self-register.models';
+import {
+  CaptchaParams,
+  SignUpSelfRegistrationParams,
+  WebSelfRegistrationParams
+} from '@shared/models/self-register.models';
 import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { defaultHttpOptionsFromConfig, RequestConfig } from '@core/http/http-utils';
+import { isDefinedAndNotNull } from '@core/utils';
 
 @Injectable({
   providedIn: 'root'
@@ -57,9 +62,12 @@ export class SelfRegistrationService {
   public loadSelfRegistrationParams(): Observable<SignUpSelfRegistrationParams> {
     return this.http.get<SignUpSelfRegistrationParams>('/api/noauth/selfRegistration/signUpSelfRegistrationParams').pipe(
       tap((signUpParams) => {
-        this.signUpParams = signUpParams;
-        this.signUpParams.activate = this.signUpParams.captchaSiteKey !== null;
-        this.signUpParams.captchaVersion = this.signUpParams.captchaVersion || 'v2';
+        this.signUpParams = signUpParams || {} as SignUpSelfRegistrationParams;
+        this.signUpParams.activate = isDefinedAndNotNull(signUpParams?.captcha?.siteKey);
+        if (!isDefinedAndNotNull(signUpParams?.captcha)) {
+          this.signUpParams.captcha = {} as CaptchaParams;
+        }
+        this.signUpParams.captcha.version = signUpParams?.captcha?.version || 'v3';
       })
     );
   }
@@ -89,18 +97,18 @@ export class SelfRegistrationService {
     }
   }
 
-  public saveSelfRegistrationParams(selfRegistrationParams: SelfRegistrationParams,
-                                    config?: RequestConfig): Observable<SelfRegistrationParams> {
-    return this.http.post<SelfRegistrationParams>('/api/selfRegistration/selfRegistrationParams',
+  public saveSelfRegistrationParams(selfRegistrationParams: WebSelfRegistrationParams,
+                                    config?: RequestConfig): Observable<WebSelfRegistrationParams> {
+    return this.http.post<WebSelfRegistrationParams>('/api/selfRegistration/selfRegistrationParams',
       selfRegistrationParams, defaultHttpOptionsFromConfig(config));
   }
 
-  public getSelfRegistrationParams(config?: RequestConfig): Observable<SelfRegistrationParams> {
-    return this.http.get<SelfRegistrationParams>(`/api/selfRegistration/selfRegistrationParams`, defaultHttpOptionsFromConfig(config));
+  public getSelfRegistrationParams(config?: RequestConfig): Observable<WebSelfRegistrationParams> {
+    return this.http.get<WebSelfRegistrationParams>(`/api/selfRegistration/selfRegistrationParams`, defaultHttpOptionsFromConfig(config));
   }
 
-  public deleteSelfRegistrationParams(domainName: string, config?: RequestConfig) {
-    return this.http.delete(`/api/selfRegistration/selfRegistrationParams/${domainName}`, defaultHttpOptionsFromConfig(config));
+  public deleteSelfRegistrationParams(config?: RequestConfig) {
+    return this.http.delete(`/api/selfRegistration/selfRegistrationParams`, defaultHttpOptionsFromConfig(config));
   }
 
 }

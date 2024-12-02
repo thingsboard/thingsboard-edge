@@ -30,15 +30,12 @@
 ///
 
 import {
-  AfterViewInit,
   Component,
-  ComponentFactoryResolver,
   ComponentRef,
   forwardRef,
   Input,
   OnChanges,
   OnDestroy,
-  OnInit,
   SimpleChanges,
   ViewChild,
   ViewContainerRef
@@ -64,7 +61,6 @@ import { Dashboard } from '@shared/models/dashboard.models';
 import { WidgetService } from '@core/http/widget.service';
 import { IAliasController } from '@core/api/widget-api.models';
 import { WidgetConfigComponentData } from '@home/models/widget-component.models';
-import { DataKeysCallbacks } from '@home/components/widget/config/data-keys.component.models';
 import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-config.component.models';
 
 @Component({
@@ -82,7 +78,7 @@ import { WidgetConfigCallbacks } from '@home/components/widget/config/widget-con
     multi: true
   }]
 })
-export class WidgetSettingsComponent implements ControlValueAccessor, OnInit, OnDestroy, AfterViewInit, OnChanges, Validator {
+export class WidgetSettingsComponent implements ControlValueAccessor, OnDestroy, OnChanges, Validator {
 
   @ViewChild('definedSettingsContent', {read: ViewContainerRef, static: true}) definedSettingsContainer: ViewContainerRef;
 
@@ -121,7 +117,6 @@ export class WidgetSettingsComponent implements ControlValueAccessor, OnInit, On
   private propagateChange = (_v: any) => { };
 
   constructor(private translate: TranslateService,
-              private cfr: ComponentFactoryResolver,
               private widgetService: WidgetService,
               private fb: UntypedFormBuilder) {
     this.widgetSettingsFormGroup = this.fb.group({
@@ -134,9 +129,6 @@ export class WidgetSettingsComponent implements ControlValueAccessor, OnInit, On
   }
 
   registerOnTouched(fn: any): void {
-  }
-
-  ngOnInit(): void {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -177,9 +169,6 @@ export class WidgetSettingsComponent implements ControlValueAccessor, OnInit, On
     if (this.definedSettingsComponentRef) {
       this.definedSettingsComponentRef.destroy();
     }
-  }
-
-  ngAfterViewInit(): void {
   }
 
   setDisabledState(isDisabled: boolean): void {
@@ -247,8 +236,7 @@ export class WidgetSettingsComponent implements ControlValueAccessor, OnInit, On
           this.changeSubscription = null;
         }
         this.definedSettingsContainer.clear();
-        const factory = this.cfr.resolveComponentFactory(componentType);
-        this.definedSettingsComponentRef = this.definedSettingsContainer.createComponent(factory);
+        this.definedSettingsComponentRef = this.definedSettingsContainer.createComponent(componentType);
         this.definedSettingsComponent = this.definedSettingsComponentRef.instance;
         this.definedSettingsComponent.aliasController = this.aliasController;
         this.definedSettingsComponent.callbacks = this.callbacks;

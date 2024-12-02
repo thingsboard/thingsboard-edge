@@ -31,13 +31,16 @@
 
 import { environment as env } from '@env/environment';
 import { TranslateService } from '@ngx-translate/core';
-import * as _moment from 'moment';
 import { mergeMap } from 'rxjs/operators';
+import _moment from 'moment';
 import { Observable } from 'rxjs';
 
-export function updateUserLang(translate: TranslateService, userLang: string,
+export function updateUserLang(translate: TranslateService, document: Document, userLang: string,
                                translations = env.supportedLangs, reload = false): Observable<any> {
   let targetLang = userLang;
+  if (!translations) {
+    translations = env.supportedLangs;
+  }
   if (!env.production) {
     console.log(`User lang: ${targetLang}`);
   }
@@ -51,6 +54,7 @@ export function updateUserLang(translate: TranslateService, userLang: string,
   if (!env.production) {
     console.log(`Detected supported lang: ${detectedSupportedLang}`);
   }
+  document.documentElement.lang = detectedSupportedLang.replace('_', '-');
   _moment.locale([detectedSupportedLang]);
   if (reload) {
     translate.addLangs(translations);

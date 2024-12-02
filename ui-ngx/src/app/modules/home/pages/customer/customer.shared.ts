@@ -30,14 +30,14 @@
 ///
 
 import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, Resolve } from '@angular/router';
+import { ActivatedRouteSnapshot } from '@angular/router';
 import { CustomerService } from '@core/http/customer.service';
 import { Observable, of } from 'rxjs';
 import { resolveGroupParams } from '@shared/models/entity-group.models';
 import { map } from 'rxjs/operators';
 
 @Injectable()
-export class CustomerTitleResolver implements Resolve<string> {
+export class CustomerTitleResolver  {
 
   constructor(private customerService: CustomerService) {
   }

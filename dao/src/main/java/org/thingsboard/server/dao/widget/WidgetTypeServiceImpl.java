@@ -31,6 +31,7 @@
 package org.thingsboard.server.dao.widget;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -52,6 +53,7 @@ import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
 import org.thingsboard.server.dao.resource.ImageService;
+import org.thingsboard.server.dao.resource.ResourceService;
 import org.thingsboard.server.dao.service.DataValidator;
 import org.thingsboard.server.dao.service.PaginatedRemover;
 import org.thingsboard.server.dao.service.Validator;
@@ -59,7 +61,6 @@ import org.thingsboard.server.dao.service.Validator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.thingsboard.server.dao.service.Validator.validateIds;
 
@@ -83,6 +84,9 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
 
     @Autowired
     protected ImageService imageService;
+
+    @Autowired
+    private ResourceService resourceService;
 
     @Override
     public WidgetType findWidgetTypeById(TenantId tenantId, WidgetTypeId widgetTypeId) {
@@ -110,7 +114,12 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
         log.trace("Executing saveWidgetType [{}]", widgetTypeDetails);
         widgetTypeValidator.validate(widgetTypeDetails, WidgetType::getTenantId);
         try {
-            imageService.replaceBase64WithImageUrl(widgetTypeDetails);
+            if (CollectionUtils.isNotEmpty(widgetTypeDetails.getResources())) {
+                resourceService.importResources(widgetTypeDetails.getTenantId(), null, widgetTypeDetails.getResources());
+            }
+            imageService.updateImagesUsage(widgetTypeDetails);
+            resourceService.updateResourcesUsage(widgetTypeDetails);
+
             WidgetTypeDetails result = widgetTypeDao.save(widgetTypeDetails.getTenantId(), widgetTypeDetails);
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId())
                     .entityId(result.getId()).created(widgetTypeDetails.getId() == null).build());
@@ -233,7 +242,7 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
         List<WidgetTypeId> toRemove = existingBundleWidgets.stream()
                 .map(WidgetsBundleWidget::getWidgetTypeId)
                 .filter(widgetTypeId -> bundleWidgets.stream().noneMatch(newBundleWidget ->
-                        newBundleWidget.getWidgetTypeId().equals(widgetTypeId))).collect(Collectors.toList());
+                        newBundleWidget.getWidgetTypeId().equals(widgetTypeId))).toList();
         for (WidgetTypeId widgetTypeId : toRemove) {
             widgetTypeDao.removeWidgetTypeFromWidgetsBundle(widgetsBundleId.getId(), widgetTypeId.getId());
         }
@@ -259,6 +268,17 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
     }
 
     @Override
+    public void deleteWidgetTypesByBundleId(TenantId tenantId, WidgetsBundleId bundleId) {
+        log.trace("Executing deleteWidgetTypesByBundleId, tenantId [{}], bundleId [{}]", tenantId, bundleId);
+        bundleWidgetTypesRemover.removeEntities(tenantId, bundleId);
+    }
+
+    @Override
+    public PageData<WidgetTypeId> findAllWidgetTypesIds(PageLink pageLink) {
+        return widgetTypeDao.findAllWidgetTypesIds(pageLink);
+    }
+
+    @Override
     public void deleteByTenantId(TenantId tenantId) {
         deleteWidgetTypesByTenantId(tenantId);
     }
@@ -273,24 +293,36 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
         return EntityType.WIDGET_TYPE;
     }
 
-    private PaginatedRemover<TenantId, WidgetTypeInfo> tenantWidgetTypeRemover =
-            new PaginatedRemover<>() {
+    private final PaginatedRemover<TenantId, WidgetTypeInfo> tenantWidgetTypeRemover = new PaginatedRemover<>() {
 
-                @Override
-                protected PageData<WidgetTypeInfo> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
-                    return widgetTypeDao.findTenantWidgetTypesByTenantId(
-                            WidgetTypeFilter.builder()
-                                .tenantId(id)
-                                .fullSearch(false)
-                                .deprecatedFilter(DeprecatedFilter.ALL)
-                                .widgetTypes(null).build(),
-                            pageLink);
-                }
+        @Override
+        protected PageData<WidgetTypeInfo> findEntities(TenantId tenantId, TenantId id, PageLink pageLink) {
+            return widgetTypeDao.findTenantWidgetTypesByTenantId(
+                    WidgetTypeFilter.builder()
+                            .tenantId(id)
+                            .fullSearch(false)
+                            .deprecatedFilter(DeprecatedFilter.ALL)
+                            .widgetTypes(null).build(),
+                    pageLink);
+        }
 
-                @Override
-                protected void removeEntity(TenantId tenantId, WidgetTypeInfo entity) {
-                    deleteWidgetType(tenantId, new WidgetTypeId(entity.getUuidId()));
-                }
-            };
+        @Override
+        protected void removeEntity(TenantId tenantId, WidgetTypeInfo entity) {
+            deleteWidgetType(tenantId, new WidgetTypeId(entity.getUuidId()));
+        }
+    };
+
+    private final PaginatedRemover<WidgetsBundleId, WidgetTypeInfo> bundleWidgetTypesRemover = new PaginatedRemover<>() {
+
+        @Override
+        protected PageData<WidgetTypeInfo> findEntities(TenantId tenantId, WidgetsBundleId widgetsBundleId, PageLink pageLink) {
+            return findWidgetTypesInfosByWidgetsBundleId(tenantId, widgetsBundleId, false, DeprecatedFilter.ALL, null, pageLink);
+        }
+
+        @Override
+        protected void removeEntity(TenantId tenantId, WidgetTypeInfo widgetTypeInfo) {
+            deleteWidgetType(tenantId, widgetTypeInfo.getId());
+        }
+    };
 
 }

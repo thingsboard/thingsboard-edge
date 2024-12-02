@@ -31,7 +31,7 @@
 
 import { TimeService } from '@core/services/time.service';
 import { deepClone, isDefined, isDefinedAndNotNull, isNumeric, isUndefined } from '@app/core/utils';
-import * as moment_ from 'moment';
+import moment_ from 'moment';
 import * as momentTz from 'moment-timezone';
 import { IntervalType } from '@shared/models/telemetry/telemetry.models';
 
@@ -347,6 +347,12 @@ export const initModelFromDefaultTimewindow = (value: Timewindow, quickIntervalO
       if (isDefinedAndNotNull(value.realtime.hideQuickInterval)) {
         model.realtime.hideQuickInterval = value.realtime.hideQuickInterval;
       }
+      if (value.realtime.disableCustomInterval) {
+        model.realtime.disableCustomInterval = value.realtime.disableCustomInterval;
+      }
+      if (value.realtime.disableCustomGroupInterval) {
+        model.realtime.disableCustomGroupInterval = value.realtime.disableCustomGroupInterval;
+      }
 
       if (isDefined(value.realtime.interval)) {
         model.realtime.interval = value.realtime.interval;
@@ -379,6 +385,12 @@ export const initModelFromDefaultTimewindow = (value: Timewindow, quickIntervalO
       }
       if (isDefinedAndNotNull(value.history.hideQuickInterval)) {
         model.history.hideQuickInterval = value.history.hideQuickInterval;
+      }
+      if (value.history.disableCustomInterval) {
+        model.history.disableCustomInterval = value.history.disableCustomInterval;
+      }
+      if (value.history.disableCustomGroupInterval) {
+        model.history.disableCustomGroupInterval = value.history.disableCustomGroupInterval;
       }
 
       if (isDefined(value.history.interval)) {
@@ -445,7 +457,7 @@ export const toHistoryTimewindow = (timewindow: Timewindow, startTimeMs: number,
     aggType = AggregationType.AVG;
     limit = timeService.getMaxDatapointsLimit();
   }
-  return {
+  const historyTimewindow: Timewindow = {
     hideAggregation: timewindow.hideAggregation || false,
     hideAggInterval: timewindow.hideAggInterval || false,
     hideTimezone: timewindow.hideTimezone || false,
@@ -459,7 +471,7 @@ export const toHistoryTimewindow = (timewindow: Timewindow, startTimeMs: number,
       interval: timeService.boundIntervalToTimewindow(endTimeMs - startTimeMs, interval, AggregationType.AVG),
       hideInterval: timewindow.history?.hideInterval || false,
       hideLastInterval: timewindow.history?.hideLastInterval || false,
-      hideQuickInterval: timewindow.history?.hideQuickInterval || false,
+      hideQuickInterval: timewindow.history?.hideQuickInterval || false
     },
     aggregation: {
       type: aggType,
@@ -467,6 +479,13 @@ export const toHistoryTimewindow = (timewindow: Timewindow, startTimeMs: number,
     },
     timezone: timewindow.timezone
   };
+  if (timewindow.history?.disableCustomInterval) {
+    historyTimewindow.history.disableCustomInterval = timewindow.history.disableCustomInterval;
+  }
+  if (timewindow.history?.disableCustomGroupInterval) {
+    historyTimewindow.history.disableCustomGroupInterval = timewindow.history.disableCustomGroupInterval;
+  }
+  return historyTimewindow;
 };
 
 export const timewindowTypeChanged = (newTimewindow: Timewindow, oldTimewindow: Timewindow): boolean => {
