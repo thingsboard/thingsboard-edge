@@ -34,24 +34,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.translation.CustomTranslation;
-import org.thingsboard.server.common.data.translation.TranslationInfo;
 import org.thingsboard.server.dao.translation.TranslationCacheKey;
 import org.thingsboard.server.service.custommenu.EtagCacheService;
 
-import java.util.List;
-import java.util.Set;
-
-public interface TbTranslationService extends EtagCacheService<TranslationCacheKey> {
-
-    List<TranslationInfo> getTranslationInfos(TenantId tenantId, CustomerId customerId);
-
-    Set<String> getAvailableLocaleCodes(TenantId tenantId, CustomerId customerId);
-
-    JsonNode getLoginTranslation(String localeCode, String domainName);
-
-    JsonNode getFullTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
-
-    JsonNode getTranslationForBasicEdit(TenantId tenantId, CustomerId customerId, String localeCode);
+public interface TbCustomTranslationService extends EtagCacheService<TranslationCacheKey> {
 
     void saveCustomTranslation(CustomTranslation customTranslation);
 

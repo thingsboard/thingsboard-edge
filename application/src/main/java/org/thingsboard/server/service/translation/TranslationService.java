@@ -28,37 +28,26 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-package org.thingsboard.server.dao.translation;
+package org.thingsboard.server.service.translation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.common.data.translation.TranslationInfo;
 
+import java.util.List;
 import java.util.Set;
 
-public interface CustomTranslationService {
+public interface TranslationService {
 
-    JsonNode getCurrentCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
+    List<TranslationInfo> getTranslationInfos(TenantId tenantId, CustomerId customerId);
 
-    JsonNode getMergedTenantCustomTranslation(TenantId tenantId, String localeCode);
+    Set<String> getAvailableLocaleCodes(TenantId tenantId, CustomerId customerId);
 
-    JsonNode getMergedCustomerCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
+    JsonNode getLoginTranslation(String localeCode, String domainName);
 
-    void saveCustomTranslation(CustomTranslation customTranslation);
+    JsonNode getFullTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
-    void patchCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode customTranslation);
-
-    void deleteCustomTranslationKeyByPath(TenantId tenantId, CustomerId customerId, String localeCode, String key);
-
-    void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
-
-    Set<String> getCurrentCustomizedLocales(TenantId tenantId, CustomerId customerId);
-
-    Set<String> getMergedTenantCustomizedLocales(TenantId tenantId);
-
-    Set<String> getMergedCustomerCustomizedLocales(TenantId tenantId, CustomerId customerId);
-
-    void deleteCustomTranslationByTenantId(TenantId tenantId);
+    JsonNode getTranslationForBasicEdit(TenantId tenantId, CustomerId customerId, String localeCode);
 
 }

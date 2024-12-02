@@ -32,27 +32,20 @@ package org.thingsboard.server.service.translation;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Service;
 import org.thingsboard.common.util.JacksonUtil;
-import org.thingsboard.server.cluster.TbClusterService;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TenantId;
-import org.thingsboard.server.common.data.translation.CustomTranslation;
 import org.thingsboard.server.common.data.translation.TranslationInfo;
 import org.thingsboard.server.common.data.wl.WhiteLabeling;
 import org.thingsboard.server.dao.customer.CustomerService;
 import org.thingsboard.server.dao.translation.CustomTranslationService;
-import org.thingsboard.server.dao.translation.TranslationCacheKey;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
-import org.thingsboard.server.gen.transport.TransportProtos;
-import org.thingsboard.server.queue.util.TbCoreComponent;
-import org.thingsboard.server.service.entitiy.AbstractEtagCacheService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -76,9 +69,8 @@ import static org.thingsboard.common.util.JacksonUtil.newObjectNode;
 import static org.thingsboard.server.common.data.wl.WhiteLabelingType.LOGIN;
 
 @Service
-@Slf4j
-@TbCoreComponent
-public class DefaultTbTranslationService extends AbstractEtagCacheService<TranslationCacheKey> implements TbTranslationService {
+@RequiredArgsConstructor
+public class DefaultTranslationService implements TranslationService {
 
     public static final String LOCALE_FILES_DIRECTORY_PATH = "public/assets/locale";
     public static final Pattern LOCALE_FILE_PATTERN = Pattern.compile("locale\\.constant-(.*?)\\.json");
@@ -86,10 +78,10 @@ public class DefaultTbTranslationService extends AbstractEtagCacheService<Transl
     private static final Set<String> DEFAULT_LOCALE_KEYS;
     private static final Map<String, JsonNode> TRANSLATION_VALUE_MAP = new HashMap<>();
     private static final Map<String, TranslationInfo> TRANSLATION_INFO_MAP = new HashMap<>();
+
     private final CustomTranslationService customTranslationService;
     private final WhiteLabelingService whiteLabelingService;
     private final CustomerService customerService;
-    private final TbClusterService clusterService;
 
     static {
         JsonNode defaultTranslation = readResourceLocaleTranslation(DEFAULT_LOCALE_CODE);
@@ -101,17 +93,6 @@ public class DefaultTbTranslationService extends AbstractEtagCacheService<Transl
             TRANSLATION_INFO_MAP.put(localeCode, createTranslationInfo(DEFAULT_LOCALE_KEYS, localeCode, resourceLocaleTranslation, false));
             TRANSLATION_VALUE_MAP.put(localeCode, merge(defaultTranslation.deepCopy(), resourceLocaleTranslation));
         }
-    }
-
-    public DefaultTbTranslationService(TbClusterService clusterService, CustomTranslationService customTranslationService,
-                                       WhiteLabelingService whiteLabelingService, CustomerService customerService,
-                                       @Value("${cache.translation.etag.timeToLiveInMinutes:44640}") int cacheTtl,
-                                       @Value("${cache.translation.etag.maxSize:1000000}") int cacheMaxSize) {
-        super(cacheTtl, cacheMaxSize);
-        this.clusterService = clusterService;
-        this.customTranslationService = customTranslationService;
-        this.whiteLabelingService = whiteLabelingService;
-        this.customerService = customerService;
     }
 
     @Override
@@ -188,30 +169,6 @@ public class DefaultTbTranslationService extends AbstractEtagCacheService<Transl
         return fullTranslation;
     }
 
-    @Override
-    public void saveCustomTranslation(CustomTranslation customTranslation) {
-        customTranslationService.saveCustomTranslation(customTranslation);
-        evictFromCache(customTranslation.getTenantId());
-    }
-
-    @Override
-    public void patchCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode customTranslation) {
-        customTranslationService.patchCustomTranslation(tenantId, customerId, localeCode, customTranslation);
-        evictFromCache(tenantId);
-    }
-
-    @Override
-    public void deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String keyPath) {
-        customTranslationService.deleteCustomTranslationKeyByPath(tenantId, customerId, localeCode, keyPath);
-        evictFromCache(tenantId);
-    }
-
-    @Override
-    public void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode) {
-        customTranslationService.deleteCustomTranslation(tenantId, customerId, localeCode);
-        evictFromCache(tenantId);
-    }
-
     private static TranslationInfo createTranslationInfo(Set<String> engLocaleKeys, String localeCode, JsonNode translation, boolean customized) {
         int progress = calculateTranslationProgress(engLocaleKeys, translation);
         Locale locale = Locale.forLanguageTag(localeCode.replace("_", "-"));
@@ -250,7 +207,7 @@ public class DefaultTbTranslationService extends AbstractEtagCacheService<Transl
 
     private static JsonNode readResourceLocaleTranslation(String localeCode) {
         String filePath = LOCALE_FILES_DIRECTORY_PATH + "/locale.constant-" + localeCode + ".json";
-        try (InputStream in = DefaultTbTranslationService.class.getClassLoader().getResourceAsStream(filePath)) {
+        try (InputStream in = DefaultTbCustomTranslationService.class.getClassLoader().getResourceAsStream(filePath)) {
             return JacksonUtil.OBJECT_MAPPER.readTree(in);
         } catch (Exception e) {
             throw new RuntimeException("Failed to read locale translation for " + localeCode + "!", e);
@@ -266,7 +223,7 @@ public class DefaultTbTranslationService extends AbstractEtagCacheService<Transl
         } catch (IOException e) {
             throw new RuntimeException("Failed to get list of system locales!", e);
         }
-        return filenames.stream().map(DefaultTbTranslationService::getLocaleFromFileName)
+        return filenames.stream().map(DefaultTranslationService::getLocaleFromFileName)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
@@ -379,26 +336,6 @@ public class DefaultTbTranslationService extends AbstractEtagCacheService<Transl
                     ((ObjectNode) mainNode).set(fieldName, value);
                 }
             }
-        }
-    }
-
-    private void evictFromCache(TenantId tenantId) {
-        evictETags(TranslationCacheKey.forTenant(tenantId));
-        clusterService.broadcastToCore(TransportProtos.ToCoreNotificationMsg.newBuilder()
-                .setTranslationCacheInvalidateMsg(TransportProtos.TranslationCacheInvalidateMsg.newBuilder()
-                        .setTenantIdMSB(tenantId.getId().getMostSignificantBits())
-                        .setTenantIdLSB(tenantId.getId().getLeastSignificantBits())
-                        .build())
-                .build());
-    }
-
-    @Override
-    public void evictETags(TranslationCacheKey cacheKey) {
-        TenantId tenantId = cacheKey.getTenantId();
-        if (tenantId.isSysTenantId()) {
-            etagCache.invalidateAll();
-        } else {
-            invalidateByFilter(key -> tenantId.equals(key.getTenantId()));
         }
     }
 
