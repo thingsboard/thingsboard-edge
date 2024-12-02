@@ -83,6 +83,7 @@ import org.thingsboard.server.common.data.rule.RuleChain;
 import org.thingsboard.server.common.data.rule.RuleNode;
 import org.thingsboard.server.dao.attributes.AttributesService;
 import org.thingsboard.server.dao.entity.AbstractCachedEntityService;
+import org.thingsboard.server.dao.entity.EntityCountService;
 import org.thingsboard.server.dao.eventsourcing.ActionEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.DeleteEntityEvent;
 import org.thingsboard.server.dao.eventsourcing.SaveEntityEvent;
@@ -159,6 +160,9 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
     @Lazy
     private RelatedEdgesService relatedEdgesService;
 
+    @Autowired
+    private EntityCountService countService;
+
     @Value("${edges.enabled}")
     @Getter
     private boolean edgesEnabled;
@@ -231,6 +235,9 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             entityGroupService.addEntityToEntityGroupAll(savedEdge.getTenantId(), savedEdge.getOwnerId(), savedEdge.getId());
             eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(savedEdge.getTenantId())
                     .entityId(savedEdge.getId()).entity(savedEdge).created(edge.getId() == null).build());
+            if (edge.getId() == null) {
+                countService.publishCountEntityEvictEvent(savedEdge.getTenantId(), EntityType.EDGE);
+            }
             return savedEdge;
         } catch (Exception t) {
             handleEvictEvent(evictEvent);
@@ -257,6 +264,7 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
         edgeDao.removeById(tenantId, edgeId.getId());
 
         publishEvictEvent(new EdgeCacheEvictEvent(edge.getTenantId(), edge.getName(), null));
+        countService.publishCountEntityEvictEvent(tenantId, EntityType.EDGE);
         eventPublisher.publishEvent(DeleteEntityEvent.builder().tenantId(tenantId).entityId(edgeId).build());
     }
 
@@ -834,6 +842,11 @@ public class EdgeServiceImpl extends AbstractCachedEntityService<EdgeCacheKey, E
             array.add(missingAttributeKey);
         }
         return array;
+    }
+
+    @Override
+    public long countByTenantId(TenantId tenantId) {
+        return edgeDao.countByTenantId(tenantId);
     }
 
     @Override
