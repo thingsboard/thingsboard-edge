@@ -28,61 +28,23 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-:host ::ng-deep {
-  .mat-button-toggle-group.tb-notification-unread-toggle-group {
-    &.mat-button-toggle-group-appearance-standard {
-      border: none;
-      border-radius: 14px;
+package org.thingsboard.server.service.translation;
 
-      .mat-button-toggle + .mat-button-toggle {
-        border-left: none;
-      }
-    }
+import com.fasterxml.jackson.databind.JsonNode;
+import org.thingsboard.server.common.data.id.CustomerId;
+import org.thingsboard.server.common.data.id.TenantId;
+import org.thingsboard.server.common.data.translation.CustomTranslation;
+import org.thingsboard.server.dao.translation.TranslationCacheKey;
+import org.thingsboard.server.service.custommenu.EtagCacheService;
 
-    .mat-button-toggle {
-      background: rgba(0, 0, 0, 0.06);
-      height: 28px;
-      align-items: center;
-      display: flex;
+public interface TbCustomTranslationService extends EtagCacheService<TranslationCacheKey> {
 
-      .mat-button-toggle-ripple {
-        top: 2px;
-        left: 2px;
-        right: 2px;
-        bottom: 2px;
-        border-radius: 14px;
-      }
-    }
+    void saveCustomTranslation(CustomTranslation customTranslation);
 
-    .mat-button-toggle-button {
-      color: #959595;
-    }
+    void patchCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode, JsonNode customTranslation);
 
-    .mat-button-toggle-focus-overlay {
-      border-radius: 14px;
-      margin: 2px;
-    }
+    void deleteCustomTranslationKey(TenantId tenantId, CustomerId customerId, String localeCode, String key);
 
-    .mat-button-toggle-checked .mat-button-toggle-button {
-      background-color: var(--tb-primary-500);
-      color: #fff;
-      border-radius: 14px;
-      margin-left: 2px;
-      margin-right: 2px;
-    }
+    void deleteCustomTranslation(TenantId tenantId, CustomerId customerId, String localeCode);
 
-    .mat-button-toggle-appearance-standard .mat-button-toggle-label-content {
-      line-height: 24px;
-      font-size: 14px;
-      font-weight: 500;
-      letter-spacing: .25px;
-      .mat-pseudo-checkbox {
-        display: none;
-      }
-    }
-
-    .mat-button-toggle-checked.mat-button-toggle-appearance-standard:not(.mat-button-toggle-disabled):hover .mat-button-toggle-focus-overlay {
-      opacity: .01;
-    }
-  }
 }

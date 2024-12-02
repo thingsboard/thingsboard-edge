@@ -47,6 +47,8 @@ public class ControllerConstants {
     protected static final String ENTITY_ID = "entityId";
     protected static final String ASSIGNEE_ID = "assigneeId";
     protected static final String INTEGRATION_NAME = "integrationName";
+    protected static final String INCLUDE_GATEWAY_INFO = "includeGatewayInfo";
+    protected static final String IS_GATEWAY_INFO_INCLUDED = "false";
 
     protected static final String PAGE_DATA_PARAMETERS = "You can specify parameters to filter the results. " +
             "The result is wrapped with PageData object that allows you to iterate over result set using pagination. " +

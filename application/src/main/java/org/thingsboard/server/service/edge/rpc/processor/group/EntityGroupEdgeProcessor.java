@@ -53,10 +53,10 @@ public class EntityGroupEdgeProcessor extends BaseEdgeProcessor {
         EntityGroupId entityGroupId = new EntityGroupId(edgeEvent.getEntityId());
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
-        var msgConstructor = (GroupMsgConstructor) groupMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion);
+        var msgConstructor = (GroupMsgConstructor) edgeCtx.getGroupMsgConstructorFactory().getMsgConstructorByEdgeVersion(edgeVersion);
         switch (msgType) {
             case ENTITY_CREATED_RPC_MESSAGE, ENTITY_UPDATED_RPC_MESSAGE -> {
-                EntityGroup entityGroup = entityGroupService.findEntityGroupById(edgeEvent.getTenantId(), entityGroupId);
+                EntityGroup entityGroup = edgeCtx.getEntityGroupService().findEntityGroupById(edgeEvent.getTenantId(), entityGroupId);
                 if (entityGroup != null) {
                     EntityGroupUpdateMsg entityGroupUpdateMsg = msgConstructor.constructEntityGroupUpdatedMsg(msgType, entityGroup);
                     downlinkMsg = DownlinkMsg.newBuilder()

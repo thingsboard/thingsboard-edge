@@ -32,6 +32,7 @@ package org.thingsboard.server.rules.flow;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.awaitility.Awaitility;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -74,6 +75,7 @@ import org.thingsboard.server.dao.event.EventService;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.spy;
@@ -345,6 +347,15 @@ public abstract class AbstractRuleEngineFlowIntegrationTest extends AbstractRule
 
         RuleChain finalRuleChain = rootRuleChain;
         RuleNode lastRuleNode = secondaryMetaData.getNodes().stream().filter(node -> !node.getId().equals(finalRuleChain.getFirstRuleNodeId())).findFirst().get();
+
+        Awaitility.await().atMost(TIMEOUT, TimeUnit.SECONDS)
+                .until(() ->
+                    getDebugEvents(savedTenant.getId(), lastRuleNode.getId(), 1000)
+                            .getData()
+                            .stream()
+                            .filter(filterByPostTelemetryEventType())
+                            .count() == 2
+                );
 
         eventsPage = getDebugEvents(savedTenant.getId(), lastRuleNode.getId(), 1000);
         events = eventsPage.getData().stream().filter(filterByPostTelemetryEventType()).collect(Collectors.toList());

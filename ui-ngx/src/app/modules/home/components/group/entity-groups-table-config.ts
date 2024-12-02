@@ -37,12 +37,11 @@ import {
 } from '@home/models/entity/entities-table-config.models';
 import { EntityGroup, EntityGroupInfo, EntityGroupParams, entityGroupsTitle } from '@shared/models/entity-group.models';
 import { EntityGroupService } from '@core/http/entity-group.service';
-import { CustomerService } from '@core/http/customer.service';
 import { UserPermissionsService } from '@core/http/user-permissions.service';
 import { TranslateService } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { UtilsService } from '@core/services/utils.service';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { HomeDialogsService } from '@home/dialogs/home-dialogs.service';
 import { EntityType, entityTypeResources, entityTypeTranslations } from '@shared/models/entity-type.models';
 import { isDefinedAndNotNull } from '@core/utils';
@@ -57,6 +56,7 @@ import { EntityGroupWizardDialogResult } from '@home/components/wizard/entity-gr
 import { AddEntityGroupsToEdgeDialogComponent } from '@home/dialogs/add-entity-groups-to-edge-dialog.component';
 import { AddEntityGroupsToEdgeDialogData } from '@home/dialogs/add-entity-groups-to-edge-dialog.models';
 import { EntityId } from '@shared/models/id/entity-id';
+import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 
 export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> {
 
@@ -65,15 +65,14 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
   shared: boolean;
 
   constructor(private entityGroupService: EntityGroupService,
-              private customerService: CustomerService,
               private userPermissionsService: UserPermissionsService,
               private translate: TranslateService,
               private datePipe: DatePipe,
               private utils: UtilsService,
-              private route: ActivatedRoute,
               private router: Router,
               private dialog: MatDialog,
               private homeDialogs: HomeDialogsService,
+              private customTranslate: CustomTranslatePipe,
               private params: EntityGroupParams) {
     super(params);
 
@@ -107,9 +106,8 @@ export class EntityGroupsTableConfig extends EntityTableConfig<EntityGroupInfo> 
       new DateEntityTableColumn<EntityGroupInfo>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<EntityGroupInfo>('name', 'entity-group.name', '33%', this.entityTitle),
       new EntityTableColumn<EntityGroupInfo>('description', 'entity-group.description', '40%',
-        (entityGroup) =>
-          entityGroup && entityGroup.additionalInfo && isDefinedAndNotNull(entityGroup.additionalInfo.description)
-            ? entityGroup.additionalInfo.description : '', () => ({}), false)
+        (entityGroup) => this.customTranslate.transform(entityGroup?.additionalInfo?.description || ''),
+        () => ({}), false)
     );
     if (publicGroupTypes.has(this.groupType)) {
       this.columns.push(

@@ -33,6 +33,7 @@ package org.thingsboard.server.service.edge.rpc.processor.role;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.thingsboard.server.common.data.EdgeUtils;
 import org.thingsboard.server.common.data.EntityType;
@@ -53,6 +54,7 @@ import org.thingsboard.server.gen.edge.v1.UpdateMsgType;
 import org.thingsboard.server.gen.transport.TransportProtos;
 import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.edge.rpc.constructor.role.RoleMsgConstructor;
+import org.thingsboard.server.service.edge.rpc.constructor.role.RoleMsgConstructorFactory;
 import org.thingsboard.server.service.edge.rpc.processor.BaseEdgeProcessor;
 
 import java.util.ArrayList;
@@ -64,25 +66,29 @@ import java.util.UUID;
 @TbCoreComponent
 public class RoleEdgeProcessor extends BaseEdgeProcessor {
 
+    @Autowired
+    protected RoleMsgConstructorFactory roleMsgConstructorFactory;
+
     public DownlinkMsg convertRoleEventToDownlink(EdgeEvent edgeEvent, EdgeVersion edgeVersion) {
         RoleId roleId = new RoleId(edgeEvent.getEntityId());
+        var msgConstructor = (RoleMsgConstructor) roleMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion);
         DownlinkMsg downlinkMsg = null;
         UpdateMsgType msgType = getUpdateMsgType(edgeEvent.getAction());
         switch (msgType) {
             case ENTITY_CREATED_RPC_MESSAGE:
             case ENTITY_UPDATED_RPC_MESSAGE:
-                Role role = roleService.findRoleById(edgeEvent.getTenantId(), roleId);
+                Role role = edgeCtx.getRoleService().findRoleById(edgeEvent.getTenantId(), roleId);
                 if (role != null) {
                     downlinkMsg = DownlinkMsg.newBuilder()
                             .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                            .addRoleMsg(((RoleMsgConstructor) roleMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructRoleProto(msgType, role))
+                            .addRoleMsg(msgConstructor.constructRoleProto(msgType, role))
                             .build();
                 }
                 break;
             case ENTITY_DELETED_RPC_MESSAGE:
                 downlinkMsg = DownlinkMsg.newBuilder()
                         .setDownlinkMsgId(EdgeUtils.nextPositiveInt())
-                        .addRoleMsg(((RoleMsgConstructor) roleMsgConstructorFactory.getMsgConstructorByEdgeVersion(edgeVersion)).constructRoleDeleteMsg(roleId))
+                        .addRoleMsg(msgConstructor.constructRoleDeleteMsg(roleId))
                         .build();
                 break;
         }
@@ -95,17 +101,16 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
         EntityId entityId = EntityIdFactory.getByEdgeEventTypeAndUuid(type,
                 new UUID(edgeNotificationMsg.getEntityIdMSB(), edgeNotificationMsg.getEntityIdLSB()));
         EdgeId originatorEdgeId = safeGetEdgeId(edgeNotificationMsg.getOriginatorEdgeIdMSB(), edgeNotificationMsg.getOriginatorEdgeIdLSB());
-        switch (actionType) {
-            case ADDED:
-            case UPDATED:
-                ListenableFuture<Role> roleFuture = roleService.findRoleByIdAsync(tenantId, new RoleId(entityId.getId()));
-                return Futures.transformAsync(roleFuture, role -> {
+        return switch (actionType) {
+            case ADDED, UPDATED -> {
+                ListenableFuture<Role> roleFuture = edgeCtx.getRoleService().findRoleByIdAsync(tenantId, new RoleId(entityId.getId()));
+                yield Futures.transformAsync(roleFuture, role -> {
                     if (role == null) {
                         return Futures.immediateFuture(null);
                     }
                     List<ListenableFuture<Void>> futures = new ArrayList<>();
                     PageDataIterable<Edge> edges = new PageDataIterable<>(
-                            link -> edgeService.findEdgesByTenantId(tenantId, link), 1024);
+                            link -> edgeCtx.getEdgeService().findEdgesByTenantId(tenantId, link), 1024);
                     for (Edge edge : edges) {
                         if (EntityType.TENANT.equals(role.getOwnerId().getEntityType()) ||
                                 edge.getOwnerId().equals(role.getOwnerId())) {
@@ -114,11 +119,10 @@ public class RoleEdgeProcessor extends BaseEdgeProcessor {
                     }
                     return Futures.transform(Futures.allAsList(futures), voids -> null, dbCallbackExecutorService);
                 }, dbCallbackExecutorService);
-            case DELETED:
-                return processActionForAllEdges(tenantId, type, actionType, entityId, null, originatorEdgeId);
-            default:
-                return Futures.immediateFuture(null);
-        }
+            }
+            case DELETED -> processActionForAllEdges(tenantId, type, actionType, entityId, null, originatorEdgeId);
+            default -> Futures.immediateFuture(null);
+        };
     }
 
 }

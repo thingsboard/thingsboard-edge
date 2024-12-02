@@ -54,7 +54,8 @@
           background: #F3F6FA;
           border-color: var(--tb-primary-500);
           padding-right: 38px;
-          overflow: scroll;
+          overflow: hidden;
+          overflow-x: auto;
           padding-bottom: 4px;
           min-height: 42px;
           scrollbar-width: thin;
@@ -65,7 +66,7 @@
           }
         }
       }
-      button.clipboard-btn {
+      button.clipboard-btn, button.clipboard-btn.multiline {
         right: -2px;
         p {
           color: var(--tb-primary-500);

@@ -64,6 +64,7 @@ import {
 import { PageLink } from '@shared/models/page/page-link';
 import { mergeMap } from 'rxjs/operators';
 import { resolveGroupParams } from '@shared/models/entity-group.models';
+import { CustomTranslatePipe } from '@shared/pipe/custom-translate.pipe';
 
 export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
 
@@ -76,6 +77,7 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
               private translate: TranslateService,
               private datePipe: DatePipe,
               private router: Router,
+              private customTranslate: CustomTranslatePipe,
               private utils: UtilsService,
               private userPermissionsService: UserPermissionsService,
               private params: ActivatedRouteSnapshot | RuleChainParams) {
@@ -146,7 +148,9 @@ export class RuleChainsTableConfig extends EntityTableConfig<RuleChain> {
     columns.push(
       new DateEntityTableColumn<RuleChain>('createdTime', 'common.created-time', this.datePipe, '150px'),
       new EntityTableColumn<RuleChain>('name', 'rulechain.name', '50%', this.entityTitle),
-      new EntityTableColumn<RuleChain>('description', 'rulechain.description', '50%', entity => entity.additionalInfo?.description ?? '')
+      new EntityTableColumn<RuleChain>('description', 'rulechain.description', '50%',
+        entity => this.customTranslate.transform(entity.additionalInfo?.description || ''),
+        () => ({}), false)
     );
     if (ruleChainScope === 'tenant' || ruleChainScope === 'edge') {
       columns.push(

@@ -507,7 +507,9 @@
             "set": "Set",
             "preview": "Preview",
             "connect-mobile-app": "Connect mobile app",
-            "use-system-settings": "Use system settings"
+            "use-system-settings": "Use system settings",
+            "warning-not-set-white-labeling": "These settings cannot be applied without specifying the Base URL in Login white labeling. Before editing QR code widget settings set ",
+            "base-url": "Base Url"
         },
         "2fa":  {
             "2fa": "Two-factor authentication",
@@ -4550,6 +4552,8 @@
         "delete-application": "Delete application",
         "delete-application-button-text": "I understand consequences, delete application",
         "delete-application-text": "This action can not be undone. This will permanently delete your application.<br/>If you don’t want to delete it permanently you can <b>suspend</b> application temporary.<br/><b>To delete</b> the application anyway please type <b>\"{{phrase}}\"</b> to confirm.",
+        "delete-application-title-short": "Are you sure you want to delete the application '{{name}}'?",
+        "delete-application-text-short": "Be careful, after the confirmation the applications and all related data will become unrecoverable.",
         "delete-application-phrase": "delete application",
         "delete-applications-bundle-text": "Be careful, after the confirmation the mobile bundle and all related data will become unrecoverable.",
         "delete-applications-bundle-title": "Are you sure you want to delete the mobile bundle '{{bundleName}}'?",
@@ -4644,12 +4648,16 @@
             "get-source-code-title": "Get app source code",
             "get-source-code-text": "You can get Flutter ThingsBoard Mobile Application source code by cloning it from the GitHub repository:",
             "configure-api-title": "Configure ThingsBoard API endpoint",
-            "configure-api-text": "Open the flutter_thingsboard_app project in your editor/IDE. Edit:",
+            "configure-api-text": "Open the flutter_thingsboard_pe_app project in your editor/IDE. Edit:",
             "configure-api-hint": "Set the value of the thingsBoardApiEndpoint constant to match the API endpoint of your ThingsBoard server instance. Do not use “localhost” or “127.0.0.1” hostnames.",
             "run-app-title": "Run the app",
             "run-app-text": "Run the app as described in your IDE.\nIf using the terminal, run the app with the following command:",
             "more-information": "Detailed information may be found in our Getting Started documentation.",
-            "getting-started": "Getting Started"
+            "getting-started": "Getting Started",
+            "configure-package-title": "Configure application package",
+            "configure-package-text": "You can manually change the Application Package or use third party CLI tool.",
+            "configure-package-text-install": "To install the Rename CLI Tool, execute the following command:",
+            "configure-package-run-commands": "Run these commands in the root directory of your project:"
         },
         "self-registration": {
             "add-field": "Add field",
