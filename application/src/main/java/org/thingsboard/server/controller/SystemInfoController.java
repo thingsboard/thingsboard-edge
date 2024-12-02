@@ -65,7 +65,7 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import org.thingsboard.server.service.security.model.SecurityUser;
 import org.thingsboard.server.service.security.model.UserPrincipal;
 import org.thingsboard.server.service.sync.vc.EntitiesVersionControlService;
-import org.thingsboard.server.service.translation.TbTranslationService;
+import org.thingsboard.server.service.translation.TranslationService;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -100,7 +100,7 @@ public class SystemInfoController extends BaseController {
     private WhiteLabelingService whiteLabelingService;
 
     @Autowired
-    private TbTranslationService translationService;
+    private TranslationService translationService;
 
     @Autowired
     private QrCodeSettingService qrCodeSettingService;
