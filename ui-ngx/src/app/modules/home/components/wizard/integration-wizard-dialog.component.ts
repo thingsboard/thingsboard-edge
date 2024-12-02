@@ -129,7 +129,7 @@ export class IntegrationWizardDialogComponent extends
       name: ['', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
       type: [null, [Validators.required]],
       enabled: [true],
-      debugSettings: [],
+      debugSettings: [{ allEnabled: true, failuresEnabled: true }],
       allowCreateDevicesOrAssets: [true],
     });
 
