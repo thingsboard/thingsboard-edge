@@ -41,6 +41,7 @@ import org.thingsboard.integration.api.AbstractIntegration;
 import org.thingsboard.integration.api.IntegrationContext;
 import org.thingsboard.integration.api.TbIntegrationInitParams;
 import org.thingsboard.integration.api.data.ContentType;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -76,7 +77,7 @@ public class IntegrationDebugModeTest {
     public void givenDebugFailuresEvents_whenPersistSuccessDebug_thenVerifyDebugNotSaved() throws Exception {
         // GIVEN
         Integration configuration = new Integration();
-        configuration.setDebugFailures(true);
+        configuration.setDebugSettings(DebugSettings.failures());
         integrationInit(configuration);
 
         // WHEN
@@ -90,7 +91,7 @@ public class IntegrationDebugModeTest {
     public void givenDebugFailuresEvents_whenPersistFailureDebug_thenVerifyDebugSaved() throws Exception {
         // GIVEN
         Integration configuration = new Integration();
-        configuration.setDebugFailures(true);
+        configuration.setDebugSettings(DebugSettings.failures());
         integrationInit(configuration);
 
         // WHEN
@@ -104,7 +105,7 @@ public class IntegrationDebugModeTest {
     public void givenDebugAllUntilEvents_whenPersistFailureDebug_thenVerifyDebugSaved() throws Exception {
         // GIVEN
         Integration configuration = new Integration();
-        configuration.setDebugAllUntil(System.currentTimeMillis() + DEFAULT_DEBUG_TIMEOUT);
+        configuration.setDebugSettings(DebugSettings.until(System.currentTimeMillis() + DEFAULT_DEBUG_TIMEOUT));
         integrationInit(configuration);
 
         // WHEN
@@ -118,7 +119,7 @@ public class IntegrationDebugModeTest {
     public void givenDebugAllUntilEvents_whenPersistSuccessDebug_thenVerifyDebugSaved() throws Exception {
         // GIVEN
         Integration configuration = new Integration();
-        configuration.setDebugAllUntil(System.currentTimeMillis() + DEFAULT_DEBUG_TIMEOUT);
+        configuration.setDebugSettings(DebugSettings.until(System.currentTimeMillis() + DEFAULT_DEBUG_TIMEOUT));
         integrationInit(configuration);
 
         // WHEN
@@ -132,7 +133,7 @@ public class IntegrationDebugModeTest {
     public void givenDebugAllUntilEventsIsUp_whenPersistFailureDebug_thenVerifyDebugNotSaved() throws Exception {
         // GIVEN
         Integration configuration = new Integration();
-        configuration.setDebugAllUntil(System.currentTimeMillis() + DEFAULT_DEBUG_TIMEOUT);
+        configuration.setDebugSettings(DebugSettings.until(System.currentTimeMillis() + DEFAULT_DEBUG_TIMEOUT));
         integrationInit(configuration);
 
         // WHEN
@@ -143,7 +144,7 @@ public class IntegrationDebugModeTest {
 
         // GIVEN
         Mockito.clearInvocations(context);
-        configuration.setDebugAllUntil(0L);
+        configuration.setDebugSettings(DebugSettings.off());
 
         // WHEN
         integration.persistFailure();
@@ -156,8 +157,7 @@ public class IntegrationDebugModeTest {
     public void givenDebugFailuresAndDebugAllUntilEventsIsUp_whenPersistSuccessDebug_thenVerifyDebugNotSaved() throws Exception {
         // GIVEN
         Integration configuration = new Integration();
-        configuration.setDebugFailures(true);
-        configuration.setDebugAllUntil(System.currentTimeMillis() + DEFAULT_DEBUG_TIMEOUT);
+        configuration.setDebugSettings(DebugSettings.failuresOrUntil(System.currentTimeMillis() + DEFAULT_DEBUG_TIMEOUT));
         integrationInit(configuration);
 
         // WHEN
@@ -168,7 +168,7 @@ public class IntegrationDebugModeTest {
 
         // GIVEN
         Mockito.clearInvocations(context);
-        configuration.setDebugAllUntil(0L);
+        configuration.setDebugSettings(DebugSettings.off());
 
         // WHEN
         integration.persistSuccess();
@@ -181,8 +181,7 @@ public class IntegrationDebugModeTest {
     public void givenDebugFailuresAndDebugAllUntilEventsIsUp_whenPersistFailureDebug_thenVerifyDebugSaved() throws Exception {
         // GIVEN
         Integration configuration = new Integration();
-        configuration.setDebugFailures(true);
-        configuration.setDebugAllUntil(System.currentTimeMillis() + DEFAULT_DEBUG_TIMEOUT);
+        configuration.setDebugSettings(DebugSettings.failuresOrUntil(System.currentTimeMillis() + DEFAULT_DEBUG_TIMEOUT));
         integrationInit(configuration);
 
         // WHEN
@@ -193,7 +192,7 @@ public class IntegrationDebugModeTest {
 
         // GIVEN
         Mockito.clearInvocations(context);
-        configuration.setDebugAllUntil(0L);
+        configuration.setDebugSettings(DebugSettings.off());
 
         // WHEN
         integration.persistFailure();
