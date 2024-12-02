@@ -121,24 +121,27 @@ public class ThingsboardInstallService {
                     databaseSchemaVersionService.validateSchemaSettings(fromCE);
                     //TODO DON'T FORGET to update SUPPORTED_VERSIONS_FROM in DatabaseSchemaVersionService,
                     // this list should include last version and can include previous versions without upgrade
-                    String fromVersion = databaseSchemaVersionService.getDbSchemaVersion();
-                    String toVersion = databaseSchemaVersionService.getPackageSchemaVersion();
-                    cacheCleanupService.clearCache(fromVersion, toVersion);
                     if (fromCE) {
                         log.info("Upgrading ThingsBoard from version CE to PE ...");
                     } else {
+                        String fromVersion = databaseSchemaVersionService.getDbSchemaVersion();
+                        String toVersion = databaseSchemaVersionService.getPackageSchemaVersion();
                         log.info("Upgrading ThingsBoard from version {} to {} ...", fromVersion, toVersion);
-                        databaseEntitiesUpgradeService.upgradeDatabase(fromVersion, toVersion);
-                        dataUpdateService.updateData(fromVersion, toVersion);
-                        installScripts.updateResourcesUsage();
+                    }
+
+                    cacheCleanupService.clearCache();
+                    entityDatabaseSchemaService.createDatabaseSchema(false);
+
+                    if (!fromCE) {
+                        databaseEntitiesUpgradeService.upgradeDatabase(false);
+                        dataUpdateService.updateData(false); //TODO: update data should be cleaned after each release
                     }
 
                     // We always run the CE to PE update script, just in case..
-                    entityDatabaseSchemaService.createDatabaseSchema(false);
-                    databaseEntitiesUpgradeService.upgradeDatabase(); //CE
+                    databaseEntitiesUpgradeService.upgradeDatabase(true); //CE
                     entityDatabaseSchemaService.createOrUpdateViewsAndFunctions();
                     entityDatabaseSchemaService.createOrUpdateDeviceInfoView(persistToTelemetry);
-                    dataUpdateService.updateData(); //CE
+                    dataUpdateService.updateData(true); //CE
                     entityDatabaseSchemaService.createDatabaseIndexes();
                     log.info("Updating system data...");
                     dataUpdateService.upgradeRuleNodes();

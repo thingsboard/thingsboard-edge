@@ -32,6 +32,6 @@ package org.thingsboard.server.service.install.update;
 
 public interface CacheCleanupService {
 
-    void clearCache(String from, String to) throws Exception;
+    void clearCache() throws Exception;
 
 }

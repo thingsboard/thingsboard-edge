@@ -66,16 +66,14 @@ public class SqlDatabaseUpgradeService implements DatabaseEntitiesUpgradeService
     }
 
     @Override
-    public void upgradeDatabase(String fromVersion, String toVersion) {
-        log.info("Updating schema from version {} to {} ...", fromVersion, toVersion);
-        loadSql(getSchemaUpdateFile("basic"));
-        log.info("Schema updated.");
-    }
-
-    @Override
-    public void upgradeDatabase() {
+    public void upgradeDatabase(boolean fromCe) {
         log.info("Updating schema ...");
-        loadSql(getSchemaUpdateFile("pe"));
+        if (fromCe) {
+            loadSql(getSchemaUpdateFile("pe"));
+        } else {
+            loadSql(getSchemaUpdateFile("basic"));
+
+        }
         log.info("Schema updated.");
     }
 

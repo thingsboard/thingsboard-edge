@@ -32,9 +32,7 @@ package org.thingsboard.server.service.install.update;
 
 public interface DataUpdateService {
 
-    void updateData(String fromVersion, String toVersion) throws Exception;
-
-    void updateData() throws Exception;
+    void updateData(boolean fromCe) throws Exception;
 
     void upgradeRuleNodes();
 }

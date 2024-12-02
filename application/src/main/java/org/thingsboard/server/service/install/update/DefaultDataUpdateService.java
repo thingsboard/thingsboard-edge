@@ -88,6 +88,7 @@ import org.thingsboard.server.dao.user.UserService;
 import org.thingsboard.server.dao.wl.WhiteLabelingService;
 import org.thingsboard.server.service.component.ComponentDiscoveryService;
 import org.thingsboard.server.service.component.RuleNodeClassInfo;
+import org.thingsboard.server.service.install.InstallScripts;
 import org.thingsboard.server.service.install.SystemDataLoaderService;
 import org.thingsboard.server.utils.TbNodeUpgradeUtils;
 
@@ -162,21 +163,28 @@ public class DefaultDataUpdateService implements DataUpdateService {
     JpaExecutorService jpaExecutorService;
 
     @Autowired
+    private InstallScripts installScripts;
+
+    @Autowired
     private NotificationTemplateService notificationTemplateService;
 
     @Override
-    public void updateData(String fromVersion, String toVersion) throws Exception {
-        log.info("Updating data from version {} to {} ...", fromVersion, toVersion);
-        moveMailTemplatesToNotificationCenter(Map.of(
-                "userActivated", NotificationType.USER_ACTIVATED,
-                "userRegistered", NotificationType.USER_REGISTERED
-        ));
+    public void updateData(boolean fromCe) throws Exception {
+        log.info("Updating data ...");
+        if (fromCe) {
+            updateDataFromCe();
+        } else {
+            //TODO: should be cleaned after each release
+            installScripts.updateResourcesUsage();
+            moveMailTemplatesToNotificationCenter(Map.of(
+                    "userActivated", NotificationType.USER_ACTIVATED,
+                    "userRegistered", NotificationType.USER_REGISTERED
+            ));
+        }
         log.info("Data updated.");
     }
 
-    @Override
-    public void updateData() throws Exception {
-        log.info("Updating data ...");
+    private void updateDataFromCe() throws Exception {
         tenantsCustomersGroupAllUpdater.updateEntities();
         tenantEntitiesGroupAllUpdater.updateEntities();
         tenantIntegrationUpdater.updateEntities();
