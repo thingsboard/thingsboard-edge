@@ -66,7 +66,6 @@ import { map, takeUntil } from 'rxjs/operators';
 import { forkJoin, Observable, Subject } from 'rxjs';
 import { ContentType } from '@shared/models/constants';
 import { ConverterLibraryService } from '@core/http/converter-library.service';
-import { HasDebugConfig } from '@shared/models/entity.models';
 
 @Component({
   selector: 'tb-converter',
@@ -169,9 +168,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     const form = this.fb.group({
       name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
       type: [entity?.type ? entity.type : ConverterType.UPLINK, [Validators.required]],
-      debugAll: [entity?.debugAll ?? true],
-      debugFailures: [entity?.debugFailures ?? false],
-      debugAllUntil: [entity?.debugAllUntil ?? 0],
+      debugSettings: [entity?.debugSettings ?? { failuresEnabled: true, allEnabled: true }],
       configuration: this.fb.group({
         scriptLang: [entity?.configuration ? entity.configuration.scriptLang : ScriptLanguage.JS],
         decoder: [entity?.configuration ? entity.configuration.decoder : null],
@@ -185,13 +182,6 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
       })
     });
     return form;
-  }
-
-  onDebugConfigChanged(config: HasDebugConfig): void {
-    this.entityForm.get('debugAllUntil').setValue(config.debugAllUntil);
-    this.entityForm.get('debugAll').setValue(config.debugAll);
-    this.entityForm.get('debugFailures').setValue(config.debugFailures);
-    this.entityForm.markAsDirty();
   }
 
   private checkIsNewConverter(entity: Converter, form: FormGroup) {
@@ -285,9 +275,7 @@ export class ConverterComponent extends EntityComponent<Converter> implements On
     this.entityForm.patchValue({
       type: entity.type,
       name: entity?.name ? entity.name : '',
-      debugAll: entity?.debugAll ?? true,
-      debugFailures: entity?.debugFailures ?? false,
-      debugAllUntil: entity?.debugAllUntil ?? 0,
+      debugSettings: entity?.debugSettings ?? { failuresEnabled: true, allEnabled: true },
       configuration: {
         scriptLang,
         decoder: entity.configuration ? entity.configuration.decoder : null,

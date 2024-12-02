@@ -59,7 +59,6 @@ import { ActionNotificationShow } from '@core/notification/notification.actions'
 import { ConverterService } from '@core/http/converter.service';
 import { IntegrationService } from '@core/http/integration.service';
 import { ConverterId } from '@shared/models/id/converter-id';
-import { HasDebugConfig } from '@shared/models/entity.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 
 export interface IntegrationWizardData<T> extends AddEntityDialogData<T>{
@@ -130,9 +129,7 @@ export class IntegrationWizardDialogComponent extends
       name: ['', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
       type: [null, [Validators.required]],
       enabled: [true],
-      debugAll: [true],
-      debugFailures: [false],
-      debugAllUntil: [0],
+      debugSettings: [{ allEnabled: true, failuresEnabled: true }],
       allowCreateDevicesOrAssets: [true],
     });
 
@@ -349,9 +346,7 @@ export class IntegrationWizardDialogComponent extends
       name: this.integrationWizardForm.value.name.trim(),
       type: this.integrationWizardForm.value.type,
       enabled: this.integrationWizardForm.value.enabled,
-      debugAll: this.integrationWizardForm.value.debugAll,
-      debugFailures: this.integrationWizardForm.value.debugFailures,
-      debugAllUntil: this.integrationWizardForm.value.debugAllUntil,
+      debugSettings: this.integrationWizardForm.value.debugSettings,
       allowCreateDevicesOrAssets: this.integrationWizardForm.value.allowCreateDevicesOrAssets,
       edgeTemplate: this.data.edgeTemplate
     };
@@ -441,13 +436,6 @@ export class IntegrationWizardDialogComponent extends
 
   get isCheckConnectionAvailable(): boolean {
     return !this.isEdgeTemplate && this.checkConnectionAllow && !this.isRemoteIntegration && this.isConnectionStep;
-  }
-
-  onDebugConfigChanged(config: HasDebugConfig): void {
-    this.integrationWizardForm.get('debugAllUntil').setValue(config.debugAllUntil);
-    this.integrationWizardForm.get('debugAll').setValue(config.debugAll);
-    this.integrationWizardForm.get('debugFailures').setValue(config.debugFailures);
-    this.integrationWizardForm.markAsDirty();
   }
 
   private updateIntegrationsInfo(): void {
