@@ -41,6 +41,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.ExportableEntity;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -175,9 +176,9 @@ public class Integration extends AbstractIntegration implements ExportableEntity
     public Integration(TenantId tenantId, String name, IntegrationType type,
                        Boolean enabled, Boolean isRemote, Boolean allowCreateDevicesOrAssets,
                        boolean isEdgeTemplate, ConverterId defaultConverterId, ConverterId downlinkConverterId,
-                       String routingKey, boolean debugFailures, boolean debugAll, long debugAllUntil, String secret,
+                       String routingKey, DebugSettings debugSettings, String secret,
                        JsonNode configuration, JsonNode additionalInfo, IntegrationId externalId, Long version) {
-        super(tenantId, name, type, debugFailures, debugAll, debugAllUntil, enabled, isRemote, allowCreateDevicesOrAssets, isEdgeTemplate, version);
+        super(tenantId, name, type, false, debugSettings, enabled, isRemote, allowCreateDevicesOrAssets, isEdgeTemplate, version);
         this.defaultConverterId = defaultConverterId;
         this.downlinkConverterId = downlinkConverterId;
         this.routingKey = routingKey;

@@ -51,6 +51,7 @@ import org.thingsboard.server.common.data.Tenant;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.device.data.CoapDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.Lwm2mDeviceTransportConfiguration;
 import org.thingsboard.server.common.data.device.data.PowerMode;
@@ -1257,8 +1258,6 @@ public class ProtoUtils {
                 .setTenantIdLSB(getLsb(integration.getTenantId()))
                 .setType(integration.getType().name())
                 .setName(integration.getName())
-                .setDebugFailures(integration.isDebugFailures())
-                .setDebugAllUntil(integration.getDebugAllUntil())
                 .setEnabled(integration.isEnabled())
                 .setRemote(integration.isRemote())
                 .setAllowCreateDevicesOrAssets(integration.isAllowCreateDevicesOrAssets())
@@ -1267,6 +1266,10 @@ public class ProtoUtils {
                 .setDefaultConverterIdLSB(getLsb(integration.getDefaultConverterId()))
                 .setRoutingKey(integration.getRoutingKey())
                 .setConfiguration(JacksonUtil.toString(integration.getConfiguration()));
+
+        if (isNotNull(integration.getDebugSettings())) {
+            builder.setDebugSettings(JacksonUtil.toString(integration.getDebugSettings()));
+        }
 
         if (isNotNull(integration.getSecret())) {
             builder.setSecret(integration.getSecret());
@@ -1296,8 +1299,6 @@ public class ProtoUtils {
         integration.setTenantId(getEntityId(proto.getTenantIdMSB(), proto.getTenantIdLSB(), TenantId::new));
         integration.setType(IntegrationType.valueOf(proto.getType()));
         integration.setName(proto.getName());
-        integration.setDebugFailures(proto.getDebugFailures());
-        integration.setDebugAllUntil(proto.getDebugAllUntil());
         integration.setEnabled(proto.getEnabled());
         integration.setRemote(proto.getRemote());
         integration.setAllowCreateDevicesOrAssets(proto.getAllowCreateDevicesOrAssets());
@@ -1305,6 +1306,10 @@ public class ProtoUtils {
         integration.setDefaultConverterId(getEntityId(proto.getDefaultConverterIdMSB(), proto.getDefaultConverterIdLSB(), ConverterId::new));
         integration.setRoutingKey(proto.getRoutingKey());
         integration.setConfiguration(JacksonUtil.toJsonNode(proto.getConfiguration()));
+
+        if (proto.hasDebugSettings()) {
+            integration.setDebugSettings(JacksonUtil.fromString(proto.getDebugSettings(), DebugSettings.class));
+        }
 
         if (proto.hasSecret()) {
             integration.setSecret(proto.getSecret());
@@ -1335,10 +1340,12 @@ public class ProtoUtils {
                 .setTenantIdLSB(getLsb(converter.getTenantId()))
                 .setType(converter.getType().name())
                 .setName(converter.getName())
-                .setDebugFailures(converter.isDebugFailures())
-                .setDebugAllUntil(converter.getDebugAllUntil())
                 .setIsEdgeTemplate(converter.isEdgeTemplate())
                 .setConfiguration(JacksonUtil.toString(converter.getConfiguration()));
+
+        if (isNotNull(converter.getDebugSettings())) {
+            builder.setDebugSettings(JacksonUtil.toString(converter.getDebugSettings()));
+        }
 
         if (isNotNull(converter.getAdditionalInfo())) {
             builder.setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
@@ -1360,11 +1367,12 @@ public class ProtoUtils {
         converter.setTenantId(getEntityId(proto.getTenantIdMSB(), proto.getTenantIdLSB(), TenantId::new));
         converter.setType(ConverterType.valueOf(proto.getType()));
         converter.setName(proto.getName());
-        converter.setDebugFailures(proto.getDebugFailures());
-        converter.setDebugAllUntil(proto.getDebugAllUntil());
         converter.setEdgeTemplate(proto.getIsEdgeTemplate());
         converter.setConfiguration(JacksonUtil.toJsonNode(proto.getConfiguration()));
 
+        if (proto.hasDebugSettings()) {
+            converter.setDebugSettings(JacksonUtil.fromString(proto.getDebugSettings(), DebugSettings.class));
+        }
         if (proto.hasAdditionalInfo()) {
             converter.setAdditionalInfo(JacksonUtil.toJsonNode(proto.getAdditionalInfo()));
         }

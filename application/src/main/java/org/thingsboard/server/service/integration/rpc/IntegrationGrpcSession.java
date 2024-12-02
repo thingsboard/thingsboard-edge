@@ -420,7 +420,7 @@ public final class IntegrationGrpcSession implements Closeable {
     }
 
     private IntegrationConfigurationProto constructIntegrationConfigProto(Integration configuration, ConverterConfigurationProto defaultConverterProto, ConverterConfigurationProto downLinkConverterProto) throws JsonProcessingException {
-        return IntegrationConfigurationProto.newBuilder()
+        var builder = IntegrationConfigurationProto.newBuilder()
                 .setIntegrationIdMSB(configuration.getId().getId().getMostSignificantBits())
                 .setIntegrationIdLSB(configuration.getId().getId().getLeastSignificantBits())
                 .setTenantIdMSB(configuration.getTenantId().getId().getMostSignificantBits())
@@ -432,24 +432,26 @@ public final class IntegrationGrpcSession implements Closeable {
                 .setType(configuration.getType().toString())
                 .setConfiguration(JacksonUtil.writeValueAsString(configuration.getConfiguration()))
                 .setAdditionalInfo(JacksonUtil.writeValueAsString(configuration.getAdditionalInfo()))
-                .setEnabled(configuration.isEnabled())
-                .setDebugFailures(configuration.isDebugFailures())
-                .setDebugAllUntil(configuration.getDebugAllUntil())
-                .build();
+                .setEnabled(configuration.isEnabled());
+        if (configuration.getDebugSettings() != null) {
+            builder.setDebugSettings(JacksonUtil.toString(configuration.getDebugSettings()));
+        }
+        return builder.build();
     }
 
     private ConverterConfigurationProto constructConverterConfigProto(Converter converter) throws JsonProcessingException {
-        return ConverterConfigurationProto.newBuilder()
+        var builder =  ConverterConfigurationProto.newBuilder()
                 .setTenantIdMSB(converter.getTenantId().getId().getMostSignificantBits())
                 .setTenantIdLSB(converter.getTenantId().getId().getLeastSignificantBits())
                 .setConverterIdMSB(converter.getId().getId().getMostSignificantBits())
                 .setConverterIdLSB(converter.getId().getId().getLeastSignificantBits())
                 .setName(converter.getName())
                 .setConfiguration(JacksonUtil.toString(converter.getConfiguration()))
-                .setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()))
-                .setDebugFailures(converter.isDebugFailures())
-                .setDebugAllUntil(converter.getDebugAllUntil())
-                .build();
+                .setAdditionalInfo(JacksonUtil.toString(converter.getAdditionalInfo()));
+        if (converter.getDebugSettings() != null) {
+            builder.setDebugSettings(JacksonUtil.toString(converter.getDebugSettings()));
+        }
+        return builder.build();
     }
 
     @Override

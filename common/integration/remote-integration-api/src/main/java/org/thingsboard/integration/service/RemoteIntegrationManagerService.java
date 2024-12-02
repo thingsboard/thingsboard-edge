@@ -64,6 +64,7 @@ import org.thingsboard.server.common.data.JavaSerDesUtil;
 import org.thingsboard.server.common.data.StringUtils;
 import org.thingsboard.server.common.data.converter.Converter;
 import org.thingsboard.server.common.data.converter.ConverterType;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.event.LifecycleEvent;
 import org.thingsboard.server.common.data.event.StatisticsEvent;
 import org.thingsboard.server.common.data.id.ConverterId;
@@ -345,8 +346,9 @@ public class RemoteIntegrationManagerService {
         converter.setTenantId(new TenantId(new UUID(converterProto.getTenantIdMSB(), converterProto.getTenantIdLSB())));
         converter.setName(converterProto.getName());
         converter.setType(converterType);
-        converter.setDebugFailures(converterProto.getDebugFailures());
-        converter.setDebugAllUntil(converterProto.getDebugAllUntil());
+        if (converterProto.hasDebugSettings()) {
+            converter.setDebugSettings(JacksonUtil.fromString(converterProto.getDebugSettings(), DebugSettings.class));
+        }
         converter.setConfiguration(JacksonUtil.toJsonNode(converterProto.getConfiguration()));
         converter.setAdditionalInfo(JacksonUtil.toJsonNode(converterProto.getAdditionalInfo()));
         return converter;
@@ -368,8 +370,11 @@ public class RemoteIntegrationManagerService {
         integration.setName(integrationConfigurationProto.getName());
         integration.setRoutingKey(integrationConfigurationProto.getRoutingKey());
         integration.setType(IntegrationType.valueOf(integrationConfigurationProto.getType()));
-        integration.setDebugFailures(integrationConfigurationProto.getDebugFailures());
-        integration.setDebugAllUntil(integrationConfigurationProto.getDebugAllUntil());
+
+        if (integrationConfigurationProto.hasDebugSettings()) {
+            integration.setDebugSettings(JacksonUtil.fromString(integrationConfigurationProto.getDebugSettings(), DebugSettings.class));
+        }
+
         integration.setRemote(true);
         integration.setSecret(routingSecret);
         integration.setConfiguration(JacksonUtil.toJsonNode(integrationConfigurationProto.getConfiguration()));

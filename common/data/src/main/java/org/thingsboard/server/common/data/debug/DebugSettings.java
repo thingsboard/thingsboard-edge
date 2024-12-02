@@ -32,10 +32,12 @@ package org.thingsboard.server.common.data.debug;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@EqualsAndHashCode
 public class DebugSettings {
 
     private static DebugSettings DEBUG_OFF = new DebugSettings(false, 0);

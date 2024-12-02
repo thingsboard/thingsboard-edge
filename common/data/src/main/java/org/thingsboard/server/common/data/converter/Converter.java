@@ -149,6 +149,7 @@ public class Converter extends BaseData<ConverterId> implements HasName, TenantE
         return debugMode;
     }
 
+    @Deprecated
     @Override
     public void setDebugMode(boolean debugMode) {
         this.debugMode = debugMode;

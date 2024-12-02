@@ -106,7 +106,7 @@ public class BaseIntegrationService extends CachedVersionedEntityService<Integra
         integrationValidator.validate(integration, Integration::getTenantId);
         TenantId tenantId = integration.getTenantId();
         try {
-            setDebugAllUntil(tenantId, integration, System.currentTimeMillis());
+            updateDebugSettings(tenantId, integration, System.currentTimeMillis());
             var result = integrationDao.save(tenantId, integration);
             publishEvictEvent(new IntegrationCacheEvictEvent(result.getId(), result));
             if (integration.getId() == null) {

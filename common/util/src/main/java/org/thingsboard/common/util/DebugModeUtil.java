@@ -60,7 +60,8 @@ public final class DebugModeUtil {
             return true;
         } else {
             var debugSettings = debugSettingsAware.getDebugSettings();
-            return debugSettings != null && debugSettings.isFailuresEnabled() && TbNodeConnectionType.FAILURE.equals(nodeConnection);
+            return debugSettings != null && debugSettings.isFailuresEnabled() &&
+                    (TbNodeConnectionType.FAILURE.equals(nodeConnection) || "ERROR".equals(nodeConnection) || "FAILURE".equals(nodeConnection));
         }
     }
 
@@ -70,7 +71,6 @@ public final class DebugModeUtil {
         } else {
             var debugSettings = debugSettingsAware.getDebugSettings();
             return debugSettings != null && nodeConnections != null && debugSettings.isFailuresEnabled() && nodeConnections.contains(TbNodeConnectionType.FAILURE);
-            // || "ERROR".equals(nodeConnectionOrStatus) || "FAILURE".equals(nodeConnectionOrStatus)
         }
     }
 
@@ -80,7 +80,6 @@ public final class DebugModeUtil {
         } else {
             var debugSettings = debugSettingsAware.getDebugSettings();
             return debugSettings != null && debugSettings.isFailuresEnabled();
-            // || "ERROR".equals(nodeConnectionOrStatus) || "FAILURE".equals(nodeConnectionOrStatus)
         }
     }
 

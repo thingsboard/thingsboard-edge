@@ -42,6 +42,7 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.Immutable;
 import org.thingsboard.common.util.JacksonUtil;
 import org.thingsboard.server.common.data.StringUtils;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.integration.Integration;
@@ -78,11 +79,8 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
     @Column(name = INTEGRATION_TYPE_PROPERTY)
     private IntegrationType type;
 
-    @Column(name = ModelConstants.DEBUG_FAILURES)
-    private boolean debugFailures;
-
-    @Column(name = ModelConstants.DEBUG__ALL_UNTIL)
-    private long debugAllUntil;
+    @Column(name = ModelConstants.DEBUG_SETTINGS)
+    private String debugSettings;
 
     @Column(name = INTEGRATION_ENABLED_PROPERTY)
     private Boolean enabled;
@@ -107,15 +105,14 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
     }
 
     public IntegrationInfoEntity(UUID id, Long createdTime, UUID tenantId, String name,
-                                 String type, boolean debugFailures, long debugAllUntil, Boolean enabled, Boolean isRemote,
+                                 String type, DebugSettings debugSettings, Boolean enabled, Boolean isRemote,
                                  Boolean allowCreateDevicesOrAssets, Boolean edgeTemplate, String stats, String status) {
         this.id = id;
         this.createdTime = createdTime;
         this.tenantId = tenantId;
         this.name = name;
         this.type = IntegrationType.valueOf(type);
-        this.debugFailures = debugFailures;
-        this.debugAllUntil = debugAllUntil;
+        this.debugSettings = JacksonUtil.toString(debugSettings);
         this.enabled = enabled;
         this.isRemote = isRemote;
         this.allowCreateDevicesOrAssets = allowCreateDevicesOrAssets;
@@ -134,8 +131,7 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         }
         this.name = integration.getName();
         this.type = integration.getType();
-        this.debugFailures = integration.isDebugFailures();
-        this.debugAllUntil = integration.getDebugAllUntil();
+        this.debugSettings = JacksonUtil.toString(debugSettings);
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
@@ -151,8 +147,7 @@ public class IntegrationInfoEntity extends BaseSqlEntity<IntegrationInfo> implem
         }
         integration.setName(name);
         integration.setType(type);
-        integration.setDebugFailures(debugFailures);
-        integration.setDebugAllUntil(debugAllUntil);
+        integration.setDebugSettings(JacksonUtil.fromString(debugSettings, DebugSettings.class));
         integration.setEnabled(enabled);
         integration.setRemote(isRemote);
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);

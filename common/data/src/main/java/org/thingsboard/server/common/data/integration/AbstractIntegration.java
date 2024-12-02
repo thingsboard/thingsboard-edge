@@ -133,6 +133,7 @@ public abstract class AbstractIntegration extends BaseData<IntegrationId> implem
         return debugMode;
     }
 
+    @Deprecated
     @Override
     public void setDebugMode(boolean debugMode) {
         this.debugMode = debugMode;

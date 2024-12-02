@@ -161,8 +161,7 @@ message IntegrationConfigurationProto {
   bool enabled = 11;
   int64 integrationIdMSB = 12;
   int64 integrationIdLSB = 13;
-  bool debugFailures = 14;
-  int64 debugAllUntil = 15;
+  optional string debugSettings = 14;
 }
 
 message UplinkProcessingResultProto {
@@ -180,8 +179,7 @@ message ConverterConfigurationProto {
   bool debugMode = 6 [deprecated = true];
   string configuration = 7;
   string additionalInfo = 8;
-  bool debugFailures = 9;
-  int64 debugAllUntil = 10;
+  optional string debugSettings = 9;
 }
 
 /**
@@ -243,8 +241,7 @@ message IntegrationProto {
   optional int64 externalIdMSB = 21;
   optional int64 externalIdLSB = 22;
   optional int64 version = 23;
-  bool debugFailures = 24;
-  int64 debugAllUntil = 25;
+  optional string debugSettings = 24;
 }
 
 message ConverterProto {
@@ -262,8 +259,7 @@ message ConverterProto {
   optional int64 externalIdMSB = 12;
   optional int64 externalIdLSB = 13;
   optional int64 version = 14;
-  bool debugFailures = 15;
-  int64 debugAllUntil = 16;
+  optional string debugSettings = 15;
 }
 
 message IntegrationInfoListRequestProto {

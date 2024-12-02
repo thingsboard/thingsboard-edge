@@ -155,7 +155,7 @@ public class MqttIntegrationTest extends AbstractIntegrationTest {
                 .secret(SECRET_KEY)
                 .isRemote(false)
                 .enabled(true)
-                .debugAll(true)
+                .debugSettings(DebugSettings.until(System.currentTimeMillis()+TimeUnit.MINUTES.toMillis(15)))
                 .allowCreateDevicesOrAssets(true)
                 .build();
 
