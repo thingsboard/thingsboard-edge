@@ -36,7 +36,7 @@ import { ContentType } from '@shared/models/constants';
 import { ActivatedRouteSnapshot } from '@angular/router';
 import { IntegrationType } from '@shared/models/integration.models';
 import { ScriptLanguage } from '@shared/models/rule-node.models';
-import { HasDebugConfig } from '@shared/models/entity.models';
+import { HasDebugSettings } from '@shared/models/entity.models';
 
 export enum ConverterType {
   UPLINK = 'UPLINK',
@@ -76,7 +76,7 @@ export const converterTypeTranslationMap = new Map<ConverterType, string>(
   ]
 );
 
-export interface Converter extends BaseData<ConverterId>, ExportableEntity<ConverterId>, HasDebugConfig {
+export interface Converter extends BaseData<ConverterId>, ExportableEntity<ConverterId>, HasDebugSettings {
   tenantId?: TenantId;
   name: string;
   type: ConverterType;

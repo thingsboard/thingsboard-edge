@@ -68,13 +68,10 @@
               {{ 'integration.name-max-length' | translate }}
             </mat-error>
           </mat-form-field>
-          <tb-debug-config-button
+          <tb-debug-settings-button
             class="flex items-center mb-5"
-            [debugAll]="integrationWizardForm.get('debugAll').value"
-            [debugFailures]="integrationWizardForm.get('debugFailures').value"
-            [debugAllUntil]="integrationWizardForm.get('debugAllUntil').value"
+            formControlName="debugSettings"
             [debugLimitsConfiguration]="integrationDebugPerTenantLimitsConfiguration"
-            (onDebugConfigChanged)="onDebugConfigChanged($event)"
           />
         </div>
         <div class="row flex flex-col gap-2">

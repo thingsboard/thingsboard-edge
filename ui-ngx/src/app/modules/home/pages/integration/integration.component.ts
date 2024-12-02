@@ -47,7 +47,6 @@ import { isDefined } from '@core/utils';
 import { ConverterType } from '@shared/models/converter.models';
 import { IntegrationService } from '@core/http/integration.service';
 import { PageLink } from '@shared/models/page/page-link';
-import { HasDebugConfig } from '@shared/models/entity.models';
 import { getCurrentAuthState } from '@core/auth/auth.selectors';
 
 @Component({
@@ -96,9 +95,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
         name: [entity ? entity.name : '', [Validators.required, Validators.maxLength(255), Validators.pattern(/(?:.|\s)*\S(&:.|\s)*/)]],
         type: [{value: this.integrationType, disabled: true}, [Validators.required]],
         enabled: [isDefined(entity?.enabled) ? entity.enabled : true],
-        debugAll: [entity?.debugAll ?? true],
-        debugFailures: [entity?.debugFailures ?? false],
-        debugAllUntil: [entity?.debugAllUntil ?? 0],
+        debugSettings: [entity?.debugSettings ?? null],
         allowCreateDevicesOrAssets: [entity && isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true],
         defaultConverterId: [entity ? entity.defaultConverterId : null, [Validators.required]],
         downlinkConverterId: [entity ? entity.downlinkConverterId : null, []],
@@ -124,13 +121,6 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
       this.entityForm.get('routingKey').disable({ emitEvent: false });
       this.entityForm.get('secret').disable({ emitEvent: false });
     }
-  }
-
-  onDebugConfigChanged(config: HasDebugConfig): void {
-    this.entityForm.get('debugAllUntil').setValue(config.debugAllUntil);
-    this.entityForm.get('debugAll').setValue(config.debugAll);
-    this.entityForm.get('debugFailures').setValue(config.debugFailures);
-    this.entityForm.markAsDirty();
   }
 
   private checkIsRemote(form: UntypedFormGroup) {
@@ -174,9 +164,7 @@ export class IntegrationComponent extends EntityComponent<Integration, PageLink,
       name: entity.name,
       type: entity.type,
       enabled: isDefined(entity.enabled) ? entity.enabled : true,
-      debugAll: entity?.debugAll ?? true,
-      debugFailures: entity?.debugFailures ?? false,
-      debugAllUntil: entity?.debugAllUntil ?? 0,
+      debugSettings: entity?.debugSettings ?? null,
       allowCreateDevicesOrAssets: isDefined(entity.allowCreateDevicesOrAssets) ? entity.allowCreateDevicesOrAssets : true,
       defaultConverterId: entity.defaultConverterId,
       downlinkConverterId: entity.downlinkConverterId,

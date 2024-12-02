@@ -74,14 +74,10 @@
             {{ 'converter.name-max-length' | translate }}
           </mat-error>
         </mat-form-field>
-        <tb-debug-config-button
+        <tb-debug-settings-button
           class="flex items-center mb-5"
-          [debugAll]="entityForm.get('debugAll').value"
-          [debugFailures]="entityForm.get('debugFailures').value"
-          [debugAllUntil]="entityForm.get('debugAllUntil').value"
+          formControlName="debugSettings"
           [debugLimitsConfiguration]="converterDebugPerTenantLimitsConfiguration"
-          [disabled]="entityForm.get('debugAll').disabled"
-          (onDebugConfigChanged)="onDebugConfigChanged($event)"
         />
       </div>
       <mat-form-field class="mat-block" *ngIf="!hideType">

@@ -67,14 +67,10 @@
         <tb-integration-type-select formControlName="type" required class="flex-1">
         </tb-integration-type-select>
       </div>
-      <tb-debug-config-button
+      <tb-debug-settings-button
         class="flex items-center mb-5"
-        [debugAll]="entityForm.get('debugAll').value"
-        [debugFailures]="entityForm.get('debugFailures').value"
-        [debugAllUntil]="entityForm.get('debugAllUntil').value"
+        formControlName="debugSettings"
         [debugLimitsConfiguration]="integrationDebugPerTenantLimitsConfiguration"
-        (onDebugConfigChanged)="onDebugConfigChanged($event)"
-        [disabled]="entityForm.get('debugAll').disabled"
       />
     </div>
     <div class="row flex flex-col gap-2">
