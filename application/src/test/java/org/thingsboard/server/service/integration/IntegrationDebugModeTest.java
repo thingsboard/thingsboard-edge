@@ -192,7 +192,7 @@ public class IntegrationDebugModeTest {
 
         // GIVEN
         Mockito.clearInvocations(context);
-        configuration.setDebugSettings(DebugSettings.off());
+        configuration.setDebugSettings(DebugSettings.failures());
 
         // WHEN
         integration.persistFailure();
