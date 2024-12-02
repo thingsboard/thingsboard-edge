@@ -1340,6 +1340,11 @@ const menuFilters = new Map<MenuId, MenuFilter>([
             userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)
   ],
   [
+    MenuId.javascript_library, (authState, userPermissionsService) =>
+            authState.authUser.authority === Authority.TENANT_ADMIN &&
+            userPermissionsService.hasReadGenericPermission(Resource.TB_RESOURCE)
+  ],
+  [
     MenuId.notification_sent, (authState, userPermissionsService) =>
             authState.authUser.authority === Authority.TENANT_ADMIN &&
             userPermissionsService.hasReadGenericPermission(Resource.NOTIFICATION)
