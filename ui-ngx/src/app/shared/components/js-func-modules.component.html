@@ -1,0 +1,81 @@
+<!--
+
+    ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
+
+    Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
+
+    NOTICE: All information contained herein is, and remains
+    the property of ThingsBoard, Inc. and its suppliers,
+    if any.  The intellectual and technical concepts contained
+    herein are proprietary to ThingsBoard, Inc.
+    and its suppliers and may be covered by U.S. and Foreign Patents,
+    patents in process, and are protected by trade secret or copyright law.
+
+    Dissemination of this information or reproduction of this material is strictly forbidden
+    unless prior written permission is obtained from COMPANY.
+
+    Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
+    managers or contractors who have executed Confidentiality and Non-disclosure agreements
+    explicitly covering such access.
+
+    The copyright notice above does not evidence any actual or intended publication
+    or disclosure  of  this source code, which includes
+    information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
+    ANY REPRODUCTION, MODIFICATION, DISTRIBUTION, PUBLIC  PERFORMANCE,
+    OR PUBLIC DISPLAY OF OR THROUGH USE  OF THIS  SOURCE CODE  WITHOUT
+    THE EXPRESS WRITTEN CONSENT OF COMPANY IS STRICTLY PROHIBITED,
+    AND IN VIOLATION OF APPLICABLE LAWS AND INTERNATIONAL TREATIES.
+    THE RECEIPT OR POSSESSION OF THIS SOURCE CODE AND/OR RELATED INFORMATION
+    DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
+    OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
+
+-->
+<div class="tb-js-func-modules-panel">
+  <div class="tb-js-func-modules-panel-title" translate>js-func.modules</div>
+  <div class="tb-js-func-modules-panel-content">
+    <div class="tb-form-panel no-border no-padding tb-js-func-modules">
+      <div class="tb-form-table">
+        <div class="tb-form-table-header">
+          <div class="tb-form-table-header-cell tb-alias-header" translate>js-func.module-alias</div>
+          <div class="tb-form-table-header-cell tb-module-link-header" translate>js-func.module-resource</div>
+          <div class="tb-form-table-header-cell tb-actions-header"></div>
+        </div>
+        <div *ngIf="modulesFormArray().controls.length; else noModules" class="tb-form-table-body">
+          <div *ngFor="let moduleControl of modulesFormArray().controls; trackBy: trackByModule; let $index = index;">
+            <tb-js-func-module-row class="flex-1"
+                                   [index]="$index"
+                                   [formControl]="moduleControl"
+                                   (moduleRemoved)="removeModule($index)">
+            </tb-js-func-module-row>
+          </div>
+        </div>
+        <tb-error *ngIf="modulesFormGroup.hasError('moduleAliasNotUnique')"
+                  noMargin [error]="'js-func.not-unique-module-aliases-error' | translate" style="padding-left: 12px;"></tb-error>
+      </div>
+      <div>
+        <button type="button" mat-stroked-button color="primary" (click)="addModule()">
+          {{ 'js-func.add-module' | translate }}
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="tb-js-func-modules-panel-buttons">
+    <button mat-button
+            color="primary"
+            type="button"
+            (click)="cancel()">
+      {{ 'action.cancel' | translate }}
+    </button>
+    <button mat-raised-button
+            color="primary"
+            type="button"
+            (click)="applyModules()"
+            [disabled]="modulesFormGroup.invalid || !modulesFormGroup.dirty">
+      {{ 'action.apply' | translate }}
+    </button>
+  </div>
+</div>
+
+<ng-template #noModules>
+  <span class="tb-prompt flex items-center justify-center">{{ 'js-func.no-modules' | translate }}</span>
+</ng-template>

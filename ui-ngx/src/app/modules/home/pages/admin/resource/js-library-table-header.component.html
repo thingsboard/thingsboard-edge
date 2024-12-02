@@ -30,34 +30,16 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<mat-form-field [formGroup]="resourceFormGroup"
-                [class]="{'tb-inline-field': inlineField, 'flex': inlineField}"
-                class="mat-block"
-                [appearance]="inlineField ? 'outline' : appearance"
-                [hideRequiredMarker]="hideRequiredMarker"
-                [subscriptSizing]="inlineField ? 'dynamic' : subscriptSizing">
-  <input matInput type="text"
-         #resourceInput
-         formControlName="resource"
-         (focusin)="onFocus()"
-         [placeholder]="placeholder"
-         [required]="required"
-         [matAutocomplete]="entityAutocomplete"
-         [matAutocompleteDisabled]="!allowAutocomplete">
-  <button *ngIf="resourceFormGroup.get('resource').value && !disabled"
-          type="button"
-          matSuffix mat-icon-button aria-label="Clear"
-          (click)="clear()">
-    <mat-icon class="material-icons">close</mat-icon>
-  </button>
-  <mat-autocomplete class="tb-autocomplete"
-                    #entityAutocomplete="matAutocomplete"
-                    [displayWith]="displayResourceFn">
-    <mat-option *ngFor="let resource of filteredResources$ | async" [value]="resource">
-      <span [innerHTML]="resource.title | highlight:searchText"></span>
+<mat-form-field class="mat-block" subscriptSizing="dynamic">
+  <mat-label translate>javascript.javascript-type</mat-label>
+  <mat-select [ngModel]="entitiesTableConfig.componentsData.resourceSubType"
+              (ngModelChange)="jsResourceSubTypeChanged($event)"
+              placeholder="{{ 'javascript.javascript-type' | translate }}">
+    <mat-option value="">
+      {{ "javascript.all-types" | translate }}
     </mat-option>
-    <mat-option *ngIf="!(filteredResources$ | async)?.length" [value]="searchText">
-      {{ searchText }}
+    <mat-option *ngFor="let jsResourceSubType of jsResourceSubTypes" [value]="jsResourceSubType">
+      {{ resourceSubTypesTranslationMap.get(jsResourceSubType) | translate }}
     </mat-option>
-  </mat-autocomplete>
+  </mat-select>
 </mat-form-field>

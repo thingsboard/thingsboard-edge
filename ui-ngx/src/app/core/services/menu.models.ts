@@ -107,6 +107,7 @@ export enum MenuId {
   images = 'images',
   scada_symbols = 'scada_symbols',
   resources_library = 'resources_library',
+  javascript_library = 'javascript_library',
   notifications_center = 'notifications_center',
   notification_inbox = 'notification_inbox',
   notification_sent = 'notification_sent',
@@ -292,6 +293,16 @@ export const menuSectionMap = new Map<MenuId, MenuSection>([
       type: 'link',
       path: '/resources/resources-library',
       icon: 'mdi:rhombus-split'
+    }
+  ],
+  [
+    MenuId.javascript_library,
+    {
+      id: MenuId.javascript_library,
+      name: 'javascript.javascript-library',
+      type: 'link',
+      path: '/resources/javascript-library',
+      icon: 'mdi:language-javascript'
     }
   ],
   [
@@ -1465,6 +1476,7 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           },
           {id: MenuId.images},
           {id: MenuId.scada_symbols},
+          {id: MenuId.javascript_library},
           {id: MenuId.resources_library}
         ]
       },
@@ -1632,6 +1644,7 @@ export const defaultUserMenuMap = new Map<Authority, MenuReference[]>([
           },
           {id: MenuId.images},
           {id: MenuId.scada_symbols},
+          {id: MenuId.javascript_library},
           {id: MenuId.resources_library}
         ]
       },

@@ -70,6 +70,8 @@ import { StateObject, StateParams } from '@core/api/widget-api.models';
 import { ServicesMap } from '@home/models/services.map';
 import { AddGroupEntityDialogComponent } from '@home/components/group/add-group-entity-dialog.component';
 import { AddGroupEntityDialogData } from '@home/models/group/group-entity-component.models';
+import { compileTbFunction, isNotEmptyTbFunction } from '@shared/models/js-function.models';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable()
 export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
@@ -84,6 +86,7 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
               protected dialog: MatDialog,
               protected homeDialogs: HomeDialogsService,
               protected router: Router,
+              protected http: HttpClient,
               protected injector: Injector) {
   }
 
@@ -536,15 +539,23 @@ export class GroupConfigTableConfigService<T extends BaseData<HasId>> {
         break;
       case WidgetActionType.custom:
         const customFunction = descriptor.customFunction;
-        if (customFunction && customFunction.length > 0) {
-          try {
-            const customActionFunction = new Function('$event', '$injector', 'entityId',
-              'entityName', 'servicesMap', 'tableConfig', customFunction);
-            const tableConfig = config.getTable();
-            customActionFunction(event, this.injector, entityId, entityName, ServicesMap, tableConfig);
-          } catch (e) {
-            console.error(e);
-          }
+        if (isNotEmptyTbFunction(customFunction)) {
+          compileTbFunction(this.http, customFunction, '$event', '$injector', 'entityId',
+            'entityName', 'servicesMap', 'tableConfig').subscribe(
+            {
+              next: (compiled) => {
+                try {
+                  const tableConfig = config.getTable();
+                  compiled.execute(event, this.injector, entityId, entityName, ServicesMap, tableConfig);
+                } catch (e) {
+                  console.error(e);
+                }
+              },
+              error: (err) => {
+                console.error(err);
+              }
+            }
+          )
         }
         break;
     }
