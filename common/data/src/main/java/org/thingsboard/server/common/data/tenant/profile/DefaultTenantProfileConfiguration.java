@@ -197,6 +197,7 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
             case USER -> maxUsers;
             case DASHBOARD -> maxDashboards;
             case RULE_CHAIN -> maxRuleChains;
+            case EDGE -> maxEdges;
             case INTEGRATION -> maxIntegrations;
             case CONVERTER -> maxConverters;
             case SCHEDULER_EVENT -> maxSchedulerEvents;
