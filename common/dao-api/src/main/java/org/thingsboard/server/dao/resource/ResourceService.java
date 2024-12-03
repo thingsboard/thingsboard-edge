@@ -37,6 +37,7 @@ import org.thingsboard.server.common.data.ResourceType;
 import org.thingsboard.server.common.data.TbResource;
 import org.thingsboard.server.common.data.TbResourceInfo;
 import org.thingsboard.server.common.data.TbResourceInfoFilter;
+import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.CustomerId;
 import org.thingsboard.server.common.data.id.TbResourceId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -96,13 +97,15 @@ public interface ResourceService extends EntityDaoService {
 
     TbResourceInfo findSystemOrTenantResourceByEtag(TenantId tenantId, ResourceType resourceType, String etag);
 
-    boolean updateResourcesUsage(Dashboard dashboard);
+    boolean updateResourcesUsage(TenantId tenantId, Dashboard dashboard);
 
-    boolean updateResourcesUsage(WidgetTypeDetails widgetTypeDetails);
+    boolean updateResourcesUsage(TenantId tenantId, WidgetTypeDetails widgetTypeDetails);
 
-    Collection<TbResourceInfo> getUsedResources(Dashboard dashboard);
+    Collection<TbResourceInfo> getUsedResources(TenantId tenantId, Dashboard dashboard);
 
-    Collection<TbResourceInfo> getUsedResources(WidgetTypeDetails widgetTypeDetails);
+    Collection<TbResourceInfo> getUsedResources(TenantId tenantId, WidgetTypeDetails widgetTypeDetails);
+
+//    Collection<TbResourceInfo> getUsedResources(TenantId tenantId, EntityGroup entityGroup);
 
     TbResource createOrUpdateSystemResource(ResourceType resourceType, String resourceKey, byte[] data);
 

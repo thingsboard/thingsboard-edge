@@ -114,14 +114,15 @@ public class WidgetTypeServiceImpl implements WidgetTypeService {
         log.trace("Executing saveWidgetType [{}]", widgetTypeDetails);
         widgetTypeValidator.validate(widgetTypeDetails, WidgetType::getTenantId);
         try {
+            TenantId tenantId = widgetTypeDetails.getTenantId();
             if (CollectionUtils.isNotEmpty(widgetTypeDetails.getResources())) {
-                resourceService.importResources(widgetTypeDetails.getTenantId(), null, widgetTypeDetails.getResources());
+                resourceService.importResources(tenantId, null, widgetTypeDetails.getResources());
             }
             imageService.updateImagesUsage(widgetTypeDetails);
-            resourceService.updateResourcesUsage(widgetTypeDetails);
+            resourceService.updateResourcesUsage(tenantId, widgetTypeDetails);
 
-            WidgetTypeDetails result = widgetTypeDao.save(widgetTypeDetails.getTenantId(), widgetTypeDetails);
-            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(result.getTenantId())
+            WidgetTypeDetails result = widgetTypeDao.save(tenantId, widgetTypeDetails);
+            eventPublisher.publishEvent(SaveEntityEvent.builder().tenantId(tenantId)
                     .entityId(result.getId()).created(widgetTypeDetails.getId() == null).build());
             return result;
         } catch (Exception t) {
