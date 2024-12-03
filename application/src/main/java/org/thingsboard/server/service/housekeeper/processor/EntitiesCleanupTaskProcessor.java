@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.TenantProfile;
 import org.thingsboard.server.common.data.housekeeper.EntitiesCleanupHousekeeperTask;
@@ -51,7 +51,6 @@ import org.thingsboard.server.dao.tenant.TenantProfileService;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -73,7 +72,7 @@ public class EntitiesCleanupTaskProcessor extends HousekeeperTaskProcessor<Entit
 
     @PostConstruct
     public void init() {
-        executor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("housekeeper-scheduler-" + getTaskType().name()));
+        executor = ThingsBoardExecutors.newSingleThreadScheduledExecutor("housekeeper-scheduler-" + getTaskType().name());
         for (EntityType entityType : typesWithTtl) {
             executor.scheduleAtFixedRate(() ->
                     housekeeperClient.submitTask(new EntitiesCleanupHousekeeperTask(entityType)), frequency, frequency, TimeUnit.SECONDS);

@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.stereotype.Service;
-import org.thingsboard.common.util.ThingsBoardThreadFactory;
+import org.thingsboard.common.util.ThingsBoardExecutors;
 import org.thingsboard.server.common.data.Customer;
 import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.edge.Edge;
@@ -56,7 +56,6 @@ import org.thingsboard.server.queue.util.TbCoreComponent;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -84,7 +83,7 @@ public class DefaultCustomersHierarchyEdgeService implements CustomersHierarchyE
 
     @PostConstruct
     private void init() {
-        scheduledExecutor = Executors.newSingleThreadScheduledExecutor(ThingsBoardThreadFactory.forName("edge-customers-hierarchy"));
+        scheduledExecutor = ThingsBoardExecutors.newSingleThreadScheduledExecutor("edge-customers-hierarchy");
     }
 
     @AfterStartUp(order = AfterStartUp.REGULAR_SERVICE)
