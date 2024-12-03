@@ -31,7 +31,7 @@
 package org.thingsboard.integration.mqtt;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.ContentType;
 
 /**
  * Created by ashvayka on 04.12.17.
@@ -42,5 +42,5 @@ public interface MqttIntegrationMsg {
 
     JsonNode toJson();
 
-    UplinkContentType getContentType();
+    ContentType getContentType();
 }

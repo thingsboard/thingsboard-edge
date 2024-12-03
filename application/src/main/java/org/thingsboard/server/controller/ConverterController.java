@@ -55,7 +55,7 @@ import org.thingsboard.integration.api.converter.AbstractDownlinkDataConverter;
 import org.thingsboard.integration.api.converter.ScriptDownlinkEvaluator;
 import org.thingsboard.integration.api.converter.ScriptUplinkEvaluator;
 import org.thingsboard.integration.api.data.IntegrationMetaData;
-import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.ContentType;
 import org.thingsboard.integration.api.data.UplinkMetaData;
 import org.thingsboard.script.api.ScriptInvokeService;
 import org.thingsboard.script.api.js.JsInvokeService;
@@ -298,7 +298,7 @@ public class ConverterController extends AutoCommitController {
 
         debugIn.put("inMetadata", JacksonUtil.toString(metadata));
         debugIn.put("inContent", inContent);
-        debugIn.put("inContentType", UplinkContentType.JSON.name());
+        debugIn.put("inContentType", ContentType.JSON.name());
 
         return debugIn.isEmpty() ? null : debugIn;
     }
@@ -388,7 +388,7 @@ public class ConverterController extends AutoCommitController {
 
         Map<String, String> metadataMap = JacksonUtil.convertValue(metadata, new TypeReference<>() {
         });
-        UplinkMetaData uplinkMetaData = new UplinkMetaData(UplinkContentType.JSON, metadataMap);
+        UplinkMetaData uplinkMetaData = new UplinkMetaData(ContentType.JSON, metadataMap);
 
         String output = "";
         String errorText = "";

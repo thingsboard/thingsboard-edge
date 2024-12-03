@@ -39,6 +39,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.thingsboard.common.util.JacksonUtil;
+import org.thingsboard.server.common.data.debug.DebugSettings;
 import org.thingsboard.server.common.data.id.ConverterId;
 import org.thingsboard.server.common.data.id.IntegrationId;
 import org.thingsboard.server.common.data.id.TenantId;
@@ -53,7 +55,6 @@ import java.util.UUID;
 import static org.thingsboard.server.dao.model.ModelConstants.EXTERNAL_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ALLOW_CREATE_DEVICES_OR_ASSETS;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_CONVERTER_ID_PROPERTY;
-import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DEBUG_MODE_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_DOWNLINK_CONVERTER_ID_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_ENABLED_PROPERTY;
 import static org.thingsboard.server.dao.model.ModelConstants.INTEGRATION_IS_REMOTE_PROPERTY;
@@ -92,8 +93,8 @@ public class IntegrationEntity extends BaseVersionedEntity<Integration> {
     @Column(name = INTEGRATION_TYPE_PROPERTY)
     private IntegrationType type;
 
-    @Column(name = INTEGRATION_DEBUG_MODE_PROPERTY)
-    private boolean debugMode;
+    @Column(name = ModelConstants.DEBUG_SETTINGS)
+    private String debugSettings;
 
     @Column(name = INTEGRATION_ENABLED_PROPERTY)
     private Boolean enabled;
@@ -137,7 +138,7 @@ public class IntegrationEntity extends BaseVersionedEntity<Integration> {
         this.routingKey = integration.getRoutingKey();
         this.secret = integration.getSecret();
         this.type = integration.getType();
-        this.debugMode = integration.isDebugMode();
+        this.debugSettings = JacksonUtil.toString(integration.getDebugSettings());
         this.enabled = integration.isEnabled();
         this.isRemote = integration.isRemote();
         this.allowCreateDevicesOrAssets = integration.isAllowCreateDevicesOrAssets();
@@ -167,7 +168,7 @@ public class IntegrationEntity extends BaseVersionedEntity<Integration> {
         integration.setRoutingKey(routingKey);
         integration.setSecret(secret);
         integration.setType(type);
-        integration.setDebugMode(debugMode);
+        integration.setDebugSettings(JacksonUtil.fromString(debugSettings, DebugSettings.class));
         integration.setEnabled(enabled);
         integration.setRemote(isRemote);
         integration.setAllowCreateDevicesOrAssets(allowCreateDevicesOrAssets);

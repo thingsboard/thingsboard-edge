@@ -32,7 +32,7 @@ package org.thingsboard.integration.api.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
-import org.thingsboard.integration.api.data.UplinkContentType;
+import org.thingsboard.integration.api.data.ContentType;
 
 import java.util.Map;
 
@@ -43,8 +43,8 @@ public class StringHttpIntegrationMsg extends HttpIntegrationMsg<String> {
     }
 
     @Override
-    public UplinkContentType getContentType() {
-        return UplinkContentType.TEXT;
+    public ContentType getContentType() {
+        return ContentType.TEXT;
     }
 
     @Override

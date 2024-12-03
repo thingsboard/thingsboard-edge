@@ -57,22 +57,26 @@
         </ng-template>
         <tb-integration-type-select formControlName="type" required class="flex-1">
         </tb-integration-type-select>
-        <mat-form-field class="mat-block flex-1">
-          <mat-label translate>integration.name</mat-label>
-          <input matInput formControlName="name" required>
-          <mat-error *ngIf="integrationWizardForm.get('name').hasError('required') || integrationWizardForm.get('name').hasError('pattern')">
-            {{ 'integration.name-required' | translate }}
-          </mat-error>
-          <mat-error *ngIf="integrationWizardForm.get('name').hasError('maxlength')">
-            {{ 'integration.name-max-length' | translate }}
-          </mat-error>
-        </mat-form-field>
+        <div class="flex gap-2">
+          <mat-form-field class="flex-1">
+            <mat-label translate>integration.name</mat-label>
+            <input matInput formControlName="name" required>
+            <mat-error *ngIf="integrationWizardForm.get('name').hasError('required') || integrationWizardForm.get('name').hasError('pattern')">
+              {{ 'integration.name-required' | translate }}
+            </mat-error>
+            <mat-error *ngIf="integrationWizardForm.get('name').hasError('maxlength')">
+              {{ 'integration.name-max-length' | translate }}
+            </mat-error>
+          </mat-form-field>
+          <tb-debug-settings-button
+            class="mb-5 flex items-center"
+            formControlName="debugSettings"
+            [debugLimitsConfiguration]="integrationDebugPerTenantLimitsConfiguration"
+          />
+        </div>
         <div class="row flex flex-col gap-2">
           <mat-slide-toggle formControlName="enabled">
             {{ 'integration.enabled' | translate }}
-          </mat-slide-toggle>
-          <mat-slide-toggle formControlName="debugMode">
-            {{ 'integration.debug-mode' | translate }}
           </mat-slide-toggle>
           <mat-slide-toggle formControlName="allowCreateDevicesOrAssets">
             {{ 'integration.allow-create-devices-or-assets' | translate }}

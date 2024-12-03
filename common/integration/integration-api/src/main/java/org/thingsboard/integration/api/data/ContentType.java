@@ -30,7 +30,7 @@
  */
 package org.thingsboard.integration.api.data;
 
-public enum UplinkContentType {
+public enum ContentType {
 
     JSON, TEXT, BINARY
 
