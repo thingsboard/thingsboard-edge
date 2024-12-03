@@ -437,6 +437,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     WidgetsBundleSearchComponent,
     CopyButtonComponent,
     TogglePasswordComponent,
+    WidgetButtonToggleComponent,
     ProtobufContentComponent,
     BranchAutocompleteComponent,
     CountryAutocompleteComponent,
@@ -475,7 +476,6 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     EmbedImageDialogComponent,
     ImageGalleryDialogComponent,
     WidgetButtonComponent,
-    WidgetButtonToggleComponent,
     HexInputComponent,
     ScadaSymbolInputComponent,
     CustomMenuAutocompleteComponent
@@ -715,6 +715,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     WidgetsBundleSearchComponent,
     CopyButtonComponent,
     TogglePasswordComponent,
+    WidgetButtonToggleComponent,
     ProtobufContentComponent,
     BranchAutocompleteComponent,
     CountryAutocompleteComponent,
@@ -754,8 +755,7 @@ export function MarkedOptionsFactory(markedOptionsService: MarkedOptionsService)
     ImageGalleryDialogComponent,
     WidgetButtonComponent,
     ScadaSymbolInputComponent,
-    CustomMenuAutocompleteComponent,
-    WidgetButtonToggleComponent
+    CustomMenuAutocompleteComponent
   ]
 })
 export class SharedModule { }
