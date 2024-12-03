@@ -119,6 +119,8 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
     private long maxDPStorageDays;
     @Schema(example = "50")
     private int maxRuleNodeExecutionsPerMessage;
+    @Schema(example = "15")
+    private int maxDebugModeDurationMinutes;
     @Schema(example = "0")
     private long maxEmails;
     @Schema(example = "true")
@@ -197,6 +199,7 @@ public class DefaultTenantProfileConfiguration implements TenantProfileConfigura
             case USER -> maxUsers;
             case DASHBOARD -> maxDashboards;
             case RULE_CHAIN -> maxRuleChains;
+            case EDGE -> maxEdges;
             case INTEGRATION -> maxIntegrations;
             case CONVERTER -> maxConverters;
             case SCHEDULER_EVENT -> maxSchedulerEvents;

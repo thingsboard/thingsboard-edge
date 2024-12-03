@@ -20,7 +20,8 @@
         },
         "type": "org.thingsboard.rule.engine.profile.TbDeviceProfileNode",
         "name": "Device Profile Node",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "persistAlarmRulesState": false,
           "fetchAlarmRulesStateOnStart": false
@@ -33,7 +34,8 @@
         },
         "type": "org.thingsboard.rule.engine.rpc.TbSendRPCRequestNode",
         "name": "RPC Call Request",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "timeoutInSeconds": 60
         }
@@ -45,7 +47,8 @@
         },
         "type": "org.thingsboard.rule.engine.filter.TbMsgTypeSwitchNode",
         "name": "Message Type Switch",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "version": 0
         }
@@ -57,7 +60,8 @@
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgAttributesNode",
         "name": "Save Client Attributes",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "scope": "CLIENT_SCOPE"
         }
@@ -70,7 +74,8 @@
         },
         "type": "org.thingsboard.rule.engine.telemetry.TbMsgTimeseriesNode",
         "name": "Save Timeseries",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "defaultTTL": 0
         }
@@ -83,7 +88,8 @@
         },
         "type": "org.thingsboard.rule.engine.metadata.CalculateDeltaNode",
         "name": "Calculate Consumption Based on Pulse Counter",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "inputValueKey": "pulseCounter",
           "outputValueKey": "meterReadingDelta",
@@ -103,7 +109,8 @@
         },
         "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
         "name": "Calculate Weekly Consumption",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "inputValueKey": "meterReadingDelta",
           "outputValueKey": "weeklyConsumption",
@@ -139,7 +146,8 @@
         },
         "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
         "name": "Calculate Weekly Consumption",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "inputValueKey": "meterReadingDelta",
           "outputValueKey": "weeklyConsumption",
@@ -175,7 +183,8 @@
         },
         "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
         "name": "Calculate Daily Consumption",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "inputValueKey": "meterReadingDelta",
           "outputValueKey": "dailyConsumption",
@@ -211,7 +220,8 @@
         },
         "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
         "name": "Calculate Daily Consumption",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "inputValueKey": "meterReadingDelta",
           "outputValueKey": "dailyConsumption",
@@ -247,7 +257,8 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "To Tenant",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "originatorSource": "TENANT",
           "relationsQuery": {
@@ -271,7 +282,8 @@
         },
         "type": "org.thingsboard.rule.engine.transform.TbChangeOriginatorNode",
         "name": "To Customer",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "originatorSource": "CUSTOMER",
           "relationsQuery": {
@@ -295,7 +307,8 @@
         },
         "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
         "name": "Calculate Daily Consumption",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "inputValueKey": "meterReadingDelta",
           "outputValueKey": "dailyConsumption",
@@ -328,7 +341,8 @@
         },
         "type": "org.thingsboard.rule.engine.analytics.incoming.TbSimpleAggMsgNode",
         "name": "Calculate Weekly Consumption",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "inputValueKey": "meterReadingDelta",
           "outputValueKey": "weeklyConsumption",
@@ -361,7 +375,8 @@
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "Customer Alarm Routing",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "ruleChainId": "600cc4d0-831a-11eb-b965-d742151feed7"
         }
@@ -374,7 +389,8 @@
         },
         "type": "org.thingsboard.rule.engine.flow.TbRuleChainInputNode",
         "name": "Tenant Alarm Routing",
-        "debugMode": false,
+        "debugFailures": false,
+        "debugAll": false,
         "configuration": {
           "ruleChainId": "f989af30-8304-11eb-9c0d-65c02c160424"
         }
