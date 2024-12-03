@@ -124,9 +124,9 @@ public final class MergedUserPermissions implements Serializable {
         });
     }
 
-    // Immutable entityGroupIds brings a high complexity O(N^2 / 2).
+    // Immutable entityGroupIds brings a high complexity O(N^2 / 2) on copyOnAdd and O(N) on put permission to the hashmap
     // GroupIds list should be as small as possible to keep the performance.
-    // Most of the groupId is empty in most of the cases so problem expected
+    // Most of the groupId is empty in most of the cases so no problem expected
     <T> void addId(Map<T, MergedGroupTypePermissionInfo> permissions, T key, EntityGroupId id) {
         final MergedGroupTypePermissionInfo mergedGroupTypePermissionInfo = permissions.get(key);
         final MergedGroupTypePermissionInfo newInfo = mergedGroupTypePermissionInfo.addId(id);
