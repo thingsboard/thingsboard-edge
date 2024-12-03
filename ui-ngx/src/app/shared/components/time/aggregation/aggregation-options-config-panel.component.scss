@@ -28,25 +28,32 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../scss/constants';
-
 :host {
-  min-width: 300px;
-  display: block;
+  .tb-aggregation-options-form {
+    height: 100%;
+    max-width: 350px;
 
-  @media #{$mat-xs} {
-    min-width: 0;
-    width: 100%;
+    .tb-form-table {
+      overflow: hidden;
+    }
+
+    .tb-form-table-body {
+      overflow-y: auto;
+    }
+
+    .tb-form-hint {
+      flex-shrink: 0;
+    }
+
+    .mdc-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+
+      .mat-mdc-list-item.mdc-list-item--with-leading-checkbox.mdc-list-item--with-one-line {
+        height: 40px;
+      }
+    }
   }
 }
 
-:host ::ng-deep {
-   .mat-mdc-form-field-has-icon-suffix {
-     .mat-mdc-text-field-wrapper:has(.mat-mdc-form-field-icon-suffix:empty) {
-       padding-right: 12px;
-     }
-     .mat-mdc-form-field-icon-suffix:empty {
-       padding: 0;
-     }
-   }
- }

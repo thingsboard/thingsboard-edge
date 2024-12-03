@@ -28,25 +28,25 @@
  * DOES NOT CONVEY OR IMPLY ANY RIGHTS TO REPRODUCE, DISCLOSE OR DISTRIBUTE ITS CONTENTS,
  * OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
  */
-@import '../../../../scss/constants';
-
 :host {
-  min-width: 300px;
-  display: block;
-
-  @media #{$mat-xs} {
-    min-width: 0;
+  .mat-mdc-form-field {
     width: 100%;
   }
 }
 
 :host ::ng-deep {
-   .mat-mdc-form-field-has-icon-suffix {
-     .mat-mdc-text-field-wrapper:has(.mat-mdc-form-field-icon-suffix:empty) {
-       padding-right: 12px;
-     }
-     .mat-mdc-form-field-icon-suffix:empty {
-       padding: 0;
-     }
-   }
- }
+  .mat-mdc-form-field-infix {
+     width: 100%;
+  }
+  .mat-mdc-select-value {
+    min-width: 100px;
+  }
+  .mat-mdc-form-field-has-icon-suffix {
+    .mat-mdc-text-field-wrapper:has(.mat-mdc-form-field-icon-suffix:empty) {
+      padding-right: 12px;
+    }
+    .mat-mdc-form-field-icon-suffix:empty {
+      padding: 0;
+    }
+  }
+}

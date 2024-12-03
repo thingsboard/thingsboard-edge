@@ -30,16 +30,27 @@
     OR TO MANUFACTURE, USE, OR SELL ANYTHING THAT IT  MAY DESCRIBE, IN WHOLE OR IN PART.
 
 -->
-<section class="interval-section flex flex-1 flex-row" [formGroup]="quickIntervalFormGroup">
-  <mat-form-field class="flex-1" [subscriptSizing]="subscriptSizing" [appearance]="appearance">
-    <mat-label *ngIf="displayLabel" translate>timewindow.interval</mat-label>
-    <mat-select formControlName="interval">
-      <mat-option *ngFor="let interval of intervals" [value]="interval">
-        {{ timeIntervalTranslationMap.get(interval) | translate}}
+<section class="flex flex-1 flex-row gap-2" [formGroup]="timeintervalFormGroup">
+  <mat-form-field class="agg-interval flex flex-1" [class]="{'tb-inline-field': appearance === 'outline'}"
+                  [subscriptSizing]="subscriptSizing" [appearance]="appearance">
+    <mat-select formControlName="aggIntervals" multiple
+                placeholder="{{ 'timewindow.all' | translate }}">
+      <mat-select-trigger *ngIf="timeintervalFormGroup.get('aggIntervals').value?.length === allIntervals.length">
+        {{ 'timewindow.all' | translate }}
+      </mat-select-trigger>
+      <mat-option *ngFor="let interval of allIntervals" [value]="interval.value">
+        {{ interval.name | translate:interval.translateParams }}
       </mat-option>
     </mat-select>
-    <ng-container matSuffix>
-      <ng-content select="[matSuffix]"></ng-content>
-    </ng-container>
+  </mat-form-field>
+  <mat-form-field class="flex flex-1" [class]="{'tb-inline-field': appearance === 'outline'}"
+                  [subscriptSizing]="subscriptSizing" [appearance]="appearance">
+    <mat-select formControlName="defaultAggInterval"
+                placeholder="{{ 'action.set' | translate }}">
+      <mat-option>--</mat-option>
+      <mat-option *ngFor="let interval of selectedIntervals" [value]="interval.value">
+        {{ interval.name | translate:interval.translateParams }}
+      </mat-option>
+    </mat-select>
   </mat-form-field>
 </section>
