@@ -1,22 +1,22 @@
 /**
  * ThingsBoard, Inc. ("COMPANY") CONFIDENTIAL
- *
+ * <p>
  * Copyright © 2016-2024 ThingsBoard, Inc. All Rights Reserved.
- *
+ * <p>
  * NOTICE: All information contained herein is, and remains
  * the property of ThingsBoard, Inc. and its suppliers,
  * if any.  The intellectual and technical concepts contained
  * herein are proprietary to ThingsBoard, Inc.
  * and its suppliers and may be covered by U.S. and Foreign Patents,
  * patents in process, and are protected by trade secret or copyright law.
- *
+ * <p>
  * Dissemination of this information or reproduction of this material is strictly forbidden
  * unless prior written permission is obtained from COMPANY.
- *
+ * <p>
  * Access to the source code contained herein is hereby forbidden to anyone except current COMPANY employees,
  * managers or contractors who have executed Confidentiality and Non-disclosure agreements
  * explicitly covering such access.
- *
+ * <p>
  * The copyright notice above does not evidence any actual or intended publication
  * or disclosure  of  this source code, which includes
  * information that is confidential and/or proprietary, and is a trade secret, of  COMPANY.
@@ -47,6 +47,8 @@ import java.util.List;
 public class DefaultDatabaseSchemaSettingsService implements DatabaseSchemaSettingsService {
 
     private static final String CURRENT_PRODUCT = "PE";
+    // This list should include all versions which are compatible for the upgrade.
+    // The compatibility cycle usually breaks when we have some scripts written in Java that may not work after new release.
     private static final List<String> SUPPORTED_VERSIONS_FOR_UPGRADE = List.of("3.8.0", "3.8.1");
 
     private final BuildProperties buildProperties;
@@ -56,7 +58,7 @@ public class DefaultDatabaseSchemaSettingsService implements DatabaseSchemaSetti
     private String schemaVersionFromDb;
 
     @Override
-    public void validateSchemaSettings(boolean fromCE) {
+    public void validateSchemaSettings(boolean updateFromCE) {
         //TODO: remove after release (3.9.0)
         createProductIfNotExists();
 
@@ -67,28 +69,26 @@ public class DefaultDatabaseSchemaSettingsService implements DatabaseSchemaSetti
             return;
         }
 
-        if (fromCE) {
-            if (dbSchemaVersion.equals(getPackageSchemaVersion())) {
-                return;
-            } else {
+        if (updateFromCE) {
+            if (!dbSchemaVersion.equals(getPackageSchemaVersion())) {
                 onSchemaSettingsError("Upgrade failed: transitioning from CE to PE requires the database to first be upgraded to version '"
                         + getPackageSchemaVersion() + "' using ThingsBoard CE.");
             }
-        }
+        } else {
+            String product = getProductFromDb();
+            if (!CURRENT_PRODUCT.equals(product)) {
+                onSchemaSettingsError(String.format("Upgrade failed: can't upgrade ThingsBoard %s database using ThingsBoard %s.", product, CURRENT_PRODUCT));
+            }
 
-        String product = getProductFromDb();
-        if (!CURRENT_PRODUCT.equals(product)) {
-            onSchemaSettingsError(String.format("Upgrade failed: can't upgrade ThingsBoard %s database using ThingsBoard %s.", product, CURRENT_PRODUCT));
-        }
+            if (dbSchemaVersion.equals(getPackageSchemaVersion())) {
+                onSchemaSettingsError("Upgrade failed: database already upgraded to current version. You can set SKIP_SCHEMA_VERSION_CHECK to 'true' if force re-upgrade needed.");
+            }
 
-        if (dbSchemaVersion.equals(getPackageSchemaVersion())) {
-            onSchemaSettingsError("Upgrade failed: database already upgraded to current version. You can set SKIP_SCHEMA_VERSION_CHECK to 'true' if force re-upgrade needed.");
-        }
-
-        if (!SUPPORTED_VERSIONS_FOR_UPGRADE.contains(dbSchemaVersion)) {
-            onSchemaSettingsError(String.format("Upgrade failed: database version '%s' is not supported for upgrade. Supported versions are: %s.",
-                    dbSchemaVersion, SUPPORTED_VERSIONS_FOR_UPGRADE
-            ));
+            if (!SUPPORTED_VERSIONS_FOR_UPGRADE.contains(dbSchemaVersion)) {
+                onSchemaSettingsError(String.format("Upgrade failed: database version '%s' is not supported for upgrade. Supported versions are: %s.",
+                        dbSchemaVersion, SUPPORTED_VERSIONS_FOR_UPGRADE
+                ));
+            }
         }
     }
 
