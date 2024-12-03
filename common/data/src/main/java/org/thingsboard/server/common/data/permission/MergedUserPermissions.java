@@ -37,7 +37,6 @@ import org.thingsboard.server.common.data.group.EntityGroup;
 import org.thingsboard.server.common.data.id.EntityGroupId;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -125,13 +124,13 @@ public final class MergedUserPermissions implements Serializable {
         });
     }
 
-    <T> void addId(Map<T, MergedGroupTypePermissionInfo> permissions, T entityType, EntityGroupId id) {
-        MergedGroupTypePermissionInfo mergedGroupTypePermissionInfo = permissions.get(entityType);
-        if (mergedGroupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
-            mergedGroupTypePermissionInfo = new MergedGroupTypePermissionInfo(new ArrayList<>(), mergedGroupTypePermissionInfo.isHasGenericRead());
-            permissions.put(entityType, mergedGroupTypePermissionInfo);
-        }
-        mergedGroupTypePermissionInfo.getEntityGroupIds().add(id);
+    // Immutable entityGroupIds brings a high complexity O(N^2 / 2).
+    // GroupIds list should be as small as possible to keep the performance.
+    // Most of the groupId is empty in most of the cases so problem expected
+    <T> void addId(Map<T, MergedGroupTypePermissionInfo> permissions, T key, EntityGroupId id) {
+        final MergedGroupTypePermissionInfo mergedGroupTypePermissionInfo = permissions.get(key);
+        final MergedGroupTypePermissionInfo newInfo = mergedGroupTypePermissionInfo.addId(id);
+        permissions.put(key, newInfo);
     }
 
     public MergedGroupTypePermissionInfo getGroupPermissionsByEntityTypeAndOperation(EntityType entityType, Operation operation) {
