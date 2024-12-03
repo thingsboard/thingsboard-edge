@@ -41,16 +41,13 @@ var attributes = {};
 // --- attributes and telemetry objects ---
 
 // --- Timestamp parsing
-var dateString = new Date(data.time);
-var timestamp = dateString.getTime();
+var dateString = data.time;
+timestamp = parseDateToTimestamp(dateString);
 // --- Timestamp parsing
 
 // Passing incoming bytes to decodePayload function, to get custom decoding
 var customDecoding = decodePayload(base64ToBytes(data
 .data));
-
-
-attributes.eui = data.deviceInfo.devEui;
 
 // Collecting data to result
 if (customDecoding.?telemetry.size() > 0) {
@@ -120,6 +117,18 @@ function addAdditionalInfoForDeviceMsg(deviceInfo, customerName, groupName) {
     }
 }
 
+function parseDateToTimestamp(dateString) {
+    var date = new Date(dateString);
+    var timestamp = date.getTime();
+
+    // If we cannot parse timestamp - we will use the current timestamp
+    if (timestamp == -1) {
+        timestamp = Date.now();
+    }
+
+    return timestamp;
+}
+
 function getGatewayInfo() {
     var gatewayList = data.rxInfo;
     var maxRssi = Integer.MIN_VALUE;
@@ -136,11 +145,8 @@ function getGatewayInfo() {
 }
 
 function processTelemetryData(telemetry, addDataToTelemetry) {
-    if (telemetry.size > 1) {
-        telemetry = addDataToMultipleTelemetries(telemetry, addDataToTelemetry);
-    }
-    else if (telemetry.size == 1) {
-        telemetry = addDataToSingleTelemetry(telemetry, addDataToTelemetry);
+    if (telemetry.size >= 1) {
+        telemetry = addDataToTelemetries(telemetry, addDataToTelemetry);
     }
     else {
         telemetry.add(addDataToTelemetry);
@@ -149,25 +155,14 @@ function processTelemetryData(telemetry, addDataToTelemetry) {
     return telemetry;
 }
 
-function addDataToMultipleTelemetries(telemetry, addDataToTelemetry) {
-    foreach(element : addDataToTelemetry.entrySet()) {
-        if(!telemetry[0]["values"].keys.contains(element.key)) {
-            telemetry[0]["values"][element.key] = element.value;
-        }
-        if (!telemetry[1]["values"].keys.contains(element.key)) {
-            telemetry[1]["values"][element.key] = element.value;
-        }
-    }
-
-    return telemetry;
-}
-
-function addDataToSingleTelemetry(telemetry, addDataToTelemetry) {
-    foreach(element : addDataToTelemetry.entrySet()) {
-            if(!telemetry[0]["values"].keys.contains(element.key)) {
-                telemetry[0]["values"][element.key] = element.value;
+function addDataToTelemetries(telemetries, addDataToTelemetry) {
+    foreach(telemetry : telemetries) {
+        foreach(element : addDataToTelemetry.entrySet()) {
+            if(!telemetry["values"].keys.contains(element.key)) {
+                telemetry["values"][element.key] = element.value;
             }
+        }
     }
 
-    return telemetry;
+    return telemetries;
 }
