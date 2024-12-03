@@ -34,7 +34,13 @@ import { MarkerIconInfo, MarkerIconReadyFunction, MarkerImageInfo, WidgetMarkers
 import { bindPopupActions, createTooltip } from './maps-utils';
 import { loadImageWithAspect, parseWithTranslation } from './common-maps-utils';
 import tinycolor from 'tinycolor2';
-import { fillDataPattern, isDefined, isDefinedAndNotNull, processDataPattern, safeExecute } from '@core/utils';
+import {
+  fillDataPattern,
+  isDefined,
+  isDefinedAndNotNull,
+  processDataPattern,
+  safeExecuteTbFunction
+} from '@core/utils';
 import LeafletMap from './leaflet-map';
 import { FormattedData } from '@shared/models/widget.models';
 import { ImagePipe } from '@shared/pipe/image.pipe';
@@ -116,7 +122,7 @@ export class Marker {
     updateMarkerTooltip(data: FormattedData) {
       if (!this.map.markerTooltipText || this.settings.useTooltipFunction) {
         const pattern = this.settings.useTooltipFunction ?
-          safeExecute(this.settings.parsedTooltipFunction, [this.data, this.dataSources, this.data.dsIndex]) : this.settings.tooltipPattern;
+          safeExecuteTbFunction(this.settings.parsedTooltipFunction, [this.data, this.dataSources, this.data.dsIndex]) : this.settings.tooltipPattern;
         this.map.markerTooltipText = parseWithTranslation.prepareProcessPattern(pattern, true);
         this.map.replaceInfoTooltipMarker = processDataPattern(this.map.markerTooltipText, data);
       }
@@ -138,7 +144,7 @@ export class Marker {
         if (settings.showLabel) {
             if (!this.map.markerLabelText || settings.useLabelFunction) {
               const pattern = settings.useLabelFunction ?
-                safeExecute(settings.parsedLabelFunction, [this.data, this.dataSources, this.data.dsIndex]) : settings.label;
+                safeExecuteTbFunction(settings.parsedLabelFunction, [this.data, this.dataSources, this.data.dsIndex]) : settings.label;
               this.map.markerLabelText = parseWithTranslation.prepareProcessPattern(pattern, true);
               this.map.replaceInfoLabelMarker = processDataPattern(this.map.markerLabelText, this.data);
             }
@@ -180,11 +186,11 @@ export class Marker {
           return;
         }
         const currentImage: MarkerImageInfo = this.settings.useMarkerImageFunction ?
-            safeExecute(this.settings.parsedMarkerImageFunction,
+          safeExecuteTbFunction(this.settings.parsedMarkerImageFunction,
                 [this.data, this.settings.markerImages, this.dataSources, this.data.dsIndex]) : this.settings.currentImage;
         let currentColor = this.settings.tinyColor;
         if (this.settings.useColorFunction) {
-          const functionColor = safeExecute(this.settings.parsedColorFunction,
+          const functionColor = safeExecuteTbFunction(this.settings.parsedColorFunction,
             [this.data, this.dataSources, this.data.dsIndex]);
           if (isDefinedAndNotNull(functionColor)) {
             currentColor = tinycolor(functionColor);
