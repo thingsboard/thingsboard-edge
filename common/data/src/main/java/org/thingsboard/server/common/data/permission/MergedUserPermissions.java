@@ -44,32 +44,27 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Getter
 @Schema
 public final class MergedUserPermissions implements Serializable {
 
-    @Getter
     @Schema(description = "Map of permissions defined using generic roles ('Customer Administrator', etc)")
     private final Map<Resource, Set<Operation>> genericPermissions;
 
-    @Getter
     @Schema(description = "Map of permissions defined using group roles ('Read' or 'Write' access to specific entity group, etc)")
     private final Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions;
 
-    @Getter
     @Schema(description = "Map of read permissions per entity type. Used on the UI to enable/disable certain components.")
     private final Map<EntityType, MergedGroupTypePermissionInfo> readGroupPermissions;
 
-    @Getter
     @Schema(description = "Map of read permissions per resource. Used on the UI to enable/disable certain components.")
     private final Map<Resource, MergedGroupTypePermissionInfo> readEntityPermissions;
 
-    @Getter
     @Schema(description = "Map of read entity attributes permissions per resource. Used on the UI to enable/disable certain tabs.")
     private final Map<Resource, MergedGroupTypePermissionInfo> readAttrPermissions;
-    @Getter
+
     @Schema(description = "Map of read entity time-series permissions per resource. Used on the UI to enable/disable certain tabs.")
     private final Map<Resource, MergedGroupTypePermissionInfo> readTsPermissions;
-
 
     public MergedUserPermissions(Map<Resource, Set<Operation>> genericPermissions, Map<EntityGroupId, MergedGroupPermissionInfo> groupPermissions) {
         this.genericPermissions = genericPermissions;
@@ -130,16 +125,7 @@ public final class MergedUserPermissions implements Serializable {
         });
     }
 
-    void addId(Map<EntityType, MergedGroupTypePermissionInfo> permissions, EntityType entityType, EntityGroupId id) {
-        MergedGroupTypePermissionInfo mergedGroupTypePermissionInfo = permissions.get(entityType);
-        if (mergedGroupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
-            mergedGroupTypePermissionInfo = new MergedGroupTypePermissionInfo(new ArrayList<>(), mergedGroupTypePermissionInfo.isHasGenericRead());
-            permissions.put(entityType, mergedGroupTypePermissionInfo);
-        }
-        mergedGroupTypePermissionInfo.getEntityGroupIds().add(id);
-    }
-
-    void addId(Map<Resource, MergedGroupTypePermissionInfo> permissions, Resource entityType, EntityGroupId id) {
+    <T> void addId(Map<T, MergedGroupTypePermissionInfo> permissions, T entityType, EntityGroupId id) {
         MergedGroupTypePermissionInfo mergedGroupTypePermissionInfo = permissions.get(entityType);
         if (mergedGroupTypePermissionInfo.getEntityGroupIds().isEmpty()) {
             mergedGroupTypePermissionInfo = new MergedGroupTypePermissionInfo(new ArrayList<>(), mergedGroupTypePermissionInfo.isHasGenericRead());
