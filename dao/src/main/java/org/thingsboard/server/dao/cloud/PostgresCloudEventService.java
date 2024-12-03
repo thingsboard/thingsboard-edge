@@ -124,10 +124,4 @@ public class PostgresCloudEventService implements CloudEventService {
         throw new UnsupportedOperationException(METHOD_CANNOT_BE_USED_FOR_THIS_SERVICE);
     }
 
-    @Override
-    public void cleanupEvents(long ttl) {
-        cloudEventDao.cleanupEvents(ttl);
-        tsKvCloudEventDao.cleanupEvents(ttl);
-    }
-
 }

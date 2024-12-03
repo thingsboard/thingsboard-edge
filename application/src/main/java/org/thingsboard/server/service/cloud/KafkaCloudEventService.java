@@ -53,7 +53,6 @@ import static org.thingsboard.server.gen.transport.TransportProtos.ToCloudEventM
 @Slf4j
 @ConditionalOnExpression("'${queue.type:null}'=='kafka'")
 public class KafkaCloudEventService implements CloudEventService {
-    private static final String METHOD_CANNOT_BE_USED_FOR_THIS_SERVICE = "Method cannot be used for this service";
     private final DataValidator<CloudEvent> cloudEventValidator;
     private final TbQueueCloudEventSettings cloudEventSettings;
     private final TbQueueCloudEventTSSettings cloudEventTSSettings;
@@ -181,11 +180,6 @@ public class KafkaCloudEventService implements CloudEventService {
 
     private TbQueueConsumer<TbProtoQueueMsg<ToCloudEventMsg>> chooseConsumer(boolean isTS) {
         return isTS ? tbCloudEventProvider.getCloudEventTSMsgConsumer() : tbCloudEventProvider.getCloudEventMsgConsumer();
-    }
-
-    @Override
-    public void cleanupEvents(long ttl) {
-        throw new UnsupportedOperationException(METHOD_CANNOT_BE_USED_FOR_THIS_SERVICE);
     }
 
 }
